@@ -134,6 +134,9 @@ export default defineConfig({
       }
     }
   ],
+  optimizeDeps: {
+    exclude: ['@ffmpeg/ffmpeg', '@ffmpeg/util'],
+  },
   server: {
     watch: {
       ignored: ['**/src/data/**']

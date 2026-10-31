@@ -51,7 +51,24 @@ import { translateToFrench } from '../utils/translate';
 // @ts-ignore
 import { FFmpeg } from '@ffmpeg/ffmpeg';
 // @ts-ignore
-import { fetchFile, toBlobURL } from '@ffmpeg/util';
+import { fetchFile } from '@ffmpeg/util';
+
+const FFMPEG_CORE_CDNS = [
+    'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.9/dist/esm',
+    'https://unpkg.com/@ffmpeg/core@0.12.9/dist/esm',
+];
+
+const safeFetchToBlobURL = async (url: string, mimeType: string): Promise<string> => {
+    const resp = await fetch(url, { mode: 'cors' });
+    if (!resp.ok) {
+        throw new Error(`HTTP ${resp.status} sur ${url}`);
+    }
+    const buf = await resp.arrayBuffer();
+    if (buf.byteLength < 1024) {
+        throw new Error(`Réponse invalide (${buf.byteLength} octets) sur ${url}`);
+    }
+    return URL.createObjectURL(new Blob([buf], { type: mimeType }));
+};
 // @ts-ignore
 import { Muxer, ArrayBufferTarget } from 'mp4-muxer';
 
@@ -572,6 +589,59 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const promoOutroOverrideRef = useRef<boolean>(false);
     const transitionTargetRef = useRef<'SLIDE_1_TO_2' | 'SLIDE_2_TO_PROMO' | null>(null);
     const ffmpegRef = useRef<any>(null);
+    const ensureFFmpegLoaded = async (): Promise<any> => {
+        if (ffmpegRef.current && ffmpegRef.current.loaded) {
+            return ffmpegRef.current;
+        }
+        if (ffmpegRef.current) {
+            try { ffmpegRef.current.terminate(); } catch {}
+            ffmpegRef.current = null;
+        }
+
+        let lastErr: unknown = null;
+
+        // 1. Chargement direct via CDN HTTPS ESM (évite tout blocage CSP / navigateur sur import(blob:...))
+        for (const baseURL of FFMPEG_CORE_CDNS) {
+            const instance = new FFmpeg();
+            try {
+                await instance.load({
+                    coreURL: `${baseURL}/ffmpeg-core.js`,
+                    wasmURL: `${baseURL}/ffmpeg-core.wasm`,
+                });
+                ffmpegRef.current = instance;
+                return instance;
+            } catch (err) {
+                lastErr = err;
+                console.warn(`[FFmpeg] Chargement direct CDN échoué (${baseURL}) :`, err);
+                try { instance.terminate(); } catch {}
+            }
+        }
+
+        // 2. Fallback Blob URL vérifié (utile si environnement COEP strict)
+        for (const baseURL of FFMPEG_CORE_CDNS) {
+            const instance = new FFmpeg();
+            let coreBlobUrl = '';
+            let wasmBlobUrl = '';
+            try {
+                coreBlobUrl = await safeFetchToBlobURL(`${baseURL}/ffmpeg-core.js`, 'text/javascript');
+                wasmBlobUrl = await safeFetchToBlobURL(`${baseURL}/ffmpeg-core.wasm`, 'application/wasm');
+                await instance.load({
+                    coreURL: coreBlobUrl,
+                    wasmURL: wasmBlobUrl,
+                });
+                ffmpegRef.current = instance;
+                return instance;
+            } catch (err) {
+                lastErr = err;
+                console.warn(`[FFmpeg] Chargement Blob URL échoué (${baseURL}) :`, err);
+                try { instance.terminate(); } catch {}
+                if (coreBlobUrl) URL.revokeObjectURL(coreBlobUrl);
+                if (wasmBlobUrl) URL.revokeObjectURL(wasmBlobUrl);
+            }
+        }
+
+        throw lastErr instanceof Error ? lastErr : new Error(String(lastErr || 'Impossible de charger le moteur audio FFmpeg'));
+    };
     const audioCtxRef = useRef<AudioContext | null>(null);
     // On stocke la source et la dest pour ne pas rappeler createMediaElementSource
     // sur le même élément vidéo (lance un InvalidStateError si rappelé)
@@ -728,15 +798,323 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const previewAudioPlayerRef = useRef<{
         ctx: AudioContext;
         source: AudioBufferSourceNode | null;
+        htmlAudio: HTMLAudioElement | null;
+        stopTimer: any;
         startedAtCtx: number;
         offset: number;
         paused: boolean;
         src: string;
         readonly currentTime: number;
     } | null>(null);
+    const silentUnlockAudioRef = useRef<HTMLAudioElement | null>(null);
+    const isMobileAudioUnlockedRef = useRef<boolean>(false);
+    const [isPreviewingTextAnim, setIsPreviewingTextAnim] = useState<boolean>(false);
+    const previewAnimTimerRef = useRef<any>(null);
+    const pendingAnimResetRef = useRef<boolean>(false);
+    const canvasFilterBlurSupportedRef = useRef<boolean | null>(null);
+    const videoBlurCanvasARef = useRef<HTMLCanvasElement | null>(null);
+    const videoBlurCanvasBRef = useRef<HTMLCanvasElement | null>(null);
     const [activeAudioPreviewSrc, setActiveAudioPreviewSrc] = useState<string | null>(null);
     const [cdjPlayerRing, setCdjPlayerRing] = useState<boolean>(true); // Bague de progression 30s style Player CDJ Pioneer
     const [musicBgMotion, setMusicBgMotion] = useState<boolean>(true); // Mouvement organique doux en arrière-plan
+
+    /** Débloque la session audio iOS/Android (contourne le bouton Silencieux iPhone via audioSession='playback') */
+    const unlockMobileAudioSession = (targetCtx?: AudioContext | null) => {
+        try {
+            if (typeof navigator !== 'undefined' && (navigator as any).audioSession) {
+                try {
+                    (navigator as any).audioSession.type = 'playback';
+                } catch (_) {}
+            }
+            if (!isMobileAudioUnlockedRef.current && typeof document !== 'undefined') {
+                if (!silentUnlockAudioRef.current) {
+                    const silentEl = document.createElement('audio');
+                    silentEl.setAttribute('playsinline', 'true');
+                    (silentEl as any).playsInline = true;
+                    silentEl.preload = 'auto';
+                    silentEl.volume = 0.01;
+                    // Micro WAV PCM muet valide (1 échantillon) pour forcer la catégorie AVAudioSessionPlayback sur iOS < 17
+                    silentEl.src = 'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA';
+                    silentUnlockAudioRef.current = silentEl;
+                }
+                const p = silentUnlockAudioRef.current.play();
+                if (p && typeof p.then === 'function') {
+                    p.then(() => { isMobileAudioUnlockedRef.current = true; }).catch(() => {});
+                }
+            }
+            const ctx = targetCtx || previewAudioPlayerRef.current?.ctx || audioCtxRef.current;
+            if (ctx) {
+                if (ctx.state === 'suspended') {
+                    ctx.resume().catch(() => {});
+                }
+                // Impulsion silencieuse synchrone dans le geste utilisateur (obligatoire sur Safari iOS avant un await réseau)
+                const silentBuf = ctx.createBuffer(1, 1, 22050);
+                const silentSrc = ctx.createBufferSource();
+                silentSrc.buffer = silentBuf;
+                silentSrc.connect(ctx.destination);
+                silentSrc.start(0);
+            }
+        } catch (_) {}
+    };
+
+    /** Détecte si le navigateur supporte réellement ctx.filter = 'blur(...)' (non supporté sur iOS Safari / WebKit < 18) */
+    const supportsCanvasFilterBlur = (): boolean => {
+        if (canvasFilterBlurSupportedRef.current !== null) return canvasFilterBlurSupportedRef.current;
+        try {
+            const testCanvas = document.createElement('canvas');
+            testCanvas.width = 9;
+            testCanvas.height = 9;
+            const tCtx = testCanvas.getContext('2d', { willReadFrequently: true });
+            if (!tCtx || typeof tCtx.filter === 'undefined') {
+                canvasFilterBlurSupportedRef.current = false;
+                return false;
+            }
+            tCtx.filter = 'blur(2px)';
+            tCtx.fillStyle = '#ffffff';
+            tCtx.fillRect(4, 4, 1, 1);
+            const neighborAlpha = tCtx.getImageData(2, 4, 1, 1).data[3];
+            canvasFilterBlurSupportedRef.current = neighborAlpha > 0;
+            return canvasFilterBlurSupportedRef.current;
+        } catch {
+            canvasFilterBlurSupportedRef.current = false;
+            return false;
+        }
+    };
+
+    /** Flou Gaussien 3-passes séparable (O(W*H)) + luminosité pour iOS/WebKit (rendu identique à CSS blur() PC) */
+    const applySoftwareGaussianBlurAndBrightness = (
+        ctx: CanvasRenderingContext2D,
+        w: number,
+        h: number,
+        radius: number,
+        brightness: number
+    ): boolean => {
+        try {
+            const imgData = ctx.getImageData(0, 0, w, h);
+            const data = imgData.data;
+            const src = new Uint8ClampedArray(data.length);
+            const dst = new Uint8ClampedArray(data.length);
+            src.set(data);
+
+            const r = Math.max(1, Math.min(48, Math.round(radius)));
+            const div = r * 2 + 1;
+
+            // 3 passes Box Blur séparables (Horizontal + Vertical) = approximation exacte du flou Gaussien
+            for (let pass = 0; pass < 3; pass++) {
+                // Passe horizontale : src -> dst
+                for (let y = 0; y < h; y++) {
+                    const rowOff = y * w * 4;
+                    let rSum = 0, gSum = 0, bSum = 0;
+                    for (let i = -r; i <= r; i++) {
+                        const x = Math.min(w - 1, Math.max(0, i)) * 4 + rowOff;
+                        rSum += src[x];
+                        gSum += src[x + 1];
+                        bSum += src[x + 2];
+                    }
+                    for (let x = 0; x < w; x++) {
+                        const outIdx = rowOff + x * 4;
+                        dst[outIdx] = (rSum / div) | 0;
+                        dst[outIdx + 1] = (gSum / div) | 0;
+                        dst[outIdx + 2] = (bSum / div) | 0;
+                        dst[outIdx + 3] = 255;
+
+                        const removeX = Math.max(0, x - r) * 4 + rowOff;
+                        const addX = Math.min(w - 1, x + r + 1) * 4 + rowOff;
+                        rSum += src[addX] - src[removeX];
+                        gSum += src[addX + 1] - src[removeX + 1];
+                        bSum += src[addX + 2] - src[removeX + 2];
+                    }
+                }
+
+                // Passe verticale : dst -> src
+                for (let x = 0; x < w; x++) {
+                    const colOff = x * 4;
+                    let rSum = 0, gSum = 0, bSum = 0;
+                    for (let i = -r; i <= r; i++) {
+                        const y = Math.min(h - 1, Math.max(0, i)) * w * 4 + colOff;
+                        rSum += dst[y];
+                        gSum += dst[y + 1];
+                        bSum += dst[y + 2];
+                    }
+                    for (let y = 0; y < h; y++) {
+                        const outIdx = y * w * 4 + colOff;
+                        if (pass === 2 && brightness !== 1) {
+                            src[outIdx] = Math.min(255, ((rSum / div) * brightness) | 0);
+                            src[outIdx + 1] = Math.min(255, ((gSum / div) * brightness) | 0);
+                            src[outIdx + 2] = Math.min(255, ((bSum / div) * brightness) | 0);
+                        } else {
+                            src[outIdx] = (rSum / div) | 0;
+                            src[outIdx + 1] = (gSum / div) | 0;
+                            src[outIdx + 2] = (bSum / div) | 0;
+                        }
+                        src[outIdx + 3] = 255;
+
+                        const removeY = Math.max(0, y - r) * w * 4 + colOff;
+                        const addY = Math.min(h - 1, y + r + 1) * w * 4 + colOff;
+                        rSum += dst[addY] - dst[removeY];
+                        gSum += dst[addY + 1] - dst[removeY + 1];
+                        bSum += dst[addY + 2] - dst[removeY + 2];
+                    }
+                }
+            }
+
+            data.set(src);
+            ctx.putImageData(imgData, 0, 0);
+            return true;
+        } catch {
+            return false;
+        }
+    };
+
+    /** Génère un canvas hors-écran flouté & assombri 100% compatible PC + iOS Safari/Chrome + Android */
+    const createCrossBrowserBlurredCanvas = (
+        sourceImg: HTMLImageElement,
+        canvasW: number,
+        canvasH: number,
+        blurPx: number = 16,
+        brightness: number = 0.60
+    ): HTMLCanvasElement => {
+        const srcW = sourceImg.naturalWidth || sourceImg.width || canvasW;
+        const srcH = sourceImg.naturalHeight || sourceImg.height || canvasH;
+
+        if (supportsCanvasFilterBlur()) {
+            const off = document.createElement('canvas');
+            off.width = Math.max(1, Math.round(canvasW * 0.5));
+            off.height = Math.max(1, Math.round(canvasH * 0.5));
+            const offCtx = off.getContext('2d');
+            if (offCtx) {
+                offCtx.imageSmoothingEnabled = true;
+                offCtx.imageSmoothingQuality = 'high';
+                offCtx.filter = `blur(${blurPx}px) brightness(${brightness})`;
+                const s = Math.max(off.width / srcW, off.height / srcH);
+                const dw = srcW * s;
+                const dh = srcH * s;
+                offCtx.drawImage(sourceImg, (off.width - dw) / 2, (off.height - dh) / 2, dw, dh);
+            }
+            return off;
+        }
+
+        // Fallback haute-fidélité iOS Safari / WebKit : rendu à 0.25x + Flou Gaussien 3-passes exact
+        const workW = Math.max(32, Math.round(canvasW * 0.25));
+        const workH = Math.max(32, Math.round(canvasH * 0.25));
+        const off = document.createElement('canvas');
+        off.width = workW;
+        off.height = workH;
+        const offCtx = off.getContext('2d', { willReadFrequently: true });
+        if (offCtx) {
+            offCtx.imageSmoothingEnabled = true;
+            offCtx.imageSmoothingQuality = 'high';
+            const s = Math.max(workW / srcW, workH / srcH);
+            const dw = srcW * s;
+            const dh = srcH * s;
+            offCtx.drawImage(sourceImg, (workW - dw) / 2, (workH - dh) / 2, dw, dh);
+
+            // blur(16px) sur 0.5x équivaut à rayon ~9px sur 0.25x
+            const scaledRadius = Math.max(5, Math.round(blurPx * 0.56));
+            const blurredOk = applySoftwareGaussianBlurAndBrightness(offCtx, workW, workH, scaledRadius, brightness);
+
+            if (!blurredOk) {
+                // Secours ultime sans getImageData (si image externe opaque sans CORS) : pyramide bilinéaire multi-étapes
+                const tiny = document.createElement('canvas');
+                tiny.width = Math.max(16, Math.round(workW * 0.16));
+                tiny.height = Math.max(16, Math.round(workH * 0.16));
+                const tinyCtx = tiny.getContext('2d');
+                if (tinyCtx) {
+                    tinyCtx.imageSmoothingEnabled = true;
+                    tinyCtx.imageSmoothingQuality = 'high';
+                    tinyCtx.drawImage(off, 0, 0, tiny.width, tiny.height);
+                    offCtx.clearRect(0, 0, workW, workH);
+                    offCtx.drawImage(tiny, 0, 0, workW, workH);
+                    // Seconde passe bilinéaire pour éliminer tout artefact carré
+                    tinyCtx.clearRect(0, 0, tiny.width, tiny.height);
+                    tinyCtx.drawImage(off, 0, 0, tiny.width, tiny.height);
+                    offCtx.clearRect(0, 0, workW, workH);
+                    offCtx.drawImage(tiny, 0, 0, workW, workH);
+                }
+                if (brightness < 1) {
+                    offCtx.fillStyle = `rgba(0, 0, 0, ${Math.max(0, Math.min(1, 1 - brightness))})`;
+                    offCtx.fillRect(0, 0, workW, workH);
+                }
+            }
+        }
+        return off;
+    };
+
+    /** Dessine une vidéo de fond floutée à 60 FPS (compatible PC + iOS WebKit sans ctx.filter) */
+    const drawBlurredVideoCrossBrowser = (
+        ctx: CanvasRenderingContext2D,
+        video: HTMLVideoElement,
+        dx: number,
+        dy: number,
+        dw: number,
+        dh: number,
+        blurPx: number = 14
+    ) => {
+        if (supportsCanvasFilterBlur()) {
+            ctx.save();
+            ctx.filter = `blur(${blurPx}px)`;
+            ctx.drawImage(video, dx, dy, dw, dh);
+            ctx.restore();
+            return;
+        }
+        if (!videoBlurCanvasARef.current) videoBlurCanvasARef.current = document.createElement('canvas');
+        if (!videoBlurCanvasBRef.current) videoBlurCanvasBRef.current = document.createElement('canvas');
+        const cA = videoBlurCanvasARef.current;
+        const cB = videoBlurCanvasBRef.current;
+        cA.width = 135;
+        cA.height = 240;
+        cB.width = 48;
+        cB.height = 85;
+        const ctxA = cA.getContext('2d');
+        const ctxB = cB.getContext('2d');
+        if (ctxA && ctxB) {
+            ctxA.imageSmoothingEnabled = true;
+            ctxA.imageSmoothingQuality = 'high';
+            ctxB.imageSmoothingEnabled = true;
+            ctxB.imageSmoothingQuality = 'high';
+            ctxA.drawImage(video, 0, 0, cA.width, cA.height);
+            ctxB.drawImage(cA, 0, 0, cB.width, cB.height);
+            ctxA.drawImage(cB, 0, 0, cA.width, cA.height);
+            ctx.save();
+            ctx.imageSmoothingEnabled = true;
+            ctx.imageSmoothingQuality = 'high';
+            ctx.drawImage(cA, dx, dy, dw, dh);
+            ctx.restore();
+        } else {
+            ctx.drawImage(video, dx, dy, dw, dh);
+        }
+    };
+
+    /** Charge une image avec support CORS + repli automatique vers /api/proxy-media (Beatport, Spotify, etc. sur iOS) */
+    const loadCorsSafeImage = (
+        url: string,
+        onLoad: (img: HTMLImageElement) => void,
+        onError?: () => void
+    ) => {
+        if (!url) return;
+        const imgObj = new Image();
+        imgObj.crossOrigin = 'anonymous';
+        imgObj.onload = () => onLoad(imgObj);
+        imgObj.onerror = () => {
+            const isExternalHttp = /^https?:\/\//i.test(url) && !url.includes('/api/proxy-media');
+            if (isExternalHttp) {
+                const proxiedImg = new Image();
+                proxiedImg.crossOrigin = 'anonymous';
+                proxiedImg.onload = () => onLoad(proxiedImg);
+                proxiedImg.onerror = () => {
+                    // Dernier recours sans attribut crossOrigin pour afficher l'image malgré tout
+                    const fallbackImg = new Image();
+                    fallbackImg.onload = () => onLoad(fallbackImg);
+                    fallbackImg.onerror = () => { if (onError) onError(); };
+                    fallbackImg.src = url;
+                };
+                proxiedImg.src = `/api/proxy-media?url=${encodeURIComponent(url)}`;
+            } else {
+                if (onError) onError();
+            }
+        };
+        imgObj.src = url;
+    };
 
     const formatAudioTime = (seconds: number) => {
         const s = Math.max(0, Math.floor(seconds || 0));
@@ -773,10 +1151,28 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             setAudioBlobUrls(prev => (prev[url] === blobUrl ? prev : { ...prev, [url]: blobUrl }));
             return blobUrl;
         } catch (e) {
+            // Repli automatique via le proxy serveur (contourne le blocage CORS sur Beatport / Deezer / CDN mobiles iOS)
+            if (/^https?:\/\//i.test(url) && !url.includes('/api/proxy-media')) {
+                try {
+                    const proxyUrl = `/api/proxy-media?url=${encodeURIComponent(url)}`;
+                    const proxyRes = await fetch(proxyUrl);
+                    if (proxyRes.ok) {
+                        const blob = await proxyRes.blob();
+                        const blobUrl = URL.createObjectURL(blob);
+                        audioBlobCacheRef.current.set(url, blobUrl);
+                        setAudioBlobUrls(prev => (prev[url] === blobUrl ? prev : { ...prev, [url]: blobUrl }));
+                        return blobUrl;
+                    }
+                } catch (proxyErr) {
+                    console.warn("Préchargement audio via proxy échoué :", proxyErr);
+                }
+            }
             console.warn("Préchargement audio direct impossible (repli streaming direct) :", e);
-            // On marque l'URL comme "prête" en repli streaming pour ne pas bloquer le lecteur
-            setAudioBlobUrls(prev => (prev[url] ? prev : { ...prev, [url]: url }));
-            return url;
+            const fallbackStreamUrl = (/^https?:\/\//i.test(url) && !url.includes('/api/proxy-media'))
+                ? `/api/proxy-media?url=${encodeURIComponent(url)}`
+                : url;
+            setAudioBlobUrls(prev => (prev[url] ? prev : { ...prev, [url]: fallbackStreamUrl }));
+            return fallbackStreamUrl;
         }
     };
 
@@ -795,17 +1191,54 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         const job = (async () => {
             try {
                 const readyUrl = await getPreloadedAudioBlobUrl(url);
-                const res = await fetch(readyUrl);
+                let res = await fetch(readyUrl).catch(() => null);
+                if ((!res || !res.ok) && /^https?:\/\//i.test(url) && !readyUrl.includes('/api/proxy-media')) {
+                    res = await fetch(`/api/proxy-media?url=${encodeURIComponent(url)}`).catch(() => null);
+                }
+                if (!res || !res.ok) throw new Error('Audio fetch failed');
                 const arr = await res.arrayBuffer();
+                if (!arr || arr.byteLength === 0) throw new Error('Empty audio buffer');
+
+                const decodeWithCtx = (ctxInstance: BaseAudioContext, bufferCopy: ArrayBuffer) =>
+                    new Promise<AudioBuffer>((resolve, reject) => {
+                        let settled = false;
+                        const ok = (b: AudioBuffer) => { if (!settled) { settled = true; resolve(b); } };
+                        const fail = (err: any) => { if (!settled) { settled = true; reject(err); } };
+                        try {
+                            const p = ctxInstance.decodeAudioData(bufferCopy, ok, fail);
+                            if (p && typeof (p as any).then === 'function') (p as Promise<AudioBuffer>).then(ok, fail).catch(fail);
+                        } catch (syncErr) {
+                            fail(syncErr);
+                        }
+                    });
+
+                let buf: AudioBuffer | null = null;
                 const OfflineCtx = (window as any).OfflineAudioContext || (window as any).webkitOfflineAudioContext;
-                const decoder: BaseAudioContext = new OfflineCtx(2, 1, 48000);
-                const buf: AudioBuffer = await new Promise((resolve, reject) => {
-                    const p = decoder.decodeAudioData(arr, resolve, reject);
-                    if (p && typeof (p as any).then === 'function') (p as Promise<AudioBuffer>).then(resolve, reject);
-                });
+                if (OfflineCtx) {
+                    try {
+                        const decoder: BaseAudioContext = new OfflineCtx(2, 1, 44100);
+                        buf = await decodeWithCtx(decoder, arr.slice(0));
+                    } catch (_) {}
+                }
+                if (!buf) {
+                    const LiveCtx = (window as any).AudioContext || (window as any).webkitAudioContext;
+                    if (LiveCtx) {
+                        const tempCtx: AudioContext = previewAudioPlayerRef.current?.ctx || new LiveCtx();
+                        const isTemp = !previewAudioPlayerRef.current?.ctx;
+                        try {
+                            buf = await decodeWithCtx(tempCtx, arr.slice(0));
+                        } finally {
+                            if (isTemp && typeof tempCtx.close === 'function') {
+                                tempCtx.close().catch(() => {});
+                            }
+                        }
+                    }
+                }
+                if (!buf) throw new Error('PCM decode failed');
+
                 audioBufferCacheRef.current.set(url, buf);
                 if (buf.duration && isFinite(buf.duration)) {
-                    setAudioDurations(prev => (prev[url] ? prev : { ...prev, [url]: buf.duration }));
+                    setAudioDurations(prev => (prev[url] ? prev : { ...prev, [url]: buf!.duration }));
                 }
                 return buf;
             } catch (e) {
@@ -931,11 +1364,20 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const stopPreviewPlayer = () => {
         const p = previewAudioPlayerRef.current;
         if (!p) return;
+        if (p.stopTimer) {
+            clearTimeout(p.stopTimer);
+            p.stopTimer = null;
+        }
         if (p.source) {
             p.source.onended = null;
             try { p.source.stop(); } catch (_) {}
             try { p.source.disconnect(); } catch (_) {}
             p.source = null;
+        }
+        if (p.htmlAudio) {
+            p.htmlAudio.onended = null;
+            try { p.htmlAudio.pause(); } catch (_) {}
+            p.htmlAudio = null;
         }
         p.paused = true;
     };
@@ -947,11 +1389,14 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             const player = {
                 ctx: new Ctx({ latencyHint: 'playback' }) as AudioContext,
                 source: null as AudioBufferSourceNode | null,
+                htmlAudio: null as HTMLAudioElement | null,
+                stopTimer: null as any,
                 startedAtCtx: 0,
                 offset: 0,
                 paused: true,
                 src: '',
                 get currentTime() {
+                    if (this.htmlAudio && !this.htmlAudio.paused) return this.htmlAudio.currentTime;
                     if (this.paused) return this.offset;
                     return this.offset + Math.max(0, this.ctx.currentTime - this.startedAtCtx);
                 }
@@ -965,24 +1410,68 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             return;
         }
 
+        // Déblocage audio synchrone dans le geste tactile (critique sur iPhone/iOS Safari + mode silencieux)
+        unlockMobileAudioSession(p.ctx);
+
         try {
             stopPreviewPlayer();
-            if (p.ctx.state === 'suspended') await p.ctx.resume();
+            if (p.ctx.state === 'suspended') await p.ctx.resume().catch(() => {});
             const buffer = await getDecodedAudioBuffer(src);
-            if (!buffer) throw new Error('Audio non décodable');
-            const source = startBufferSegment(p.ctx, buffer, startTime, [p.ctx.destination]);
-            p.source = source;
+            if (buffer) {
+                if (p.ctx.state === 'suspended') await p.ctx.resume().catch(() => {});
+                const source = startBufferSegment(p.ctx, buffer, startTime, [p.ctx.destination], 30);
+                p.source = source;
+                p.src = src;
+                p.offset = Math.max(0, startTime || 0);
+                p.startedAtCtx = p.ctx.currentTime + 0.03;
+                p.paused = false;
+                source.onended = () => {
+                    if (p.source === source) {
+                        p.source = null;
+                        p.paused = true;
+                        setActiveAudioPreviewSrc(null);
+                    }
+                };
+                setActiveAudioPreviewSrc(src);
+                return;
+            }
+
+            // Repli HTMLAudioElement natif si le flux distant refuse le décodage PCM WebAudio sur mobile
+            const streamUrl = audioBlobCacheRef.current.get(src)
+                || ((/^https?:\/\//i.test(src) && !src.includes('/api/proxy-media')) ? `/api/proxy-media?url=${encodeURIComponent(src)}` : src);
+            const audioEl = new Audio();
+            audioEl.setAttribute('playsinline', 'true');
+            (audioEl as any).playsInline = true;
+            audioEl.preload = 'auto';
+            audioEl.volume = 1;
+            audioEl.src = streamUrl;
+            const targetStart = Math.max(0, startTime || 0);
+            if (targetStart > 0) {
+                const applySeek = () => {
+                    try { audioEl.currentTime = targetStart; } catch (_) {}
+                };
+                if (audioEl.readyState >= 1) applySeek();
+                else audioEl.addEventListener('loadedmetadata', applySeek, { once: true });
+            }
+            await audioEl.play();
+            p.htmlAudio = audioEl;
             p.src = src;
-            p.offset = Math.max(0, startTime || 0);
-            p.startedAtCtx = p.ctx.currentTime + 0.03;
+            p.offset = targetStart;
+            p.startedAtCtx = p.ctx.currentTime;
             p.paused = false;
-            source.onended = () => {
-                if (p.source === source) {
-                    p.source = null;
+            audioEl.onended = () => {
+                if (p.htmlAudio === audioEl) {
+                    p.htmlAudio = null;
                     p.paused = true;
                     setActiveAudioPreviewSrc(null);
                 }
             };
+            p.stopTimer = setTimeout(() => {
+                if (p.htmlAudio === audioEl) {
+                    stopPreviewPlayer();
+                    setActiveAudioPreviewSrc(null);
+                }
+            }, 30000);
             setActiveAudioPreviewSrc(src);
         } catch (err) {
             console.warn("Erreur lecture preview :", err);
@@ -1500,7 +1989,21 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     }, []);
 
 
-    const togglePanel = (panel: string) => setActivePanel(prev => prev === panel ? null : panel);
+    const triggerSmoothAnimReplay = () => {
+        pendingAnimResetRef.current = true;
+        animStartTimeRef.current = Date.now();
+        setAnimReplayKey(k => k + 1);
+    };
+
+    const togglePanel = (panel: string) => setActivePanel(prev => {
+        const next = prev === panel ? null : panel;
+        if (next === null && prev === 'texte' && (textAnimation !== 'NONE' || bgAnimation !== 'NONE')) {
+            pendingAnimResetRef.current = true;
+            animStartTimeRef.current = Date.now();
+            setTimeout(() => setAnimReplayKey(k => k + 1), 30);
+        }
+        return next;
+    });
 
 
     const handleTextStyler = (type: 'C' | 'B', value: string) => {
@@ -2303,14 +2806,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 if (imageCacheRef.current[musiqueCoverUrl]) {
                     musiqueCoverImg = imageCacheRef.current[musiqueCoverUrl];
                 } else {
-                    const imgObj = new Image();
-                    imgObj.crossOrigin = "anonymous";
-                    imgObj.onload = () => {
+                    loadCorsSafeImage(musiqueCoverUrl, (imgObj) => {
                         imageCacheRef.current[musiqueCoverUrl] = imgObj;
                         if (musicCoverImgsRef.current) musicCoverImgsRef.current[musiqueCoverUrl] = imgObj;
                         generateImage();
-                    };
-                    imgObj.src = musiqueCoverUrl;
+                    });
                 }
             }
 
@@ -2337,16 +2837,13 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 if (imageCacheRef.current[activeSlideImgSrc]) {
                     img = imageCacheRef.current[activeSlideImgSrc];
                 } else {
-                    const imgObj = new Image();
-                    imgObj.crossOrigin = "anonymous";
-                    imgObj.src = activeSlideImgSrc;
-                    imgObj.onload = () => {
+                    loadCorsSafeImage(activeSlideImgSrc, (imgObj) => {
                         imageCacheRef.current[activeSlideImgSrc] = imgObj;
                         if (isCurrentSlideAffiche && currentSlideAfficheUrl && activeSlideImgSrc === currentSlideAfficheUrl && !afficheImageRef.current) {
                             afficheImageRef.current = imgObj;
                         }
                         generateImage();
-                    };
+                    });
                     img = null;
                 }
             }
@@ -2405,12 +2902,18 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 }
             }
 
-            const isAnyAnimationActive = (textAnimation !== 'NONE' || bgAnimation !== 'NONE' || (theme === 'JEU_DJ' && isCurrentSlideSilhouette && djAppearanceAnim !== 'STATIC') || (theme === 'PLANNING' && activeTab === 'REEL') || theme === 'TOP 100 DROPSIDERS');
+            if ((ctx as any).textRendering !== undefined) {
+                try { (ctx as any).textRendering = 'geometricPrecision'; } catch (_) {}
+            }
+            const isStaticPngExport = exportMode === true || isDownloading;
+            const isAnyAnimationActive = !isStaticPngExport && (textAnimation !== 'NONE' || bgAnimation !== 'NONE' || (theme === 'JEU_DJ' && isCurrentSlideSilhouette && djAppearanceAnim !== 'STATIC') || (theme === 'PLANNING' && activeTab === 'REEL') || theme === 'TOP 100 DROPSIDERS');
             const animElapsed = isVideoRecordingRef.current
                 ? deterministicAnimTimeRef.current
-                : ((bgVideo && !isDownloading) || isAnyAnimationActive || (theme === 'MUSIQUE' && !isDownloading && (cdjPlayerRing || musicBgMotion)) || (isCarouselPromoActive && promoOutroStyle === 'INSTAGRAM' && isPromoAnimPlaying)
-                    ? (Date.now() - animStartTimeRef.current) / 1000
-                    : 99.0);
+                : (isStaticPngExport
+                    ? 99.0
+                    : ((bgVideo && !isDownloading) || isAnyAnimationActive || (theme === 'MUSIQUE' && !isDownloading && (cdjPlayerRing || musicBgMotion)) || (isCarouselPromoActive && promoOutroStyle === 'INSTAGRAM' && isPromoAnimPlaying)
+                        ? (Date.now() - animStartTimeRef.current) / 1000
+                        : 99.0));
 
             const getTextAnimTransform = (delay: number = 0) => {
                 if (textAnimation === 'NONE') {
@@ -2575,11 +3078,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     y = ((canvas.height * 0.85 - vh) / 2) + bgOffsetY + bgAnimY;
                 }
                 if (theme === 'AFFICHE' || (theme === 'EVENTS' && ((eventsSlide === 2 && eventNormalSlidesCount === 0) || isEditorialAfficheActive)) || (theme === 'MUSIQUE' && effectiveEditorialSlide >= 2) || isEditorialAfficheRequested || isEditorialTweetRequested) {
-                    ctx.save();
-                    ctx.filter = 'blur(14px)';
                     const blurBleed = 28;
-                    ctx.drawImage(bgVideo, x - blurBleed, y - blurBleed, vw + blurBleed * 2, vh + blurBleed * 2);
-                    ctx.restore();
+                    drawBlurredVideoCrossBrowser(ctx, bgVideo, x - blurBleed, y - blurBleed, vw + blurBleed * 2, vh + blurBleed * 2, 14);
                 } else {
                     ctx.drawImage(bgVideo, x, y, vw, vh);
                 }
@@ -2861,24 +3361,16 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         const blurBleed = 80;
                         const targetW = Math.round(iw + blurBleed * 2);
                         const targetH = Math.round(ih + blurBleed * 2);
-                        const cacheKey = `${effectiveImg.src || 'img'}_base_blur`;
+                        const cacheKey = `${effectiveImg.src || 'img'}_${canvas.width}x${canvas.height}_base_blur`;
                         let cachedBlur = blurredBgCacheRef.current.get(cacheKey);
                         if (!cachedBlur) {
-                            const off = document.createElement('canvas');
-                            off.width = Math.max(1, Math.round(canvas.width * 0.5));
-                            off.height = Math.max(1, Math.round(canvas.height * 0.5));
-                            const offCtx = off.getContext('2d');
-                            if (offCtx) {
-                                offCtx.filter = 'blur(16px) brightness(0.60)';
-                                const s = Math.max(off.width / effectiveImg.width, off.height / effectiveImg.height);
-                                const dw = effectiveImg.width * s;
-                                const dh = effectiveImg.height * s;
-                                offCtx.drawImage(effectiveImg, (off.width - dw) / 2, (off.height - dh) / 2, dw, dh);
-                            }
-                            if (blurredBgCacheRef.current.size > 8) blurredBgCacheRef.current.clear();
+                            const off = createCrossBrowserBlurredCanvas(effectiveImg, canvas.width, canvas.height, 16, 0.60);
+                            if (blurredBgCacheRef.current.size > 12) blurredBgCacheRef.current.clear();
                             blurredBgCacheRef.current.set(cacheKey, off);
                             cachedBlur = off;
                         }
+                        ctx.imageSmoothingEnabled = true;
+                        ctx.imageSmoothingQuality = 'high';
                         ctx.drawImage(cachedBlur, x - blurBleed, y - blurBleed, targetW, targetH);
                         ctx.restore();
                     } else {
@@ -6420,6 +6912,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 const pillY = isStory ? 1180 : 790;
                 const trackNumText = `TRACK ${String(trackIdx + 1).padStart(2, '0')}`;
                 ctx.save();
+                if (!isStaticPngExport && textAnimation !== 'NONE') {
+                    applyTextAnimCtx(ctx, 0.04, centerX, pillY);
+                }
                 ctx.font = '900 italic 15px "Montserrat", sans-serif';
                 ctx.letterSpacing = '1.5px';
                 const pillPaddingX = 16;
@@ -6438,28 +6933,60 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 ctx.fillText(trackNumText, centerX, pillY);
                 ctx.restore();
 
-                // B) TITRE DU MORCEAU (Gros, blanc avec highlights)
+                // B) TITRE DU MORCEAU (Gros, blanc avec highlights + animations d'entrée fluides)
                 const titleY = isStory ? 1275 : 850;
                 const titleText = currentTrack.title?.trim() || `TITRE DU MORCEAU`;
                 ctx.save();
                 let titleFontSize = isStory ? 52 : 38;
                 ctx.font = `900 ${titleFontSize}px "Montserrat", sans-serif`;
-                while (ctx.measureText(stripTags(titleText).toUpperCase()).width > contentWidth && titleFontSize > 22) {
+                const plainTitleUpper = stripTags(titleText).toUpperCase();
+                while (ctx.measureText(plainTitleUpper).width > contentWidth && titleFontSize > 22) {
                     titleFontSize -= 2;
                     ctx.font = `900 ${titleFontSize}px "Montserrat", sans-serif`;
                 }
                 ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
                 ctx.shadowBlur = 14;
-                drawRichText(ctx, titleText.toUpperCase(), centerX, titleY, '#ffffff', 'center');
+                if (!isStaticPngExport && textAnimation === 'TYPEWRITER') {
+                    const typeEl = Math.max(0, animElapsed - 0.10);
+                    const visibleChars = Math.min(plainTitleUpper.length, Math.floor(typeEl * 32));
+                    if (visibleChars > 0) {
+                        ctx.fillStyle = '#ffffff';
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'middle';
+                        ctx.fillText(plainTitleUpper.slice(0, visibleChars), centerX, titleY);
+                    }
+                } else if (!isStaticPngExport && textAnimation === 'WORD_BY_WORD') {
+                    const words = plainTitleUpper.split(/\s+/).filter(Boolean);
+                    const spaceW = ctx.measureText(' ').width;
+                    const totalW = words.reduce((acc, w, idx) => acc + ctx.measureText(w).width + (idx > 0 ? spaceW : 0), 0);
+                    let curX = centerX - totalW / 2;
+                    ctx.textAlign = 'left';
+                    ctx.textBaseline = 'middle';
+                    words.forEach((word, wIdx) => {
+                        const wWidth = ctx.measureText(word).width;
+                        ctx.save();
+                        applyTextAnimCtx(ctx, 0.10 + wIdx * 0.08, curX + wWidth / 2, titleY);
+                        ctx.fillStyle = '#ffffff';
+                        ctx.fillText(word, curX, titleY);
+                        ctx.restore();
+                        curX += wWidth + spaceW;
+                    });
+                } else {
+                    if (!isStaticPngExport && textAnimation !== 'NONE') {
+                        applyTextAnimCtx(ctx, 0.10, centerX, titleY);
+                    }
+                    drawRichText(ctx, titleText.toUpperCase(), centerX, titleY, '#ffffff', 'center');
+                }
                 ctx.restore();
 
                 // C) ARTISTE (En vert néon gras italique)
                 const artistY = isStory ? 1370 : 910;
                 const artistText = currentTrack.artist?.trim() || 'NOM DE L\'ARTISTE';
+                const artistUpper = artistText.toUpperCase();
                 ctx.save();
                 let artistFontSize = isStory ? 36 : 26;
                 ctx.font = `800 italic ${artistFontSize}px "Montserrat", sans-serif`;
-                while (ctx.measureText(artistText.toUpperCase()).width > contentWidth && artistFontSize > 18) {
+                while (ctx.measureText(artistUpper).width > contentWidth && artistFontSize > 18) {
                     artistFontSize -= 2;
                     ctx.font = `800 italic ${artistFontSize}px "Montserrat", sans-serif`;
                 }
@@ -6468,7 +6995,18 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 ctx.shadowBlur = 12;
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
-                ctx.fillText(artistText.toUpperCase(), centerX, artistY);
+                if (!isStaticPngExport && textAnimation === 'TYPEWRITER') {
+                    const typeEl = Math.max(0, animElapsed - 0.25);
+                    const visibleChars = Math.min(artistUpper.length, Math.floor(typeEl * 34));
+                    if (visibleChars > 0) {
+                        ctx.fillText(artistUpper.slice(0, visibleChars), centerX, artistY);
+                    }
+                } else {
+                    if (!isStaticPngExport && textAnimation !== 'NONE') {
+                        applyTextAnimCtx(ctx, 0.20, centerX, artistY);
+                    }
+                    ctx.fillText(artistUpper, centerX, artistY);
+                }
                 ctx.restore();
 
                 // D) LABEL DISCOGRAPHIQUE (Badge capsule élégant si renseigné)
@@ -6477,6 +7015,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     const labelY = isStory ? 1465 : 970;
                     const labelDisplay = `LABEL : ${labelRaw.toUpperCase()}`;
                     ctx.save();
+                    if (!isStaticPngExport && textAnimation !== 'NONE') {
+                        applyTextAnimCtx(ctx, 0.30, centerX, labelY);
+                    }
                     const labelFontSize = isStory ? 20 : 15;
                     ctx.font = `800 ${labelFontSize}px "Montserrat", sans-serif`;
                     const lPadX = 20;
@@ -8566,6 +9107,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 if (isVideoRecordingRef.current) return;
                 if (!isRendering) {
                     isRendering = true;
+                    if (pendingAnimResetRef.current) {
+                        animStartTimeRef.current = Date.now();
+                        pendingAnimResetRef.current = false;
+                    }
                     generateImage().finally(() => {
                         isRendering = false;
                     });
@@ -8577,26 +9122,26 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         return () => cancelAnimationFrame(anim);
     }, [bgImage, bgVideo, customText, theme, showSwipe, showArticleLink, showVoteLink, top5Items, currentPreviewIndex, activeTab, rotation, themeColor, isVideoRecording, transitionProgress, showText, planningDate, planningItems, agendaMonth, agendaBadgeText, agendaSlide, agendaCoverBadge, agendaCoverTitle, agendaCoverYear, agendaCoverGenres, agendaCoverCta, showAgendaCoverCta, artisteFestivalSlide, eventsSlide, editorialSlide, isEditorialAfficheActive, isEditorialTweetActive, showTitleOnSlide2, showMusicDate, editorialDate, showDividerDate, citationAuthor, citationMedia, extraEditorialSlides, musicTracks, calendarMonth, calendarEvents, isRetouchMode, retouchPath, isTransparent, showBottomLogo, artistLogo, festivalLogo, bgOffsetX, bgOffsetY, artistNameText, festivalNameText, isArtistLogoNegative, mapFestivalText, mapCityCountry, mapZoom, mapLatitude, mapLongitude, mapStyle, isMapLoading, mapPinColor, mapLabelText, showMapPin, showMapLabel, mapAnimMode, isMapAnimPlaying, mapScrubTime, mapAnimDuration, mapDestLatitude, mapDestLongitude, mapDestFestivalText, mapDestVenue, mapDestCity, mapDestCountry, mapDestPinColor, imgLayoutMode, quizColor1, quizColor2, showFrame, conseilsTitle, conseilsSubtext, isConseilsLargeTitle, concoursFestivalName, concoursFestivalHandle, concoursBottomColor, concoursLateralText, concoursLateralOpacity, concoursBadgeTextColor, concoursMode, concoursGTAHeadline, concoursGTATitle, concoursGTAPlatformText, concoursGTACondition1, concoursGTACondition2, concoursGTACondition3, concoursGTACondition4, afficheImage, afficheGlow, afficheBorderColor, afficheMode, afficheScale, afficheOffsetY, tweetImage, tweetScale, tweetOffsetY, tweetGlow, tweetHeadline, tweetBadge, tweetBorderColor, tweetTranslation, showTweetTranslation, tweetAnimMode, textAnimation, animReplayKey, bgAnimation, cdjPlayerRing, musicBgMotion, isCarouselPromoActive, promoCustomPhrase, promoCustomSubphrase, promoOutroStyle, isPromoAnimPlaying, promoCategory, showPromoHook, showPromoHeadline, showPromoLine1, showPromoLine2, djCutoutImage, djOriginalImage, djSilhouetteColor, djGlowIntensity, djShowQuestionMark, djAppearanceAnim, editorialSlideImages, editorialSlideCutouts, editorialSlideTitles, djSlideModes, agendaAffiches, highlightsSlideArtists, highlightsColorArtist, highlightsColorFestival, highlightsColorCity, highlightsColorCountry, highlightsColorDate, afficheImgZoom, afficheImgPanX, afficheImgPanY]);
 
-    // Rejouer l'animation de texte proprement depuis le début à chaque changement de slide
+    // Rejouer l'animation de texte proprement depuis le début à chaque changement de slide ou de thème
     useEffect(() => {
+        pendingAnimResetRef.current = true;
         animStartTimeRef.current = Date.now();
         setAnimReplayKey(k => k + 1);
-    }, [editorialSlide, agendaSlide]);
+    }, [editorialSlide, agendaSlide, artisteFestivalSlide, eventsSlide, isCarouselPromoActive, isEditorialAfficheActive, isEditorialTweetActive, theme]);
 
-    // Pre-charger les pochettes des tracks du thème MUSIQUE
+    // Pre-charger les pochettes des tracks du thème MUSIQUE (avec contournement CORS automatique sur mobile)
     useEffect(() => {
         musicTracks.forEach(t => {
             if (t.cover && !musicCoverImgsRef.current[t.cover]) {
-                const img = new Image();
-                img.crossOrigin = 'anonymous';
-                img.onload = () => {
-                    musicCoverImgsRef.current[t.cover] = img;
-                    generateImage();
-                };
-                img.onerror = () => {
-                    console.warn("Erreur de chargement de la cover track:", t.cover);
-                };
-                img.src = t.cover;
+                loadCorsSafeImage(
+                    t.cover,
+                    (img) => {
+                        musicCoverImgsRef.current[t.cover] = img;
+                        imageCacheRef.current[t.cover] = img;
+                        generateImage();
+                    },
+                    () => console.warn("Erreur de chargement de la cover track:", t.cover)
+                );
             }
         });
     }, [musicTracks]);
@@ -8615,51 +9160,51 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         }
     }, [theme, musicIntroAudio, musicTracks]);
 
-    // Pre-charger l'affiche de l'événement dès que son URL change
+    // Pre-charger l'affiche de l'événement dès que son URL change (avec repli CORS mobile)
     useEffect(() => {
         if (!afficheImage) {
             afficheImageRef.current = null;
             generateImage();
             return;
         }
-        const img = new Image();
-        img.crossOrigin = 'anonymous';
-        img.onload = () => {
-            afficheImageRef.current = img;
-            generateImage();
-        };
-        img.onerror = () => {
-            console.warn("Erreur de chargement de l'affiche de l'événement:", afficheImage);
-        };
-        img.src = afficheImage;
+        loadCorsSafeImage(
+            afficheImage,
+            (img) => {
+                afficheImageRef.current = img;
+                imageCacheRef.current[afficheImage] = img;
+                generateImage();
+            },
+            () => console.warn("Erreur de chargement de l'affiche de l'événement:", afficheImage)
+        );
     }, [afficheImage]);
 
-    // Pre-charger le screenshot du tweet dès que son URL change
+    // Pre-charger le screenshot du tweet dès que son URL change (avec repli CORS mobile)
     useEffect(() => {
         if (!tweetImage) {
             tweetImageRef.current = null;
             generateImage();
             return;
         }
-        const img = new Image();
-        img.crossOrigin = 'anonymous';
-        img.onload = () => {
-            tweetImageRef.current = img;
-            imageCacheRef.current[tweetImage] = img;
-            generateImage();
-        };
-        img.onerror = () => {
-            console.warn("Erreur de chargement du screenshot tweet:", tweetImage);
-        };
-        img.src = tweetImage;
+        loadCorsSafeImage(
+            tweetImage,
+            (img) => {
+                tweetImageRef.current = img;
+                imageCacheRef.current[tweetImage] = img;
+                generateImage();
+            },
+            () => console.warn("Erreur de chargement du screenshot tweet:", tweetImage)
+        );
     }, [tweetImage]);
 
-    // --- FONT LOADER ---
+    // --- FONT LOADER (toutes graisses & italiques pour un rendu mobile 100% identique au PC sans faux-italique saccadé) ---
     useEffect(() => {
         const link = document.createElement('link');
-        link.href = 'https://fonts.googleapis.com/css2?family=Antonio:wght@700;900&family=Montserrat:wght@700;900&family=Orbitron:wght@700;900&display=swap';
+        link.href = 'https://fonts.googleapis.com/css2?family=Antonio:wght@400;700;900&family=Montserrat:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,600;1,700;1,800;1,900&family=Orbitron:wght@600;700;900&display=swap';
         link.rel = 'stylesheet';
         document.head.appendChild(link);
+        if (typeof document !== 'undefined' && (document as any).fonts?.ready) {
+            (document as any).fonts.ready.then(() => { generateImage(); }).catch(() => {});
+        }
         return () => { document.head.removeChild(link); };
     }, []);
 
@@ -8731,6 +9276,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 audioCtxRef.current.resume().catch(() => {});
             }
         }
+        unlockMobileAudioSession(audioCtxRef.current);
         if (bgVideo) {
             bgVideo.playsInline = true;
             bgVideo.muted = false;
@@ -8745,7 +9291,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         );
 
         let bgVideoBlob: Blob | null = bgVideoBlobRef.current;
-        if (!bgVideoBlob && bgVideo && !isActualMobileDevice) {
+        if (!bgVideoBlob && bgVideo) {
             const bgUrl = bgVideo.currentSrc || bgVideo.src;
             if (bgUrl) {
                 try {
@@ -8784,15 +9330,14 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         if (canvas.height !== targetHeight) canvas.height = targetHeight;
         const bitrate = isMobile ? 15000000 : (fps === 60 ? 28000000 : 20000000);
 
-        // ── DÉTECTION WEBCODECS (EXPORT FRAME-PAR-FRAME DÉTERMINISTE SUR DESKTOP) ───
-        // WebCodecs élimine à 100% les saccades et baisses de FPS sur Desktop.
-        // Sur Mobile avec vidéo de fond, MediaRecorder capture directement le flux audio
-        // stéréo natif dans le conteneur MP4 avec zéro latence et sans dépendre de wasm.
+        // ── DÉTECTION WEBCODECS (EXPORT FRAME-PAR-FRAME DÉTERMINISTE PC & MOBILE) ───
+        // WebCodecs élimine à 100% les saccades d'effets de texte sur PC ET Mobile moderne,
+        // puis Phase 2/3 muxe la piste audio stéréo AAC en copie directe (-c:v copy) sans perte.
         const webCodecsAvailable = typeof window !== 'undefined'
             && typeof (window as any).VideoEncoder !== 'undefined'
             && typeof (window as any).VideoFrame !== 'undefined';
 
-        const shouldProbeWebCodecs = webCodecsAvailable && (!isActualMobileDevice || !bgVideo);
+        const shouldProbeWebCodecs = webCodecsAvailable;
 
         let chosenCodec: string | null = null;
         let chosenCodecConfig: any = null;
@@ -8843,7 +9388,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 } catch {}
             }
         }
-        const useWebCodecs = Boolean(chosenCodec) && (!isActualMobileDevice || !bgVideo);
+        const useWebCodecs = Boolean(chosenCodec);
 
         let videoEncoder: any = null;
         let muxerTarget: any = null;
@@ -9032,7 +9577,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 }
             } else {
                 const start = performance.now();
-                let lastRender = 0;
+                let lastRender = -999;
                 let isRendering = false;
                 await new Promise<void>((resolve) => {
                     const step = async (now: number) => {
@@ -9042,14 +9587,17 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             isRendering = true;
                             lastRender = now;
                             const currentAnimElapsed = (startOffsetSec * 1000) + elapsed;
+                            deterministicAnimTimeRef.current = currentAnimElapsed / 1000;
+                            deterministicTotalTimeRef.current = Math.max(0, (Date.now() - recordingStartTimeRef.current) / 1000);
                             animStartTimeRef.current = Date.now() - currentAnimElapsed;
-                            recordingStartTimeRef.current = Date.now() - elapsed;
                             updateProgressUI();
+                            isExportRenderingRef.current = true;
                             try {
                                 await generateImage();
                             } catch (e) {
                                 console.warn("generateImage render error", e);
                             } finally {
+                                isExportRenderingRef.current = false;
                                 isRendering = false;
                             }
                         }
@@ -9207,8 +9755,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 return (numFrames / fps);
             } else {
                 // Mode preview temps réel / MediaRecorder (Mobile) :
-                // Snapshot unique de la slide entrante (GPU 2D) pour zéro lag et fluidité 60 FPS garantie
-                await generateImage();
+                // Snapshot de la slide entrante à t=0 (comme sur PC) pour que l'animation d'entrée démarre proprement après la transition
+                deterministicAnimTimeRef.current = 0;
+                isExportRenderingRef.current = true;
+                try { await generateImage(); } finally { isExportRenderingRef.current = false; }
                 const incomingCanvas = document.createElement('canvas');
                 incomingCanvas.width = canvas.width;
                 incomingCanvas.height = canvas.height;
@@ -9219,7 +9769,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 const effectiveTrans = isTransitionToPromo ? 'FADE' : slideTransition;
 
                 const start = performance.now();
-                let lastRender = 0;
+                let lastRender = -999;
                 await new Promise<void>((resolve) => {
                     const step = (now: number) => {
                         const elapsed = now - start;
@@ -9247,6 +9797,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     ctx.save(); ctx.globalAlpha = Math.min(1, ease);
                                     ctx.translate(cx, cy); ctx.scale(0.88 + ease * 0.12, 0.88 + ease * 0.12); ctx.translate(-cx, -cy);
                                     ctx.drawImage(incomingCanvas, 0, 0); ctx.restore();
+                                } else if (effectiveTrans === 'GLITCH') {
+                                    const sh1 = Math.sin(progress * 45) * (1 - progress) * 28;
+                                    const sh2 = Math.sin(progress * 45) * progress * 28;
+                                    ctx.save(); ctx.globalAlpha = Math.max(0, 1 - ease); ctx.drawImage(outgoingCanvas, sh1, 0); ctx.restore();
+                                    ctx.save(); ctx.globalAlpha = Math.min(1, ease); ctx.drawImage(incomingCanvas, sh2, 0); ctx.restore();
                                 } else if (effectiveTrans === 'CUT') {
                                     ctx.drawImage(progress < 0.5 ? outgoingCanvas : incomingCanvas, 0, 0);
                                 } else {
@@ -9260,7 +9815,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     };
                     requestAnimationFrame(step);
                 });
-                try { await generateImage(); } catch {}
+                deterministicAnimTimeRef.current = 0;
+                isExportRenderingRef.current = true;
+                try { await generateImage(); } catch {} finally { isExportRenderingRef.current = false; }
                 return durationMs / 1000;
             }
         };
@@ -9382,72 +9939,82 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 // En mode WebCodecs déterministe, bgVideo DOIT RESTER PAUSED pour que le seek frame-par-frame soit parfait !
                 // On ne play() bgVideo que si useWebCodecs est faux (MediaRecorder temps réel).
                 if (!useWebCodecs) {
-                    try {
-                        const AudioCtxClass = (window as any).AudioContext || (window as any).webkitAudioContext;
-                        if (AudioCtxClass) {
-                            if (!audioCtxRef.current || audioCtxRef.current.state === 'closed') {
-                                audioCtxRef.current = new AudioCtxClass();
-                                audioSourceNodeRef.current = null;
-                                audioDestNodeRef.current = null;
-                                audioSourceVideoRef.current = null;
-                            }
-                            const actx = audioCtxRef.current;
-                            if (actx) {
-                                if (actx.state === 'suspended') {
-                                    await actx.resume().catch(() => {});
-                                }
+                    const isIOSWebKit = typeof navigator !== 'undefined' && (
+                        /iPad|iPhone|iPod/i.test(navigator.userAgent) ||
+                        (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
+                    );
 
-                                if (!audioDestNodeRef.current) {
-                                    audioDestNodeRef.current = actx.createMediaStreamDestination();
+                    // Sur iOS WebKit, createMediaElementSource(video) détourne le son des haut-parleurs et produit une piste 100% muette !
+                    // Sur iOS, on laisse bgVideo jouer normalement et Phase 2b/3 extrait et muxe la vraie piste audio stéréo AAC dans le MP4.
+                    if (!isIOSWebKit) {
+                        try {
+                            const AudioCtxClass = (window as any).AudioContext || (window as any).webkitAudioContext;
+                            if (AudioCtxClass) {
+                                if (!audioCtxRef.current || audioCtxRef.current.state === 'closed') {
+                                    audioCtxRef.current = new AudioCtxClass();
+                                    audioSourceNodeRef.current = null;
+                                    audioDestNodeRef.current = null;
+                                    audioSourceVideoRef.current = null;
                                 }
+                                const actx = audioCtxRef.current;
+                                if (actx) {
+                                    if (actx.state === 'suspended') {
+                                        await actx.resume().catch(() => {});
+                                    }
 
-                                if (audioSourceVideoRef.current !== bgVideo || !audioSourceNodeRef.current) {
-                                    try {
-                                        audioSourceNodeRef.current = actx.createMediaElementSource(bgVideo);
-                                        audioSourceVideoRef.current = bgVideo;
-                                    } catch (e) {
-                                        console.warn('createMediaElementSource warning:', e);
+                                    if (!audioDestNodeRef.current) {
+                                        audioDestNodeRef.current = actx.createMediaStreamDestination();
+                                    }
+
+                                    if (audioSourceVideoRef.current !== bgVideo || !audioSourceNodeRef.current) {
+                                        try {
+                                            audioSourceNodeRef.current = actx.createMediaElementSource(bgVideo);
+                                            audioSourceVideoRef.current = bgVideo;
+                                        } catch (e) {
+                                            console.warn('createMediaElementSource warning:', e);
+                                        }
+                                    }
+
+                                    if (audioSourceNodeRef.current && audioDestNodeRef.current) {
+                                        try {
+                                            audioSourceNodeRef.current.disconnect();
+                                        } catch {}
+                                        try {
+                                            audioSourceNodeRef.current.connect(audioDestNodeRef.current);
+                                            audioSourceNodeRef.current.connect(actx.destination);
+                                        } catch (e) {
+                                            console.warn('audioSourceNodeRef connect warning:', e);
+                                        }
                                     }
                                 }
-                            }
 
-                            if (audioSourceNodeRef.current && audioDestNodeRef.current) {
-                                try {
-                                    audioSourceNodeRef.current.disconnect();
-                                } catch {}
-                                try {
-                                    audioSourceNodeRef.current.connect(audioDestNodeRef.current);
-                                } catch (e) {
-                                    console.warn('audioSourceNodeRef connect warning:', e);
+                                const destAudioTracks = audioDestNodeRef.current?.stream.getAudioTracks() || [];
+                                if (destAudioTracks.length > 0 && canvasStream) {
+                                    hasAudioTrack = true;
+                                    combinedStream = new MediaStream([
+                                        ...canvasStream.getVideoTracks(),
+                                        destAudioTracks[0]
+                                    ]);
+                                    console.log('[Export] ✅ Piste audio de bgVideo connectée avec succès au flux d\'enregistrement via Web Audio.');
                                 }
                             }
+                        } catch (audioErr) {
+                            console.warn('[Export] AudioContext setup error:', audioErr);
+                        }
 
-                            const destAudioTracks = audioDestNodeRef.current?.stream.getAudioTracks() || [];
-                            if (destAudioTracks.length > 0 && canvasStream) {
+                        // Fallback captureStream si AudioContext n'a pas pu créer la track audio
+                        if (!hasAudioTrack && canvasStream) {
+                            const vidStream = (bgVideo as any).captureStream?.() ?? (bgVideo as any).mozCaptureStream?.() ?? null;
+                            if (vidStream?.getAudioTracks().length > 0) {
                                 hasAudioTrack = true;
-                                combinedStream = new MediaStream([
-                                    ...canvasStream.getVideoTracks(),
-                                    destAudioTracks[0]
-                                ]);
-                                console.log('[Export] ✅ Piste audio de bgVideo connectée avec succès au flux d\'enregistrement via Web Audio.');
+                                combinedStream = new MediaStream([...canvasStream.getVideoTracks(), vidStream.getAudioTracks()[0]]);
+                                console.log('[Export] ✅ Piste audio de bgVideo connectée via captureStream.');
                             }
                         }
-                    } catch (audioErr) {
-                        console.warn('[Export] AudioContext setup error:', audioErr);
                     }
 
-                    // Fallback captureStream si AudioContext n'a pas pu créer la track audio
-                    if (!hasAudioTrack && canvasStream) {
-                        const vidStream = (bgVideo as any).captureStream?.() ?? (bgVideo as any).mozCaptureStream?.() ?? null;
-                        if (vidStream?.getAudioTracks().length > 0) {
-                            hasAudioTrack = true;
-                            combinedStream = new MediaStream([...canvasStream.getVideoTracks(), vidStream.getAudioTracks()[0]]);
-                            console.log('[Export] ✅ Piste audio de bgVideo connectée via captureStream.');
-                        }
-                    }
-
-                    // Démarrage de la lecture vidéo avec son activé pour alimenter le graph Web Audio
-                    bgVideo.muted = false;
+                    // Démarrage de la lecture vidéo
+                    bgVideo.muted = isIOSWebKit ? isVideoAudioMuted : false;
                     bgVideo.volume = 1;
                     try {
                         await bgVideo.play();
@@ -9542,26 +10109,6 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             // FAST-PATH MP4 : si STRICTEMENT AUCUN SON dans le projet (vidéo muette), téléchargement direct immédiat
             if (!hasAnyAudioSource && videoBlob.type.includes('mp4')) {
                 console.log('[Export] ✅ MP4 muet complet (aucun son requis), export direct immédiat sans conversion.');
-                isVideoRecordingRef.current = false;
-                setIsVideoRecording(false);
-                setRecordingProgress(0);
-                const url = URL.createObjectURL(videoBlob);
-                setReadyVideoBlob(videoBlob);
-                setReadyVideoUrl(url);
-                setActivePanel(null);
-                const exportThemeName = combinedMode === 'PROMO_ONLY' ? 'promo' : theme.toLowerCase().replace(/\s+/g, '-');
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `dropsiders-${exportThemeName}-${activeTab.toLowerCase()}-${Date.now()}.mp4`;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                return;
-            }
-
-            // FAST-PATH MediaRecorder iOS Safari : uniquement si MediaRecorder a capturé directement l'audio dans un conteneur MP4 ou MOV
-            if (!useWebCodecs && hasAudioTrack && !hasAnyMusicAudio && (videoBlob.type.includes('mp4') || videoBlob.type.includes('quicktime'))) {
-                console.log('[Export] ✅ MediaRecorder MP4/MOV natif avec piste audio AAC intégrée, export direct.');
                 isVideoRecordingRef.current = false;
                 setIsVideoRecording(false);
                 setRecordingProgress(0);
@@ -9726,21 +10273,15 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 // Fallback FFmpeg si Web Audio API n'a pas pu décoder directement le conteneur MP4 (cas classique Safari iOS)
                 if (!offlineWavBlob) {
                     try {
-                        if (!ffmpegRef.current) {
-                            const ffmpeg = new FFmpeg();
-                            const baseURL = 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/esm';
-                            await ffmpeg.load({
-                                coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, 'text/javascript'),
-                                wasmURL: await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, 'application/wasm'),
-                            });
-                            ffmpegRef.current = ffmpeg;
-                        }
-                        const ffmpeg = ffmpegRef.current;
+                        const ffmpeg = await ensureFFmpegLoaded();
                         const bgExt = bgVideoBlob.type.includes('webm') ? 'webm' : (bgVideoBlob.type.includes('quicktime') ? 'mov' : 'mp4');
                         const bgFilename = `bg_extract.${bgExt}`;
+                        try { await ffmpeg.deleteFile('extracted_audio.wav'); } catch {}
                         await ffmpeg.writeFile(bgFilename, await fetchFile(bgVideoBlob));
                         await ffmpeg.exec(['-i', bgFilename, '-vn', '-c:a', 'pcm_s16le', '-ar', '44100', '-ac', '2', 'extracted_audio.wav']);
                         const wavData: any = await ffmpeg.readFile('extracted_audio.wav');
+                        try { await ffmpeg.deleteFile(bgFilename); } catch {}
+                        try { await ffmpeg.deleteFile('extracted_audio.wav'); } catch {}
                         if (wavData && wavData.byteLength > 44) {
                             const rawWavBlob = new Blob([wavData], { type: 'audio/wav' });
                             offlineWavBlob = rawWavBlob;
@@ -9777,25 +10318,22 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 setIsConverting(true);
                 setConversionProgress(0);
 
-                if (!ffmpegRef.current) {
-                    const ffmpeg = new FFmpeg();
-                    const baseURL = 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/esm';
-                    await ffmpeg.load({
-                        coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, 'text/javascript'),
-                        wasmURL: await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, 'application/wasm'),
-                    });
-                    ffmpegRef.current = ffmpeg;
-                }
-
-                const ffmpeg = ffmpegRef.current;
-                ffmpeg.on('log', ({ message }: any) => {
+                const ffmpeg = await ensureFFmpegLoaded();
+                const onFFmpegLog = ({ message }: any) => {
                     console.log('[FFmpeg]', message);
-                });
-                ffmpeg.on('progress', ({ progress }: any) => {
+                };
+                const onFFmpegProgress = ({ progress }: any) => {
                     setConversionProgress(Math.min(99, Math.round(progress * 100)));
-                });
+                };
+                ffmpeg.on('log', onFFmpegLog);
+                ffmpeg.on('progress', onFFmpegProgress);
 
-                const inputFileName = videoBlob.type.includes('mp4') ? 'input.mp4' : 'input.webm';
+                const isMp4OrMov = videoBlob.type.includes('mp4') || videoBlob.type.includes('quicktime');
+                const inputFileName = videoBlob.type.includes('quicktime') ? 'input.mov' : (videoBlob.type.includes('mp4') ? 'input.mp4' : 'input.webm');
+                let bgSourceCleanupName = '';
+                try { await ffmpeg.deleteFile('audio.wav'); } catch {}
+                try { await ffmpeg.deleteFile('output.mp4'); } catch {}
+                try {
                 await ffmpeg.writeFile(inputFileName, await fetchFile(videoBlob));
 
                 const keyframeInterval = String(fps * 2);
@@ -9810,7 +10348,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 if (offlineWavBlob) {
                     // Muxer l'audio WAV (MUSIQUE ou bgVideo) en AAC universel
                     await ffmpeg.writeFile('audio.wav', await fetchFile(offlineWavBlob));
-                    if (videoBlob.type.includes('mp4')) {
+                    if (isMp4OrMov) {
                         ffmpegArgs = ['-i', inputFileName, '-i', 'audio.wav',
                             '-map', '0:v:0', '-map', '1:a:0',
                             '-c:v', 'copy', '-c:a', 'aac', '-b:a', '256k', '-ar', '48000', '-avoid_negative_ts', 'make_zero', '-shortest', '-movflags', '+faststart', 'output.mp4'];
@@ -9823,6 +10361,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     // Fallback FFmpeg audio extraction si decodeAudioData natif a échoué
                     const bgExt = bgVideoBlob.type.includes('webm') ? 'webm' : (bgVideoBlob.type.includes('quicktime') ? 'mov' : 'mp4');
                     const bgFilename = `bg_source.${bgExt}`;
+                    bgSourceCleanupName = bgFilename;
                     await ffmpeg.writeFile(bgFilename, await fetchFile(bgVideoBlob));
                     let hasExtracted = false;
                     try {
@@ -9833,7 +10372,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     }
                     if (hasExtracted) {
                         const targetSec = (totalDuration / 1000).toFixed(2);
-                        if (videoBlob.type.includes('mp4')) {
+                        if (isMp4OrMov) {
                             ffmpegArgs = ['-i', inputFileName, '-i', 'audio.wav',
                                 '-map', '0:v:0', '-map', '1:a:0',
                                 '-c:v', 'copy', '-c:a', 'aac', '-b:a', '256k', '-ar', '48000', '-avoid_negative_ts', 'make_zero', '-t', targetSec, '-shortest', '-movflags', '+faststart', 'output.mp4'];
@@ -9846,10 +10385,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         ffmpegArgs = ['-i', inputFileName, '-c:v', 'copy', '-an', '-movflags', '+faststart', 'output.mp4'];
                     }
                 } else if (!useWebCodecs && hasAudioTrack) {
-                    ffmpegArgs = ['-i', inputFileName, ...videoArgs,
-                        '-c:a', 'aac', '-b:a', '256k', '-ar', '48000', 'output.mp4'];
+                    ffmpegArgs = ['-i', inputFileName, ...(isMp4OrMov ? ['-c:v', 'copy'] : videoArgs),
+                        '-c:a', 'aac', '-b:a', '256k', '-ar', '48000', '-movflags', '+faststart', 'output.mp4'];
                 } else {
-                    ffmpegArgs = ['-i', inputFileName, ...videoArgs, '-an', 'output.mp4'];
+                    ffmpegArgs = ['-i', inputFileName, ...(isMp4OrMov ? ['-c:v', 'copy'] : videoArgs), '-an', '-movflags', '+faststart', 'output.mp4'];
                 }
 
                 try {
@@ -9884,7 +10423,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 }
 
                 const data: any = await ffmpeg.readFile('output.mp4');
-                const mp4Blob = new Blob([data.buffer], { type: 'video/mp4' });
+                const safeBytes = data instanceof Uint8Array ? new Uint8Array(data) : data;
+                const mp4Blob = new Blob([safeBytes], { type: 'video/mp4' });
                 const url = URL.createObjectURL(mp4Blob);
 
                 setIsConverting(false);
@@ -9899,6 +10439,16 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 document.body.appendChild(a);
                 a.click();
                 document.body.removeChild(a);
+                } finally {
+                    ffmpeg.off('log', onFFmpegLog);
+                    ffmpeg.off('progress', onFFmpegProgress);
+                    try { await ffmpeg.deleteFile(inputFileName); } catch {}
+                    try { await ffmpeg.deleteFile('audio.wav'); } catch {}
+                    try { await ffmpeg.deleteFile('output.mp4'); } catch {}
+                    if (bgSourceCleanupName) {
+                        try { await ffmpeg.deleteFile(bgSourceCleanupName); } catch {}
+                    }
+                }
             } catch (err) {
                 console.error("FFmpeg Error:", err);
                 setIsConverting(false);
@@ -10945,8 +11495,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         type="button"
                         onClick={() => {
                             setBgAnimation(anim.id as BgAnimType);
-                            animStartTimeRef.current = Date.now();
-                            setAnimReplayKey(k => k + 1);
+                            triggerSmoothAnimReplay();
+                            if (isMobile && anim.id !== 'NONE') {
+                                if (previewAnimTimerRef.current) clearTimeout(previewAnimTimerRef.current);
+                                setIsPreviewingTextAnim(true);
+                                previewAnimTimerRef.current = setTimeout(() => setIsPreviewingTextAnim(false), 1100);
+                            }
                         }}
                         className={`py-2 px-1 rounded-xl text-[8.5px] font-black uppercase border transition-all flex flex-col items-center justify-center gap-0.5 ${
                             bgAnimation === anim.id
@@ -10971,53 +11525,127 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         </div>
     );
 
-    // Shared content blocks (used in both mobile & desktop)
-    const themeButtons = (
-        <div className="grid grid-cols-3 gap-1.5">
-            <button onClick={() => handleSetTheme('NEWS')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'NEWS' ? 'bg-neon-red/20 border-neon-red text-neon-red' : 'bg-white/5 border-white/5 text-gray-400'}`}>NEWS</button>
-            <button onClick={() => handleSetTheme('FOCUS')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'FOCUS' ? 'bg-[#ffaa00]/20 border-[#ffaa00] text-[#ffaa00]' : 'bg-white/5 border-white/10 text-gray-400'}`}>FOCUS</button>
-            <button onClick={() => handleSetTheme('MUSIQUE')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'MUSIQUE' ? 'bg-neon-green/20 border-neon-green text-neon-green' : 'bg-white/5 border-white/5 text-gray-400'}`}>MUSIQUE</button>
-            <button onClick={() => handleSetTheme('RECAP')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'RECAP' ? 'bg-[#c026d3]/20 border-[#c026d3] text-[#c026d3]' : 'bg-white/5 border-white/5 text-gray-400'}`}>RÉCAP</button>
-            <button onClick={() => { handleSetTheme('EVENTS'); setEventsSlide(1); }} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'EVENTS' || theme === 'AFFICHE' ? 'bg-[#ff3700]/20 border-[#ff3700] text-[#ff3700] shadow-[0_0_12px_rgba(255,55,0,0.35)]' : 'bg-white/5 border-white/10 text-gray-400'}`}>EVENTS</button>
-            <button onClick={() => handleSetTheme('CONCOURS')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'CONCOURS' ? 'bg-[#008cff]/20 border-[#008cff] text-[#008cff] shadow-[0_0_12px_rgba(0,140,255,0.35)]' : 'bg-white/5 border-white/10 text-gray-400'}`}>CONCOURS</button>
-            <button onClick={() => handleSetTheme('LIVESTREAM')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'LIVESTREAM' ? 'bg-pink-500/20 border-pink-500 text-pink-500' : 'bg-white/5 border-white/5 text-gray-400'}`}>DIRECT</button>
-            <button onClick={() => handleSetTheme('PLANNING')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'PLANNING' ? 'bg-[#ff3700]/20 border-[#ff3700] text-[#ff3700] shadow-[0_0_12px_rgba(255,55,0,0.35)]' : 'bg-white/5 border-white/5 text-gray-400'}`}>AGENDA</button>
-            <button onClick={() => handleSetTheme('INTERVIEW')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'INTERVIEW' ? 'bg-white/20 border-white text-white shadow-[0_0_12px_rgba(255,255,255,0.35)]' : 'bg-white/5 border-white/5 text-gray-400'}`}>INTERVIEW</button>
-            <button onClick={() => { handleSetTheme('ARTISTE FESTIVAL'); setArtisteFestivalSlide(2); }} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'SPOTLIGHT' || (theme === 'ARTISTE FESTIVAL' && artisteFestivalSlide === 2) ? 'bg-neon-red/20 border-neon-red text-neon-red shadow-[0_0_12px_rgba(255,0,51,0.35)]' : 'bg-white/5 border-white/10 text-gray-400'}`}>SPOTLIGHT</button>
-            <button onClick={() => handleSetTheme('CITATION')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'CITATION' ? 'bg-neon-red/20 border-neon-red text-neon-red shadow-[0_0_12px_rgba(255,18,65,0.35)]' : 'bg-white/5 border-white/10 text-gray-400'}`}>CITATION</button>
-            <button onClick={() => { handleSetTheme('ARTISTE FESTIVAL'); setArtisteFestivalSlide(1); }} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'ARTISTE FESTIVAL' && artisteFestivalSlide === 1 ? 'bg-neon-red/20 border-neon-red text-neon-red shadow-[0_0_12px_rgba(255,0,51,0.35)]' : 'bg-white/5 border-white/10 text-gray-400'}`}>ARTISTE FESTIVAL</button>
-            <button onClick={() => handleSetTheme('HIGHLIGHTS')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'HIGHLIGHTS' ? 'bg-white/20 border-white text-white shadow-[0_0_12px_rgba(255,255,255,0.35)]' : 'bg-white/5 border-white/5 text-gray-400'}`}>HIGHLIGHTS</button>
-            <button
-                onClick={() => {
-                    if (theme !== 'JEU' && theme !== 'JEU_FESTIVAL' && theme !== 'JEU_DJ') {
-                        handleSetTheme('JEU');
-                    }
-                }}
-                className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${
-                    (theme === 'JEU' || theme === 'JEU_FESTIVAL' || theme === 'JEU_DJ')
-                        ? (theme === 'JEU'
-                            ? 'bg-neon-cyan/20 border-neon-cyan text-neon-cyan shadow-[0_0_12px_rgba(0,240,255,0.35)]'
-                            : theme === 'JEU_FESTIVAL'
-                            ? 'bg-[#ffaa00]/20 border-[#ffaa00] text-[#ffaa00] shadow-[0_0_12px_rgba(255,170,0,0.35)]'
-                            : 'bg-[#bd00ff]/20 border-[#bd00ff] text-[#bd00ff] shadow-[0_0_12px_rgba(189,0,255,0.35)]')
-                        : 'bg-white/5 border-white/10 text-gray-400'
-                }`}
-                title="Devinettes (Clip, Festival, Silhouette DJ)"
-            >
-                {theme === 'JEU_FESTIVAL' ? '🎪 DEVINE FESTIVAL' : theme === 'JEU_DJ' ? '👤 DEVINE LE DJ' : theme === 'JEU' ? '🎬 DEVINE CLIP' : 'DEVINETTE (JEU)'}
-            </button>
-            <button onClick={() => handleSetTheme('TOP 100 DROPSIDERS')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'TOP 100 DROPSIDERS' ? 'bg-neon-red/20 border-neon-red text-white shadow-[0_0_12px_rgba(255,18,65,0.4)]' : 'bg-white/5 border-white/10 text-gray-400'}`}>TOP 100 DROPSIDERS</button>
-            
-            {activeTab === 'REEL' && (
-                <>
-                    <button onClick={() => handleSetTheme('REELS')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'REELS' || theme === 'CONSEILS' ? 'bg-neon-red/20 border-neon-red text-neon-red shadow-[0_0_12px_rgba(255,0,51,0.35)]' : 'bg-white/5 border-white/10 text-gray-400'}`}>REELS</button>
-                    <button onClick={() => handleSetTheme('TRACKLIST')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'TRACKLIST' ? 'bg-orange-500/20 border-orange-500 text-orange-500 shadow-[0_0_12px_rgba(255,120,0,0.35)]' : 'bg-white/5 border-white/5 text-gray-400'}`}>TRACKLIST</button>
-                    <button onClick={() => handleSetTheme('MAP')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'MAP' ? 'bg-neon-red/20 border-neon-red text-neon-red animate-pulse' : 'bg-white/5 border-white/5 text-gray-400'}`}>CARTE (STORY)</button>
-                </>
-            )}
+    // Shared content blocks (used in both mobile & desktop — 100% parité visuelle et fonctionnelle avec PC)
+    const themeButtons = (() => {
+        const getMobileThemeMeta = (t: string) => {
+            if (['MUSIQUE', 'TRACKLIST', 'ARTISTE FESTIVAL', 'SPOTLIGHT', 'HIGHLIGHTS'].includes(t)) {
+                return { category: 'MUSIC' as const, catLabel: 'Musique', icon: '🎵', color: '#00f0ff', border: 'border-cyan-400/40', bg: 'bg-cyan-500/15', text: 'text-cyan-400' };
+            }
+            if (['PLANNING', 'CALENDRIER', 'EVENTS', 'AFFICHE', 'MAP'].includes(t)) {
+                return { category: 'AGENDA' as const, catLabel: 'Agenda', icon: '📅', color: '#ff3700', border: 'border-[#ff3700]/40', bg: 'bg-[#ff3700]/15', text: 'text-[#ff3700]' };
+            }
+            if (['JEU', 'JEU_FESTIVAL', 'JEU_DJ', 'CONCOURS', 'TOP 100 DROPSIDERS'].includes(t)) {
+                return { category: 'GAMES' as const, catLabel: 'Jeux', icon: '🎮', color: '#00f0ff', border: 'border-[#00f0ff]/40', bg: 'bg-[#00f0ff]/15', text: 'text-[#00f0ff]' };
+            }
+            return { category: 'EDITO' as const, catLabel: 'Édito', icon: '📰', color: '#ff1241', border: 'border-[#ff1241]/40', bg: 'bg-[#ff1241]/15', text: 'text-neon-red' };
+        };
 
-        </div>
-    );
+        const currentMeta = getMobileThemeMeta(theme);
+        const currentDisplayName = theme === 'ARTISTE FESTIVAL'
+            ? (artisteFestivalSlide === 2 ? 'SPOTLIGHT' : 'ARTISTE FESTIVAL')
+            : theme === 'JEU_FESTIVAL' ? 'DEVINE FESTIVAL'
+            : theme === 'JEU_DJ' ? 'DEVINE LE DJ'
+            : theme === 'JEU' ? 'DEVINE CLIP'
+            : theme;
+
+        const unifiedThemeList = [
+            // 📰 Éditorial
+            { id: 'NEWS', label: 'NEWS', category: 'EDITO', action: () => handleSetTheme('NEWS'), active: theme === 'NEWS', style: 'bg-neon-red/20 border-neon-red text-neon-red shadow-[0_0_12px_rgba(255,18,65,0.35)]' },
+            { id: 'FOCUS', label: 'FOCUS', category: 'EDITO', action: () => handleSetTheme('FOCUS'), active: theme === 'FOCUS', style: 'bg-[#ffaa00]/20 border-[#ffaa00] text-[#ffaa00] shadow-[0_0_12px_rgba(255,170,0,0.35)]' },
+            { id: 'RECAP', label: 'RÉCAP', category: 'EDITO', action: () => handleSetTheme('RECAP'), active: theme === 'RECAP', style: 'bg-[#c026d3]/20 border-[#c026d3] text-[#c026d3] shadow-[0_0_12px_rgba(192,38,211,0.35)]' },
+            { id: 'INTERVIEW', label: 'INTERVIEW', category: 'EDITO', action: () => handleSetTheme('INTERVIEW'), active: theme === 'INTERVIEW', style: 'bg-white/20 border-white text-white shadow-[0_0_12px_rgba(255,255,255,0.35)]' },
+            { id: 'CITATION', label: 'CITATION', category: 'EDITO', action: () => handleSetTheme('CITATION'), active: theme === 'CITATION', style: 'bg-neon-red/20 border-neon-red text-neon-red shadow-[0_0_12px_rgba(255,18,65,0.35)]' },
+            { id: 'LIVESTREAM', label: 'DIRECT', category: 'EDITO', action: () => handleSetTheme('LIVESTREAM'), active: theme === 'LIVESTREAM', style: 'bg-pink-500/20 border-pink-500 text-pink-500 shadow-[0_0_12px_rgba(236,72,153,0.35)]' },
+            { id: 'REELS', label: 'REELS', category: 'EDITO', action: () => { if (activeTab !== 'REEL') setActiveTab('REEL'); handleSetTheme('REELS'); }, active: theme === 'REELS' || theme === 'CONSEILS', style: 'bg-neon-red/20 border-neon-red text-neon-red shadow-[0_0_12px_rgba(255,0,51,0.35)]' },
+
+            // 🎵 Musique
+            { id: 'MUSIQUE', label: 'MUSIQUE', category: 'MUSIC', action: () => handleSetTheme('MUSIQUE'), active: theme === 'MUSIQUE', style: 'bg-neon-green/20 border-neon-green text-neon-green shadow-[0_0_12px_rgba(0,255,102,0.35)]' },
+            { id: 'HIGHLIGHTS', label: 'HIGHLIGHTS', category: 'MUSIC', action: () => handleSetTheme('HIGHLIGHTS'), active: theme === 'HIGHLIGHTS', style: 'bg-white/20 border-white text-white shadow-[0_0_12px_rgba(255,255,255,0.35)]' },
+            { id: 'SPOTLIGHT', label: 'SPOTLIGHT', category: 'MUSIC', action: () => { handleSetTheme('ARTISTE FESTIVAL'); setArtisteFestivalSlide(2); }, active: theme === 'SPOTLIGHT' || (theme === 'ARTISTE FESTIVAL' && artisteFestivalSlide === 2), style: 'bg-neon-red/20 border-neon-red text-neon-red shadow-[0_0_12px_rgba(255,0,51,0.35)]' },
+            { id: 'ARTISTE FESTIVAL', label: 'ARTISTE FESTIVAL', category: 'MUSIC', action: () => { handleSetTheme('ARTISTE FESTIVAL'); setArtisteFestivalSlide(1); }, active: theme === 'ARTISTE FESTIVAL' && artisteFestivalSlide === 1, style: 'bg-neon-red/20 border-neon-red text-neon-red shadow-[0_0_12px_rgba(255,0,51,0.35)]' },
+            { id: 'TRACKLIST', label: 'TRACKLIST', category: 'MUSIC', action: () => { if (activeTab !== 'REEL') setActiveTab('REEL'); handleSetTheme('TRACKLIST'); }, active: theme === 'TRACKLIST', style: 'bg-orange-500/20 border-orange-500 text-orange-500 shadow-[0_0_12px_rgba(255,120,0,0.35)]' },
+
+            // 📅 Agenda
+            { id: 'PLANNING', label: 'AGENDA', category: 'AGENDA', action: () => handleSetTheme('PLANNING'), active: theme === 'PLANNING', style: 'bg-[#ff3700]/20 border-[#ff3700] text-[#ff3700] shadow-[0_0_12px_rgba(255,55,0,0.35)]' },
+            { id: 'EVENTS', label: 'EVENTS', category: 'AGENDA', action: () => { handleSetTheme('EVENTS'); setEventsSlide(1); }, active: theme === 'EVENTS' || theme === 'AFFICHE', style: 'bg-[#ff3700]/20 border-[#ff3700] text-[#ff3700] shadow-[0_0_12px_rgba(255,55,0,0.35)]' },
+            { id: 'MAP', label: 'CARTE (STORY)', category: 'AGENDA', action: () => { if (activeTab !== 'REEL') setActiveTab('REEL'); handleSetTheme('MAP'); }, active: theme === 'MAP', style: 'bg-neon-cyan/20 border-neon-cyan text-neon-cyan shadow-[0_0_12px_rgba(0,240,255,0.35)]' },
+
+            // 🎮 Jeux
+            {
+                id: 'DEVINETTE',
+                label: theme === 'JEU_FESTIVAL' ? '🎪 DEVINE FESTIVAL' : theme === 'JEU_DJ' ? '👤 DEVINE LE DJ' : theme === 'JEU' ? '🎬 DEVINE CLIP' : 'DEVINETTE (JEU)',
+                category: 'GAMES',
+                action: () => { if (theme !== 'JEU' && theme !== 'JEU_FESTIVAL' && theme !== 'JEU_DJ') handleSetTheme('JEU'); },
+                active: theme === 'JEU' || theme === 'JEU_FESTIVAL' || theme === 'JEU_DJ',
+                style: theme === 'JEU_FESTIVAL' ? 'bg-[#ffaa00]/20 border-[#ffaa00] text-[#ffaa00] shadow-[0_0_12px_rgba(255,170,0,0.35)]' : theme === 'JEU_DJ' ? 'bg-[#bd00ff]/20 border-[#bd00ff] text-[#bd00ff] shadow-[0_0_12px_rgba(189,0,255,0.35)]' : 'bg-neon-cyan/20 border-neon-cyan text-neon-cyan shadow-[0_0_12px_rgba(0,240,255,0.35)]'
+            },
+            { id: 'CONCOURS', label: 'CONCOURS', category: 'GAMES', action: () => handleSetTheme('CONCOURS'), active: theme === 'CONCOURS', style: 'bg-[#008cff]/20 border-[#008cff] text-[#008cff] shadow-[0_0_12px_rgba(0,140,255,0.35)]' },
+            { id: 'TOP 100 DROPSIDERS', label: 'TOP 100 DROPSIDERS', category: 'GAMES', action: () => handleSetTheme('TOP 100 DROPSIDERS'), active: theme === 'TOP 100 DROPSIDERS', style: 'bg-neon-red/20 border-neon-red text-white shadow-[0_0_12px_rgba(255,18,65,0.4)]' }
+        ];
+
+        const filteredMobileThemes = themeCategoryFilter === 'ALL'
+            ? unifiedThemeList
+            : unifiedThemeList.filter(item => item.category === themeCategoryFilter);
+
+        return (
+            <div className="space-y-3">
+                <div className="flex items-center justify-between px-3 py-2 rounded-2xl border border-white/10 bg-white/5">
+                    <div className="flex items-center gap-2 min-w-0">
+                        <span className={`px-2 py-0.5 rounded-full text-[8.5px] font-black uppercase tracking-wider border flex items-center gap-1 ${currentMeta.bg} ${currentMeta.border} ${currentMeta.text}`}>
+                            <span>{currentMeta.icon}</span>
+                            <span>{currentMeta.catLabel}</span>
+                        </span>
+                        <span className="text-white font-black text-xs tracking-tight uppercase truncate">{currentDisplayName}</span>
+                        <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: currentMeta.color, boxShadow: `0 0 8px ${currentMeta.color}` }} />
+                    </div>
+                    <span className="text-[8px] font-bold text-gray-500 uppercase shrink-0">{filteredMobileThemes.length} thèmes</span>
+                </div>
+
+                {/* FILTRES PAR CATÉGORIE (identiques au PC) */}
+                <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
+                    {[
+                        { key: 'ALL', label: 'Tous' },
+                        { key: 'EDITO', label: '📰 Édito' },
+                        { key: 'MUSIC', label: '🎵 Musique' },
+                        { key: 'AGENDA', label: '📅 Agenda' },
+                        { key: 'GAMES', label: '🎮 Jeux' },
+                    ].map(cat => (
+                        <button
+                            key={cat.key}
+                            type="button"
+                            onClick={() => setThemeCategoryFilter(cat.key as any)}
+                            className={`px-2.5 py-1.5 rounded-xl text-[9px] font-black uppercase whitespace-nowrap transition-all border shrink-0 ${
+                                themeCategoryFilter === cat.key
+                                    ? 'bg-white text-black border-white shadow-sm'
+                                    : 'bg-black/40 text-gray-400 border-white/10 hover:text-white hover:bg-white/10'
+                            }`}
+                        >
+                            {cat.label}
+                        </button>
+                    ))}
+                </div>
+
+                {/* GRILLE DES THÈMES (100% identique au PC) */}
+                <div className="grid grid-cols-3 gap-1.5">
+                    {filteredMobileThemes.map(item => (
+                        <button
+                            key={item.id}
+                            type="button"
+                            onClick={() => item.action()}
+                            className={`py-2.5 px-1.5 rounded-xl text-[8px] font-black uppercase border transition-all text-center truncate ${
+                                item.active
+                                    ? item.style
+                                    : 'bg-white/5 border-white/5 text-gray-400 hover:text-white hover:bg-white/10 hover:border-white/15'
+                            }`}
+                            title={item.label}
+                        >
+                            {item.label}
+                        </button>
+                    ))}
+                </div>
+            </div>
+        );
+    })();
 
     const devinetteSwitcher = (theme === 'JEU' || theme === 'JEU_FESTIVAL' || theme === 'JEU_DJ') ? (
         <div className="p-1.5 bg-black/60 border border-white/10 rounded-2xl flex items-center gap-1.5 shadow-xl">
@@ -12197,8 +12825,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     <button
                         type="button"
                         onClick={() => {
-                            animStartTimeRef.current = Date.now();
-                            setAnimReplayKey(k => k + 1);
+                            triggerSmoothAnimReplay();
+                            if (isMobile) {
+                                if (previewAnimTimerRef.current) clearTimeout(previewAnimTimerRef.current);
+                                setIsPreviewingTextAnim(true);
+                                previewAnimTimerRef.current = setTimeout(() => setIsPreviewingTextAnim(false), 1100);
+                            }
                         }}
                         className="px-2 py-0.5 bg-neon-cyan/10 border border-neon-cyan/30 rounded-lg text-[8px] font-black uppercase text-neon-cyan hover:bg-neon-cyan hover:text-black transition-all flex items-center gap-1"
                         title="Rejouer l'animation depuis le début"
@@ -12225,8 +12857,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         type="button"
                         onClick={() => {
                             setTextAnimation(anim.id as TextAnimType);
-                            animStartTimeRef.current = Date.now();
-                            setAnimReplayKey(k => k + 1);
+                            triggerSmoothAnimReplay();
+                            if (isMobile && anim.id !== 'NONE') {
+                                if (previewAnimTimerRef.current) clearTimeout(previewAnimTimerRef.current);
+                                setIsPreviewingTextAnim(true);
+                                previewAnimTimerRef.current = setTimeout(() => setIsPreviewingTextAnim(false), 1100);
+                            }
                         }}
                         className={`py-2 px-1 rounded-xl text-[8.5px] font-black uppercase border transition-all flex flex-col items-center justify-center gap-0.5 ${
                             textAnimation === anim.id
@@ -19310,6 +19946,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                                     <button
                                                         type="button"
                                                         onClick={() => {
+                                                            unlockMobileAudioSession();
                                                             if (bgVideo.muted) {
                                                                 bgVideo.muted = false;
                                                                 bgVideo.play().catch(() => {});
@@ -19870,6 +20507,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         type="button"
                                         onClick={(e) => {
                                             e.stopPropagation();
+                                            unlockMobileAudioSession();
                                             if (!bgVideo) return;
                                             if (bgVideo.muted) {
                                                 bgVideo.muted = false;
@@ -19900,6 +20538,43 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         )}
                                     </button>
                                 )}
+                                {theme === 'MUSIQUE' && !isCarouselPromoActive && (() => {
+                                    const currentMusicAudio = editorialSlide === 1
+                                        ? (musicIntroAudio || musicTracks[0]?.audio || '')
+                                        : (musicTracks[editorialSlide - 2]?.audio || '');
+                                    const currentMusicStart = editorialSlide === 1
+                                        ? (musicIntroAudio ? (musicIntroAudioStartTime || 0) : (musicTracks[0]?.audioStartTime || 0))
+                                        : (musicTracks[editorialSlide - 2]?.audioStartTime || 0);
+                                    if (!currentMusicAudio) return null;
+                                    const isTrackPlaying = activeAudioPreviewSrc === currentMusicAudio;
+                                    return (
+                                        <button
+                                            type="button"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                playAudioPreviewFrom(currentMusicAudio, currentMusicStart);
+                                            }}
+                                            className={`absolute ${bgVideo ? 'top-12' : 'top-3.5'} right-3.5 z-40 px-3 py-1.5 rounded-full flex items-center gap-1.5 text-[9px] font-black uppercase backdrop-blur-md shadow-2xl transition-all active:scale-95 border ${
+                                                isTrackPlaying
+                                                    ? 'bg-[#00ff66]/25 border-[#00ff66]/70 text-[#00ff66] shadow-[0_0_15px_rgba(0,255,102,0.45)]'
+                                                    : 'bg-black/75 border-[#00ff66]/40 text-[#00ff66] hover:bg-black/90'
+                                            }`}
+                                            title={isTrackPlaying ? "Couper l'extrait audio" : "Écouter l'extrait audio du morceau"}
+                                        >
+                                            {isTrackPlaying ? (
+                                                <>
+                                                    <Volume2 className="w-3.5 h-3.5 animate-pulse text-[#00ff66]" />
+                                                    <span>Son Track ON</span>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <Music className="w-3.5 h-3.5 text-[#00ff66]" />
+                                                    <span>Écouter Extrait</span>
+                                                </>
+                                            )}
+                                        </button>
+                                    );
+                                })()}
 
                                 <AnimatePresence>
                                     {/* The global overlay at the end of the file handles desktop and mobile now */}
@@ -19920,7 +20595,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     dragElastic={{ top: 0.1, bottom: 0.8 }}
                     onDragEnd={(_, info) => {
                         if (info.offset.y > 150) {
-                            if (activePanel) setActivePanel(null);
+                            if (activePanel) {
+                                if (activePanel === 'texte' && (textAnimation !== 'NONE' || bgAnimation !== 'NONE')) {
+                                    triggerSmoothAnimReplay();
+                                }
+                                setActivePanel(null);
+                            }
                         }
                     }}
                     className="relative w-full h-full bg-black flex flex-col overflow-hidden">
@@ -19941,7 +20621,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         <h2 className="text-2xl font-black text-white italic tracking-tighter text-center mb-1">SOCIAL STUDIO</h2>
                                         <p className="text-[10px] text-gray-500 font-black uppercase tracking-widest text-center mb-8">Choisir le format</p>
                                         <div className="grid grid-cols-2 gap-4">
-                                            <button onClick={() => { setActiveTab('REEL'); setTheme('NEWS'); setShowFormatModal(false); }}
+                                            <button onClick={() => { unlockMobileAudioSession(); setActiveTab('REEL'); setShowFormatModal(false); }}
                                                 className="group flex flex-col items-center gap-3 p-6 rounded-3xl border-2 border-white/10 bg-white/5 hover:border-white/30 transition-all">
                                                 <div className="w-12 h-20 rounded-xl border-2 border-white/30 flex items-center justify-center group-hover:border-neon-red/60 transition-all" style={{ background: 'linear-gradient(180deg,#1a1a1a,#0a0a0a)' }}>
                                                     <Smartphone className="w-5 h-5 text-gray-400 group-hover:text-neon-red transition-colors" />
@@ -19949,7 +20629,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                                 <span className="text-[11px] font-black text-white uppercase">Réel</span>
                                                 <span className="text-[9px] text-gray-500">1080 × 1920</span>
                                             </button>
-                                            <button onClick={() => { setActiveTab('PUBLICATION'); setTheme('NEWS'); setShowFormatModal(false); }}
+                                            <button onClick={() => { unlockMobileAudioSession(); setActiveTab('PUBLICATION'); if (theme === 'REELS' || theme === 'CONSEILS' || theme === 'TRACKLIST' || theme === 'MAP') handleSetTheme('NEWS'); setShowFormatModal(false); }}
                                                 className="group flex flex-col items-center gap-3 p-6 rounded-3xl border-2 border-white/10 bg-white/5 hover:border-white/30 transition-all">
                                                 <div className="w-16 h-16 rounded-xl border-2 border-white/30 flex items-center justify-center group-hover:border-neon-cyan/60 transition-all" style={{ background: 'linear-gradient(180deg,#1a1a1a,#0a0a0a)' }}>
                                                     <ImageIcon className="w-6 h-6 text-gray-400 group-hover:text-neon-cyan transition-colors" />
@@ -19958,7 +20638,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                                 <span className="text-[9px] text-gray-500">1080 × 1350</span>
                                             </button>
                                         </div>
-                                        <button onClick={() => setShowFormatModal(false)} className="mt-6 w-full py-3 text-[10px] font-black text-gray-500 uppercase tracking-widest hover:text-white transition-colors">Continuer sans changer</button>
+                                        <button onClick={() => { unlockMobileAudioSession(); setShowFormatModal(false); }} className="mt-6 w-full py-3 text-[10px] font-black text-gray-500 uppercase tracking-widest hover:text-white transition-colors">Continuer sans changer</button>
                                     </div>
                                 </motion.div>
                             </motion.div>
@@ -19968,7 +20648,14 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     {/* Full-screen canvas — click to close any open panel */}
                     <div
                         className="absolute inset-0 flex items-center justify-center bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-neutral-900/80 via-[#08080c] to-black"
-                        onClick={() => { if (activePanel) setActivePanel(null); }}
+                        onClick={() => {
+                            if (activePanel) {
+                                if (activePanel === 'texte' && (textAnimation !== 'NONE' || bgAnimation !== 'NONE')) {
+                                    triggerSmoothAnimReplay();
+                                }
+                                setActivePanel(null);
+                            }
+                        }}
                     >
                         {theme === 'ARTISTE FESTIVAL' && (
                             <div className="absolute top-16 left-1/2 -translate-x-1/2 z-30 flex items-center gap-1.5 bg-black/85 backdrop-blur-md px-2.5 py-1 rounded-2xl border border-white/10 shadow-2xl max-w-[95vw] overflow-x-auto scrollbar-none">
@@ -20121,17 +20808,27 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 </button>
                                 {agendaAffiches.map((aff, idx) => {
                                     const sNum = idx + 3;
+                                    const isSelected = !isCarouselPromoActive && agendaSlide === sNum;
                                     return (
-                                        <button
-                                            key={aff.id}
-                                            type="button"
-                                            onClick={(e) => { e.stopPropagation(); setIsCarouselPromoActive(false); setAgendaSlide(sNum); }}
-                                            className={`px-2.5 py-1 rounded-xl text-[8px] font-black uppercase transition-all shrink-0 ${
-                                                !isCarouselPromoActive && agendaSlide === sNum ? 'bg-[#ff3700] text-black shadow-md' : 'text-gray-400'
-                                            }`}
-                                        >
-                                            S{sNum} (Affiche {idx + 1})
-                                        </button>
+                                        <div key={aff.id} className="flex items-center shrink-0 rounded-xl overflow-hidden bg-white/5 border border-white/10">
+                                            <button
+                                                type="button"
+                                                onClick={(e) => { e.stopPropagation(); setIsCarouselPromoActive(false); setAgendaSlide(sNum); }}
+                                                className={`px-2.5 py-1 text-[8px] font-black uppercase transition-all ${
+                                                    isSelected ? 'bg-[#ff3700] text-black shadow-md' : 'text-gray-400'
+                                                }`}
+                                            >
+                                                S{sNum} (Affiche {idx + 1})
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={(e) => { e.stopPropagation(); removeAgendaAffiche(idx); }}
+                                                className="px-1.5 py-1 text-[8px] font-black text-red-400 hover:bg-red-500/20 border-l border-white/10"
+                                                title={`Supprimer l'Affiche ${idx + 1}`}
+                                            >
+                                                ✕
+                                            </button>
+                                        </div>
                                     );
                                 })}
                                 {agendaAffiches.length < 18 && (
@@ -20203,17 +20900,27 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 </div>
                                 {extraEditorialSlides.map((_, idx) => {
                                     const sNum = idx + 3;
+                                    const isSelected = !isCarouselPromoActive && !isEditorialAfficheActive && !isEditorialTweetActive && editorialSlide === sNum;
                                     return (
-                                        <button
-                                            key={sNum}
-                                            type="button"
-                                            onClick={(e) => { e.stopPropagation(); setIsCarouselPromoActive(false); setIsEditorialAfficheActive(false); setIsEditorialTweetActive(false); setEditorialSlide(sNum); }}
-                                            className={`px-2.5 py-1 rounded-xl text-[8px] font-black uppercase transition-all shrink-0 ${
-                                                !isCarouselPromoActive && !isEditorialAfficheActive && !isEditorialTweetActive && editorialSlide === sNum ? 'bg-white text-black shadow-md' : 'text-gray-400'
-                                            }`}
-                                        >
-                                            Slide {sNum}
-                                        </button>
+                                        <div key={sNum} className="flex items-center shrink-0 rounded-xl overflow-hidden bg-white/5 border border-white/10">
+                                            <button
+                                                type="button"
+                                                onClick={(e) => { e.stopPropagation(); setIsCarouselPromoActive(false); setIsEditorialAfficheActive(false); setIsEditorialTweetActive(false); setEditorialSlide(sNum); }}
+                                                className={`px-2.5 py-1 text-[8px] font-black uppercase transition-all ${
+                                                    isSelected ? 'bg-white text-black shadow-md' : 'text-gray-400'
+                                                }`}
+                                            >
+                                                Slide {sNum}
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={(e) => { e.stopPropagation(); removeEditorialSlide(sNum); }}
+                                                className="px-1.5 py-1 text-[8px] font-black text-red-400 hover:bg-red-500/20 border-l border-white/10"
+                                                title={`Supprimer la Slide ${sNum}`}
+                                            >
+                                                ✕
+                                            </button>
+                                        </div>
                                     );
                                 })}
                                 {extraEditorialSlides.length < 18 && (
@@ -20330,41 +21037,100 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             }}
                             onMouseUp={() => setIsDrawing(false)}
                         />
-                        {bgVideo && (
-                            <button
-                                type="button"
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    if (!bgVideo) return;
-                                    if (bgVideo.muted) {
-                                        bgVideo.muted = false;
-                                        bgVideo.play().catch(err => console.warn("Unmute mobile failed", err));
-                                        setIsVideoAudioMuted(false);
-                                    } else {
-                                        bgVideo.muted = true;
-                                        setIsVideoAudioMuted(true);
-                                    }
-                                }}
-                                className={`absolute top-4 right-4 z-40 px-3.5 py-1.5 rounded-full flex items-center gap-1.5 text-[9px] font-black uppercase backdrop-blur-md shadow-2xl transition-all active:scale-95 border ${
-                                    !isVideoAudioMuted
-                                        ? 'bg-[#00ff66]/20 border-[#00ff66]/60 text-[#00ff66] shadow-[0_0_15px_rgba(0,255,102,0.4)]'
-                                        : 'bg-black/80 border-white/20 text-white hover:bg-black hover:border-white/40'
-                                }`}
-                                title={isVideoAudioMuted ? "Activer le son de la vidéo" : "Couper le son de la vidéo"}
-                            >
-                                {!isVideoAudioMuted ? (
-                                    <>
-                                        <Volume2 className="w-3.5 h-3.5 animate-pulse text-[#00ff66]" />
-                                        <span>Son Actif</span>
-                                    </>
-                                ) : (
-                                    <>
-                                        <VolumeX className="w-3.5 h-3.5 text-red-400" />
-                                        <span>Son Coupé • Activer</span>
-                                    </>
+                        {/* Contrôles flottants rapides Mobile (Son Vidéo, Extrait Audio Track, Rejouer Animation) */}
+                        <div className={`absolute ${isMultiSlideTheme ? 'top-[104px]' : 'top-16'} inset-x-3 z-30 flex items-center justify-between gap-2 pointer-events-none`}>
+                            <div className="flex items-center gap-1.5 pointer-events-auto">
+                                {!activePanel && (textAnimation !== 'NONE' || bgAnimation !== 'NONE') && (
+                                    <button
+                                        type="button"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            triggerSmoothAnimReplay();
+                                        }}
+                                        className="px-3 py-1.5 rounded-full flex items-center gap-1.5 text-[8.5px] font-black uppercase backdrop-blur-md shadow-2xl transition-all active:scale-95 bg-black/80 border border-neon-cyan/40 text-neon-cyan"
+                                        title="Rejouer l'animation d'entrée"
+                                    >
+                                        <RotateCcw className="w-3 h-3" />
+                                        <span>Rejouer Anim</span>
+                                    </button>
                                 )}
-                            </button>
-                        )}
+                            </div>
+                            <div className="flex items-center gap-1.5 pointer-events-auto ml-auto">
+                                {bgVideo && (
+                                    <button
+                                        type="button"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            unlockMobileAudioSession();
+                                            if (!bgVideo) return;
+                                            if (bgVideo.muted) {
+                                                bgVideo.muted = false;
+                                                bgVideo.play().catch(err => console.warn("Unmute mobile failed", err));
+                                                setIsVideoAudioMuted(false);
+                                            } else {
+                                                bgVideo.muted = true;
+                                                setIsVideoAudioMuted(true);
+                                            }
+                                        }}
+                                        className={`px-3.5 py-1.5 rounded-full flex items-center gap-1.5 text-[9px] font-black uppercase backdrop-blur-md shadow-2xl transition-all active:scale-95 border ${
+                                            !isVideoAudioMuted
+                                                ? 'bg-[#00ff66]/20 border-[#00ff66]/60 text-[#00ff66] shadow-[0_0_15px_rgba(0,255,102,0.4)]'
+                                                : 'bg-black/80 border-white/20 text-white hover:bg-black hover:border-white/40'
+                                        }`}
+                                        title={isVideoAudioMuted ? "Activer le son de la vidéo" : "Couper le son de la vidéo"}
+                                    >
+                                        {!isVideoAudioMuted ? (
+                                            <>
+                                                <Volume2 className="w-3.5 h-3.5 animate-pulse text-[#00ff66]" />
+                                                <span>Son Actif</span>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <VolumeX className="w-3.5 h-3.5 text-red-400" />
+                                                <span>Son Coupé • Activer</span>
+                                            </>
+                                        )}
+                                    </button>
+                                )}
+                                {theme === 'MUSIQUE' && !isCarouselPromoActive && (() => {
+                                    const currentMusicAudio = editorialSlide === 1
+                                        ? (musicIntroAudio || musicTracks[0]?.audio || '')
+                                        : (musicTracks[editorialSlide - 2]?.audio || '');
+                                    const currentMusicStart = editorialSlide === 1
+                                        ? (musicIntroAudio ? (musicIntroAudioStartTime || 0) : (musicTracks[0]?.audioStartTime || 0))
+                                        : (musicTracks[editorialSlide - 2]?.audioStartTime || 0);
+                                    if (!currentMusicAudio) return null;
+                                    const isTrackPlaying = activeAudioPreviewSrc === currentMusicAudio;
+                                    return (
+                                        <button
+                                            type="button"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                playAudioPreviewFrom(currentMusicAudio, currentMusicStart);
+                                            }}
+                                            className={`px-3.5 py-1.5 rounded-full flex items-center gap-1.5 text-[9px] font-black uppercase backdrop-blur-md shadow-2xl transition-all active:scale-95 border ${
+                                                isTrackPlaying
+                                                    ? 'bg-[#00ff66]/25 border-[#00ff66]/70 text-[#00ff66] shadow-[0_0_15px_rgba(0,255,102,0.45)]'
+                                                    : 'bg-black/85 border-[#00ff66]/45 text-[#00ff66]'
+                                            }`}
+                                            title={isTrackPlaying ? "Couper l'extrait audio" : "Écouter l'extrait audio du morceau"}
+                                        >
+                                            {isTrackPlaying ? (
+                                                <>
+                                                    <Volume2 className="w-3.5 h-3.5 animate-pulse text-[#00ff66]" />
+                                                    <span>Son Track ON</span>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <Music className="w-3.5 h-3.5 text-[#00ff66]" />
+                                                    <span>Écouter Extrait</span>
+                                                </>
+                                            )}
+                                        </button>
+                                    );
+                                })()}
+                            </div>
+                        </div>
 
                         <AnimatePresence>
                             {isVideoRecording && (
@@ -20409,7 +21175,14 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     {/* Top bar (Header) */}
                     <div className="absolute top-0 inset-x-0 flex items-center justify-between px-4 pt-5 pb-3 z-20 pointer-events-none" style={{ background: 'linear-gradient(180deg,rgba(0,0,0,0.8) 0%,transparent 100%)' }}>
                         <button
-                            onClick={() => { if (activePanel) setActivePanel(null); }}
+                            onClick={() => {
+                                if (activePanel) {
+                                    if (activePanel === 'texte' && (textAnimation !== 'NONE' || bgAnimation !== 'NONE')) {
+                                        triggerSmoothAnimReplay();
+                                    }
+                                    setActivePanel(null);
+                                }
+                            }}
                             className={`p-2.5 rounded-2xl text-white/70 hover:text-white hover:bg-white/10 transition-all active:scale-95 pointer-events-auto ${!activePanel ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
                         >
                             <X className="w-5 h-5" />
@@ -20422,17 +21195,18 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     <AnimatePresence>
                         {activePanel && activePanel !== 'export' && (
                             <motion.div key={activePanel}
-                                initial={{ y: '100%', opacity: 0 }} animate={{ y: 0, opacity: isSlidingPosition ? 0.15 : 1 }} exit={{ y: '100%', opacity: 0 }}
+                                initial={{ y: '100%', opacity: 0 }} animate={{ y: 0, opacity: (isSlidingPosition || isPreviewingTextAnim) ? 0.12 : 1 }} exit={{ y: '100%', opacity: 0 }}
                                 transition={{ type: 'spring', damping: 26, stiffness: 300 }}
                                 className="absolute inset-x-0 bottom-[130px] z-30 rounded-t-[28px] transition-opacity duration-200"
                                 style={{
                                     background: `rgba(12, 12, 12, ${menuOpacity / 100})`,
-                                    backdropFilter: 'blur(16px)',
-                                    WebkitBackdropFilter: 'blur(16px)',
+                                    backdropFilter: 'blur(10px)',
+                                    WebkitBackdropFilter: 'blur(10px)',
                                     borderTop: '1px solid rgba(255,255,255,0.12)',
                                     maxHeight: '60vh',
                                     overflowY: 'auto',
-                                    opacity: isSlidingPosition ? 0.15 : 1
+                                    opacity: (isSlidingPosition || isPreviewingTextAnim) ? 0.12 : 1,
+                                    pointerEvents: isPreviewingTextAnim ? 'none' : 'auto'
                                 }}>
                                 <div className="flex justify-center pt-3 pb-2"><div className="w-8 h-1 rounded-full bg-white/20" /></div>
 
@@ -20440,13 +21214,13 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     <div className="px-6 pb-8">
                                         <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-4">Format</p>
                                         <div className="grid grid-cols-2 gap-3">
-                                            <button onClick={() => { setActiveTab('REEL'); setTheme('NEWS'); setActivePanel(null); }}
+                                            <button onClick={() => { unlockMobileAudioSession(); setActiveTab('REEL'); setActivePanel(null); }}
                                                 className={`flex items-center gap-3 p-4 rounded-2xl border-2 transition-all ${activeTab === 'REEL' ? 'border-neon-red/60 bg-neon-red/10' : 'border-white/10 bg-white/5 hover:border-white/20'}`}>
                                                 <Smartphone className={`w-5 h-5 ${activeTab === 'REEL' ? 'text-neon-red' : 'text-gray-400'}`} />
                                                 <div className="text-left"><p className={`text-[11px] font-black uppercase ${activeTab === 'REEL' ? 'text-white' : 'text-gray-400'}`}>Réel</p><p className="text-[9px] text-gray-600">1080×1920</p></div>
                                                 {activeTab === 'REEL' && <Check className="w-4 h-4 text-neon-red ml-auto" />}
                                             </button>
-                                            <button onClick={() => { setActiveTab('PUBLICATION'); setTheme('NEWS'); setActivePanel(null); }}
+                                            <button onClick={() => { unlockMobileAudioSession(); setActiveTab('PUBLICATION'); if (theme === 'REELS' || theme === 'CONSEILS' || theme === 'TRACKLIST' || theme === 'MAP') handleSetTheme('NEWS'); setActivePanel(null); }}
                                                 className={`flex items-center gap-3 p-4 rounded-2xl border-2 transition-all ${activeTab === 'PUBLICATION' ? 'border-neon-cyan/60 bg-neon-cyan/10' : 'border-white/10 bg-white/5 hover:border-white/20'}`}>
                                                 <ImageIcon className={`w-5 h-5 ${activeTab === 'PUBLICATION' ? 'text-neon-cyan' : 'text-gray-400'}`} />
                                                 <div className="text-left"><p className={`text-[11px] font-black uppercase ${activeTab === 'PUBLICATION' ? 'text-white' : 'text-gray-400'}`}>Publication</p><p className="text-[9px] text-gray-600">1080×1350</p></div>
@@ -20492,96 +21266,133 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                                 {activePanel === 'fond' && (
                                     <div className="px-6 pb-8">
-                                        <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-4">Fond Visuel</p>
-                                        <div className="space-y-3">
-                                            {/* Module Dédié Devine le DJ (Silhouette Mystère) */}
-                                            {theme === 'JEU_DJ' && djSilhouetteEditor}
-                                            <div className="grid grid-cols-2 gap-2">
-                                                <button onClick={() => fileInputRef.current?.click()} className="py-3.5 border border-dashed border-white/20 rounded-2xl flex items-center justify-center gap-2 text-gray-200 text-[9.5px] font-black uppercase hover:border-white/30 hover:text-white transition-all bg-white/5 group">
-                                                    <Upload className="w-4 h-4 text-neon-red group-hover:scale-110 transition-transform" />
-                                                    <span>Mon Appareil</span>
-                                                </button>
-                                                <button onClick={() => { setActivePanel(null); setR2TargetType('background'); setIsR2ModalOpen(true); }} className="py-3.5 border border-white/10 rounded-2xl flex items-center justify-center gap-2 text-gray-300 text-[9.5px] font-black uppercase hover:border-white/30 hover:text-white transition-all bg-white/5 group">
-                                                    <ImageIcon className="w-4 h-4 text-neon-cyan group-hover:scale-110 transition-transform" />
-                                                    <span>Cloud R2</span>
-                                                </button>
+                                        <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-4">Visuel & Fond</p>
+                                        {isEditorialTweetActive ? (
+                                            <div className="space-y-3">
+                                                {tweetEditor}
+                                                <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*,video/*" />
                                             </div>
-                                            <button onClick={() => { setActivePanel(null); setIsDownloaderOpen(true); }} className="w-full py-4 border border-dashed border-white/10 rounded-2xl flex items-center justify-center gap-2 text-gray-400 text-[10px] font-black uppercase hover:border-white/30 hover:text-white transition-all bg-white/5 group">
-                                                <LinkIcon className="w-4 h-4 group-hover:text-neon-cyan transition-colors" />Télécharger Vidéo/Photo (URL)
-                                            </button>
-                                            {bgVideo && (
-                                                <div className="p-3 bg-white/5 border border-white/10 rounded-2xl space-y-2">
-                                                    <div className="flex items-center justify-between text-[9px] font-black uppercase text-gray-300">
-                                                        <span className="flex items-center gap-1.5">🎬 Piste Vidéo Mobile</span>
-                                                        <span className={!isVideoAudioMuted ? 'text-[#00ff66]' : 'text-gray-400'}>{!isVideoAudioMuted ? 'Son Actif' : 'Muet'}</span>
-                                                    </div>
-                                                    <div className="grid grid-cols-2 gap-2">
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => {
-                                                                if (bgVideo.muted) {
-                                                                    bgVideo.muted = false;
+                                        ) : (isEditorialAfficheActive || theme === 'AFFICHE' || (theme === 'EVENTS' && ((eventsSlide === 2 && eventNormalSlidesCount === 0) || isEditorialAfficheActive)) || (theme === 'PLANNING' && agendaSlide >= 3)) ? (
+                                            <div className="space-y-3">
+                                                {afficheEditor}
+                                                <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*,video/*" />
+                                            </div>
+                                        ) : (
+                                            <div className="space-y-3">
+                                                {/* Cover pour MUSIQUE (Slide 1 Annonce ou Slide 2+ Morceaux) — placé en haut comme sur PC */}
+                                                {theme === 'MUSIQUE' && (editorialSlide === 1 ? musicSlide1VisualEditor : musicCoverEditor)}
+
+                                                {/* Logos & Position pour SPOTLIGHT & ARTISTE FESTIVAL (Slide 2) */}
+                                                {(theme === 'SPOTLIGHT' || (theme === 'ARTISTE FESTIVAL' && artisteFestivalSlide === 2)) && spotlightVisualEditor}
+
+                                                {/* Module Dédié Devine le DJ (Silhouette Mystère) */}
+                                                {theme === 'JEU_DJ' && djSilhouetteEditor}
+
+                                                <div className="flex items-center justify-between pt-1">
+                                                    <span className="text-[10px] font-black text-neon-cyan uppercase tracking-widest">
+                                                        {theme === 'MUSIQUE' && editorialSlide >= 2 ? 'Fond & Ambiance Arrière-Plan' : theme === 'JEU_DJ' ? 'Fond Arrière-Plan Scène / Club' : 'Fond & Médias'}
+                                                    </span>
+                                                    <span className="text-[8px] text-gray-400 uppercase font-bold">Image, Vidéo ou Cloud</span>
+                                                </div>
+
+                                                <div className="grid grid-cols-2 gap-2">
+                                                    <button onClick={() => fileInputRef.current?.click()} className="py-3.5 border border-dashed border-white/20 rounded-2xl flex items-center justify-center gap-2 text-gray-200 text-[9.5px] font-black uppercase hover:border-white/30 hover:text-white transition-all bg-white/5 group">
+                                                        <Upload className="w-4 h-4 text-neon-red group-hover:scale-110 transition-transform" />
+                                                        <span>Mon Appareil</span>
+                                                    </button>
+                                                    <button onClick={() => { setActivePanel(null); setR2TargetType('background'); setIsR2ModalOpen(true); }} className="py-3.5 border border-white/10 rounded-2xl flex items-center justify-center gap-2 text-gray-300 text-[9.5px] font-black uppercase hover:border-white/30 hover:text-white transition-all bg-white/5 group">
+                                                        <ImageIcon className="w-4 h-4 text-neon-cyan group-hover:scale-110 transition-transform" />
+                                                        <span>Cloud R2</span>
+                                                    </button>
+                                                </div>
+                                                <button onClick={() => { setActivePanel(null); setIsDownloaderOpen(true); }} className="w-full py-3.5 border border-dashed border-white/10 rounded-2xl flex items-center justify-center gap-2 text-gray-400 text-[9.5px] font-black uppercase hover:border-white/30 hover:text-white transition-all bg-white/5 group">
+                                                    <LinkIcon className="w-4 h-4 group-hover:text-neon-cyan transition-colors" />Télécharger Vidéo/Photo (URL)
+                                                </button>
+                                                <button onClick={() => { setActivePanel(null); setIsRecapPickerOpen(true); }} className="w-full py-3.5 bg-[#c026d3]/10 border border-[#c026d3]/30 rounded-2xl flex items-center justify-center gap-2 text-[#c026d3] text-[9.5px] font-black uppercase hover:bg-[#c026d3]/20 transition-all group">
+                                                    <PlusCircle className="w-4 h-4" />Importer un RÉCAP ÉCRIT
+                                                </button>
+
+                                                {bgVideo && (
+                                                    <div className="p-3 bg-white/5 border border-white/10 rounded-2xl space-y-2">
+                                                        <div className="flex items-center justify-between text-[9px] font-black uppercase text-gray-300">
+                                                            <span className="flex items-center gap-1.5">🎬 Piste Vidéo</span>
+                                                            <span className={!isVideoAudioMuted ? 'text-[#00ff66]' : 'text-gray-400'}>{!isVideoAudioMuted ? 'Son Actif' : 'Muet'}</span>
+                                                        </div>
+                                                        <div className="grid grid-cols-3 gap-2">
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => {
+                                                                    unlockMobileAudioSession();
+                                                                    if (bgVideo.muted) {
+                                                                        bgVideo.muted = false;
+                                                                        bgVideo.play().catch(() => {});
+                                                                        setIsVideoAudioMuted(false);
+                                                                    } else {
+                                                                        bgVideo.muted = true;
+                                                                        setIsVideoAudioMuted(true);
+                                                                    }
+                                                                }}
+                                                                className={`py-2 px-2 rounded-xl border text-[8.5px] font-black uppercase flex items-center justify-center gap-1 transition-all active:scale-95 ${
+                                                                    !isVideoAudioMuted
+                                                                        ? 'bg-[#00ff66]/15 border-[#00ff66]/40 text-[#00ff66]'
+                                                                        : 'bg-white/5 border-white/10 text-gray-300 hover:text-white'
+                                                                }`}
+                                                            >
+                                                                {!isVideoAudioMuted ? <Volume2 className="w-3.5 h-3.5" /> : <VolumeX className="w-3.5 h-3.5" />}
+                                                                <span>{!isVideoAudioMuted ? 'Son ON' : 'Son OFF'}</span>
+                                                            </button>
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => {
+                                                                    bgVideo.currentTime = 0;
                                                                     bgVideo.play().catch(() => {});
-                                                                    setIsVideoAudioMuted(false);
-                                                                } else {
-                                                                    bgVideo.muted = true;
-                                                                    setIsVideoAudioMuted(true);
-                                                                }
-                                                            }}
-                                                            className={`py-2.5 px-3 rounded-xl border text-[9px] font-black uppercase flex items-center justify-center gap-1.5 transition-all active:scale-95 ${
-                                                                !isVideoAudioMuted
-                                                                    ? 'bg-[#00ff66]/15 border-[#00ff66]/40 text-[#00ff66]'
-                                                                    : 'bg-white/5 border-white/10 text-gray-300 hover:text-white'
-                                                            }`}
-                                                        >
-                                                            {!isVideoAudioMuted ? <Volume2 className="w-3.5 h-3.5" /> : <VolumeX className="w-3.5 h-3.5" />}
-                                                            <span>{!isVideoAudioMuted ? 'Couper le son' : 'Activer le son'}</span>
-                                                        </button>
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => {
-                                                                bgVideo.currentTime = 0;
-                                                                bgVideo.play().catch(() => {});
-                                                            }}
-                                                            className="py-2.5 px-3 rounded-xl bg-neon-cyan/10 border border-neon-cyan/30 text-neon-cyan text-[9px] font-black uppercase flex items-center justify-center gap-1.5 hover:bg-neon-cyan/20 transition-all active:scale-95"
-                                                        >
-                                                            <RotateCcw className="w-3.5 h-3.5" />
-                                                            <span>Reset 0:00</span>
-                                                        </button>
+                                                                }}
+                                                                className="py-2 px-2 rounded-xl bg-neon-cyan/10 border border-neon-cyan/30 text-neon-cyan text-[8.5px] font-black uppercase flex items-center justify-center gap-1 hover:bg-neon-cyan/20 transition-all active:scale-95"
+                                                            >
+                                                                <RotateCcw className="w-3.5 h-3.5" />
+                                                                <span>0:00</span>
+                                                            </button>
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => {
+                                                                    unlockMobileAudioSession();
+                                                                    if (bgVideo.paused) bgVideo.play().catch(() => {});
+                                                                    else bgVideo.pause();
+                                                                }}
+                                                                className="py-2 px-2 rounded-xl bg-white/5 border border-white/10 text-gray-300 text-[8.5px] font-black uppercase flex items-center justify-center gap-1 hover:bg-white/10 transition-all active:scale-95"
+                                                            >
+                                                                <Video className="w-3.5 h-3.5" />
+                                                                <span>Play/Pause</span>
+                                                            </button>
+                                                        </div>
                                                     </div>
-                                                </div>
-                                            )}
-                                            {bgPositionControls}
-                                            <button onClick={() => { setActivePanel(null); setIsRecapPickerOpen(true); }} className="w-full py-4 bg-[#c026d3]/10 border border-[#c026d3]/30 rounded-2xl flex items-center justify-center gap-2 text-[#c026d3] text-[10px] font-black uppercase hover:bg-[#c026d3]/20 transition-all group">
-                                                <PlusCircle className="w-4 h-4" />Importer un RÉCAP ÉCRIT
-                                            </button>
-                                            <button onClick={() => setShowText(!showText)} className={`w-full py-4 border rounded-2xl flex items-center justify-center gap-2 text-[10px] font-black uppercase transition-all ${!showText ? 'bg-yellow-500/20 border-yellow-500 text-yellow-500' : 'bg-white/5 border-white/10 text-gray-400 hover:text-white hover:border-white/30'}`}>
-                                                <Eraser className="w-4 h-4" /> Gomme (Masquer le texte) : {!showText ? 'ACTIVE' : 'OFF'}
-                                            </button>
-                                            <button onClick={() => setIsRetouchMode(!isRetouchMode)} className={`w-full py-4 border rounded-2xl flex items-center justify-center gap-2 text-[10px] font-black uppercase transition-all ${isRetouchMode ? 'bg-neon-cyan/20 border-neon-cyan text-neon-cyan shadow-[0_0_20px_rgba(0,255,255,0.2)]' : 'bg-white/5 border-white/10 text-gray-400 hover:text-white hover:border-white/30'}`}>
-                                                <Wand2 className="w-4 h-4" /> Nettoyer Photo (Direct Studio)
-                                            </button>
-                                            {isRetouchMode && (
-                                                <div className="bg-white/5 border border-white/10 rounded-2xl p-4 space-y-3">
-                                                    <div className="flex justify-between items-center text-[9px] uppercase font-black text-gray-500">
-                                                        <span>Taille pinceau</span>
-                                                        <span className="text-neon-cyan">{brushSize}px</span>
+                                                )}
+
+                                                {bgPositionControls}
+                                                <button onClick={() => setShowText(!showText)} className={`w-full py-3.5 border rounded-2xl flex items-center justify-center gap-2 text-[9.5px] font-black uppercase transition-all ${!showText ? 'bg-yellow-500/20 border-yellow-500 text-yellow-500' : 'bg-white/5 border-white/10 text-gray-400 hover:text-white hover:border-white/30'}`}>
+                                                    <Eraser className="w-4 h-4" /> Masquer le texte : {!showText ? 'ACTIF' : 'OFF'}
+                                                </button>
+                                                <button onClick={() => setIsRetouchMode(!isRetouchMode)} className={`w-full py-3.5 border rounded-2xl flex items-center justify-center gap-2 text-[9.5px] font-black uppercase transition-all ${isRetouchMode ? 'bg-neon-cyan/20 border-neon-cyan text-neon-cyan shadow-[0_0_20px_rgba(0,255,255,0.2)]' : 'bg-white/5 border-white/10 text-gray-400 hover:text-white hover:border-white/30'}`}>
+                                                    <Wand2 className="w-4 h-4" /> Nettoyage Photo (IA Local)
+                                                </button>
+                                                {isRetouchMode && (
+                                                    <div className="bg-white/5 border border-white/10 rounded-2xl p-4 space-y-3">
+                                                        <div className="flex justify-between items-center text-[9px] uppercase font-black text-gray-500">
+                                                            <span>Taille pinceau</span>
+                                                            <span className="text-neon-cyan">{brushSize}px</span>
+                                                        </div>
+                                                        <input type="range" min="10" max="100" value={brushSize} onChange={e => setBrushSize(parseInt(e.target.value))} className="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-neon-cyan" />
+                                                        <div className="flex gap-2 pt-2">
+                                                            <button onClick={() => setRetouchPath([])} className="flex-1 py-3 bg-white/5 border border-white/10 rounded-xl text-[9px] font-black uppercase text-gray-400 hover:text-white transition-all flex items-center justify-center gap-1.5"><RotateCcw className="w-3.5 h-3.5" /> Réinitialiser</button>
+                                                            <button onClick={applyMagicErase} className="flex-[2] py-3 bg-neon-cyan text-black rounded-xl text-[9px] font-black uppercase shadow-[0_0_15px_rgba(0,255,255,0.4)] hover:scale-[1.02] transition-all flex items-center justify-center gap-1.5"><Sparkles className="w-3.5 h-3.5" /> Appliquer</button>
+                                                        </div>
                                                     </div>
-                                                    <input type="range" min="10" max="100" value={brushSize} onChange={e => setBrushSize(parseInt(e.target.value))} className="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-neon-cyan" />
-                                                    <div className="flex gap-2 pt-2">
-                                                        <button onClick={() => setRetouchPath([])} className="flex-1 py-3 bg-white/5 border border-white/10 rounded-xl text-[9px] font-black uppercase text-gray-400 hover:text-white transition-all flex items-center justify-center gap-1.5"><RotateCcw className="w-3.5 h-3.5" /> Réinitialiser</button>
-                                                        <button onClick={applyMagicErase} className="flex-[2] py-3 bg-neon-cyan text-black rounded-xl text-[9px] font-black uppercase shadow-[0_0_15px_rgba(0,255,255,0.4)] hover:scale-[1.02] transition-all flex items-center justify-center gap-1.5"><Sparkles className="w-3.5 h-3.5" /> Appliquer</button>
-                                                    </div>
-                                                </div>
-                                            )}
-                                            {theme !== 'MAP' && bgAnimationControl}
-                                            {isEditorialTweetActive && tweetEditor}
-                                            {(isEditorialAfficheActive || theme === 'AFFICHE' || (theme === 'EVENTS' && ((eventsSlide === 2 && eventNormalSlidesCount === 0) || isEditorialAfficheActive)) || (theme === 'PLANNING' && agendaSlide >= 3)) && !isEditorialTweetActive && afficheEditor}
-                                            {theme === 'MUSIQUE' && !isEditorialTweetActive && (editorialSlide === 1 ? musicSlide1VisualEditor : musicCoverEditor)}
-                                            {(theme === 'SPOTLIGHT' || (theme === 'ARTISTE FESTIVAL' && artisteFestivalSlide === 2)) && !isEditorialTweetActive && spotlightVisualEditor}
-                                            {!(isEditorialTweetActive || isEditorialAfficheActive || theme === 'AFFICHE' || (theme === 'EVENTS' && ((eventsSlide === 2 && eventNormalSlidesCount === 0) || isEditorialAfficheActive)) || (theme === 'PLANNING' && agendaSlide >= 3)) && slideVisualEditor}
-                                            <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*,video/*" />
-                                        </div>
+                                                )}
+                                                {slideVisualEditor}
+                                                {theme !== 'MAP' && bgAnimationControl}
+                                                <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*,video/*" />
+                                            </div>
+                                        )}
                                     </div>
                                 )}
                             </motion.div>
@@ -20595,10 +21406,34 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 initial={{ y: '100%', opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: '100%', opacity: 0 }}
                                 transition={{ type: 'spring', damping: 26, stiffness: 300 }}
                                 className="absolute inset-x-0 bottom-[130px] z-30 rounded-t-[28px]"
-                                style={{ background: 'linear-gradient(180deg,#161616 0%,#0d0d0d 100%)', borderTop: '1px solid rgba(255,255,255,0.08)' }}>
+                                style={{ background: 'linear-gradient(180deg,#161616 0%,#0d0d0d 100%)', borderTop: '1px solid rgba(255,255,255,0.08)', maxHeight: '65vh', overflowY: 'auto' }}>
                                 <div className="flex justify-center pt-3 pb-2"><div className="w-8 h-1 rounded-full bg-white/20" /></div>
-                                <div className="px-6 pb-8">
-                                    <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-4">Exporter</p>
+                                <div className="px-6 pb-8 space-y-4">
+                                    <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Exporter</p>
+                                    {visualsList.length > 0 && (
+                                        <div className="space-y-2">
+                                            <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Vos Captures ({visualsList.length})</span>
+                                            <div className="grid grid-cols-3 gap-2">
+                                                {visualsList.map((vis, idx) => (
+                                                    <div key={idx} className="group relative aspect-[9/12] rounded-xl overflow-hidden border border-white/10 bg-black shadow-lg">
+                                                        <img src={vis} alt={`Visual ${idx}`} className="w-full h-full object-cover" />
+                                                        <div className="absolute inset-x-1 bottom-1 flex items-center justify-center gap-1">
+                                                            <button onClick={() => {
+                                                                const a = document.createElement('a'); a.href = vis;
+                                                                a.download = `dropsiders-capture-${idx}.png`; a.click();
+                                                            }} className="p-1.5 bg-white/90 text-black rounded-lg">
+                                                                <Download className="w-3 h-3" />
+                                                            </button>
+                                                            <button onClick={() => setVisualsList(prev => prev.filter((_, i) => i !== idx))}
+                                                                className="p-1.5 bg-red-500/90 text-white rounded-lg">
+                                                                <X className="w-3 h-3" />
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
                                     {quickCarouselDownloadBar}
                                     {exportButtons}
                                 </div>
