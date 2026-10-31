@@ -1252,14 +1252,48 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         return job;
     };
 
-    /** Extrait la piste audio d'une vidéo en WAV 16-bit uncompressed offline via Web Audio API */
-    const extractAudioFromBlob = async (blob: Blob, targetDurationMs: number): Promise<Blob | null> => {
+    /** Convertit un AudioBuffer en Blob WAV PCM 16-bit */
+    const audioBufferToWavBlob = (renderedBuffer: AudioBuffer): Blob => {
+        const numCh = renderedBuffer.numberOfChannels;
+        const numSamples = renderedBuffer.length;
+        const sr = renderedBuffer.sampleRate;
+        const wavBuffer = new ArrayBuffer(44 + numSamples * numCh * 2);
+        const view = new DataView(wavBuffer);
+        const writeStr = (offset: number, s: string) => { for (let i = 0; i < s.length; i++) view.setUint8(offset + i, s.charCodeAt(i)); };
+        writeStr(0, 'RIFF');
+        view.setUint32(4, 36 + numSamples * numCh * 2, true);
+        writeStr(8, 'WAVE');
+        writeStr(12, 'fmt ');
+        view.setUint32(16, 16, true);
+        view.setUint16(20, 1, true); // PCM
+        view.setUint16(22, numCh, true);
+        view.setUint32(24, sr, true);
+        view.setUint32(28, sr * numCh * 2, true);
+        view.setUint16(32, numCh * 2, true);
+        view.setUint16(34, 16, true);
+        writeStr(36, 'data');
+        view.setUint32(40, numSamples * numCh * 2, true);
+        let offset2 = 44;
+        const chData: Float32Array[] = [];
+        for (let ch = 0; ch < numCh; ch++) chData.push(renderedBuffer.getChannelData(ch));
+        for (let i = 0; i < numSamples; i++) {
+            for (let ch = 0; ch < numCh; ch++) {
+                const sample = Math.max(-1, Math.min(1, chData[ch][i]));
+                view.setInt16(offset2, sample < 0 ? sample * 32768 : sample * 32767, true);
+                offset2 += 2;
+            }
+        }
+        return new Blob([wavBuffer], { type: 'audio/wav' });
+    };
+
+    /** Extrait et boucle la piste audio d'une vidéo sous forme d'AudioBuffer prêt pour WebCodecs AudioEncoder ou WAV */
+    const extractAudioBufferFromBlob = async (blob: Blob, targetDurationMs: number): Promise<AudioBuffer | null> => {
         try {
             const arr = await blob.arrayBuffer();
             const OfflineCtx = (window as any).OfflineAudioContext || (window as any).webkitOfflineAudioContext;
             const AudioCtxClass = (window as any).AudioContext || (window as any).webkitAudioContext || OfflineCtx;
-            if (!AudioCtxClass) return null;
-            const decoder: BaseAudioContext = new AudioCtxClass();
+            if (!AudioCtxClass || !OfflineCtx) return null;
+            const decoder: BaseAudioContext = AudioCtxClass === OfflineCtx ? new OfflineCtx(2, 1, 48000) : new AudioCtxClass();
             let buf: AudioBuffer | null = null;
             try {
                 buf = await new Promise<AudioBuffer>((resolve, reject) => {
@@ -1267,7 +1301,6 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     const onSucc = (b: AudioBuffer) => { if (!resolved) { resolved = true; resolve(b); } };
                     const onErr = (e: any) => { if (!resolved) { resolved = true; reject(e); } };
                     try {
-                        // slice(0) pour ne pas détacher l'ArrayBuffer original
                         const p = decoder.decodeAudioData(arr.slice(0), onSucc, onErr);
                         if (p && typeof (p as any).then === 'function') (p as Promise<AudioBuffer>).then(onSucc, onErr).catch(onErr);
                     } catch (syncErr) {
@@ -1290,10 +1323,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
             console.log(`[Audio] ✅ Piste audio de la vidéo détectée : ${buf.numberOfChannels} canaux, ${buf.duration.toFixed(2)}s @ ${buf.sampleRate}Hz`);
 
-            const sampleRate = 44100;
-            const totalSec = Math.max(1, targetDurationMs / 1000);
+            const sampleRate = 48000;
+            const totalSec = Math.max(0.5, targetDurationMs / 1000);
             const totalSamples = Math.ceil(totalSec * sampleRate);
-            const renderCtx = new OfflineCtx(Math.min(2, buf.numberOfChannels), totalSamples, sampleRate);
+            const outChannels = Math.min(2, Math.max(1, buf.numberOfChannels));
+            const renderCtx = new OfflineCtx(outChannels, totalSamples, sampleRate);
 
             const src = renderCtx.createBufferSource();
             src.buffer = buf;
@@ -1301,39 +1335,18 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             src.connect(renderCtx.destination);
             src.start(0);
 
-            const renderedBuffer = await renderCtx.startRendering();
-
-            const numCh = renderedBuffer.numberOfChannels;
-            const numSamples = renderedBuffer.length;
-            const wavBuffer = new ArrayBuffer(44 + numSamples * numCh * 2);
-            const view = new DataView(wavBuffer);
-            const writeStr = (offset: number, s: string) => { for (let i = 0; i < s.length; i++) view.setUint8(offset + i, s.charCodeAt(i)); };
-            writeStr(0, 'RIFF');
-            view.setUint32(4, 36 + numSamples * numCh * 2, true);
-            writeStr(8, 'WAVE');
-            writeStr(12, 'fmt ');
-            view.setUint32(16, 16, true);
-            view.setUint16(20, 1, true); // PCM
-            view.setUint16(22, numCh, true);
-            view.setUint32(24, sampleRate, true);
-            view.setUint32(28, sampleRate * numCh * 2, true);
-            view.setUint16(32, numCh * 2, true);
-            view.setUint16(34, 16, true);
-            writeStr(36, 'data');
-            view.setUint32(40, numSamples * numCh * 2, true);
-            let offset2 = 44;
-            for (let i = 0; i < numSamples; i++) {
-                for (let ch = 0; ch < numCh; ch++) {
-                    const sample = Math.max(-1, Math.min(1, renderedBuffer.getChannelData(ch)[i]));
-                    view.setInt16(offset2, sample < 0 ? sample * 32768 : sample * 32767, true);
-                    offset2 += 2;
-                }
-            }
-            return new Blob([wavBuffer], { type: 'audio/wav' });
+            return await renderCtx.startRendering();
         } catch (err) {
-            console.warn('[Audio] Erreur extractAudioFromBlob :', err);
+            console.warn('[Audio] Erreur extractAudioBufferFromBlob :', err);
             return null;
         }
+    };
+
+    /** Extrait la piste audio d'une vidéo en WAV 16-bit uncompressed offline via Web Audio API */
+    const extractAudioFromBlob = async (blob: Blob, targetDurationMs: number): Promise<Blob | null> => {
+        const renderedBuffer = await extractAudioBufferFromBlob(blob, targetDurationMs);
+        if (!renderedBuffer) return null;
+        return audioBufferToWavBlob(renderedBuffer);
     };
 
     /** Joue un AudioBuffer dans un contexte donné avec micro fondu (anti-clic). Retourne la source. */
@@ -9395,6 +9408,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         let muxer: any = null;
         let totalFramesEncoded = 0;
         let webEncoderErrored = false;
+        const rawVideoChunks: Array<{ data: Uint8Array; type: 'key' | 'delta'; timestamp: number; duration: number; meta?: any }> = [];
 
         if (useWebCodecs && chosenCodec) {
             muxerTarget = new ArrayBufferTarget();
@@ -9412,7 +9426,18 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             videoEncoder = new (window as any).VideoEncoder({
                 output: (chunk: any, meta: any) => {
                     try {
-                        muxer.addVideoChunk(chunk, meta);
+                        const rawBytes = new Uint8Array(chunk.byteLength);
+                        chunk.copyTo(rawBytes);
+                        const safeTs = (typeof chunk.timestamp === 'number' && Number.isFinite(chunk.timestamp) && chunk.timestamp >= 0) ? chunk.timestamp : 0;
+                        const safeDur = (typeof chunk.duration === 'number' && Number.isFinite(chunk.duration) && chunk.duration >= 0) ? chunk.duration : frameDurationUs;
+                        rawVideoChunks.push({
+                            data: rawBytes,
+                            type: chunk.type === 'key' ? 'key' : 'delta',
+                            timestamp: safeTs,
+                            duration: safeDur,
+                            meta,
+                        });
+                        muxer.addVideoChunkRaw(rawBytes, chunk.type === 'key' ? 'key' : 'delta', safeTs, safeDur, meta);
                     } catch (e: any) {
                         console.error('Muxer addVideoChunk error:', e);
                     }
@@ -10149,7 +10174,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             // Résultat : un fichier WAV parfaitement synchronisé, zéro glitch possible.
             // ───────────────────────────────────────────────────────────────────────────
             let offlineWavBlob: Blob | null = null;
-            const sampleRate = 44100;
+            let finalAudioBuffer: AudioBuffer | null = null;
+            const sampleRate = 48000;
 
             try {
                 // Construire la liste de segments audio avec leur offset temporel (en secondes)
@@ -10203,10 +10229,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     const totalSamples = Math.ceil(totalSec * sampleRate);
                     const OffCtx = (window as any).OfflineAudioContext || (window as any).webkitOfflineAudioContext;
                     const offCtx = new OffCtx(2, totalSamples, sampleRate);
+                    let validSegCount = 0;
 
                     for (const seg of audioSegments) {
                         const buf = await getDecodedAudioBuffer(seg.url);
                         if (!buf) continue;
+                        validSegCount++;
                         const src = offCtx.createBufferSource();
                         src.buffer = buf;
                         // Gain micro-fondu anti-clic (identique à startBufferSegment)
@@ -10221,36 +10249,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         src.start(t0, offset, segDur);
                     }
 
-                    const renderedBuffer = await offCtx.startRendering();
-
-                    // Encoder en WAV 16-bit (format universellement supporté par FFmpeg)
-                    const numCh = renderedBuffer.numberOfChannels;
-                    const numSamples = renderedBuffer.length;
-                    const wavBuffer = new ArrayBuffer(44 + numSamples * numCh * 2);
-                    const view = new DataView(wavBuffer);
-                    const writeStr = (offset: number, s: string) => { for (let i = 0; i < s.length; i++) view.setUint8(offset + i, s.charCodeAt(i)); };
-                    writeStr(0, 'RIFF');
-                    view.setUint32(4, 36 + numSamples * numCh * 2, true);
-                    writeStr(8, 'WAVE');
-                    writeStr(12, 'fmt ');
-                    view.setUint32(16, 16, true);
-                    view.setUint16(20, 1, true); // PCM
-                    view.setUint16(22, numCh, true);
-                    view.setUint32(24, sampleRate, true);
-                    view.setUint32(28, sampleRate * numCh * 2, true);
-                    view.setUint16(32, numCh * 2, true);
-                    view.setUint16(34, 16, true);
-                    writeStr(36, 'data');
-                    view.setUint32(40, numSamples * numCh * 2, true);
-                    let offset2 = 44;
-                    for (let i = 0; i < numSamples; i++) {
-                        for (let ch = 0; ch < numCh; ch++) {
-                            const sample = Math.max(-1, Math.min(1, renderedBuffer.getChannelData(ch)[i]));
-                            view.setInt16(offset2, sample < 0 ? sample * 32768 : sample * 32767, true);
-                            offset2 += 2;
-                        }
+                    if (validSegCount > 0) {
+                        const renderedBuffer = await offCtx.startRendering();
+                        finalAudioBuffer = renderedBuffer;
+                        offlineWavBlob = audioBufferToWavBlob(renderedBuffer);
                     }
-                    offlineWavBlob = new Blob([wavBuffer], { type: 'audio/wav' });
                 }
             } catch (audioRenderErr) {
                 console.warn('Rendu audio offline échoué (fallback vidéo seule) :', audioRenderErr);
@@ -10260,9 +10263,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             if (!offlineWavBlob && bgVideoBlob && !(theme === 'MUSIQUE' && (isCarouselPromoActive || combinedMode === 'PROMO_ONLY'))) {
                 console.log('[Audio] Extraction haute-fidélité de la piste audio de bgVideo via Web Audio API...');
                 try {
-                    offlineWavBlob = await extractAudioFromBlob(bgVideoBlob, totalDuration);
-                    if (offlineWavBlob) {
-                        console.log(`[Audio] ✅ Audio de bgVideo extrait avec succès en WAV (${Math.round(offlineWavBlob.size / 1024)} KB)`);
+                    const extractedBuf = await extractAudioBufferFromBlob(bgVideoBlob, totalDuration);
+                    if (extractedBuf) {
+                        finalAudioBuffer = extractedBuf;
+                        offlineWavBlob = audioBufferToWavBlob(extractedBuf);
+                        console.log(`[Audio] ✅ Audio de bgVideo extrait avec succès (${Math.round(offlineWavBlob.size / 1024)} KB)`);
                     } else {
                         console.log('[Audio] Décodage direct conteneur MP4 non supporté nativement (ex: iOS Safari), bascule FFmpeg wasm...');
                     }
@@ -10278,7 +10283,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         const bgFilename = `bg_extract.${bgExt}`;
                         try { await ffmpeg.deleteFile('extracted_audio.wav'); } catch {}
                         await ffmpeg.writeFile(bgFilename, await fetchFile(bgVideoBlob));
-                        await ffmpeg.exec(['-i', bgFilename, '-vn', '-c:a', 'pcm_s16le', '-ar', '44100', '-ac', '2', 'extracted_audio.wav']);
+                        await ffmpeg.exec(['-i', bgFilename, '-vn', '-c:a', 'pcm_s16le', '-ar', '48000', '-ac', '2', 'extracted_audio.wav']);
                         const wavData: any = await ffmpeg.readFile('extracted_audio.wav');
                         try { await ffmpeg.deleteFile(bgFilename); } catch {}
                         try { await ffmpeg.deleteFile('extracted_audio.wav'); } catch {}
@@ -10293,7 +10298,163 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 }
             }
 
-            // ── PHASE 3 : MUXAGE FFmpeg (vidéo + audio offline WAV ou fallback direct) ────
+            // ── PHASE 3a : MUXAGE NATIF WEBCODECS (AudioEncoder AAC + mp4-muxer, ZÉRO FFmpeg WASM / ZÉRO Blob Worker) ──
+            if (useWebCodecs && rawVideoChunks.length > 0 && finalAudioBuffer && typeof (window as any).AudioEncoder !== 'undefined' && typeof (window as any).AudioData !== 'undefined') {
+                try {
+                    const AudioEncoderCls = (window as any).AudioEncoder;
+                    const AudioDataCls = (window as any).AudioData;
+                    const audioSr = finalAudioBuffer.sampleRate;
+                    const audioCh = Math.min(2, Math.max(1, finalAudioBuffer.numberOfChannels));
+
+                    const candidateAudioConfigs: Array<{ codec: string; muxerCodec: 'aac' | 'opus'; bitrate: number }> = [
+                        { codec: 'mp4a.40.2', muxerCodec: 'aac', bitrate: 192_000 },
+                        { codec: 'mp4a.40.2', muxerCodec: 'aac', bitrate: 128_000 },
+                        ...(audioSr === 48000 ? [{ codec: 'opus', muxerCodec: 'opus' as const, bitrate: 192_000 }] : []),
+                    ];
+
+                    let selectedAudioCfg: any = null;
+                    let selectedMuxerCodec: 'aac' | 'opus' = 'aac';
+                    for (const cand of candidateAudioConfigs) {
+                        try {
+                            const res = await AudioEncoderCls.isConfigSupported({
+                                codec: cand.codec,
+                                sampleRate: audioSr,
+                                numberOfChannels: audioCh,
+                                bitrate: cand.bitrate,
+                            });
+                            if (res?.supported) {
+                                selectedAudioCfg = res.config || {
+                                    codec: cand.codec,
+                                    sampleRate: audioSr,
+                                    numberOfChannels: audioCh,
+                                    bitrate: cand.bitrate,
+                                };
+                                selectedMuxerCodec = cand.muxerCodec;
+                                break;
+                            }
+                        } catch {}
+                    }
+
+                    if (selectedAudioCfg) {
+                        isVideoRecordingRef.current = false;
+                        setIsVideoRecording(false);
+                        setIsConverting(true);
+                        setConversionProgress(25);
+
+                        const avTarget = new ArrayBufferTarget();
+                        const avMuxer = new Muxer({
+                            target: avTarget,
+                            video: {
+                                codec: 'avc',
+                                width: targetWidth,
+                                height: targetHeight,
+                            },
+                            audio: {
+                                codec: selectedMuxerCodec,
+                                numberOfChannels: audioCh,
+                                sampleRate: audioSr,
+                            },
+                            fastStart: 'in-memory',
+                            firstTimestampBehavior: 'offset',
+                        });
+
+                        for (const vc of rawVideoChunks) {
+                            avMuxer.addVideoChunkRaw(vc.data, vc.type, vc.timestamp, vc.duration, vc.meta);
+                        }
+                        setConversionProgress(55);
+
+                        let audioEncErr: any = null;
+                        let fallbackAudioTs = 0;
+                        const defaultChunkDurUs = Math.round((1024 / audioSr) * 1_000_000);
+                        const audioEncoder = new AudioEncoderCls({
+                            output: (chunk: any, meta: any) => {
+                                try {
+                                    const abytes = new Uint8Array(chunk.byteLength);
+                                    chunk.copyTo(abytes);
+                                    const safeTs = (typeof chunk.timestamp === 'number' && Number.isFinite(chunk.timestamp) && chunk.timestamp >= 0)
+                                        ? chunk.timestamp
+                                        : fallbackAudioTs;
+                                    const safeDur = (typeof chunk.duration === 'number' && Number.isFinite(chunk.duration) && chunk.duration >= 0)
+                                        ? chunk.duration
+                                        : defaultChunkDurUs;
+                                    fallbackAudioTs = safeTs + safeDur;
+                                    avMuxer.addAudioChunkRaw(abytes, chunk.type === 'delta' ? 'delta' : 'key', safeTs, safeDur, meta);
+                                } catch (muxErr) {
+                                    audioEncErr = muxErr;
+                                }
+                            },
+                            error: (e: any) => {
+                                audioEncErr = e;
+                            }
+                        });
+
+                        audioEncoder.configure(selectedAudioCfg);
+
+                        const chArrays: Float32Array[] = [];
+                        for (let ch = 0; ch < audioCh; ch++) {
+                            chArrays.push(finalAudioBuffer.getChannelData(ch));
+                        }
+                        const totalSamplesCount = finalAudioBuffer.length;
+                        const chunkFrames = 1024;
+
+                        for (let sampleOffset = 0; sampleOffset < totalSamplesCount; sampleOffset += chunkFrames) {
+                            if (audioEncErr) break;
+                            while (audioEncoder.encodeQueueSize > 24) {
+                                await new Promise(r => setTimeout(r, 2));
+                            }
+                            const frameCount = Math.min(chunkFrames, totalSamplesCount - sampleOffset);
+                            const planarData = new Float32Array(frameCount * audioCh);
+                            for (let ch = 0; ch < audioCh; ch++) {
+                                planarData.set(chArrays[ch].subarray(sampleOffset, sampleOffset + frameCount), ch * frameCount);
+                            }
+                            const ad = new AudioDataCls({
+                                format: 'f32-planar',
+                                sampleRate: audioSr,
+                                numberOfFrames: frameCount,
+                                numberOfChannels: audioCh,
+                                timestamp: Math.round((sampleOffset / audioSr) * 1_000_000),
+                                data: planarData,
+                            });
+                            audioEncoder.encode(ad);
+                            ad.close();
+                        }
+
+                        if (!audioEncErr && audioEncoder.state === 'configured') {
+                            await audioEncoder.flush();
+                        }
+                        try { audioEncoder.close(); } catch {}
+
+                        if (audioEncErr) {
+                            throw audioEncErr;
+                        }
+
+                        setConversionProgress(95);
+                        avMuxer.finalize();
+                        const nativeMp4Blob = new Blob([avTarget.buffer], { type: 'video/mp4' });
+                        const url = URL.createObjectURL(nativeMp4Blob);
+
+                        setConversionProgress(100);
+                        setIsConverting(false);
+                        setReadyVideoBlob(nativeMp4Blob);
+                        setReadyVideoUrl(url);
+                        setActivePanel(null);
+
+                        const exportThemeName = combinedMode === 'PROMO_ONLY' ? 'promo' : theme.toLowerCase().replace(/\s+/g, '-');
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = `dropsiders-${exportThemeName}-${activeTab.toLowerCase()}-${Date.now()}.mp4`;
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                        console.log(`[Export] ✅ MP4 + Audio (${selectedMuxerCodec.toUpperCase()}) muxé nativement via WebCodecs sans FFmpeg !`);
+                        return;
+                    }
+                } catch (nativeMuxErr) {
+                    console.warn('[Export] Muxage audio WebCodecs natif indisponible, repli FFmpeg :', nativeMuxErr);
+                }
+            }
+
+            // ── PHASE 3b : MUXAGE FFmpeg (repli navigateurs sans AudioEncoder AAC) ────
             try {
                 // FAST-PATH : UNIQUEMENT s'il n'y a STRICTEMENT AUCUN AUDIO dans le projet
                 const hasAudioSource = Boolean(offlineWavBlob || bgVideoBlob);

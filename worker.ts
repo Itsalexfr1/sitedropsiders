@@ -10382,7 +10382,7 @@ const contentType = response.headers.get("content-type");
                 };
             }
 
-            return new HTMLRewriter()
+            const transformed = new HTMLRewriter()
                 .on('title', { element(e) { e.setInnerContent(title); } })
                 .on('head', {
                     element(e) {
@@ -10403,6 +10403,16 @@ const contentType = response.headers.get("content-type");
                 .on('meta[name="twitter:image"]', { element(e) { e.setAttribute("content", image); } })
                 .on('meta[name="twitter:url"]', { element(e) { e.setAttribute("content", `${origin}${path}`); } })
                 .transform(response);
+            const htmlHeaders = new Headers(transformed.headers);
+            htmlHeaders.set(
+                'Content-Security-Policy',
+                "default-src * 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' data: blob:; worker-src * 'unsafe-inline' 'unsafe-eval' data: blob:; script-src * 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' data: blob:; connect-src * data: blob:; media-src * data: blob:; img-src * data: blob:; frame-src * data: blob:;"
+            );
+            return new Response(transformed.body, {
+                status: transformed.status,
+                statusText: transformed.statusText,
+                headers: htmlHeaders,
+            });
         }
 
         return response;
