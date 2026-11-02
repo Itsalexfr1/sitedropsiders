@@ -5041,11 +5041,76 @@ ${urls.map(u => `  <url>
                 }
             }
 
-            const file = await fetchGitHubFile(SETTINGS_PATH, gitConfig);
+            // Invalidation proactive du cache pour toujours avoir la version à jour
+            const file = await fetchGitHubFile(SETTINGS_PATH, { ...gitConfig, bypassCache: true });
             let content = file && file.content ? { ...file.content } : { shop_enabled: true, takeover: { enabled: false } };
 
             if (kvOverrides) {
+                // Purge automatique des promos Escape Halloween de la mémoire KV dynamique
+                let kvChanged = false;
+                if (kvOverrides.tv_promos && Array.isArray(kvOverrides.tv_promos)) {
+                    const filtered = kvOverrides.tv_promos.filter((p: any) =>
+                        !(p.title || '').toLowerCase().includes('escape psycho circus') &&
+                        !(p.title || '').toLowerCase().includes('escape halloween')
+                    );
+                    if (filtered.length !== kvOverrides.tv_promos.length) {
+                        kvOverrides.tv_promos = filtered;
+                        kvChanged = true;
+                    }
+                }
+                if (kvOverrides.radio_tracks && Array.isArray(kvOverrides.radio_tracks)) {
+                    const filtered = kvOverrides.radio_tracks.filter((t: any) =>
+                        !(t.title || '').toLowerCase().includes('promo escape psycho circus') &&
+                        !(t.audioUrl || '').toLowerCase().includes('promo_escape_psycho_circus')
+                    );
+                    if (filtered.length !== kvOverrides.radio_tracks.length) {
+                        kvOverrides.radio_tracks = filtered;
+                        kvChanged = true;
+                    }
+                }
+                if (kvOverrides.radio_blocks && Array.isArray(kvOverrides.radio_blocks)) {
+                    kvOverrides.radio_blocks.forEach((b: any) => {
+                        if (b.tracks && Array.isArray(b.tracks)) {
+                            const filtered = b.tracks.filter((t: any) =>
+                                !(t.title || '').toLowerCase().includes('promo escape psycho circus') &&
+                                !(t.audioUrl || '').toLowerCase().includes('promo_escape_psycho_circus')
+                            );
+                            if (filtered.length !== b.tracks.length) {
+                                b.tracks = filtered;
+                                kvChanged = true;
+                            }
+                        }
+                    });
+                }
+                if (kvChanged && env.CHAT_KV) {
+                    ctx.waitUntil(env.CHAT_KV.put('site_settings_dynamic', JSON.stringify(kvOverrides)));
+                }
+
                 content = { ...content, ...kvOverrides };
+            }
+
+            // Purge stricte des promos Escape dans la réponse retournée
+            if (content.tv_promos && Array.isArray(content.tv_promos)) {
+                content.tv_promos = content.tv_promos.filter((p: any) =>
+                    !(p.title || '').toLowerCase().includes('escape psycho circus') &&
+                    !(p.title || '').toLowerCase().includes('escape halloween')
+                );
+            }
+            if (content.radio_tracks && Array.isArray(content.radio_tracks)) {
+                content.radio_tracks = content.radio_tracks.filter((t: any) =>
+                    !(t.title || '').toLowerCase().includes('promo escape psycho circus') &&
+                    !(t.audioUrl || '').toLowerCase().includes('promo_escape_psycho_circus')
+                );
+            }
+            if (content.radio_blocks && Array.isArray(content.radio_blocks)) {
+                content.radio_blocks.forEach((b: any) => {
+                    if (b.tracks && Array.isArray(b.tracks)) {
+                        b.tracks = b.tracks.filter((t: any) =>
+                            !(t.title || '').toLowerCase().includes('promo escape psycho circus') &&
+                            !(t.audioUrl || '').toLowerCase().includes('promo_escape_psycho_circus')
+                        );
+                    }
+                });
             }
             
             // Logique Auto-Live
