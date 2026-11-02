@@ -932,8 +932,8 @@ export async function enhanceFestivalPhoto(
 ): Promise<FestivalEnhancementResult> {
     const exifSource =
         options?.fileForExif ?? (typeof source !== 'string' ? source : null);
-    const maxDim = options?.maxDimension ?? 3840;
-    const quality = options?.quality ?? 0.94;
+    const maxDim = options?.maxDimension ?? 2048;
+    const quality = options?.quality ?? 0.90;
 
     const [exif, loaded] = await Promise.all([
         extractExifHints(exifSource),

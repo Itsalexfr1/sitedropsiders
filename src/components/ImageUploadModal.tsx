@@ -556,53 +556,58 @@ export function ImageUploadModal({
         });
     };
 
-    const handleUpload = async (toUpload: {file: File | null, preview: string}[], exifFallbackFile?: File | null) => {
+    const handleUpload = async (
+        toUpload: { file: File | null; preview: string }[],
+        exifFallbackFile?: File | null,
+        overrideEnhancedBlobs?: Record<string, Blob | null>
+    ) => {
         setIsUploading(true);
         setStatus('idle');
         setUploadProgress(0);
         setProcessingLabel('');
 
         try {
-            const uploadedUrls: string[] = [];
+            const total = toUpload.length;
+            const uploadedUrls: (string | null)[] = new Array(total).fill(null);
+            let completedCount = 0;
 
-            for (let i = 0; i < toUpload.length; i++) {
-                const item = toUpload[i];
-                
+            const processAndUploadItem = async (item: { file: File | null; preview: string }, index: number) => {
+                // Déjà hébergé (R2 ou URL externe)
                 if (item.preview && (item.preview.startsWith('/') || item.preview.startsWith('http'))) {
-                    uploadedUrls.push(item.preview);
-                    continue;
+                    uploadedUrls[index] = item.preview;
+                    return;
                 }
 
-                // If no file but we have a base64 preview (result of cropping)
+                // Aperçu base64 (ex: après recadrage)
                 if (!item.file && item.preview && item.preview.startsWith('data:')) {
-                    const filename = forceFilename || `crop_${Date.now()}.jpg`;
+                    const filename = forceFilename || `crop_${Date.now()}_${index}.jpg`;
                     let sourceDataUrl = item.preview;
 
                     if (isFestivalProEnabled && sourceDataUrl.startsWith('data:image/')) {
-                        setProcessingLabel('Traitement Pro Auto...');
+                        setProcessingLabel('Optimisation Pro...');
                         const enhanced = await enhanceFestivalPhoto(sourceDataUrl, {
-                            fileForExif: exifFallbackFile ?? null
+                            fileForExif: exifFallbackFile ?? null,
+                            maxDimension: 2048,
+                            quality: 0.90
                         });
                         sourceDataUrl = enhanced.dataUrl;
-                        setProcessingLabel('');
                     }
 
                     const base64 = await processImage(sourceDataUrl);
-                    
                     const response = await fetch('/api/upload', {
-                         method: 'POST',
-                         headers: { ...getAuthHeaders(null), 'Content-Type': 'application/json' },
-                         body: JSON.stringify({ filename, content: base64, type: 'image/jpeg' })
+                        method: 'POST',
+                        headers: { ...getAuthHeaders(null), 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ filename, content: base64, type: 'image/jpeg' })
                     });
-
                     const data = await response.json();
                     if (data.success && data.url) {
-                         uploadedUrls.push(data.url);
-                         continue;
-                    } else {
-                         throw new Error(data.error || 'Upload échoué');
+                        uploadedUrls[index] = data.url;
+                        return;
                     }
+                    throw new Error(data.error || 'Upload échoué');
                 }
+
+                // Fichier réel
                 if (item.file) {
                     let filename = forceFilename || sanitizeFilename(item.file.name);
                     let fileType = item.file.type;
@@ -612,13 +617,39 @@ export function ImageUploadModal({
                         !fileType.includes('svg') &&
                         !fileType.includes('gif');
 
-                    if (isRasterPhoto && isFestivalProEnabled) {
-                        setProcessingLabel(
-                            toUpload.length > 1
-                                ? `Pro Auto (${i + 1}/${toUpload.length})...`
-                                : 'Traitement Pro Auto...'
-                        );
-                        const enhanced = await enhanceFestivalPhoto(item.file);
+                    // Vérifie si un blob a déjà été traité par l'Atelier Batch
+                    const batchKey = item.file.name + '_' + item.file.size;
+                    const preBlob = overrideEnhancedBlobs ? overrideEnhancedBlobs[batchKey] : batchEnhancedMap[batchKey];
+                    const isBatchEnabled = overrideEnhancedBlobs
+                        ? (batchKey in overrideEnhancedBlobs && overrideEnhancedBlobs[batchKey] !== null)
+                        : (batchEnabledMap[batchKey] ?? isFestivalProEnabled);
+
+                    if (isRasterPhoto && preBlob && isBatchEnabled !== false) {
+                        // Instantané : Blob déjà prêt issu du Batch Modal !
+                        fileType = 'image/jpeg';
+                        if (!forceFilename) {
+                            filename = filename.replace(/\.(png|webp|avif|bmp|heic|heif)$/i, '.jpg');
+                        }
+
+                        if (isWatermarkEnabled) {
+                            const blobUrl = URL.createObjectURL(preBlob);
+                            const base64 = await processImage(blobUrl);
+                            URL.revokeObjectURL(blobUrl);
+                            const base64Data = base64.split(',')[1] || base64;
+                            const binaryStr = atob(base64Data);
+                            const byteArr = new Uint8Array(binaryStr.length);
+                            for (let j = 0; j < binaryStr.length; j++) byteArr[j] = binaryStr.charCodeAt(j);
+                            fileBlob = new Blob([byteArr], { type: fileType });
+                        } else {
+                            fileBlob = preBlob;
+                        }
+                    } else if (isRasterPhoto && isFestivalProEnabled && isBatchEnabled !== false) {
+                        // Traitement direct optimisé en 2048px (ultra rapide)
+                        setProcessingLabel(total > 1 ? `Pro (${completedCount + 1}/${total})...` : 'Optimisation Pro...');
+                        const enhanced = await enhanceFestivalPhoto(item.file, {
+                            maxDimension: 2048,
+                            quality: 0.90
+                        });
                         fileType = 'image/jpeg';
                         if (!forceFilename) {
                             filename = filename.replace(/\.(png|webp|avif|bmp|heic|heif)$/i, '.jpg');
@@ -634,12 +665,9 @@ export function ImageUploadModal({
                         } else {
                             fileBlob = enhanced.blob;
                         }
-                        setProcessingLabel('');
                     } else if (fileType.startsWith('image/') && isWatermarkEnabled) {
-                        // For images with watermark only, process via canvas first (returns base64)
                         const base64 = await processImage(item.preview);
                         fileType = 'image/jpeg';
-                        // Convert base64 back to Blob for binary upload
                         const base64Data = base64.split(',')[1] || base64;
                         const binaryStr = atob(base64Data);
                         const byteArr = new Uint8Array(binaryStr.length);
@@ -647,49 +675,55 @@ export function ImageUploadModal({
                         fileBlob = new Blob([byteArr], { type: fileType });
                     }
 
-                    // Use multipart upload for files > 50MB
-                    const LARGE_FILE_THRESHOLD = 50 * 1024 * 1024; // 50MB
+                    // Envoi vers Cloudflare R2
+                    const LARGE_FILE_THRESHOLD = 50 * 1024 * 1024;
                     if (fileBlob.size > LARGE_FILE_THRESHOLD) {
                         const targetFolder = fileType.startsWith('audio/') ? 'SONS' : (fileType.startsWith('video/') ? 'VIDEOS' : 'uploads');
                         const fileObject = new File([fileBlob], filename, { type: fileType });
-                        const uploadUrl = await uploadMultipartFile(
-                            fileObject,
-                            targetFolder,
-                            (prog) => {
-                                const baseProgress = Math.round((i / toUpload.length) * 100);
-                                const chunkProgress = Math.round(prog / toUpload.length);
-                                setUploadProgress(Math.min(99, baseProgress + chunkProgress));
-                            }
-                        );
+                        const uploadUrl = await uploadMultipartFile(fileObject, targetFolder);
                         const finalUrl = uploadUrl.startsWith('https://dropsiders.fr')
                             ? uploadUrl.replace('https://dropsiders.fr', '')
                             : uploadUrl;
-                        uploadedUrls.push(finalUrl);
+                        uploadedUrls[index] = finalUrl;
                     } else {
-                        // Use direct binary upload (no base64 inflation, supports large files)
                         const uploadUrl = `/api/upload?filename=${encodeURIComponent(filename)}&type=${encodeURIComponent(fileType)}`;
                         const response = await fetch(uploadUrl, {
                             method: 'POST',
                             headers: { ...getAuthHeaders(null), 'Content-Type': fileType },
                             body: fileBlob
                         });
-
                         const data = await response.json();
                         if (data.success && data.url) {
-                            uploadedUrls.push(data.url);
+                            uploadedUrls[index] = data.url;
                         } else {
                             throw new Error(data.error || 'Upload échoué');
                         }
                     }
-                }                
-                setUploadProgress(Math.round(((i + 1) / toUpload.length) * 100));
-            }
+                }
+            };
 
+            // Pool d'envoi parallèle (jusqu'à 3 envois simultanés pour vitesse maximale)
+            const CONCURRENCY = Math.min(3, total);
+            let nextIndex = 0;
+            const worker = async () => {
+                while (nextIndex < total) {
+                    const currentIdx = nextIndex++;
+                    setProcessingLabel(total > 1 ? `Envoi (${completedCount + 1}/${total})...` : 'Envoi en cours...');
+                    await processAndUploadItem(toUpload[currentIdx], currentIdx);
+                    completedCount++;
+                    setUploadProgress(Math.round((completedCount / total) * 100));
+                }
+            };
+
+            const workers = Array.from({ length: CONCURRENCY }, () => worker());
+            await Promise.all(workers);
+
+            const finalUrls = uploadedUrls.filter((u): u is string => typeof u === 'string');
             setStatus('success');
             setMessage('Média(s) prêt(s) !');
-            
-            if (onUploadSuccess && uploadedUrls.length > 0) {
-                onUploadSuccess(allowMultiple ? uploadedUrls : uploadedUrls[0]);
+
+            if (onUploadSuccess && finalUrls.length > 0) {
+                onUploadSuccess(allowMultiple ? finalUrls : finalUrls[0]);
             }
 
             setTimeout(() => {
@@ -1268,6 +1302,8 @@ export function ImageUploadModal({
                     setBatchEnabledMap(newEnabled);
                     if (results.some(r => r.useEnhanced)) setIsFestivalProEnabled(true);
                     setIsBatchModalOpen(false);
+                    // Lance immédiatement l'envoi rapide avec les blobs déjà en mémoire !
+                    handleUpload(selectedImages, null, newBlobs);
                 }}
             />
 

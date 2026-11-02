@@ -46,24 +46,6 @@ export function FestivalProBatchModal({ isOpen, onClose, photos, onConfirm }: Fe
     const processingRef = useRef(false);
     const enhancedBlobsRef = useRef<Record<string, Blob | null>>({});
 
-    // Initialise les résultats à chaque ouverture
-    useEffect(() => {
-        if (!isOpen || photos.length === 0) return;
-        setResults(
-            photos.map(p => ({
-                id: p.id,
-                status: 'idle',
-                enhancedUrl: null,
-                mode: null,
-                enabled: true,
-            }))
-        );
-        setShowOriginal({});
-        setFocusIndex(0);
-        enhancedBlobsRef.current = {};
-        setProcessedCount(0);
-    }, [isOpen, photos]);
-
     // ── Traitement batch avec queue de concurrence ─────────────────────────────
     const processAll = useCallback(async () => {
         if (processingRef.current) return;
@@ -90,7 +72,7 @@ export function FestivalProBatchModal({ isOpen, onClose, photos, onConfirm }: Fe
             ));
 
             try {
-                const res = await enhanceFestivalPhoto(photo.file, { maxDimension: 2048, quality: 0.92 });
+                const res = await enhanceFestivalPhoto(photo.file, { maxDimension: 2048, quality: 0.90 });
                 enhancedBlobsRef.current[photo.id] = res.blob;
                 setResults(prev => prev.map(r =>
                     r.id === photo.id
@@ -121,6 +103,32 @@ export function FestivalProBatchModal({ isOpen, onClose, photos, onConfirm }: Fe
         processingRef.current = false;
         setIsProcessingAll(false);
     }, [photos, results]);
+
+
+
+    // Initialise les résultats et lance automatiquement le traitement
+    useEffect(() => {
+        if (!isOpen || photos.length === 0) return;
+        setResults(
+            photos.map(p => ({
+                id: p.id,
+                status: 'idle',
+                enhancedUrl: null,
+                mode: null,
+                enabled: true,
+            }))
+        );
+        setShowOriginal({});
+        setFocusIndex(0);
+        enhancedBlobsRef.current = {};
+        setProcessedCount(0);
+
+        // Démarrage automatique immédiat pour un flux sans friction
+        const timer = setTimeout(() => {
+            processAll();
+        }, 120);
+        return () => clearTimeout(timer);
+    }, [isOpen, photos, processAll]);
 
     // ── Activer / désactiver le filtre par photo ───────────────────────────────
     const toggleEnabled = (id: string) => {
