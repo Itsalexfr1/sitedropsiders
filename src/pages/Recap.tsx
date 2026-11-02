@@ -239,13 +239,13 @@ export function Recap() {
                 className="mb-12"
             >
                 <div className="flex items-center gap-3 mb-4">
-                    <div className="p-2 bg-neon-orange/10 rounded-lg">
-                        <Video className="w-6 h-6 text-neon-orange" />
+                    <div className="p-2 bg-neon-purple/10 rounded-lg">
+                        <Video className="w-6 h-6 text-neon-purple" />
                     </div>
-                    <span className="text-neon-orange font-bold tracking-widest text-sm uppercase">{t('nav.recaps')}</span>
+                    <span className="text-neon-purple font-bold tracking-widest text-sm uppercase">{t('nav.recaps')}</span>
                 </div>
                 <h1 className="text-4xl md:text-5xl font-display font-bold text-white mb-4 uppercase italic tracking-tighter">
-                    {t('recaps.title')}<span className="text-neon-orange">{t('recaps.title_span')}</span>
+                    {t('recaps.title')}<span className="text-neon-purple">{t('recaps.title_span')}</span>
                 </h1>
                 <p className="text-gray-400 max-w-2xl text-lg">
                     {t('news.subtitle')}
@@ -291,7 +291,7 @@ export function Recap() {
                                     <motion.button
                                         key={tab.key}
                                         onClick={() => handleTabChange(tab.key)}
-                                        data-cursor-color="neon-orange"
+                                        data-cursor-color="neon-purple"
                                         whileHover={{ scale: 1.04 }}
                                         whileTap={{ scale: 0.96 }}
                                         className={`relative px-6 py-2 rounded-full font-black uppercase tracking-widest text-[10px] transition-all duration-300 border
@@ -318,7 +318,7 @@ export function Recap() {
                             animate={{ opacity: 1, x: 0 }}
                             exit={{ opacity: 0, x: 20 }}
                             onClick={() => handlePageChange(currentPage - 1)}
-                            className="absolute -left-16 top-1/2 -translate-y-1/2 p-4 text-white/30 hover:text-neon-orange transition-colors duration-300 hidden xl:block z-20"
+                            className="absolute -left-16 top-1/2 -translate-y-1/2 p-4 text-white/30 hover:text-neon-purple transition-colors duration-300 hidden xl:block z-20"
                         >
                             <ChevronLeft className="w-16 h-16" strokeWidth={1} />
                         </motion.button>
@@ -329,8 +329,8 @@ export function Recap() {
                     {isLoading ? (
                         <div className="flex flex-col items-center justify-center py-32 gap-6">
                             <div className="relative">
-                                <div className="w-16 h-16 border-4 border-neon-orange/10 rounded-full" />
-                                <div className="absolute inset-0 w-16 h-16 border-t-4 border-neon-orange rounded-full animate-spin" />
+                                <div className="w-16 h-16 border-4 border-neon-purple/10 rounded-full" />
+                                <div className="absolute inset-0 w-16 h-16 border-t-4 border-neon-purple rounded-full animate-spin" />
                             </div>
                             <span className="text-[10px] font-black text-white/30 uppercase tracking-[0.5em] animate-pulse">Chargement des récaps...</span>
                         </div>
@@ -361,7 +361,7 @@ export function Recap() {
                                                 <motion.article
                                                     key={item.id}
                                                     onMouseEnter={playHoverSound}
-                                                    className="group relative rounded-[2rem] overflow-hidden transition-all duration-500 w-[85vw] flex-shrink-0 snap-center aspect-square md:aspect-auto md:w-auto md:flex-shrink-1 md:bg-dark-card md:border md:border-white/5 md:rounded-3xl hover:border-neon-orange/50 hover:shadow-[0_0_40px_rgba(255,103,0,0.2)] md:flex md:flex-col"
+                                                    className="group relative rounded-[2rem] overflow-hidden transition-all duration-500 w-[85vw] flex-shrink-0 snap-center aspect-square md:aspect-auto md:w-auto md:flex-shrink-1 md:bg-dark-card md:border md:border-white/5 md:rounded-3xl hover:border-neon-purple/50 hover:shadow-[0_0_40px_rgba(255,103,0,0.2)] md:flex md:flex-col"
                                                 >
                                                     {isAdmin && (
                                                         <button
@@ -386,7 +386,7 @@ export function Recap() {
                                                                 <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-[#050505]/60 to-transparent" />
                                                                 <div className="absolute inset-0 p-6 flex flex-col justify-end text-left z-10">
                                                                     <div className="flex items-center gap-2 mb-3">
-                                                                        {item.festival && <span className="text-[10px] font-black px-3 py-1.5 rounded-xl bg-neon-orange/80 text-white backdrop-blur-md">{item.festival}</span>}
+                                                                        {item.festival && <span className="text-[10px] font-black px-3 py-1.5 rounded-xl bg-neon-purple/80 text-white backdrop-blur-md">{item.festival}</span>}
                                                                         {item.location && <span className="text-[10px] font-bold px-2 py-1 rounded-xl bg-white/10 text-white border border-white/20">{item.location}</span>}
                                                                     </div>
                                                                     <h2 className="text-2xl sm:text-3xl font-display font-black text-white italic uppercase leading-tight tracking-tight line-clamp-4 drop-shadow-lg"
@@ -399,18 +399,18 @@ export function Recap() {
                                                                 <div className="h-64 overflow-hidden bg-black/40 flex items-center justify-center relative">
                                                                     <img src={resolveImageUrl(item.coverImage || item.image)} alt={item.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
                                                                     <div className="absolute inset-0 bg-gradient-to-t from-dark-bg via-dark-bg/50 to-transparent" />
-                                                                    {item.festival && <div className="absolute top-4 left-4 px-3 py-1 bg-neon-orange/90 backdrop-blur-sm rounded-full"><span className="text-[10px] font-black tracking-widest text-white uppercase">{item.festival}</span></div>}
+                                                                    {item.festival && <div className="absolute top-4 left-4 px-3 py-1 bg-neon-purple/90 backdrop-blur-sm rounded-full"><span className="text-[10px] font-black tracking-widest text-white uppercase">{item.festival}</span></div>}
                                                                     {item.location && <div className="absolute top-4 right-4 px-3 py-1 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full flex items-center gap-2"><span className="text-[10px] font-bold tracking-wider text-white uppercase">{item.location}</span><FlagIcon location={item.location} className="w-3.5 h-2.5" /></div>}
                                                                 </div>
                                                                 <div className="p-6 flex flex-col flex-1">
                                                                     <div className="flex justify-between items-center mb-3">
-                                                                        <span className="text-[10px] font-black tracking-widest text-neon-orange border border-neon-orange/30 px-3 py-1 rounded-full uppercase">{t('home.recap_badge')}</span>
+                                                                        <span className="text-[10px] font-black tracking-widest text-neon-purple border border-neon-purple/30 px-3 py-1 rounded-full uppercase">{t('home.recap_badge')}</span>
                                                                         <div className="flex flex-col items-end">
                                                                             <span className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">{new Date(item.date).toLocaleDateString(locale, { year: 'numeric', month: 'short' })}</span>
                                                                             <span className="text-[9px] text-neon-cyan font-black uppercase tracking-[0.2em] mt-0.5">{item.author || 'Alex'}</span>
                                                                         </div>
                                                                     </div>
-                                                                    <h2 className="text-xl font-bold text-white mb-3 group-hover:text-neon-orange transition-colors line-clamp-2"
+                                                                    <h2 className="text-xl font-bold text-white mb-3 group-hover:text-neon-purple transition-colors line-clamp-2"
                                                                         dangerouslySetInnerHTML={{ __html: standardizeContent(translatedTitles[item.id] || item.title) }}
                                                                     />
                                                                     <p className="text-gray-400 text-sm line-clamp-3"
@@ -431,14 +431,14 @@ export function Recap() {
                                                                 
                                                                 <div className="absolute inset-0 p-6 flex flex-col justify-end">
                                                                     <div className="flex items-center gap-2 mb-3">
-                                                                        <span className="px-2 py-0.5 bg-neon-orange text-white text-[9px] font-black uppercase tracking-wider rounded">
+                                                                        <span className="px-2 py-0.5 bg-neon-purple text-white text-[9px] font-black uppercase tracking-wider rounded">
                                                                             {item.category}
                                                                         </span>
                                                                         <span className="text-[8px] font-black text-white/60 tracking-widest uppercase">
                                                                             {item.images.length}+ PHOTOS
                                                                         </span>
                                                                     </div>
-                                                                    <h3 className="text-lg font-display font-black text-white italic leading-tight uppercase tracking-tighter group-hover:text-neon-orange transition-colors">
+                                                                    <h3 className="text-lg font-display font-black text-white italic leading-tight uppercase tracking-tighter group-hover:text-neon-purple transition-colors">
                                                                         {item.title}
                                                                     </h3>
                                                                     <div className="mt-4 flex items-center justify-between">
@@ -479,7 +479,7 @@ export function Recap() {
                             animate={{ opacity: 1, x: 0 }}
                             exit={{ opacity: 0, x: -20 }}
                             onClick={() => handlePageChange(currentPage + 1)}
-                            className="absolute -right-16 top-1/2 -translate-y-1/2 p-4 text-white/30 hover:text-neon-orange transition-colors duration-300 hidden xl:block z-20"
+                            className="absolute -right-16 top-1/2 -translate-y-1/2 p-4 text-white/30 hover:text-neon-purple transition-colors duration-300 hidden xl:block z-20"
                         >
                             <ChevronRight className="w-16 h-16" strokeWidth={1} />
                         </motion.button>

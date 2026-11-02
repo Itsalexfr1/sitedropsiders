@@ -90,8 +90,8 @@ export function MobileNavbar() {
         { icon: Radio, label: 'Dropsiders Radio', path: '/radio', color: 'text-neon-cyan' },
         { icon: Plane, label: navLabels.voyage || t('nav.voyage'), path: '/voyage', color: 'text-neon-green' },
         { icon: Users, label: navLabels.team || t('nav.team'), path: '/team', color: 'text-neon-lime' },
-        { icon: Newspaper, label: navLabels.recaps || t('nav.recaps'), path: '/recaps', color: 'text-neon-orange' },
-        { icon: Info, label: navLabels.interviews || t('nav.interviews'), path: '/interviews', color: 'text-neon-orange' },
+        { icon: Newspaper, label: navLabels.recaps || t('nav.recaps'), path: '/recaps', color: 'text-neon-purple' },
+        { icon: Info, label: navLabels.interviews || t('nav.interviews'), path: '/interviews', color: 'text-white' },
         { 
             icon: () => <span className="text-[10px] font-black leading-none">SHOP</span>, 
             label: navLabels.shop || t('nav.shop'), 

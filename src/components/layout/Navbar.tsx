@@ -130,8 +130,8 @@ export function Navbar() {
     const navItems = [
         { name: navLabels.news || t('nav.news'), path: '/news', color: 'neon-red' },
         { name: navLabels.agenda || t('nav.agenda'), path: '/agenda', color: 'neon-fuchsia' },
-        { name: navLabels.interviews || t('nav.interviews'), path: '/interviews', color: 'neon-yellow' },
-        { name: navLabels.recaps || t('nav.recaps'), path: '/recaps', color: 'neon-orange' },
+        { name: navLabels.interviews || t('nav.interviews'), path: '/interviews', color: 'white' },
+        { name: navLabels.recaps || t('nav.recaps'), path: '/recaps', color: 'neon-purple' },
         { name: navLabels.communaute || t('nav.communaute'), path: '/communaute', color: 'neon-cyan' },
         { name: 'TV', path: '/tv', color: 'neon-red', icon: Tv },
         { name: 'Radio', path: '/radio', color: 'neon-cyan', icon: Radio },
@@ -492,7 +492,7 @@ export function Navbar() {
                                                                 <span className={twMerge(
                                                                     "text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded shadow-[0_0_10px_rgba(0,0,0,0.3)]",
                                                                     item.searchType === 'agenda' ? "bg-neon-cyan/20 text-neon-cyan border border-neon-cyan/30" :
-                                                                        item.searchType === 'recap' ? "bg-neon-red/20 text-neon-red border border-neon-red/30" :
+                                                                        item.searchType === 'recap' ? "bg-neon-purple/20 text-neon-purple border border-neon-purple/30" :
                                                                             item.isFocus ? "bg-yellow-500/20 text-yellow-400 border border-yellow-400/30" :
                                                                                 (item.category || '').toLowerCase() === 'musique' ? "bg-neon-green/20 text-neon-green border border-neon-green/30" :
                                                                                     "bg-neon-purple/20 text-neon-purple border border-neon-purple/30"
@@ -664,7 +664,8 @@ function NavItem({ item, isActive }: NavItemProps) {
                     "relative block px-2 xl:px-2.5 2xl:px-3.5 py-1.5 xl:py-2 text-[11px] xl:text-xs 2xl:text-sm font-bold tracking-normal xl:tracking-wide transition-all duration-300 rounded-xl",
                     item.isPremium ? "border border-neon-yellow/20 bg-neon-yellow/5 shadow-[0_0_15px_rgba(255,240,31,0.05)]" : "",
                     isActive
-                        ? (item.color === 'neon-green' ? "text-neon-green drop-shadow-[0_0_8px_rgba(57,255,20,0.5)]" :
+                        ? (item.color === 'white' ? "text-white drop-shadow-[0_0_8px_rgba(255,255,255,0.7)]" :
+                            item.color === 'neon-green' ? "text-neon-green drop-shadow-[0_0_8px_rgba(57,255,20,0.5)]" :
                             item.color === 'neon-purple' ? "text-neon-purple drop-shadow-[0_0_8px_rgba(191,0,255,0.5)]" :
                                 item.color === 'neon-cyan' ? "text-neon-cyan drop-shadow-[0_0_8px_rgba(0,255,255,0.5)]" :
                                     item.color === 'neon-red' ? "text-neon-red drop-shadow-[0_0_8px_rgba(255,0,153,0.5)]" :

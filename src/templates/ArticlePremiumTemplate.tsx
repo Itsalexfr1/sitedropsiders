@@ -1302,6 +1302,7 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
 
     const themeColorName = getCategoryColor(article.category || (type === 'recap' ? 'Recap' : 'News'));
     const themeColorHex = 
+        themeColorName === 'white' ? '#FFFFFF' :
         themeColorName === 'neon-blue' ? '#00BFFF' :
         themeColorName === 'neon-yellow' ? '#FFF01F' :
         themeColorName === 'neon-purple' ? '#BF00FF' :

@@ -10,7 +10,7 @@ export const getCategoryColor = (category: string = ''): string => {
     if (cat.includes('news')) return 'neon-red';
     if (cat.includes('agenda')) return 'neon-pink';
     if (cat.includes('recap')) return 'neon-purple';
-    if (cat.includes('interview')) return 'neon-orange';
+    if (cat.includes('interview')) return 'white';
     if (cat.includes('top 100') || cat.includes('top100')) return 'neon-yellow';
     if (cat.includes('communaute')) return 'neon-cyan';
     if (cat.includes('voyage') || cat.includes('vols')) return 'neon-green';
@@ -25,6 +25,7 @@ export const getCategoryColor = (category: string = ''): string => {
 export const getCategoryColorHex = (category: string = ''): string => {
     const colorName = getCategoryColor(category);
     switch (colorName) {
+        case 'white': return '#ffffff';
         case 'neon-red': return '#ff1241';
         case 'neon-cyan': return '#22d3ee';
         case 'neon-purple': return '#c026d3'; // RÉCAP Social Studio color
