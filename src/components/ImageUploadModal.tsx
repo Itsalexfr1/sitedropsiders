@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { createPortal } from 'react-dom';
 import { Upload, X, Image as ImageIcon, Loader2, CheckCircle2, Film, Crop, Zap, Trash2, Layers, HardDrive, ArrowUpDown, Check, Globe, Search, Sparkles } from 'lucide-react';
 import { enhanceFestivalPhoto, type FestivalSceneMode } from '../utils/festivalPhotoEnhancer';
+import { FestivalProBatchModal, type BatchPhotoItem } from './FestivalProBatchModal';
 import { ImageCropper } from './ImageCropper';
 import { getAuthHeaders } from '../utils/auth';
 import { uploadMultipartFile } from '../utils/uploadService';
@@ -66,6 +67,12 @@ export function ImageUploadModal({
     const [processingLabel, setProcessingLabel] = useState('');
     const [previewIndex, setPreviewIndex] = useState(0);
     const [showOriginalComparison, setShowOriginalComparison] = useState(false);
+
+    // Batch Festival Pro Modal
+    const [isBatchModalOpen, setIsBatchModalOpen] = useState(false);
+    const [batchPhotos, setBatchPhotos] = useState<BatchPhotoItem[]>([]);
+    const [batchEnhancedMap, setBatchEnhancedMap] = useState<Record<string, Blob | null>>({});
+    const [batchEnabledMap, setBatchEnabledMap] = useState<Record<string, boolean>>({});
 
     // R2 State
     const [libTab, setLibTab] = useState<'r2' | 'unsplash'>('r2');
@@ -1245,6 +1252,25 @@ export function ImageUploadModal({
                     </div>
                 </div>
             )}
+            {/* Atelier Batch Festival Pro */}
+            <FestivalProBatchModal
+                isOpen={isBatchModalOpen}
+                onClose={() => setIsBatchModalOpen(false)}
+                photos={batchPhotos}
+                onConfirm={(results) => {
+                    const newBlobs: Record<string, Blob | null> = {};
+                    const newEnabled: Record<string, boolean> = {};
+                    results.forEach(r => {
+                        newBlobs[r.id] = r.useEnhanced ? r.enhancedBlob : null;
+                        newEnabled[r.id] = r.useEnhanced;
+                    });
+                    setBatchEnhancedMap(newBlobs);
+                    setBatchEnabledMap(newEnabled);
+                    if (results.some(r => r.useEnhanced)) setIsFestivalProEnabled(true);
+                    setIsBatchModalOpen(false);
+                }}
+            />
+
             {isCropOpen && selectedImages[0] && (
                 <ImageCropper
                     image={selectedImages[0].preview}
