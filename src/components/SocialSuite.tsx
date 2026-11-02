@@ -294,6 +294,49 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     }, [activeTab, theme]);
     const [showSwipe, setShowSwipe] = useState(false);
     const [showArticleLink, setShowArticleLink] = useState(false);
+    const getAutoArticleLinkText = (themeName: string): string => {
+        switch (themeName) {
+            case 'RECAP':
+                return 'RÉCAP À LIRE SUR DROPSIDERS.FR';
+            case 'INTERVIEW':
+                return 'INTERVIEW COMPLÈTE SUR DROPSIDERS.FR';
+            case 'FOCUS':
+                return 'DOSSIER COMPLET SUR DROPSIDERS.FR';
+            case 'MUSIQUE':
+            case 'TRACKLIST':
+                return 'ÉCOUTER LA RELEASE SUR DROPSIDERS.FR';
+            case 'TOP 5 ARTISTE':
+            case 'TOP 5 STYLES':
+            case 'TOP 10 FESTIVAL':
+            case 'TOP 100 DROPSIDERS':
+                return 'CLASSEMENT COMPLET SUR DROPSIDERS.FR';
+            case 'EVENTS':
+            case 'PLANNING':
+            case 'CALENDRIER':
+                return 'INFOS & BILLETS SUR DROPSIDERS.FR';
+            case 'CONCOURS':
+                return 'PARTICIPER SUR DROPSIDERS.FR';
+            case 'CONSEILS':
+                return 'TOUS LES CONSEILS SUR DROPSIDERS.FR';
+            case 'JEU':
+            case 'JEU_FESTIVAL':
+            case 'JEU_DJ':
+                return 'RÉPONDRE AU QUIZ SUR DROPSIDERS.FR';
+            case 'SPOTLIGHT':
+            case 'ARTISTE FESTIVAL':
+                return 'FICHE ARTISTE SUR DROPSIDERS.FR';
+            case 'LIVESTREAM':
+                return 'EN DIRECT SUR DROPSIDERS.FR/LIVE';
+            case 'NEWS':
+            default:
+                return 'ARTICLE COMPLET SUR DROPSIDERS.FR';
+        }
+    };
+    const [articleLinkText, setArticleLinkText] = useState(() => getAutoArticleLinkText(initialTheme || 'NEWS'));
+
+    useEffect(() => {
+        setArticleLinkText(getAutoArticleLinkText(theme));
+    }, [theme]);
     const [showVoteLink, setShowVoteLink] = useState(false);
     const [customText, setCustomText] = useState(title || '');
     const [bgImage, setBgImage] = useState<string>(imageUrl);
@@ -8895,17 +8938,32 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 // 5. BOTTOM LINK INDICATORS (If activated)
                 let curIndicatorY = (effectiveTab === 'PUBLICATION') ? canvas.height - 55 : canvas.height - 230;
                 if (showArticleLink) {
+                    const textToDraw = articleLinkText || 'ARTICLE COMPLET SUR DROPSIDERS.FR';
                     ctx.save();
                     ctx.font = '900 italic 22px "Montserrat", sans-serif';
-                    ctx.letterSpacing = '0.5px';
-                    ctx.fillStyle = '#ffffff';
-                    ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
-                    ctx.shadowBlur = 12;
+                    ctx.letterSpacing = '0.8px';
                     ctx.textAlign = 'left';
-                    ctx.fillText('ARTICLE COMPLET SUR DROPSIDERS.FR', lineMarginX, curIndicatorY);
+
+                    // Pass 1: Lueur argentée profonde & halo platine
+                    ctx.shadowColor = 'rgba(215, 230, 255, 0.95)';
+                    ctx.shadowBlur = 18;
+                    ctx.fillStyle = '#ffffff';
+                    ctx.fillText(textToDraw, lineMarginX, curIndicatorY);
+
+                    // Pass 2: Dégradé métallique argent brossé & relief chromé
+                    const silverGrad = ctx.createLinearGradient(lineMarginX, curIndicatorY - 22, lineMarginX, curIndicatorY);
+                    silverGrad.addColorStop(0, '#FFFFFF');
+                    silverGrad.addColorStop(0.35, '#E2E8F0');
+                    silverGrad.addColorStop(0.7, '#94A3B8');
+                    silverGrad.addColorStop(1, '#CBD5E1');
+                    ctx.fillStyle = silverGrad;
+                    ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
+                    ctx.shadowBlur = 6;
+                    ctx.fillText(textToDraw, lineMarginX, curIndicatorY);
                     ctx.restore();
+
                     if (showVoteLink) {
-                        curIndicatorY -= 32;
+                        curIndicatorY -= 34;
                     }
                 }
                 if (showVoteLink) {
@@ -9016,14 +9074,29 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             const isCustomLayoutTheme = ['MUSIQUE', 'EVENTS', 'AFFICHE'].includes(theme);
 
             if (showArticleLink && !isPromoExport && !isModernEditorialTheme && !isCustomLayoutTheme) {
+                const textToDraw = articleLinkText || 'ARTICLE COMPLET SUR DROPSIDERS.FR';
                 ctx.save();
                 ctx.textAlign = 'left';
                 ctx.textBaseline = 'bottom';
-                ctx.font = '900 italic 24px "Montserrat", sans-serif'; // Réduit de 40% (40px -> 24px)
+                ctx.font = '900 italic 24px "Montserrat", sans-serif';
+                ctx.letterSpacing = '0.8px';
+
+                // Pass 1: Lueur argentée
+                ctx.shadowColor = 'rgba(215, 230, 255, 0.95)';
+                ctx.shadowBlur = 18;
                 ctx.fillStyle = '#ffffff';
-                ctx.shadowColor = 'rgba(0,0,0,0.8)';
-                ctx.shadowBlur = 10;
-                ctx.fillText('ARTICLE COMPLET SUR DROPSIDERS.FR', 40, canvas.height - 25);
+                ctx.fillText(textToDraw, 40, canvas.height - 25);
+
+                // Pass 2: Métallique argenté
+                const silverGrad = ctx.createLinearGradient(40, canvas.height - 47, 40, canvas.height - 25);
+                silverGrad.addColorStop(0, '#FFFFFF');
+                silverGrad.addColorStop(0.35, '#E2E8F0');
+                silverGrad.addColorStop(0.7, '#94A3B8');
+                silverGrad.addColorStop(1, '#CBD5E1');
+                ctx.fillStyle = silverGrad;
+                ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
+                ctx.shadowBlur = 6;
+                ctx.fillText(textToDraw, 40, canvas.height - 25);
                 ctx.restore();
             }
 
@@ -9133,7 +9206,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             anim = requestAnimationFrame(loop);
         } else { generateImage(); }
         return () => cancelAnimationFrame(anim);
-    }, [bgImage, bgVideo, customText, theme, showSwipe, showArticleLink, showVoteLink, top5Items, currentPreviewIndex, activeTab, rotation, themeColor, isVideoRecording, transitionProgress, showText, planningDate, planningItems, agendaMonth, agendaBadgeText, agendaSlide, agendaCoverBadge, agendaCoverTitle, agendaCoverYear, agendaCoverGenres, agendaCoverCta, showAgendaCoverCta, artisteFestivalSlide, eventsSlide, editorialSlide, isEditorialAfficheActive, isEditorialTweetActive, showTitleOnSlide2, showMusicDate, editorialDate, showDividerDate, citationAuthor, citationMedia, extraEditorialSlides, musicTracks, calendarMonth, calendarEvents, isRetouchMode, retouchPath, isTransparent, showBottomLogo, artistLogo, festivalLogo, bgOffsetX, bgOffsetY, artistNameText, festivalNameText, isArtistLogoNegative, mapFestivalText, mapCityCountry, mapZoom, mapLatitude, mapLongitude, mapStyle, isMapLoading, mapPinColor, mapLabelText, showMapPin, showMapLabel, mapAnimMode, isMapAnimPlaying, mapScrubTime, mapAnimDuration, mapDestLatitude, mapDestLongitude, mapDestFestivalText, mapDestVenue, mapDestCity, mapDestCountry, mapDestPinColor, imgLayoutMode, quizColor1, quizColor2, showFrame, conseilsTitle, conseilsSubtext, isConseilsLargeTitle, concoursFestivalName, concoursFestivalHandle, concoursBottomColor, concoursLateralText, concoursLateralOpacity, concoursBadgeTextColor, concoursMode, concoursGTAHeadline, concoursGTATitle, concoursGTAPlatformText, concoursGTACondition1, concoursGTACondition2, concoursGTACondition3, concoursGTACondition4, afficheImage, afficheGlow, afficheBorderColor, afficheMode, afficheScale, afficheOffsetY, tweetImage, tweetScale, tweetOffsetY, tweetGlow, tweetHeadline, tweetBadge, tweetBorderColor, tweetTranslation, showTweetTranslation, tweetAnimMode, textAnimation, animReplayKey, bgAnimation, cdjPlayerRing, musicBgMotion, isCarouselPromoActive, promoCustomPhrase, promoCustomSubphrase, promoOutroStyle, isPromoAnimPlaying, promoCategory, showPromoHook, showPromoHeadline, showPromoLine1, showPromoLine2, djCutoutImage, djOriginalImage, djSilhouetteColor, djGlowIntensity, djShowQuestionMark, djAppearanceAnim, editorialSlideImages, editorialSlideCutouts, editorialSlideTitles, djSlideModes, agendaAffiches, highlightsSlideArtists, highlightsColorArtist, highlightsColorFestival, highlightsColorCity, highlightsColorCountry, highlightsColorDate, afficheImgZoom, afficheImgPanX, afficheImgPanY]);
+    }, [bgImage, bgVideo, customText, theme, showSwipe, showArticleLink, articleLinkText, showVoteLink, top5Items, currentPreviewIndex, activeTab, rotation, themeColor, isVideoRecording, transitionProgress, showText, planningDate, planningItems, agendaMonth, agendaBadgeText, agendaSlide, agendaCoverBadge, agendaCoverTitle, agendaCoverYear, agendaCoverGenres, agendaCoverCta, showAgendaCoverCta, artisteFestivalSlide, eventsSlide, editorialSlide, isEditorialAfficheActive, isEditorialTweetActive, showTitleOnSlide2, showMusicDate, editorialDate, showDividerDate, citationAuthor, citationMedia, extraEditorialSlides, musicTracks, calendarMonth, calendarEvents, isRetouchMode, retouchPath, isTransparent, showBottomLogo, artistLogo, festivalLogo, bgOffsetX, bgOffsetY, artistNameText, festivalNameText, isArtistLogoNegative, mapFestivalText, mapCityCountry, mapZoom, mapLatitude, mapLongitude, mapStyle, isMapLoading, mapPinColor, mapLabelText, showMapPin, showMapLabel, mapAnimMode, isMapAnimPlaying, mapScrubTime, mapAnimDuration, mapDestLatitude, mapDestLongitude, mapDestFestivalText, mapDestVenue, mapDestCity, mapDestCountry, mapDestPinColor, imgLayoutMode, quizColor1, quizColor2, showFrame, conseilsTitle, conseilsSubtext, isConseilsLargeTitle, concoursFestivalName, concoursFestivalHandle, concoursBottomColor, concoursLateralText, concoursLateralOpacity, concoursBadgeTextColor, concoursMode, concoursGTAHeadline, concoursGTATitle, concoursGTAPlatformText, concoursGTACondition1, concoursGTACondition2, concoursGTACondition3, concoursGTACondition4, afficheImage, afficheGlow, afficheBorderColor, afficheMode, afficheScale, afficheOffsetY, tweetImage, tweetScale, tweetOffsetY, tweetGlow, tweetHeadline, tweetBadge, tweetBorderColor, tweetTranslation, showTweetTranslation, tweetAnimMode, textAnimation, animReplayKey, bgAnimation, cdjPlayerRing, musicBgMotion, isCarouselPromoActive, promoCustomPhrase, promoCustomSubphrase, promoOutroStyle, isPromoAnimPlaying, promoCategory, showPromoHook, showPromoHeadline, showPromoLine1, showPromoLine2, djCutoutImage, djOriginalImage, djSilhouetteColor, djGlowIntensity, djShowQuestionMark, djAppearanceAnim, editorialSlideImages, editorialSlideCutouts, editorialSlideTitles, djSlideModes, agendaAffiches, highlightsSlideArtists, highlightsColorArtist, highlightsColorFestival, highlightsColorCity, highlightsColorCountry, highlightsColorDate, afficheImgZoom, afficheImgPanX, afficheImgPanY]);
 
     // Rejouer l'animation de texte proprement depuis le début à chaque changement de slide ou de thème
     useEffect(() => {
@@ -20206,11 +20279,24 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                                 {showSwipe && (<motion.svg initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={4}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></motion.svg>)}
                                             </div>
                                         </div>
-                                        <div className="p-3 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-between cursor-pointer group" onClick={() => setShowArticleLink(!showArticleLink)}>
-                                            <div className="flex items-center gap-2 min-w-0"><LinkIcon className="w-3.5 h-3.5 flex-shrink-0 text-neon-cyan" /><span className="text-[9px] font-black text-white uppercase truncate">Lien Site / Article</span></div>
-                                            <div className={`w-4 h-4 rounded-md border-2 transition-all flex items-center justify-center flex-shrink-0 ${showArticleLink ? 'bg-neon-cyan border-neon-cyan shadow-[0_0_10px_rgba(0,255,255,0.4)]' : 'bg-black/40 border-white/20 group-hover:border-white/40'}`}>
-                                                {showArticleLink && (<motion.svg initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={4}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></motion.svg>)}
+                                        <div className="col-span-2 space-y-1.5">
+                                            <div className="p-3 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-between cursor-pointer group" onClick={() => setShowArticleLink(!showArticleLink)}>
+                                                <div className="flex items-center gap-2 min-w-0"><LinkIcon className="w-3.5 h-3.5 flex-shrink-0 text-neon-cyan" /><span className="text-[9px] font-black text-white uppercase truncate">Lien Site ({articleLinkText.split(' ')[0]})</span></div>
+                                                <div className={`w-4 h-4 rounded-md border-2 transition-all flex items-center justify-center flex-shrink-0 ${showArticleLink ? 'bg-neon-cyan border-neon-cyan shadow-[0_0_10px_rgba(0,255,255,0.4)]' : 'bg-black/40 border-white/20 group-hover:border-white/40'}`}>
+                                                    {showArticleLink && (<motion.svg initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={4}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></motion.svg>)}
+                                                </div>
                                             </div>
+                                            {showArticleLink && (
+                                                <div className="flex items-center gap-1.5 px-1">
+                                                    <input
+                                                        type="text"
+                                                        value={articleLinkText}
+                                                        onChange={(e) => setArticleLinkText(e.target.value)}
+                                                        placeholder="Phrase du lien..."
+                                                        className="w-full bg-black/60 border border-white/20 focus:border-neon-cyan rounded-xl px-3 py-1.5 text-[9px] font-black uppercase text-white placeholder-gray-500 outline-none transition-all shadow-inner"
+                                                    />
+                                                </div>
+                                            )}
                                         </div>
                                         <div className="p-3 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-between cursor-pointer group" onClick={() => setShowVoteLink(!showVoteLink)}>
                                             <div className="flex items-center gap-2 min-w-0"><LinkIcon className="w-3.5 h-3.5 flex-shrink-0 text-neon-purple" /><span className="text-[9px] font-black text-white uppercase truncate">Lien Vote</span></div>
