@@ -8940,29 +8940,42 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     const effectiveColorHex = (typeof themeColor === 'string' ? themeColor : themeColor?.color) || baseThemeData[theme]?.color || '#c026d3';
                     const effectiveGradRGB = (typeof themeColor === 'object' && themeColor?.grad) || baseThemeData[theme]?.grad || '192, 38, 211';
 
-                    // Pass 1: Ombre nette découpée noire pour lisibilité 100% sur photos claires
+                    // 1. Halo de Lueur Argentée / Platine (Silver Glow) : diffusion lumineuse argentée (rgba(215, 230, 255, 0.95), blur: 18px)
+                    ctx.save();
+                    ctx.shadowColor = 'rgba(215, 230, 255, 0.95)';
+                    ctx.shadowBlur = 18;
+                    ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
+                    ctx.fillText(textToDraw, lineMarginX, curIndicatorY);
+                    ctx.restore();
+
+                    // 2. Ombre portée découpée : contour d'ombre noire nette pour garantir lisibilité 100% sur photos saturées ou claires
+                    ctx.save();
                     ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
                     ctx.shadowBlur = 8;
-                    ctx.fillStyle = '#000000';
-                    ctx.fillText(textToDraw, lineMarginX, curIndicatorY);
+                    ctx.shadowOffsetY = 2;
+                    ctx.strokeStyle = 'rgba(0, 0, 0, 0.85)';
+                    ctx.lineWidth = 3;
+                    ctx.strokeText(textToDraw, lineMarginX, curIndicatorY);
+                    ctx.restore();
 
-                    // Pass 2: Lueur argentée / platine avec halo nacré subtil aux reflets du thème
-                    ctx.shadowColor = `rgba(${effectiveGradRGB}, 0.55)`;
-                    ctx.shadowBlur = 18;
-                    ctx.fillStyle = '#ffffff';
-                    ctx.fillText(textToDraw, lineMarginX, curIndicatorY);
+                    // 3. Dégradé Métallique Chromé Brossé + Nacrage avec la couleur du thème :
+                    // Blanc éclat pur #FFFFFF -> Argent clair #E2E8F0 -> Nacrage thème -> Acier platine #94A3B8 -> Chrome froid #CBD5E1
+                    ctx.save();
+                    const textHeight = 24;
+                    const silverGrad = ctx.createLinearGradient(lineMarginX, curIndicatorY - textHeight, lineMarginX, curIndicatorY);
+                    silverGrad.addColorStop(0.00, '#FFFFFF'); // blanc éclat pur
+                    silverGrad.addColorStop(0.28, '#E2E8F0'); // argent clair
+                    silverGrad.addColorStop(0.55, effectiveColorHex); // nacrage avec la couleur du thème
+                    silverGrad.addColorStop(0.78, '#94A3B8'); // acier platine
+                    silverGrad.addColorStop(1.00, '#CBD5E1'); // chrome froid
 
-                    // Pass 3: Dégradé métallique chromé brossé + nacrage avec la couleur du thème
-                    const silverGrad = ctx.createLinearGradient(lineMarginX, curIndicatorY - 22, lineMarginX, curIndicatorY);
-                    silverGrad.addColorStop(0, '#FFFFFF');
-                    silverGrad.addColorStop(0.30, '#F1F5F9');
-                    silverGrad.addColorStop(0.60, '#CBD5E1');
-                    silverGrad.addColorStop(0.85, effectiveColorHex); // Nacrage subtil avec la couleur du thème
-                    silverGrad.addColorStop(1, '#94A3B8');
                     ctx.fillStyle = silverGrad;
-                    ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
+                    // Lueur nacrée subtile du thème
+                    ctx.shadowColor = `rgba(${effectiveGradRGB}, 0.50)`;
                     ctx.shadowBlur = 6;
                     ctx.fillText(textToDraw, lineMarginX, curIndicatorY);
+                    ctx.restore();
+
                     ctx.restore();
 
                     if (showVoteLink) {
@@ -9084,22 +9097,41 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 ctx.font = '900 italic 24px "Montserrat", sans-serif';
                 ctx.letterSpacing = '0.8px';
 
-                // Pass 1: Lueur argentée
+                const effectiveColorHex = (typeof themeColor === 'string' ? themeColor : themeColor?.color) || baseThemeData[theme]?.color || '#c026d3';
+                const effectiveGradRGB = (typeof themeColor === 'object' && themeColor?.grad) || baseThemeData[theme]?.grad || '192, 38, 211';
+
+                // 1. Halo de Lueur Argentée / Platine (Silver Glow)
+                ctx.save();
                 ctx.shadowColor = 'rgba(215, 230, 255, 0.95)';
                 ctx.shadowBlur = 18;
-                ctx.fillStyle = '#ffffff';
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
                 ctx.fillText(textToDraw, 40, canvas.height - 25);
+                ctx.restore();
 
-                // Pass 2: Métallique argenté
-                const silverGrad = ctx.createLinearGradient(40, canvas.height - 47, 40, canvas.height - 25);
-                silverGrad.addColorStop(0, '#FFFFFF');
-                silverGrad.addColorStop(0.35, '#E2E8F0');
-                silverGrad.addColorStop(0.7, '#94A3B8');
-                silverGrad.addColorStop(1, '#CBD5E1');
-                ctx.fillStyle = silverGrad;
+                // 2. Ombre portée découpée noire nette
+                ctx.save();
                 ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
+                ctx.shadowBlur = 8;
+                ctx.shadowOffsetY = 2;
+                ctx.strokeStyle = 'rgba(0, 0, 0, 0.85)';
+                ctx.lineWidth = 3;
+                ctx.strokeText(textToDraw, 40, canvas.height - 25);
+                ctx.restore();
+
+                // 3. Dégradé Métallique Chromé Brossé + Nacrage avec la couleur du thème
+                ctx.save();
+                const silverGrad = ctx.createLinearGradient(40, canvas.height - 49, 40, canvas.height - 25);
+                silverGrad.addColorStop(0.00, '#FFFFFF'); // blanc éclat pur
+                silverGrad.addColorStop(0.28, '#E2E8F0'); // argent clair
+                silverGrad.addColorStop(0.55, effectiveColorHex); // nacrage avec la couleur du thème
+                silverGrad.addColorStop(0.78, '#94A3B8'); // acier platine
+                silverGrad.addColorStop(1.00, '#CBD5E1'); // chrome froid
+
+                ctx.fillStyle = silverGrad;
+                ctx.shadowColor = `rgba(${effectiveGradRGB}, 0.50)`;
                 ctx.shadowBlur = 6;
                 ctx.fillText(textToDraw, 40, canvas.height - 25);
+                ctx.restore();
                 ctx.restore();
             }
 
