@@ -1320,6 +1320,30 @@ export function RecapCreate() {
         setMediaModal({ show: false, type: 'image', url: '', urls: '', aspectRatio: 'auto', widgetId: undefined });
     };
 
+    const generateSocialsHtml = (customName?: string, customColor?: string) => {
+        const activeSocials = Object.entries(artistSocials).filter(([_, url]) => url && url.trim() !== '');
+        if (activeSocials.length === 0) return '';
+
+        const linksHtml = activeSocials.map(([platform, url]) => {
+            return `<a href="${url.trim()}" target="_blank" data-platform="${platform}" class="artist-social-link" style="color: ${customColor || '#ff1241'}; border-color: ${customColor || '#ff1241'}">${platform}</a>`;
+        }).join('');
+
+        const displayName = (customName || artistNameLabel || "L'ARTISTE").toUpperCase();
+        return `\n<div class="artist-socials-premium mt-12 pt-8 border-t border-white/10">\n  <h3 class="text-xs font-black text-gray-500 uppercase tracking-[0.3em] mb-6" style="color: ${customColor || '#6b7280'}">SUIVEZ ${displayName}</h3>\n  <div class="flex flex-wrap gap-4 uppercase font-black text-[10px] tracking-widest">\n    ${linksHtml}\n  </div>\n</div>`;
+    };
+
+    const generateFestivalSocialsHtml = () => {
+        const activeSocials = Object.entries(festivalSocials).filter(([_, url]) => url && url.trim() !== '');
+        if (activeSocials.length === 0) return '';
+
+        const linksHtml = activeSocials.map(([platform, url]) => {
+            return `<a href="${url.trim()}" target="_blank" data-platform="${platform}" class="festival-social-link">${platform}</a>`;
+        }).join('');
+
+        const displayName = (festivalNameLabel || festival || "LE FESTIVAL").toUpperCase();
+        return `\n<div class="festival-socials-premium mt-12 pt-8 border-t border-white/10">\n  <h3 class="text-xs font-black text-gray-500 uppercase tracking-[0.3em] mb-6">SUIVEZ ${displayName}</h3>\n  <div class="flex flex-wrap gap-4 uppercase font-black text-[10px] tracking-widest">\n    ${linksHtml}\n  </div>\n</div>`;
+    };
+
     const handleSubmit = async (e?: React.FormEvent | React.MouseEvent | any, publishNow = false, scheduleDate?: string) => {
         if (e) {
             if (typeof e.preventDefault === 'function') e.preventDefault();
@@ -1354,29 +1378,6 @@ export function RecapCreate() {
         setMessage('Publication en cours...');
 
         try {
-            const generateSocialsHtml = (customName?: string, customColor?: string) => {
-                const activeSocials = Object.entries(artistSocials).filter(([_, url]) => url && url.trim() !== '');
-                if (activeSocials.length === 0) return '';
-
-                const linksHtml = activeSocials.map(([platform, url]) => {
-                    return `<a href="${url.trim()}" target="_blank" data-platform="${platform}" class="artist-social-link" style="color: ${customColor || '#ff1241'}; border-color: ${customColor || '#ff1241'}">${platform}</a>`;
-                }).join('');
-
-                const displayName = (customName || artistNameLabel || "L'ARTISTE").toUpperCase();
-                return `\n<div class="artist-socials-premium mt-12 pt-8 border-t border-white/10">\n  <h3 class="text-xs font-black text-gray-500 uppercase tracking-[0.3em] mb-6" style="color: ${customColor || '#6b7280'}">SUIVEZ ${displayName}</h3>\n  <div class="flex flex-wrap gap-4 uppercase font-black text-[10px] tracking-widest">\n    ${linksHtml}\n  </div>\n</div>`;
-            };
-
-            const generateFestivalSocialsHtml = () => {
-                const activeSocials = Object.entries(festivalSocials).filter(([_, url]) => url && url.trim() !== '');
-                if (activeSocials.length === 0) return '';
-
-                const linksHtml = activeSocials.map(([platform, url]) => {
-                    return `<a href="${url.trim()}" target="_blank" data-platform="${platform}" class="festival-social-link">${platform}</a>`;
-                }).join('');
-
-                const displayName = (festivalNameLabel || festival || "LE FESTIVAL").toUpperCase();
-                return `\n<div class="festival-socials-premium mt-12 pt-8 border-t border-white/10">\n  <h3 class="text-xs font-black text-gray-500 uppercase tracking-[0.3em] mb-6">SUIVEZ ${displayName}</h3>\n  <div class="flex flex-wrap gap-4 uppercase font-black text-[10px] tracking-widest">\n    ${linksHtml}\n  </div>\n</div>`;
-            };
 
             const finalContent = widgets.map(w =>
                 `<div class="article-section">\n\n${w.content}\n\n</div>`
