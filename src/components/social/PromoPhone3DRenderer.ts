@@ -182,18 +182,25 @@ export function renderPromoPhone3D(opts: PromoPhone3DOptions) {
     const phoneH = 472 * s;
     const phoneRight = ((isReel ? 20 : 12) + 1) * s; // Déplacé de 1px vers la gauche
     const phoneBottom = (isReel ? 90 : 72) * s; // Position optimale, téléphone éloigné du dock
-    const phoneX = canvas.width - phoneRight - phoneW;
+    const phoneBaseX = canvas.width - phoneRight - phoneW;
     const phoneBaseY = canvas.height - phoneBottom - phoneH;
 
-    // Lévitation flottante douce (période 4.5s)
-    const floatOffset = isStaticPreview ? 0 : Math.sin((tAnim / 4.5) * Math.PI * 2) * (4 * s);
-    const phoneY = phoneBaseY + floatOffset;
+    // Lévitation flottante douce et balancement 3D naturel (haut/bas + gauche/droite + inclinaison tilt)
+    const phaseY = (tAnim / 4.2) * Math.PI * 2;
+    const phaseX = (tAnim / 3.6) * Math.PI * 2;
+    const floatOffsetY = isStaticPreview ? 0 : Math.sin(phaseY) * (4.5 * s);
+    const floatOffsetX = isStaticPreview ? 0 : Math.sin(phaseX) * (3.5 * s);
+    const phoneX = phoneBaseX + floatOffsetX;
+    const phoneY = phoneBaseY + floatOffsetY;
+
+    // Tilt dynamique : oscille entre gauche et droite (~ ±1.6°) en synchronisation avec le balancement
+    const dynamicTilt = isStaticPreview ? -0.015 : -0.015 + Math.sin(phaseX) * 0.028;
 
     ctx.save();
 
-    // Légère rotation 3D perspective
+    // Légère rotation 3D perspective avec inclinaison gauche/droite vivante
     ctx.translate(phoneX + phoneW / 2, phoneY + phoneH / 2);
-    ctx.rotate(-0.015); // ~0.9° tilt subtil pour le look 3D réaliste
+    ctx.rotate(dynamicTilt);
     ctx.translate(-(phoneX + phoneW / 2), -(phoneY + phoneH / 2));
 
     // 3.0 Lueur ambiante néon douce couleur thème autour du smartphone (halo élégant & non agressif)
