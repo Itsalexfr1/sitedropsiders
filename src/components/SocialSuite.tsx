@@ -8659,10 +8659,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                 // Positionnement vertical net et stable sous la barre divider (strictement identique à NEWS pour TOUS les thèmes)
                 // Élimine le grand vide sous la date et garantit que TOUS les thèmes ont la même hauteur de texte
-                const targetTopPadding = isReel ? 80 : 36;
+                // Espacement optimisé sous la barre date (aéré et équilibré, jamais collé à la date)
+                const targetTopPadding = isReel ? 86 : 46;
                 const startPadding = isDevinetteReveal
-                    ? Math.max(isReel ? 22 : 14, Math.round((availableSpace - totalTextHeight) / 2))
-                    : Math.max(isReel ? 22 : 14, Math.min(targetTopPadding, availableSpace - totalTextHeight));
+                    ? Math.max(isReel ? 28 : 22, Math.round((availableSpace - totalTextHeight) / 2))
+                    : Math.max(isReel ? 28 : 22, Math.min(targetTopPadding, availableSpace - totalTextHeight));
                 const firstLineFontSize = mainTitleText ? titleFontSize : subFontSize;
                 let curY = dividerY + startPadding + Math.round(firstLineFontSize * 0.82);
 
@@ -8936,18 +8937,28 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.letterSpacing = '0.8px';
                     ctx.textAlign = 'left';
 
-                    // Pass 1: Lueur argentée profonde & halo platine
-                    ctx.shadowColor = 'rgba(215, 230, 255, 0.95)';
+                    const effectiveColorHex = (typeof themeColor === 'string' ? themeColor : themeColor?.color) || baseThemeData[theme]?.color || '#c026d3';
+                    const effectiveGradRGB = (typeof themeColor === 'object' && themeColor?.grad) || baseThemeData[theme]?.grad || '192, 38, 211';
+
+                    // Pass 1: Ombre nette découpée noire pour lisibilité 100% sur photos claires
+                    ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
+                    ctx.shadowBlur = 8;
+                    ctx.fillStyle = '#000000';
+                    ctx.fillText(textToDraw, lineMarginX, curIndicatorY);
+
+                    // Pass 2: Lueur argentée / platine avec halo nacré subtil aux reflets du thème
+                    ctx.shadowColor = `rgba(${effectiveGradRGB}, 0.55)`;
                     ctx.shadowBlur = 18;
                     ctx.fillStyle = '#ffffff';
                     ctx.fillText(textToDraw, lineMarginX, curIndicatorY);
 
-                    // Pass 2: Dégradé métallique argent brossé & relief chromé
+                    // Pass 3: Dégradé métallique chromé brossé + nacrage avec la couleur du thème
                     const silverGrad = ctx.createLinearGradient(lineMarginX, curIndicatorY - 22, lineMarginX, curIndicatorY);
                     silverGrad.addColorStop(0, '#FFFFFF');
-                    silverGrad.addColorStop(0.35, '#E2E8F0');
-                    silverGrad.addColorStop(0.7, '#94A3B8');
-                    silverGrad.addColorStop(1, '#CBD5E1');
+                    silverGrad.addColorStop(0.30, '#F1F5F9');
+                    silverGrad.addColorStop(0.60, '#CBD5E1');
+                    silverGrad.addColorStop(0.85, effectiveColorHex); // Nacrage subtil avec la couleur du thème
+                    silverGrad.addColorStop(1, '#94A3B8');
                     ctx.fillStyle = silverGrad;
                     ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
                     ctx.shadowBlur = 6;
@@ -11546,6 +11557,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             animStartTimeRef.current = Date.now();
         }
         setTheme(newTheme);
+        setArticleLinkText(getAutoArticleLinkText(newTheme));
         if (newTheme !== 'PROMO') {
             setPromoCategory(newTheme);
         }
