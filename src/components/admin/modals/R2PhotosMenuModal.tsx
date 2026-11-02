@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Image as ImageIcon, Loader2, Trash2, ExternalLink, HardDrive, RefreshCw, ChevronLeft, ChevronRight, Search } from 'lucide-react';
+import { X, Image as ImageIcon, Loader2, Trash2, ExternalLink, HardDrive, RefreshCw, ChevronLeft, ChevronRight, Search, Sparkles } from 'lucide-react';
 import { getAuthHeaders } from '../../../utils/auth';
+import { enhanceFestivalPhoto } from '../../../utils/festivalPhotoEnhancer';
 import { ConfirmationModal } from '../../ConfirmationModal';
 
 interface R2PhotosMenuModalProps {
@@ -15,6 +16,7 @@ export function R2PhotosMenuModal({ isOpen, onClose, onSelect, mode = 'view' }: 
     const [photos, setPhotos] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
     const [isUploading, setIsUploading] = useState(false);
+    const [isFestivalProEnabled, setIsFestivalProEnabled] = useState(false);
     const [cursor, setCursor] = useState<string | null>(null);
     const [history, setHistory] = useState<string[]>([]);
     const [searchTerm, setSearchTerm] = useState('');
@@ -99,8 +101,20 @@ export function R2PhotosMenuModal({ isOpen, onClose, onSelect, mode = 'view' }: 
         if (!file) return;
         setIsUploading(true);
         try {
+            let fileToUpload: File = file;
+            const isRasterPhoto =
+                file.type.startsWith('image/') &&
+                !file.type.includes('svg') &&
+                !file.type.includes('gif');
+
+            if (isFestivalProEnabled && isRasterPhoto) {
+                const enhanced = await enhanceFestivalPhoto(file);
+                const cleanName = file.name.replace(/\.(png|webp|avif|bmp|heic|heif)$/i, '.jpg');
+                fileToUpload = new File([enhanced.blob], cleanName, { type: 'image/jpeg' });
+            }
+
             const formData = new FormData();
-            formData.append('file', file);
+            formData.append('file', fileToUpload);
             const res = await fetch('/api/r2/upload', {
                 method: 'POST',
                 headers: getAuthHeaders(),
@@ -108,7 +122,7 @@ export function R2PhotosMenuModal({ isOpen, onClose, onSelect, mode = 'view' }: 
             });
             if (res.ok) {
                 const data = await res.json();
-                const newPhoto = { key: data.key, url: data.url, size: file.size, uploaded: new Date().toISOString() };
+                const newPhoto = { key: data.key, url: data.url, size: fileToUpload.size, uploaded: new Date().toISOString() };
                 setPhotos(prev => [newPhoto, ...prev]);
                 if (mode === 'select' && onSelect) {
                     onSelect(data.url);
@@ -118,6 +132,7 @@ export function R2PhotosMenuModal({ isOpen, onClose, onSelect, mode = 'view' }: 
             console.error('Upload failed', err);
         } finally {
             setIsUploading(false);
+            e.target.value = '';
         }
     };
 
@@ -165,6 +180,18 @@ export function R2PhotosMenuModal({ isOpen, onClose, onSelect, mode = 'view' }: 
                                         className="w-full md:w-48 pl-10 pr-4 py-2 bg-white/5 border border-white/10 rounded-xl text-white text-xs focus:ring-1 focus:ring-neon-red outline-none transition-all"
                                     />
                                 </div>
+
+                                <button
+                                    type="button"
+                                    onClick={() => setIsFestivalProEnabled(!isFestivalProEnabled)}
+                                    className={`flex items-center gap-2.5 px-3.5 py-2 rounded-xl border transition-all ${isFestivalProEnabled ? 'bg-amber-500/15 border-amber-400/50 text-white shadow-[0_0_15px_rgba(251,191,36,0.15)]' : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'}`}
+                                >
+                                    <Sparkles className={`w-3.5 h-3.5 shrink-0 ${isFestivalProEnabled ? 'text-amber-400' : 'text-gray-500'}`} />
+                                    <span className="text-[10px] font-black uppercase tracking-widest whitespace-nowrap">Amélioration Festival Pro (Auto)</span>
+                                    <div className={`w-7 h-3.5 rounded-full relative transition-colors shrink-0 ${isFestivalProEnabled ? 'bg-amber-400' : 'bg-gray-700'}`}>
+                                        <div className={`absolute top-0.5 bottom-0.5 w-2.5 h-2.5 bg-white rounded-full transition-all ${isFestivalProEnabled ? 'right-0.5' : 'left-0.5'}`} />
+                                    </div>
+                                </button>
 
                                 <label className="flex items-center gap-2 px-4 py-2 bg-neon-red hover:bg-red-600 text-white rounded-xl cursor-pointer transition-all shadow-lg shadow-neon-red/20 group">
                                     {isUploading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4 group-hover:rotate-180 transition-transform" />}

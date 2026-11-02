@@ -1,18 +1,51 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Camera, Send, CheckCircle2, Upload, X, ArrowLeft, Search } from 'lucide-react';
+import { Camera, Send, CheckCircle2, Upload, X, ArrowLeft, Search, Sparkles } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import wikiFestivals from '../data/wiki_festivals.json';
 import { ConfirmationModal } from '../components/ConfirmationModal';
+import { enhanceFestivalPhoto, type FestivalSceneMode } from '../utils/festivalPhotoEnhancer';
 
 export function PhotoSubmission() {
     const navigate = useNavigate();
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isSuccess, setIsSuccess] = useState(false);
     const [preview, setPreview] = useState<string | null>(null);
+    const [selectedFile, setSelectedFile] = useState<File | null>(null);
+    const [isFestivalProEnabled, setIsFestivalProEnabled] = useState(false);
+    const [enhancedPreview, setEnhancedPreview] = useState<string | null>(null);
+    const [detectedMode, setDetectedMode] = useState<FestivalSceneMode | null>(null);
     const [festivalName, setFestivalName] = useState('');
     const [showSuggestions, setShowSuggestions] = useState(false);
     const [showAlert, setShowAlert] = useState<{ isOpen: boolean, message: string }>({ isOpen: false, message: '' });
+
+    useEffect(() => {
+        if (!isFestivalProEnabled || (!selectedFile && !preview)) {
+            setEnhancedPreview(null);
+            setDetectedMode(null);
+            return;
+        }
+        let cancelled = false;
+        enhanceFestivalPhoto(selectedFile || preview!, {
+            fileForExif: selectedFile,
+            maxDimension: 1280,
+            quality: 0.90
+        })
+            .then((res) => {
+                if (cancelled) return;
+                setEnhancedPreview(res.dataUrl);
+                setDetectedMode(res.mode);
+            })
+            .catch(() => {
+                if (!cancelled) {
+                    setEnhancedPreview(null);
+                    setDetectedMode(null);
+                }
+            });
+        return () => {
+            cancelled = true;
+        };
+    }, [isFestivalProEnabled, selectedFile, preview]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -20,6 +53,14 @@ export function PhotoSubmission() {
         setIsSubmitting(true);
 
         try {
+            let finalContent = preview;
+            if (isFestivalProEnabled) {
+                const enhanced = await enhanceFestivalPhoto(selectedFile || preview, {
+                    fileForExif: selectedFile
+                });
+                finalContent = enhanced.dataUrl;
+            }
+
             // 1. Upload the image first to our secure hosting
             // We'll use the same /api/upload endpoint as the rest of the site
             const uploadResponse = await fetch('/api/upload', {
@@ -27,7 +68,7 @@ export function PhotoSubmission() {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     filename: `submission-${Date.now()}.jpg`,
-                    content: preview, // It's a base64 from FileReader
+                    content: finalContent,
                     type: 'image/jpeg'
                 })
             });
@@ -69,6 +110,7 @@ export function PhotoSubmission() {
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) {
+            setSelectedFile(file);
             const reader = new FileReader();
             reader.onloadend = () => setPreview(reader.result as string);
             reader.readAsDataURL(file);
@@ -190,12 +232,24 @@ export function PhotoSubmission() {
                                     </div>
                                 </div>
 
-                                <div className="relative">
+                                <div className="relative space-y-3">
                                     {preview ? (
                                         <div className="relative aspect-video rounded-3xl overflow-hidden border-2 border-neon-red shadow-[0_0_30px_rgba(255,17,17,0.2)]">
-                                            <img src={preview} alt="Preview" className="w-full h-full object-cover" />
+                                            <img src={isFestivalProEnabled && enhancedPreview ? enhancedPreview : preview} alt="Preview" className="w-full h-full object-cover transition-all duration-300" />
+                                            {isFestivalProEnabled && detectedMode && (
+                                                <div className="absolute top-4 left-4 px-3 py-1 bg-black/75 backdrop-blur-md border border-amber-400/40 rounded-full flex items-center gap-1.5">
+                                                    <Sparkles className="w-3 h-3 text-amber-400" />
+                                                    <span className="text-[8px] font-black uppercase tracking-widest text-white">
+                                                        {detectedMode === 'NIGHT_INDOOR' ? 'Nuit / Indoor' : 'Jour / Outdoor'}
+                                                    </span>
+                                                </div>
+                                            )}
                                             <button
-                                                onClick={() => setPreview(null)}
+                                                type="button"
+                                                onClick={() => {
+                                                    setPreview(null);
+                                                    setSelectedFile(null);
+                                                }}
                                                 className="absolute top-4 right-4 p-2 bg-black/60 backdrop-blur-md rounded-full text-white hover:text-neon-red transition-colors"
                                             >
                                                 <X className="w-4 h-4" />
@@ -210,6 +264,29 @@ export function PhotoSubmission() {
                                             <input type="file" accept="image/*" onChange={handleFileChange} className="hidden" />
                                         </label>
                                     )}
+
+                                    <button
+                                        type="button"
+                                        onClick={() => setIsFestivalProEnabled(!isFestivalProEnabled)}
+                                        className={`w-full flex items-center justify-between p-4 rounded-2xl border transition-all text-left ${isFestivalProEnabled ? 'bg-amber-500/10 border-amber-400/50 shadow-[0_0_20px_rgba(251,191,36,0.12)]' : 'bg-white/[0.03] border-white/10 opacity-75 hover:opacity-100'}`}
+                                    >
+                                        <div className="flex items-center gap-3">
+                                            <Sparkles className={`w-4 h-4 shrink-0 ${isFestivalProEnabled ? 'text-amber-400' : 'text-gray-500'}`} />
+                                            <div className="flex flex-col">
+                                                <span className={`text-[10px] font-black uppercase tracking-widest ${isFestivalProEnabled ? 'text-white' : 'text-gray-400'}`}>
+                                                    Amélioration Festival Pro (Auto)
+                                                </span>
+                                                <span className="text-[8px] font-bold text-gray-500 uppercase tracking-tighter">
+                                                    {isFestivalProEnabled && detectedMode
+                                                        ? `Mode auto : ${detectedMode === 'NIGHT_INDOOR' ? 'Nuit / Indoor' : 'Jour / Outdoor'}`
+                                                        : 'Détection auto Jour / Nuit & étalonnage pro'}
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div className={`w-8 h-4 rounded-full relative transition-colors shrink-0 ${isFestivalProEnabled ? 'bg-amber-400' : 'bg-gray-700'}`}>
+                                            <div className={`absolute top-0.5 bottom-0.5 w-3 h-3 bg-white rounded-full transition-all ${isFestivalProEnabled ? 'right-0.5' : 'left-0.5'}`} />
+                                        </div>
+                                    </button>
                                 </div>
 
                                 <button

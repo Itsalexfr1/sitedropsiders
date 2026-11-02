@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { createPortal } from 'react-dom';
-import { Upload, X, Image as ImageIcon, Loader2, CheckCircle2, Film, Crop, Zap, Trash2, Layers, HardDrive, ArrowUpDown, Check, Globe, Search } from 'lucide-react';
+import { Upload, X, Image as ImageIcon, Loader2, CheckCircle2, Film, Crop, Zap, Trash2, Layers, HardDrive, ArrowUpDown, Check, Globe, Search, Sparkles } from 'lucide-react';
+import { enhanceFestivalPhoto, type FestivalSceneMode } from '../utils/festivalPhotoEnhancer';
 import { ImageCropper } from './ImageCropper';
 import { getAuthHeaders } from '../utils/auth';
 import { uploadMultipartFile } from '../utils/uploadService';
@@ -58,6 +59,11 @@ export function ImageUploadModal({
     const [isCropOpen, setIsCropOpen] = useState(false);
     const [step, setStep] = useState<'idle' | 'preview' | 'gallery'>(initialImage ? 'preview' : 'idle');
     const [isWatermarkEnabled, setIsWatermarkEnabled] = useState(watermark);
+    const [isFestivalProEnabled, setIsFestivalProEnabled] = useState(false);
+    const [previewEnhancedUrl, setPreviewEnhancedUrl] = useState<string | null>(null);
+    const [previewDetectedMode, setPreviewDetectedMode] = useState<FestivalSceneMode | null>(null);
+    const [isPreviewEnhancing, setIsPreviewEnhancing] = useState(false);
+    const [processingLabel, setProcessingLabel] = useState('');
 
     // R2 State
     const [libTab, setLibTab] = useState<'r2' | 'unsplash'>('r2');
@@ -212,9 +218,57 @@ export function ImageUploadModal({
             setR2Photos([]);
             setR2Cursor(null);
             setIsUploading(false); // Safety reset
+            setPreviewEnhancedUrl(null);
+            setPreviewDetectedMode(null);
+            setProcessingLabel('');
         }
         return () => { document.body.style.overflow = 'unset'; };
     }, [isOpen, initialImage]);
+
+    // Aperçu en temps réel de l'Amélioration Festival Pro (Auto) sur la 1ère photo sélectionnée
+    useEffect(() => {
+        const first = selectedImages[0];
+        const isFirstVideo = first && (first.file?.type.startsWith('video/') || (first.preview && isVideoFile(first.preview)));
+        const isLocalImage = first && !isFirstVideo && (
+            (first.file && first.file.type.startsWith('image/') && !first.file.type.includes('svg') && !first.file.type.includes('gif')) ||
+            (first.preview && (first.preview.startsWith('data:image/') || first.preview.startsWith('blob:')))
+        );
+
+        if (!isOpen || step !== 'preview' || !isFestivalProEnabled || !isLocalImage || !first) {
+            setPreviewEnhancedUrl(null);
+            setPreviewDetectedMode(null);
+            setIsPreviewEnhancing(false);
+            return;
+        }
+
+        let cancelled = false;
+        setIsPreviewEnhancing(true);
+
+        enhanceFestivalPhoto(first.file || first.preview, {
+            fileForExif: first.file,
+            maxDimension: 1280,
+            quality: 0.90
+        })
+            .then((res) => {
+                if (cancelled) return;
+                setPreviewEnhancedUrl(res.dataUrl);
+                setPreviewDetectedMode(res.mode);
+            })
+            .catch((err) => {
+                console.warn('Festival Pro preview skipped:', err);
+                if (!cancelled) {
+                    setPreviewEnhancedUrl(null);
+                    setPreviewDetectedMode(null);
+                }
+            })
+            .finally(() => {
+                if (!cancelled) setIsPreviewEnhancing(false);
+            });
+
+        return () => {
+            cancelled = true;
+        };
+    }, [isOpen, step, isFestivalProEnabled, selectedImages]);
 
     // ESC Key listener for safety
     useEffect(() => {
@@ -490,10 +544,11 @@ export function ImageUploadModal({
         });
     };
 
-    const handleUpload = async (toUpload: {file: File | null, preview: string}[]) => {
+    const handleUpload = async (toUpload: {file: File | null, preview: string}[], exifFallbackFile?: File | null) => {
         setIsUploading(true);
         setStatus('idle');
         setUploadProgress(0);
+        setProcessingLabel('');
 
         try {
             const uploadedUrls: string[] = [];
@@ -509,7 +564,18 @@ export function ImageUploadModal({
                 // If no file but we have a base64 preview (result of cropping)
                 if (!item.file && item.preview && item.preview.startsWith('data:')) {
                     const filename = forceFilename || `crop_${Date.now()}.jpg`;
-                    const base64 = await processImage(item.preview);
+                    let sourceDataUrl = item.preview;
+
+                    if (isFestivalProEnabled && sourceDataUrl.startsWith('data:image/')) {
+                        setProcessingLabel('Traitement Pro Auto...');
+                        const enhanced = await enhanceFestivalPhoto(sourceDataUrl, {
+                            fileForExif: exifFallbackFile ?? null
+                        });
+                        sourceDataUrl = enhanced.dataUrl;
+                        setProcessingLabel('');
+                    }
+
+                    const base64 = await processImage(sourceDataUrl);
                     
                     const response = await fetch('/api/upload', {
                          method: 'POST',
@@ -526,12 +592,39 @@ export function ImageUploadModal({
                     }
                 }
                 if (item.file) {
-                    const filename = forceFilename || sanitizeFilename(item.file.name);
+                    let filename = forceFilename || sanitizeFilename(item.file.name);
                     let fileType = item.file.type;
                     let fileBlob: Blob = item.file;
+                    const isRasterPhoto =
+                        fileType.startsWith('image/') &&
+                        !fileType.includes('svg') &&
+                        !fileType.includes('gif');
 
-                    // For images with watermark, process via canvas first (returns base64)
-                    if (fileType.startsWith('image/') && isWatermarkEnabled) {
+                    if (isRasterPhoto && isFestivalProEnabled) {
+                        setProcessingLabel(
+                            toUpload.length > 1
+                                ? `Pro Auto (${i + 1}/${toUpload.length})...`
+                                : 'Traitement Pro Auto...'
+                        );
+                        const enhanced = await enhanceFestivalPhoto(item.file);
+                        fileType = 'image/jpeg';
+                        if (!forceFilename) {
+                            filename = filename.replace(/\.(png|webp|avif|bmp|heic|heif)$/i, '.jpg');
+                        }
+
+                        if (isWatermarkEnabled) {
+                            const base64 = await processImage(enhanced.dataUrl);
+                            const base64Data = base64.split(',')[1] || base64;
+                            const binaryStr = atob(base64Data);
+                            const byteArr = new Uint8Array(binaryStr.length);
+                            for (let j = 0; j < binaryStr.length; j++) byteArr[j] = binaryStr.charCodeAt(j);
+                            fileBlob = new Blob([byteArr], { type: fileType });
+                        } else {
+                            fileBlob = enhanced.blob;
+                        }
+                        setProcessingLabel('');
+                    } else if (fileType.startsWith('image/') && isWatermarkEnabled) {
+                        // For images with watermark only, process via canvas first (returns base64)
                         const base64 = await processImage(item.preview);
                         fileType = 'image/jpeg';
                         // Convert base64 back to Blob for binary upload
@@ -600,6 +693,7 @@ export function ImageUploadModal({
             setMessage('Erreur: ' + (err.message || 'Connexion échouée'));
         } finally {
             setIsUploading(false);
+            setProcessingLabel('');
         }
     };
 
@@ -676,12 +770,53 @@ export function ImageUploadModal({
                                                     />
                                                 ) : (
                                                     <img 
-                                                        src={selectedImages[0].preview} 
+                                                        src={isFestivalProEnabled && previewEnhancedUrl ? previewEnhancedUrl : selectedImages[0].preview} 
                                                         alt="Aperçu" 
-                                                        className="max-w-full max-h-full rounded-2xl object-contain" 
+                                                        className="max-w-full max-h-full rounded-2xl object-contain transition-all duration-300" 
                                                     />
                                                 )}
+                                                {!hasVideo && isFestivalProEnabled && (isPreviewEnhancing || previewDetectedMode) && (
+                                                    <div className="absolute top-3 right-3 px-2.5 py-1 rounded-full bg-black/80 backdrop-blur-md border border-amber-400/40 flex items-center gap-1.5 shadow-lg pointer-events-none">
+                                                        {isPreviewEnhancing ? (
+                                                            <>
+                                                                <Loader2 className="w-3 h-3 text-amber-400 animate-spin" />
+                                                                <span className="text-[8px] font-black uppercase tracking-widest text-amber-300">Analyse Auto...</span>
+                                                            </>
+                                                        ) : (
+                                                            <>
+                                                                <Sparkles className="w-3 h-3 text-amber-400" />
+                                                                <span className="text-[8px] font-black uppercase tracking-widest text-white">
+                                                                    {previewDetectedMode === 'NIGHT_INDOOR' ? 'Nuit / Indoor' : 'Jour / Outdoor'}
+                                                                </span>
+                                                            </>
+                                                        )}
+                                                    </div>
+                                                )}
                                             </div>
+                                        )}
+
+                                        {/* Amélioration Festival Pro (Auto) Toggle */}
+                                        {!hasVideo && (
+                                            <button 
+                                                type="button"
+                                                onClick={() => setIsFestivalProEnabled(!isFestivalProEnabled)}
+                                                className={`flex items-center justify-between p-4 rounded-2xl border transition-all text-left ${isFestivalProEnabled ? 'bg-amber-500/10 border-amber-400/50 shadow-[0_0_18px_rgba(251,191,36,0.14)]' : 'bg-white/5 border-white/10 opacity-70 hover:opacity-100'}`}
+                                            >
+                                                <div className="flex items-center gap-3">
+                                                    <Sparkles className={`w-4 h-4 shrink-0 ${isFestivalProEnabled ? 'text-amber-400' : 'text-gray-500'}`} />
+                                                    <div className="flex flex-col">
+                                                        <span className={`text-[10px] font-black uppercase tracking-widest ${isFestivalProEnabled ? 'text-white' : 'text-gray-400'}`}>Amélioration Festival Pro (Auto)</span>
+                                                        <span className="text-[8px] font-bold text-gray-500 uppercase tracking-tighter">
+                                                            {isFestivalProEnabled && previewDetectedMode
+                                                                ? `Mode auto appliqué : ${previewDetectedMode === 'NIGHT_INDOOR' ? 'Nuit / Indoor (Dehaze & Lasers)' : 'Jour / Outdoor (Relief & Éclat)'}`
+                                                                : 'Détection auto Jour / Nuit & étalonnage média pro'}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                                <div className={`w-8 h-4 rounded-full relative transition-colors shrink-0 ${isFestivalProEnabled ? 'bg-amber-400' : 'bg-gray-700'}`}>
+                                                    <div className={`absolute top-0.5 bottom-0.5 w-3 h-3 bg-white rounded-full transition-all ${isFestivalProEnabled ? 'right-0.5' : 'left-0.5'}`} />
+                                                </div>
+                                            </button>
                                         )}
 
                                         {/* Watermark Toggle */}
@@ -728,7 +863,7 @@ export function ImageUploadModal({
                                                     )}
                                                 </div>
                                                 <span className="text-xs font-black text-white uppercase tracking-widest">
-                                                    {isUploading ? 'Chargement...' : 
+                                                    {isUploading ? (processingLabel || 'Chargement...') : 
                                                      (selectedImages.every(i => !i.file) ? 'Valider la sélection' : 
                                                      (allowMultiple ? `Lancer l'envoi (${selectedImages.length})` : 'Uploader Direct'))}
                                                 </span>
@@ -755,6 +890,25 @@ export function ImageUploadModal({
                                                     </div>
                                                 </div>
                                             </label>
+
+                                            {mediaFilter !== 'videos' && (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setIsFestivalProEnabled(!isFestivalProEnabled)}
+                                                    className={`w-full flex items-center justify-between p-4 rounded-2xl border transition-all text-left ${isFestivalProEnabled ? 'bg-amber-500/10 border-amber-400/50 shadow-[0_0_18px_rgba(251,191,36,0.14)]' : 'bg-white/5 border-white/10 opacity-75 hover:opacity-100'}`}
+                                                >
+                                                    <div className="flex items-center gap-3">
+                                                        <Sparkles className={`w-4 h-4 shrink-0 ${isFestivalProEnabled ? 'text-amber-400' : 'text-gray-500'}`} />
+                                                        <div className="flex flex-col">
+                                                            <span className={`text-[10px] font-black uppercase tracking-widest ${isFestivalProEnabled ? 'text-white' : 'text-gray-400'}`}>Amélioration Festival Pro (Auto)</span>
+                                                            <span className="text-[8px] font-bold text-gray-500 uppercase tracking-tighter">Analyse auto Jour / Nuit & étalonnage pro</span>
+                                                        </div>
+                                                    </div>
+                                                    <div className={`w-8 h-4 rounded-full relative transition-colors shrink-0 ${isFestivalProEnabled ? 'bg-amber-400' : 'bg-gray-700'}`}>
+                                                        <div className={`absolute top-0.5 bottom-0.5 w-3 h-3 bg-white rounded-full transition-all ${isFestivalProEnabled ? 'right-0.5' : 'left-0.5'}`} />
+                                                    </div>
+                                                </button>
+                                            )}
 
                                             {initialImage && (
                                                 <button onClick={handleClear} className="w-full flex items-center justify-center gap-2 p-3 bg-red-500/5 border border-red-500/20 rounded-xl text-red-500 hover:bg-red-500/10 transition-all group">
@@ -1041,7 +1195,7 @@ export function ImageUploadModal({
                     aspect={aspect}
                     onCropComplete={(cropped) => {
                         setIsCropOpen(false);
-                        handleUpload([{ file: null, preview: cropped }]);
+                        handleUpload([{ file: null, preview: cropped }], selectedImages[0]?.file ?? null);
                     }}
                     onCancel={() => setIsCropOpen(false)}
                 />

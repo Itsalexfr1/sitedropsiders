@@ -45,6 +45,7 @@ import { Downloader } from '../pages/Downloader';
 import { ImageUploadModal } from './ImageUploadModal';
 import { resolveImageUrl } from '../utils/image';
 import { resolveMusicSnippet } from '../utils/musicResolver';
+import { enhanceFestivalPhoto } from '../utils/festivalPhotoEnhancer';
 import { fixWebmDuration } from '../utils/fixWebm';
 import recapsData from '../data/recaps.json';
 import { translateToFrench } from '../utils/translate';
@@ -9221,6 +9222,110 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         return () => { document.head.removeChild(link); };
     }, []);
 
+    // ── Amélioration Festival Pro (Auto) appliquée aux photos de fond avant export PNG / MP4 ──
+    const [isFestivalProBg, setIsFestivalProBg] = useState(false);
+    const [festivalProBusy, setFestivalProBusy] = useState(false);
+    const festivalProCacheRef = useRef<Map<string, string>>(new Map()); // original -> amélioré
+    const festivalProOriginRef = useRef<Map<string, string>>(new Map()); // amélioré -> original
+    const festivalProFailedRef = useRef<Set<string>>(new Set());
+
+    useEffect(() => {
+        const origins = festivalProOriginRef.current;
+        if (!isFestivalProBg) {
+            // Retour aux photos originales
+            if (bgImage && origins.has(bgImage)) setBgImage(origins.get(bgImage)!);
+            if (Object.values(editorialSlideImages).some(u => u && origins.has(u))) {
+                setEditorialSlideImages(prev => {
+                    const next: Record<number, string> = { ...prev };
+                    Object.keys(next).forEach(k => {
+                        const key = Number(k);
+                        if (next[key] && origins.has(next[key])) next[key] = origins.get(next[key])!;
+                    });
+                    return next;
+                });
+            }
+            return;
+        }
+
+        const sources = [bgImage, ...Object.values(editorialSlideImages)].filter(Boolean) as string[];
+        const pending = Array.from(new Set(sources)).filter(u =>
+            !origins.has(u) &&
+            !festivalProFailedRef.current.has(u) &&
+            !/\.(gif|svg)(\?|$)/i.test(u)
+        );
+        if (pending.length === 0) return;
+
+        let cancelled = false;
+        setFestivalProBusy(true);
+        (async () => {
+            const mapping: Record<string, string> = {};
+            for (const src of pending) {
+                let enhanced = festivalProCacheRef.current.get(src);
+                if (!enhanced) {
+                    try {
+                        const isLocal = src.startsWith('blob:') || src.startsWith('data:');
+                        const resolved = isLocal ? src : resolveImageUrl(src);
+                        const isExternal = /^https?:\/\//i.test(resolved) && !resolved.startsWith(window.location.origin);
+                        const loadSrc = isExternal ? `/api/proxy-media?url=${encodeURIComponent(resolved)}` : resolved;
+                        const res = await enhanceFestivalPhoto(loadSrc, { maxDimension: 2560, quality: 0.93 });
+                        const enhancedUrl = URL.createObjectURL(res.blob);
+                        await new Promise<void>((resolve) => {
+                            const img = new Image();
+                            img.onload = () => { imageCacheRef.current[enhancedUrl] = img; resolve(); };
+                            img.onerror = () => resolve();
+                            img.src = enhancedUrl;
+                        });
+                        festivalProCacheRef.current.set(src, enhancedUrl);
+                        origins.set(enhancedUrl, src);
+                        enhanced = enhancedUrl;
+                    } catch (err) {
+                        console.warn('Festival Pro (Social Studio) ignoré pour', src, err);
+                        festivalProFailedRef.current.add(src);
+                        continue;
+                    }
+                }
+                mapping[src] = enhanced;
+            }
+            if (cancelled) return;
+            if (bgImage && mapping[bgImage]) setBgImage(mapping[bgImage]);
+            if (Object.values(editorialSlideImages).some(u => mapping[u])) {
+                setEditorialSlideImages(prev => {
+                    const next: Record<number, string> = { ...prev };
+                    Object.keys(next).forEach(k => {
+                        const key = Number(k);
+                        if (mapping[next[key]]) next[key] = mapping[next[key]];
+                    });
+                    return next;
+                });
+            }
+        })().finally(() => {
+            if (!cancelled) setFestivalProBusy(false);
+        });
+
+        return () => { cancelled = true; setFestivalProBusy(false); };
+    }, [isFestivalProBg, bgImage, editorialSlideImages]);
+
+    const festivalProToggle = (
+        <button
+            type="button"
+            onClick={() => setIsFestivalProBg(v => !v)}
+            className={`w-full flex items-center justify-between p-3 rounded-2xl border transition-all text-left ${isFestivalProBg ? 'bg-amber-500/10 border-amber-400/50 shadow-[0_0_18px_rgba(251,191,36,0.14)]' : 'bg-white/5 border-white/10 opacity-80 hover:opacity-100'}`}
+        >
+            <div className="flex items-center gap-2.5">
+                <Sparkles className={`w-4 h-4 shrink-0 ${isFestivalProBg ? 'text-amber-400' : 'text-gray-500'} ${festivalProBusy ? 'animate-pulse' : ''}`} />
+                <div className="flex flex-col">
+                    <span className={`text-[9.5px] font-black uppercase tracking-widest ${isFestivalProBg ? 'text-white' : 'text-gray-400'}`}>Amélioration Festival Pro (Auto)</span>
+                    <span className="text-[7.5px] font-bold text-gray-500 uppercase tracking-tighter">
+                        {festivalProBusy ? 'Analyse & traitement des photos...' : 'Photos de fond traitées auto (Jour / Nuit) à l\'export'}
+                    </span>
+                </div>
+            </div>
+            <div className={`w-8 h-4 rounded-full relative transition-colors shrink-0 ${isFestivalProBg ? 'bg-amber-400' : 'bg-gray-700'}`}>
+                <div className={`absolute top-0.5 bottom-0.5 w-3 h-3 bg-white rounded-full transition-all ${isFestivalProBg ? 'right-0.5' : 'left-0.5'}`} />
+            </div>
+        </button>
+    );
+
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
@@ -18037,6 +18142,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     {theme} • {activeTab === 'REEL' ? 'Story / Reel 9:16' : 'Post 1:1'}
                 </span>
             </div>
+
+            {/* Amélioration Festival Pro (Auto) des photos de fond avant export */}
+            {festivalProToggle}
 
             {/* ACCORDION 1 : 📸 EXPORT IMAGES (PNG) */}
             <div className="border border-white/10 rounded-2xl overflow-hidden bg-black/40">
