@@ -64,6 +64,8 @@ export function ImageUploadModal({
     const [previewDetectedMode, setPreviewDetectedMode] = useState<FestivalSceneMode | null>(null);
     const [isPreviewEnhancing, setIsPreviewEnhancing] = useState(false);
     const [processingLabel, setProcessingLabel] = useState('');
+    const [previewIndex, setPreviewIndex] = useState(0);
+    const [showOriginalComparison, setShowOriginalComparison] = useState(false);
 
     // R2 State
     const [libTab, setLibTab] = useState<'r2' | 'unsplash'>('r2');
@@ -221,20 +223,22 @@ export function ImageUploadModal({
             setPreviewEnhancedUrl(null);
             setPreviewDetectedMode(null);
             setProcessingLabel('');
+            setPreviewIndex(0);
+            setShowOriginalComparison(false);
         }
         return () => { document.body.style.overflow = 'unset'; };
     }, [isOpen, initialImage]);
 
-    // Aperçu en temps réel de l'Amélioration Festival Pro (Auto) sur la 1ère photo sélectionnée
+    // Aperçu en temps réel de l'Amélioration Festival Pro (Auto) sur la photo sélectionnée
     useEffect(() => {
-        const first = selectedImages[0];
-        const isFirstVideo = first && (first.file?.type.startsWith('video/') || (first.preview && isVideoFile(first.preview)));
-        const isLocalImage = first && !isFirstVideo && (
-            (first.file && first.file.type.startsWith('image/') && !first.file.type.includes('svg') && !first.file.type.includes('gif')) ||
-            (first.preview && (first.preview.startsWith('data:image/') || first.preview.startsWith('blob:')))
+        const current = selectedImages[previewIndex] || selectedImages[0];
+        const isCurrentVideo = current && (current.file?.type.startsWith('video/') || (current.preview && isVideoFile(current.preview)));
+        const isRasterImage = current && !isCurrentVideo && (
+            (current.file && current.file.type.startsWith('image/') && !current.file.type.includes('svg') && !current.file.type.includes('gif')) ||
+            (current.preview && !current.preview.match(/\.(svg|gif)(\?|$)/i))
         );
 
-        if (!isOpen || step !== 'preview' || !isFestivalProEnabled || !isLocalImage || !first) {
+        if (!isOpen || step !== 'preview' || !isFestivalProEnabled || !isRasterImage || !current) {
             setPreviewEnhancedUrl(null);
             setPreviewDetectedMode(null);
             setIsPreviewEnhancing(false);
@@ -244,8 +248,9 @@ export function ImageUploadModal({
         let cancelled = false;
         setIsPreviewEnhancing(true);
 
-        enhanceFestivalPhoto(first.file || first.preview, {
-            fileForExif: first.file,
+        const source = current.file || current.preview;
+        enhanceFestivalPhoto(source, {
+            fileForExif: current.file,
             maxDimension: 1280,
             quality: 0.90
         })
@@ -268,7 +273,7 @@ export function ImageUploadModal({
         return () => {
             cancelled = true;
         };
-    }, [isOpen, step, isFestivalProEnabled, selectedImages]);
+    }, [isOpen, step, isFestivalProEnabled, selectedImages, previewIndex]);
 
     // ESC Key listener for safety
     useEffect(() => {
@@ -726,7 +731,7 @@ export function ImageUploadModal({
                             initial={{ opacity: 0, scale: 0.9, y: 20 }}
                             animate={{ opacity: 1, scale: 1, y: 0 }}
                             exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                            className={`relative w-full ${status === 'idle' && step !== 'preview' ? 'max-w-7xl' : 'max-w-lg'} bg-[#0a0a0a] border border-white/10 rounded-[40px] p-10 shadow-3xl overflow-hidden text-left my-8 transition-all duration-500`}
+                            className={`relative w-full ${status === 'idle' && step !== 'preview' ? 'max-w-7xl' : 'max-w-lg'} bg-[#0a0a0a] border border-white/10 rounded-[32px] md:rounded-[40px] p-5 sm:p-8 md:p-10 shadow-3xl overflow-hidden text-left my-4 md:my-8 transition-all duration-500 max-h-[92vh] flex flex-col`}
                         >
                             <div className={`absolute top-0 right-0 w-64 h-64 ${bgClass.replace('/20', '/5')} rounded-full blur-[100px] pointer-events-none`} />
 
@@ -758,42 +763,93 @@ export function ImageUploadModal({
                                     </div>
                                 ) : step === 'preview' && selectedImages.length > 0 ? (
                                     <motion.div key="preview" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col gap-5">
-                                        {/* Aperçu du média sélectionné */}
-                                        {selectedImages[0]?.preview && (
-                                            <div className="relative w-full h-52 bg-black/80 rounded-3xl overflow-hidden border border-white/10 flex items-center justify-center p-2 shadow-2xl">
-                                                {hasVideo ? (
-                                                    <video 
-                                                        src={selectedImages[0].preview} 
-                                                        controls 
-                                                        playsInline 
-                                                        className="max-w-full max-h-full rounded-2xl object-contain" 
-                                                    />
-                                                ) : (
-                                                    <img 
-                                                        src={isFestivalProEnabled && previewEnhancedUrl ? previewEnhancedUrl : selectedImages[0].preview} 
-                                                        alt="Aperçu" 
-                                                        className="max-w-full max-h-full rounded-2xl object-contain transition-all duration-300" 
-                                                    />
-                                                )}
-                                                {!hasVideo && isFestivalProEnabled && (isPreviewEnhancing || previewDetectedMode) && (
-                                                    <div className="absolute top-3 right-3 px-2.5 py-1 rounded-full bg-black/80 backdrop-blur-md border border-amber-400/40 flex items-center gap-1.5 shadow-lg pointer-events-none">
-                                                        {isPreviewEnhancing ? (
-                                                            <>
-                                                                <Loader2 className="w-3 h-3 text-amber-400 animate-spin" />
-                                                                <span className="text-[8px] font-black uppercase tracking-widest text-amber-300">Analyse Auto...</span>
-                                                            </>
+                                        {/* Aperçu du média sélectionné avec comparaison avant/après et sélecteur multi-photos */}
+                                        {(() => {
+                                            const activeMedia = selectedImages[previewIndex] || selectedImages[0];
+                                            const isMediaVideo = activeMedia && (activeMedia.file?.type.startsWith('video/') || (activeMedia.preview && isVideoFile(activeMedia.preview)));
+                                            if (!activeMedia?.preview) return null;
+
+                                            return (
+                                                <div className="space-y-3">
+                                                    <div className="relative w-full h-56 sm:h-64 bg-black/80 rounded-3xl overflow-hidden border border-white/10 flex items-center justify-center p-2 shadow-2xl">
+                                                        {isMediaVideo ? (
+                                                            <video 
+                                                                src={activeMedia.preview} 
+                                                                controls 
+                                                                playsInline 
+                                                                className="max-w-full max-h-full rounded-2xl object-contain" 
+                                                            />
                                                         ) : (
-                                                            <>
-                                                                <Sparkles className="w-3 h-3 text-amber-400" />
-                                                                <span className="text-[8px] font-black uppercase tracking-widest text-white">
-                                                                    {previewDetectedMode === 'NIGHT_INDOOR' ? 'Nuit / Indoor' : 'Jour / Outdoor'}
+                                                            <img 
+                                                                src={!showOriginalComparison && isFestivalProEnabled && previewEnhancedUrl ? previewEnhancedUrl : activeMedia.preview} 
+                                                                alt="Aperçu" 
+                                                                className="max-w-full max-h-full rounded-2xl object-contain transition-all duration-300" 
+                                                            />
+                                                        )}
+
+                                                        {/* Badge de détection du mode Jour / Nuit */}
+                                                        {!isMediaVideo && isFestivalProEnabled && (isPreviewEnhancing || previewDetectedMode) && (
+                                                            <div className="absolute top-3 right-3 px-2.5 py-1 rounded-full bg-black/80 backdrop-blur-md border border-amber-400/40 flex items-center gap-1.5 shadow-lg pointer-events-none z-10">
+                                                                {isPreviewEnhancing ? (
+                                                                    <>
+                                                                        <Loader2 className="w-3 h-3 text-amber-400 animate-spin" />
+                                                                        <span className="text-[8px] font-black uppercase tracking-widest text-amber-300">Analyse Auto...</span>
+                                                                    </>
+                                                                ) : (
+                                                                    <>
+                                                                        <Sparkles className="w-3 h-3 text-amber-400" />
+                                                                        <span className="text-[8px] font-black uppercase tracking-widest text-white">
+                                                                            {previewDetectedMode === 'NIGHT_INDOOR' ? 'Nuit / Indoor' : 'Jour / Outdoor'}
+                                                                        </span>
+                                                                    </>
+                                                                )}
+                                                            </div>
+                                                        )}
+
+                                                        {/* Bouton pour comparer directement Avant / Après */}
+                                                        {!isMediaVideo && isFestivalProEnabled && previewEnhancedUrl && (
+                                                            <button
+                                                                type="button"
+                                                                onMouseDown={() => setShowOriginalComparison(true)}
+                                                                onMouseUp={() => setShowOriginalComparison(false)}
+                                                                onTouchStart={() => setShowOriginalComparison(true)}
+                                                                onTouchEnd={() => setShowOriginalComparison(false)}
+                                                                onClick={() => setShowOriginalComparison(v => !v)}
+                                                                className="absolute bottom-3 left-3 px-3 py-1.5 rounded-xl bg-black/85 hover:bg-black backdrop-blur-md border border-white/20 text-white text-[9px] font-black uppercase tracking-widest flex items-center gap-1.5 shadow-xl transition-all z-10"
+                                                                title="Maintenez pour voir l'image originale sans traitement"
+                                                            >
+                                                                <span className={showOriginalComparison ? 'text-amber-400 font-bold' : 'text-gray-300'}>
+                                                                    {showOriginalComparison ? '● Original (Brut)' : 'Maintenir pour comparer (Original)'}
                                                                 </span>
-                                                            </>
+                                                            </button>
                                                         )}
                                                     </div>
-                                                )}
-                                            </div>
-                                        )}
+
+                                                    {/* Galerie de sélection si plusieurs photos sélectionnées */}
+                                                    {selectedImages.length > 1 && (
+                                                        <div className="flex items-center gap-2 overflow-x-auto pb-1 max-w-full no-scrollbar">
+                                                            <span className="text-[9px] font-black uppercase tracking-widest text-gray-500 shrink-0">Photos ({selectedImages.length}) :</span>
+                                                            {selectedImages.map((img, idx) => (
+                                                                <button
+                                                                    key={idx}
+                                                                    type="button"
+                                                                    onClick={() => {
+                                                                        setPreviewIndex(idx);
+                                                                        setShowOriginalComparison(false);
+                                                                    }}
+                                                                    className={`relative w-11 h-11 rounded-xl overflow-hidden border-2 shrink-0 transition-all ${previewIndex === idx ? 'border-neon-red scale-105 shadow-md shadow-neon-red/30' : 'border-white/10 opacity-60 hover:opacity-100'}`}
+                                                                >
+                                                                    <img src={img.preview} alt="" className="w-full h-full object-cover" />
+                                                                    <span className="absolute bottom-0 right-0 px-1 text-[7px] font-black bg-black/80 text-white rounded-tl">
+                                                                        {idx + 1}
+                                                                    </span>
+                                                                </button>
+                                                            ))}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            );
+                                        })()}
 
                                         {/* Amélioration Festival Pro (Auto) Toggle */}
                                         {!hasVideo && (
