@@ -181,7 +181,7 @@ export function renderPromoPhone3D(opts: PromoPhone3DOptions) {
     const phoneW = 228 * s;
     const phoneH = 472 * s;
     const phoneRight = ((isReel ? 20 : 12) + 1) * s; // Déplacé de 1px vers la gauche
-    const phoneBottom = ((isReel ? 90 : 54) + 2) * s; // Monté de 2px vers le haut
+    const phoneBottom = (isReel ? 90 : 72) * s; // Position optimale, téléphone éloigné du dock
     const phoneX = canvas.width - phoneRight - phoneW;
     const phoneBaseY = canvas.height - phoneBottom - phoneH;
 
