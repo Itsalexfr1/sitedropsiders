@@ -3983,14 +3983,16 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     applySlideTransitionCtx(ctx, centerX, canvas.height / 2);
                 }
 
-                // 1. Dark overlay — 75% opaque black
-                ctx.fillStyle = 'rgba(0, 0, 0, 0.78)';
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                // 1. Dark overlay — uniquement pour le style classique / carte (pour PHONE_3D, un seul voile transparent est géré dans le renderer pour voir la photo)
+                if (promoOutroStyle !== 'PHONE_3D') {
+                    ctx.fillStyle = 'rgba(0, 0, 0, 0.78)';
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-                // Scan lines subtle texture
-                ctx.fillStyle = 'rgba(0, 0, 0, 0.08)';
-                for (let i = 0; i < canvas.height; i += 6) {
-                    ctx.fillRect(0, i, canvas.width, 2);
+                    // Scan lines subtle texture
+                    ctx.fillStyle = 'rgba(0, 0, 0, 0.08)';
+                    for (let i = 0; i < canvas.height; i += 6) {
+                        ctx.fillRect(0, i, canvas.width, 2);
+                    }
                 }
 
                 // ==========================================

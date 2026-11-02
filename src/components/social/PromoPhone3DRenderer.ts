@@ -51,9 +51,9 @@ export function renderPromoPhone3D(opts: PromoPhone3DOptions) {
     const baseWidth = 520;
     const s = canvas.width / baseWidth;
 
-    // Overlay sombre uniforme (réduit de 20% pour plus de luminosité sur le fond : 0.68)
+    // Voile sombre léger (40% d'opacité) pour laisser la photo de fond de Slide 1 parfaitement visible
     ctx.save();
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.68)';
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.40)';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     // Lueur d'ambiance thème diffusée derrière le smartphone
@@ -181,7 +181,7 @@ export function renderPromoPhone3D(opts: PromoPhone3DOptions) {
     const phoneW = 228 * s;
     const phoneH = 472 * s;
     const phoneRight = ((isReel ? 20 : 12) + 1) * s; // Déplacé de 1px vers la gauche
-    const phoneBottom = (isReel ? 90 : 62) * s;
+    const phoneBottom = (isReel ? 90 : 54) * s;
     const phoneX = canvas.width - phoneRight - phoneW;
     const phoneBaseY = canvas.height - phoneBottom - phoneH;
 
@@ -562,21 +562,6 @@ export function renderPromoPhone3D(opts: PromoPhone3DOptions) {
     const dockH = 28 * s;
     const dockX = (canvas.width - dockW) / 2;
     const dockY = canvas.height - (isReel ? 48 : 20) * s - dockH;
-
-    // Phrase "Donne ton avis en commentaire 👇" au-dessus du cadre noir
-    const ctaY = dockY - (isReel ? 9 : 8) * s;
-    const subphraseText = effectiveSubphrase || 'Donne ton avis en commentaire 👇';
-
-    ctx.save();
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'bottom';
-    applyTextAnimCtx(ctx, 0.35, canvas.width / 2, ctaY);
-    ctx.font = `700 ${(isReel ? 12 : 11) * s}px "Montserrat", sans-serif`;
-    ctx.fillStyle = '#ffffff';
-    ctx.shadowColor = 'rgba(0, 0, 0, 1)';
-    ctx.shadowBlur = 12 * s;
-    ctx.fillText(subphraseText, canvas.width / 2, ctaY);
-    ctx.restore();
 
     ctx.save();
     // Capsule fond sombre
