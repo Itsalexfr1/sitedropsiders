@@ -8958,21 +8958,32 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.strokeText(textToDraw, lineMarginX, curIndicatorY);
                     ctx.restore();
 
-                    // 3. Dégradé Métallique Chromé Brossé + Nacrage avec la couleur du thème :
-                    // Blanc éclat pur #FFFFFF -> Argent clair #E2E8F0 -> Nacrage thème -> Acier platine #94A3B8 -> Chrome froid #CBD5E1
+                    // 3. Dégradé Métallique Chromé Brossé + Nacrage nacré animé de gauche à droite :
                     ctx.save();
+                    const textMetrics = ctx.measureText(textToDraw);
+                    const textWidth = textMetrics.width;
                     const textHeight = 24;
-                    const silverGrad = ctx.createLinearGradient(lineMarginX, curIndicatorY - textHeight, lineMarginX, curIndicatorY);
-                    silverGrad.addColorStop(0.00, '#FFFFFF'); // blanc éclat pur
-                    silverGrad.addColorStop(0.28, '#E2E8F0'); // argent clair
-                    silverGrad.addColorStop(0.55, effectiveColorHex); // nacrage avec la couleur du thème
-                    silverGrad.addColorStop(0.78, '#94A3B8'); // acier platine
-                    silverGrad.addColorStop(1.00, '#CBD5E1'); // chrome froid
+
+                    // Animation fluide de balayage nacré d'ouest en est (gauche vers droite, cycle doux de 3.2s)
+                    const shimmerPhase = (animElapsed % 3.2) / 3.2;
+                    const shimmerCenter = lineMarginX - textWidth * 0.3 + (textWidth * 1.6) * shimmerPhase;
+                    const shimmerSpan = Math.max(80, textWidth * 0.45);
+
+                    const silverGrad = ctx.createLinearGradient(
+                        shimmerCenter - shimmerSpan, curIndicatorY - textHeight,
+                        shimmerCenter + shimmerSpan, curIndicatorY
+                    );
+                    silverGrad.addColorStop(0.00, '#E2E8F0'); // argent clair
+                    silverGrad.addColorStop(0.22, '#FFFFFF'); // blanc éclat argent
+                    silverGrad.addColorStop(0.50, effectiveColorHex); // nacrage intense avec la couleur du thème
+                    silverGrad.addColorStop(0.78, '#FFFFFF'); // éclat reflet nacré
+                    silverGrad.addColorStop(1.00, '#CBD5E1'); // chrome platine froid
 
                     ctx.fillStyle = silverGrad;
-                    // Lueur nacrée subtile du thème
-                    ctx.shadowColor = `rgba(${effectiveGradRGB}, 0.50)`;
-                    ctx.shadowBlur = 6;
+                    // Lueur nacrée subtile qui vibre harmonieusement avec le reflet
+                    const shimmerGlow = 6 + Math.sin(shimmerPhase * Math.PI * 2) * 3;
+                    ctx.shadowColor = `rgba(${effectiveGradRGB}, 0.55)`;
+                    ctx.shadowBlur = shimmerGlow;
                     ctx.fillText(textToDraw, lineMarginX, curIndicatorY);
                     ctx.restore();
 
@@ -9118,18 +9129,27 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 ctx.strokeText(textToDraw, 40, canvas.height - 25);
                 ctx.restore();
 
-                // 3. Dégradé Métallique Chromé Brossé + Nacrage avec la couleur du thème
+                // 3. Dégradé Métallique Chromé Brossé + Nacrage nacré animé de gauche à droite
                 ctx.save();
-                const silverGrad = ctx.createLinearGradient(40, canvas.height - 49, 40, canvas.height - 25);
-                silverGrad.addColorStop(0.00, '#FFFFFF'); // blanc éclat pur
-                silverGrad.addColorStop(0.28, '#E2E8F0'); // argent clair
-                silverGrad.addColorStop(0.55, effectiveColorHex); // nacrage avec la couleur du thème
-                silverGrad.addColorStop(0.78, '#94A3B8'); // acier platine
-                silverGrad.addColorStop(1.00, '#CBD5E1'); // chrome froid
+                const fallbackMetrics = ctx.measureText(textToDraw);
+                const fallbackWidth = fallbackMetrics.width;
+                const shimmerPhaseFb = (animElapsed % 3.2) / 3.2;
+                const shimmerCenterFb = 40 - fallbackWidth * 0.3 + (fallbackWidth * 1.6) * shimmerPhaseFb;
+                const shimmerSpanFb = Math.max(80, fallbackWidth * 0.45);
+
+                const silverGrad = ctx.createLinearGradient(
+                    shimmerCenterFb - shimmerSpanFb, canvas.height - 49,
+                    shimmerCenterFb + shimmerSpanFb, canvas.height - 25
+                );
+                silverGrad.addColorStop(0.00, '#E2E8F0'); // argent clair
+                silverGrad.addColorStop(0.22, '#FFFFFF'); // blanc éclat argent
+                silverGrad.addColorStop(0.50, effectiveColorHex); // nacrage intense avec la couleur du thème
+                silverGrad.addColorStop(0.78, '#FFFFFF'); // éclat reflet nacré
+                silverGrad.addColorStop(1.00, '#CBD5E1'); // chrome platine froid
 
                 ctx.fillStyle = silverGrad;
-                ctx.shadowColor = `rgba(${effectiveGradRGB}, 0.50)`;
-                ctx.shadowBlur = 6;
+                ctx.shadowColor = `rgba(${effectiveGradRGB}, 0.55)`;
+                ctx.shadowBlur = 7;
                 ctx.fillText(textToDraw, 40, canvas.height - 25);
                 ctx.restore();
                 ctx.restore();
@@ -9222,7 +9242,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         const shouldAnimateBadge = isBadgeTheme && activeTab === 'REEL';
         const shouldAnimateMap = theme === 'MAP' && isMapAnimPlaying;
         const shouldAnimateTweet = isEditorialTweetActive && tweetAnimMode !== 'NONE';
-        if (bgVideo || textAnimation !== 'NONE' || bgAnimation !== 'NONE' || theme === 'TRACKLIST' || theme === 'MUSIQUE' || (theme === 'JEU_DJ' && djAppearanceAnim !== 'STATIC') || transitionProgress > 0 || shouldAnimateBadge || (showSwipe && activeTab === 'REEL') || (isCarouselPromoActive && promoOutroStyle === 'INSTAGRAM' && isPromoAnimPlaying) || theme === 'TOP 100 DROPSIDERS' || shouldAnimateMap || shouldAnimateTweet) {
+        if (bgVideo || textAnimation !== 'NONE' || bgAnimation !== 'NONE' || showArticleLink || theme === 'TRACKLIST' || theme === 'MUSIQUE' || (theme === 'JEU_DJ' && djAppearanceAnim !== 'STATIC') || transitionProgress > 0 || shouldAnimateBadge || (showSwipe && activeTab === 'REEL') || (isCarouselPromoActive && promoOutroStyle === 'INSTAGRAM' && isPromoAnimPlaying) || theme === 'TOP 100 DROPSIDERS' || shouldAnimateMap || shouldAnimateTweet) {
             let isRendering = false;
             const loop = () => {
                 if (isVideoRecordingRef.current) return;

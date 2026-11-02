@@ -77,6 +77,7 @@ export function Home() {
 
     const resolveColor = (color: string) => {
         if (!color) return 'var(--color-neon-red)';
+        if (color === 'white') return '#ffffff';
         if (color.startsWith('#')) return color;
         return `var(--color-neon-${color})`;
     };

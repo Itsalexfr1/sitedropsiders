@@ -14,14 +14,14 @@
   {
     "id": "recap_agenda_grid",
     "enabled": true,
-    "accentColor": "orange",
+    "accentColor": "purple",
     "maxAgendaItems": 6,
     "accentColor2": "#e1ff00"
   },
   {
     "id": "interviews",
     "enabled": true,
-    "accentColor": "purple",
+    "accentColor": "white",
     "featuredInterviews": []
   },
   {

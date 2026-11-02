@@ -7,7 +7,7 @@ import { useLanguage } from '../../context/LanguageContext';
 import { resolveImageUrl } from '../../utils/image';
 import { fetchWithFallback } from '../../utils/fetcher';
 
-export function InterviewWidget({ accentColor = 'purple', resolvedColor, featuredInterviews }: { accentColor?: string, resolvedColor?: string, featuredInterviews?: string[] }) {
+export function InterviewWidget({ accentColor = 'white', resolvedColor, featuredInterviews }: { accentColor?: string, resolvedColor?: string, featuredInterviews?: string[] }) {
     const color = resolvedColor || `var(--color-neon-${accentColor})`;
     const { t, language } = useLanguage();
     const [newsData, setNewsData] = useState<any[]>([]);
