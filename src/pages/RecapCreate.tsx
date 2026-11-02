@@ -9,6 +9,7 @@ import { PromptModal } from '../components/ui/PromptModal';
 import { fixEncoding, standardizeContent } from '../utils/standardizer';
 import recapsData from '../data/recaps.json';
 import agendaData from '../data/agenda.json';
+import wikiFestivalsData from '../data/wiki_festivals.json';
 
 import '../styles/article-premium.css';
 
@@ -42,6 +43,13 @@ const BeatportIcon = (props: any) => (
 const XIcon = (props: any) => (
     <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
         <path d="M18.901 1.153h3.68l-8.04 9.19L24 22.846h-7.406l-5.8-7.584-6.638 7.584H.474l8.6-9.83L0 1.154h7.594l5.243 6.932ZM17.61 20.644h2.039L6.486 3.24H4.298Z" />
+    </svg>
+);
+
+
+const SnapchatIcon = (props: any) => (
+    <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+        <path d="M12.206.793c.99 0 4.347.276 5.93 3.821.529 1.193.403 3.219.299 4.847l-.003.06c-.012.18-.022.345-.03.51.075.045.203.09.401.09.3-.016.659-.12 1.033-.301.165-.088.344-.104.464-.104.182 0 .359.029.509.09.45.149.734.479.734.838.015.449-.39.839-1.213 1.168-.089.029-.209.075-.344.119-.45.135-1.139.36-1.333.81-.09.224-.061.524.12.868l.015.015c.06.136 1.526 3.475 4.791 4.014.255.044.435.27.42.509 0 .075-.015.149-.045.225-.24.569-1.273.988-3.146 1.271-.059.091-.12.375-.164.57-.029.179-.074.36-.134.553-.076.271-.27.405-.555.405h-.03c-.135 0-.313-.031-.538-.074-.36-.075-.765-.135-1.273-.135-.3 0-.599.015-.913.074-.6.104-1.123.464-1.723.884-.853.599-1.826 1.288-3.294 1.288-.06 0-.119-.015-.18-.015h-.149c-1.468 0-2.427-.675-3.279-1.288-.599-.42-1.107-.779-1.707-.884-.314-.045-.629-.074-.928-.074-.54 0-.958.089-1.272.149-.211.043-.391.074-.54.074-.374 0-.523-.224-.583-.42-.061-.192-.09-.389-.135-.567-.046-.181-.105-.494-.166-.57-1.918-.222-2.95-.642-3.189-1.226-.031-.063-.052-.15-.055-.225-.015-.243.165-.465.42-.509 3.264-.54 4.73-3.879 4.791-4.02l.016-.029c.18-.345.224-.645.119-.869-.195-.434-.884-.658-1.332-.809-.121-.029-.24-.074-.346-.119-1.107-.435-1.257-.93-1.197-1.273.09-.479.674-.793 1.168-.793.146 0 .27.029.383.074.42.194.789.3 1.104.3.234 0 .384-.06.465-.105l-.046-.569c-.098-1.626-.225-3.651.307-4.837C7.392 1.077 10.739.807 11.727.807l.419-.015h.06z" />
     </svg>
 );
 
@@ -212,6 +220,7 @@ export function RecapCreate() {
         website: '',
         instagram: '',
         tiktok: '',
+        snapchat: '',
         youtube: '',
         facebook: '',
         x: '',
@@ -222,6 +231,191 @@ export function RecapCreate() {
     const [artistNameLabel, setArtistNameLabel] = useState('');
 
     const [showFestivalSocials, setShowFestivalSocials] = useState(false);
+    // Saved Artists & Festivals Cloud Integration
+    const [savedArtists, setSavedArtists] = useState<{ name: string; socials: any }[]>([]);
+    const [showFestivalSuggestions, setShowFestivalSuggestions] = useState(false);
+    const [showArtistSuggestions, setShowArtistSuggestions] = useState(false);
+    const festivalSuggestionRef = useRef<HTMLDivElement>(null);
+    const artistSuggestionRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        fetch('/api/saved-artists')
+            .then(res => res.json())
+            .then(data => {
+                if (Array.isArray(data)) {
+                    setSavedArtists(data);
+                }
+            })
+            .catch(err => console.error("Error fetching saved artists/festivals:", err));
+    }, []);
+
+    const saveFestivalSocials = async () => {
+        const label = festivalNameLabel.trim() || festival.trim();
+        if (!label) {
+            setMessage("Veuillez indiquer le nom du festival pour enregistrer ses réseaux.");
+            setStatus('error');
+            setTimeout(() => setStatus('idle'), 3000);
+            return;
+        }
+
+        const hasSocials = Object.values(festivalSocials).some(v => (v as string)?.trim());
+        if (!hasSocials) {
+            setMessage("Veuillez remplir au moins un réseau social pour le festival.");
+            setStatus('error');
+            setTimeout(() => setStatus('idle'), 3000);
+            return;
+        }
+
+        const nameUpper = label.toUpperCase();
+        const newSavedArtists = [...savedArtists];
+        const existingIndex = newSavedArtists.findIndex(a => a.name.toLowerCase() === nameUpper.toLowerCase());
+
+        if (existingIndex >= 0) {
+            newSavedArtists[existingIndex] = { name: nameUpper, socials: { ...newSavedArtists[existingIndex].socials, ...festivalSocials } };
+        } else {
+            newSavedArtists.push({ name: nameUpper, socials: festivalSocials });
+        }
+
+        try {
+            const response = await fetch('/api/saved-artists/update', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(newSavedArtists)
+            });
+            const res = await response.json();
+            if (res.success) {
+                setSavedArtists(newSavedArtists);
+                setMessage(`Réseaux du festival ${nameUpper} enregistrés avec succès !`);
+                setStatus('success');
+            } else {
+                setMessage("Erreur lors de l'enregistrement : " + res.error);
+                setStatus('error');
+            }
+        } catch (e) {
+            setMessage("Erreur réseau lors de l'enregistrement.");
+            setStatus('error');
+        }
+        setTimeout(() => setStatus('idle'), 3000);
+    };
+
+    const saveArtistSocials = async () => {
+        if (!artistNameLabel.trim()) {
+            setMessage("Veuillez indiquer le nom de l'artiste pour enregistrer ses réseaux.");
+            setStatus('error');
+            setTimeout(() => setStatus('idle'), 3000);
+            return;
+        }
+
+        const hasSocials = Object.values(artistSocials).some(v => (v as string)?.trim());
+        if (!hasSocials) {
+            setMessage("Veuillez remplir au moins un réseau social pour l'artiste.");
+            setStatus('error');
+            setTimeout(() => setStatus('idle'), 3000);
+            return;
+        }
+
+        const nameUpper = artistNameLabel.trim().toUpperCase();
+        const newSavedArtists = [...savedArtists];
+        const existingIndex = newSavedArtists.findIndex(a => a.name.toLowerCase() === nameUpper.toLowerCase());
+
+        if (existingIndex >= 0) {
+            newSavedArtists[existingIndex] = { name: nameUpper, socials: { ...newSavedArtists[existingIndex].socials, ...artistSocials } };
+        } else {
+            newSavedArtists.push({ name: nameUpper, socials: artistSocials });
+        }
+
+        try {
+            const response = await fetch('/api/saved-artists/update', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(newSavedArtists)
+            });
+            const res = await response.json();
+            if (res.success) {
+                setSavedArtists(newSavedArtists);
+                setMessage(`Réseaux de ${nameUpper} enregistrés avec succès !`);
+                setStatus('success');
+            } else {
+                setMessage("Erreur lors de l'enregistrement : " + res.error);
+                setStatus('error');
+            }
+        } catch (e) {
+            setMessage("Erreur réseau lors de l'enregistrement.");
+            setStatus('error');
+        }
+        setTimeout(() => setStatus('idle'), 3000);
+    };
+
+    const deleteSavedItem = async (e: React.MouseEvent, name: string) => {
+        e.stopPropagation();
+        const newSavedArtists = savedArtists.filter(a => a.name !== name);
+        try {
+            const response = await fetch('/api/saved-artists/update', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(newSavedArtists)
+            });
+            const res = await response.json();
+            if (res.success) {
+                setSavedArtists(newSavedArtists);
+            }
+        } catch (e) {
+            console.error("Error deleting saved item:", e);
+        }
+    };
+
+    const festivalSuggestions = useMemo(() => {
+        const q = festivalNameLabel.trim().toLowerCase();
+        const combined: Array<{ name: string; source: 'saved' | 'wiki'; socials: any; city?: string; country?: string; subtitle: string }> = [];
+        const seen = new Set<string>();
+
+        // 1. Saved festivals
+        savedArtists.forEach(sa => {
+            if (!seen.has(sa.name.toLowerCase())) {
+                seen.add(sa.name.toLowerCase());
+                combined.push({
+                    name: sa.name,
+                    source: 'saved',
+                    socials: sa.socials,
+                    subtitle: `${Object.values(sa.socials || {}).filter(v => (v as string)?.trim()).length} réseaux enregistrés`
+                });
+            }
+        });
+
+        // 2. Database of 146 festivals
+        (wikiFestivalsData as any[]).forEach(wf => {
+            const nameUpper = wf.name.toUpperCase();
+            if (!seen.has(nameUpper.toLowerCase())) {
+                seen.add(nameUpper.toLowerCase());
+                combined.push({
+                    name: nameUpper,
+                    source: 'wiki',
+                    socials: {
+                        website: wf.website || '',
+                        instagram: wf.instagram || '',
+                        tiktok: '',
+                        snapchat: '',
+                        youtube: '',
+                        facebook: '',
+                        x: ''
+                    },
+                    city: wf.city,
+                    country: wf.country,
+                    subtitle: wf.city ? `${wf.city}, ${wf.country || ''}` : (wf.country || 'Festival')
+                });
+            }
+        });
+
+        if (!q) return combined.slice(0, 30);
+        return combined.filter(item => item.name.toLowerCase().includes(q)).slice(0, 30);
+    }, [savedArtists, festivalNameLabel]);
+
+    const artistSuggestions = useMemo(() => {
+        const q = artistNameLabel.trim().toLowerCase();
+        if (!q) return savedArtists.slice(0, 30);
+        return savedArtists.filter(a => a.name.toLowerCase().includes(q)).slice(0, 30);
+    }, [savedArtists, artistNameLabel]);
+
     const [showArtistSocials, setShowArtistSocials] = useState(false);
 
 
@@ -286,6 +480,12 @@ export function RecapCreate() {
         const handleClickOutside = (event: MouseEvent) => {
             if (suggestionRef.current && !suggestionRef.current.contains(event.target as Node)) {
                 setShowSuggestions(false);
+            }
+            if (festivalSuggestionRef.current && !festivalSuggestionRef.current.contains(event.target as Node)) {
+                setShowFestivalSuggestions(false);
+            }
+            if (artistSuggestionRef.current && !artistSuggestionRef.current.contains(event.target as Node)) {
+                setShowArtistSuggestions(false);
             }
         };
         document.addEventListener('mousedown', handleClickOutside);
@@ -357,6 +557,8 @@ export function RecapCreate() {
             author,
             festivalSocials,
             artistSocials,
+            festivalNameLabel,
+            artistNameLabel,
             widgets,
             timestamp: Date.now()
         };
@@ -391,8 +593,16 @@ export function RecapCreate() {
                 setYear(draft.year || '');
                 setCoverImage(draft.coverImage || '');
                 if (draft.author) setAuthor(draft.author);
-                if (draft.festivalSocials) setFestivalSocials(draft.festivalSocials);
-                if (draft.artistSocials) setArtistSocials(draft.artistSocials);
+                if (draft.festivalSocials) {
+                    setFestivalSocials(draft.festivalSocials);
+                    if (Object.values(draft.festivalSocials).some((v: any) => v && v.trim())) setShowFestivalSocials(true);
+                }
+                if (draft.artistSocials) {
+                    setArtistSocials(draft.artistSocials);
+                    if (Object.values(draft.artistSocials).some((v: any) => v && v.trim())) setShowArtistSocials(true);
+                }
+                if (draft.festivalNameLabel) setFestivalNameLabel(draft.festivalNameLabel);
+                if (draft.artistNameLabel) setArtistNameLabel(draft.artistNameLabel);
                 if (draft.widgets) setWidgets(draft.widgets);
                 
                 setStatus('success');
@@ -492,12 +702,16 @@ export function RecapCreate() {
 
                             // Extract Festival Socials
                             const festSocialsRegex = /<div class="festival-socials-premium[^>]*>([\s\S]*?)<\/div>/i;
-                            const socialLinkRegex = /href="([^"]+)"[^>]*data-platform="([^"]+)"/g;
                             const festSocialsMatch = (data.content || '').match(festSocialsRegex);
                             if (festSocialsMatch) {
                                 const socialsContent = festSocialsMatch[1];
+                                const festNameMatch = socialsContent.match(/SUIVEZ\s+([^<]+)/i);
+                                if (festNameMatch) {
+                                    setFestivalNameLabel(festNameMatch[1].trim());
+                                }
                                 let linkMatch;
                                 const newSocials = { ...festivalSocials };
+                                const socialLinkRegex = /href="([^"]+)"[^>]*data-platform="([^"]+)"/g;
                                 while ((linkMatch = socialLinkRegex.exec(socialsContent)) !== null) {
                                     const [_, url, platform] = linkMatch;
                                     if (platform in newSocials) {
@@ -505,9 +719,37 @@ export function RecapCreate() {
                                     }
                                 }
                                 setFestivalSocials(newSocials);
+                                setShowFestivalSocials(true);
                             }
 
-                            setWidgets([{ id: 'legacy-1', content: data.content }]);
+                            // Extract Artist Socials
+                            const artSocialsRegex = /<div class="artist-socials-premium[^>]*>([\s\S]*?)<\/div>/i;
+                            const artSocialsMatch = (data.content || '').match(artSocialsRegex);
+                            if (artSocialsMatch) {
+                                const socialsContent = artSocialsMatch[1];
+                                const artNameMatch = socialsContent.match(/SUIVEZ\s+([^<]+)/i);
+                                if (artNameMatch) {
+                                    setArtistNameLabel(artNameMatch[1].trim());
+                                }
+                                let linkMatch;
+                                const newArtSocials = { ...artistSocials };
+                                const socialLinkRegex = /href="([^"]+)"[^>]*data-platform="([^"]+)"/g;
+                                while ((linkMatch = socialLinkRegex.exec(socialsContent)) !== null) {
+                                    const [_, url, platform] = linkMatch;
+                                    if (platform in newArtSocials) {
+                                        (newArtSocials as any)[platform] = url;
+                                    }
+                                }
+                                setArtistSocials(newArtSocials);
+                                setShowArtistSocials(true);
+                            }
+
+                            // Clean out auto-generated socials from widget content
+                            let cleanContent = data.content || '';
+                            cleanContent = cleanContent.replace(/<div class="festival-socials-premium[^>]*>[\s\S]*?<\/div>/gi, '');
+                            cleanContent = cleanContent.replace(/<div class="artist-socials-premium[^>]*>[\s\S]*?<\/div>/gi, '');
+
+                            setWidgets([{ id: 'legacy-1', content: cleanContent.trim() }]);
                         }
                     }
                 } catch (e: any) {
@@ -1698,30 +1940,112 @@ export function RecapCreate() {
 
                         {/* Festival Socials */}
                         <div className="pt-8 border-t border-white/10 mt-4">
-                            <label className="text-xs font-black text-gray-500 uppercase tracking-widest mb-6 flex items-center justify-between">
-                                <span className="flex items-center gap-2"><Link2 className="w-4 h-4 text-neon-cyan" /> Réseaux Sociaux du Festival (Optionnel)</span>
-                                <label className="flex items-center gap-2 cursor-pointer bg-black/20 px-4 py-2 rounded-xl border border-white/10 shrink-0 hover:bg-white/5 transition-all">
-                                    <input
-                                        type="checkbox"
-                                        checked={showFestivalSocials}
-                                        onChange={(e) => setShowFestivalSocials(e.target.checked)}
-                                        className="w-4 h-4 rounded bg-black/40 border-white/10 text-neon-cyan focus:ring-neon-cyan focus:ring-offset-0 focus:ring-1 cursor-pointer"
-                                    />
-                                    <span className="text-[10px] font-bold uppercase tracking-widest text-gray-300">Afficher la configuration</span>
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+                                <label className="text-xs font-black text-gray-500 uppercase tracking-widest flex items-center gap-2">
+                                    <Link2 className="w-4 h-4 text-neon-cyan" /> Réseaux Sociaux du Festival (Optionnel)
                                 </label>
-                            </label>
+                                <div className="flex items-center gap-3">
+                                    <label className="flex items-center gap-2 cursor-pointer bg-black/20 px-4 py-2 rounded-xl border border-white/10 shrink-0 hover:bg-white/5 transition-all">
+                                        <input
+                                            type="checkbox"
+                                            checked={showFestivalSocials}
+                                            onChange={(e) => setShowFestivalSocials(e.target.checked)}
+                                            className="w-4 h-4 rounded bg-black/40 border-white/10 text-neon-cyan focus:ring-neon-cyan focus:ring-offset-0 focus:ring-1 cursor-pointer"
+                                        />
+                                        <span className="text-[10px] font-bold uppercase tracking-widest text-gray-300">Afficher la configuration</span>
+                                    </label>
+                                </div>
+                            </div>
 
                             {showFestivalSocials && (
                                 <>
-                                    <div className="mb-6">
-                                        <label className="block text-[9px] font-bold text-gray-500 uppercase tracking-widest mb-2 ml-1">Nom du Festival (Label de suivi)</label>
-                                        <input
-                                            type="text"
-                                            value={festivalNameLabel}
-                                            onChange={(e) => setFestivalNameLabel(e.target.value)}
-                                            className="w-full bg-black/20 border border-white/10 rounded-xl py-3 px-4 text-white text-[11px] focus:border-neon-cyan outline-none transition-all"
-                                            placeholder="Ex: Tomorrowland Winter"
-                                        />
+                                    <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 bg-black/20 border border-white/5 rounded-2xl">
+                                        <div className="flex-1 relative">
+                                            <label className="block text-[9px] font-bold text-gray-500 uppercase tracking-widest mb-2 ml-1">
+                                                Festival ou Organisateur (Label de suivi & suggestions) :
+                                            </label>
+                                            <div className="relative" ref={festivalSuggestionRef}>
+                                                <input
+                                                    type="text"
+                                                    value={festivalNameLabel}
+                                                    onChange={(e) => {
+                                                        setFestivalNameLabel(e.target.value);
+                                                        setShowFestivalSuggestions(true);
+                                                    }}
+                                                    onFocus={() => setShowFestivalSuggestions(true)}
+                                                    className="w-full bg-black/40 border border-white/10 rounded-xl py-3 px-4 text-white text-[11px] font-bold uppercase tracking-widest focus:border-neon-cyan outline-none transition-all placeholder:normal-case placeholder:font-normal"
+                                                    placeholder="Rechercher un festival (ex: Tomorrowland, EDC, AMF...)"
+                                                />
+
+                                                {/* Autocomplete Dropdown */}
+                                                <AnimatePresence>
+                                                    {showFestivalSuggestions && festivalSuggestions.length > 0 && (
+                                                        <motion.div
+                                                            initial={{ opacity: 0, y: -10 }}
+                                                            animate={{ opacity: 1, y: 0 }}
+                                                            exit={{ opacity: 0, y: -10 }}
+                                                            className="absolute z-[110] left-0 right-0 top-full mt-2 bg-[#141414] border border-white/10 rounded-xl overflow-hidden shadow-2xl backdrop-blur-xl max-h-72 overflow-y-auto"
+                                                        >
+                                                            {festivalSuggestions.map((item, idx) => (
+                                                                <div
+                                                                    key={idx}
+                                                                    className="flex items-center justify-between group/item px-4 py-2.5 hover:bg-white/5 transition-colors border-b border-white/5 last:border-0 cursor-pointer"
+                                                                    onClick={() => {
+                                                                        setFestivalNameLabel(item.name);
+                                                                        setFestivalSocials(prev => ({
+                                                                            ...prev,
+                                                                            ...item.socials
+                                                                        }));
+                                                                        if (!festival.trim()) {
+                                                                            setFestival(item.name);
+                                                                        }
+                                                                        if (item.city && !locationInput.trim()) {
+                                                                            setLocationInput(item.city);
+                                                                        }
+                                                                        if (item.country && !country.trim()) {
+                                                                            setCountry(item.country);
+                                                                        }
+                                                                        setShowFestivalSuggestions(false);
+                                                                    }}
+                                                                >
+                                                                    <div className="flex flex-col">
+                                                                        <div className="flex items-center gap-2">
+                                                                            <span className="text-[10px] text-white font-black uppercase tracking-widest group-hover/item:text-neon-cyan transition-colors">{item.name}</span>
+                                                                            {item.source === 'saved' ? (
+                                                                                <span className="text-[7px] px-1.5 py-0.5 rounded bg-neon-cyan/20 text-neon-cyan font-black uppercase">Sauvegardé</span>
+                                                                            ) : (
+                                                                                <span className="text-[7px] px-1.5 py-0.5 rounded bg-white/10 text-gray-400 font-bold uppercase">Base Festivals</span>
+                                                                            )}
+                                                                        </div>
+                                                                        <span className="text-[8px] text-gray-500 uppercase font-bold">{item.subtitle}</span>
+                                                                    </div>
+                                                                    {item.source === 'saved' && (
+                                                                        <button
+                                                                            type="button"
+                                                                            onClick={(e) => deleteSavedItem(e, item.name)}
+                                                                            className="p-1.5 opacity-0 group-hover/item:opacity-100 hover:text-neon-red hover:bg-white/5 rounded-lg transition-all"
+                                                                            title="Supprimer des enregistrés"
+                                                                        >
+                                                                            <X className="w-3.5 h-3.5" />
+                                                                        </button>
+                                                                    )}
+                                                                </div>
+                                                            ))}
+                                                        </motion.div>
+                                                    )}
+                                                </AnimatePresence>
+                                            </div>
+                                        </div>
+
+                                        <div className="flex items-end self-end sm:self-auto sm:mt-5">
+                                            <button
+                                                type="button"
+                                                onClick={saveFestivalSocials}
+                                                className="px-4 py-3 bg-neon-cyan/10 border border-neon-cyan/30 text-neon-cyan rounded-xl hover:bg-neon-cyan/20 transition-all text-[9px] font-black uppercase tracking-widest flex items-center gap-2 shrink-0 shadow-lg"
+                                            >
+                                                {savedArtists.some(a => a.name.toLowerCase() === festivalNameLabel.trim().toLowerCase()) ? 'METTRE À JOUR LE FESTIVAL' : 'ENREGISTRER LE FESTIVAL'}
+                                            </button>
+                                        </div>
                                     </div>
 
                                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -1755,31 +2079,95 @@ export function RecapCreate() {
                         </div>
 
                         {/* Artist Socials */}
-                        <div className="pt-8 border-t border-white/10 mt-4">
-                            <label className="text-xs font-black text-gray-500 uppercase tracking-widest mb-6 flex items-center justify-between">
-                                <span className="flex items-center gap-2"><User className="w-4 h-4 text-neon-red" /> Réseaux Sociaux de l'Artiste (Optionnel)</span>
-                                <label className="flex items-center gap-2 cursor-pointer bg-black/20 px-4 py-2 rounded-xl border border-white/10 shrink-0 hover:bg-white/5 transition-all">
-                                    <input
-                                        type="checkbox"
-                                        checked={showArtistSocials}
-                                        onChange={(e) => setShowArtistSocials(e.target.checked)}
-                                        className="w-4 h-4 rounded bg-black/40 border-white/10 text-neon-cyan focus:ring-neon-cyan focus:ring-offset-0 focus:ring-1 cursor-pointer"
-                                    />
-                                    <span className="text-[10px] font-bold uppercase tracking-widest text-gray-300">Afficher la configuration</span>
+                        <div className="pt-8 border-t border-white/10 mt-8">
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+                                <label className="text-xs font-black text-gray-500 uppercase tracking-widest flex items-center gap-2">
+                                    <User className="w-4 h-4 text-neon-red" /> Réseaux Sociaux de l'Artiste (Optionnel)
                                 </label>
-                            </label>
+                                <div className="flex items-center gap-3">
+                                    <label className="flex items-center gap-2 cursor-pointer bg-black/20 px-4 py-2 rounded-xl border border-white/10 shrink-0 hover:bg-white/5 transition-all">
+                                        <input
+                                            type="checkbox"
+                                            checked={showArtistSocials}
+                                            onChange={(e) => setShowArtistSocials(e.target.checked)}
+                                            className="w-4 h-4 rounded bg-black/40 border-white/10 text-neon-red focus:ring-neon-red focus:ring-offset-0 focus:ring-1 cursor-pointer"
+                                        />
+                                        <span className="text-[10px] font-bold uppercase tracking-widest text-gray-300">Afficher la configuration</span>
+                                    </label>
+                                </div>
+                            </div>
 
                             {showArtistSocials && (
                                 <>
-                                    <div className="mb-6">
-                                        <label className="block text-[9px] font-bold text-gray-500 uppercase tracking-widest mb-2 ml-1">Nom de l'Artiste (Label de suivi)</label>
-                                        <input
-                                            type="text"
-                                            value={artistNameLabel}
-                                            onChange={(e) => setArtistNameLabel(e.target.value)}
-                                            className="w-full bg-black/20 border border-white/10 rounded-xl py-3 px-4 text-white text-[11px] focus:border-neon-red outline-none transition-all"
-                                            placeholder="Ex: Martin Garrix"
-                                        />
+                                    <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 bg-black/20 border border-white/5 rounded-2xl">
+                                        <div className="flex-1 relative">
+                                            <label className="block text-[9px] font-bold text-gray-500 uppercase tracking-widest mb-2 ml-1">
+                                                Nom de l'Artiste (Label de suivi & artistes sauvegardés) :
+                                            </label>
+                                            <div className="relative" ref={artistSuggestionRef}>
+                                                <input
+                                                    type="text"
+                                                    value={artistNameLabel}
+                                                    onChange={(e) => {
+                                                        setArtistNameLabel(e.target.value);
+                                                        setShowArtistSuggestions(true);
+                                                    }}
+                                                    onFocus={() => setShowArtistSuggestions(true)}
+                                                    className="w-full bg-black/40 border border-white/10 rounded-xl py-3 px-4 text-white text-[11px] font-bold uppercase tracking-widest focus:border-neon-red outline-none transition-all placeholder:normal-case placeholder:font-normal"
+                                                    placeholder="Rechercher un artiste (ex: Martin Garrix, John Summit, Fisher...)"
+                                                />
+
+                                                {/* Autocomplete Dropdown */}
+                                                <AnimatePresence>
+                                                    {showArtistSuggestions && artistSuggestions.length > 0 && (
+                                                        <motion.div
+                                                            initial={{ opacity: 0, y: -10 }}
+                                                            animate={{ opacity: 1, y: 0 }}
+                                                            exit={{ opacity: 0, y: -10 }}
+                                                            className="absolute z-[110] left-0 right-0 top-full mt-2 bg-[#141414] border border-white/10 rounded-xl overflow-hidden shadow-2xl backdrop-blur-xl max-h-72 overflow-y-auto"
+                                                        >
+                                                            {artistSuggestions.map((artist, idx) => (
+                                                                <div
+                                                                    key={idx}
+                                                                    className="flex items-center justify-between group/item px-4 py-2.5 hover:bg-white/5 transition-colors border-b border-white/5 last:border-0 cursor-pointer"
+                                                                    onClick={() => {
+                                                                        setArtistNameLabel(artist.name);
+                                                                        setArtistSocials(prev => ({
+                                                                            ...prev,
+                                                                            ...artist.socials
+                                                                        }));
+                                                                        setShowArtistSuggestions(false);
+                                                                    }}
+                                                                >
+                                                                    <div className="flex flex-col">
+                                                                        <span className="text-[10px] text-white font-black uppercase tracking-widest group-hover/item:text-neon-red transition-colors">{artist.name}</span>
+                                                                        <span className="text-[8px] text-gray-500 uppercase font-bold">{Object.values(artist.socials || {}).filter(v => (v as string)?.trim()).length} réseaux enregistrés</span>
+                                                                    </div>
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={(e) => deleteSavedItem(e, artist.name)}
+                                                                        className="p-1.5 opacity-0 group-hover/item:opacity-100 hover:text-neon-red hover:bg-white/5 rounded-lg transition-all"
+                                                                        title="Supprimer des enregistrés"
+                                                                    >
+                                                                        <X className="w-3.5 h-3.5" />
+                                                                    </button>
+                                                                </div>
+                                                            ))}
+                                                        </motion.div>
+                                                    )}
+                                                </AnimatePresence>
+                                            </div>
+                                        </div>
+
+                                        <div className="flex items-end self-end sm:self-auto sm:mt-5">
+                                            <button
+                                                type="button"
+                                                onClick={saveArtistSocials}
+                                                className="px-4 py-3 bg-neon-red/10 border border-neon-red/30 text-neon-red rounded-xl hover:bg-neon-red/20 transition-all text-[9px] font-black uppercase tracking-widest flex items-center gap-2 shrink-0 shadow-lg"
+                                            >
+                                                {savedArtists.some(a => a.name.toLowerCase() === artistNameLabel.trim().toLowerCase()) ? 'METTRE À JOUR L\'ARTISTE' : 'ENREGISTRER L\'ARTISTE'}
+                                            </button>
+                                        </div>
                                     </div>
 
                                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -1787,6 +2175,7 @@ export function RecapCreate() {
                                             { id: 'website', name: 'Site Web Artiste', icon: Globe, color: 'text-white' },
                                             { id: 'instagram', name: 'Instagram', icon: Instagram, color: 'text-pink-500' },
                                             { id: 'tiktok', name: 'TikTok', icon: TikTokIcon, color: 'text-white' },
+                                            { id: 'snapchat', name: 'Snapchat', icon: SnapchatIcon, color: 'text-yellow-400' },
                                             { id: 'youtube', name: 'YouTube', icon: Youtube, color: 'text-red-500' },
                                             { id: 'facebook', name: 'Facebook', icon: Facebook, color: 'text-blue-600' },
                                             { id: 'x', name: 'X', icon: XIcon, color: 'text-white' },
@@ -1814,10 +2203,6 @@ export function RecapCreate() {
                                 </>
                             )}
                         </div>
-
-
-
-
 
                         {/* WIDGET EDITOR SECTION */}
                         <div className="pt-8 border-t border-white/10">
@@ -2280,10 +2665,10 @@ export function RecapCreate() {
                                 </div>
                             </div>
 
-                            <div className="bg-black border border-white/10 rounded-[32px] p-8 md:p-12 article-body-premium shadow-[0_0_50px_rgba(0,0,0,0.5)] min-h-[400px]">
+                            <div className="article-premium-wrapper article-type-recap bg-black border border-white/10 rounded-[32px] p-8 md:p-12 article-body-premium shadow-[0_0_50px_rgba(0,0,0,0.5)] min-h-[400px]" style={{ "--theme-color": "#ff6700" } as React.CSSProperties}>
                                 {/* Header Preview */}
                                 <div className="mb-12 border-b border-white/10 pb-12">
-                                    <div className="flex flex-wrap gap-3 mb-8">
+                                    <div className="flex flex-wrap justify-center gap-3 mb-8">
                                         <span className="px-4 py-1.5 bg-neon-cyan/10 border border-neon-cyan/20 rounded-full text-neon-cyan font-bold text-[9px] uppercase tracking-widest">
                                             Recaps
                                         </span>
@@ -2309,7 +2694,7 @@ export function RecapCreate() {
                                         )}
                                     </div>
 
-                                    <h1 className="text-4xl md:text-6xl font-display font-black text-white uppercase italic tracking-tighter leading-[0.9] mb-8">
+                                    <h1 className="text-3xl sm:text-4xl md:text-6xl font-display font-black uppercase italic tracking-tighter leading-[0.9] drop-shadow-2xl premium-h1 text-center mb-8" style={{ color: "var(--theme-color, #ff6700)" }}>
                                         {title || "TITRE DU RÉCAP"}
                                     </h1>
 
@@ -2322,6 +2707,16 @@ export function RecapCreate() {
                                         </div>
                                     ))
                                 }
+                                {Object.values(artistSocials).some(v => (v as string)?.trim()) && (
+                                    <div className="article-section">
+                                        <div dangerouslySetInnerHTML={{ __html: generateSocialsHtml() }} />
+                                    </div>
+                                )}
+                                {Object.values(festivalSocials).some(v => (v as string)?.trim()) && (
+                                    <div className="article-section">
+                                        <div dangerouslySetInnerHTML={{ __html: generateFestivalSocialsHtml() }} />
+                                    </div>
+                                )}
                                 {youtubeId && showVideo && (
                                     <div className="mt-16 mb-16">
                                         <h3 className="text-3xl font-display font-black text-white mb-10 uppercase italic flex items-center gap-4 group">
