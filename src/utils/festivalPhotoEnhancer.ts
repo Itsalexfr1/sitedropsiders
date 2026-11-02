@@ -72,13 +72,13 @@ const hueBell = (hue: number, center: number, sigma: number): number => {
     return Math.exp(-0.5 * z * z);
 };
 
-/** Soft-knee saturation curve preventing harsh RGB gamut clipping */
+/** Vibrance naturelle photographique : zéro sursaturation, rendu naturel & équilibré */
 const softBoostSaturation = (s: number, boost: number): number => {
     if (s <= 0.004) return s;
     if (boost >= 0) {
-        // Vibrance-aware curve: strong lift in mid-high chroma with smooth asymptotic roll-off near 0.98
-        const target = s + boost * s * (1 - 0.55 * s);
-        return Math.min(0.985, 1 - Math.exp(-2.35 * target) * (1 - target * 0.28));
+        // Vibrance subtile : relève doucement les couleurs plates, préserve totalement les tons déjà saturés
+        const headroom = Math.max(0, 1 - s);
+        return Math.min(0.94, s + boost * headroom * 0.32);
     } else {
         return clamp01(s * (1 + boost));
     }
@@ -671,12 +671,12 @@ function applyNightIndoorPipeline(
                     l *= 1 - 0.075 * s * smoothstep(0.42, 0.82, l);
                 }
 
-                const redBoost = hueBell(hDeg, 0, 22) * 0.54;
-                const orangeBoost = hueBell(hDeg, 28, 18) * 0.46 * (1 - whiteBeamMask);
-                const magentaBoost = hueBell(hDeg, 332, 26) * 0.52;
-                // Restrain murky low-chroma cold blue/cyan smoke tint while keeping true blue lasers intact
+                // Rehausse colorimétrique subtile et naturelle (pas de couleurs criardes / brûlées)
+                const redBoost = hueBell(hDeg, 0, 22) * 0.07;
+                const orangeBoost = hueBell(hDeg, 28, 18) * 0.05 * (1 - whiteBeamMask);
+                const magentaBoost = hueBell(hDeg, 332, 26) * 0.07;
                 const murkyColdSmoke =
-                    hueBell(hDeg, 215, 34) * (1 - smoothstep(0.12, 0.34, s)) * -0.25;
+                    hueBell(hDeg, 215, 34) * (1 - smoothstep(0.12, 0.34, s)) * -0.20;
 
                 const totalSatBoost = redBoost + orangeBoost + magentaBoost + murkyColdSmoke;
                 s = softBoostSaturation(s, totalSatBoost);
@@ -833,16 +833,17 @@ function applyDayOutdoorPipeline(
                     hDeg += hueBell(hDeg, 84, 10) * 3.5;
                 }
 
-                const redDecor = hueBell(hDeg, 2, 22) * 0.45;
-                const orangeDecor = hueBell(hDeg, 34, 22) * 0.44 * (1 - 0.65 * skinGuard);
-                const electricGreen = hueBell(hDeg, 114, 40) * 0.46;
-                const vividBlue = hueBell(hDeg, 210, 36) * 0.46;
-                const graffitiMagenta = hueBell(hDeg, 308, 28) * 0.36;
-                const baseVibrance = 0.20 * (1 - 0.5 * s) * (1 - 0.55 * skinGuard);
+                // Vibrance naturelle festival de jour : préserve l'herbe et les teints de peau sans saturation excessive
+                const redDecor = hueBell(hDeg, 2, 22) * 0.06;
+                const orangeDecor = hueBell(hDeg, 34, 22) * 0.05 * (1 - 0.85 * skinGuard);
+                const electricGreen = hueBell(hDeg, 114, 40) * 0.05;
+                const vividBlue = hueBell(hDeg, 210, 36) * 0.06;
+                const graffitiMagenta = hueBell(hDeg, 308, 28) * 0.05;
+                const baseVibrance = 0.04 * (1 - s) * (1 - 0.80 * skinGuard);
 
                 // Subtle sky blue depth (prevents pale cyan skies)
                 const blueDepth = hueBell(hDeg, 212, 28) * skySpatial * s;
-                l *= 1 - 0.085 * blueDepth;
+                l *= 1 - 0.04 * blueDepth;
 
                 const totalBoost = Math.max(
                     baseVibrance,

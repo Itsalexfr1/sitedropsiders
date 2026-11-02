@@ -131,6 +131,30 @@ export function ImageUploadModal({
         }
     };
 
+    const [isCleaning24h, setIsCleaning24h] = useState(false);
+
+    const handleCleanup24h = async () => {
+        if (!window.confirm("Supprimer TOUTES les photos uploadées durant les dernières 24h sur Dropsiders Cloud ?")) return;
+        setIsCleaning24h(true);
+        try {
+            const res = await fetch('/api/r2/delete-last-24h', {
+                method: 'POST',
+                headers: { ...getAuthHeaders() }
+            });
+            const data = await res.json();
+            if (data.success) {
+                alert(`✓ ${data.count} photo(s) des dernières 24h ont été supprimées avec succès !`);
+                fetchR2Photos();
+            } else {
+                alert(`Erreur: ${data.error || 'Impossible de supprimer'}`);
+            }
+        } catch (e: any) {
+            alert(`Erreur réseau: ${e.message}`);
+        } finally {
+            setIsCleaning24h(false);
+        }
+    };
+
     // Web Search State
     const [webQuery, setWebQuery] = useState('');
     const [webResults, setWebResults] = useState<any[]>([]);
@@ -1086,6 +1110,18 @@ export function ImageUploadModal({
                                                                 Vidéos ({r2Photos.filter(p => isVideoFile(p.key) || (p.url && isVideoFile(p.url))).length})
                                                             </button>
                                                         </div>
+
+                                                        {/* Bouton de nettoyage d'urgence des dernières 24h */}
+                                                        <button
+                                                            type="button"
+                                                            onClick={handleCleanup24h}
+                                                            disabled={isCleaning24h}
+                                                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[8px] font-black uppercase transition-all bg-red-500/15 border border-red-500/40 text-red-400 hover:bg-red-500/30 hover:text-white shadow-sm shrink-0"
+                                                            title="Supprimer immédiatement toutes les photos uploadées lors des dernières 24 heures"
+                                                        >
+                                                            {isCleaning24h ? <Loader2 className="w-3 h-3 animate-spin" /> : <Trash2 className="w-3 h-3" />}
+                                                            Nettoyer (24h)
+                                                        </button>
                                                     </div>
                                                 )}
                                             </div>

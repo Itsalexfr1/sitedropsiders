@@ -8587,6 +8587,46 @@ ${urls.map(u => `  <url>
             }
         }
 
+        // --- CLEANUP R2 PHOTOS UPLOADED IN THE LAST 24 HOURS ---
+        if (path === '/api/r2/delete-last-24h' && (request.method === 'POST' || request.method === 'GET')) {
+            try {
+                if (!env.R2) return new Response(JSON.stringify({ error: 'R2 not configured' }), { status: 500, headers });
+
+                const cutoff = Date.now() - 24 * 60 * 60 * 1000;
+                let currentCursor: string | undefined = undefined;
+                const toDelete: string[] = [];
+                let safety = 0;
+
+                while (safety < 25) {
+                    const res = await env.R2.list({ cursor: currentCursor, limit: 1000 });
+                    for (const obj of res.objects) {
+                        const upTime = obj.uploaded instanceof Date ? obj.uploaded.getTime() : new Date(obj.uploaded).getTime();
+                        if (upTime >= cutoff) {
+                            toDelete.push(obj.key);
+                        }
+                    }
+                    if (!res.truncated) break;
+                    currentCursor = res.cursor;
+                    safety++;
+                }
+
+                if (toDelete.length > 0) {
+                    for (let i = 0; i < toDelete.length; i += 50) {
+                        const chunk = toDelete.slice(i, i + 50);
+                        await Promise.all(chunk.map(k => env.R2.delete(k)));
+                    }
+                }
+
+                return new Response(JSON.stringify({
+                    success: true,
+                    count: toDelete.length,
+                    deletedKeys: toDelete
+                }), { status: 200, headers });
+            } catch (e: any) {
+                return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
+            }
+        }
+
         if (path === '/api/wiki/list' && request.method === 'GET') {
             try {
                 const type = url.searchParams.get('type');
