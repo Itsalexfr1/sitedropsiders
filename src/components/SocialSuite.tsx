@@ -2997,7 +2997,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 ? deterministicAnimTimeRef.current
                 : (isStaticPngExport
                     ? 99.0
-                    : ((bgVideo && !isDownloading) || isAnyAnimationActive || (theme === 'MUSIQUE' && !isDownloading && (cdjPlayerRing || musicBgMotion)) || (isCarouselPromoActive && (promoOutroStyle === 'INSTAGRAM' || promoOutroStyle === 'PHONE_3D') && isPromoAnimPlaying)
+                    : ((bgVideo && !isDownloading) || isAnyAnimationActive || (theme === 'MUSIQUE' && !isDownloading && (cdjPlayerRing || musicBgMotion)) || (isCarouselPromoActive && (promoOutroStyle === 'INSTAGRAM' || promoOutroStyle === 'PHONE_3D') && isPromoAnimPlaying) || (theme === 'PROMO' && isPromoAnimPlaying)
                         ? (Date.now() - animStartTimeRef.current) / 1000
                         : 99.0));
 
@@ -9300,7 +9300,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         const shouldAnimateBadge = isBadgeTheme && activeTab === 'REEL';
         const shouldAnimateMap = theme === 'MAP' && isMapAnimPlaying;
         const shouldAnimateTweet = isEditorialTweetActive && tweetAnimMode !== 'NONE';
-        if (bgVideo || textAnimation !== 'NONE' || bgAnimation !== 'NONE' || showArticleLink || theme === 'TRACKLIST' || theme === 'MUSIQUE' || (theme === 'JEU_DJ' && djAppearanceAnim !== 'STATIC') || transitionProgress > 0 || shouldAnimateBadge || (showSwipe && activeTab === 'REEL') || (isCarouselPromoActive && (promoOutroStyle === 'INSTAGRAM' || promoOutroStyle === 'PHONE_3D') && isPromoAnimPlaying) || theme === 'TOP 100 DROPSIDERS' || shouldAnimateMap || shouldAnimateTweet) {
+        if (bgVideo || textAnimation !== 'NONE' || bgAnimation !== 'NONE' || showArticleLink || theme === 'TRACKLIST' || theme === 'MUSIQUE' || (theme === 'JEU_DJ' && djAppearanceAnim !== 'STATIC') || transitionProgress > 0 || shouldAnimateBadge || (showSwipe && activeTab === 'REEL') || (isCarouselPromoActive && (promoOutroStyle === 'INSTAGRAM' || promoOutroStyle === 'PHONE_3D') && isPromoAnimPlaying) || (theme === 'PROMO' && isPromoAnimPlaying) || theme === 'TOP 100 DROPSIDERS' || shouldAnimateMap || shouldAnimateTweet) {
             let isRendering = false;
             const loop = () => {
                 if (isVideoRecordingRef.current) return;
