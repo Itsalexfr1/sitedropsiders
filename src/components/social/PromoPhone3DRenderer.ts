@@ -53,7 +53,7 @@ export function renderPromoPhone3D(opts: PromoPhone3DOptions) {
 
     // Voile sombre équilibré (50% d'opacité) pour un parfait compromis lisibilité / visibilité de la photo
     ctx.save();
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.50)';
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.60)';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     // Lueur d'ambiance thème diffusée derrière le smartphone
@@ -61,8 +61,8 @@ export function renderPromoPhone3D(opts: PromoPhone3DOptions) {
     const glowY = canvas.height * 0.55;
     const glowR = canvas.width * 0.65;
     const radialGlow = ctx.createRadialGradient(glowX, glowY, 40 * s, glowX, glowY, glowR);
-    radialGlow.addColorStop(0, `rgba(${activeColor.grad}, 0.28)`);
-    radialGlow.addColorStop(0.45, `rgba(${activeColor.grad}, 0.06)`);
+    radialGlow.addColorStop(0, `rgba(${activeColor.grad}, 0.42)`);
+    radialGlow.addColorStop(0.45, `rgba(${activeColor.grad}, 0.14)`);
     radialGlow.addColorStop(1, 'rgba(0, 0, 0, 0)');
     ctx.fillStyle = radialGlow;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -200,11 +200,11 @@ export function renderPromoPhone3D(opts: PromoPhone3DOptions) {
     ctx.save();
     ctx.beginPath();
     ctx.roundRect(phoneX, phoneY, phoneW, phoneH, 38 * s);
-    ctx.shadowColor = `rgba(${activeColor.grad}, 0.42)`;
-    ctx.shadowBlur = 30 * s;
+    ctx.shadowColor = `rgba(${activeColor.grad}, 0.65)`;
+    ctx.shadowBlur = 45 * s;
     ctx.shadowOffsetX = 0;
     ctx.shadowOffsetY = 0;
-    ctx.fillStyle = `rgba(${activeColor.grad}, 0.12)`;
+    ctx.fillStyle = `rgba(${activeColor.grad}, 0.22)`;
     ctx.fill();
     ctx.restore();
 
