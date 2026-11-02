@@ -82,7 +82,7 @@ export const StarField: React.FC = () => {
         <canvas
             ref={canvasRef}
             className="fixed inset-0 pointer-events-none z-0 opacity-40"
-            style={{ filter: 'blur(0.5px)' }}
+            style={{ willChange: 'transform' }}
         />
     );
 };

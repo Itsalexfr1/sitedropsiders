@@ -167,25 +167,11 @@ export const DEFAULT_JINGLES_PUBS: RadionomyItem[] = [
         audioUrl: 'https://dropsiders.fr/uploads/radio/jingles/051220f3cbbe1c9d-Promo_Tomorrowland_Winter.wav'
     },
     {
-        id: 'promo_escape_psycho_circus_1',
-        title: 'Promo Escape Psycho Circus 2026 1',
-        duration: 47,
-        category: 'promo',
-        audioUrl: 'https://dropsiders.fr/uploads/radio/jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav'
-    },
-    {
         id: 'promo_titan_lyon',
         title: 'Promo Titan Lyon',
         duration: 39,
         category: 'promo',
         audioUrl: 'https://dropsiders.fr/uploads/radio_jingles/432831059d599701-Promo_Titan_Lyon.wav'
-    },
-    {
-        id: 'promo_escape_psycho_circus_2',
-        title: 'Promo Escape Psycho Circus 2026 2',
-        duration: 40,
-        category: 'promo',
-        audioUrl: 'https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav'
     },
 
     // --- INTERVIEWS ---

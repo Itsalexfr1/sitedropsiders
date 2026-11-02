@@ -967,22 +967,6 @@ export const DEFAULT_SYSTEM_PROMOS: RadioTrackItem[] = [
         duration: 39,
         category: 'promo'
     },
-    {
-        id: 'promo_sys_escape_1',
-        title: 'Promo Escape Psycho Circus 2026 1',
-        artist: 'PROMO DROPSIDERS',
-        audioUrl: 'https://dropsiders.fr/uploads/radio/jingles/773741c87cd62bf2-Promo_Escape_Psycho_Circus_202.wav',
-        duration: 47,
-        category: 'promo'
-    },
-    {
-        id: 'promo_sys_escape_2',
-        title: 'Promo Escape Psycho Circus 2026 2',
-        artist: 'PROMO DROPSIDERS',
-        audioUrl: 'https://dropsiders.fr/uploads/radio/jingles/1e441be4d3fb7225-Promo_Escape_Psycho_Circus_202.wav',
-        duration: 40,
-        category: 'promo'
-    }
 ];
 
 /**
