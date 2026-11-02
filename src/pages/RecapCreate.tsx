@@ -2666,7 +2666,7 @@ export function RecapCreate() {
                                 </div>
                             </div>
 
-                            <div className="article-premium-wrapper article-type-recap bg-black border border-white/10 rounded-[32px] p-8 md:p-12 article-body-premium shadow-[0_0_50px_rgba(0,0,0,0.5)] min-h-[400px]" style={{ "--theme-color": "#ff6700" } as React.CSSProperties}>
+                            <div className="article-premium-wrapper article-type-recap bg-black border border-white/10 rounded-[32px] p-8 md:p-12 article-body-premium shadow-[0_0_50px_rgba(0,0,0,0.5)] min-h-[400px]" style={{ "--theme-color": "#c026d3" } as React.CSSProperties}>
                                 {/* Header Preview */}
                                 <div className="mb-12 border-b border-white/10 pb-12">
                                     <div className="flex flex-wrap justify-center gap-3 mb-8">

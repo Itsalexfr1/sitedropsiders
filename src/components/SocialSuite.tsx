@@ -3668,14 +3668,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     }
                     ctx.textAlign = 'left';
 
-                    let textY = dotCenterY;
-                    if (textMetrics.actualBoundingBoxAscent !== undefined && textMetrics.actualBoundingBoxDescent !== undefined) {
-                        ctx.textBaseline = 'alphabetic';
-                        textY = dotCenterY + (textMetrics.actualBoundingBoxAscent - textMetrics.actualBoundingBoxDescent) / 2;
-                    } else {
-                        ctx.textBaseline = 'middle';
-                        textY = dotCenterY - 0.5;
-                    }
+                    // Centrage vertical robuste — on utilise 'middle' pour éviter le décalage
+                    // des caractères accentués (ex: RÉCAP avec É) qui fausse actualBoundingBoxAscent
+                    ctx.textBaseline = 'middle';
+                    const textY = dotCenterY + 0.5;
 
                     ctx.fillText(label, textStartX, textY);
                     ctx.restore();
@@ -3729,14 +3725,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     }
                     ctx.textAlign = 'left';
 
-                    let textY = dotCenterY;
-                    if (textMetrics.actualBoundingBoxAscent !== undefined && textMetrics.actualBoundingBoxDescent !== undefined) {
-                        ctx.textBaseline = 'alphabetic';
-                        textY = dotCenterY + (textMetrics.actualBoundingBoxAscent - textMetrics.actualBoundingBoxDescent) / 2;
-                    } else {
-                        ctx.textBaseline = 'middle';
-                        textY = dotCenterY - 0.5;
-                    }
+                    // Centrage vertical robuste — on utilise 'middle' pour éviter le décalage
+                    // des caractères accentués (ex: RÉCAP avec É) qui fausse actualBoundingBoxAscent
+                    ctx.textBaseline = 'middle';
+                    const textY = dotCenterY + 0.5;
 
                     ctx.fillText(label, textStartX, textY);
                     ctx.restore();
@@ -11771,6 +11763,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             if (['JEU', 'JEU_FESTIVAL', 'JEU_DJ', 'CONCOURS', 'TOP 100 DROPSIDERS'].includes(t)) {
                 return { category: 'GAMES' as const, catLabel: 'Jeux', icon: '🎮', color: '#00f0ff', border: 'border-[#00f0ff]/40', bg: 'bg-[#00f0ff]/15', text: 'text-[#00f0ff]' };
             }
+            if (t === 'RECAP') {
+                return { category: 'EDITO' as const, catLabel: 'Édito', icon: '📰', color: '#c026d3', border: 'border-[#c026d3]/40', bg: 'bg-[#c026d3]/15', text: 'text-[#c026d3]' };
+            }
             return { category: 'EDITO' as const, catLabel: 'Édito', icon: '📰', color: '#ff1241', border: 'border-[#ff1241]/40', bg: 'bg-[#ff1241]/15', text: 'text-neon-red' };
         };
 
@@ -11780,6 +11775,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             : theme === 'JEU_FESTIVAL' ? 'DEVINE FESTIVAL'
             : theme === 'JEU_DJ' ? 'DEVINE LE DJ'
             : theme === 'JEU' ? 'DEVINE CLIP'
+            : theme === 'RECAP' ? 'RÉCAP'
             : theme;
 
         const unifiedThemeList = [

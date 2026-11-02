@@ -726,14 +726,35 @@ export function ImageUploadModal({
                 }
             };
 
-            // Pool d'envoi parallèle (jusqu'à 3 envois simultanés pour vitesse maximale)
-            const CONCURRENCY = Math.min(3, total);
+            // Pool d'envoi parallèle (jusqu'à 4 envois simultanés)
+            // Chaque photo a droit à 2 tentatives avant d'être marquée échouée
+            // Un échec isolé ne fait PAS planter tout le batch (résistance aux gros albums)
+            const CONCURRENCY = Math.min(4, total);
+            const failedItems: number[] = [];
             let nextIndex = 0;
             const worker = async () => {
                 while (nextIndex < total) {
                     const currentIdx = nextIndex++;
                     setProcessingLabel(total > 1 ? `Envoi (${completedCount + 1}/${total})...` : 'Envoi en cours...');
-                    await processAndUploadItem(toUpload[currentIdx], currentIdx);
+                    // Retry automatique : 2 tentatives max par photo
+                    let lastErr: any = null;
+                    for (let attempt = 0; attempt < 2; attempt++) {
+                        try {
+                            await processAndUploadItem(toUpload[currentIdx], currentIdx);
+                            lastErr = null;
+                            break;
+                        } catch (err) {
+                            lastErr = err;
+                            if (attempt === 0) {
+                                // Courte pause avant retry
+                                await new Promise(res => setTimeout(res, 800 + currentIdx * 10));
+                            }
+                        }
+                    }
+                    if (lastErr) {
+                        console.warn(`Upload échoué après 2 tentatives (photo ${currentIdx + 1}):`, lastErr);
+                        failedItems.push(currentIdx);
+                    }
                     completedCount++;
                     setUploadProgress(Math.round((completedCount / total) * 100));
                 }
@@ -743,8 +764,11 @@ export function ImageUploadModal({
             await Promise.all(workers);
 
             const finalUrls = uploadedUrls.filter((u): u is string => typeof u === 'string');
+            const failCount = failedItems.length;
             setStatus('success');
-            setMessage('Média(s) prêt(s) !');
+            setMessage(failCount > 0
+                ? `${finalUrls.length} photo(s) envoyée(s) — ${failCount} échec(s) (réseau). Réessayez ces photos.`
+                : 'Média(s) prêt(s) !');
 
             if (onUploadSuccess && finalUrls.length > 0) {
                 onUploadSuccess(allowMultiple ? finalUrls : finalUrls[0]);
