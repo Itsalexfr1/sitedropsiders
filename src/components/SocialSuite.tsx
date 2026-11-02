@@ -9232,8 +9232,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     useEffect(() => {
         const origins = festivalProOriginRef.current;
         if (!isFestivalProBg) {
+            let restored = false;
             // Retour aux photos originales
-            if (bgImage && origins.has(bgImage)) setBgImage(origins.get(bgImage)!);
+            if (bgImage && origins.has(bgImage)) {
+                setBgImage(origins.get(bgImage)!);
+                restored = true;
+            }
             if (Object.values(editorialSlideImages).some(u => u && origins.has(u))) {
                 setEditorialSlideImages(prev => {
                     const next: Record<number, string> = { ...prev };
@@ -9243,6 +9247,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     });
                     return next;
                 });
+                restored = true;
+            }
+            if (restored) {
+                setTimeout(() => generateImage(), 50);
             }
             return;
         }
@@ -9287,7 +9295,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 mapping[src] = enhanced;
             }
             if (cancelled) return;
-            if (bgImage && mapping[bgImage]) setBgImage(mapping[bgImage]);
+            let updated = false;
+            if (bgImage && mapping[bgImage]) {
+                setBgImage(mapping[bgImage]);
+                updated = true;
+            }
             if (Object.values(editorialSlideImages).some(u => mapping[u])) {
                 setEditorialSlideImages(prev => {
                     const next: Record<number, string> = { ...prev };
@@ -9297,6 +9309,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     });
                     return next;
                 });
+                updated = true;
+            }
+            if (updated) {
+                setTimeout(() => generateImage(), 50);
             }
         })().finally(() => {
             if (!cancelled) setFestivalProBusy(false);
@@ -9316,7 +9332,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 <div className="flex flex-col">
                     <span className={`text-[9.5px] font-black uppercase tracking-widest ${isFestivalProBg ? 'text-white' : 'text-gray-400'}`}>Amélioration Festival Pro (Auto)</span>
                     <span className="text-[7.5px] font-bold text-gray-500 uppercase tracking-tighter">
-                        {festivalProBusy ? 'Analyse & traitement des photos...' : 'Photos de fond traitées auto (Jour / Nuit) à l\'export'}
+                        {festivalProBusy ? 'Analyse & traitement des photos...' : isFestivalProBg ? 'Aperçu en direct sur le canvas & appliqué à l\'export' : 'Photos de fond traitées auto (Jour / Nuit) à l\'export'}
                     </span>
                 </div>
             </div>
