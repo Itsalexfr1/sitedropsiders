@@ -196,14 +196,26 @@ export function renderPromoPhone3D(opts: PromoPhone3DOptions) {
     ctx.rotate(-0.015); // ~0.9° tilt subtil pour le look 3D réaliste
     ctx.translate(-(phoneX + phoneW / 2), -(phoneY + phoneH / 2));
 
-    // 3.1 Ombre portée profonde du smartphone
+    // 3.0 Lueur ambiante néon douce couleur thème autour du smartphone (halo élégant & non agressif)
     ctx.save();
     ctx.beginPath();
     ctx.roundRect(phoneX, phoneY, phoneW, phoneH, 38 * s);
-    ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
-    ctx.shadowBlur = 45 * s;
-    ctx.shadowOffsetX = -16 * s;
-    ctx.shadowOffsetY = 20 * s;
+    ctx.shadowColor = `rgba(${activeColor.grad}, 0.42)`;
+    ctx.shadowBlur = 30 * s;
+    ctx.shadowOffsetX = 0;
+    ctx.shadowOffsetY = 0;
+    ctx.fillStyle = `rgba(${activeColor.grad}, 0.12)`;
+    ctx.fill();
+    ctx.restore();
+
+    // 3.1 Ombre portée profonde du smartphone (profondeur 3D)
+    ctx.save();
+    ctx.beginPath();
+    ctx.roundRect(phoneX, phoneY, phoneW, phoneH, 38 * s);
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.92)';
+    ctx.shadowBlur = 42 * s;
+    ctx.shadowOffsetX = -14 * s;
+    ctx.shadowOffsetY = 18 * s;
     ctx.fillStyle = '#0a0a0f';
     ctx.fill();
     ctx.restore();
