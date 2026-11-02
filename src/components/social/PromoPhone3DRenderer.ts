@@ -51,9 +51,9 @@ export function renderPromoPhone3D(opts: PromoPhone3DOptions) {
     const baseWidth = 520;
     const s = canvas.width / baseWidth;
 
-    // Voile sombre léger (40% d'opacité) pour laisser la photo de fond de Slide 1 parfaitement visible
+    // Voile sombre équilibré (50% d'opacité) pour un parfait compromis lisibilité / visibilité de la photo
     ctx.save();
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.40)';
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.50)';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     // Lueur d'ambiance thème diffusée derrière le smartphone
@@ -181,7 +181,7 @@ export function renderPromoPhone3D(opts: PromoPhone3DOptions) {
     const phoneW = 228 * s;
     const phoneH = 472 * s;
     const phoneRight = ((isReel ? 20 : 12) + 1) * s; // Déplacé de 1px vers la gauche
-    const phoneBottom = (isReel ? 90 : 54) * s;
+    const phoneBottom = ((isReel ? 90 : 54) + 2) * s; // Monté de 2px vers le haut
     const phoneX = canvas.width - phoneRight - phoneW;
     const phoneBaseY = canvas.height - phoneBottom - phoneH;
 
