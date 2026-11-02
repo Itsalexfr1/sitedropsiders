@@ -549,12 +549,12 @@ function applyNightIndoorPipeline(
         }
     }
 
-    // Adaptive smoke haze floor based on elevated dark percentile
-    const globalSmokeFloor = clampRange(profile.p08 * 0.90, 0.014, 0.145);
+    // Adaptive smoke haze floor based on elevated dark percentile - calibrage transparent & naturel
+    const globalSmokeFloor = clampRange(profile.p08 * 0.45, 0.008, 0.070);
     const highlightKnee = 0.65;
     const invTanh85 = 1 / Math.tanh(0.85);
 
-    // 2. Full Tonal, Dehaze, White-Guard, Clarity & Selective Warm Laser Color Grading
+    // 2. Full Tonal, Dehaze, White-Guard, Clarity & Natural Color Grading (Pro Editorial)
     for (let y = 0; y < h; y++) {
         const yNorm = y / Math.max(1, h - 1);
         const crowdSpatial = smoothstep(0.48, 0.96, yNorm);
@@ -572,13 +572,13 @@ function applyNightIndoorPipeline(
             const min0 = r < g ? (r < b ? r : b) : g < b ? g : b;
             const sat0 = max0 > 0.005 ? (max0 - min0) / max0 : 0;
 
-            // A. High Dehaze (eliminates grayish smoke haze while sparing pure laser chroma)
+            // A. Dehaze photographique subtil (élimine le voile grisâtre sans sursaturer artificiellement)
             const lowSatHazeMask = 1 - smoothstep(0.16, 0.62, sat0);
             const localEnv = wideL[p] < midL[p] ? wideL[p] : midL[p];
             const localSmoke =
-                localEnv * 0.25 * lowSatHazeMask * (1 - smoothstep(0.26, 0.72, wideL[p]));
-            const veil = globalSmokeFloor * (0.62 + 0.38 * lowSatHazeMask) + localSmoke;
-            const invTrans = 1 / Math.max(0.70, 1 - veil * 0.92);
+                localEnv * 0.12 * lowSatHazeMask * (1 - smoothstep(0.26, 0.72, wideL[p]));
+            const veil = globalSmokeFloor * (0.50 + 0.30 * lowSatHazeMask) + localSmoke;
+            const invTrans = 1 / Math.max(0.82, 1 - veil * 0.65);
 
             r = Math.max(0, (r - veil) * invTrans);
             g = Math.max(0, (g - veil) * invTrans);
@@ -586,32 +586,32 @@ function applyNightIndoorPipeline(
 
             let lum = 0.2126 * r + 0.7152 * g + 0.0722 * b;
 
-            // B. Deep Nocturnal Contrast & Lower-Frame Crowd Silhouette Density
+            // B. Contraste nocturne pro & aéré (ombres riches et lisibles, zéro aplat noir bouché)
             const crowdShadowMask =
                 crowdSpatial *
                 (1 - smoothstep(0.12, 0.38, lum)) *
                 (1 - smoothstep(0.45, 0.80, sat0));
 
-            let targetLum = lum * (1 - 0.46 * crowdShadowMask);
+            let targetLum = lum * (1 - 0.22 * crowdShadowMask);
 
-            // Dramatic nocturnal S-curve (deep obsidian blacks + punchy stage midtones)
+            // Courbe cinéma équilibrée (noirs profonds mais ombres découpées et détaillées)
             if (targetLum < 0.46) {
                 const t = targetLum / 0.46;
-                targetLum = 0.46 * Math.pow(t, 1.34) * (0.86 + 0.14 * t);
+                targetLum = 0.46 * Math.pow(t, 1.14) * (0.92 + 0.08 * t);
             } else if (targetLum > highlightKnee) {
-                // C. Strict Highlight Control (soft shoulder pulls down blown beams)
+                // C. Contrôle des hautes lumières (épaule douce évitant le cramage des projecteurs)
                 const over = (targetLum - highlightKnee) / (1 - highlightKnee);
                 targetLum =
                     highlightKnee +
                     (0.965 - highlightKnee) * Math.tanh(over * 0.85) * invTanh85;
             }
 
-            // Stage Structure Clarity (masked off deep denoised shadows & clipped cores)
+            // Clarté & Micro-relief de scène (piqué net sur les structures, LED et confettis)
             const origL = L[p];
             const clarityMask =
-                smoothstep(0.08, 0.22, origL) * (1 - smoothstep(0.85, 0.96, targetLum));
+                smoothstep(0.06, 0.18, origL) * (1 - smoothstep(0.85, 0.96, targetLum));
             const structDelta =
-                (origL - midL[p]) * 0.48 + clampRange(origL - fineL[p], -0.075, 0.075) * 0.38;
+                (origL - midL[p]) * 0.38 + clampRange(origL - fineL[p], -0.065, 0.065) * 0.30;
             targetLum = clamp01(targetLum + structDelta * clarityMask);
 
             if (lum > 1e-5) {
@@ -625,7 +625,7 @@ function applyNightIndoorPipeline(
                 b = targetLum;
             }
 
-            // Soft channel clamp before HSL analysis
+            // Clamp avant conversion HSL
             r = clamp01(r);
             g = clamp01(g);
             b = clamp01(b);
@@ -649,37 +649,24 @@ function applyNightIndoorPipeline(
                 }
             }
 
-            // D. Strict Silvery-White Spotlight & Beam Guard (prevents yellow/orange drift in whites)
+            // D. Préservation des blancs purs & projecteurs (pas de dérive jaune/orange sur les spots blancs)
             const isWarmYellowishWhite = hueBell(hDeg, 42, 22) * (1 - smoothstep(0.32, 0.62, s));
             const isLowSatBright = 1 - smoothstep(0.18, 0.48, s);
             const whiteBeamMask =
                 smoothstep(0.70, 0.92, targetLum) * Math.max(isLowSatBright, isWarmYellowishWhite);
 
             if (whiteBeamMask > 0.01) {
-                // Pull saturation down in white beam cores & shift slightly cool silvery-white
-                s *= 1 - 0.84 * whiteBeamMask;
+                s *= 1 - 0.85 * whiteBeamMask;
             }
 
-            // E. Warm Selective Saturation (Reds, Magentas, Oranges) & Warm Magenta Lock
+            // E. Rendu colorimétrique PRO 100% fidèle : zéro décalage artificiel, zéro sursaturation
             if (s > 0.015) {
-                // Keep pink/magenta warm & dense: nudge cold violet-magenta (275°..338°) toward warm rose-magenta
-                if (hDeg >= 270 && hDeg <= 345) {
-                    const coldMagentaWeight =
-                        hueBell(hDeg, 305, 20) * 14 + hueBell(hDeg, 325, 14) * 7;
-                    hDeg = (hDeg + coldMagentaWeight * smoothstep(0.12, 0.35, s)) % 360;
-                    // Dense magenta richness (avoids washed-out pastel pink)
-                    l *= 1 - 0.075 * s * smoothstep(0.42, 0.82, l);
-                }
-
-                // Rehausse colorimétrique subtile et naturelle (pas de couleurs criardes / brûlées)
-                const redBoost = hueBell(hDeg, 0, 22) * 0.07;
-                const orangeBoost = hueBell(hDeg, 28, 18) * 0.05 * (1 - whiteBeamMask);
-                const magentaBoost = hueBell(hDeg, 332, 26) * 0.07;
+                // Atténuation subtile du bruit coloré dans la fumée froide uniquement
                 const murkyColdSmoke =
-                    hueBell(hDeg, 215, 34) * (1 - smoothstep(0.12, 0.34, s)) * -0.20;
-
-                const totalSatBoost = redBoost + orangeBoost + magentaBoost + murkyColdSmoke;
-                s = softBoostSaturation(s, totalSatBoost);
+                    hueBell(hDeg, 215, 34) * (1 - smoothstep(0.12, 0.34, s)) * -0.15;
+                if (murkyColdSmoke < 0) {
+                    s = softBoostSaturation(s, murkyColdSmoke);
+                }
             }
 
             // Convert HSL -> RGB
@@ -708,13 +695,13 @@ function applyNightIndoorPipeline(
                 outB = hue2rgb(hk - 1 / 3);
             }
 
-            // Subtle silvery-white crispness on spotlight cores
+            // Pureté argentée subtile sur le cœur des projecteurs blancs
             if (whiteBeamMask > 0.05) {
-                const silverW = whiteBeamMask * 0.65;
+                const silverW = whiteBeamMask * 0.55;
                 const neutral = 0.2126 * outR + 0.7152 * outG + 0.0722 * outB;
-                outR = outR + (neutral * 0.988 - outR) * silverW;
-                outG = outG + (neutral * 0.996 - outG) * silverW;
-                outB = outB + (Math.min(1, neutral * 1.018) - outB) * silverW;
+                outR = outR + (neutral * 0.992 - outR) * silverW;
+                outG = outG + (neutral * 0.998 - outG) * silverW;
+                outB = outB + (Math.min(1, neutral * 1.012) - outB) * silverW;
             }
 
             data[idx] = Math.round(clamp01(outR) * 255);
@@ -734,9 +721,9 @@ function applyDayOutdoorPipeline(
     wideL: Float32Array,
     profile: SceneProfile
 ): void {
-    // Adaptive black floor removal to eliminate flat milky outdoor haze
-    const blackAnchor = clampRange(profile.p02 * 0.85, 0.008, 0.095);
-    const invBlackSpan = 1 / Math.max(0.85, 1 - blackAnchor);
+    // Élimination douce du voile laiteux extérieur (contraste propre sans assombrir agressivement)
+    const blackAnchor = clampRange(profile.p02 * 0.48, 0.005, 0.048);
+    const invBlackSpan = 1 / Math.max(0.88, 1 - blackAnchor);
     const overcastStrength = clampRange(profile.topBrightOvercastRatio * 1.6, 0.25, 1.0);
     const invTanh90 = 1 / Math.tanh(0.90);
 
@@ -756,35 +743,35 @@ function applyDayOutdoorPipeline(
             const lum = 0.2126 * r + 0.7152 * g + 0.0722 * b;
             let targetLum = lum;
 
-            // A. Dynamism & Relief: densify shadows and deep blacks while keeping midtones open & readable
+            // A. Dynamisme & Relief équilibré : ombres contrastées tout en gardant une excellente lisibilité
             if (targetLum < 0.42) {
                 const t = targetLum / 0.42;
-                targetLum = 0.42 * Math.pow(t, 1.22) * (0.90 + 0.10 * t);
+                targetLum = 0.42 * Math.pow(t, 1.12) * (0.94 + 0.06 * t);
             }
 
-            // B. Sky & Highlight Texture Recovery: prevent washed-out white skies
-            const highlightStart = 0.56;
+            // B. Récupération de matière céleste : conserve la texture des nuages sans griser le ciel
+            const highlightStart = 0.58;
             if (targetLum > highlightStart) {
                 const over = (targetLum - highlightStart) / (1 - highlightStart);
                 const compressed =
                     highlightStart +
-                    (0.935 - highlightStart) * Math.tanh(over * 0.90) * invTanh90;
-                const recoveryMix = 0.65 + 0.35 * skySpatial * overcastStrength;
+                    (0.945 - highlightStart) * Math.tanh(over * 0.90) * invTanh90;
+                const recoveryMix = 0.55 + 0.35 * skySpatial * overcastStrength;
                 targetLum = targetLum + (compressed - targetLum) * recoveryMix;
             }
 
-            // Recover cloud/sky local matter in bright zones
+            // Texture et matière locale dans les hautes lumières
             const origL = L[p];
-            const skyMatterMask = smoothstep(0.54, 0.78, origL) * (0.65 + 0.45 * skySpatial);
+            const skyMatterMask = smoothstep(0.54, 0.78, origL) * (0.55 + 0.40 * skySpatial);
             const skyTextureDelta =
-                (origL - wideL[p]) * 0.42 * skyMatterMask;
+                (origL - wideL[p]) * 0.35 * skyMatterMask;
 
-            // C. Official-Media Micro-Contrast & Piqué (wood, straw, tarps, stages, graffiti)
+            // C. Micro-contraste et piqué professionnel (bois, scènes, décors, foule)
             const detailMask =
                 smoothstep(0.03, 0.14, origL) * (1 - smoothstep(0.88, 0.98, targetLum));
             const microContrast =
-                ((origL - midL[p]) * 0.44 +
-                    clampRange(origL - fineL[p], -0.085, 0.085) * 0.52) *
+                ((origL - midL[p]) * 0.36 +
+                    clampRange(origL - fineL[p], -0.075, 0.075) * 0.42) *
                 detailMask;
 
             targetLum = clamp01(targetLum + skyTextureDelta + microContrast);
@@ -800,7 +787,7 @@ function applyDayOutdoorPipeline(
                 b = targetLum;
             }
 
-            // D. Vivid Festival Decor Saturation (Oranges, Electric Greens, Blues, Reds)
+            // D. Colorimétrie naturelle & vibrance subtile (respect des vraies teintes et des peaux)
             const maxC = r > g ? (r > b ? r : b) : g > b ? g : b;
             const minC = r < g ? (r < b ? r : b) : g < b ? g : b;
             const delta = maxC - minC;
@@ -820,7 +807,7 @@ function applyDayOutdoorPipeline(
             }
 
             if (s > 0.015) {
-                // Protect natural human skin tones (moderate chroma around 16°..36°) from oversaturation
+                // Protection totale des teints de peau humaine
                 const skinGuard =
                     hueBell(hDeg, 25, 11) *
                     smoothstep(0.14, 0.24, s) *
@@ -828,28 +815,11 @@ function applyDayOutdoorPipeline(
                     smoothstep(0.28, 0.44, l) *
                     (1 - smoothstep(0.74, 0.88, l));
 
-                // Freshen dull yellowish grass slightly toward vivid festival green
-                if (hDeg >= 68 && hDeg <= 102) {
-                    hDeg += hueBell(hDeg, 84, 10) * 3.5;
+                // Vibrance naturelle minimale : zéro sursaturation des décors, respect de l'herbe et des tenues
+                const subtleLift = 0.02 * (1 - s) * (1 - 0.90 * skinGuard);
+                if (subtleLift > 0.001) {
+                    s = softBoostSaturation(s, subtleLift);
                 }
-
-                // Vibrance naturelle festival de jour : préserve l'herbe et les teints de peau sans saturation excessive
-                const redDecor = hueBell(hDeg, 2, 22) * 0.06;
-                const orangeDecor = hueBell(hDeg, 34, 22) * 0.05 * (1 - 0.85 * skinGuard);
-                const electricGreen = hueBell(hDeg, 114, 40) * 0.05;
-                const vividBlue = hueBell(hDeg, 210, 36) * 0.06;
-                const graffitiMagenta = hueBell(hDeg, 308, 28) * 0.05;
-                const baseVibrance = 0.04 * (1 - s) * (1 - 0.80 * skinGuard);
-
-                // Subtle sky blue depth (prevents pale cyan skies)
-                const blueDepth = hueBell(hDeg, 212, 28) * skySpatial * s;
-                l *= 1 - 0.04 * blueDepth;
-
-                const totalBoost = Math.max(
-                    baseVibrance,
-                    redDecor + orangeDecor + electricGreen + vividBlue + graffitiMagenta
-                );
-                s = softBoostSaturation(s, totalBoost);
             }
 
             // Convert HSL -> RGB

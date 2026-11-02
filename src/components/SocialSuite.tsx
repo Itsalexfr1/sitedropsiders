@@ -47,6 +47,7 @@ import { resolveImageUrl } from '../utils/image';
 import { resolveMusicSnippet } from '../utils/musicResolver';
 import { fixWebmDuration } from '../utils/fixWebm';
 import recapsData from '../data/recaps.json';
+import { renderPromoPhone3D } from './social/PromoPhone3DRenderer';
 import { translateToFrench } from '../utils/translate';
 // @ts-ignore
 import { FFmpeg } from '@ffmpeg/ffmpeg';
@@ -1869,7 +1870,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
     const [promoCustomPhrase, setPromoCustomPhrase] = useState<string>('');
     const [promoCustomSubphrase, setPromoCustomSubphrase] = useState<string>('');
-    const [promoOutroStyle, setPromoOutroStyle] = useState<'INSTAGRAM' | 'CLASSIC'>('INSTAGRAM');
+    const [promoOutroStyle, setPromoOutroStyle] = useState<'INSTAGRAM' | 'CLASSIC' | 'PHONE_3D'>('PHONE_3D');
     const [isPromoAnimPlaying, setIsPromoAnimPlaying] = useState<boolean>(false);
     const [promoAnimKey, setPromoAnimKey] = useState<number>(0);
     const [showPromoHook, setShowPromoHook] = useState<boolean>(false);
@@ -2102,6 +2103,34 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         logo.crossOrigin = "anonymous";
         logo.onload = () => { logoRef.current = logo; };
         if (logo.complete) { logoRef.current = logo; }
+
+        // Préchargement des assets pour la slide Promo Smartphone 3D
+        const phoneAssets = [
+            '/images/instagram/avatar_clean.png',
+            '/images/instagram/post_full_1.jpg',
+            '/images/instagram/post_full_2.jpg',
+            '/images/instagram/post_full_3.jpg',
+            '/images/instagram/post_full_4.jpg',
+            '/images/instagram/post_full_5.jpg',
+            '/images/instagram/post_full_6.jpg',
+            '/images/instagram/hl_circle_escape.png',
+            '/images/instagram/hl_circle_guetta.png',
+            '/images/instagram/hl_circle_electra.png',
+            '/images/instagram/hl_circle_edc.png',
+        ];
+        phoneAssets.forEach(url => {
+            if (!imageCacheRef.current[url]) {
+                const img = new Image();
+                img.crossOrigin = 'anonymous';
+                img.src = url;
+                img.onload = () => {
+                    imageCacheRef.current[url] = img;
+                };
+                if (img.complete) {
+                    imageCacheRef.current[url] = img;
+                }
+            }
+        });
     }, []);
 
     const baseThemeData: Record<ThemeType, { label: string; grad: string; color: string }> = {
@@ -2212,9 +2241,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
     useEffect(() => {
         if (!isPromoAnimPlaying) return;
+        const durationMs = promoOutroStyle === 'PHONE_3D' ? 8500 : 7500;
         const timer = setTimeout(() => {
             setIsPromoAnimPlaying(false);
-        }, 7500);
+        }, durationMs);
         return () => clearTimeout(timer);
     }, [isPromoAnimPlaying, promoAnimKey]);
 
@@ -2967,7 +2997,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 ? deterministicAnimTimeRef.current
                 : (isStaticPngExport
                     ? 99.0
-                    : ((bgVideo && !isDownloading) || isAnyAnimationActive || (theme === 'MUSIQUE' && !isDownloading && (cdjPlayerRing || musicBgMotion)) || (isCarouselPromoActive && promoOutroStyle === 'INSTAGRAM' && isPromoAnimPlaying)
+                    : ((bgVideo && !isDownloading) || isAnyAnimationActive || (theme === 'MUSIQUE' && !isDownloading && (cdjPlayerRing || musicBgMotion)) || (isCarouselPromoActive && (promoOutroStyle === 'INSTAGRAM' || promoOutroStyle === 'PHONE_3D') && isPromoAnimPlaying)
                         ? (Date.now() - animStartTimeRef.current) / 1000
                         : 99.0));
 
@@ -4000,20 +4030,20 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     : getTargetPromoCategory(promoCategory || theme);
 
                 const defaultHeadline = (activeTargetCategory === 'EVENTS')
-                    ? 'POUR ÊTRE INFORMÉ DE TOUS LES ÉVÉNEMENTS'
+                    ? 'POUR NE LOUPER AUCUN EVENTS ET FESTIVALS'
                     : (activeTargetCategory === 'MUSIQUE')
-                    ? 'POUR ÊTRE INFORMÉ DE TOUTES LES SORTIES MUSICALES'
+                    ? 'POUR NE RIEN RATER DE NOS TRACKS COUPS DE CŒURS'
                     : (activeTargetCategory === 'FOCUS')
                     ? 'POUR NE RIEN MANQUER DE NOS FOCUS & DOSSIERS'
                     : (activeTargetCategory === 'RECAPS')
                     ? 'POUR REVIVRE TOUS LES MEILLEURS FESTIVALS'
                     : (activeTargetCategory === 'CONCOURS')
-                    ? 'POUR NE RATER AUCUN CONCOURS & PASS FESTIVALS'
+                    ? 'POUR TENTER DE GAGNER TES PLACES ET PASS FESTIVALS'
                     : (activeTargetCategory === 'INTERVIEWS')
                     ? 'POUR NE RIEN MANQUER DE NOS INTERVIEWS EXCLUSIVES'
                     : (activeTargetCategory === 'VIDEOS')
                     ? 'POUR NE RIEN MANQUER DE NOS VIDÉOS & REELS'
-                    : 'POUR ÊTRE INFORMÉ DE TOUTES LES NEWS';
+                    : 'POUR NE RATER AUCUNE NEWS';
 
                 const effectiveHeadline = promoCustomPhrase.trim() 
                     ? promoCustomPhrase.trim().toUpperCase() 
@@ -4068,6 +4098,32 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 const dropsidersOffset = isReel ? (isAgendaPromo ? 105 : 90) : 80;
                 const pillsOffset = isReel ? (isAgendaPromo ? 75 : 65) : 55;
                 const pillH = isReel ? 44 : 40;
+
+                // ==========================================
+                // BRANCHE NOUVEAU STYLE : SMARTPHONE 3D (8.0s)
+                // ==========================================
+                if (promoOutroStyle === 'PHONE_3D') {
+                    const isStaticPreview = animElapsed >= 90.0;
+                    renderPromoPhone3D({
+                        ctx,
+                        canvas,
+                        isReel,
+                        tAnim: isStaticPreview ? 8.0 : animElapsed,
+                        isStaticPreview,
+                        activeColor,
+                        effectiveHeadline,
+                        effectiveSubphrase,
+                        qLines,
+                        qLineHeight,
+                        questionFontSize,
+                        promoFollowersCount,
+                        promoPostsCount,
+                        applyTextAnimCtx,
+                        imageCache: imageCacheRef.current
+                    });
+                    ctx.restore();
+                    return;
+                }
 
                 // Animation Timeline pour la Slide Promo Instagram :
                 const isInstagramStyle = promoOutroStyle === 'INSTAGRAM';
@@ -9242,7 +9298,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         const shouldAnimateBadge = isBadgeTheme && activeTab === 'REEL';
         const shouldAnimateMap = theme === 'MAP' && isMapAnimPlaying;
         const shouldAnimateTweet = isEditorialTweetActive && tweetAnimMode !== 'NONE';
-        if (bgVideo || textAnimation !== 'NONE' || bgAnimation !== 'NONE' || showArticleLink || theme === 'TRACKLIST' || theme === 'MUSIQUE' || (theme === 'JEU_DJ' && djAppearanceAnim !== 'STATIC') || transitionProgress > 0 || shouldAnimateBadge || (showSwipe && activeTab === 'REEL') || (isCarouselPromoActive && promoOutroStyle === 'INSTAGRAM' && isPromoAnimPlaying) || theme === 'TOP 100 DROPSIDERS' || shouldAnimateMap || shouldAnimateTweet) {
+        if (bgVideo || textAnimation !== 'NONE' || bgAnimation !== 'NONE' || showArticleLink || theme === 'TRACKLIST' || theme === 'MUSIQUE' || (theme === 'JEU_DJ' && djAppearanceAnim !== 'STATIC') || transitionProgress > 0 || shouldAnimateBadge || (showSwipe && activeTab === 'REEL') || (isCarouselPromoActive && (promoOutroStyle === 'INSTAGRAM' || promoOutroStyle === 'PHONE_3D') && isPromoAnimPlaying) || theme === 'TOP 100 DROPSIDERS' || shouldAnimateMap || shouldAnimateTweet) {
             let isRendering = false;
             const loop = () => {
                 if (isVideoRecordingRef.current) return;
@@ -13240,28 +13296,50 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 </button>
             </div>
 
-            {/* Style de la Slide Promo (Verrouillé Animation Instagram 7s) */}
+            {/* Style de la Slide Promo : Choix entre Smartphone 3D (8s) et Carte Instagram (7s) */}
             <div className="p-3.5 bg-gradient-to-r from-neon-red/10 via-[#ff007f]/10 to-[#0095f6]/10 border border-[#0095f6]/40 rounded-2xl space-y-2.5 shadow-sm">
                 <div className="flex items-center justify-between">
                     <span className="text-[10px] font-black uppercase text-white flex items-center gap-1.5">
-                        📱 Slide Promo : Profil Instagram Dropsiders 🔒
+                        <Smartphone className="w-3.5 h-3.5 text-[#0095f6]" />
+                        <span>Style Visuel Promo</span>
                     </span>
                     <span className="text-[8.5px] px-2 py-0.5 rounded-full font-bold bg-[#0095f6]/20 border border-[#0095f6]/40 text-[#0095f6] flex items-center gap-1">
-                        🔒 Fixe 7.0s
+                        {promoOutroStyle === 'PHONE_3D' ? '📱 Smartphone 3D (8s)' : '💳 Carte Instagram (7s)'}
                     </span>
                 </div>
 
-                <div className="p-2.5 bg-black/40 rounded-xl border border-white/10 flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                        <Instagram className="w-4 h-4 text-[#ff007f]" />
-                        <div>
-                            <p className="text-[9.5px] font-black text-white uppercase">Animation Officielle Instagram Follow</p>
-                            <p className="text-[8px] text-gray-400">Verrouillée à 7s • @dropsiders.fr</p>
-                        </div>
-                    </div>
-                    <span className="text-[11px] font-mono font-black text-[#00f0ff] bg-cyan-500/10 px-2 py-1 rounded-lg border border-cyan-500/30">
-                        7.0s
-                    </span>
+                {/* Sélecteur d'onglets de style */}
+                <div className="grid grid-cols-2 gap-2 p-1 bg-black/40 rounded-xl border border-white/10">
+                    <button
+                        type="button"
+                        onClick={() => {
+                            setPromoOutroStyle('PHONE_3D');
+                            setTimeout(() => generateImage(), 50);
+                        }}
+                        className={`py-2 px-3 rounded-lg text-[9.5px] font-black uppercase flex items-center justify-center gap-1.5 transition-all ${
+                            promoOutroStyle === 'PHONE_3D'
+                                ? 'bg-gradient-to-r from-blue-600 to-cyan-500 text-white shadow-md shadow-blue-500/30'
+                                : 'text-gray-400 hover:text-white bg-transparent'
+                        }`}
+                    >
+                        <Smartphone className="w-3.5 h-3.5" />
+                        <span>Smartphone 3D (8s)</span>
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => {
+                            setPromoOutroStyle('INSTAGRAM');
+                            setTimeout(() => generateImage(), 50);
+                        }}
+                        className={`py-2 px-3 rounded-lg text-[9.5px] font-black uppercase flex items-center justify-center gap-1.5 transition-all ${
+                            promoOutroStyle === 'INSTAGRAM'
+                                ? 'bg-gradient-to-r from-[#bc1888] to-[#0095f6] text-white shadow-md shadow-pink-500/30'
+                                : 'text-gray-400 hover:text-white bg-transparent'
+                        }`}
+                    >
+                        <Instagram className="w-3.5 h-3.5" />
+                        <span>Carte Insta (7s)</span>
+                    </button>
                 </div>
 
                 {/* Réglage des stats Instagram modifiables sans passer par le code */}
