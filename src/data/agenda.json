@@ -592,5 +592,24 @@
     "isSoldOut": false,
     "isLiveDropsiders": false,
     "additionalDates": []
+  },
+  {
+    "id": 1148,
+    "title": "Gonzi / Mosmoz",
+    "date": "2026-11-21",
+    "startDate": "2026-11-21",
+    "endDate": "2026-11-21",
+    "venue": "Titan Club",
+    "location": "LYON",
+    "country": "FRANCE",
+    "type": "Clubs",
+    "image": "/uploads/uploads/c7c7774a9e254d23-1_kajarn.webp",
+    "url": "https://shotgun.live/fr/events/mosmoz-gonzi",
+    "genre": "Hard Music",
+    "month": "NOVEMBRE",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false,
+    "additionalDates": []
   }
 ]
