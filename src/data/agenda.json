@@ -516,5 +516,24 @@
     "isSoldOut": false,
     "isLiveDropsiders": false,
     "additionalDates": []
+  },
+  {
+    "id": 1144,
+    "title": "Franky Rizardo présent More To Life ",
+    "date": "2027-01-16",
+    "startDate": "2027-01-16",
+    "endDate": "2027-01-16",
+    "venue": "Ziggo Dome",
+    "location": "AMSTERDAM",
+    "country": "PAYS-BAS",
+    "type": "Concert",
+    "image": "/uploads/f7bdb46c1223ef13-img_6203.jpeg",
+    "url": "https://app.innercrowd.io/r/b938ced5-f98f-4f41-b237-61c0ce36d1e9/c60b8e89-249e-4e0b-846a-cae9bac009bc",
+    "genre": "Tech House",
+    "month": "JANVIER",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false,
+    "additionalDates": []
   }
 ]
