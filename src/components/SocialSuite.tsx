@@ -2241,7 +2241,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
     useEffect(() => {
         if (!isPromoAnimPlaying) return;
-        const durationMs = promoOutroStyle === 'PHONE_3D' ? 8500 : 7500;
+        const durationMs = promoOutroStyle === 'PHONE_3D' ? 10500 : 7500;
         const timer = setTimeout(() => {
             setIsPromoAnimPlaying(false);
         }, durationMs);
@@ -4110,7 +4110,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         ctx,
                         canvas,
                         isReel,
-                        tAnim: isStaticPreview ? 8.0 : animElapsed,
+                        tAnim: isStaticPreview ? 10.0 : animElapsed,
                         isStaticPreview,
                         activeColor,
                         effectiveHeadline,
@@ -9677,7 +9677,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         const currentTransitionDuration = getTransitionDuration(slideTransition);
         let totalDuration = 0;
         if (combinedMode === 'PROMO_ONLY') {
-            totalDuration = promoOutroStyle === 'PHONE_3D' ? 8200 : 7000; // 8.2s pour Smartphone 3D, 7.0s pour Instagram
+            totalDuration = promoOutroStyle === 'PHONE_3D' ? 10000 : 7000; // 10.0s pour Smartphone 3D, 7.0s pour Instagram
         } else if (combinedMode === 'EDITORIAL') {
             const isMusicTheme = (theme === 'MUSIQUE');
             const shouldSkipSlide2 = skipEditorialSlide2;
@@ -9688,12 +9688,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ? [1, ...extraEditorialSlides.map((_, i) => i + 3)]
                     : [1, 2, ...extraEditorialSlides.map((_, i) => i + 3)]);
             const numContentSlides = contentSlideNumbers.length + (hasAfficheSlide ? 1 : 0);
-            const promoDuration = promoOutroStyle === 'PHONE_3D' ? 8200 : 7000; // 8.2s pour Smartphone 3D, 7.0s pour Instagram
+            const promoDuration = promoOutroStyle === 'PHONE_3D' ? 10000 : 7000; // 10.0s pour Smartphone 3D, 7.0s pour Instagram
             const transitionDuration = currentTransitionDuration;
             const slideDuration = Math.round(editorialSlide1Duration * 1000);
             totalDuration = (numContentSlides * slideDuration) + (numContentSlides * transitionDuration) + promoDuration;
         } else if (combinedMode === 'PLANNING') {
-            const promoDuration = promoOutroStyle === 'PHONE_3D' ? 8200 : 7000; // 8.2s pour Smartphone 3D, 7.0s pour Instagram
+            const promoDuration = promoOutroStyle === 'PHONE_3D' ? 10000 : 7000; // 10.0s pour Smartphone 3D, 7.0s pour Instagram
             const transitionDuration = currentTransitionDuration;
             const slideDuration = 5200;
             const numAgendaSlides = 2 + agendaAffiches.length;
@@ -13306,7 +13306,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         <span>Style Visuel Promo</span>
                     </span>
                     <span className="text-[8.5px] px-2 py-0.5 rounded-full font-bold bg-[#0095f6]/20 border border-[#0095f6]/40 text-[#0095f6] flex items-center gap-1">
-                        {promoOutroStyle === 'PHONE_3D' ? '📱 Smartphone 3D (8s)' : '💳 Carte Instagram (7s)'}
+                        {promoOutroStyle === 'PHONE_3D' ? '📱 Smartphone 3D (10s)' : '💳 Carte Instagram (7s)'}
                     </span>
                 </div>
 
@@ -13325,7 +13325,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         }`}
                     >
                         <Smartphone className="w-3.5 h-3.5" />
-                        <span>Smartphone 3D (8s)</span>
+                        <span>Smartphone 3D (10s)</span>
                     </button>
                     <button
                         type="button"
@@ -13456,7 +13456,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         className="w-full py-2.5 px-3 rounded-xl bg-gradient-to-r from-[#0095f6]/25 to-[#bc1888]/25 hover:from-[#0095f6]/35 hover:to-[#bc1888]/35 border border-[#0095f6]/50 text-white text-[9.5px] font-black uppercase flex items-center justify-center gap-2 transition-all active:scale-95 shadow-md shadow-blue-500/10"
                     >
                         <Play className={`w-3.5 h-3.5 text-[#0095f6] ${isPromoAnimPlaying ? 'animate-spin' : ''}`} />
-                        {isPromoAnimPlaying ? `⏱️ Lecture animation ${promoOutroStyle === 'PHONE_3D' ? '8' : '7'}s en direct...` : `▶️ Tester l'animation ${promoOutroStyle === 'PHONE_3D' ? '8' : '7'}s dans l'aperçu`}
+                        {isPromoAnimPlaying ? `⏱️ Lecture animation ${promoOutroStyle === 'PHONE_3D' ? '10' : '7'}s en direct...` : `▶️ Tester l'animation ${promoOutroStyle === 'PHONE_3D' ? '10' : '7'}s dans l'aperçu`}
                     </button>
                     <div className="p-2 bg-black/50 rounded-lg border border-white/5 text-[8px] text-gray-400 font-medium leading-relaxed">
                         <span className="text-[#0095f6] font-bold">⏱️ Séquence exportée 7s :</span> 0s à 1s (Texte centré) ➔ 1s à 4s (Carte Insta & Clic Suivre) ➔ 4s à 7s (Descente Insta sans fondu & Texte remis normalement)
@@ -13796,7 +13796,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         🎬 Exporter Slide Promo Seule
                     </span>
                     <span className="text-[8px] font-mono text-[#00f0ff] font-bold">
-                        {activeTab === 'REEL' ? 'Story (9:16)' : 'Post (1:1)'} • {promoOutroStyle === 'PHONE_3D' ? '8.0' : '7.0'}s MP4
+                        {activeTab === 'REEL' ? 'Story (9:16)' : 'Post (1:1)'} • {promoOutroStyle === 'PHONE_3D' ? '10.0' : '7.0'}s MP4
                     </span>
                 </div>
                 <div>
@@ -13806,7 +13806,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         disabled={isDownloading || isVideoRecording}
                         className="w-full py-2.5 px-3 bg-gradient-to-r from-neon-red to-orange-600 hover:from-red-600 hover:to-orange-500 text-white rounded-xl text-[10px] font-black uppercase transition-all flex items-center justify-center gap-2 shadow-md shadow-red-500/20 active:scale-95 disabled:opacity-40"
                     >
-                        <Video className="w-4 h-4 text-white" /> {isVideoRecording ? 'Capture...' : `🎬 Exporter Vidéo MP4 (${promoOutroStyle === 'PHONE_3D' ? '8' : '7'}s)`}
+                        <Video className="w-4 h-4 text-white" /> {isVideoRecording ? 'Capture...' : `🎬 Exporter Vidéo MP4 (${promoOutroStyle === 'PHONE_3D' ? '10' : '7'}s)`}
                     </button>
                 </div>
             </div>

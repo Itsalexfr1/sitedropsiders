@@ -669,8 +669,8 @@ export function renderPromoPhone3D(opts: PromoPhone3DOptions) {
         { name: 'YouTube', handle: '@dropsiders', color: '#ff0000' }
     ];
 
-    // Calcul de l'index actif (cycle 8.0s)
-    const activeNetIdx = isStaticPreview ? 0 : Math.floor((tAnim / 2.66) % 3);
+    // Calcul de l'index actif (cycle 10.0s : 3.33s par réseau)
+    const activeNetIdx = isStaticPreview ? 0 : Math.floor((tAnim / 3.33) % 3);
     const netsStartX = dockX + 74 * s;
     const netsAreaW = dockW - 78 * s;
     const netItemW = netsAreaW / 3;
