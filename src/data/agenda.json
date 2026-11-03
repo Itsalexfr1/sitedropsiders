@@ -573,5 +573,24 @@
     "isSoldOut": false,
     "isLiveDropsiders": false,
     "additionalDates": []
+  },
+  {
+    "id": 1147,
+    "title": "Schlasherz / Perle",
+    "date": "2026-11-14",
+    "startDate": "2026-11-14",
+    "endDate": "2026-11-14",
+    "venue": "Titan Club",
+    "location": "LYON",
+    "country": "FRANCE",
+    "type": "Clubs",
+    "image": "/uploads/uploads/0c8435ad9235ea07-whatsapp_image_2026_10_13_at_1.webp",
+    "url": "https://shotgun.live/fr/events/schlasherz-perle",
+    "genre": "Hard Music",
+    "month": "NOVEMBRE",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false,
+    "additionalDates": []
   }
 ]
