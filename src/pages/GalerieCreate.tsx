@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { getAuthHeaders, apiFetch } from '../utils/auth';
 import { motion, AnimatePresence } from 'framer-motion';
-import { User, Check, Send, Image as ImageIcon, FileText, Calendar, AlertCircle, Grid, ArrowLeft, Trash2, Edit2, Film, Plus, X } from 'lucide-react';
+import { User, Check, Send, Image as ImageIcon, FileText, Calendar, AlertCircle, Grid, ArrowLeft, Trash2, Edit2, Film, Plus, X, Sparkles } from 'lucide-react';
 import { useNavigate, useLocation, useSearchParams, useBlocker } from 'react-router-dom';
 import { ImageUploadModal } from '../components/ImageUploadModal';
 import { ConfirmationModal } from '../components/ConfirmationModal';
@@ -70,6 +70,7 @@ export function GalerieCreate() {
     const [replaceIndex, setReplaceIndex] = useState<number | null>(null);
     const [isLoading, setIsLoading] = useState(isEditing && !editingItem);
     const [showRawLinks, setShowRawLinks] = useState(false);
+    const [isProFilter, setIsProFilter] = useState(false);
 
     const [author, setAuthor] = useState(() => {
         return localStorage.getItem('admin_name') || localStorage.getItem('admin_user') || 'Alex';
@@ -131,6 +132,7 @@ export function GalerieCreate() {
                             setCoverUrl(item.cover);
                             setHoverMediaUrl(item.hoverMedia || '');
                             setImageUrls(item.images?.join('\n') || '');
+                            if (item.isProFilter !== undefined) setIsProFilter(Boolean(item.isProFilter));
                         }
                     }
                 } catch (e: any) {
@@ -155,6 +157,7 @@ export function GalerieCreate() {
             setCoverUrl(editingItem.cover);
             setHoverMediaUrl(editingItem.hoverMedia || '');
             setImageUrls(editingItem.images?.join('\n') || '');
+            if (editingItem.isProFilter !== undefined) setIsProFilter(Boolean(editingItem.isProFilter));
         }
     }, [isEditing, editingItem]);
 
@@ -250,7 +253,8 @@ export function GalerieCreate() {
                     cover: finalCover,
                     hoverMedia: hoverMediaUrl,
                     images: images,
-                    author: author
+                    author: author,
+                    isProFilter: isProFilter
                 }),
             });
 
@@ -278,6 +282,7 @@ export function GalerieCreate() {
                 setCoverUrl('');
                 setHoverMediaUrl('');
                 setImageUrls('');
+                setIsProFilter(false);
                 setIsAuthorConfirmed(false);
                 setTimeout(() => setStatus('idle'), 3000);
             } else {
@@ -338,6 +343,20 @@ export function GalerieCreate() {
                     </div>
 
                     <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
+                        <button
+                            type="button"
+                            onClick={() => setIsProFilter(!isProFilter)}
+                            className={`flex-1 md:flex-none flex items-center justify-center gap-2 px-5 py-3 rounded-xl font-black uppercase tracking-widest text-xs transition-all border cursor-pointer ${
+                                isProFilter
+                                    ? 'bg-neon-cyan/20 border-neon-cyan/50 text-neon-cyan shadow-[0_0_15px_rgba(0,240,255,0.25)]'
+                                    : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'
+                            }`}
+                            title="Activer ou désactiver l'effet Festival PRO sur les photos de l'album"
+                        >
+                            <Sparkles className="w-4 h-4" />
+                            <span>{isProFilter ? 'FILTRE PRO : ACTIF' : 'FILTRE PRO'}</span>
+                        </button>
+
                         <button
                             type="button"
                             onClick={() => handleSubmit(null, true)}

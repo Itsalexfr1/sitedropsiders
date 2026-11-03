@@ -10,6 +10,7 @@ import { extractIdFromSlug } from '../utils/slugify';
 import { trackPageView } from '../utils/analytics';
 import { MediaInteractions } from '../components/shared/MediaInteractions';
 import { resolveImageUrl } from '../utils/image';
+import { exportPhotoWithFilter, triggerBlobDownload } from '../utils/imageExport';
 
 export function AlbumDetail() {
     const { t } = useLanguage();
@@ -26,6 +27,7 @@ export function AlbumDetail() {
     const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
     const [copied, setCopied] = useState(false);
     const [isAdmin, setIsAdmin] = useState(false);
+    const isProFilter = Boolean((album as any)?.isProFilter);
 
     useEffect(() => {
         setIsAdmin(localStorage.getItem('admin_auth_v2') === 'true');
@@ -63,16 +65,25 @@ export function AlbumDetail() {
         }
     };
 
+    const handleDownloadPhoto = async (photoUrl: string, index: number) => {
+        try {
+            const safeTitle = (album?.title || 'album').toLowerCase().replace(/[^a-z0-9]+/g, '-');
+            const filename = `${safeTitle}-${index + 1}.jpg`;
+            const { blob, filename: finalFilename } = await exportPhotoWithFilter(photoUrl, isProFilter, filename);
+            triggerBlobDownload(blob, finalFilename);
+        } catch (e) {
+            console.error('Download photo error:', e);
+        }
+    };
+
     const handleStoryShare = async () => {
         if (!album || !album.cover) return;
         const mediaUrl = album.cover;
         const sharePageUrl = window.location.href;
         try {
-            // Try to fetch image as blob for direct file sharing (story mode)
-            const response = await fetch(resolveImageUrl(mediaUrl));
-            const blob = await response.blob();
-            const ext = blob.type.includes('png') ? 'png' : blob.type.includes('gif') ? 'gif' : 'jpg';
-            const file = new File([blob], `dropsiders-story.${ext}`, { type: blob.type });
+            // Export image with Festival PRO filter if active
+            const { blob, filename } = await exportPhotoWithFilter(mediaUrl, isProFilter, 'dropsiders-story.jpg');
+            const file = new File([blob], filename, { type: blob.type });
 
             if (navigator.canShare && navigator.canShare({ files: [file] })) {
                 await navigator.share({
@@ -90,11 +101,7 @@ export function AlbumDetail() {
                 });
             } else {
                 // Desktop: download the image
-                const a = document.createElement('a');
-                a.href = URL.createObjectURL(blob);
-                a.download = `dropsiders-story.${ext}`;
-                a.click();
-                URL.revokeObjectURL(a.href);
+                triggerBlobDownload(blob, filename);
             }
         } catch (e) {
             // Fallback
@@ -167,6 +174,7 @@ export function AlbumDetail() {
                             </div>
 
                             <div className="flex items-center gap-4">
+
                                 {isAdmin && (
                                     <button
                                         onClick={handleEdit}
@@ -248,14 +256,14 @@ export function AlbumDetail() {
 
             {/* Photo Grid */}
             <div className="w-full px-4 sm:px-6 lg:px-12 xl:px-16 2xl:px-24 py-12">
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div className={`gallery-premium-grid ${isProFilter ? 'pro-filter-active' : ''} grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6`}>
                     {album.images.map((img, index) => (
                         <motion.div
                             key={index}
                             initial={{ opacity: 0, scale: 0.9 }}
                             animate={{ opacity: 1, scale: 1 }}
                             transition={{ delay: index * 0.05 }}
-                            className="relative aspect-square rounded-2xl overflow-hidden group cursor-pointer bg-black/20 border border-white/5 hover:border-white/20 transition-all"
+                            className="article-gallery-item relative aspect-square rounded-2xl overflow-hidden group cursor-pointer bg-black/20 border border-white/5 hover:border-white/20 transition-all"
                             onClick={() => setSelectedPhoto(img)}
                         >
                             <img
@@ -270,13 +278,21 @@ export function AlbumDetail() {
 
                             {/* Hover Overlay */}
                             <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                                <div className="flex gap-3 scale-0 group-hover:scale-100 transition-transform duration-300">
-                                    <div className="p-3 bg-white/10 backdrop-blur-md rounded-xl hover:bg-neon-red transition-colors text-white">
+                                <div className="flex gap-3 scale-0 group-hover:scale-100 transition-transform duration-300" onClick={(e) => e.stopPropagation()}>
+                                    <button
+                                        onClick={() => setSelectedPhoto(img)}
+                                        className="p-3 bg-white/10 backdrop-blur-md rounded-xl hover:bg-neon-red transition-colors text-white cursor-pointer"
+                                        title="Agrandir la photo"
+                                    >
                                         <Maximize2 className="w-5 h-5" />
-                                    </div>
-                                    <div className="p-3 bg-white/10 backdrop-blur-md rounded-xl hover:bg-white/20 transition-colors text-white">
+                                    </button>
+                                    <button
+                                        onClick={() => handleDownloadPhoto(img, index)}
+                                        className="p-3 bg-white/10 backdrop-blur-md rounded-xl hover:bg-neon-cyan/40 hover:border-neon-cyan/50 border border-white/10 transition-all text-white cursor-pointer"
+                                        title={isProFilter ? "Télécharger (Filtre Festival PRO)" : "Télécharger (Original)"}
+                                    >
                                         <Download className="w-5 h-5" />
-                                    </div>
+                                    </button>
                                 </div>
                             </div>
                         </motion.div>

@@ -5,7 +5,7 @@ import {
     Underline as UnderlineIcon, Check, Wand2, MapPin, Calendar, Globe, Youtube, 
     Columns, List, Trash2, ArrowLeft, User, CheckCircle2, Send, Star, FileText,
     Music, AlertCircle, Edit2, CaseUpper, Upload, Clock, Facebook, Instagram,
-    ChevronUp, ChevronDown, Link2, Palette, X, Eye, Quote, Save,
+    ChevronUp, ChevronDown, Link2, Palette, X, Eye, Quote, Save, Sparkles
 } from 'lucide-react';
 import { useNavigate, useSearchParams, useLocation, useBlocker } from 'react-router-dom';
 import { getAuthHeaders, isSuperAdmin, isAuthorMatch, canUserDelete } from '../utils/auth';
@@ -1002,6 +1002,7 @@ export function NewsCreate() {
     const [showUploadModal, setShowUploadModal] = useState(false);
     const [uploadTarget, setUploadTarget] = useState<{ type: 'main' | 'widget' | 'widget-edit' | 'duo-image' | 'interview-media' | 'video-article' | 'festival-artist', index?: number, widgetId?: string, interviewBlockId?: string, initialImage?: string, allowMultiple?: boolean }>({ type: 'main' });
     const [isFeatured, setIsFeatured] = useState(false);
+    const [isProFilter, setIsProFilter] = useState(false);
     const [isReview, setIsReview] = useState(false);
     const [showVideo, setShowVideo] = useState(type !== 'Interview' || (type === 'Interview' && (searchParams.get('subtype') === 'video')));
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -1154,6 +1155,7 @@ export function NewsCreate() {
             if (articleData.year) setYear(articleData.year);
             if (articleData.isFeatured !== undefined) setIsFeatured(articleData.isFeatured);
             if (articleData.isReview !== undefined) setIsReview(articleData.isReview);
+            if (articleData.isProFilter !== undefined) setIsProFilter(Boolean(articleData.isProFilter));
             if (articleData.author) setAuthor(articleData.author);
             setIsAuthorConfirmed(true);
 
@@ -2110,7 +2112,7 @@ ${videoIds.map(id => `  <div class="youtube-player-widget">
             const cols = mediaModal.cols || 4;
             const colClass = cols === 2 ? 'grid-cols-2' : cols === 3 ? 'grid-cols-3' : 'grid-cols-2 lg:grid-cols-4';
             content = `<div class="gallery-premium-grid grid grid-cols-1 ${colClass} gap-6 my-12" data-cols="${cols}">
-${urlList.map(u => `  <div class="aspect-square relative overflow-hidden rounded-2xl border border-white/10 group shadow-2xl">
+${urlList.map(u => `  <div class="article-gallery-item aspect-square relative overflow-hidden rounded-2xl border border-white/10 group shadow-2xl">
 <img src="${u}" class="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
   </div>`).join('\n')
                 }
@@ -2542,6 +2544,7 @@ ${generateSocialsHtml()}
                 year: year || undefined,
                 isFocus,
                 isFeatured,
+                isProFilter,
                 isReview: activeTab === 'Review',
                 isDraft: finalIsDraft,
                 author: (() => {
@@ -2840,6 +2843,13 @@ ${generateSocialsHtml()}
                                 label={isFeatured ? 'À LA UNE' : 'UNE'}
                                 icon={Star}
                                 colorClass="neon-yellow"
+                            />
+                            <StyledCheckbox
+                                checked={isProFilter}
+                                onChange={setIsProFilter}
+                                label={isProFilter ? 'FILTRE PRO : ACTIF' : 'FILTRE PRO'}
+                                icon={Sparkles}
+                                colorClass="neon-cyan"
                             />
                         </div>
                     </motion.div>

@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Heart, Share2, MessageSquare, X, Maximize2, Trash2, Instagram, Music, ChevronLeft, ChevronRight, Sparkles } from 'lucide-react';
+import { Heart, Share2, MessageSquare, X, Maximize2, Trash2, Instagram, Music, ChevronLeft, ChevronRight, Sparkles, Download } from 'lucide-react';
 import { getAuthHeaders } from '../../utils/auth';
 import { resolveImageUrl } from '../../utils/image';
+import { exportPhotoWithFilter, triggerBlobDownload } from '../../utils/imageExport';
 
 interface MediaStats {
     likes: number;
@@ -114,15 +115,26 @@ export function MediaInteractions({ type, id, onClose, isAdmin, isModo, videoUrl
         } catch (e) { console.error(e); }
     };
 
+    const handleDirectDownload = async () => {
+        const mediaUrl = imageUrl || currentId;
+        try {
+            showToast('Export photo en cours...');
+            const { blob, filename } = await exportPhotoWithFilter(mediaUrl, true, 'dropsiders-photo.jpg');
+            triggerBlobDownload(blob, filename);
+            showToast('Photo HD téléchargée avec succès !');
+        } catch (e) {
+            console.error('Download error:', e);
+            showToast('Erreur lors du téléchargement');
+        }
+    };
+
     const handleStoryShare = async () => {
         const mediaUrl = imageUrl || currentId;
         const sharePageUrl = getSharePageUrl();
         try {
-            // Try to fetch image as blob for direct file sharing (story mode)
-            const response = await fetch(resolveImageUrl(mediaUrl));
-            const blob = await response.blob();
-            const ext = blob.type.includes('png') ? 'png' : blob.type.includes('gif') ? 'gif' : 'jpg';
-            const file = new File([blob], `dropsiders-story.${ext}`, { type: blob.type });
+            // Export image with Festival PRO filter
+            const { blob, filename } = await exportPhotoWithFilter(mediaUrl, true, 'dropsiders-story.jpg');
+            const file = new File([blob], filename, { type: blob.type });
 
             await fetch('/api/media/share', {
                 method: 'POST',
@@ -148,12 +160,8 @@ export function MediaInteractions({ type, id, onClose, isAdmin, isModo, videoUrl
                 setStats(prev => ({ ...prev, shares: prev.shares + 1 }));
             } else {
                 // Desktop: download the image
-                const a = document.createElement('a');
-                a.href = URL.createObjectURL(blob);
-                a.download = `dropsiders-story.${ext}`;
-                a.click();
-                URL.revokeObjectURL(a.href);
-                showToast('Image téléchargée — ajoute-la en story !');
+                triggerBlobDownload(blob, filename);
+                showToast('Image exportée — ajoute-la en story !');
             }
         } catch (e) {
             // If fetch fails (CORS etc), fallback to link share
@@ -356,12 +364,20 @@ export function MediaInteractions({ type, id, onClose, isAdmin, isModo, videoUrl
                             </div>
                             <span className="text-[10px] font-black text-gray-500 group-hover:text-white uppercase tracking-tighter transition-colors">TikTok</span>
                         </button>
-                        <button onClick={handleStoryShare} className="flex flex-col items-center gap-1.5 group">
+                        <button onClick={handleStoryShare} className="flex flex-col items-center gap-1.5 group cursor-pointer" title="Partager en Story">
                             <div className="p-4 bg-white/5 rounded-[1.25rem] group-hover:bg-fuchsia-500/20 transition-all text-gray-400 group-hover:text-fuchsia-400">
                                 <Sparkles className="w-7 h-7" />
                             </div>
                             <span className="text-[10px] font-black text-gray-500 group-hover:text-white uppercase tracking-tighter transition-colors">Story</span>
                         </button>
+                        {type === 'photo' && (
+                            <button onClick={handleDirectDownload} className="flex flex-col items-center gap-1.5 group cursor-pointer" title="Télécharger avec Festival PRO">
+                                <div className="p-4 bg-white/5 rounded-[1.25rem] group-hover:bg-neon-cyan/20 transition-all text-gray-400 group-hover:text-neon-cyan">
+                                    <Download className="w-7 h-7" />
+                                </div>
+                                <span className="text-[10px] font-black text-gray-500 group-hover:text-white uppercase tracking-tighter transition-colors">Export HD</span>
+                            </button>
+                        )}
                         <button onClick={() => setShowComments(!showComments)} className="flex flex-col items-center gap-1.5 group">
                             <div className={`p-4 bg-white/5 rounded-[1.25rem] group-hover:bg-neon-green/20 transition-all ${showComments ? 'text-neon-green bg-neon-green/10 shadow-[0_0_20px_rgba(52,211,153,0.2)]' : 'text-gray-400'} group-hover:text-neon-green`}>
                                 <MessageSquare className="w-7 h-7" />

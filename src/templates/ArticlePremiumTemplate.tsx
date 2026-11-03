@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Clock, ArrowLeft, ArrowRight, Play, Pause, Volume2, VolumeX, Camera, Share2, Check, MapPin, X, Edit2, Instagram, Facebook, Globe, Youtube, Link2, Sparkles } from 'lucide-react';
+import { Clock, ArrowLeft, ArrowRight, Play, Pause, Volume2, VolumeX, Camera, Share2, Check, MapPin, X, Edit2, Instagram, Facebook, Globe, Youtube, Link2, Sparkles, Download } from 'lucide-react';
 import { XIcon as XIconShared } from '../components/ui/XIcon';
 
 import { useHoverSound } from '../hooks/useHoverSound';
@@ -10,6 +10,7 @@ import { standardizeContent as standardizeText } from '../utils/standardizer';
 import { translateText, translateHTML } from '../utils/translate';
 import { getArticleLink, getRecapLink } from '../utils/slugify';
 import { resolveImageUrl } from '../utils/image';
+import { exportPhotoWithFilter, triggerBlobDownload } from '../utils/imageExport';
 import { getCategoryColor } from '../utils/theme';
 import { ArticleReader } from '../components/widgets/ArticleReader';
 import settings from '../data/settings.json';
@@ -1313,7 +1314,7 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
 
     return (
         <div 
-            className={`min-h-screen bg-dark-bg selection:bg-neon-red selection:text-white article-premium-wrapper ${type === 'recap' ? 'article-type-recap' : isInterview ? 'article-type-interview' : isMusic ? 'article-type-music' : 'article-type-news'}`}
+            className={`min-h-screen bg-dark-bg selection:bg-neon-red selection:text-white article-premium-wrapper ${article?.isProFilter ? 'pro-filter-active' : ''} ${type === 'recap' ? 'article-type-recap' : isInterview ? 'article-type-interview' : isMusic ? 'article-type-music' : 'article-type-news'}`}
             style={{ '--theme-color': themeColorHex } as React.CSSProperties}
         >
             {/* Reading Progress Bar (Neon) */}
@@ -1339,12 +1340,30 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
                         onClick={() => setSelectedImage(null)}
                         className="fixed inset-0 z-[100] bg-black/95 backdrop-blur-xl flex items-center justify-center p-4 cursor-zoom-out"
                     >
-                        <motion.button
-                            className="absolute top-8 right-8 text-white/50 hover:text-white transition-colors"
-                            onClick={() => setSelectedImage(null)}
-                        >
-                            <X className="w-10 h-10" />
-                        </motion.button>
+                        <div className="absolute top-8 right-8 flex items-center gap-4 z-50" onClick={(e) => e.stopPropagation()}>
+                            <button
+                                className="flex items-center gap-2 px-4 py-2.5 bg-white/10 hover:bg-neon-red/30 border border-white/20 hover:border-neon-red/50 rounded-xl text-white text-xs font-bold transition-all shadow-lg backdrop-blur-md cursor-pointer"
+                                onClick={async (e) => {
+                                    e.stopPropagation();
+                                    try {
+                                        const { blob, filename } = await exportPhotoWithFilter(selectedImage, true, 'dropsiders-photo.jpg');
+                                        triggerBlobDownload(blob, filename);
+                                    } catch (err) {
+                                        console.error('Export failed', err);
+                                    }
+                                }}
+                                title="Télécharger la photo (Export Festival PRO)"
+                            >
+                                <Download className="w-4 h-4" />
+                                <span>Exporter HD</span>
+                            </button>
+                            <motion.button
+                                className="text-white/50 hover:text-white transition-colors cursor-pointer"
+                                onClick={() => setSelectedImage(null)}
+                            >
+                                <X className="w-10 h-10" />
+                            </motion.button>
+                        </div>
                         <motion.img
                             initial={{ scale: 0.9, opacity: 0 }}
                             animate={{ scale: 1, opacity: 1 }}
@@ -1384,7 +1403,7 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
                         <img
                             src={resolveImageUrl(article.image)}
                             alt={article.title}
-                            className="w-full h-full object-cover"
+                            className="w-full h-full object-cover festival-pro-hero"
                             onError={(e) => {
                                 (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1514525253344-f814d074e015?q=80&w=1933&auto=format&fit=crop';
                             }}
@@ -1409,6 +1428,7 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
 
                         {/* Admin & Sharing Actions */}
                         <div className="flex items-center gap-3">
+
                             {isAdmin && (
                                 <button
                                     onClick={handleEdit}
@@ -1746,19 +1766,19 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
                                         );
                                     })()}
 
-                                {/* Gallery - Show for all except specifically requested exclusions */}
-                                {(article.images && article.images.length > 1 && type === 'recap') && (
+                                {/* Gallery - Show for all articles with multiple images */}
+                                {(article.images && article.images.length > 1) && (
                                     <div className="mt-20 pt-20 border-t border-white/5">
                                         <h3 className="text-2xl font-display font-black text-neon-red mb-10 flex flex-col items-center justify-center gap-3 uppercase italic text-center">
                                             <Camera className="w-8 h-8 text-neon-red" />
                                             {t('article_detail.gallery_title')}
                                         </h3>
-                                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                                        <div className="gallery-premium-grid grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                                             {/* Skip first image as it's the cover */}
                                             {article.images.slice(1).map((img: string, idx: number) => (
                                                 <div
                                                     key={idx}
-                                                    className="aspect-square cursor-pointer overflow-hidden rounded-3xl border border-white/10 group shadow-2xl bg-black relative"
+                                                    className="article-gallery-item aspect-square cursor-pointer overflow-hidden rounded-3xl border border-white/10 group shadow-2xl bg-black relative"
                                                     onClick={() => setSelectedImage(img)}
                                                 >
                                                     <img
@@ -1769,7 +1789,7 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
                                                             (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?q=80&w=2070&auto=format&fit=crop';
                                                         }}
                                                     />
-                                                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                                                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity z-10" />
                                                 </div>
                                             ))}
                                         </div>

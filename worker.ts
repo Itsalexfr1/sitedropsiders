@@ -5958,7 +5958,7 @@ ${urls.map(u => `  <url>
 
             try {
                 const body = await request.json();
-                const { title, date, summary, content, image, category, isFeatured, isFocus, isDraft, author, youtubeId: bodyYoutubeId, showVideo, year, sendPush, isReview } = body;
+                const { title, date, summary, content, image, category, isFeatured, isFocus, isDraft, author, youtubeId: bodyYoutubeId, showVideo, year, sendPush, isReview, isProFilter } = body;
                 if (!title || !content) return new Response(JSON.stringify({ error: 'Missing required fields' }), { status: 400, headers });
 
                 // 1. Update news.json (Metadata only)
@@ -5990,6 +5990,7 @@ ${urls.map(u => `  <url>
                     isFocus: isFocus || false,
                     isDraft: isDraft || false,
                     isReview: isReview || false,
+                    isProFilter: Boolean(isProFilter),
                     year: year || undefined,
                     link: `https://dropsiders.fr/news/${newId}_${title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`,
                     author: (() => {
@@ -6103,7 +6104,7 @@ ${urls.map(u => `  <url>
             const FILE_PATH = 'src/data/news.json';
             try {
                 const body = await request.json();
-                const { id, title, summary, content, image, category, date, isFeatured, isFocus, isDraft, author, youtubeId: bodyYoutubeId, showVideo: bodyShowVideo, year, sendPush, isReview } = body;
+                const { id, title, summary, content, image, category, date, isFeatured, isFocus, isDraft, author, youtubeId: bodyYoutubeId, showVideo: bodyShowVideo, year, sendPush, isReview, isProFilter } = body;
                 if (!id) return new Response(JSON.stringify({ error: 'Missing ID' }), { status: 400, headers });
 
                 // 1. Update Metadata
@@ -6178,6 +6179,7 @@ ${urls.map(u => `  <url>
                     isDraft: isDraft !== undefined ? isDraft : existing.isDraft,
                     isReview: isReview !== undefined ? isReview : existing.isReview,
                     year: year !== undefined ? (year || undefined) : existing.year,
+                    isProFilter: isProFilter !== undefined ? Boolean(isProFilter) : existing.isProFilter,
                     author: hasAll ? (author || existing.author || requestUsername || 'Alex') : (existing.author || requestUsername)
                 };
 
@@ -6752,24 +6754,42 @@ ${urls.map(u => `  <url>
             } catch (e: any) { return new Response(JSON.stringify({ error: e.message }), { status: 500, headers }); }
         }
 
-        // --- API: CREATE GALERIE ---
-        if (path === '/api/galerie/create' && request.method === 'POST') {
+        // --- API: CREATE OR UPDATE GALERIE ---
+        if ((path === '/api/galerie/create' || path === '/api/galerie/update') && request.method === 'POST') {
             if (!TOKEN) return new Response(JSON.stringify({ error: 'Config missing' }), { status: 500, headers });
             const FILE_PATH = 'src/data/galerie.json';
             try {
                 const body = await request.json();
-                const { title, date, category, cover, images } = body;
+                const { id, title, date, category, cover, images, hoverMedia, author, isProFilter } = body;
                 if (!title) return new Response(JSON.stringify({ error: 'Missing title' }), { status: 400, headers });
 
                 const galerieFile = await fetchGitHubFile(FILE_PATH, gitConfig) || { content: [], sha: null };
-                const newId = title.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+                const newId = id || title.toLowerCase().replace(/[^a-z0-9]+/g, '-');
 
-                const newItem = { id: newId, title, category, cover, images, date };
-                const updatedData = [newItem, ...galerieFile.content];
+                const newItem = {
+                    id: newId,
+                    title,
+                    category,
+                    cover,
+                    images,
+                    date,
+                    hoverMedia: hoverMedia || '',
+                    author: author || 'Alex',
+                    isProFilter: Boolean(isProFilter)
+                };
 
-                const saved = await saveGitHubFile(FILE_PATH, updatedData, `Add galerie: ${title}`, galerieFile.sha, gitConfig);
+                let updatedData;
+                const existingIndex = galerieFile.content.findIndex((item: any) => String(item.id) === String(newId));
+                if (existingIndex !== -1) {
+                    updatedData = [...galerieFile.content];
+                    updatedData[existingIndex] = { ...updatedData[existingIndex], ...newItem };
+                } else {
+                    updatedData = [newItem, ...galerieFile.content];
+                }
+
+                const saved = await saveGitHubFile(FILE_PATH, updatedData, `Save galerie: ${title}`, galerieFile.sha, gitConfig);
                 if (saved.ok) {
-                    return new Response(JSON.stringify({ success: true }), { status: 200, headers });
+                    return new Response(JSON.stringify({ success: true, item: newItem }), { status: 200, headers });
                 } else {
                     return new Response(JSON.stringify({ error: 'Error saving: ' + saved.error }), { status: 500, headers });
                 }
