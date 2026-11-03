@@ -2,65 +2,8 @@
   "profile": {
     "username": "dropsiders.fr",
     "name": "DROPSIDERS",
-    "avatar": "/images/instagram/avatar.jpg",
-    "followers": "4 698",
-    "postsCount": "1 441",
+    "followers": "4 698",
+    "postsCount": "144",
     "url": "https://www.instagram.com/dropsiders.fr/"
-  },
-  "posts": [
-    {
-      "id": "gta6_contest",
-      "title": "DROPSIDERS T'OFFRE GTA 6 SUR LA CONSOLE",
-      "permalink": "https://www.instagram.com/p/DeKtf3CoUgs/",
-      "image": "/images/instagram/post_gta6.jpg",
-      "type": "video",
-      "date": "08 OCTOBRE 2026",
-      "likes": 1240
-    },
-    {
-      "id": "top_100_djs",
-      "title": "LE DJ #1 AU CLASSEMENT TOP 100 DJ MAG EST....",
-      "permalink": "https://www.instagram.com/dropsiders.fr/",
-      "image": "/images/instagram/post_top100.jpg",
-      "type": "carousel",
-      "date": "07 OCTOBRE 2026",
-      "likes": 980
-    },
-    {
-      "id": "john_summit_zenith",
-      "title": "JOHN SUMMIT ANNONCE SA TOURNÉE EUROPÉENNE CTRL ESCAPE TOUR AVEC UNE DATE AU ZÉNITH DE PARIS",
-      "permalink": "https://www.instagram.com/dropsiders.fr/",
-      "image": "/images/instagram/post_johnsummit.jpg",
-      "type": "carousel",
-      "date": "06 OCTOBRE 2026",
-      "likes": 1512
-    },
-    {
-      "id": "fckg_halloween",
-      "title": "FCKG HALLOWEEN 2026 : LINE-UP & INFOS",
-      "permalink": "https://www.instagram.com/dropsiders.fr/",
-      "image": "/images/instagram/post_fckg.jpg",
-      "type": "carousel",
-      "date": "04 OCTOBRE 2026",
-      "likes": 845
-    },
-    {
-      "id": "edc_las_vegas_2027",
-      "title": "NOUS CONNAISSONS ENFIN LE PROGRAMME DES 12 JOURS DE L'EDC LAS VEGAS 2027 !",
-      "permalink": "https://www.instagram.com/dropsiders.fr/",
-      "image": "/images/instagram/post_edclv.jpg",
-      "type": "carousel",
-      "date": "30 SEPTEMBRE 2026",
-      "likes": 2130
-    },
-    {
-      "id": "festivals_halloween",
-      "title": "3 FESTIVALS INCONTOURNABLES - HALLOWEEN 2026",
-      "permalink": "https://www.instagram.com/dropsiders.fr/",
-      "image": "/images/instagram/post_festivals.jpg",
-      "type": "carousel",
-      "date": "27 SEPTEMBRE 2026",
-      "likes": 1094
-    }
-  ]
+  }
 }
