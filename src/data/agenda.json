@@ -611,5 +611,24 @@
     "isSoldOut": false,
     "isLiveDropsiders": false,
     "additionalDates": []
+  },
+  {
+    "id": 1149,
+    "title": "Seth Gueko En Featuring Avec Ennemi",
+    "date": "2026-11-28",
+    "startDate": "2026-11-28",
+    "endDate": "2026-11-28",
+    "venue": "Titan Club",
+    "location": "LYON",
+    "country": "FRANCE",
+    "type": "Clubs",
+    "image": "/uploads/uploads/5fce56057909d7a5-whatsapp_image_2026_10_15_at_1.webp",
+    "url": "https://shotgun.live/fr/events/sethgueko-ennemi",
+    "genre": "Hybride",
+    "month": "NOVEMBRE",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false,
+    "additionalDates": []
   }
 ]
