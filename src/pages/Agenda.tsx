@@ -1,12 +1,13 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSearchParams, Link } from 'react-router-dom';
-import { MapPin, ChevronDown, Filter, ChevronLeft, ChevronRight, X, Edit2, Trash2, CheckSquare, Square, Plus, Calendar, Heart, Search } from 'lucide-react';
+import { MapPin, ChevronDown, Filter, ChevronLeft, ChevronRight, X, Edit2, Trash2, CheckSquare, Square, Plus, Calendar, Heart, Search, Instagram } from 'lucide-react';
 import { useState, useMemo, useEffect } from 'react';
 import { useHoverSound } from '../hooks/useHoverSound';
 import { useLanguage } from '../context/LanguageContext';
 import { getAuthHeaders, isSuperAdmin, hasPermission as checkPerm } from '../utils/auth';
 import { AgendaModal } from '../components/AgendaModal';
 import { ConfirmationModal } from '../components/ConfirmationModal';
+import { SocialSuite } from '../components/SocialSuite';
 import { CollaborativeCalendar } from '../components/community/CollaborativeCalendar';
 
 import { extractIdFromSlug } from '../utils/slugify';
@@ -48,6 +49,8 @@ export function Agenda() {
     const canEdit = hasPermission('edit');
     const canDelete = hasPermission('delete');
     const [agendaData, setAgendaData] = useState<any[]>([]);
+    const [isSocialSuiteOpen, setIsSocialSuiteOpen] = useState(false);
+    const [socialEvent, setSocialEvent] = useState<any | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [selectedEvents, setSelectedEvents] = useState<Set<number>>(new Set());
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -474,18 +477,33 @@ export function Agenda() {
                             </p>
                         </div>
                         
-                        {canCreate && (
-                            <button
-                                onClick={() => {
-                                    setEditingEvent(null);
-                                    setIsEditModalOpen(true);
-                                }}
-                                className="flex items-center justify-center gap-3 px-8 py-4 bg-neon-fuchsia text-white rounded-2xl font-black uppercase tracking-widest hover:scale-105 transition-all shadow-[0_15px_40px_rgba(255,0,255,0.3)] mx-auto sm:mx-0"
-                            >
-                                <Plus className="w-5 h-5" />
-                                <span>{t('admin.add')}</span>
-                            </button>
-                        )}
+                        <div className="flex items-center gap-3 mx-auto sm:mx-0">
+                            {(canEdit || canCreate) && (
+                                <button
+                                    onClick={() => {
+                                        setSocialEvent(null);
+                                        setIsSocialSuiteOpen(true);
+                                    }}
+                                    className="flex items-center justify-center gap-2.5 px-6 py-4 bg-gradient-to-tr from-[#f9ce34] via-[#ee2a7b] to-[#6228d7] text-white rounded-2xl font-black uppercase tracking-wider hover:scale-105 transition-all shadow-xl text-xs"
+                                    title="Exporter l'agenda vers Social Studio"
+                                >
+                                    <Instagram className="w-5 h-5" />
+                                    <span>Social Studio</span>
+                                </button>
+                            )}
+                            {canCreate && (
+                                <button
+                                    onClick={() => {
+                                        setEditingEvent(null);
+                                        setIsEditModalOpen(true);
+                                    }}
+                                    className="flex items-center justify-center gap-3 px-8 py-4 bg-neon-fuchsia text-white rounded-2xl font-black uppercase tracking-widest hover:scale-105 transition-all shadow-[0_15px_40px_rgba(255,0,255,0.3)]"
+                                >
+                                    <Plus className="w-5 h-5" />
+                                    <span>{t('admin.add')}</span>
+                                </button>
+                            )}
+                        </div>
                     </div>
                 </motion.div>
 
@@ -1061,18 +1079,32 @@ export function Agenda() {
                                                                     )}
 
                                                                     {canEdit && (
-                                                                        <button
-                                                                            onClick={(e) => {
-                                                                                e.stopPropagation();
-                                                                                const original = agendaData.find((a: any) => a.id === event.id);
-                                                                                setEditingEvent(original || event);
-                                                                                setIsEditModalOpen(true);
-                                                                            }}
-                                                                            className="w-full md:w-auto flex items-center justify-center gap-3 px-8 py-4 bg-neon-fuchsia/10 text-neon-fuchsia border border-neon-fuchsia/20 rounded-xl font-black uppercase tracking-widest hover:bg-neon-fuchsia/20 transition-all text-xs"
-                                                                        >
-                                                                            <Edit2 className="w-4 h-4" />
-                                                                            {t('admin.modify')}
-                                                                        </button>
+                                                                        <div className="flex items-center gap-2 w-full md:w-auto">
+                                                                            <button
+                                                                                onClick={(e) => {
+                                                                                    e.stopPropagation();
+                                                                                    setSocialEvent(event);
+                                                                                    setIsSocialSuiteOpen(true);
+                                                                                }}
+                                                                                className="flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-4 bg-white/5 hover:bg-gradient-to-tr hover:from-[#f9ce34] hover:via-[#ee2a7b] hover:to-[#6228d7] text-white border border-white/10 rounded-xl font-black uppercase tracking-wider transition-all text-xs group"
+                                                                                title="Générer visuel Instagram pour cet événement"
+                                                                            >
+                                                                                <Instagram className="w-4 h-4 text-neon-fuchsia group-hover:text-white" />
+                                                                                <span>Social Studio</span>
+                                                                            </button>
+                                                                            <button
+                                                                                onClick={(e) => {
+                                                                                    e.stopPropagation();
+                                                                                    const original = agendaData.find((a: any) => a.id === event.id);
+                                                                                    setEditingEvent(original || event);
+                                                                                    setIsEditModalOpen(true);
+                                                                                }}
+                                                                                className="flex-1 md:flex-none flex items-center justify-center gap-3 px-8 py-4 bg-neon-fuchsia/10 text-neon-fuchsia border border-neon-fuchsia/20 rounded-xl font-black uppercase tracking-widest hover:bg-neon-fuchsia/20 transition-all text-xs"
+                                                                            >
+                                                                                <Edit2 className="w-4 h-4" />
+                                                                                {t('admin.modify')}
+                                                                            </button>
+                                                                        </div>
                                                                     )}
                                                                 </div>
                                                             </div>
@@ -1193,11 +1225,23 @@ export function Agenda() {
                     }}
                     accentColor="neon-fuchsia"
                 />
+            {isSocialSuiteOpen && (
+                <SocialSuite
+                    title={socialEvent?.title || 'AGENDA DES FESTIVALS & SOIRÉES'}
+                    imageUrl={socialEvent ? (resolveImageUrl(socialEvent.image || socialEvent.cover) || '') : ''}
+                    onClose={() => {
+                        setIsSocialSuiteOpen(false);
+                        setSocialEvent(null);
+                    }}
+                    initialTheme={socialEvent ? 'EVENTS' : 'PLANNING'}
+                />
+            )}
             </div >
             <AdminEditBar
                 pageName="Agenda"
                 pageActions={[
                     { label: 'Ajouter un événement', icon: <Plus className="w-3.5 h-3.5" />, to: '/admin/manage?tab=Agenda', permission: 'agenda' },
+                    { label: 'Social Studio', icon: <Instagram className="w-3.5 h-3.5" />, onClick: () => { setSocialEvent(null); setIsSocialSuiteOpen(true); }, permission: 'agenda' },
                 ]}
             />
         </div>

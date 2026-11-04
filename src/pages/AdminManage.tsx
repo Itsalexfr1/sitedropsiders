@@ -647,6 +647,10 @@ export function AdminManage() {
     ];
 
     const getInitialSocialTheme = (category: string = '', isFocus?: boolean) => {
+        if (activeTab === 'Agenda') {
+            if (socialItem?.id === 'agenda-planning') return 'PLANNING';
+            return 'EVENTS';
+        }
         if (isFocus) return 'FOCUS';
         const cat = category.toLowerCase();
         if (cat.includes('musique') || cat.includes('music')) return 'MUSIQUE';
@@ -707,6 +711,24 @@ export function AdminManage() {
                         >
                             <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : 'group-hover:rotate-180 transition-transform duration-500'}`} />
                         </button>
+                        {activeTab === 'Agenda' && (
+                            <button
+                                onClick={() => {
+                                    setSocialItem({
+                                        id: 'agenda-planning',
+                                        title: 'AGENDA DES FESTIVALS & SOIRÉES',
+                                        category: 'Agenda',
+                                        isFocus: false,
+                                        image: ''
+                                    });
+                                }}
+                                className="px-4 py-3 bg-gradient-to-tr from-[#f9ce34] via-[#ee2a7b] to-[#6228d7] text-white rounded-2xl font-black uppercase tracking-wider text-xs hover:scale-105 transition-all shadow-lg flex items-center gap-2 flex-shrink-0"
+                                title="Exporter l'agenda dans le Social Studio (Planning)"
+                            >
+                                <Instagram className="w-4 h-4" />
+                                <span className="hidden sm:inline">Export Social Studio</span>
+                            </button>
+                        )}
                         {canCreate && (
                             activeTab === 'Agenda' ? (
                                 <button
@@ -1297,7 +1319,7 @@ export function AdminManage() {
                                                             )}
                                                         </div>
                                                     )}
-                                                    {['News', 'Musique', 'Interviews'].includes(activeTab) && (
+                                                    {['News', 'Musique', 'Interviews', 'Agenda'].includes(activeTab) && (
                                                         <button
                                                             onClick={() => setSocialItem(item)}
                                                             className="p-3 text-gray-500 hover:text-white hover:bg-gradient-to-tr from-[#f9ce34] via-[#ee2a7b] to-[#6228d7] rounded-xl transition-all shadow-xl hover:scale-110"

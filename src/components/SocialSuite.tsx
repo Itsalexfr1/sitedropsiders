@@ -8319,6 +8319,14 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 // 2. BADGE OFFICIEL DROPSIDERS "HIGHLIGHT" (avec effet noir verre fumé, néon et balayage glare comme sur les autres thèmes)
                 drawTopCapsuleBadge('HIGHLIGHT', '#ffffff', '255, 255, 255');
 
+                // Bottom dark vignette gradient for legibility
+                const botGrad = ctx.createLinearGradient(0, canvas.height - (isReel ? 520 : 420), 0, canvas.height);
+                botGrad.addColorStop(0, 'rgba(0, 0, 0, 0)');
+                botGrad.addColorStop(0.4, 'rgba(0, 0, 0, 0.60)');
+                botGrad.addColorStop(1, 'rgba(0, 0, 0, 0.95)');
+                ctx.fillStyle = botGrad;
+                ctx.fillRect(0, canvas.height - (isReel ? 520 : 420), canvas.width, isReel ? 520 : 420);
+
                 // 4. Safe bottom position for the 3 stacked text lines
                 const safeBottom = canvas.height - (isReel ? 180 : 100);
 
@@ -8522,9 +8530,36 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 const isCountryRed = (highlightsSlideArtists[effectiveEditorialSlide]?.colorCountry ?? highlightsColorCountry) === 'RED';
                 const isDateRed = (highlightsSlideArtists[effectiveEditorialSlide]?.colorDate ?? highlightsColorDate) === 'RED';
 
-                // --- LINE 1 : L'ARTISTE EN ASSEZ GROS (BLANC OU ROUGE) ---
+                // --- DONNÉES DES 3 LIGNES (ARTISTE / FESTIVAL / DATE) ---
+                const activeDate = highlightsSlideArtists[effectiveEditorialSlide]?.date ?? highlightsDate;
+                const dateStr = (activeDate || '').trim().toUpperCase();
+
+                const activeFestival = highlightsSlideArtists[effectiveEditorialSlide]?.festival ?? highlightsFestival;
+                const activeCity = highlightsSlideArtists[effectiveEditorialSlide]?.city ?? highlightsCity;
+                const activeCountry = highlightsSlideArtists[effectiveEditorialSlide]?.country ?? highlightsCountry;
+
+                const festParts: { text: string; color: string }[] = [];
+                if (activeFestival?.trim()) festParts.push({ text: activeFestival.trim().toUpperCase(), color: isFestRed ? '#ff1241' : '#ffffff' });
+                if (activeCity?.trim()) festParts.push({ text: activeCity.trim().toUpperCase(), color: isCityRed ? '#ff1241' : '#ffffff' });
+                if (activeCountry?.trim()) festParts.push({ text: activeCountry.trim().toUpperCase(), color: isCountryRed ? '#ff1241' : '#ffffff' });
+
                 const activeArtist = highlightsSlideArtists[effectiveEditorialSlide]?.artist ?? highlightsArtist;
                 const artistStr = (activeArtist || '').trim().toUpperCase();
+
+                // Calcul précis de l'étagement vertical avec espacement aéré
+                const hasDate = Boolean(dateStr);
+                const hasFest = festParts.length > 0;
+                const hasArtist = Boolean(artistStr);
+
+                const dateY = safeBottom;
+                const festGapFromDate = isReel ? 74 : 60;
+                const festY = hasDate ? (dateY - festGapFromDate) : safeBottom;
+
+                // Espacement généreux et équilibré : l'artiste ne colle plus jamais au festival
+                const artistGapFromFest = isReel ? 112 : 94;
+                const artistY = hasFest ? (festY - artistGapFromFest) : (hasDate ? (dateY - festGapFromDate) : safeBottom);
+
+                // --- LINE 1 : L'ARTISTE EN ASSEZ GROS (BLANC OU ROUGE) ---
                 if (artistStr) {
                     let artistFontSize = isReel ? 82 : 74;
                     const maxArtistW = canvas.width - (isReel ? 160 : 120);
@@ -8536,20 +8571,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     }
 
                     const artistColor = isArtistRed ? '#ff1241' : '#ffffff';
-                    const artistY = safeBottom - (isReel ? 130 : 110);
                     renderAnimLine(artistStr, 0, artistY, artistColor);
                 }
 
                 // --- LINE 2 : FESTIVAL + VILLE + PAYS (BLANC OU ROUGE PAR ÉLÉMENT) ---
-                const activeFestival = highlightsSlideArtists[effectiveEditorialSlide]?.festival ?? highlightsFestival;
-                const activeCity = highlightsSlideArtists[effectiveEditorialSlide]?.city ?? highlightsCity;
-                const activeCountry = highlightsSlideArtists[effectiveEditorialSlide]?.country ?? highlightsCountry;
-
-                const festParts: { text: string; color: string }[] = [];
-                if (activeFestival?.trim()) festParts.push({ text: activeFestival.trim().toUpperCase(), color: isFestRed ? '#ff1241' : '#ffffff' });
-                if (activeCity?.trim()) festParts.push({ text: activeCity.trim().toUpperCase(), color: isCityRed ? '#ff1241' : '#ffffff' });
-                if (activeCountry?.trim()) festParts.push({ text: activeCountry.trim().toUpperCase(), color: isCountryRed ? '#ff1241' : '#ffffff' });
-
                 if (festParts.length > 0) {
                     let festFontSize = isReel ? 34 : 30;
                     const maxFestW = canvas.width - (isReel ? 160 : 120);
@@ -8562,20 +8587,16 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         ctx.font = `800 ${festFontSize}px "Montserrat", sans-serif`;
                     }
 
-                    const festY = safeBottom - (isReel ? 68 : 58);
                     renderAnimSegments(festParts, fullText, 1, festY);
                 }
 
                 // --- LINE 3 : DATE EN DESSOUS (BLANC OU ROUGE) ---
-                const activeDate = highlightsSlideArtists[effectiveEditorialSlide]?.date ?? highlightsDate;
-                const dateStr = (activeDate || '').trim().toUpperCase();
                 if (dateStr) {
                     let dateFontSize = isReel ? 24 : 21;
                     ctx.font = `700 ${dateFontSize}px "Montserrat", sans-serif`;
                     if ('letterSpacing' in ctx) (ctx as any).letterSpacing = '4px';
 
                     const dateColor = isDateRed ? '#ff1241' : 'rgba(255, 255, 255, 0.88)';
-                    const dateY = safeBottom;
                     renderAnimLine(dateStr, 2, dateY, dateColor);
                 }
 
@@ -8906,7 +8927,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 };
 
                 const isMusicSlide1 = (theme === 'MUSIQUE' && effectiveEditorialSlide === 1);
-                const gapBetween = (mainTitleText && bodyText) ? (isDevinetteReveal ? 14 : (isMusicSlide1 ? 16 : 22)) : 0;
+                const gapBetween = (mainTitleText && bodyText) ? (isDevinetteReveal ? 14 : (isMusicSlide1 ? 16 : (isReel ? 38 : 30))) : 0;
                 let subLineHeight = Math.round(subFontSize * (isDevinetteReveal ? 1.18 : 1.38));
                 let subLines = formatSubLines(subFontSize);
                 let subHeight = bodyText ? (subLines.length * subLineHeight) : 0;
@@ -9216,9 +9237,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
 
 
-                // 5. BOTTOM LINK INDICATORS (If activated - abaissé pour aérer l'espace sous le titre principal)
+                // 5. BOTTOM LINK INDICATORS (Strictement interdit sur la slide promo)
                 let curIndicatorY = (effectiveTab === 'PUBLICATION') ? canvas.height - 28 : canvas.height - 180;
-                if (showArticleLink) {
+                if (showArticleLink && !isPromoTheme && !isPromoRequested) {
                     const textToDraw = articleLinkText || 'ARTICLE COMPLET SUR DROPSIDERS.FR';
                     ctx.save();
                     ctx.font = '900 italic 22px "Montserrat", sans-serif';
@@ -9384,11 +9405,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 ctx.restore();
             }
 
-            // Links legacy fallback (uniquement pour les thèmes non modernisés et non exports PROMO)
-            const isPromoExport = exportMode === 'PROMO';
+            // Links legacy fallback (Strictement interdit sur la slide promo)
+            const isPromoMode = exportMode === 'PROMO' || (theme as string) === 'PROMO' || isPromoTheme || isPromoRequested;
             const isCustomLayoutTheme = ['MUSIQUE', 'EVENTS', 'AFFICHE'].includes(theme);
 
-            if (showArticleLink && !isPromoExport && !isModernEditorialTheme && !isCustomLayoutTheme) {
+            if (showArticleLink && !isPromoMode && !isModernEditorialTheme && !isCustomLayoutTheme) {
                 const textToDraw = articleLinkText || 'ARTICLE COMPLET SUR DROPSIDERS.FR';
                 ctx.save();
                 ctx.textAlign = 'left';
@@ -9443,7 +9464,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 ctx.restore();
             }
 
-            if (showVoteLink && !isPromoExport && !isModernEditorialTheme && !isCustomLayoutTheme) {
+            if (showVoteLink && !isPromoMode && !isModernEditorialTheme && !isCustomLayoutTheme) {
                 ctx.save();
                 ctx.textAlign = 'left';
                 ctx.textBaseline = 'bottom';
@@ -12731,6 +12752,31 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 </button>
                             ))}
                         </div>
+                    </div>
+
+                    {/* Import direct Agenda du Site */}
+                    <div className="flex items-center justify-between p-3 bg-gradient-to-r from-[#ff3700]/15 to-transparent border border-[#ff3700]/30 rounded-2xl">
+                        <div className="flex items-center gap-2.5">
+                            <div className="w-8 h-8 rounded-xl bg-[#ff3700]/20 flex items-center justify-center text-[#ff3700]">
+                                <Calendar className="w-4 h-4" />
+                            </div>
+                            <div>
+                                <span className="text-[10px] font-black text-white uppercase tracking-wider block">Agenda du Site</span>
+                                <span className="text-[8px] text-gray-400 font-medium">Importer les soirées & festivals du site</span>
+                            </div>
+                        </div>
+                        <button 
+                            type="button"
+                            onClick={() => {
+                                setIsAgendaPickerOpen(true);
+                                if (siteAgendaEvents.length === 0) {
+                                    fetchSiteAgenda();
+                                }
+                            }}
+                            className="flex items-center gap-1.5 px-3 py-1.5 bg-[#ff3700] hover:bg-[#ff5522] text-black font-black text-[9px] uppercase rounded-xl shadow-md shadow-[#ff3700]/20 hover:scale-105 active:scale-95 transition-all"
+                        >
+                            <Sparkles className="w-3 h-3" /> Importer
+                        </button>
                     </div>
 
                     {/* Mois & Année (Synchronisé) */}
@@ -17446,83 +17492,6 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
     const top100Editor = (
         <div className="space-y-4">
-            {/* PRESETS RAPIDES 1 CLIC */}
-            <div className="p-3 bg-black/40 border border-white/10 rounded-2xl space-y-2 shadow-lg">
-                <span className="text-[9px] font-black text-neon-red uppercase tracking-wider flex items-center gap-1.5">
-                    🏆 Presets Rapides Révélation (1 clic) :
-                </span>
-                <div className="grid grid-cols-2 gap-2">
-                    <button
-                        type="button"
-                        onClick={() => {
-                            setTop100Rank(1);
-                            setTop100ArtistName('DAVID GUETTA');
-                            setTop100Category('WORLD NO. 1 DJ');
-                            top100AnimStartRef.current = Date.now();
-                            animStartTimeRef.current = Date.now();
-                            generateImage();
-                        }}
-                        className={`py-2 px-2.5 rounded-xl text-[9px] font-black uppercase border transition-all text-left flex items-center justify-between ${
-                            top100Rank === 1 ? 'bg-neon-red/20 border-neon-red text-white' : 'bg-white/5 border-white/10 text-gray-300 hover:bg-white/10'
-                        }`}
-                    >
-                        <span>#01 DAVID GUETTA</span>
-                        <span className="text-[8px] text-neon-red">★ N°1</span>
-                    </button>
-                    <button
-                        type="button"
-                        onClick={() => {
-                            setTop100Rank(4);
-                            setTop100ArtistName('MARTIN GARRIX');
-                            setTop100Category('THE NETHERLANDS • MAIN');
-                            top100AnimStartRef.current = Date.now();
-                            animStartTimeRef.current = Date.now();
-                            generateImage();
-                        }}
-                        className={`py-2 px-2.5 rounded-xl text-[9px] font-black uppercase border transition-all text-left flex items-center justify-between ${
-                            top100Rank === 4 ? 'bg-neon-red/20 border-neon-red text-white' : 'bg-white/5 border-white/10 text-gray-300 hover:bg-white/10'
-                        }`}
-                    >
-                        <span>#04 MARTIN GARRIX</span>
-                        <span className="text-[8px] text-neon-red">#04</span>
-                    </button>
-                    <button
-                        type="button"
-                        onClick={() => {
-                            setTop100Rank(3);
-                            setTop100ArtistName('ALOK');
-                            setTop100Category('BRAZILIAN BASS / EDM');
-                            top100AnimStartRef.current = Date.now();
-                            animStartTimeRef.current = Date.now();
-                            generateImage();
-                        }}
-                        className={`py-2 px-2.5 rounded-xl text-[9px] font-black uppercase border transition-all text-left flex items-center justify-between ${
-                            top100Rank === 3 ? 'bg-neon-red/20 border-neon-red text-white' : 'bg-white/5 border-white/10 text-gray-300 hover:bg-white/10'
-                        }`}
-                    >
-                        <span>#03 ALOK</span>
-                        <span className="text-[8px] text-neon-red">#03</span>
-                    </button>
-                    <button
-                        type="button"
-                        onClick={() => {
-                            setTop100Rank(7);
-                            setTop100ArtistName('AFROJACK');
-                            setTop100Category('WALL RECORDINGS');
-                            top100AnimStartRef.current = Date.now();
-                            animStartTimeRef.current = Date.now();
-                            generateImage();
-                        }}
-                        className={`py-2 px-2.5 rounded-xl text-[9px] font-black uppercase border transition-all text-left flex items-center justify-between ${
-                            top100Rank === 7 ? 'bg-neon-red/20 border-neon-red text-white' : 'bg-white/5 border-white/10 text-gray-300 hover:bg-white/10'
-                        }`}
-                    >
-                        <span>#07 AFROJACK</span>
-                        <span className="text-[8px] text-neon-red">#07</span>
-                    </button>
-                </div>
-            </div>
-
             {/* CONFIGURATION DU RANG */}
             <div className="space-y-3 p-3.5 bg-black/40 border border-white/10 rounded-2xl shadow-lg">
                 <div className="flex items-center justify-between">

@@ -3,10 +3,11 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Pencil, X, LayoutDashboard, FileText, Users, ChevronRight, Lock } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
-interface AdminAction {
+export interface AdminAction {
     label: string;
     icon: React.ReactNode;
-    to: string;
+    to?: string;
+    onClick?: () => void;
     permission?: string;
 }
 
@@ -89,18 +90,37 @@ export function AdminEditBar({ pageActions = [], pageName = 'cette page' }: Admi
                             {filteredActions.length > 0 && (
                                 <div className="space-y-1.5 mb-3">
                                     <p className="text-[8px] font-black uppercase tracking-[0.2em] text-gray-600 px-1 mb-2">Actions sur cette page</p>
-                                    {filteredActions.map((action, i) => (
-                                        <Link
-                                            key={i}
-                                            to={action.to}
-                                            onClick={() => setIsOpen(false)}
-                                            className="flex items-center gap-3 px-3 py-2.5 rounded-2xl bg-white/5 hover:bg-[#FF0000]/10 hover:border-[#FF0000]/30 border border-transparent transition-all group"
-                                        >
-                                            <span className="text-gray-500 group-hover:text-[#FF0000] transition-colors">{action.icon}</span>
-                                            <span className="text-xs font-bold text-white uppercase tracking-wide">{action.label}</span>
-                                            <ChevronRight className="w-3 h-3 text-gray-600 group-hover:text-[#FF0000] ml-auto transition-colors" />
-                                        </Link>
-                                    ))}
+                                    {filteredActions.map((action, i) => {
+                                        const inner = (
+                                            <>
+                                                <span className="text-gray-500 group-hover:text-[#FF0000] transition-colors">{action.icon}</span>
+                                                <span className="text-xs font-bold text-white uppercase tracking-wide">{action.label}</span>
+                                                <ChevronRight className="w-3 h-3 text-gray-600 group-hover:text-[#FF0000] ml-auto transition-colors" />
+                                            </>
+                                        );
+                                        return action.to ? (
+                                            <Link
+                                                key={i}
+                                                to={action.to}
+                                                onClick={() => setIsOpen(false)}
+                                                className="flex items-center gap-3 px-3 py-2.5 rounded-2xl bg-white/5 hover:bg-[#FF0000]/10 hover:border-[#FF0000]/30 border border-transparent transition-all group"
+                                            >
+                                                {inner}
+                                            </Link>
+                                        ) : (
+                                            <button
+                                                key={i}
+                                                type="button"
+                                                onClick={() => {
+                                                    setIsOpen(false);
+                                                    action.onClick?.();
+                                                }}
+                                                className="w-full text-left flex items-center gap-3 px-3 py-2.5 rounded-2xl bg-white/5 hover:bg-[#FF0000]/10 hover:border-[#FF0000]/30 border border-transparent transition-all group"
+                                            >
+                                                {inner}
+                                            </button>
+                                        );
+                                    })}
                                 </div>
                             )}
 
