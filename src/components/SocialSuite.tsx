@@ -1795,7 +1795,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const [promoFollowersCount, setPromoFollowersCount] = useState<number>(() => {
         try {
             const saved = localStorage.getItem('dropsiders_promo_followers_count');
-            if (saved && !isNaN(Number(saved))) return Number(saved);
+            if (saved && !isNaN(Number(saved)) && Number(saved) !== 14200 && Number(saved) !== 185600 && Number(saved) !== 210 && Number(saved) !== 4820 && Number(saved) !== 320) return Number(saved);
         } catch (_) {}
         return 4698;
     });
@@ -1803,7 +1803,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const [promoPostsCount, setPromoPostsCount] = useState<number>(() => {
         try {
             const saved = localStorage.getItem('dropsiders_promo_posts_count');
-            if (saved && !isNaN(Number(saved))) return Number(saved);
+            if (saved && !isNaN(Number(saved)) && Number(saved) !== 14200 && Number(saved) !== 185600 && Number(saved) !== 210 && Number(saved) !== 4820 && Number(saved) !== 320) return Number(saved);
         } catch (_) {}
         return 1441;
     });
@@ -1812,21 +1812,21 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const [promoTiktokFollowers, setPromoTiktokFollowers] = useState<number>(() => {
         try {
             const saved = localStorage.getItem('dropsiders_promo_tiktok_followers');
-            if (saved && !isNaN(Number(saved))) return Number(saved);
+            if (saved && !isNaN(Number(saved)) && Number(saved) !== 14200 && Number(saved) !== 185600 && Number(saved) !== 210 && Number(saved) !== 4820 && Number(saved) !== 320) return Number(saved);
         } catch (_) {}
         return 6967;
     });
     const [promoTiktokLikes, setPromoTiktokLikes] = useState<number>(() => {
         try {
             const saved = localStorage.getItem('dropsiders_promo_tiktok_likes');
-            if (saved && !isNaN(Number(saved))) return Number(saved);
+            if (saved && !isNaN(Number(saved)) && Number(saved) !== 14200 && Number(saved) !== 185600 && Number(saved) !== 210 && Number(saved) !== 4820 && Number(saved) !== 320) return Number(saved);
         } catch (_) {}
         return 155800;
     });
     const [promoTiktokFollowing, setPromoTiktokFollowing] = useState<number>(() => {
         try {
             const saved = localStorage.getItem('dropsiders_promo_tiktok_following');
-            if (saved && !isNaN(Number(saved))) return Number(saved);
+            if (saved && !isNaN(Number(saved)) && Number(saved) !== 14200 && Number(saved) !== 185600 && Number(saved) !== 210 && Number(saved) !== 4820 && Number(saved) !== 320) return Number(saved);
         } catch (_) {}
         return 129;
     });
@@ -1835,14 +1835,14 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const [promoYoutubeSubscribers, setPromoYoutubeSubscribers] = useState<number>(() => {
         try {
             const saved = localStorage.getItem('dropsiders_promo_youtube_subscribers');
-            if (saved && !isNaN(Number(saved))) return Number(saved);
+            if (saved && !isNaN(Number(saved)) && Number(saved) !== 14200 && Number(saved) !== 185600 && Number(saved) !== 210 && Number(saved) !== 4820 && Number(saved) !== 320) return Number(saved);
         } catch (_) {}
         return 628;
     });
     const [promoYoutubeVideos, setPromoYoutubeVideos] = useState<number>(() => {
         try {
             const saved = localStorage.getItem('dropsiders_promo_youtube_videos');
-            if (saved && !isNaN(Number(saved))) return Number(saved);
+            if (saved && !isNaN(Number(saved)) && Number(saved) !== 14200 && Number(saved) !== 185600 && Number(saved) !== 210 && Number(saved) !== 4820 && Number(saved) !== 320) return Number(saved);
         } catch (_) {}
         return 48;
     });
@@ -2260,6 +2260,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             '/images/social/yt_thumb_1.jpg',
             '/images/social/yt_thumb_2.jpg',
             '/images/social/yt_thumb_3.jpg',
+            '/images/social/yt_thumb_4.jpg',
+            '/images/social/yt_thumb_5.jpg',
+            '/images/social/yt_thumb_6.jpg',
             '/images/instagram/post_full_1.jpg',
             '/images/instagram/post_full_2.jpg',
             '/images/instagram/post_full_3.jpg',

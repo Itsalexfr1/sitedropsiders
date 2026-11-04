@@ -536,22 +536,6 @@ function renderTiktokScreen(
     ctx.fillStyle = '#FE2C55';
     ctx.fill();
 
-    // Bulle profil en haut à droite façon TikTok : "À quoi penses-tu ?" avec miniature Dropsiders
-    const bubbleW = 46 * s;
-    const bubbleH = 14 * s;
-    const bubbleX = w - bubbleW - 8 * s;
-    const bubbleY = headerY;
-    ctx.fillStyle = '#262626';
-    ctx.beginPath();
-    ctx.roundRect(bubbleX, bubbleY, bubbleW, bubbleH, 4 * s);
-    ctx.fill();
-
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.font = `600 ${4.2 * s}px -apple-system, BlinkMacSystemFont, sans-serif`;
-    ctx.fillStyle = '#d1d5db';
-    ctx.fillText('À quoi penses-tu ?', bubbleX + bubbleW / 2, bubbleY + bubbleH / 2);
-
     // Avatar centré
     const avatarY = headerY + 16 * s;
     const avatarSize = 42 * s;
@@ -641,26 +625,8 @@ function renderTiktokScreen(
     ctx.fillStyle = '#d1d5db';
     ctx.fillText('Média et reporter spécialisé FESTIVALS', w / 2, bioY + 6.5 * s);
 
-    // Barre d'annonce TikTok Stories expirées
-    const noticY = bioY + 15 * s;
-    const noticH = 11 * s;
-    const noticW = w - 16 * s;
-    const noticX = 8 * s;
-    ctx.fillStyle = '#161618';
-    ctx.beginPath();
-    ctx.roundRect(noticX, noticY, noticW, noticH, 3 * s);
-    ctx.fill();
-
-    ctx.textAlign = 'left';
-    ctx.textBaseline = 'middle';
-    ctx.font = `500 ${4.2 * s}px -apple-system, BlinkMacSystemFont, sans-serif`;
-    ctx.fillStyle = '#9ca3af';
-    ctx.fillText('📷  Consulte les Stories expirées dans « Tes vidéos privées »', noticX + 5 * s, noticY + noticH / 2);
-    ctx.textAlign = 'right';
-    ctx.fillText('✕', noticX + noticW - 5 * s, noticY + noticH / 2);
-
     // Onglets TikTok (Grille vidéo sélectionnée)
-    const tabsY = noticY + noticH + 4 * s;
+    const tabsY = bioY + 16 * s;
     ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
     ctx.lineWidth = 0.5 * s;
     ctx.beginPath();
@@ -883,9 +849,9 @@ function renderYoutubeScreen(
     ctx.fillText('Vidéos ›', 10 * s, secY);
 
     // VRAIES VIDÉOS DROPSIDERS YOUTUBE (Disposition horizontale réaliste YouTube Mobile)
-    const feedY = secY + 10 * s;
-    const rowH = 34 * s;
-    const rowGap = 5 * s;
+    const feedY = secY + 9 * s;
+    const rowH = 30 * s;
+    const rowGap = 3.5 * s;
 
     const realYoutubeVideos = [
         {
@@ -908,6 +874,27 @@ function renderYoutubeScreen(
             titleLine2: '2026 : Henri Pfr',
             sub: '98 vues • il y a 6 mois',
             duration: '5:02'
+        },
+        {
+            thumb: '/images/social/yt_thumb_4.jpg',
+            titleLine1: 'Interview Da Tweekaz -',
+            titleLine2: 'EDC Las Vegas 2025',
+            sub: '141 vues • il y a 1 an',
+            duration: '11:59'
+        },
+        {
+            thumb: '/images/social/yt_thumb_5.jpg',
+            titleLine1: 'Interview Morten -',
+            titleLine2: 'EDC Las Vegas 2025',
+            sub: '33 vues • il y a 1 an',
+            duration: '4:49'
+        },
+        {
+            thumb: '/images/social/yt_thumb_6.jpg',
+            titleLine1: 'Bienvenue sur la Chaine',
+            titleLine2: 'Dropsiders !',
+            sub: '35 vues • il y a 1 an',
+            duration: '0:29'
         }
     ];
 
@@ -916,8 +903,8 @@ function renderYoutubeScreen(
         if (vy + rowH > h - 22 * s) return;
 
         // Miniature 16:9 à gauche
-        const thumbW = 58 * s;
-        const thumbH = 32 * s;
+        const thumbW = 52 * s;
+        const thumbH = 28 * s;
         const thumbX = 10 * s;
 
         ctx.save();
@@ -956,14 +943,14 @@ function renderYoutubeScreen(
 
         ctx.textAlign = 'left';
         ctx.textBaseline = 'top';
-        ctx.font = `700 ${5.4 * s}px -apple-system, BlinkMacSystemFont, sans-serif`;
+        ctx.font = `700 ${4.8 * s}px -apple-system, BlinkMacSystemFont, sans-serif`;
         ctx.fillStyle = '#ffffff';
         ctx.fillText(vid.titleLine1, textX, vy + 1 * s);
-        ctx.fillText(vid.titleLine2, textX, vy + 7.5 * s);
+        ctx.fillText(vid.titleLine2, textX, vy + 6.8 * s);
 
         ctx.font = `500 ${4.5 * s}px -apple-system, BlinkMacSystemFont, sans-serif`;
         ctx.fillStyle = '#888888';
-        ctx.fillText(vid.sub, textX, vy + 16 * s);
+        ctx.fillText(vid.sub, textX, vy + 15 * s);
 
         // Menu 3 petits points verticaux à droite
         const menuX = w - 10 * s;

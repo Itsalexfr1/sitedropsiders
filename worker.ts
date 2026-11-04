@@ -5573,6 +5573,15 @@ ${urls.map(u => `  <url>
                 if (env.CHAT_KV) {
                     const cached = await env.CHAT_KV.get('instagram_feed_cache', { type: 'json' });
                     if (cached) {
+                        if (cached.tiktok && cached.tiktok.followers === 14200) {
+                            cached.tiktok.followers = 6967;
+                            cached.tiktok.likes = 155800;
+                            cached.tiktok.following = 129;
+                        }
+                        if (cached.youtube && cached.youtube.subscribers === 4820) {
+                            cached.youtube.subscribers = 628;
+                            cached.youtube.videos = 48;
+                        }
                         return new Response(JSON.stringify(cached), { status: 200, headers });
                     }
                 }
@@ -5605,6 +5614,15 @@ ${urls.map(u => `  <url>
                 if (env.CHAT_KV) {
                     const cached = await env.CHAT_KV.get('social_profiles_cache', { type: 'json' });
                     if (cached) {
+                        if (cached.tiktok && cached.tiktok.followers === 14200) {
+                            cached.tiktok.followers = 6967;
+                            cached.tiktok.likes = 155800;
+                            cached.tiktok.following = 129;
+                        }
+                        if (cached.youtube && cached.youtube.subscribers === 4820) {
+                            cached.youtube.subscribers = 628;
+                            cached.youtube.videos = 48;
+                        }
                         return new Response(JSON.stringify(cached), { status: 200, headers });
                     }
                 }
@@ -5621,8 +5639,8 @@ ${urls.map(u => `  <url>
             }
             return new Response(JSON.stringify({
                 instagram: { handle: '@dropsiders.fr', name: 'DROPSIDERS', followers: 4698, posts: 1471, following: 668 },
-                tiktok: { handle: '@dropsiders.fr', name: 'DROPSIDERS', followers: 14200, likes: 185600, following: 210 },
-                youtube: { handle: '@dropsiders', name: 'DROPSIDERS', subscribers: 4820, videos: 320 }
+                tiktok: { handle: '@dropsiders.fr', name: 'DROPSIDERS', followers: 6967, likes: 155800, following: 129 },
+                youtube: { handle: '@dropsiders', name: 'Dropsiders', subscribers: 628, videos: 48 }
             }), { status: 200, headers });
         }
 
