@@ -1,3 +1,8 @@
+import nodeFs from 'node:fs'
+// @ts-ignore
+import gracefulFs from 'graceful-fs'
+gracefulFs.gracefulify(nodeFs)
+
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
@@ -159,6 +164,7 @@ export default defineConfig({
     sourcemap: false,
     minify: 'esbuild',
     rollupOptions: {
+      maxParallelFileOps: 20,
       output: {
         manualChunks(id) {
           if (id.includes('node_modules')) {
