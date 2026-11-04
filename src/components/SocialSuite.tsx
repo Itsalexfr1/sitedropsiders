@@ -9743,9 +9743,6 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         unlockMobileAudioSession(audioCtxRef.current);
         if (bgVideo) {
             bgVideo.playsInline = true;
-            bgVideo.muted = false;
-            bgVideo.volume = 1;
-            bgVideo.play().catch(() => {});
             if (isNaN(bgVideo.duration) || bgVideo.duration <= 0 || bgVideo.readyState < 1) {
                 await new Promise<void>((resolve) => {
                     const onMeta = () => {
@@ -9758,6 +9755,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     setTimeout(resolve, 1500);
                 });
             }
+            bgVideo.pause();
+            bgVideo.muted = true;
+            bgVideo.currentTime = 0;
         }
 
         const isActualMobileDevice = typeof navigator !== 'undefined' && (
@@ -9804,7 +9804,22 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         const targetHeight = (activeTab === 'REEL' || combinedMode === 'TIKTOK') ? 1920 : 1350;
         if (canvas.width !== targetWidth) canvas.width = targetWidth;
         if (canvas.height !== targetHeight) canvas.height = targetHeight;
-        const bitrate = isMobile ? 15000000 : (fps === 60 ? 28000000 : 20000000);
+        const bitrate = isMobile ? 10000000 : (fps === 60 ? 16000000 : 12000000);
+
+        // Micro-task yield non bridé par Chrome en onglet arrière-plan (anti-lag multitâche/stream)
+        const nextTick = () => new Promise<void>(resolve => {
+            if (typeof MessageChannel !== 'undefined') {
+                const channel = new MessageChannel();
+                channel.port1.onmessage = () => {
+                    channel.port1.close();
+                    channel.port2.close();
+                    resolve();
+                };
+                channel.port2.postMessage(null);
+            } else {
+                setTimeout(resolve, 0);
+            }
+        });
 
         // ── DÉTECTION WEBCODECS (EXPORT FRAME-PAR-FRAME DÉTERMINISTE PC & MOBILE) ───
         // WebCodecs élimine à 100% les saccades d'effets de texte sur PC ET Mobile moderne,
@@ -9829,7 +9844,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             ];
             for (const cand of candidates) {
                 try {
-                    const qualityCfg: any = {
+                    // Priorité au profil temps réel séquentiel (aucun B-frame out-of-order = 100% fluide)
+                    const realtimeCfg: any = {
                         codec: cand,
                         width: targetWidth,
                         height: targetHeight,
@@ -9837,13 +9853,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         framerate: fps,
                         hardwareAcceleration: 'no-preference',
                         avc: { format: 'avc' },
-                        latencyMode: 'quality',
-                        bitrateMode: 'variable',
+                        latencyMode: 'realtime',
                     };
-                    const checkQuality = await (window as any).VideoEncoder.isConfigSupported(qualityCfg);
-                    if (checkQuality && checkQuality.supported) {
+                    const checkRealtime = await (window as any).VideoEncoder.isConfigSupported(realtimeCfg);
+                    if (checkRealtime && checkRealtime.supported) {
                         chosenCodec = cand;
-                        chosenCodecConfig = checkQuality.config || qualityCfg;
+                        chosenCodecConfig = checkRealtime.config || realtimeCfg;
                         break;
                     }
                     const stdCfg: any = {
@@ -9930,20 +9945,28 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         const captureFrame = async () => {
             if (!useWebCodecs || !videoEncoder || videoEncoder.state !== 'configured' || webEncoderErrored) return;
             try {
-                while (videoEncoder.encodeQueueSize > 6) {
-                    await new Promise(r => setTimeout(r, 4));
+                while (videoEncoder.encodeQueueSize > 12) {
+                    await nextTick();
                 }
                 const timestampUs = Math.round((totalFramesEncoded * 1_000_000) / fps);
-                // Utiliser createImageBitmap avec resizeQuality: 'high' pour forcer le flush GPU net du canvas
-                const bitmap = await createImageBitmap(canvas, { resizeQuality: 'high' });
-                const frame = new (window as any).VideoFrame(bitmap, {
-                    timestamp: timestampUs,
-                    duration: frameDurationUs,
-                });
+                let frame: any = null;
+                try {
+                    // Fast path GPU direct zéro copie
+                    frame = new (window as any).VideoFrame(canvas, {
+                        timestamp: timestampUs,
+                        duration: frameDurationUs,
+                    });
+                } catch {
+                    const bitmap = await createImageBitmap(canvas);
+                    frame = new (window as any).VideoFrame(bitmap, {
+                        timestamp: timestampUs,
+                        duration: frameDurationUs,
+                    });
+                    bitmap.close();
+                }
                 const isKeyFrame = (totalFramesEncoded % (fps * 2)) === 0;
                 videoEncoder.encode(frame, { keyFrame: isKeyFrame });
                 frame.close();
-                bitmap.close();
                 totalFramesEncoded++;
             } catch (e) {
                 console.warn('captureFrame error:', e);
@@ -10044,22 +10067,24 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                     if (bgVideo && !isNaN(bgVideo.duration) && bgVideo.duration > 0) {
                         const targetTime = (totalFramesEncoded / fps) % bgVideo.duration;
-                        if (Math.abs(bgVideo.currentTime - targetTime) > 0.001) {
+                        if (Math.abs(bgVideo.currentTime - targetTime) > 0.002) {
                             await new Promise<void>((res) => {
                                 let done = false;
-                                const onSeek = () => {
+                                const onDone = () => {
                                     if (done) return;
                                     done = true;
-                                    bgVideo.removeEventListener('seeked', onSeek);
                                     res();
                                 };
-                                bgVideo.addEventListener('seeked', onSeek, { once: true });
+                                if ('requestVideoFrameCallback' in bgVideo) {
+                                    (bgVideo as any).requestVideoFrameCallback(() => onDone());
+                                }
+                                bgVideo.addEventListener('seeked', onDone, { once: true });
                                 try {
                                     bgVideo.currentTime = targetTime;
                                 } catch {
-                                    onSeek();
+                                    onDone();
                                 }
-                                setTimeout(onSeek, 400);
+                                setTimeout(onDone, 60);
                             });
                         }
                     }
@@ -10085,7 +10110,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     if ((globalThis as any).scheduler?.yield) {
                         await (globalThis as any).scheduler.yield();
                     } else {
-                        await new Promise(r => setTimeout(r, 0));
+                        await nextTick();
                     }
                 }
             } else {
@@ -10166,18 +10191,20 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                     if (bgVideo && !isNaN(bgVideo.duration) && bgVideo.duration > 0) {
                         const targetTime = (totalFramesEncoded / fps) % bgVideo.duration;
-                        if (Math.abs(bgVideo.currentTime - targetTime) > 0.001) {
+                        if (Math.abs(bgVideo.currentTime - targetTime) > 0.002) {
                             await new Promise<void>((res) => {
                                 let done = false;
-                                const onSeek = () => {
+                                const onDone = () => {
                                     if (done) return;
                                     done = true;
-                                    bgVideo.removeEventListener('seeked', onSeek);
                                     res();
                                 };
-                                bgVideo.addEventListener('seeked', onSeek, { once: true });
-                                try { bgVideo.currentTime = targetTime; } catch { onSeek(); }
-                                setTimeout(onSeek, 400);
+                                if ('requestVideoFrameCallback' in bgVideo) {
+                                    (bgVideo as any).requestVideoFrameCallback(() => onDone());
+                                }
+                                bgVideo.addEventListener('seeked', onDone, { once: true });
+                                try { bgVideo.currentTime = targetTime; } catch { onDone(); }
+                                setTimeout(onDone, 60);
                             });
                         }
                     }
