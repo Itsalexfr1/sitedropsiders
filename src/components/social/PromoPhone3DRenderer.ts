@@ -1388,9 +1388,9 @@ export function renderPromoPhone3D(opts: PromoPhone3DOptions) {
     ctx.stroke();
 
     const nets = [
-        { name: 'Instagram', handle: resolvedProfiles.instagram.handle },
-        { name: 'TikTok', handle: resolvedProfiles.tiktok.handle },
-        { name: 'YouTube', handle: resolvedProfiles.youtube.handle }
+        { name: 'Instagram', label: 'Instagram' },
+        { name: 'TikTok', label: 'TikTok' },
+        { name: 'YouTube', label: 'YouTube' }
     ];
 
     const netsStartX = dockX + 74 * s;
@@ -1415,7 +1415,7 @@ export function renderPromoPhone3D(opts: PromoPhone3DOptions) {
         const activeWeight = Math.max(0, Math.min(1, 1 - dist * 1.6));
 
         ctx.font = `800 ${7.5 * s}px -apple-system, BlinkMacSystemFont, "Montserrat", sans-serif`;
-        const textMetrics = ctx.measureText(net.handle);
+        const textMetrics = ctx.measureText(net.label);
         const textW = textMetrics.width;
         const iconSize = 11.5 * s;
         const gap = 4 * s;
@@ -1431,7 +1431,7 @@ export function renderPromoPhone3D(opts: PromoPhone3DOptions) {
         } else {
             ctx.fillStyle = `rgba(255, 255, 255, ${0.40 + activeWeight * 0.45})`;
         }
-        ctx.fillText(net.handle, startX + iconSize + gap, dockY + dockH / 2);
+        ctx.fillText(net.label, startX + iconSize + gap, dockY + dockH / 2);
     });
 
     ctx.restore();
