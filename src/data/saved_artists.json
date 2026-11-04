@@ -336,5 +336,19 @@
       "beatport": "https://www.beatport.com/fr/artist/martin-garrix/185928?srsltid=AU7gw4Xn49MReF99QWkHSurTfRzupzV1U2sO9Rdh1Xaq3o_Aie_E2Xps",
       "snapchat": "https://www.snapchat.com/add/martingarrix"
     }
+  },
+  {
+    "name": "JAMES HYPE",
+    "socials": {
+      "website": "https://jameshype.com",
+      "instagram": "https://www.instagram.com/jameshype/",
+      "tiktok": "https://www.tiktok.com/@jameshype?lang=fr",
+      "youtube": "https://www.youtube.com/jameshype",
+      "facebook": "https://www.facebook.com/jameshypethedj/?locale=fr_FR",
+      "x": "https://x.com/JamesHYPE?lang=fr",
+      "spotify": "https://open.spotify.com/artist/43BxCL6t4c73BQnIJtry5v",
+      "soundcloud": "https://soundcloud.com/jameshypethedj",
+      "beatport": "https://www.beatport.com/fr/artist/james-hype/522539?srsltid=AYCX9vJE0sYr0kTk86zA2GxsM0VMJWDM1ctqu3OTy6qsUoXPbIfLja3m"
+    }
   }
 ]
