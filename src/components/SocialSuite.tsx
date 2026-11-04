@@ -453,11 +453,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const [isolationError, setIsolationError] = useState<string | null>(null);
     const [artistNameText, setArtistNameText] = useState('');
     const [festivalNameText, setFestivalNameText] = useState('');
-    const [highlightsArtist, setHighlightsArtist] = useState<string>('MARTIN GARRIX');
-    const [highlightsFestival, setHighlightsFestival] = useState<string>('TOMORROWLAND');
-    const [highlightsCity, setHighlightsCity] = useState<string>('BOOM');
-    const [highlightsCountry, setHighlightsCountry] = useState<string>('BELGIQUE');
-    const [highlightsDate, setHighlightsDate] = useState<string>('18 - 20 JUILLET 2026');
+    const [highlightsArtist, setHighlightsArtist] = useState<string>('');
+    const [highlightsFestival, setHighlightsFestival] = useState<string>('');
+    const [highlightsCity, setHighlightsCity] = useState<string>('');
+    const [highlightsCountry, setHighlightsCountry] = useState<string>('');
+    const [highlightsDate, setHighlightsDate] = useState<string>('');
     const [highlightsSlideArtists, setHighlightsSlideArtists] = useState<Record<number, {
         artist?: string;
         festival?: string;
