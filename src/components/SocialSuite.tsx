@@ -501,7 +501,34 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const [editorialSlide1Duration, setEditorialSlide1Duration] = useState<number>(5); // Durée Slide 1 (en secondes, min 2s, max 15s)
     const [editorialPromoDuration, setEditorialPromoDuration] = useState<number>(7); // Durée Promo (en secondes, fixée à 7s pour l'animation Instagram)
     const [exportFps, setExportFps] = useState<number>(30); // Fluidité vidéo : 30 FPS fluide par défaut (standard Instagram/Reels) ou 60 FPS Studio
-    const [exportAccordion, setExportAccordion] = useState<'image' | 'video_slide' | 'video_carousel' | null>('image');
+    const [exportAccordion, setExportAccordion] = useState<'image' | 'video_slide' | 'video_carousel' | 'tiktok' | null>('image');
+
+    // ── CALCUL DYNAMIQUE DU RYTHME SPÉCIAL TIKTOK (<60s MAX, SWEET SPOT 15-30s) ───
+    const getTikTokSlideTimings = (numSlides: number) => {
+        const promoOutroSec = 3.5; // Outro promo dynamique Dropsiders
+        const transSec = getTransitionDuration(slideTransition) / 1000;
+        let slideSec = 3.5;
+        if (numSlides <= 2) {
+            slideSec = 4.2;
+        } else if (numSlides <= 4) {
+            slideSec = 3.5;
+        } else if (numSlides <= 6) {
+            slideSec = 3.2;
+        } else if (numSlides <= 8) {
+            slideSec = 2.8;
+        } else {
+            // Plafond strict : la durée totale ne doit JAMAIS dépasser 55s (marge de sécurité TikTok 60s)
+            slideSec = Math.max(2.2, Math.min(2.8, (54 - promoOutroSec - (numSlides * transSec)) / Math.max(1, numSlides)));
+        }
+        const totalSec = (numSlides * slideSec) + (numSlides * transSec) + promoOutroSec;
+        return {
+            slideDurationMs: Math.round(slideSec * 1000),
+            promoDurationMs: Math.round(promoOutroSec * 1000),
+            totalDurationMs: Math.round(totalSec * 1000),
+            slideSec: Math.round(slideSec * 10) / 10,
+            totalSec: Math.round(totalSec * 10) / 10
+        };
+    };
     const [promoCategory, setPromoCategory] = useState<string>(() => {
         if (initialTheme && initialTheme !== 'PROMO') return initialTheme;
         return 'NEWS';
@@ -9647,7 +9674,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         e.target.value = '';
     };
 
-    const startVideoRecording = async (combinedMode: 'NONE' | 'PLANNING' | 'EDITORIAL' | 'PROMO_ONLY' = 'NONE') => {
+    const startVideoRecording = async (combinedMode: 'NONE' | 'PLANNING' | 'EDITORIAL' | 'PROMO_ONLY' | 'TIKTOK' = 'NONE') => {
         const canvas = canvasRef.current;
         if (!canvas) return;
 
@@ -9715,7 +9742,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         const frameInterval = 1000 / fps;
         const frameDurationUs = Math.round(1_000_000 / fps); // durée d'un frame en microsecondes
         const targetWidth = 1080;
-        const targetHeight = activeTab === 'REEL' ? 1920 : 1350;
+        const targetHeight = (activeTab === 'REEL' || combinedMode === 'TIKTOK') ? 1920 : 1350;
         if (canvas.width !== targetWidth) canvas.width = targetWidth;
         if (canvas.height !== targetHeight) canvas.height = targetHeight;
         const bitrate = isMobile ? 15000000 : (fps === 60 ? 28000000 : 20000000);
@@ -9869,7 +9896,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         let totalDuration = 0;
         if (combinedMode === 'PROMO_ONLY') {
             totalDuration = promoOutroStyle === 'PHONE_3D' ? 10000 : 7000; // 10.0s pour Smartphone 3D, 7.0s pour Instagram
-        } else if (combinedMode === 'EDITORIAL') {
+        } else if (combinedMode === 'EDITORIAL' || (combinedMode === 'TIKTOK' && theme !== 'PLANNING')) {
             const isMusicTheme = (theme === 'MUSIQUE');
             const shouldSkipSlide2 = skipEditorialSlide2;
             const hasAfficheSlide = Boolean(afficheImage && !isMusicTheme);
@@ -9879,16 +9906,26 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ? [1, ...extraEditorialSlides.map((_, i) => i + 3)]
                     : [1, 2, ...extraEditorialSlides.map((_, i) => i + 3)]);
             const numContentSlides = contentSlideNumbers.length + (hasAfficheSlide ? 1 : 0);
-            const promoDuration = promoOutroStyle === 'PHONE_3D' ? 10000 : 7000; // 10.0s pour Smartphone 3D, 7.0s pour Instagram
+            if (combinedMode === 'TIKTOK') {
+                const timings = getTikTokSlideTimings(numContentSlides);
+                totalDuration = timings.totalDurationMs;
+            } else {
+                const promoDuration = promoOutroStyle === 'PHONE_3D' ? 10000 : 7000; // 10.0s pour Smartphone 3D, 7.0s pour Instagram
+                const transitionDuration = currentTransitionDuration;
+                const slideDuration = Math.round(editorialSlide1Duration * 1000);
+                totalDuration = (numContentSlides * slideDuration) + (numContentSlides * transitionDuration) + promoDuration;
+            }
+        } else if (combinedMode === 'PLANNING' || (combinedMode === 'TIKTOK' && theme === 'PLANNING')) {
             const transitionDuration = currentTransitionDuration;
-            const slideDuration = Math.round(editorialSlide1Duration * 1000);
-            totalDuration = (numContentSlides * slideDuration) + (numContentSlides * transitionDuration) + promoDuration;
-        } else if (combinedMode === 'PLANNING') {
-            const promoDuration = promoOutroStyle === 'PHONE_3D' ? 10000 : 7000; // 10.0s pour Smartphone 3D, 7.0s pour Instagram
-            const transitionDuration = currentTransitionDuration;
-            const slideDuration = 5200;
             const numAgendaSlides = 2 + agendaAffiches.length;
-            totalDuration = (numAgendaSlides * slideDuration) + (numAgendaSlides * transitionDuration) + promoDuration;
+            if (combinedMode === 'TIKTOK') {
+                const timings = getTikTokSlideTimings(numAgendaSlides);
+                totalDuration = timings.totalDurationMs;
+            } else {
+                const promoDuration = promoOutroStyle === 'PHONE_3D' ? 10000 : 7000; // 10.0s pour Smartphone 3D, 7.0s pour Instagram
+                const slideDuration = 5200;
+                totalDuration = (numAgendaSlides * slideDuration) + (numAgendaSlides * transitionDuration) + promoDuration;
+            }
         } else if (theme.startsWith('TOP 5')) {
             totalDuration = 5 * (16800 + 1200); // 5 slides + transitions
         } else if (theme === 'TOP 10 FESTIVAL') {
@@ -10229,13 +10266,13 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         const prevWasCarouselPromoActive = isCarouselPromoActive;
         const prevWasEditorialAfficheActive = isEditorialAfficheActive;
         const prevWasEditorialTweetActive = isEditorialTweetActive;
-        if (combinedMode === 'PLANNING') {
+        if (combinedMode === 'PLANNING' || (combinedMode === 'TIKTOK' && theme === 'PLANNING')) {
             agendaSlideOverrideRef.current = 1;
             setIsCarouselPromoActive(false);
             setIsEditorialAfficheActive(false);
             setIsEditorialTweetActive(false);
             promoOutroOverrideRef.current = false;
-        } else if (combinedMode === 'EDITORIAL') {
+        } else if (combinedMode === 'EDITORIAL' || combinedMode === 'TIKTOK') {
             editorialSlideOverrideRef.current = 1;
             setIsCarouselPromoActive(false);
             setIsEditorialAfficheActive(false);
@@ -10288,12 +10325,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 isVideoRecordingRef.current = false;
                 setIsVideoRecording(false);
                 promoOutroOverrideRef.current = false;
-                if (combinedMode === 'PLANNING') {
+                if (combinedMode === 'PLANNING' || (combinedMode === 'TIKTOK' && theme === 'PLANNING')) {
                     agendaSlideOverrideRef.current = null;
                     setAgendaSlide(prevAgendaSlide);
                     setIsCarouselPromoActive(prevWasCarouselPromoActive);
                     setIsEditorialAfficheActive(prevWasEditorialAfficheActive);
-                } else if (combinedMode === 'EDITORIAL') {
+                } else if (combinedMode === 'EDITORIAL' || combinedMode === 'TIKTOK') {
                     editorialSlideOverrideRef.current = null;
                     setEditorialSlide(prevEditorialSlide);
                     setIsCarouselPromoActive(prevWasCarouselPromoActive);
@@ -10518,10 +10555,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 setReadyVideoBlob(videoBlob);
                 setReadyVideoUrl(url);
                 setActivePanel(null);
-                const exportThemeName = combinedMode === 'PROMO_ONLY' ? 'promo' : theme.toLowerCase().replace(/\s+/g, '-');
+                const exportThemeName = combinedMode === 'PROMO_ONLY' ? 'promo' : combinedMode === 'TIKTOK' ? `tiktok-${theme.toLowerCase().replace(/\s+/g, '-')}` : theme.toLowerCase().replace(/\s+/g, '-');
                 const a = document.createElement('a');
                 a.href = url;
-                a.download = `dropsiders-${exportThemeName}-${activeTab.toLowerCase()}-${Date.now()}.mp4`;
+                a.download = combinedMode === 'TIKTOK'
+                    ? `dropsiders-tiktok-${theme.toLowerCase().replace(/\s+/g, '-')}-${Date.now()}.mp4`
+                    : `dropsiders-${exportThemeName}-${activeTab.toLowerCase()}-${Date.now()}.mp4`;
                 document.body.appendChild(a);
                 a.click();
                 document.body.removeChild(a);
@@ -10561,9 +10600,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 const transitionDurationSec = getTransitionDuration(slideTransition) / 1000;
 
                 if (theme === 'MUSIQUE' && hasAnyMusicAudio) {
-                    if (combinedMode === 'EDITORIAL') {
+                    if (combinedMode === 'EDITORIAL' || combinedMode === 'TIKTOK') {
                         // Mode carrousel MUSIQUE : chaque slide a son extrait (durée slideDurationSec)
-                        const slideDurationSec = editorialSlide1Duration;
+                        const slideDurationSec = combinedMode === 'TIKTOK'
+                            ? (getTikTokSlideTimings(1 + musicTracks.length).slideDurationMs / 1000)
+                            : editorialSlide1Duration;
                         let cursor = 0;
                         const allSlides = [1, ...musicTracks.map((_, i) => i + 2)];
                         for (let i = 0; i < allSlides.length; i++) {
@@ -10816,10 +10857,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         setReadyVideoUrl(url);
                         setActivePanel(null);
 
-                        const exportThemeName = combinedMode === 'PROMO_ONLY' ? 'promo' : theme.toLowerCase().replace(/\s+/g, '-');
+                        const exportThemeName = combinedMode === 'PROMO_ONLY' ? 'promo' : combinedMode === 'TIKTOK' ? `tiktok-${theme.toLowerCase().replace(/\s+/g, '-')}` : theme.toLowerCase().replace(/\s+/g, '-');
                         const a = document.createElement('a');
                         a.href = url;
-                        a.download = `dropsiders-${exportThemeName}-${activeTab.toLowerCase()}-${Date.now()}.mp4`;
+                        a.download = combinedMode === 'TIKTOK'
+                            ? `dropsiders-tiktok-${theme.toLowerCase().replace(/\s+/g, '-')}-${Date.now()}.mp4`
+                            : `dropsiders-${exportThemeName}-${activeTab.toLowerCase()}-${Date.now()}.mp4`;
                         document.body.appendChild(a);
                         a.click();
                         document.body.removeChild(a);
@@ -10970,10 +11013,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 setReadyVideoUrl(url);
                 setActivePanel(null);
 
-                const exportThemeName = combinedMode === 'PROMO_ONLY' ? 'promo' : theme.toLowerCase().replace(/\s+/g, '-');
+                const exportThemeName = combinedMode === 'PROMO_ONLY' ? 'promo' : combinedMode === 'TIKTOK' ? `tiktok-${theme.toLowerCase().replace(/\s+/g, '-')}` : theme.toLowerCase().replace(/\s+/g, '-');
                 const a = document.createElement('a');
                 a.href = url;
-                a.download = `dropsiders-${exportThemeName}-${activeTab.toLowerCase()}-${Date.now()}.mp4`;
+                a.download = combinedMode === 'TIKTOK'
+                    ? `dropsiders-tiktok-${theme.toLowerCase().replace(/\s+/g, '-')}-${Date.now()}.mp4`
+                    : `dropsiders-${exportThemeName}-${activeTab.toLowerCase()}-${Date.now()}.mp4`;
                 document.body.appendChild(a);
                 a.click();
                 document.body.removeChild(a);
@@ -10996,10 +11041,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 setReadyVideoBlob(videoBlob);
                 setReadyVideoUrl(url);
                 setActivePanel(null);
-                const exportThemeName = combinedMode === 'PROMO_ONLY' ? 'promo' : theme.toLowerCase().replace(/\s+/g, '-');
+                const exportThemeName = combinedMode === 'PROMO_ONLY' ? 'promo' : combinedMode === 'TIKTOK' ? `tiktok-${theme.toLowerCase().replace(/\s+/g, '-')}` : theme.toLowerCase().replace(/\s+/g, '-');
                 const a = document.createElement('a');
                 a.href = url;
-                a.download = `dropsiders-${exportThemeName}-${activeTab.toLowerCase()}-${Date.now()}.${ext}`;
+                a.download = combinedMode === 'TIKTOK'
+                    ? `dropsiders-tiktok-${theme.toLowerCase().replace(/\s+/g, '-')}-${Date.now()}.${ext}`
+                    : `dropsiders-${exportThemeName}-${activeTab.toLowerCase()}-${Date.now()}.${ext}`;
                 document.body.appendChild(a);
                 a.click();
                 document.body.removeChild(a);
@@ -11018,7 +11065,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         if (combinedMode === 'PROMO_ONLY') {
             animStartTimeRef.current = Date.now();
             await renderDuration(totalDuration);
-        } else if (combinedMode === 'EDITORIAL') {
+        } else if (combinedMode === 'EDITORIAL' || (combinedMode === 'TIKTOK' && theme !== 'PLANNING')) {
             const isMusicTheme = (theme === 'MUSIQUE');
             const shouldSkipSlide2 = skipEditorialSlide2;
             const hasAfficheSlide = Boolean(afficheImage && !isMusicTheme);
@@ -11027,9 +11074,15 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 : (shouldSkipSlide2
                     ? [1, ...extraEditorialSlides.map((_, i) => i + 3)]
                     : [1, 2, ...extraEditorialSlides.map((_, i) => i + 3)]);
-            const promoDuration = 7000; // Verrouillé strictement à 7.0s pour l'animation Instagram
             const transitionDuration = currentTransitionDuration;
-            const slideDuration = Math.round(editorialSlide1Duration * 1000);
+            let promoDuration = 7000;
+            let slideDuration = Math.round(editorialSlide1Duration * 1000);
+            if (combinedMode === 'TIKTOK') {
+                const numContentSlides = contentSlideNumbers.length + (hasAfficheSlide ? 1 : 0);
+                const timings = getTikTokSlideTimings(numContentSlides);
+                slideDuration = timings.slideDurationMs;
+                promoDuration = timings.promoDurationMs;
+            }
 
             // 1. Déroulement des slides de contenu (selon contentSlideNumbers)
             for (let i = 0; i < contentSlideNumbers.length; i++) {
@@ -11093,10 +11146,16 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             // 3. Affichage du visuel promo final pendant promoDuration avec continuité (zéro relance de texte)
             await renderDuration(promoDuration, promoOffsetSec);
 
-        } else if (combinedMode === 'PLANNING') {
-            const promoDuration = 7000; // Verrouillé strictement à 7.0s pour l'animation Instagram
+        } else if (combinedMode === 'PLANNING' || (combinedMode === 'TIKTOK' && theme === 'PLANNING')) {
             const transitionDuration = currentTransitionDuration;
-            const slideDuration = 5200;
+            let promoDuration = 7000;
+            let slideDuration = 5200;
+            if (combinedMode === 'TIKTOK') {
+                const numAgendaSlides = 2 + agendaAffiches.length;
+                const timings = getTikTokSlideTimings(numAgendaSlides);
+                slideDuration = timings.slideDurationMs;
+                promoDuration = timings.promoDurationMs;
+            }
 
             // 1. Slide 1 (Cover)
             agendaSlideOverrideRef.current = 1;
@@ -11204,13 +11263,13 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         promoOutroOverrideRef.current = false;
         editorialAfficheOverrideRef.current = false;
         editorialTweetOverrideRef.current = false;
-        if (combinedMode === 'PLANNING') {
+        if (combinedMode === 'PLANNING' || (combinedMode === 'TIKTOK' && theme === 'PLANNING')) {
             agendaSlideOverrideRef.current = null;
             setAgendaSlide(prevAgendaSlide);
             setIsCarouselPromoActive(prevWasCarouselPromoActive);
             setIsEditorialAfficheActive(prevWasEditorialAfficheActive);
             setIsEditorialTweetActive(prevWasEditorialTweetActive);
-        } else if (combinedMode === 'EDITORIAL') {
+        } else if (combinedMode === 'EDITORIAL' || combinedMode === 'TIKTOK') {
             editorialSlideOverrideRef.current = null;
             setEditorialSlide(prevEditorialSlide);
             setIsCarouselPromoActive(prevWasCarouselPromoActive);
@@ -11221,6 +11280,43 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             setIsEditorialAfficheActive(prevWasEditorialAfficheActive);
             setIsEditorialTweetActive(prevWasEditorialTweetActive);
         }
+    };
+
+    const exportSpecialTikTokVideo = async () => {
+        if (activeTab !== 'REEL') {
+            setActiveTab('REEL');
+            setTimeout(() => {
+                startVideoRecording('TIKTOK');
+            }, 200);
+            return;
+        }
+        startVideoRecording('TIKTOK');
+    };
+
+    const getTikTokInfo = () => {
+        let numContentSlides = 0;
+        if (theme === 'PLANNING') {
+            numContentSlides = 2 + agendaAffiches.length;
+        } else if (theme === 'MUSIQUE') {
+            numContentSlides = 1 + musicTracks.length;
+        } else {
+            const shouldSkipSlide2 = skipEditorialSlide2;
+            const hasAfficheSlide = Boolean(afficheImage);
+            const contentSlideNumbers: number[] = shouldSkipSlide2
+                ? [1, ...extraEditorialSlides.map((_, i) => i + 3)]
+                : [1, 2, ...extraEditorialSlides.map((_, i) => i + 3)];
+            numContentSlides = contentSlideNumbers.length + (hasAfficheSlide ? 1 : 0);
+        }
+        const totalSlides = numContentSlides + 1; // +1 pour l'Outro Promo Dropsiders
+        const timings = getTikTokSlideTimings(numContentSlides);
+        return {
+            numContentSlides,
+            totalSlides,
+            slideDurationSec: (timings.slideDurationMs / 1000).toFixed(1),
+            promoDurationSec: (timings.promoDurationMs / 1000).toFixed(1),
+            totalDurationSec: (timings.totalDurationMs / 1000).toFixed(1),
+            isUnderLimit: timings.totalDurationMs <= 58000
+        };
     };
 
     const exportPromoSlideVideo = async (formatTab?: 'PUBLICATION' | 'REEL') => {
@@ -18648,6 +18744,95 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 {isVideoRecording ? 'CAPTURE MP4 EN COURS...' : `🎬 EXPORTER EN VIDÉO MP4 (${activeTab === 'REEL' ? 'REEL 9:16' : theme})`}
                             </button>
                         )}
+                    </div>
+                )}
+            </div>
+
+            {/* ACCORDION 4 : 🎵 EXPORT SPÉCIAL TIKTOK (9:16 VERTICAL DYNAMIQUE) */}
+            <div className="border border-[#00f2fe]/30 hover:border-[#00f2fe]/60 rounded-2xl overflow-hidden bg-gradient-to-br from-[#010814]/90 via-black/80 to-[#15020c]/90 transition-all shadow-[0_0_20px_rgba(0,242,254,0.12)]">
+                <button
+                    type="button"
+                    onClick={() => setExportAccordion(curr => curr === 'tiktok' ? null : 'tiktok')}
+                    className="w-full p-3 flex items-center justify-between text-left hover:bg-white/[0.04] transition-colors group"
+                >
+                    <div className="flex items-center gap-2.5">
+                        <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-[#00f2fe] via-black to-[#fe0979] p-[1px] flex items-center justify-center shadow-[0_0_12px_rgba(0,242,254,0.35)] shrink-0">
+                            <div className="w-full h-full bg-black/90 rounded-[7px] flex items-center justify-center">
+                                <svg className="w-4 h-4 text-[#00f2fe]" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64c.298-.002.595.042.88.13V9.4a6.33 6.33 0 0 0-1-.08A6.34 6.34 0 0 0 3 15.66a6.34 6.34 0 0 0 10.82 4.47 6.27 6.27 0 0 0 1.95-4.52V8.9a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-.95-.33z"/>
+                                </svg>
+                            </div>
+                        </div>
+                        <div>
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                                <span className="text-[9.5px] font-black uppercase text-white tracking-wider">
+                                    🎵 Export Spécial TikTok (9:16)
+                                </span>
+                                <span className="px-1.5 py-0.2 rounded text-[7px] font-black uppercase bg-[#00f2fe]/20 text-[#00f2fe] border border-[#00f2fe]/40 animate-pulse">
+                                    Auto-Fit &lt;60s
+                                </span>
+                            </div>
+                            <span className="text-[7.5px] text-gray-400 block">
+                                Toutes les slides enchaînées + Outro Promo • Format vertical 1080×1920
+                            </span>
+                        </div>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                        <span className="px-1.5 py-0.5 rounded text-[7.5px] font-black uppercase bg-[#fe0979]/15 text-[#fe0979] border border-[#fe0979]/30">
+                            ~{getTikTokInfo().totalDurationSec}s
+                        </span>
+                        <ChevronDown className={`w-3.5 h-3.5 text-gray-400 transition-transform duration-200 ${exportAccordion === 'tiktok' ? 'rotate-180 text-[#00f2fe]' : ''}`} />
+                    </div>
+                </button>
+
+                {exportAccordion === 'tiktok' && (
+                    <div className="p-3 pt-0 space-y-3 border-t border-white/5 animate-in fade-in duration-200">
+                        {/* Badges récapitulatifs TikTok */}
+                        <div className="grid grid-cols-3 gap-2 pt-2">
+                            <div className="bg-black/50 border border-white/10 rounded-xl p-2 text-center">
+                                <span className="text-[7px] font-bold text-gray-400 uppercase block">Slides Vidéo</span>
+                                <span className="text-[11px] font-black text-[#00f2fe]">{getTikTokInfo().totalSlides} slides</span>
+                                <span className="text-[6.5px] text-gray-500 block">dont outro promo</span>
+                            </div>
+                            <div className="bg-black/50 border border-white/10 rounded-xl p-2 text-center">
+                                <span className="text-[7px] font-bold text-gray-400 uppercase block">Rythme Slide</span>
+                                <span className="text-[11px] font-black text-white">{getTikTokInfo().slideDurationSec}s</span>
+                                <span className="text-[6.5px] text-gray-500 block">par visuel</span>
+                            </div>
+                            <div className="bg-black/50 border border-[#fe0979]/30 rounded-xl p-2 text-center">
+                                <span className="text-[7px] font-bold text-gray-400 uppercase block">Durée Totale</span>
+                                <span className="text-[11px] font-black text-[#fe0979]">~{getTikTokInfo().totalDurationSec}s</span>
+                                <span className="text-[6.5px] text-[#00ff66] font-bold block">✓ &lt;60s strict</span>
+                            </div>
+                        </div>
+
+                        {/* Note explicative dynamique */}
+                        <div className="bg-[#00f2fe]/5 border border-[#00f2fe]/20 rounded-xl p-2.5 flex items-start gap-2">
+                            <Sparkles className="w-3.5 h-3.5 text-[#00f2fe] shrink-0 mt-0.5" />
+                            <div className="text-[7.5px] text-gray-300 space-y-0.5 leading-relaxed">
+                                <p className="font-semibold text-white">✨ Rendu optimisé algorithme TikTok :</p>
+                                <p>Bascule automatique en <b className="text-[#00f2fe]">Vertical 9:16 (1080×1920)</b>, rythme dynamique selon le nombre de slides ({getTikTokInfo().slideDurationSec}s/slide), puis enchaînement fluide sur la <b className="text-[#fe0979]">Slide Promo Outro</b> ({getTikTokInfo().promoDurationSec}s) pour inciter au swipe et à l'abonnement.</p>
+                            </div>
+                        </div>
+
+                        {/* Grand Bouton TikTok */}
+                        <button
+                            type="button"
+                            onClick={exportSpecialTikTokVideo}
+                            disabled={isVideoRecording}
+                            className={`w-full py-3.5 rounded-2xl text-[10px] font-black uppercase flex items-center justify-center gap-2.5 transition-all shadow-xl ${
+                                isVideoRecording
+                                    ? 'bg-[#00f2fe]/20 text-[#00f2fe] border border-[#00f2fe]/40 animate-pulse'
+                                    : 'bg-gradient-to-r from-[#00f2fe] via-black to-[#fe0979] text-white hover:brightness-110 active:scale-[0.98] shadow-[0_0_25px_rgba(0,242,254,0.35)] border border-[#00f2fe]/50'
+                            }`}
+                        >
+                            <svg className="w-4 h-4 text-[#00f2fe]" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64c.298-.002.595.042.88.13V9.4a6.33 6.33 0 0 0-1-.08A6.34 6.34 0 0 0 3 15.66a6.34 6.34 0 0 0 10.82 4.47 6.27 6.27 0 0 0 1.95-4.52V8.9a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-.95-.33z"/>
+                            </svg>
+                            {isVideoRecording
+                                ? 'CAPTURE SPÉCIALE TIKTOK EN COURS...'
+                                : `🎬 EXPORTER EN VIDÉO TIKTOK (9:16 • ${getTikTokInfo().totalSlides} SLIDES • ~${getTikTokInfo().totalDurationSec}S) • MP4`}
+                        </button>
                     </div>
                 )}
             </div>
