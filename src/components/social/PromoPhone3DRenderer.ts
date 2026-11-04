@@ -1030,9 +1030,20 @@ export function renderPromoPhone3D(opts: PromoPhone3DOptions) {
     ctx.fillStyle = 'rgba(0, 0, 0, 0.60)';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // Lueur d'ambiance
-    const glowX = isReel ? canvas.width / 2 : canvas.width * 0.75;
-    const glowY = isReel ? canvas.height * 0.52 : canvas.height * 0.55;
+    // 3. Dimensions & Position du Smartphone 3D (sur le côté droit, centré verticalement)
+    const phoneW = (isReel ? 212 : 228) * s;
+    const phoneH = (isReel ? 450 : 472) * s;
+    const phoneRight = (isReel ? 20 : 13) * s;
+    const phoneBaseX = canvas.width - phoneRight - phoneW;
+
+    // Centrage vertical précis au milieu de l'écran (entre le haut et le dock)
+    const dockH = 28 * s;
+    const dockY = canvas.height - (isReel ? 48 : 20) * s - dockH;
+    const phoneBaseY = Math.round((dockY - phoneH) / 2 + (isReel ? 10 * s : 10 * s));
+
+    // Lueur d'ambiance centrée sur le smartphone
+    const glowX = phoneBaseX + phoneW / 2;
+    const glowY = phoneBaseY + phoneH / 2;
     const glowR = canvas.width * 0.65;
     const radialGlow = ctx.createRadialGradient(glowX, glowY, 40 * s, glowX, glowY, glowR);
     radialGlow.addColorStop(0, `rgba(${activeColor.grad}, 0.42)`);
@@ -1064,31 +1075,11 @@ export function renderPromoPhone3D(opts: PromoPhone3DOptions) {
         ctx.restore();
     }
 
-    // 3. Dimensions & Position du Smartphone 3D
-    let phoneW: number;
-    let phoneH: number;
-    let phoneBaseX: number;
-    let phoneBaseY: number;
+    // 2. Bloc Typographique (sur le côté gauche, aligné et centré verticalement avec le smartphone)
+    const leftTextX = (isReel ? 26 : 24) * s;
+    const leftTextWidth = Math.max(180 * s, phoneBaseX - leftTextX - 16 * s);
 
-    if (isReel) {
-        // En Reel (9:16 vertical 1080x1920) : Smartphone centré horizontalement
-        phoneW = 250 * s;
-        phoneH = 515 * s;
-        phoneBaseX = Math.round((canvas.width - phoneW) / 2);
-        phoneBaseY = Math.round(235 * s);
-    } else {
-        // En Post (4:5 / 1:1) : Smartphone positionné à droite
-        phoneW = 228 * s;
-        phoneH = 472 * s;
-        const phoneRight = 13 * s;
-        const phoneBottom = 72 * s;
-        phoneBaseX = canvas.width - phoneRight - phoneW;
-        phoneBaseY = canvas.height - phoneBottom - phoneH;
-    }
-
-    // 2. Bloc Typographique (Centré en haut en Reel, à gauche en Post)
-    const textMaxWidth = (isReel ? 440 : 215) * s;
-    const headlineFontSize = (isReel ? 22 : 18) * s;
+    const headlineFontSize = (isReel ? 21 : 18) * s;
     const rawHeadline = effectiveHeadline || 'POUR NE RATER AUCUNE NEWS';
     const rawParagraphs = rawHeadline.split('\n');
     const headlineLines: string[] = [];
@@ -1100,7 +1091,7 @@ export function renderPromoPhone3D(opts: PromoPhone3DOptions) {
         let currentLine = '';
         words.forEach(word => {
             const testLine = currentLine ? `${currentLine} ${word}` : word;
-            if (ctx.measureText(testLine).width > textMaxWidth && currentLine) {
+            if (ctx.measureText(testLine).width > leftTextWidth && currentLine) {
                 headlineLines.push(currentLine);
                 currentLine = word;
             } else {
@@ -1111,40 +1102,37 @@ export function renderPromoPhone3D(opts: PromoPhone3DOptions) {
     });
     ctx.restore();
 
-    const headlineLineHeight = headlineFontSize * (isReel ? 1.25 : 1.22);
-    const barGap = (isReel ? 12 : 8) * s;
+    const headlineLineHeight = headlineFontSize * (isReel ? 1.26 : 1.22);
+    const barGap = (isReel ? 14 : 8) * s;
     const barHeight = (isReel ? 4 : 3.5) * s;
-    const barWidth = (isReel ? 60 : 48) * s;
-    const subGap = (isReel ? 14 : 12) * s;
+    const barWidth = (isReel ? 52 : 48) * s;
+    const subGap = (isReel ? 16 : 12) * s;
     const subFontSize = (isReel ? 13 : 11.5) * s;
-    const subLineHeight = subFontSize * (isReel ? 1.4 : 1.35);
+    const subLineHeight = subFontSize * (isReel ? 1.38 : 1.35);
     const brandGap = (isReel ? 10 : 8) * s;
-    const brandFontSize = (isReel ? 30 : 26) * s;
+    const brandFontSize = (isReel ? 29 : 26) * s;
 
-    let textStartY: number;
-    let textAnchorX: number;
+    const totalTextBlockHeight = (headlineLines.length * headlineLineHeight) 
+        + barGap + barHeight 
+        + subGap + subLineHeight 
+        + brandGap + (brandFontSize * 1.05);
 
-    if (isReel) {
-        textAnchorX = canvas.width / 2;
-        textStartY = 75 * s;
-    } else {
-        textAnchorX = 24 * s;
-        textStartY = 275 * s;
-    }
+    // Centrage vertical harmonieux du texte par rapport au smartphone 3D
+    const leftTextY = Math.round(phoneBaseY + (phoneH - totalTextBlockHeight) / 2);
 
     ctx.save();
-    ctx.textAlign = isReel ? 'center' : 'left';
+    ctx.textAlign = 'left';
     ctx.textBaseline = 'top';
     ctx.fillStyle = '#ffffff';
     ctx.shadowColor = 'rgba(0, 0, 0, 1)';
     ctx.shadowBlur = 18 * s;
     ctx.font = `900 italic ${headlineFontSize}px "Montserrat", sans-serif`;
 
-    let curY = textStartY;
+    let curY = leftTextY;
     headlineLines.forEach((line, idx) => {
         ctx.save();
-        applyTextAnimCtx(ctx, 0.15 + idx * 0.08, textAnchorX, curY);
-        ctx.fillText(line, textAnchorX, curY);
+        applyTextAnimCtx(ctx, 0.15 + idx * 0.08, leftTextX, curY);
+        ctx.fillText(line, leftTextX, curY);
         ctx.restore();
         curY += headlineLineHeight;
     });
@@ -1152,10 +1140,9 @@ export function renderPromoPhone3D(opts: PromoPhone3DOptions) {
     curY += barGap;
 
     ctx.save();
-    applyTextAnimCtx(ctx, 0.45, textAnchorX, curY + barHeight / 2);
+    applyTextAnimCtx(ctx, 0.45, leftTextX, curY + barHeight / 2);
     ctx.beginPath();
-    const barX = isReel ? (canvas.width - barWidth) / 2 : textAnchorX;
-    ctx.roundRect(barX, curY, barWidth, barHeight, 2 * s);
+    ctx.roundRect(leftTextX, curY, barWidth, barHeight, 2 * s);
     ctx.fillStyle = activeColor.color;
     ctx.shadowColor = activeColor.color;
     ctx.shadowBlur = 14 * s;
@@ -1165,23 +1152,23 @@ export function renderPromoPhone3D(opts: PromoPhone3DOptions) {
     curY += barHeight + subGap;
 
     ctx.save();
-    applyTextAnimCtx(ctx, 0.65, textAnchorX, curY);
+    applyTextAnimCtx(ctx, 0.65, leftTextX, curY);
     ctx.font = `700 ${subFontSize}px "Montserrat", sans-serif`;
     ctx.fillStyle = 'rgba(255, 255, 255, 0.78)';
     ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
     ctx.shadowBlur = 8 * s;
-    ctx.fillText('ABONNE-TOI À', textAnchorX, curY);
+    ctx.fillText('ABONNE-TOI À', leftTextX, curY);
     ctx.restore();
 
     curY += subLineHeight + brandGap;
 
     ctx.save();
-    applyTextAnimCtx(ctx, 0.85, textAnchorX, curY);
+    applyTextAnimCtx(ctx, 0.85, leftTextX, curY);
     ctx.font = `900 italic ${brandFontSize}px "Orbitron", sans-serif`;
     ctx.fillStyle = activeColor.color;
     ctx.shadowColor = activeColor.color;
     ctx.shadowBlur = 22 * s;
-    ctx.fillText('DROPSIDERS', textAnchorX, curY);
+    ctx.fillText('DROPSIDERS', leftTextX, curY);
     ctx.restore();
     ctx.restore();
 
@@ -1192,7 +1179,7 @@ export function renderPromoPhone3D(opts: PromoPhone3DOptions) {
     const phoneX = phoneBaseX + floatOffsetX;
     const phoneY = phoneBaseY + floatOffsetY;
 
-    const dynamicTilt = isStaticPreview ? (isReel ? 0 : -0.015) : (isReel ? Math.sin(phaseX) * 0.012 : -0.015 + Math.sin(phaseX) * 0.028);
+    const dynamicTilt = isStaticPreview ? -0.015 : -0.015 + Math.sin(phaseX) * 0.024;
 
     ctx.save();
     ctx.translate(phoneX + phoneW / 2, phoneY + phoneH / 2);
@@ -1368,9 +1355,7 @@ export function renderPromoPhone3D(opts: PromoPhone3DOptions) {
 
     // 4. Dock Réseaux Sociaux
     const dockW = 380 * s;
-    const dockH = 28 * s;
     const dockX = (canvas.width - dockW) / 2;
-    const dockY = canvas.height - (isReel ? 48 : 20) * s - dockH;
 
     ctx.save();
     ctx.beginPath();
