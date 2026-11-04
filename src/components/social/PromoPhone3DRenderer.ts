@@ -1031,8 +1031,8 @@ export function renderPromoPhone3D(opts: PromoPhone3DOptions) {
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     // Lueur d'ambiance
-    const glowX = canvas.width * 0.75;
-    const glowY = canvas.height * 0.55;
+    const glowX = isReel ? canvas.width / 2 : canvas.width * 0.75;
+    const glowY = isReel ? canvas.height * 0.52 : canvas.height * 0.55;
     const glowR = canvas.width * 0.65;
     const radialGlow = ctx.createRadialGradient(glowX, glowY, 40 * s, glowX, glowY, glowR);
     radialGlow.addColorStop(0, `rgba(${activeColor.grad}, 0.42)`);
@@ -1042,38 +1042,52 @@ export function renderPromoPhone3D(opts: PromoPhone3DOptions) {
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     ctx.restore();
 
-    // 1. Question Éditoriale (Haut)
-    ctx.save();
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'alphabetic';
-    ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
-    ctx.shadowBlur = 20 * s;
-
-    const qY = (isReel ? 120 : 68) * s;
-    const qFontSize = (isReel ? 24 : 22) * s;
-    ctx.font = `900 italic ${qFontSize}px "Montserrat", sans-serif`;
-
-    qLines.forEach((line, idx) => {
+    // 1. Question Éditoriale (Haut) - Uniquement si présente en Post
+    if (!isReel && qLines.length > 0) {
         ctx.save();
-        applyTextAnimCtx(ctx, 0.12 + idx * 0.08, canvas.width / 2, qY + idx * (qFontSize * 1.25));
-        ctx.fillStyle = '#ffffff';
-        ctx.fillText(line, canvas.width / 2, qY + idx * (qFontSize * 1.25));
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'alphabetic';
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
+        ctx.shadowBlur = 20 * s;
+
+        const qY = 68 * s;
+        const qFontSize = 22 * s;
+        ctx.font = `900 italic ${qFontSize}px "Montserrat", sans-serif`;
+
+        qLines.forEach((line, idx) => {
+            ctx.save();
+            applyTextAnimCtx(ctx, 0.12 + idx * 0.08, canvas.width / 2, qY + idx * (qFontSize * 1.25));
+            ctx.fillStyle = '#ffffff';
+            ctx.fillText(line, canvas.width / 2, qY + idx * (qFontSize * 1.25));
+            ctx.restore();
+        });
         ctx.restore();
-    });
-    ctx.restore();
+    }
 
-    // 3. Dimensions & Position du Smartphone 3D (Droite)
-    const phoneW = (isReel ? 204 : 228) * s;
-    const phoneH = (isReel ? 435 : 472) * s;
-    const phoneRight = (isReel ? 30 : 13) * s;
-    const phoneBottom = (isReel ? 110 : 72) * s;
-    const phoneBaseX = canvas.width - phoneRight - phoneW;
-    const phoneBaseY = canvas.height - phoneBottom - phoneH;
+    // 3. Dimensions & Position du Smartphone 3D
+    let phoneW: number;
+    let phoneH: number;
+    let phoneBaseX: number;
+    let phoneBaseY: number;
 
-    // 2. Bloc Typographique (Gauche) - Aéré et centré verticalement avec le téléphone
-    const leftTextX = (isReel ? 34 : 24) * s;
-    const leftTextWidth = (isReel ? 220 : 215) * s;
+    if (isReel) {
+        // En Reel (9:16 vertical 1080x1920) : Smartphone centré horizontalement
+        phoneW = 250 * s;
+        phoneH = 515 * s;
+        phoneBaseX = Math.round((canvas.width - phoneW) / 2);
+        phoneBaseY = Math.round(235 * s);
+    } else {
+        // En Post (4:5 / 1:1) : Smartphone positionné à droite
+        phoneW = 228 * s;
+        phoneH = 472 * s;
+        const phoneRight = 13 * s;
+        const phoneBottom = 72 * s;
+        phoneBaseX = canvas.width - phoneRight - phoneW;
+        phoneBaseY = canvas.height - phoneBottom - phoneH;
+    }
 
+    // 2. Bloc Typographique (Centré en haut en Reel, à gauche en Post)
+    const textMaxWidth = (isReel ? 440 : 215) * s;
     const headlineFontSize = (isReel ? 22 : 18) * s;
     const rawHeadline = effectiveHeadline || 'POUR NE RATER AUCUNE NEWS';
     const rawParagraphs = rawHeadline.split('\n');
@@ -1086,7 +1100,7 @@ export function renderPromoPhone3D(opts: PromoPhone3DOptions) {
         let currentLine = '';
         words.forEach(word => {
             const testLine = currentLine ? `${currentLine} ${word}` : word;
-            if (ctx.measureText(testLine).width > leftTextWidth && currentLine) {
+            if (ctx.measureText(testLine).width > textMaxWidth && currentLine) {
                 headlineLines.push(currentLine);
                 currentLine = word;
             } else {
@@ -1097,38 +1111,40 @@ export function renderPromoPhone3D(opts: PromoPhone3DOptions) {
     });
     ctx.restore();
 
-    const headlineLineHeight = headlineFontSize * (isReel ? 1.28 : 1.22);
-    const barGap = (isReel ? 16 : 8) * s;
-    const barHeight = (isReel ? 4.5 : 3.5) * s;
-    const subGap = (isReel ? 18 : 12) * s;
+    const headlineLineHeight = headlineFontSize * (isReel ? 1.25 : 1.22);
+    const barGap = (isReel ? 12 : 8) * s;
+    const barHeight = (isReel ? 4 : 3.5) * s;
+    const barWidth = (isReel ? 60 : 48) * s;
+    const subGap = (isReel ? 14 : 12) * s;
     const subFontSize = (isReel ? 13 : 11.5) * s;
-    const subLineHeight = subFontSize * (isReel ? 1.45 : 1.35);
-    const brandGap = (isReel ? 12 : 8) * s;
+    const subLineHeight = subFontSize * (isReel ? 1.4 : 1.35);
+    const brandGap = (isReel ? 10 : 8) * s;
     const brandFontSize = (isReel ? 30 : 26) * s;
 
-    const totalTextBlockHeight = (headlineLines.length * headlineLineHeight) 
-        + barGap + barHeight 
-        + subGap + subLineHeight 
-        + brandGap + (brandFontSize * 1.05);
+    let textStartY: number;
+    let textAnchorX: number;
 
-    // Centrage vertical harmonieux du texte par rapport au smartphone 3D
-    const leftTextY = isReel
-        ? Math.round(phoneBaseY + (phoneH - totalTextBlockHeight) / 2)
-        : (275 * s);
+    if (isReel) {
+        textAnchorX = canvas.width / 2;
+        textStartY = 75 * s;
+    } else {
+        textAnchorX = 24 * s;
+        textStartY = 275 * s;
+    }
 
     ctx.save();
-    ctx.textAlign = 'left';
+    ctx.textAlign = isReel ? 'center' : 'left';
     ctx.textBaseline = 'top';
     ctx.fillStyle = '#ffffff';
     ctx.shadowColor = 'rgba(0, 0, 0, 1)';
     ctx.shadowBlur = 18 * s;
     ctx.font = `900 italic ${headlineFontSize}px "Montserrat", sans-serif`;
 
-    let curY = leftTextY;
+    let curY = textStartY;
     headlineLines.forEach((line, idx) => {
         ctx.save();
-        applyTextAnimCtx(ctx, 0.15 + idx * 0.08, leftTextX, curY);
-        ctx.fillText(line, leftTextX, curY);
+        applyTextAnimCtx(ctx, 0.15 + idx * 0.08, textAnchorX, curY);
+        ctx.fillText(line, textAnchorX, curY);
         ctx.restore();
         curY += headlineLineHeight;
     });
@@ -1136,9 +1152,10 @@ export function renderPromoPhone3D(opts: PromoPhone3DOptions) {
     curY += barGap;
 
     ctx.save();
-    applyTextAnimCtx(ctx, 0.45, leftTextX, curY);
+    applyTextAnimCtx(ctx, 0.45, textAnchorX, curY + barHeight / 2);
     ctx.beginPath();
-    ctx.roundRect(leftTextX, curY, (isReel ? 56 : 48) * s, barHeight, 2 * s);
+    const barX = isReel ? (canvas.width - barWidth) / 2 : textAnchorX;
+    ctx.roundRect(barX, curY, barWidth, barHeight, 2 * s);
     ctx.fillStyle = activeColor.color;
     ctx.shadowColor = activeColor.color;
     ctx.shadowBlur = 14 * s;
@@ -1148,23 +1165,23 @@ export function renderPromoPhone3D(opts: PromoPhone3DOptions) {
     curY += barHeight + subGap;
 
     ctx.save();
-    applyTextAnimCtx(ctx, 0.65, leftTextX, curY);
+    applyTextAnimCtx(ctx, 0.65, textAnchorX, curY);
     ctx.font = `700 ${subFontSize}px "Montserrat", sans-serif`;
     ctx.fillStyle = 'rgba(255, 255, 255, 0.78)';
     ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
     ctx.shadowBlur = 8 * s;
-    ctx.fillText('ABONNE-TOI À', leftTextX, curY);
+    ctx.fillText('ABONNE-TOI À', textAnchorX, curY);
     ctx.restore();
 
     curY += subLineHeight + brandGap;
 
     ctx.save();
-    applyTextAnimCtx(ctx, 0.85, leftTextX, curY);
+    applyTextAnimCtx(ctx, 0.85, textAnchorX, curY);
     ctx.font = `900 italic ${brandFontSize}px "Orbitron", sans-serif`;
     ctx.fillStyle = activeColor.color;
     ctx.shadowColor = activeColor.color;
     ctx.shadowBlur = 22 * s;
-    ctx.fillText('DROPSIDERS', leftTextX, curY);
+    ctx.fillText('DROPSIDERS', textAnchorX, curY);
     ctx.restore();
     ctx.restore();
 
@@ -1175,7 +1192,7 @@ export function renderPromoPhone3D(opts: PromoPhone3DOptions) {
     const phoneX = phoneBaseX + floatOffsetX;
     const phoneY = phoneBaseY + floatOffsetY;
 
-    const dynamicTilt = isStaticPreview ? -0.015 : -0.015 + Math.sin(phaseX) * 0.028;
+    const dynamicTilt = isStaticPreview ? (isReel ? 0 : -0.015) : (isReel ? Math.sin(phaseX) * 0.012 : -0.015 + Math.sin(phaseX) * 0.028);
 
     ctx.save();
     ctx.translate(phoneX + phoneW / 2, phoneY + phoneH / 2);

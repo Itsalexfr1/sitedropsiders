@@ -9683,9 +9683,15 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             const onLoaded = () => {
                 video.currentTime = 0;
                 video.play().catch(e => console.warn("Auto-preview play failed", e));
+                if (video.duration && !isNaN(video.duration) && video.duration > 0) {
+                    setEditorialSlide1Duration(Math.round(video.duration));
+                }
                 video.removeEventListener('loadedmetadata', onLoaded);
             };
             video.addEventListener('loadedmetadata', onLoaded);
+            if (video.duration && !isNaN(video.duration) && video.duration > 0) {
+                setEditorialSlide1Duration(Math.round(video.duration));
+            }
             video.play().catch(e => console.warn("Auto-preview play failed", e));
             setBgVideo(video);
             setIsVideoAudioMuted(true);
@@ -9740,6 +9746,18 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             bgVideo.muted = false;
             bgVideo.volume = 1;
             bgVideo.play().catch(() => {});
+            if (isNaN(bgVideo.duration) || bgVideo.duration <= 0 || bgVideo.readyState < 1) {
+                await new Promise<void>((resolve) => {
+                    const onMeta = () => {
+                        bgVideo.removeEventListener('loadedmetadata', onMeta);
+                        bgVideo.removeEventListener('loadeddata', onMeta);
+                        resolve();
+                    };
+                    bgVideo.addEventListener('loadedmetadata', onMeta);
+                    bgVideo.addEventListener('loadeddata', onMeta);
+                    setTimeout(resolve, 1500);
+                });
+            }
         }
 
         const isActualMobileDevice = typeof navigator !== 'undefined' && (
@@ -9947,13 +9965,21 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ? [1, ...extraEditorialSlides.map((_, i) => i + 3)]
                     : [1, 2, ...extraEditorialSlides.map((_, i) => i + 3)]);
             const numContentSlides = contentSlideNumbers.length + (hasAfficheSlide ? 1 : 0);
+            const hasVideoBg = Boolean(bgVideo && !isNaN(bgVideo.duration) && bgVideo.duration > 0);
+            const videoDurationMs = hasVideoBg ? Math.round(bgVideo!.duration * 1000) : 0;
             if (combinedMode === 'TIKTOK') {
                 const timings = getTikTokSlideTimings(numContentSlides);
-                totalDuration = timings.totalDurationMs;
+                if (hasVideoBg) {
+                    const promoDuration = promoOutroStyle === 'PHONE_3D' ? 7000 : 5000;
+                    const otherSlidesDur = (numContentSlides > 1) ? (numContentSlides - 1) * timings.slideDurationMs : 0;
+                    totalDuration = videoDurationMs + otherSlidesDur + (numContentSlides * currentTransitionDuration) + promoDuration;
+                } else {
+                    totalDuration = timings.totalDurationMs;
+                }
             } else {
                 const promoDuration = promoOutroStyle === 'PHONE_3D' ? 10000 : 7000; // 10.0s pour Smartphone 3D, 7.0s pour Instagram
                 const transitionDuration = currentTransitionDuration;
-                const slideDuration = Math.round(editorialSlide1Duration * 1000);
+                const slideDuration = hasVideoBg ? videoDurationMs : Math.round(editorialSlide1Duration * 1000);
                 totalDuration = (numContentSlides * slideDuration) + (numContentSlides * transitionDuration) + promoDuration;
             }
         } else if (combinedMode === 'PLANNING' || (combinedMode === 'TIKTOK' && theme === 'PLANNING')) {
@@ -11123,13 +11149,15 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ? [1, ...extraEditorialSlides.map((_, i) => i + 3)]
                     : [1, 2, ...extraEditorialSlides.map((_, i) => i + 3)]);
             const transitionDuration = currentTransitionDuration;
-            let promoDuration = 7000;
-            let slideDuration = Math.round(editorialSlide1Duration * 1000);
+            const hasVideoBg = Boolean(bgVideo && !isNaN(bgVideo.duration) && bgVideo.duration > 0);
+            const videoDurationMs = hasVideoBg ? Math.round(bgVideo!.duration * 1000) : 0;
+            let promoDuration = promoOutroStyle === 'PHONE_3D' ? 7000 : 5000;
+            let slideDuration = hasVideoBg ? videoDurationMs : Math.round(editorialSlide1Duration * 1000);
             if (combinedMode === 'TIKTOK') {
                 const numContentSlides = contentSlideNumbers.length + (hasAfficheSlide ? 1 : 0);
                 const timings = getTikTokSlideTimings(numContentSlides);
-                slideDuration = timings.slideDurationMs;
-                promoDuration = timings.promoDurationMs;
+                slideDuration = hasVideoBg ? videoDurationMs : timings.slideDurationMs;
+                promoDuration = (hasVideoBg && promoOutroStyle === 'PHONE_3D') ? 7000 : (hasVideoBg ? 5000 : timings.promoDurationMs);
             }
 
             // 1. Déroulement des slides de contenu (selon contentSlideNumbers)
@@ -11167,7 +11195,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 }
 
                 // Rendu actif frame-par-frame avec le texte qui commence son animation dès le début de la slide
-                await renderDuration(slideDuration, 0);
+                const currentSlideDur = (s === 1 && hasVideoBg) ? videoDurationMs : slideDuration;
+                await renderDuration(currentSlideDur, 0);
             }
 
             // 1b. Transition vers la Slide Affiche si présente
@@ -11380,13 +11409,21 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         }
         const totalSlides = numContentSlides + 1; // +1 pour l'Outro Promo Dropsiders
         const timings = getTikTokSlideTimings(numContentSlides);
+        const hasVideoBg = Boolean(bgVideo && !isNaN(bgVideo.duration) && bgVideo.duration > 0);
+        const videoDurationSec = hasVideoBg ? bgVideo!.duration : 0;
+        const promoDurSec = (hasVideoBg && promoOutroStyle === 'PHONE_3D') ? 7 : (hasVideoBg ? 5 : Number((timings.promoDurationMs / 1000).toFixed(1)));
+        const transSec = getTransitionDuration(slideTransition) / 1000;
+        const totalDurationSec = hasVideoBg
+            ? (videoDurationSec + (numContentSlides * transSec) + promoDurSec).toFixed(1)
+            : (timings.totalDurationMs / 1000).toFixed(1);
+
         return {
             numContentSlides,
             totalSlides,
-            slideDurationSec: (timings.slideDurationMs / 1000).toFixed(1),
-            promoDurationSec: (timings.promoDurationMs / 1000).toFixed(1),
-            totalDurationSec: (timings.totalDurationMs / 1000).toFixed(1),
-            isUnderLimit: timings.totalDurationMs <= 58000
+            slideDurationSec: hasVideoBg ? videoDurationSec.toFixed(1) : (timings.slideDurationMs / 1000).toFixed(1),
+            promoDurationSec: promoDurSec.toFixed(1),
+            totalDurationSec,
+            isUnderLimit: Number(totalDurationSec) <= 60
         };
     };
 
@@ -18741,7 +18778,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     </div>
                     <div className="flex items-center gap-2">
                         <span className="px-1.5 py-0.5 rounded text-[7.5px] font-black uppercase bg-neon-red/15 text-neon-red border border-neon-red/30">
-                            {theme === 'PLANNING' ? `${2 + agendaAffiches.length} Slides` : ['NEWS', 'FOCUS', 'RECAP'].includes(theme) ? `${2 + extraEditorialSlides.length} Slides` : 'Carrousel'}
+                            {theme === 'PLANNING' ? `${2 + agendaAffiches.length} Slides` : ['NEWS', 'FOCUS', 'RECAP', 'HIGHLIGHTS'].includes(theme) ? `${skipEditorialSlide2 ? 1 : 2 + extraEditorialSlides.length} Slides` : 'Carrousel'}
                         </span>
                         <ChevronDown className={`w-3.5 h-3.5 text-gray-400 transition-transform duration-200 ${exportAccordion === 'video_carousel' ? 'rotate-180 text-white' : ''}`} />
                     </div>
@@ -18769,7 +18806,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 <Video className="w-4 h-4 text-black" />
                                 {isVideoRecording ? 'CAPTURE VIDÉO EN COURS...' : `🎬 EXPORTER CARROUSEL VIDÉO COMPLET (${activeTab === 'REEL' ? 'REEL 9:16' : 'POST 1:1'} • ${2 + agendaAffiches.length} SLIDES + PROMO) • MP4`}
                             </button>
-                        ) : ['NEWS', 'FOCUS', 'RECAP', 'MUSIQUE', 'INTERVIEW', 'LIVESTREAM', 'CONSEILS', 'REELS', 'CONCOURS', 'TOP 100 DROPSIDERS', 'JEU', 'JEU_FESTIVAL', 'JEU_DJ', 'EVENTS'].includes(theme) ? (
+                        ) : ['NEWS', 'FOCUS', 'RECAP', 'MUSIQUE', 'INTERVIEW', 'LIVESTREAM', 'CONSEILS', 'REELS', 'CONCOURS', 'TOP 100 DROPSIDERS', 'JEU', 'JEU_FESTIVAL', 'JEU_DJ', 'EVENTS', 'HIGHLIGHTS'].includes(theme) ? (
                             <button
                                 type="button"
                                 onClick={() => startVideoRecording('EDITORIAL')}
