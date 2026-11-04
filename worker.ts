@@ -5599,6 +5599,48 @@ ${urls.map(u => `  <url>
             }), { status: 200, headers });
         }
 
+        // --- API: SOCIAL PROFILES (INSTAGRAM / TIKTOK / YOUTUBE) ---
+        if (path === '/api/social-profiles' && request.method === 'GET') {
+            try {
+                if (env.CHAT_KV) {
+                    const cached = await env.CHAT_KV.get('social_profiles_cache', { type: 'json' });
+                    if (cached) {
+                        return new Response(JSON.stringify(cached), { status: 200, headers });
+                    }
+                }
+                const SOCIAL_PATH = 'src/data/social_profiles.json';
+                const file = await fetchGitHubFile(SOCIAL_PATH, gitConfig);
+                if (file && file.content) {
+                    if (env.CHAT_KV) {
+                        await env.CHAT_KV.put('social_profiles_cache', JSON.stringify(file.content), { expirationTtl: 3600 });
+                    }
+                    return new Response(JSON.stringify(file.content), { status: 200, headers });
+                }
+            } catch (err: any) {
+                console.error('Error fetching social profiles:', err);
+            }
+            return new Response(JSON.stringify({
+                instagram: { handle: '@dropsiders.fr', name: 'DROPSIDERS', followers: 4698, posts: 1471, following: 668 },
+                tiktok: { handle: '@dropsiders.fr', name: 'DROPSIDERS', followers: 14200, likes: 185600, following: 210 },
+                youtube: { handle: '@dropsiders', name: 'DROPSIDERS', subscribers: 4820, videos: 320 }
+            }), { status: 200, headers });
+        }
+
+        if (path === '/api/social-profiles/update' && request.method === 'POST') {
+            try {
+                const body = await request.json() as any;
+                if (env.CHAT_KV) {
+                    await env.CHAT_KV.put('social_profiles_cache', JSON.stringify(body), { expirationTtl: 86400 * 30 });
+                }
+                const SOCIAL_PATH = 'src/data/social_profiles.json';
+                const file = await fetchGitHubFile(SOCIAL_PATH, gitConfig);
+                await saveGitHubFile(SOCIAL_PATH, body, 'Mise à jour profils réseaux sociaux [skip ci]', file?.sha, gitConfig);
+                return new Response(JSON.stringify({ success: true }), { status: 200, headers });
+            } catch (err: any) {
+                return new Response(JSON.stringify({ error: err.message }), { status: 500, headers });
+            }
+        }
+
         if (path === '/api/instagram-feed/update' && request.method === 'POST') {
             try {
                 const body = await request.json() as any;

@@ -37,7 +37,8 @@ import {
     ChevronDown,
     ChevronUp,
     Instagram,
-    Users
+    Users,
+    Share2
 } from 'lucide-react';
 import { ExportSuccessModal } from './ExportSuccessModal';
 import { fixEncoding } from '../utils/standardizer';
@@ -1807,31 +1808,135 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         return 1441;
     });
 
-    // Synchronisation multi-navigateurs depuis l'API Dropsiders
+    // Stats TikTok
+    const [promoTiktokFollowers, setPromoTiktokFollowers] = useState<number>(() => {
+        try {
+            const saved = localStorage.getItem('dropsiders_promo_tiktok_followers');
+            if (saved && !isNaN(Number(saved))) return Number(saved);
+        } catch (_) {}
+        return 14200;
+    });
+    const [promoTiktokLikes, setPromoTiktokLikes] = useState<number>(() => {
+        try {
+            const saved = localStorage.getItem('dropsiders_promo_tiktok_likes');
+            if (saved && !isNaN(Number(saved))) return Number(saved);
+        } catch (_) {}
+        return 185600;
+    });
+    const [promoTiktokFollowing, setPromoTiktokFollowing] = useState<number>(() => {
+        try {
+            const saved = localStorage.getItem('dropsiders_promo_tiktok_following');
+            if (saved && !isNaN(Number(saved))) return Number(saved);
+        } catch (_) {}
+        return 210;
+    });
+
+    // Stats YouTube
+    const [promoYoutubeSubscribers, setPromoYoutubeSubscribers] = useState<number>(() => {
+        try {
+            const saved = localStorage.getItem('dropsiders_promo_youtube_subscribers');
+            if (saved && !isNaN(Number(saved))) return Number(saved);
+        } catch (_) {}
+        return 4820;
+    });
+    const [promoYoutubeVideos, setPromoYoutubeVideos] = useState<number>(() => {
+        try {
+            const saved = localStorage.getItem('dropsiders_promo_youtube_videos');
+            if (saved && !isNaN(Number(saved))) return Number(saved);
+        } catch (_) {}
+        return 320;
+    });
+
+    // Réseau actif sélectionné en mode prévisualisation fixe
+    const [promoPreviewNetwork, setPromoPreviewNetwork] = useState<'INSTAGRAM' | 'TIKTOK' | 'YOUTUBE'>('INSTAGRAM');
+
+    // Synchronisation multi-plateforme des profils réseaux sociaux
     useEffect(() => {
-        fetch('/api/instagram-feed')
+        fetch('/api/social-profiles')
             .then(res => res.json())
             .then(data => {
-                if (data?.profile?.followers) {
-                    const parsedFollowers = parseInt(String(data.profile.followers).replace(/\s+/g, ''));
-                    if (!isNaN(parsedFollowers) && parsedFollowers > 0) {
-                        setPromoFollowersCount(parsedFollowers);
-                        try { localStorage.setItem('dropsiders_promo_followers_count', String(parsedFollowers)); } catch (_) {}
+                if (data?.instagram?.followers) {
+                    const f = Number(data.instagram.followers);
+                    if (!isNaN(f) && f > 0) {
+                        setPromoFollowersCount(f);
+                        try { localStorage.setItem('dropsiders_promo_followers_count', String(f)); } catch (_) {}
                     }
                 }
-                if (data?.profile?.postsCount) {
-                    const parsedPosts = parseInt(String(data.profile.postsCount).replace(/\s+/g, ''));
-                    if (!isNaN(parsedPosts) && parsedPosts > 0) {
-                        setPromoPostsCount(parsedPosts);
-                        try { localStorage.setItem('dropsiders_promo_posts_count', String(parsedPosts)); } catch (_) {}
+                if (data?.instagram?.posts) {
+                    const p = Number(data.instagram.posts);
+                    if (!isNaN(p) && p > 0) {
+                        setPromoPostsCount(p);
+                        try { localStorage.setItem('dropsiders_promo_posts_count', String(p)); } catch (_) {}
+                    }
+                }
+                if (data?.tiktok?.followers) {
+                    const tf = Number(data.tiktok.followers);
+                    if (!isNaN(tf) && tf > 0) {
+                        setPromoTiktokFollowers(tf);
+                        try { localStorage.setItem('dropsiders_promo_tiktok_followers', String(tf)); } catch (_) {}
+                    }
+                }
+                if (data?.tiktok?.likes) {
+                    const tl = Number(data.tiktok.likes);
+                    if (!isNaN(tl) && tl > 0) {
+                        setPromoTiktokLikes(tl);
+                        try { localStorage.setItem('dropsiders_promo_tiktok_likes', String(tl)); } catch (_) {}
+                    }
+                }
+                if (data?.tiktok?.following) {
+                    const tfg = Number(data.tiktok.following);
+                    if (!isNaN(tfg) && tfg > 0) {
+                        setPromoTiktokFollowing(tfg);
+                        try { localStorage.setItem('dropsiders_promo_tiktok_following', String(tfg)); } catch (_) {}
+                    }
+                }
+                if (data?.youtube?.subscribers) {
+                    const ys = Number(data.youtube.subscribers);
+                    if (!isNaN(ys) && ys > 0) {
+                        setPromoYoutubeSubscribers(ys);
+                        try { localStorage.setItem('dropsiders_promo_youtube_subscribers', String(ys)); } catch (_) {}
+                    }
+                }
+                if (data?.youtube?.videos) {
+                    const yv = Number(data.youtube.videos);
+                    if (!isNaN(yv) && yv > 0) {
+                        setPromoYoutubeVideos(yv);
+                        try { localStorage.setItem('dropsiders_promo_youtube_videos', String(yv)); } catch (_) {}
                     }
                 }
             })
             .catch(() => {});
     }, []);
 
-    const syncStatsToServer = (followers: number, posts: number) => {
+    const syncAllSocialProfiles = (overrides?: any) => {
+        const payload = {
+            instagram: {
+                handle: '@dropsiders.fr',
+                name: 'DROPSIDERS',
+                followers: overrides?.instagramFollowers ?? promoFollowersCount,
+                posts: overrides?.instagramPosts ?? promoPostsCount,
+                following: 668
+            },
+            tiktok: {
+                handle: '@dropsiders.fr',
+                name: 'DROPSIDERS',
+                followers: overrides?.tiktokFollowers ?? promoTiktokFollowers,
+                likes: overrides?.tiktokLikes ?? promoTiktokLikes,
+                following: overrides?.tiktokFollowing ?? promoTiktokFollowing
+            },
+            youtube: {
+                handle: '@dropsiders',
+                name: 'DROPSIDERS',
+                subscribers: overrides?.youtubeSubscribers ?? promoYoutubeSubscribers,
+                videos: overrides?.youtubeVideos ?? promoYoutubeVideos
+            }
+        };
         try {
+            fetch('/api/social-profiles/update', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            }).catch(() => {});
             fetch('/api/instagram-feed/update', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -1839,8 +1944,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     profile: {
                         username: 'dropsiders.fr',
                         name: 'DROPSIDERS',
-                        followers: followers.toLocaleString('fr-FR'),
-                        postsCount: posts.toLocaleString('fr-FR'),
+                        followers: (overrides?.instagramFollowers ?? promoFollowersCount).toLocaleString('fr-FR'),
+                        postsCount: (overrides?.instagramPosts ?? promoPostsCount).toLocaleString('fr-FR'),
                         url: 'https://www.instagram.com/dropsiders.fr/'
                     }
                 })
@@ -1851,20 +1956,48 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const handleFollowersCountChange = (val: number) => {
         const nextVal = Math.max(0, val);
         setPromoFollowersCount(nextVal);
-        try {
-            localStorage.setItem('dropsiders_promo_followers_count', String(nextVal));
-        } catch (_) {}
-        syncStatsToServer(nextVal, promoPostsCount);
+        try { localStorage.setItem('dropsiders_promo_followers_count', String(nextVal)); } catch (_) {}
+        syncAllSocialProfiles({ instagramFollowers: nextVal });
         setTimeout(() => generateImage(), 50);
     };
 
     const handlePostsCountChange = (val: number) => {
         const nextVal = Math.max(0, val);
         setPromoPostsCount(nextVal);
-        try {
-            localStorage.setItem('dropsiders_promo_posts_count', String(nextVal));
-        } catch (_) {}
-        syncStatsToServer(promoFollowersCount, nextVal);
+        try { localStorage.setItem('dropsiders_promo_posts_count', String(nextVal)); } catch (_) {}
+        syncAllSocialProfiles({ instagramPosts: nextVal });
+        setTimeout(() => generateImage(), 50);
+    };
+
+    const handleTiktokFollowersChange = (val: number) => {
+        const nextVal = Math.max(0, val);
+        setPromoTiktokFollowers(nextVal);
+        try { localStorage.setItem('dropsiders_promo_tiktok_followers', String(nextVal)); } catch (_) {}
+        syncAllSocialProfiles({ tiktokFollowers: nextVal });
+        setTimeout(() => generateImage(), 50);
+    };
+
+    const handleTiktokLikesChange = (val: number) => {
+        const nextVal = Math.max(0, val);
+        setPromoTiktokLikes(nextVal);
+        try { localStorage.setItem('dropsiders_promo_tiktok_likes', String(nextVal)); } catch (_) {}
+        syncAllSocialProfiles({ tiktokLikes: nextVal });
+        setTimeout(() => generateImage(), 50);
+    };
+
+    const handleYoutubeSubscribersChange = (val: number) => {
+        const nextVal = Math.max(0, val);
+        setPromoYoutubeSubscribers(nextVal);
+        try { localStorage.setItem('dropsiders_promo_youtube_subscribers', String(nextVal)); } catch (_) {}
+        syncAllSocialProfiles({ youtubeSubscribers: nextVal });
+        setTimeout(() => generateImage(), 50);
+    };
+
+    const handleYoutubeVideosChange = (val: number) => {
+        const nextVal = Math.max(0, val);
+        setPromoYoutubeVideos(nextVal);
+        try { localStorage.setItem('dropsiders_promo_youtube_videos', String(nextVal)); } catch (_) {}
+        syncAllSocialProfiles({ youtubeVideos: nextVal });
         setTimeout(() => generateImage(), 50);
     };
 
@@ -2107,12 +2240,19 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         // Préchargement des assets pour la slide Promo Smartphone 3D
         const phoneAssets = [
             '/images/instagram/avatar_clean.png',
+            '/Banniere_Fluide_Clean.jpg',
             '/images/instagram/post_full_1.jpg',
             '/images/instagram/post_full_2.jpg',
             '/images/instagram/post_full_3.jpg',
             '/images/instagram/post_full_4.jpg',
             '/images/instagram/post_full_5.jpg',
             '/images/instagram/post_full_6.jpg',
+            '/images/instagram/post_edclv.jpg',
+            '/images/instagram/post_johnsummit.jpg',
+            '/images/instagram/post_top100.jpg',
+            '/images/instagram/post_fckg.jpg',
+            '/images/instagram/post_festivals.jpg',
+            '/images/instagram/post_gta6.jpg',
             '/images/instagram/hl_circle_escape.png',
             '/images/instagram/hl_circle_guetta.png',
             '/images/instagram/hl_circle_electra.png',
@@ -4121,7 +4261,26 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         promoFollowersCount,
                         promoPostsCount,
                         applyTextAnimCtx,
-                        imageCache: imageCacheRef.current
+                        imageCache: imageCacheRef.current,
+                        socialProfiles: {
+                            instagram: {
+                                followers: promoFollowersCount,
+                                posts: promoPostsCount,
+                                handle: '@dropsiders.fr'
+                            },
+                            tiktok: {
+                                followers: promoTiktokFollowers,
+                                likes: promoTiktokLikes,
+                                following: promoTiktokFollowing,
+                                handle: '@dropsiders.fr'
+                            },
+                            youtube: {
+                                subscribers: promoYoutubeSubscribers,
+                                videos: promoYoutubeVideos,
+                                handle: '@dropsiders'
+                            }
+                        },
+                        previewNetwork: promoPreviewNetwork
                     });
                     ctx.restore();
                     return;
@@ -13344,109 +13503,303 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     </button>
                 </div>
 
-                {/* Réglage des stats Instagram modifiables sans passer par le code */}
-                <div className="p-3 bg-black/50 border border-[#0095f6]/30 rounded-xl space-y-3">
-                    {/* Abonnés */}
-                    <div className="space-y-1.5">
-                        <div className="flex items-center justify-between">
-                            <label className="text-[9.5px] font-black text-white uppercase flex items-center gap-1.5">
-                                <Users className="w-3.5 h-3.5 text-[#0095f6]" />
-                                <span>Abonnés Instagram</span>
-                            </label>
-                            <span className="text-[8px] font-mono text-[#00f0ff] font-bold bg-[#00f0ff]/10 px-2 py-0.5 rounded border border-[#00f0ff]/20">
-                                {promoFollowersCount.toLocaleString('fr-FR')} ➔ {(promoFollowersCount + 1).toLocaleString('fr-FR')} (+1 au clic)
-                            </span>
-                        </div>
-
-                        <div className="flex items-center gap-2">
-                            <div className="relative flex-1">
-                                <input
-                                    type="number"
-                                    min="0"
-                                    step="1"
-                                    value={promoFollowersCount}
-                                    onChange={(e) => handleFollowersCountChange(Math.max(0, parseInt(e.target.value) || 0))}
-                                    className="w-full bg-black/60 border border-white/10 focus:border-[#0095f6] rounded-xl px-3 py-2 text-white text-[12px] font-mono font-bold outline-none transition-all"
-                                    placeholder="Ex: 4698"
-                                />
-                            </div>
-                            <div className="flex items-center gap-1">
-                                <button
-                                    type="button"
-                                    onClick={() => handleFollowersCountChange(promoFollowersCount - 1)}
-                                    className="px-2 py-2 bg-white/5 hover:bg-white/15 border border-white/10 rounded-xl text-white font-mono text-[9.5px] font-bold active:scale-95 transition-all"
-                                    title="-1 abonné"
-                                >
-                                    -1
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() => handleFollowersCountChange(promoFollowersCount + 1)}
-                                    className="px-2.5 py-2 bg-[#0095f6]/20 hover:bg-[#0095f6]/30 border border-[#0095f6]/40 text-[#0095f6] font-mono text-[9.5px] font-bold rounded-xl active:scale-95 transition-all"
-                                    title="+1 abonné"
-                                >
-                                    +1
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() => handleFollowersCountChange(promoFollowersCount + 10)}
-                                    className="px-2.5 py-2 bg-[#0095f6]/20 hover:bg-[#0095f6]/30 border border-[#0095f6]/40 text-[#0095f6] font-mono text-[9.5px] font-bold rounded-xl active:scale-95 transition-all"
-                                    title="+10 abonnés"
-                                >
-                                    +10
-                                </button>
-                            </div>
-                        </div>
+                {/* Contrôles & Profils Réseaux Sociaux (Instagram / TikTok / YouTube) */}
+                <div className="p-3 bg-black/50 border border-white/10 rounded-xl space-y-3">
+                    <div className="flex items-center justify-between">
+                        <span className="text-[10px] font-black uppercase text-white flex items-center gap-1.5">
+                            <Users className="w-3.5 h-3.5 text-[#00f0ff]" />
+                            <span>Profils Réseaux (Aperçu & Stats)</span>
+                        </span>
+                        <span className="text-[8px] font-mono text-gray-400 font-bold bg-white/5 px-2 py-0.5 rounded border border-white/10">
+                            Auto-Sync R2 / KV
+                        </span>
                     </div>
 
-                    {/* Publications */}
-                    <div className="space-y-1.5 pt-2 border-t border-white/5">
-                        <div className="flex items-center justify-between">
-                            <label className="text-[9.5px] font-black text-gray-300 uppercase flex items-center gap-1.5">
-                                <Instagram className="w-3.5 h-3.5 text-[#ff007f]" />
-                                <span>Nombre de publications</span>
-                            </label>
-                            <span className="text-[8px] font-mono text-gray-400 font-bold bg-white/5 px-2 py-0.5 rounded border border-white/10">
-                                {promoPostsCount.toLocaleString('fr-FR')} posts
-                            </span>
-                        </div>
-
-                        <div className="flex items-center gap-2">
-                            <div className="relative flex-1">
-                                <input
-                                    type="number"
-                                    min="0"
-                                    step="1"
-                                    value={promoPostsCount}
-                                    onChange={(e) => handlePostsCountChange(Math.max(0, parseInt(e.target.value) || 0))}
-                                    className="w-full bg-black/60 border border-white/10 focus:border-[#ff007f] rounded-xl px-3 py-2 text-white text-[12px] font-mono font-bold outline-none transition-all"
-                                    placeholder="Ex: 1441"
-                                />
-                            </div>
-                            <div className="flex items-center gap-1">
-                                <button
-                                    type="button"
-                                    onClick={() => handlePostsCountChange(promoPostsCount - 1)}
-                                    className="px-2 py-2 bg-white/5 hover:bg-white/15 border border-white/10 rounded-xl text-white font-mono text-[9.5px] font-bold active:scale-95 transition-all"
-                                    title="-1 post"
-                                >
-                                    -1
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() => handlePostsCountChange(promoPostsCount + 1)}
-                                    className="px-2.5 py-2 bg-[#ff007f]/20 hover:bg-[#ff007f]/30 border border-[#ff007f]/40 text-[#ff007f] font-mono text-[9.5px] font-bold rounded-xl active:scale-95 transition-all"
-                                    title="+1 post"
-                                >
-                                    +1
-                                </button>
-                            </div>
-                        </div>
+                    {/* Onglets de sélection du réseau à prévisualiser / modifier */}
+                    <div className="grid grid-cols-3 gap-1 p-1 bg-black/60 rounded-xl border border-white/10">
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setPromoPreviewNetwork('INSTAGRAM');
+                                setTimeout(() => generateImage(), 50);
+                            }}
+                            className={`py-1.5 px-1.5 rounded-lg text-[9px] font-black uppercase flex items-center justify-center gap-1 transition-all ${
+                                promoPreviewNetwork === 'INSTAGRAM'
+                                    ? 'bg-gradient-to-r from-[#833ab4] via-[#fd1d1d] to-[#fcb045] text-white shadow-md shadow-pink-500/25'
+                                    : 'text-gray-400 hover:text-white bg-transparent'
+                            }`}
+                        >
+                            <Instagram className="w-3 h-3" />
+                            <span>Instagram</span>
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setPromoPreviewNetwork('TIKTOK');
+                                setTimeout(() => generateImage(), 50);
+                            }}
+                            className={`py-1.5 px-1.5 rounded-lg text-[9px] font-black uppercase flex items-center justify-center gap-1 transition-all ${
+                                promoPreviewNetwork === 'TIKTOK'
+                                    ? 'bg-gradient-to-r from-[#25F4EE] to-[#FE2C55] text-black font-extrabold shadow-md shadow-cyan-500/25'
+                                    : 'text-gray-400 hover:text-white bg-transparent'
+                            }`}
+                        >
+                            <Share2 className="w-3 h-3" />
+                            <span>TikTok</span>
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setPromoPreviewNetwork('YOUTUBE');
+                                setTimeout(() => generateImage(), 50);
+                            }}
+                            className={`py-1.5 px-1.5 rounded-lg text-[9px] font-black uppercase flex items-center justify-center gap-1 transition-all ${
+                                promoPreviewNetwork === 'YOUTUBE'
+                                    ? 'bg-[#FF0000] text-white shadow-md shadow-red-500/30 font-black'
+                                    : 'text-gray-400 hover:text-white bg-transparent'
+                            }`}
+                        >
+                            <Video className="w-3 h-3" />
+                            <span>YouTube</span>
+                        </button>
                     </div>
 
-                    <p className="text-[7.5px] text-gray-400 italic">
-                        💡 Le compteur d'abonnés démarre à <strong>{promoFollowersCount.toLocaleString('fr-FR')}</strong> et passe automatiquement à <strong>{(promoFollowersCount + 1).toLocaleString('fr-FR')}</strong> lors du clic sur le bouton Suivre. Les valeurs sont sauvegardées automatiquement dans votre navigateur.
-                    </p>
+                    {/* Formulaire spécifique au réseau sélectionné */}
+                    {promoPreviewNetwork === 'INSTAGRAM' && (
+                        <div className="space-y-2.5 pt-1">
+                            {/* Abonnés Instagram */}
+                            <div className="space-y-1">
+                                <div className="flex items-center justify-between">
+                                    <label className="text-[9px] font-bold text-gray-200 uppercase flex items-center gap-1">
+                                        <Instagram className="w-3 h-3 text-[#E1306C]" />
+                                        <span>Abonnés Instagram</span>
+                                    </label>
+                                    <span className="text-[8px] font-mono text-[#00f0ff] font-bold bg-[#00f0ff]/10 px-1.5 py-0.5 rounded">
+                                        {promoFollowersCount.toLocaleString('fr-FR')} ➔ {(promoFollowersCount + 1).toLocaleString('fr-FR')} (+1)
+                                    </span>
+                                </div>
+                                <div className="flex items-center gap-1.5">
+                                    <input
+                                        type="number"
+                                        min="0"
+                                        value={promoFollowersCount}
+                                        onChange={(e) => handleFollowersCountChange(Math.max(0, parseInt(e.target.value) || 0))}
+                                        className="flex-1 bg-black/60 border border-white/10 focus:border-[#E1306C] rounded-lg px-2.5 py-1.5 text-white text-[11px] font-mono font-bold outline-none"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => handleFollowersCountChange(promoFollowersCount - 1)}
+                                        className="px-2 py-1.5 bg-white/5 hover:bg-white/15 border border-white/10 rounded-lg text-white font-mono text-[9px] font-bold active:scale-95"
+                                    >
+                                        -1
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => handleFollowersCountChange(promoFollowersCount + 1)}
+                                        className="px-2 py-1.5 bg-[#E1306C]/20 hover:bg-[#E1306C]/30 border border-[#E1306C]/40 text-[#E1306C] font-mono text-[9px] font-bold rounded-lg active:scale-95"
+                                    >
+                                        +1
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => handleFollowersCountChange(promoFollowersCount + 10)}
+                                        className="px-2 py-1.5 bg-[#E1306C]/20 hover:bg-[#E1306C]/30 border border-[#E1306C]/40 text-[#E1306C] font-mono text-[9px] font-bold rounded-lg active:scale-95"
+                                    >
+                                        +10
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* Publications Instagram */}
+                            <div className="space-y-1 pt-1.5 border-t border-white/5">
+                                <div className="flex items-center justify-between">
+                                    <label className="text-[9px] font-bold text-gray-200 uppercase">Publications</label>
+                                    <span className="text-[8px] font-mono text-gray-400 font-bold">{promoPostsCount.toLocaleString('fr-FR')} posts</span>
+                                </div>
+                                <div className="flex items-center gap-1.5">
+                                    <input
+                                        type="number"
+                                        min="0"
+                                        value={promoPostsCount}
+                                        onChange={(e) => handlePostsCountChange(Math.max(0, parseInt(e.target.value) || 0))}
+                                        className="flex-1 bg-black/60 border border-white/10 focus:border-[#E1306C] rounded-lg px-2.5 py-1.5 text-white text-[11px] font-mono font-bold outline-none"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => handlePostsCountChange(promoPostsCount - 1)}
+                                        className="px-2 py-1.5 bg-white/5 hover:bg-white/15 border border-white/10 rounded-lg text-white font-mono text-[9px] font-bold active:scale-95"
+                                    >
+                                        -1
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => handlePostsCountChange(promoPostsCount + 1)}
+                                        className="px-2 py-1.5 bg-[#E1306C]/20 hover:bg-[#E1306C]/30 border border-[#E1306C]/40 text-[#E1306C] font-mono text-[9px] font-bold rounded-lg active:scale-95"
+                                    >
+                                        +1
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {promoPreviewNetwork === 'TIKTOK' && (
+                        <div className="space-y-2.5 pt-1">
+                            {/* Abonnés TikTok */}
+                            <div className="space-y-1">
+                                <div className="flex items-center justify-between">
+                                    <label className="text-[9px] font-bold text-gray-200 uppercase flex items-center gap-1">
+                                        <Share2 className="w-3 h-3 text-[#25F4EE]" />
+                                        <span>Abonnés TikTok</span>
+                                    </label>
+                                    <span className="text-[8px] font-mono text-[#25F4EE] font-bold bg-[#25F4EE]/10 px-1.5 py-0.5 rounded">
+                                        {promoTiktokFollowers >= 10000 ? (promoTiktokFollowers / 1000).toFixed(1) + 'K' : promoTiktokFollowers}
+                                    </span>
+                                </div>
+                                <div className="flex items-center gap-1.5">
+                                    <input
+                                        type="number"
+                                        min="0"
+                                        value={promoTiktokFollowers}
+                                        onChange={(e) => handleTiktokFollowersChange(Math.max(0, parseInt(e.target.value) || 0))}
+                                        className="flex-1 bg-black/60 border border-white/10 focus:border-[#25F4EE] rounded-lg px-2.5 py-1.5 text-white text-[11px] font-mono font-bold outline-none"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => handleTiktokFollowersChange(promoTiktokFollowers - 100)}
+                                        className="px-2 py-1.5 bg-white/5 hover:bg-white/15 border border-white/10 rounded-lg text-white font-mono text-[9px] font-bold active:scale-95"
+                                    >
+                                        -100
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => handleTiktokFollowersChange(promoTiktokFollowers + 100)}
+                                        className="px-2 py-1.5 bg-[#25F4EE]/20 hover:bg-[#25F4EE]/30 border border-[#25F4EE]/40 text-[#25F4EE] font-mono text-[9px] font-bold rounded-lg active:scale-95"
+                                    >
+                                        +100
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => handleTiktokFollowersChange(promoTiktokFollowers + 1000)}
+                                        className="px-2 py-1.5 bg-[#25F4EE]/20 hover:bg-[#25F4EE]/30 border border-[#25F4EE]/40 text-[#25F4EE] font-mono text-[9px] font-bold rounded-lg active:scale-95"
+                                    >
+                                        +1K
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* Mentions J'aime TikTok */}
+                            <div className="space-y-1 pt-1.5 border-t border-white/5">
+                                <div className="flex items-center justify-between">
+                                    <label className="text-[9px] font-bold text-gray-200 uppercase">Mentions J'aime</label>
+                                    <span className="text-[8px] font-mono text-[#FE2C55] font-bold">
+                                        {promoTiktokLikes >= 1000 ? (promoTiktokLikes / 1000).toFixed(1) + 'K' : promoTiktokLikes} likes
+                                    </span>
+                                </div>
+                                <div className="flex items-center gap-1.5">
+                                    <input
+                                        type="number"
+                                        min="0"
+                                        value={promoTiktokLikes}
+                                        onChange={(e) => handleTiktokLikesChange(Math.max(0, parseInt(e.target.value) || 0))}
+                                        className="flex-1 bg-black/60 border border-white/10 focus:border-[#FE2C55] rounded-lg px-2.5 py-1.5 text-white text-[11px] font-mono font-bold outline-none"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => handleTiktokLikesChange(promoTiktokLikes + 1000)}
+                                        className="px-2 py-1.5 bg-[#FE2C55]/20 hover:bg-[#FE2C55]/30 border border-[#FE2C55]/40 text-[#FE2C55] font-mono text-[9px] font-bold rounded-lg active:scale-95"
+                                    >
+                                        +1K
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {promoPreviewNetwork === 'YOUTUBE' && (
+                        <div className="space-y-2.5 pt-1">
+                            {/* Abonnés YouTube */}
+                            <div className="space-y-1">
+                                <div className="flex items-center justify-between">
+                                    <label className="text-[9px] font-bold text-gray-200 uppercase flex items-center gap-1">
+                                        <Video className="w-3 h-3 text-[#FF0000]" />
+                                        <span>Abonnés YouTube</span>
+                                    </label>
+                                    <span className="text-[8px] font-mono text-red-400 font-bold bg-red-500/10 px-1.5 py-0.5 rounded">
+                                        {promoYoutubeSubscribers >= 1000 ? (promoYoutubeSubscribers / 1000).toFixed(2) + 'K' : promoYoutubeSubscribers}
+                                    </span>
+                                </div>
+                                <div className="flex items-center gap-1.5">
+                                    <input
+                                        type="number"
+                                        min="0"
+                                        value={promoYoutubeSubscribers}
+                                        onChange={(e) => handleYoutubeSubscribersChange(Math.max(0, parseInt(e.target.value) || 0))}
+                                        className="flex-1 bg-black/60 border border-white/10 focus:border-[#FF0000] rounded-lg px-2.5 py-1.5 text-white text-[11px] font-mono font-bold outline-none"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => handleYoutubeSubscribersChange(promoYoutubeSubscribers - 10)}
+                                        className="px-2 py-1.5 bg-white/5 hover:bg-white/15 border border-white/10 rounded-lg text-white font-mono text-[9px] font-bold active:scale-95"
+                                    >
+                                        -10
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => handleYoutubeSubscribersChange(promoYoutubeSubscribers + 10)}
+                                        className="px-2 py-1.5 bg-red-600/20 hover:bg-red-600/30 border border-red-500/40 text-red-400 font-mono text-[9px] font-bold rounded-lg active:scale-95"
+                                    >
+                                        +10
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => handleYoutubeSubscribersChange(promoYoutubeSubscribers + 100)}
+                                        className="px-2 py-1.5 bg-red-600/20 hover:bg-red-600/30 border border-red-500/40 text-red-400 font-mono text-[9px] font-bold rounded-lg active:scale-95"
+                                    >
+                                        +100
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* Nombre de vidéos */}
+                            <div className="space-y-1 pt-1.5 border-t border-white/5">
+                                <div className="flex items-center justify-between">
+                                    <label className="text-[9px] font-bold text-gray-200 uppercase">Nombre de vidéos</label>
+                                    <span className="text-[8px] font-mono text-gray-400 font-bold">{promoYoutubeVideos} vidéos</span>
+                                </div>
+                                <div className="flex items-center gap-1.5">
+                                    <input
+                                        type="number"
+                                        min="0"
+                                        value={promoYoutubeVideos}
+                                        onChange={(e) => handleYoutubeVideosChange(Math.max(0, parseInt(e.target.value) || 0))}
+                                        className="flex-1 bg-black/60 border border-white/10 focus:border-[#FF0000] rounded-lg px-2.5 py-1.5 text-white text-[11px] font-mono font-bold outline-none"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => handleYoutubeVideosChange(promoYoutubeVideos + 1)}
+                                        className="px-2 py-1.5 bg-red-600/20 hover:bg-red-600/30 border border-red-500/40 text-red-400 font-mono text-[9px] font-bold rounded-lg active:scale-95"
+                                    >
+                                        +1
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    <div className="flex items-center justify-between pt-1 text-[7.5px] text-gray-400 italic">
+                        <span>💡 Données sauvegardées et synchronisées en temps réel.</span>
+                        <button
+                            type="button"
+                            onClick={() => {
+                                syncAllSocialProfiles();
+                                alert('Profils sociaux sauvegardés et synchronisés !');
+                            }}
+                            className="text-[#00f0ff] hover:underline font-bold not-italic"
+                        >
+                            🔄 Forcer synchro R2
+                        </button>
+                    </div>
                 </div>
 
                 <div className="space-y-1.5">

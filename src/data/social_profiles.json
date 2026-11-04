@@ -1,0 +1,28 @@
+{
+  "instagram": {
+    "handle": "@dropsiders.fr",
+    "name": "DROPSIDERS",
+    "followers": 4698,
+    "posts": 1471,
+    "following": 668,
+    "bio": "La 1ère plateforme interactive dédiée à l'électro & aux festivals 🔥",
+    "url": "https://www.instagram.com/dropsiders.fr/"
+  },
+  "tiktok": {
+    "handle": "@dropsiders.fr",
+    "name": "DROPSIDERS",
+    "followers": 14200,
+    "likes": 185600,
+    "following": 210,
+    "bio": "⚡ 1er média électro & festivals en France | News, Livesets & Recaps",
+    "url": "https://www.tiktok.com/@dropsiders.fr"
+  },
+  "youtube": {
+    "handle": "@dropsiders",
+    "name": "DROPSIDERS",
+    "subscribers": 4820,
+    "videos": 320,
+    "bio": "Chaîne officielle de Dropsiders. Reportages, interviews & livesets électro.",
+    "url": "https://www.youtube.com/@dropsiders"
+  }
+}
