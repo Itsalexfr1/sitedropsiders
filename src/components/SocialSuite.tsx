@@ -13420,34 +13420,6 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
     const promoEditor = (
         <div className="space-y-4">
-            {/* Effet & Animation du texte */}
-            <div className="space-y-1">
-                <span className="text-[10px] font-black uppercase text-neon-cyan tracking-wider flex items-center gap-1.5">
-                    ✨ Effet & Animation du texte
-                </span>
-                {textAnimationControl}
-            </div>
-            {isCarouselPromoActive && (
-                <div className="p-3 bg-neon-red/10 border border-neon-red/30 rounded-2xl flex items-center justify-between shadow-lg">
-                    <div className="flex items-center gap-2">
-                        <span className="text-base">🔥</span>
-                        <div>
-                            <p className="text-[10px] font-black uppercase text-neon-red tracking-wider">Slide Outro PROMO active</p>
-                            <p className="text-[8px] text-gray-400">Modifiez ici la phrase et la question de fin de carrousel</p>
-                        </div>
-                    </div>
-                    <button
-                        type="button"
-                        onClick={() => {
-                            setIsCarouselPromoActive(false);
-                            setTimeout(() => generateImage(), 50);
-                        }}
-                        className="px-2.5 py-1.5 bg-white/10 hover:bg-white/20 text-white rounded-xl text-[8.5px] font-black uppercase transition-all flex items-center gap-1 active:scale-95"
-                    >
-                        ❮ Revenir aux slides
-                    </button>
-                </div>
-            )}
 
             {/* Toggle Principal : Phrase d'accroche (Question / Débat) */}
             <div className="p-3.5 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-between shadow-sm">
@@ -13845,28 +13817,6 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 </div>
             </div>
 
-            {/* Thème & Couleur synchronisés avec la publication */}
-            <div className="p-3 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-between shadow-sm">
-                <div className="space-y-0.5">
-                    <span className="text-[10px] font-black uppercase text-gray-300 flex items-center gap-1.5">
-                        🎨 Thème & Couleur Promo
-                    </span>
-                    <p className="text-[8px] text-gray-400">
-                        Synchronisé avec le thème officiel de votre publication ({theme})
-                    </p>
-                </div>
-                <span 
-                    className="text-[9px] font-black uppercase px-2.5 py-1 rounded-full border shadow-sm"
-                    style={{ 
-                        backgroundColor: `${(baseThemeData[promoCategory as ThemeType] || baseThemeData[theme] || baseThemeData['NEWS']).color}20`, 
-                        color: (baseThemeData[promoCategory as ThemeType] || baseThemeData[theme] || baseThemeData['NEWS']).color,
-                        borderColor: `${(baseThemeData[promoCategory as ThemeType] || baseThemeData[theme] || baseThemeData['NEWS']).color}60` 
-                    }}
-                >
-                    {promoCategory || theme}
-                </span>
-            </div>
-
             {/* 2. Phrase officielle Promo d'information (Pour être informé...) */}
             <div className="space-y-3 bg-white/5 border border-white/10 rounded-2xl p-3.5">
                 <div className="flex items-center justify-between">
@@ -14146,28 +14096,6 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         </button>
                     </div>
                 )}
-            </div>
-
-            <div className="p-3 bg-white/5 border border-white/10 rounded-xl space-y-2">
-                <p className="text-[9px] font-black text-neon-cyan uppercase tracking-widest">Aperçu Outro & Bulles :</p>
-                <p className="text-[10px] text-gray-300 font-bold leading-relaxed">
-                    « {[
-                        (showPromoHeadline && showPromoLine1) ? (promoCustomPhrase || (promoCategory === 'EVENTS' || promoCategory === 'PLANNING' ? "Pour être informé de tous les événements" : "Pour être informé de toutes les news")) : null,
-                        (showPromoHeadline && showPromoLine2) ? (promoCustomSubphrase || "sur la musique électronique et les festivals") : null,
-                        "abonnez-vous à DROPSIDERS"
-                    ].filter(Boolean).join(', ')} »
-                </p>
-                <div className="flex flex-wrap gap-1 pt-1">
-                    {['NEWS', 'MUSIQUE', 'FOCUS', 'RECAPS', 'CONCOURS', 'EVENTS', 'INTERVIEWS', 'VIDEOS'].map((tag, i) => (
-                        <span key={i} className={`px-2.5 py-1 border rounded-full text-[8px] font-black transition-all ${
-                            (promoCategory === tag || (promoCategory === 'PLANNING' && tag === 'EVENTS'))
-                                ? 'bg-neon-red/20 border-neon-red text-neon-red'
-                                : 'bg-white/10 border-white/15 text-white/90'
-                        }`}>
-                            {tag}
-                        </span>
-                    ))}
-                </div>
             </div>
 
             {/* Bouton d'export direct de la slide Promo Outro (Uniquement Vidéo MP4 7s) */}
@@ -20587,11 +20515,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     )}
 
                                     {/* Option Date dans la barre blanche */}
-                                    {editorialDateControl}
+                                    {!((isCarouselPromoActive && isMultiSlideTheme) || theme === 'PROMO') && editorialDateControl}
 
                                     {/* Animation universelle du texte & éléments (regroupée directement sous le cadre texte) */}
-                                    {theme !== 'MAP' && textAnimationControl}
-                                    {theme !== 'MAP' && isMultiSlideTheme && slideTransitionControl}
+                                    {theme !== 'MAP' && !((isCarouselPromoActive && isMultiSlideTheme) || theme === 'PROMO') && textAnimationControl}
+                                    {theme !== 'MAP' && isMultiSlideTheme && !((isCarouselPromoActive && isMultiSlideTheme) || theme === 'PROMO') && slideTransitionControl}
                                 </div>
 
                                 {/* Navigation rapide vers l'étape suivante */}
@@ -22024,11 +21952,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                             </div>
                                         ) : theme === 'PLANNING' ? planningEditor : theme.startsWith('TOP 5') ? top5Editor : theme === 'TRACKLIST' ? tracklistEditor : theme === 'SPOTLIGHT' ? spotlightEditor : theme === 'ARTISTE FESTIVAL' ? artisteFestivalEditor : (theme === 'EVENTS' || theme === 'AFFICHE') ? eventsEditor : theme === 'MUSIQUE' ? musiqueEditor : theme === 'TOP 100 DROPSIDERS' ? top100Editor : theme === 'HIGHLIGHTS' ? highlightsEditor : ['NEWS', 'FOCUS', 'RECAP', 'INTERVIEW', 'REELS', 'CONSEILS', 'CONCOURS', 'JEU', 'JEU_FESTIVAL', 'JEU_DJ'].includes(theme) ? conseilsEditor : theme === 'CITATION' ? citationEditor : theme === 'MAP' ? mapEditor : theme === 'PROMO' ? promoEditor : textEditor}
                                         {/* Option Date dans la barre blanche */}
-                                        {editorialDateControl}
+                                        {!((isCarouselPromoActive && isMultiSlideTheme) || theme === 'PROMO') && editorialDateControl}
 
                                         {/* Animation du texte & transitions de slide en dessous du cadre texte */}
-                                        {theme !== 'MAP' && textAnimationControl}
-                                        {theme !== 'MAP' && isMultiSlideTheme && slideTransitionControl}
+                                        {theme !== 'MAP' && !((isCarouselPromoActive && isMultiSlideTheme) || theme === 'PROMO') && textAnimationControl}
+                                        {theme !== 'MAP' && isMultiSlideTheme && !((isCarouselPromoActive && isMultiSlideTheme) || theme === 'PROMO') && slideTransitionControl}
                                     </div>
                                 )}
 
