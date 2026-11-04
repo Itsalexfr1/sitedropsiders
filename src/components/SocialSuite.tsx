@@ -1814,21 +1814,21 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             const saved = localStorage.getItem('dropsiders_promo_tiktok_followers');
             if (saved && !isNaN(Number(saved))) return Number(saved);
         } catch (_) {}
-        return 14200;
+        return 6967;
     });
     const [promoTiktokLikes, setPromoTiktokLikes] = useState<number>(() => {
         try {
             const saved = localStorage.getItem('dropsiders_promo_tiktok_likes');
             if (saved && !isNaN(Number(saved))) return Number(saved);
         } catch (_) {}
-        return 185600;
+        return 155800;
     });
     const [promoTiktokFollowing, setPromoTiktokFollowing] = useState<number>(() => {
         try {
             const saved = localStorage.getItem('dropsiders_promo_tiktok_following');
             if (saved && !isNaN(Number(saved))) return Number(saved);
         } catch (_) {}
-        return 210;
+        return 129;
     });
 
     // Stats YouTube
@@ -1837,14 +1837,14 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             const saved = localStorage.getItem('dropsiders_promo_youtube_subscribers');
             if (saved && !isNaN(Number(saved))) return Number(saved);
         } catch (_) {}
-        return 4820;
+        return 628;
     });
     const [promoYoutubeVideos, setPromoYoutubeVideos] = useState<number>(() => {
         try {
             const saved = localStorage.getItem('dropsiders_promo_youtube_videos');
             if (saved && !isNaN(Number(saved))) return Number(saved);
         } catch (_) {}
-        return 320;
+        return 48;
     });
 
     // Réseau actif sélectionné en mode prévisualisation fixe
@@ -2250,6 +2250,16 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             '/assets/galeries/ultra-europe-2025-croatie/img-2.jpg',
             '/images/gta6_cover.jpg',
             '/Banniere_Fluide_Clean.jpg',
+            '/images/social/tk_post_1.jpg',
+            '/images/social/tk_post_2.jpg',
+            '/images/social/tk_post_3.jpg',
+            '/images/social/tk_post_4.jpg',
+            '/images/social/tk_post_5.jpg',
+            '/images/social/tk_post_6.jpg',
+            '/images/social/yt_banner.jpg',
+            '/images/social/yt_thumb_1.jpg',
+            '/images/social/yt_thumb_2.jpg',
+            '/images/social/yt_thumb_3.jpg',
             '/images/instagram/post_full_1.jpg',
             '/images/instagram/post_full_2.jpg',
             '/images/instagram/post_full_3.jpg',
