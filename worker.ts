@@ -12,31 +12,51 @@ import { searchAirports, MAJOR_AIRPORTS } from './src/data/airports';
 
 // Helper: S3 Client for Backup / Secours Cloud (Cloudflare R2 Account 5)
 
-// Helper: List objects from an external S3/R2 sub-cloud
-async function listS3Objects(s3Client: any, accountId: string, bucket: string, prefix = '') {
+// Helper: Determine media type from file extension or key
+function getMediaType(key: string): 'photo' | 'video' | 'audio' | 'file' {
+    if (!key) return 'photo';
+    const lower = key.toLowerCase();
+    if (/\.(mp4|mov|webm|avi|mkv|m4v|ogv)$/.test(lower) || lower.startsWith('videos/') || lower.includes('/videos/')) return 'video';
+    if (/\.(mp3|wav|ogg|aac|m4a|flac|wma)$/.test(lower) || lower.startsWith('sons/') || lower.includes('/sons/')) return 'audio';
+    if (/\.(jpg|jpeg|png|webp|avif|gif|svg|bmp|heic|heif)$/.test(lower)) return 'photo';
+    return 'photo';
+}
+
+// Helper: List objects from an external S3/R2 sub-cloud with pagination
+async function listS3Objects(s3Client: any, accountId: string, bucket: string, prefix = '', maxLoops = 15) {
     if (!s3Client || !accountId || !bucket) return [];
     try {
-        const url = `https://${accountId}.r2.cloudflarestorage.com/${bucket}?list-type=2${prefix ? `&prefix=${encodeURIComponent(prefix)}` : ''}&max-keys=1000`;
-        const res = await s3Client.fetch(url);
-        if (!res.ok) return [];
-        const xml = await res.text();
         const items: any[] = [];
-        const entries = xml.matchAll(/<Contents>([\s\S]*?)<\/Contents>/g);
-        for (const entry of entries) {
-            const block = entry[1];
-            const keyMatch = block.match(/<Key>(.*?)<\/Key>/);
-            const sizeMatch = block.match(/<Size>(\d+)<\/Size>/);
-            const dateMatch = block.match(/<LastModified>(.*?)<\/LastModified>/);
-            const etagMatch = block.match(/<ETag>(.*?)<\/ETag>/);
-            if (keyMatch && keyMatch[1]) {
-                items.push({
-                    key: keyMatch[1],
-                    size: sizeMatch ? parseInt(sizeMatch[1], 10) : 0,
-                    uploaded: dateMatch ? new Date(dateMatch[1]) : new Date(),
-                    etag: etagMatch ? etagMatch[1].replace(/"/g, '') : ''
-                });
+        let continuationToken: string | null = null;
+        let loop = 0;
+        do {
+            const tokenParam = continuationToken ? `&continuation-token=${encodeURIComponent(continuationToken)}` : '';
+            const url = `https://${accountId}.r2.cloudflarestorage.com/${bucket}?list-type=2${prefix ? `&prefix=${encodeURIComponent(prefix)}` : ''}${tokenParam}&max-keys=1000`;
+            const res = await s3Client.fetch(url);
+            if (!res.ok) break;
+            const xml = await res.text();
+            const entries = xml.matchAll(/<Contents>([\s\S]*?)<\/Contents>/g);
+            for (const entry of entries) {
+                const block = entry[1];
+                const keyMatch = block.match(/<Key>(.*?)<\/Key>/);
+                const sizeMatch = block.match(/<Size>(\d+)<\/Size>/);
+                const dateMatch = block.match(/<LastModified>(.*?)<\/LastModified>/);
+                const etagMatch = block.match(/<ETag>(.*?)<\/ETag>/);
+                if (keyMatch && keyMatch[1]) {
+                    items.push({
+                        key: keyMatch[1],
+                        size: sizeMatch ? parseInt(sizeMatch[1], 10) : 0,
+                        uploaded: dateMatch ? new Date(dateMatch[1]) : new Date(),
+                        etag: etagMatch ? etagMatch[1].replace(/"/g, '') : ''
+                    });
+                }
             }
-        }
+            const tokenMatch = xml.match(/<NextContinuationToken>(.*?)<\/NextContinuationToken>/);
+            const isTruncated = xml.includes('<IsTruncated>true</IsTruncated>');
+            continuationToken = isTruncated && tokenMatch ? tokenMatch[1] : null;
+            loop++;
+        } while (continuationToken && loop < maxLoops);
+
         return items;
     } catch (e) {
         console.warn(`Failed to list S3 objects for ${bucket}:`, e);
@@ -90,6 +110,91 @@ function getPhotosS3Client(env: any) {
         service: 's3',
         region: 'auto'
     });
+}
+
+// Helper: Delete object across all clouds (Primary R2 + Photos + Videos + Audio + Backup) and all key variants
+async function deleteFromAllClouds(env: any, key: string) {
+    if (!key) return;
+    const cleanKey = key.replace(/^\/+/, '').trim();
+    if (!cleanKey) return;
+    const withoutUploads = cleanKey.replace(/^uploads\//, '');
+    const withUploads = cleanKey.startsWith('uploads/') ? cleanKey : `uploads/${cleanKey}`;
+    const keysToTry = Array.from(new Set([cleanKey, withoutUploads, withUploads])).filter(Boolean);
+
+    const promises: Promise<any>[] = [];
+
+    // 1. Primary R2
+    if (env.R2) {
+        for (const k of keysToTry) {
+            promises.push(env.R2.delete(k).catch((e: any) => console.warn(`Primary R2 delete ${k} warning:`, e)));
+        }
+    }
+
+    // Helper for sub-cloud delete
+    const deleteFromS3 = async (s3Client: any, accountId: string, bucket: string) => {
+        if (!s3Client || !accountId || !bucket) return;
+        for (const k of keysToTry) {
+            try {
+                const s3Url = `https://${accountId}.r2.cloudflarestorage.com/${bucket}/${encodeURIComponent(k)}`;
+                await s3Client.fetch(s3Url, { method: 'DELETE' });
+            } catch (err) {
+                console.warn(`S3 delete ${k} in ${bucket} warning:`, err);
+            }
+        }
+    };
+
+    // 2. Photos Cloud
+    const photosS3 = getPhotosS3Client(env);
+    if (photosS3 && env.PHOTOS_R2_ACCOUNT_ID && env.PHOTOS_R2_BUCKET) {
+        promises.push(deleteFromS3(photosS3, env.PHOTOS_R2_ACCOUNT_ID, env.PHOTOS_R2_BUCKET));
+    }
+
+    // 3. Videos Cloud
+    const videosS3 = getVideosS3Client(env);
+    if (videosS3 && env.VIDEOS_R2_ACCOUNT_ID && env.VIDEOS_R2_BUCKET) {
+        promises.push(deleteFromS3(videosS3, env.VIDEOS_R2_ACCOUNT_ID, env.VIDEOS_R2_BUCKET));
+    }
+
+    // 4. Audio Cloud
+    const audioS3 = getAudioS3Client(env);
+    if (audioS3 && env.AUDIO_R2_ACCOUNT_ID && env.AUDIO_R2_BUCKET) {
+        promises.push(deleteFromS3(audioS3, env.AUDIO_R2_ACCOUNT_ID, env.AUDIO_R2_BUCKET));
+    }
+
+    // 5. Backup Cloud
+    const backupS3 = getBackupS3Client(env);
+    if (backupS3 && env.BACKUP_R2_ACCOUNT_ID && env.BACKUP_R2_BUCKET) {
+        promises.push(deleteFromS3(backupS3, env.BACKUP_R2_ACCOUNT_ID, env.BACKUP_R2_BUCKET));
+    }
+
+    await Promise.all(promises);
+}
+
+function fixMojibake(str: string): string {
+    if (!str || typeof str !== 'string') return str;
+    return str
+        .replace(/Ã©/g, 'é')
+        .replace(/Ã¨/g, 'è')
+        .replace(/Ãª/g, 'ê')
+        .replace(/Ã«/g, 'ë')
+        .replace(/Ã /g, 'à')
+        .replace(/Ã¢/g, 'â')
+        .replace(/Ã®/g, 'î')
+        .replace(/Ã¯/g, 'ï')
+        .replace(/Ã´/g, 'ô')
+        .replace(/Ã¹/g, 'ù')
+        .replace(/Ã»/g, 'û')
+        .replace(/Ã§/g, 'ç')
+        .replace(/Ã€/g, 'À')
+        .replace(/Ã‰/g, 'É')
+        .replace(/Ãˆ/g, 'È')
+        .replace(/â€™/g, "'")
+        .replace(/â€œ/g, '"')
+        .replace(/â€/g, '"')
+        .replace(/â€“/g, '–')
+        .replace(/â€”/g, '—')
+        .replace(/Â /g, ' ')
+        .replace(/Â/g, '');
 }
 
 
@@ -1057,6 +1162,7 @@ export default {
             path === '/api/quiz/reset-blind-test' ||
             path === '/api/r2/delete' ||
             path === '/api/r2/list' ||
+            path === '/api/r2/upload' ||
             path === '/api/admin/remove-broken-image' ||
             path === '/api/admin/auto-fix-photos' ||
             path === '/api/wiki/add' ||
@@ -3089,7 +3195,7 @@ ${urls.map(u => `  <url>
         }
 
         // --- API: UPLOAD (R2) ---
-        if (path === '/api/upload' && request.method === 'POST') {
+        if ((path === '/api/upload' || path === '/api/r2/upload') && request.method === 'POST') {
             try {
                 const reqContentType = request.headers.get('Content-Type') || '';
                 
@@ -7214,22 +7320,57 @@ ${urls.map(u => `  <url>
             if (!TOKEN) return new Response(JSON.stringify({ error: 'Config missing' }), { status: 500, headers });
             const FILES_TO_FIX = [
                 'src/data/news.json',
+                ...NEWS_CONTENT_FILES,
                 'src/data/agenda.json',
+                'src/data/galerie.json',
+                'src/data/recaps.json',
+                ...RECAPS_CONTENT_FILES,
                 'src/data/festivals.json',
                 'src/data/wiki_festivals.json',
                 'src/data/wiki_artists.json',
                 'src/data/wiki_clubs.json',
                 'src/data/wiki_labels.json',
+                'src/data/wiki_djs.json',
                 'src/data/settings.json'
             ];
+
+            function cleanDeep(val: any): { result: any, modified: boolean } {
+                if (typeof val === 'string') {
+                    const fixed = fixMojibake(val);
+                    return { result: fixed, modified: fixed !== val };
+                }
+                if (Array.isArray(val)) {
+                    let anyMod = false;
+                    const newArr = val.map(item => {
+                        const r = cleanDeep(item);
+                        if (r.modified) anyMod = true;
+                        return r.result;
+                    });
+                    return { result: newArr, modified: anyMod };
+                }
+                if (typeof val === 'object' && val !== null) {
+                    let anyMod = false;
+                    const newObj: any = {};
+                    for (const [k, v] of Object.entries(val)) {
+                        const r = cleanDeep(v);
+                        if (r.modified) anyMod = true;
+                        newObj[k] = r.result;
+                    }
+                    return { result: newObj, modified: anyMod };
+                }
+                return { result: val, modified: false };
+            }
             
             let fixedCount = 0;
             try {
                 for (const filePath of FILES_TO_FIX) {
                     const file = await fetchGitHubFile(filePath, gitConfig);
                     if (file && file.content) {
-                        fixedCount++;
-                        await saveGitHubFile(filePath, file.content, `Fix encoding in ${filePath}`, file.sha, gitConfig);
+                        const cleaned = cleanDeep(file.content);
+                        if (cleaned.modified) {
+                            fixedCount++;
+                            await saveGitHubFile(filePath, cleaned.result, `Fix encoding in ${filePath}`, file.sha, gitConfig);
+                        }
                     }
                 }
                 return new Response(JSON.stringify({ success: true, fixedFiles: fixedCount }), { status: 200, headers });
@@ -8698,14 +8839,33 @@ ${urls.map(u => `  <url>
         if ((path === '/api/admin/broken-images' || path === '/api/broken-images') && request.method === 'GET') {
             if (!authenticated) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers });
             try {
-                // 1. Get ALL keys currently in R2
+                // 1. Get ALL keys currently in R2 and sub-clouds
                 const allKeys = new Set();
                 let cursor = undefined;
                 do {
                     const listResult = await env.R2.list({ cursor });
-                    listResult.objects.forEach(o => allKeys.add(o.key));
+                    listResult.objects.forEach(o => {
+                        allKeys.add(o.key);
+                        allKeys.add(o.key.replace(/^uploads\//, ''));
+                        allKeys.add(`uploads/${o.key.replace(/^uploads\//, '')}`);
+                    });
                     cursor = listResult.truncated ? listResult.cursor : undefined;
                 } while (cursor);
+
+                // Include Photos Cloud
+                const photosS3 = getPhotosS3Client(env);
+                if (photosS3 && env.PHOTOS_R2_ACCOUNT_ID && env.PHOTOS_R2_BUCKET) {
+                    try {
+                        const pObjs = await listS3Objects(photosS3, env.PHOTOS_R2_ACCOUNT_ID, env.PHOTOS_R2_BUCKET, '');
+                        for (const po of pObjs) {
+                            allKeys.add(po.key);
+                            allKeys.add(po.key.replace(/^uploads\//, ''));
+                            allKeys.add(`uploads/${po.key.replace(/^uploads\//, '')}`);
+                        }
+                    } catch (e) {
+                        console.warn('Subcloud list for broken-images failed:', e);
+                    }
+                }
 
                 // 2. All data files to scan
                 const dataFiles = [
@@ -8807,9 +8967,9 @@ ${urls.map(u => `  <url>
 
                 const dataFiles = [
                     WIKI_DJS_PATH, WIKI_CLUBS_PATH, WIKI_FESTIVALS_PATH,
-                    NEWS_PATH, 
+                    NEWS_PATH, ...NEWS_CONTENT_FILES,
                     AGENDA_PATH, GALERIE_PATH, 
-                    RECAPS_PATH,
+                    RECAPS_PATH, ...RECAPS_CONTENT_FILES,
                     TEAM_PATH, SHOP_PATH, CLIPS_PATH, TRACKLISTS_PATH,
                     SETTINGS_PATH, 'src/data/home_layout.json', 'src/data/spotify.json',
                     'src/data/contact_messages.json', 'src/data/newsletter_subscribers.json'
@@ -9144,35 +9304,137 @@ ${urls.map(u => `  <url>
         if (path === '/api/r2/duplicates' && request.method === 'GET') {
             if (!authenticated) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers });
             try {
-                if (!env.R2) return new Response(JSON.stringify([]), { status: 200, headers: { ...headers, 'Cache-Control': 'no-cache, no-store, must-revalidate' } });
-                
-                const allObjects = [];
-                let cursor = undefined;
-                while (true) {
-                    const listResult = await env.R2.list({ cursor, prefix: 'uploads/' });
-                    allObjects.push(...listResult.objects);
-                    if (!listResult.truncated) break;
-                    cursor = listResult.cursor;
-                }
-                
-                const groups = new Map();
-                for (const obj of allObjects) {
-                    // ETag is the content hash (MD5) which is perfect for finding duplicates
-                    const hash = obj.etag;
-                    if (!groups.has(hash)) groups.set(hash, []);
-                    groups.get(hash).push({
-                        key: obj.key,
-                        size: obj.size,
-                        uploaded: obj.uploaded,
-                        etag: obj.etag
-                    });
-                }
-                
-                let duplicateSets = Array.from(groups.values())
-                    .filter((set: any) => set.length > 1)
-                    .sort((a: any, b: any) => b[0].size - a[0].size); // Show biggest files first
+                const requestedType = url.searchParams.get('type') || 'all'; // 'all' | 'photo' | 'video' | 'audio'
+                const allObjects: any[] = [];
 
-                // LIMIT to 500 groups for performance (Cloudflare Worker CPU limit)
+                // 1. Primary R2 (all prefixes: uploads/, SONS/, VIDEOS/, root)
+                if (env.R2) {
+                    try {
+                        let cursor = undefined;
+                        let safety = 0;
+                        while (safety < 20) {
+                            const listResult = await env.R2.list({ cursor, limit: 1000 });
+                            for (const o of listResult.objects) {
+                                allObjects.push({
+                                    key: o.key,
+                                    size: o.size,
+                                    uploaded: o.uploaded,
+                                    etag: o.etag ? o.etag.replace(/"/g, '') : '',
+                                    cloud: 'primary',
+                                    mediaType: getMediaType(o.key)
+                                });
+                            }
+                            if (!listResult.truncated) break;
+                            cursor = listResult.cursor;
+                            safety++;
+                        }
+                    } catch (e) {
+                        console.warn('Primary R2 listing failed for duplicates:', e);
+                    }
+                }
+
+                // 2. Photos Cloud
+                const photosS3Client = getPhotosS3Client(env);
+                if (photosS3Client && env.PHOTOS_R2_ACCOUNT_ID && env.PHOTOS_R2_BUCKET) {
+                    try {
+                        const photoList = await listS3Objects(photosS3Client, env.PHOTOS_R2_ACCOUNT_ID, env.PHOTOS_R2_BUCKET, '');
+                        for (const po of photoList) {
+                            if (po.etag) {
+                                allObjects.push({
+                                    ...po,
+                                    etag: po.etag.replace(/"/g, ''),
+                                    cloud: 'photos',
+                                    mediaType: 'photo'
+                                });
+                            }
+                        }
+                    } catch (e) {
+                        console.warn('Photos Cloud list failed for duplicates:', e);
+                    }
+                }
+
+                // 3. Videos Cloud
+                const videosS3Client = getVideosS3Client(env);
+                if (videosS3Client && env.VIDEOS_R2_ACCOUNT_ID && env.VIDEOS_R2_BUCKET) {
+                    try {
+                        const videoList = await listS3Objects(videosS3Client, env.VIDEOS_R2_ACCOUNT_ID, env.VIDEOS_R2_BUCKET, '');
+                        for (const vo of videoList) {
+                            if (vo.etag) {
+                                allObjects.push({
+                                    ...vo,
+                                    etag: vo.etag.replace(/"/g, ''),
+                                    cloud: 'videos',
+                                    mediaType: 'video'
+                                });
+                            }
+                        }
+                    } catch (e) {
+                        console.warn('Videos Cloud list failed for duplicates:', e);
+                    }
+                }
+
+                // 4. Audio Cloud
+                const audioS3Client = getAudioS3Client(env);
+                if (audioS3Client && env.AUDIO_R2_ACCOUNT_ID && env.AUDIO_R2_BUCKET) {
+                    try {
+                        const audioList = await listS3Objects(audioS3Client, env.AUDIO_R2_ACCOUNT_ID, env.AUDIO_R2_BUCKET, '');
+                        for (const ao of audioList) {
+                            if (ao.etag) {
+                                allObjects.push({
+                                    ...ao,
+                                    etag: ao.etag.replace(/"/g, ''),
+                                    cloud: 'audio',
+                                    mediaType: 'audio'
+                                });
+                            }
+                        }
+                    } catch (e) {
+                        console.warn('Audio Cloud list failed for duplicates:', e);
+                    }
+                }
+
+                // 5. Backup Cloud
+                const backupS3Client = getBackupS3Client(env);
+                if (backupS3Client && env.BACKUP_R2_ACCOUNT_ID && env.BACKUP_R2_BUCKET) {
+                    try {
+                        const backupList = await listS3Objects(backupS3Client, env.BACKUP_R2_ACCOUNT_ID, env.BACKUP_R2_BUCKET, '');
+                        for (const bo of backupList) {
+                            if (bo.etag) {
+                                allObjects.push({
+                                    ...bo,
+                                    etag: bo.etag.replace(/"/g, ''),
+                                    cloud: 'backup',
+                                    mediaType: getMediaType(bo.key)
+                                });
+                            }
+                        }
+                    } catch (e) {
+                        console.warn('Backup Cloud list failed for duplicates:', e);
+                    }
+                }
+
+                // Group by size and content hash (ETag)
+                const groups = new Map<string, any[]>();
+                for (const obj of allObjects) {
+                    if (!obj.etag || obj.size === 0) continue;
+                    const groupKey = `${obj.size}_${obj.etag}`;
+                    if (!groups.has(groupKey)) groups.set(groupKey, []);
+                    
+                    const existing = groups.get(groupKey)!;
+                    // Avoid duplicate records of same cloud + key
+                    if (!existing.some(e => e.key === obj.key && e.cloud === obj.cloud)) {
+                        existing.push(obj);
+                    }
+                }
+
+                let duplicateSets = Array.from(groups.values())
+                    .filter(set => set.length > 1)
+                    .sort((a, b) => b[0].size - a[0].size); // Largest files first (massive storage savings)
+
+                if (requestedType !== 'all') {
+                    duplicateSets = duplicateSets.filter(set => set[0].mediaType === requestedType);
+                }
+
                 if (duplicateSets.length > 500) {
                     duplicateSets = duplicateSets.slice(0, 500);
                 }
@@ -9181,45 +9443,65 @@ ${urls.map(u => `  <url>
                     return new Response(JSON.stringify([]), { status: 200, headers });
                 }
 
-                // --- NEW: COMPREHENSIVE USAGE TRACKING ---
-                // We scan EVERY file that might contain a reference to an image
+                // Comprehensive usage tracking for Photos, Videos, and Audio
                 const dataFiles = [
                     WIKI_DJS_PATH, WIKI_CLUBS_PATH, WIKI_FESTIVALS_PATH,
                     NEWS_PATH, ...NEWS_CONTENT_FILES,
                     AGENDA_PATH, GALERIE_PATH, 
                     RECAPS_PATH, ...RECAPS_CONTENT_FILES,
-                    TEAM_PATH, SHOP_PATH, CLIPS_PATH, TRACKLISTS_PATH
+                    TEAM_PATH, SHOP_PATH, CLIPS_PATH, TRACKLISTS_PATH,
+                    SETTINGS_PATH, 'src/data/home_layout.json', 'src/data/spotify.json',
+                    'src/data/blindtest_themes.json', 'src/data/festivals.json'
                 ];
 
                 const usageMap: Record<string, string[]> = {};
-                
-                // Fetch all data content in parallel
                 const dataContents = await Promise.all(
                     dataFiles.map(path => fetchGitHubFile(path, gitConfig).catch(() => null))
                 );
 
-                // Build a combined string of all keys we care about
-                const allDuplicateKeys = duplicateSets.flatMap((set: any) => set.map((obj: any) => obj.key));
-                
+                const allDuplicateKeys = Array.from(new Set(duplicateSets.flatMap((set: any) => set.map((obj: any) => obj.key))));
+
                 for (let i = 0; i < dataFiles.length; i++) {
                     const fileObj = dataContents[i];
                     if (!fileObj || !fileObj.content) continue;
                     
-                    const fileName = dataFiles[i].split('/').pop() || dataFiles[i];
+                    const fileName = (dataFiles[i].split('/').pop() || dataFiles[i]).replace('.json', '');
                     const contentStr = JSON.stringify(fileObj.content);
                     
-                    // Check search for EACH duplicate key in this file
                     for (const key of allDuplicateKeys) {
-                        if (contentStr.indexOf(key) !== -1) {
+                        const filename = key.split('/').pop() || key;
+                        const withoutUploads = key.replace(/^uploads\//, '');
+                        if (contentStr.includes(key) || contentStr.includes(withoutUploads) || (filename && contentStr.includes(filename))) {
                             if (!usageMap[key]) usageMap[key] = [];
-                            usageMap[key].push(fileName);
+                            if (!usageMap[key].includes(fileName)) {
+                                usageMap[key].push(fileName);
+                            }
                         }
                     }
                 }
 
+                const buildPublicUrl = (obj: any) => {
+                    const cleanKey = (obj.key || '').replace(/^\/+/, '');
+                    const withoutUploads = cleanKey.replace(/^uploads\//, '');
+                    if (obj.cloud === 'photos' && env.PHOTOS_R2_PUBLIC_URL) {
+                        return `${env.PHOTOS_R2_PUBLIC_URL}/${withoutUploads}`;
+                    }
+                    if (obj.cloud === 'videos' && env.VIDEOS_R2_PUBLIC_URL) {
+                        return `${env.VIDEOS_R2_PUBLIC_URL}/${withoutUploads}`;
+                    }
+                    if (obj.cloud === 'audio' && env.AUDIO_R2_PUBLIC_URL) {
+                        return `${env.AUDIO_R2_PUBLIC_URL}/${withoutUploads}`;
+                    }
+                    if (obj.cloud === 'backup' && env.BACKUP_R2_PUBLIC_URL) {
+                        return `${env.BACKUP_R2_PUBLIC_URL}/${withoutUploads}`;
+                    }
+                    return `/uploads/${withoutUploads}`;
+                };
+
                 const duplicateSetsWithUsage = duplicateSets.map((set: any) => 
                     set.map((obj: any) => ({
                         ...obj,
+                        url: buildPublicUrl(obj),
                         usages: usageMap[obj.key] || []
                     }))
                 );
@@ -9236,22 +9518,25 @@ ${urls.map(u => `  <url>
         if (path === '/api/r2/delete' && request.method === 'POST') {
             if (!authenticated) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers });
             try {
-                const { key, keys } = await request.json();
-                if (!key && (!keys || !Array.isArray(keys))) {
+                const body = await request.json().catch(() => ({}));
+                const { key, keys } = body || {};
+                const keysToDelete: string[] = [];
+                if (keys && Array.isArray(keys)) {
+                    keysToDelete.push(...keys.filter(Boolean));
+                } else if (key) {
+                    keysToDelete.push(key);
+                }
+
+                if (keysToDelete.length === 0) {
                     return new Response(JSON.stringify({ error: 'Key or keys array required' }), { status: 400, headers });
                 }
-                
-                if (!env.R2) return new Response(JSON.stringify({ error: 'R2 not configured' }), { status: 500, headers });
-                
-                if (keys && Array.isArray(keys)) {
-                    await Promise.all(keys.map(k => env.R2.delete(k)));
-                    return new Response(JSON.stringify({ success: true, count: keys.length }), { status: 200, headers });
-                } else {
-                    await env.R2.delete(key);
-                    return new Response(JSON.stringify({ success: true }), { status: 200, headers });
-                }
+
+                // Delete across primary R2 and all sub-clouds
+                await Promise.all(keysToDelete.map(k => deleteFromAllClouds(env, k)));
+                return new Response(JSON.stringify({ success: true, count: keysToDelete.length }), { status: 200, headers });
             } catch (e: any) {
-                return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
+                console.error('Delete error in /api/r2/delete:', e);
+                return new Response(JSON.stringify({ error: e.message || 'Delete failed' }), { status: 500, headers });
             }
         }
 

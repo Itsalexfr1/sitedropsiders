@@ -83,6 +83,8 @@ import {
   UserCheck,
   Share2,
   Layers,
+  Pause,
+  Film,
 } from "lucide-react";
 
 
@@ -377,7 +379,62 @@ export function AdminDashboard() {
   const [isQuizModalOpen, setIsQuizModalOpen] = useState(false);
   const [isDuplicatesModalOpen, setIsDuplicatesModalOpen] = useState(false);
   const [isR2Loading, setIsR2Loading] = useState(false);
+  const [isScanningDuplicates, setIsScanningDuplicates] = useState(false);
   const [duplicateSets, setDuplicateSets] = useState<any[]>([]);
+  const [duplicateFilter, setDuplicateFilter] = useState<'all' | 'photo' | 'video' | 'audio'>('all');
+  const [playingAudioUrl, setPlayingAudioUrl] = useState<string | null>(null);
+  const audioPlayerRef = useRef<HTMLAudioElement | null>(null);
+
+  const togglePlayAudio = (url: string) => {
+    if (playingAudioUrl === url) {
+      audioPlayerRef.current?.pause();
+      setPlayingAudioUrl(null);
+    } else {
+      if (audioPlayerRef.current) {
+        audioPlayerRef.current.pause();
+      }
+      const audio = new Audio(url);
+      audio.onended = () => setPlayingAudioUrl(null);
+      audio.onerror = () => setPlayingAudioUrl(null);
+      audio.play().catch(() => setPlayingAudioUrl(null));
+      audioPlayerRef.current = audio;
+      setPlayingAudioUrl(url);
+    }
+  };
+
+  const photoDuplicateSets = useMemo(
+    () => duplicateSets.filter((s) => (s[0]?.mediaType || 'photo') === 'photo'),
+    [duplicateSets]
+  );
+  const videoDuplicateSets = useMemo(
+    () => duplicateSets.filter((s) => s[0]?.mediaType === 'video'),
+    [duplicateSets]
+  );
+  const audioDuplicateSets = useMemo(
+    () => duplicateSets.filter((s) => s[0]?.mediaType === 'audio'),
+    [duplicateSets]
+  );
+
+  const displayedDuplicateSets = useMemo(() => {
+    if (duplicateFilter === 'all') return duplicateSets;
+    return duplicateSets.filter(
+      (s) => (s[0]?.mediaType || 'photo') === duplicateFilter
+    );
+  }, [duplicateSets, duplicateFilter]);
+
+  const totalRecoverableBytes = useMemo(() => {
+    return duplicateSets.reduce((acc, set) => {
+      if (set.length <= 1) return acc;
+      return acc + (set[0]?.size || 0) * (set.length - 1);
+    }, 0);
+  }, [duplicateSets]);
+
+  const formatDuplicateBytes = (bytes: number) => {
+    if (!bytes || bytes <= 0) return '0 KB';
+    if (bytes >= 1024 * 1024 * 1024) return (bytes / (1024 * 1024 * 1024)).toFixed(2) + ' GB';
+    if (bytes >= 1024 * 1024) return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+    return (bytes / 1024).toFixed(1) + ' KB';
+  };
   const [isDownloaderOpen, setIsDownloaderOpen] = useState(false);
   const [pushSubscribersCount, setPushSubscribersCount] = useState<
     number | null
@@ -573,10 +630,9 @@ export function AdminDashboard() {
     fetchSbCredits();
   }, []);
 
-  const autoSelectDuplicates = () => {
+  const getUnusedDuplicateKeys = (targetSets = displayedDuplicateSets) => {
     const keysToSelect: string[] = [];
-    duplicateSets.forEach((set) => {
-      // Find the best candidate to KEEP (the one with the most usages to avoid breaking links)
+    targetSets.forEach((set) => {
       let bestCandidate = set[0];
       set.forEach((obj: any) => {
         const objUsages = obj.usages?.length || 0;
@@ -586,8 +642,6 @@ export function AdminDashboard() {
         }
       });
 
-      // ONLY auto-select variants that have ZERO usages.
-      // If multiple variants have usages, we let the user manually decide how to merge them.
       set.forEach((obj: any) => {
         if (
           obj.key !== bestCandidate.key &&
@@ -597,31 +651,89 @@ export function AdminDashboard() {
         }
       });
     });
-    setSelectedKeys(keysToSelect);
+    return keysToSelect;
+  };
+
+  const autoSelectDuplicates = () => {
+    const keys = getUnusedDuplicateKeys();
+    setSelectedKeys(keys);
+  };
+
+  const purgeAllUnusedDuplicates = () => {
+    const keys = getUnusedDuplicateKeys();
+    if (keys.length === 0) return;
+    setConfirmModal({
+      isOpen: true,
+      title: `Supprimer ${keys.length} doublons inutilisés ?`,
+      message: `Cette action supprimera définitivement les ${keys.length} fichiers doublons qui ne sont utilisés nulle part sur le site. Les images originales utilisées seront précieusement conservées.`,
+      type: "danger",
+      confirmText: `PURGER (${keys.length})`,
+      onConfirm: async () => {
+        setIsR2Loading(true);
+        try {
+          const res = await apiFetch("/api/r2/delete", {
+            method: "POST",
+            headers: getAuthHeaders(),
+            body: JSON.stringify({ keys }),
+          });
+          if (res.ok) {
+            const refreshedSets = duplicateSets
+              .map((set) => set.filter((obj: any) => !keys.includes(obj.key)))
+              .filter((set) => set.length > 1);
+            setDuplicateSets(refreshedSets);
+            setSelectedKeys((prev) => prev.filter((k) => !keys.includes(k)));
+            fetchR2Stats();
+            setGlobalAlert({
+              type: "info",
+              title: "DOUBLONS PURGÉS",
+              message: `${keys.length} doublon(s) sans usage ont été supprimés avec succès.`,
+            });
+          } else {
+            const data = await res.json().catch(() => ({}));
+            setGlobalAlert({
+              type: "danger",
+              title: "ERREUR",
+              message: data.error || "Échec de la suppression des doublons.",
+            });
+          }
+        } catch (e: any) {
+          console.error("Purge duplicates error", e);
+          setGlobalAlert({
+            type: "danger",
+            title: "ERREUR RÉSEAU",
+            message: e.message || "Erreur de connexion.",
+          });
+        } finally {
+          setIsR2Loading(false);
+        }
+      },
+    });
   };
 
   const deleteMultipleObjects = async () => {
     if (selectedKeys.length === 0) return;
 
     setIsR2Loading(true);
+    const countToDelete = selectedKeys.length;
+    const keysToDelete = [...selectedKeys];
     try {
       const res = await apiFetch("/api/r2/delete", {
         method: "POST",
         headers: getAuthHeaders(),
-        body: JSON.stringify({ keys: selectedKeys }),
+        body: JSON.stringify({ keys: keysToDelete }),
       });
       if (res.ok) {
         // If we were in duplicates modal
         const refreshedSets = duplicateSets
           .map((set) =>
-            set.filter((obj: any) => !selectedKeys.includes(obj.key)),
+            set.filter((obj: any) => !keysToDelete.includes(obj.key)),
           )
           .filter((set) => set.length > 1);
         setDuplicateSets(refreshedSets);
 
         // If we were in unused modal
         setUnusedImages((prev) =>
-          prev.filter((img) => !selectedKeys.includes(img.key)),
+          prev.filter((img) => !keysToDelete.includes(img.key)),
         );
 
         setSelectedKeys([]);
@@ -629,11 +741,23 @@ export function AdminDashboard() {
         setGlobalAlert({
           type: "info",
           title: "SUPPRESSION RÉUSSIE",
-          message: `${selectedKeys.length} fichiers ont été supprimés définitivement de R2.`,
+          message: `${countToDelete} fichier(s) ont été supprimés définitivement.`,
+        });
+      } else {
+        const data = await res.json().catch(() => ({}));
+        setGlobalAlert({
+          type: "danger",
+          title: "ERREUR DE SUPPRESSION",
+          message: data.error || "Impossible de supprimer les fichiers sélectionnés.",
         });
       }
-    } catch (e) {
+    } catch (e: any) {
       console.error("Failed to delete objects", e);
+      setGlobalAlert({
+        type: "danger",
+        title: "ERREUR RÉSEAU",
+        message: e.message || "Erreur de connexion.",
+      });
     } finally {
       setIsR2Loading(false);
     }
@@ -2124,7 +2248,7 @@ export function AdminDashboard() {
   };
 
   const fetchDuplicates = async () => {
-    setIsR2Loading(true);
+    setIsScanningDuplicates(true);
     try {
       const res = await apiFetch("/api/r2/duplicates", {
         headers: getAuthHeaders(),
@@ -2137,7 +2261,6 @@ export function AdminDashboard() {
         setIsScanMenuOpen(false);
       } else {
         console.error("Erreur Doublons :", data);
-        // Si ce n'est pas un tableau, c'est probablement une erreur { error: "..." }
         setGlobalAlert({
           message:
             "Erreur lors de la récupération des doublons : " +
@@ -2152,7 +2275,7 @@ export function AdminDashboard() {
         type: "danger",
       });
     } finally {
-      setIsR2Loading(false);
+      setIsScanningDuplicates(false);
     }
   };
 
@@ -2439,6 +2562,7 @@ export function AdminDashboard() {
   };
 
   const deleteR2Object = async (key: string) => {
+    setIsR2Loading(true);
     try {
       const res = await apiFetch("/api/r2/delete", {
         method: "POST",
@@ -2446,21 +2570,35 @@ export function AdminDashboard() {
         body: JSON.stringify({ key }),
       });
       if (res.ok) {
-        // Refresh list
+        // Optimistic UI update: remove from duplicate sets immediately
         const newSets = duplicateSets
           .map((set) => set.filter((obj: any) => obj.key !== key))
           .filter((set) => set.length > 1);
         setDuplicateSets(newSets);
+        setSelectedKeys((prev) => prev.filter((k) => k !== key));
         fetchR2Stats();
-        fetchDuplicates(); // Force re-scan
         setGlobalAlert({
           type: "info",
           title: "IMAGE SUPPRIMÉE",
-          message: `Le fichier ${key} a été supprimé de R2.`,
+          message: `Le fichier ${key.split("/").pop()} a été supprimé définitivement.`,
+        });
+      } else {
+        const data = await res.json().catch(() => ({}));
+        setGlobalAlert({
+          type: "danger",
+          title: "ERREUR DE SUPPRESSION",
+          message: data.error || "Impossible de supprimer ce fichier.",
         });
       }
-    } catch (e) {
+    } catch (e: any) {
       console.error("Failed to delete object", e);
+      setGlobalAlert({
+        type: "danger",
+        title: "ERREUR RÉSEAU",
+        message: e.message || "Erreur lors de la suppression.",
+      });
+    } finally {
+      setIsR2Loading(false);
     }
   };
 
@@ -12326,32 +12464,120 @@ export function AdminDashboard() {
                   exit={{ scale: 0.9, opacity: 0, y: 20 }}
                   className="relative w-full max-w-5xl bg-zinc-950 border border-white/10 rounded-[32px] overflow-hidden flex flex-col max-h-[85vh] shadow-2xl"
                 >
-                  <div className="p-8 border-b border-white/5 flex items-center justify-between shrink-0">
+                  <div className="p-8 border-b border-white/5 flex flex-col md:flex-row md:items-center justify-between gap-6 shrink-0 bg-black/40">
                     <div>
                       <h2 className="text-2xl font-black text-white uppercase tracking-tighter flex items-center gap-3">
-                        <ShieldAlert className="text-neon-cyan w-6 h-6" />
-                        Détecteur de Doublons R2
+                        <ShieldAlert className="text-neon-cyan w-6 h-6 shrink-0" />
+                        Détecteur de Doublons Multi-Clouds
                       </h2>
-                      <p className="text-xs text-gray-500 uppercase font-bold tracking-widest mt-1">
-                        {duplicateSets.length} groupes d'images identiques
-                        trouvés
-                      </p>
+                      <div className="flex flex-wrap items-center gap-3 mt-1.5">
+                        <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">
+                          {duplicateSets.length} groupes de doublons trouvés
+                        </span>
+                        {totalRecoverableBytes > 0 && (
+                          <span className="px-2 py-0.5 rounded-full bg-neon-green/10 text-neon-green border border-neon-green/30 text-[9px] font-black uppercase">
+                            ~{formatDuplicateBytes(totalRecoverableBytes)} récupérables
+                          </span>
+                        )}
+                      </div>
                     </div>
-                    <div className="flex items-center gap-4">
-                      {duplicateSets.length > 0 && (
+
+                    <div className="flex flex-wrap items-center gap-3">
+                      {/* Filter Tabs */}
+                      <div className="flex items-center gap-1 p-1 bg-white/5 rounded-2xl border border-white/10">
                         <button
-                          onClick={autoSelectDuplicates}
-                          className="px-4 py-2 bg-white/5 border border-white/10 hover:bg-white/10 rounded-xl text-[10px] font-black uppercase text-gray-400 hover:text-white transition-all"
+                          type="button"
+                          onClick={() => setDuplicateFilter('all')}
+                          className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-wider transition-all ${
+                            duplicateFilter === 'all'
+                              ? 'bg-neon-cyan text-black shadow-[0_0_15px_rgba(0,240,255,0.4)]'
+                              : 'text-gray-400 hover:text-white'
+                          }`}
                         >
-                          Auto-Sélection
+                          Tous ({duplicateSets.length})
                         </button>
+                        <button
+                          type="button"
+                          onClick={() => setDuplicateFilter('photo')}
+                          className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-wider transition-all flex items-center gap-1.5 ${
+                            duplicateFilter === 'photo'
+                              ? 'bg-neon-cyan text-black shadow-[0_0_15px_rgba(0,240,255,0.4)]'
+                              : 'text-gray-400 hover:text-white'
+                          }`}
+                        >
+                          <ImageIcon className="w-3 h-3" />
+                          Photos ({photoDuplicateSets.length})
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setDuplicateFilter('video')}
+                          className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-wider transition-all flex items-center gap-1.5 ${
+                            duplicateFilter === 'video'
+                              ? 'bg-purple-500 text-white shadow-[0_0_15px_rgba(168,85,247,0.4)]'
+                              : 'text-gray-400 hover:text-white'
+                          }`}
+                        >
+                          <Film className="w-3 h-3" />
+                          Vidéos ({videoDuplicateSets.length})
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setDuplicateFilter('audio')}
+                          className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-wider transition-all flex items-center gap-1.5 ${
+                            duplicateFilter === 'audio'
+                              ? 'bg-neon-green text-black shadow-[0_0_15px_rgba(0,255,102,0.4)]'
+                              : 'text-gray-400 hover:text-white'
+                          }`}
+                        >
+                          <Music className="w-3 h-3" />
+                          Audio ({audioDuplicateSets.length})
+                        </button>
+                      </div>
+
+                      {displayedDuplicateSets.length > 0 && (
+                        <>
+                          <button
+                            type="button"
+                            onClick={autoSelectDuplicates}
+                            className="px-3.5 py-2 bg-white/5 border border-white/10 hover:bg-white/10 rounded-xl text-[10px] font-black uppercase text-gray-400 hover:text-white transition-all flex items-center gap-1.5"
+                            title="Sélectionner les copies orphelines sans aucun usage dans cette vue"
+                          >
+                            <Check className="w-3.5 h-3.5 text-neon-cyan" />
+                            Auto-Sélection
+                          </button>
+                          {getUnusedDuplicateKeys().length > 0 && (
+                            <button
+                              type="button"
+                              onClick={purgeAllUnusedDuplicates}
+                              className="px-3.5 py-2 bg-neon-red/10 border border-neon-red/30 hover:bg-neon-red text-neon-red hover:text-white rounded-xl text-[10px] font-black uppercase transition-all flex items-center gap-1.5 shadow-[0_0_15px_rgba(255,0,51,0.2)]"
+                              title="Purger tous les doublons orphelins de cette catégorie en 1 clic"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                              Purger Inutilisés ({getUnusedDuplicateKeys().length})
+                            </button>
+                          )}
+                        </>
                       )}
                       <button
+                        type="button"
+                        onClick={() => fetchDuplicates()}
+                        disabled={isScanningDuplicates}
+                        className="p-2.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-gray-400 hover:text-white transition-all"
+                        title="Re-scanner tous les Clouds"
+                      >
+                        <RefreshCw className={`w-4 h-4 ${isScanningDuplicates ? "animate-spin text-neon-cyan" : ""}`} />
+                      </button>
+                      <button
+                        type="button"
                         onClick={() => {
+                          if (audioPlayerRef.current) {
+                            audioPlayerRef.current.pause();
+                            setPlayingAudioUrl(null);
+                          }
                           setIsDuplicatesModalOpen(false);
                           setSelectedKeys([]);
                         }}
-                        className="p-4 bg-white/5 hover:bg-white/10 rounded-2xl transition-all group"
+                        className="p-2.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl transition-all group"
                       >
                         <X className="w-5 h-5 text-gray-400 group-hover:text-white transition-colors" />
                       </button>
@@ -12359,119 +12585,230 @@ export function AdminDashboard() {
                   </div>
 
                   <div className="flex-1 overflow-y-auto p-8 custom-scrollbar">
-                    {duplicateSets.length === 0 ? (
+                    {displayedDuplicateSets.length === 0 ? (
                       <div className="h-64 flex flex-col items-center justify-center text-center">
                         <CheckCircle2 className="w-12 h-12 text-neon-green mb-4 opacity-20" />
                         <p className="text-gray-500 font-bold uppercase tracking-widest text-xs">
-                          Aucun doublon trouvé sur R2 !
+                          {duplicateFilter === 'all'
+                            ? 'Aucun doublon trouvé sur vos Clouds !'
+                            : `Aucun doublon trouvé dans la catégorie ${duplicateFilter} !`}
                         </p>
                       </div>
                     ) : (
                       <div className="grid grid-cols-1 gap-12">
-                        {duplicateSets.map((set, setIdx) => (
-                          <div key={setIdx} className="space-y-4">
-                            <div className="flex items-center justify-between border-b border-white/5 pb-2">
-                              <span className="text-[10px] font-black text-neon-cyan uppercase tracking-widest">
-                                Groupe #{setIdx + 1} •{" "}
-                                {(set[0].size / 1024).toFixed(1)} KB par image
-                              </span>
-                              <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">
-                                {set.length} copies
-                              </span>
-                            </div>
-                            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
-                              {set.map((item: any) => (
-                                <div key={item.key} className="group relative">
-                                  <div
-                                    className={`aspect-square bg-white/5 rounded-2xl border transition-all overflow-hidden relative cursor-pointer ${
-                                      selectedKeys.includes(item.key)
-                                        ? "border-neon-red ring-2 ring-neon-red/20 scale-[0.98]"
-                                        : "border-white/10"
-                                    }`}
-                                    onClick={() => toggleSelection(item.key)}
-                                  >
-                                    <img
-                                      src={`https://dropsiders.fr/uploads/${item.key}`}
-                                      alt=""
-                                      className={`w-full h-full object-cover transition-opacity ${selectedKeys.includes(item.key) ? "opacity-40" : "opacity-80 group-hover:opacity-100"}`}
-                                      loading="lazy"
-                                    />
+                        {displayedDuplicateSets.map((set, setIdx) => {
+                          const mType = set[0]?.mediaType || 'photo';
+                          const typeLabel = mType === 'video' ? 'vidéo' : mType === 'audio' ? 'son / audio' : 'image';
+                          const typeBadgeColor = mType === 'video' ? 'text-purple-400' : mType === 'audio' ? 'text-neon-green' : 'text-neon-cyan';
 
-                                    {/* Selection Indicator */}
-                                    <div
-                                      className={`absolute top-2 left-2 w-5 h-5 rounded-lg border flex items-center justify-center transition-all ${
-                                        selectedKeys.includes(item.key)
-                                          ? "bg-neon-red border-neon-red shadow-[0_0_10px_rgba(255,0,51,0.5)]"
-                                          : "bg-black/40 border-white/20"
-                                      }`}
-                                    >
-                                      {selectedKeys.includes(item.key) && (
-                                        <Check className="w-3 h-3 text-white" />
-                                      )}
-                                    </div>
+                          return (
+                            <div key={setIdx} className="space-y-4">
+                              <div className="flex items-center justify-between border-b border-white/5 pb-2">
+                                <span className={`text-[10px] font-black ${typeBadgeColor} uppercase tracking-widest flex items-center gap-2`}>
+                                  {mType === 'video' && <Film className="w-3.5 h-3.5" />}
+                                  {mType === 'audio' && <Music className="w-3.5 h-3.5" />}
+                                  {mType === 'photo' && <ImageIcon className="w-3.5 h-3.5" />}
+                                  Groupe #{setIdx + 1} • {formatDuplicateBytes(set[0].size)} par {typeLabel}
+                                </span>
+                                <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">
+                                  {set.length} copies ({(set.length - 1)} doublons)
+                                </span>
+                              </div>
+                              <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                                {set.map((item: any) => {
+                                  const cloudLabel =
+                                    item.cloud === 'videos'
+                                      ? 'Cloud Vidéos'
+                                      : item.cloud === 'audio'
+                                      ? 'Cloud Audio'
+                                      : item.cloud === 'photos'
+                                      ? 'Cloud Photos'
+                                      : item.cloud === 'backup'
+                                      ? 'Secours'
+                                      : 'R2 Principal';
 
-                                    <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 p-2">
-                                      <button
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          window.open(
-                                            `https://dropsiders.fr/uploads/${item.key}`,
-                                            "_blank",
-                                          );
-                                        }}
-                                        className="p-2 bg-white/10 hover:bg-white/20 rounded-lg text-white transition-all"
-                                        title="Voir en grand"
+                                  const cloudStyle =
+                                    item.cloud === 'videos'
+                                      ? 'text-purple-400 bg-purple-500/10 border-purple-500/30'
+                                      : item.cloud === 'audio'
+                                      ? 'text-neon-green bg-neon-green/10 border-neon-green/30'
+                                      : item.cloud === 'photos'
+                                      ? 'text-neon-cyan bg-neon-cyan/10 border-neon-cyan/30'
+                                      : item.cloud === 'backup'
+                                      ? 'text-amber-400 bg-amber-500/10 border-amber-500/30'
+                                      : 'text-blue-400 bg-blue-500/10 border-blue-500/30';
+
+                                  const itemUrl = item.url || `/uploads/${item.key.replace(/^uploads\//, '')}`;
+
+                                  return (
+                                    <div key={item.key} className="group relative">
+                                      <div
+                                        className={`aspect-square bg-zinc-900 rounded-2xl border transition-all overflow-hidden relative cursor-pointer ${
+                                          selectedKeys.includes(item.key)
+                                            ? "border-neon-red ring-2 ring-neon-red/20 scale-[0.98]"
+                                            : "border-white/10 hover:border-white/25"
+                                        }`}
+                                        onClick={() => toggleSelection(item.key)}
                                       >
-                                        <Download className="w-4 h-4" />
-                                      </button>
-                                      <button
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          setConfirmModal({
-                                            isOpen: true,
-                                            title: "Supprimer ce doublon ?",
-                                            message: `Êtes-vous sûr de vouloir supprimer définitivement ${item.key} ?`,
-                                            type: "danger",
-                                            onConfirm: () =>
-                                              deleteR2Object(item.key),
-                                          });
-                                        }}
-                                        className="p-2 bg-neon-red/20 hover:bg-neon-red text-neon-red hover:text-black rounded-lg transition-all"
-                                        title="Supprimer définitivement"
-                                      >
-                                        <Trash2 className="w-4 h-4" />
-                                      </button>
-                                    </div>
-                                  </div>
-                                  <div className="mt-2 px-1 space-y-1">
-                                    <p
-                                      className="text-[8px] font-bold text-gray-500 truncate uppercase tracking-tighter"
-                                      title={item.key}
-                                    >
-                                      {item.key.split("/").pop()}
-                                    </p>
-                                    {item.usages && item.usages.length > 0 ? (
-                                      <div className="flex flex-wrap gap-1">
-                                        {item.usages.map((file: string) => (
-                                          <span
-                                            key={file}
-                                            className="text-[7px] font-black bg-neon-cyan/10 text-neon-cyan px-1.5 py-0.5 rounded-full border border-neon-cyan/20"
+                                        {/* Video Preview */}
+                                        {item.mediaType === 'video' ? (
+                                          <div className="w-full h-full relative bg-zinc-950 flex items-center justify-center">
+                                            <video
+                                              src={itemUrl}
+                                              className={`w-full h-full object-cover transition-opacity ${
+                                                selectedKeys.includes(item.key) ? 'opacity-40' : 'opacity-80 group-hover:opacity-100'
+                                              }`}
+                                              preload="metadata"
+                                              muted
+                                            />
+                                            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                                              <div className="p-2.5 rounded-full bg-black/60 border border-white/20 text-white backdrop-blur-md">
+                                                <Video className="w-5 h-5 text-purple-400" />
+                                              </div>
+                                            </div>
+                                          </div>
+                                        ) : item.mediaType === 'audio' ? (
+                                          /* Audio Waveform Aesthetic Preview */
+                                          <div className="w-full h-full relative bg-gradient-to-br from-zinc-950 via-zinc-900 to-black border border-white/5 flex flex-col items-center justify-center p-3 text-center">
+                                            <div className="p-3.5 rounded-2xl bg-neon-green/10 border border-neon-green/20 mb-2">
+                                              <Music className="w-6 h-6 text-neon-green" />
+                                            </div>
+                                            <button
+                                              type="button"
+                                              onClick={(e) => {
+                                                e.stopPropagation();
+                                                togglePlayAudio(itemUrl);
+                                              }}
+                                              className="px-3 py-1 bg-white/10 hover:bg-white/20 text-white rounded-lg text-[9px] font-black uppercase tracking-wider flex items-center gap-1.5 transition-all z-10 shadow-lg"
+                                            >
+                                              {playingAudioUrl === itemUrl ? (
+                                                <>
+                                                  <Pause className="w-3 h-3 text-neon-green" /> Pause
+                                                </>
+                                              ) : (
+                                                <>
+                                                  <Play className="w-3 h-3 text-neon-green" /> Écouter
+                                                </>
+                                              )}
+                                            </button>
+                                          </div>
+                                        ) : (
+                                          /* Photo Preview */
+                                          <img
+                                            src={itemUrl}
+                                            alt=""
+                                            className={`w-full h-full object-cover transition-opacity ${
+                                              selectedKeys.includes(item.key) ? 'opacity-40' : 'opacity-80 group-hover:opacity-100'
+                                            }`}
+                                            loading="lazy"
+                                          />
+                                        )}
+
+                                        {/* Selection Checkbox */}
+                                        <div
+                                          className={`absolute top-2 left-2 w-5 h-5 rounded-lg border flex items-center justify-center transition-all z-10 ${
+                                            selectedKeys.includes(item.key)
+                                              ? 'bg-neon-red border-neon-red shadow-[0_0_10px_rgba(255,0,51,0.5)]'
+                                              : 'bg-black/60 border-white/20 hover:border-white/50'
+                                          }`}
+                                        >
+                                          {selectedKeys.includes(item.key) && (
+                                            <Check className="w-3 h-3 text-white" />
+                                          )}
+                                        </div>
+
+                                        {/* Direct Quick Delete Button */}
+                                        <button
+                                          type="button"
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            setConfirmModal({
+                                              isOpen: true,
+                                              title: 'Supprimer ce doublon ?',
+                                              message: `Êtes-vous sûr de vouloir supprimer définitivement ${item.key.split('/').pop()} de ${cloudLabel} ?`,
+                                              type: 'danger',
+                                              confirmText: 'SUPPRIMER',
+                                              onConfirm: () => deleteR2Object(item.key),
+                                            });
+                                          }}
+                                          className="absolute top-2 right-2 w-6 h-6 rounded-lg bg-black/70 hover:bg-neon-red text-gray-300 hover:text-white border border-white/20 hover:border-neon-red flex items-center justify-center transition-all z-10 shadow-lg"
+                                          title="Supprimer définitivement"
+                                        >
+                                          <Trash2 className="w-3 h-3" />
+                                        </button>
+
+                                        {/* Hover Actions */}
+                                        <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 p-2">
+                                          <button
+                                            type="button"
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              window.open(itemUrl, '_blank');
+                                            }}
+                                            className="p-2 bg-white/10 hover:bg-white/20 rounded-lg text-white transition-all"
+                                            title="Ouvrir dans un nouvel onglet"
                                           >
-                                            {file.replace(".json", "")}
-                                          </span>
-                                        ))}
+                                            <ExternalLink className="w-4 h-4" />
+                                          </button>
+                                          <button
+                                            type="button"
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              setConfirmModal({
+                                                isOpen: true,
+                                                title: 'Supprimer ce doublon ?',
+                                                message: `Êtes-vous sûr de vouloir supprimer définitivement ${item.key.split('/').pop()} de ${cloudLabel} ?`,
+                                                type: 'danger',
+                                                confirmText: 'SUPPRIMER',
+                                                onConfirm: () => deleteR2Object(item.key),
+                                              });
+                                            }}
+                                            className="p-2 bg-neon-red/20 hover:bg-neon-red text-neon-red hover:text-black rounded-lg transition-all"
+                                            title="Supprimer définitivement"
+                                          >
+                                            <Trash2 className="w-4 h-4" />
+                                          </button>
+                                        </div>
                                       </div>
-                                    ) : (
-                                      <span className="text-[7px] font-black bg-white/5 text-gray-600 px-1.5 py-0.5 rounded-full border border-white/5 italic">
-                                        Aucun usage direct
-                                      </span>
-                                    )}
-                                  </div>
-                                </div>
-                              ))}
+
+                                      {/* Info & Badges */}
+                                      <div className="mt-2 px-1 space-y-1">
+                                        <div className="flex items-center justify-between gap-1">
+                                          <p
+                                            className="text-[8px] font-bold text-gray-400 truncate uppercase tracking-tighter flex-1"
+                                            title={item.key}
+                                          >
+                                            {item.key.split('/').pop()}
+                                          </p>
+                                          <span className={`text-[6px] font-black px-1.5 py-0.5 rounded-md border shrink-0 uppercase tracking-tighter ${cloudStyle}`}>
+                                            {cloudLabel}
+                                          </span>
+                                        </div>
+
+                                        {item.usages && item.usages.length > 0 ? (
+                                          <div className="flex flex-wrap gap-1">
+                                            {item.usages.map((file: string) => (
+                                              <span
+                                                key={file}
+                                                className="text-[7px] font-black bg-neon-cyan/10 text-neon-cyan px-1.5 py-0.5 rounded-full border border-neon-cyan/20"
+                                              >
+                                                {file.replace('.json', '')}
+                                              </span>
+                                            ))}
+                                          </div>
+                                        ) : (
+                                          <span className="text-[7px] font-black bg-white/5 text-gray-500 px-1.5 py-0.5 rounded-full border border-white/5 italic">
+                                            Aucun usage direct
+                                          </span>
+                                        )}
+                                      </div>
+                                    </div>
+                                  );
+                                })}
+                              </div>
                             </div>
-                          </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     )}
                   </div>
@@ -12480,28 +12817,36 @@ export function AdminDashboard() {
                     <div className="flex items-center gap-3 text-neon-yellow max-w-2xl">
                       <ShieldAlert className="w-5 h-5 shrink-0" />
                       <p className="text-[10px] font-bold leading-relaxed uppercase tracking-wide">
-                        Attention : Avant de supprimer une image, assurez-vous
-                        qu'elle n'est pas utilisée par un article ou un profil
-                        Wiki, sinon l'image deviendra cassée sur le site.
+                        Attention : Avant de supprimer un fichier (Photo, Vidéo ou Audio), assurez-vous
+                        qu'il n'est pas référencé par un article, un récap, un son ou un profil Wiki,
+                        afin de ne pas briser de lien sur le site.
                       </p>
                     </div>
 
                     {selectedKeys.length > 0 && (
-                      <button
-                        onClick={() => {
-                          setConfirmModal({
-                            isOpen: true,
-                            title: `Supprimer ${selectedKeys.length} images ?`,
-                            message: `Voulez-vous vraiment supprimer définitivement ces ${selectedKeys.length} fichiers ? Cette action est irréversible.`,
-                            type: "danger",
-                            onConfirm: deleteMultipleObjects,
-                            confirmText: `Supprimer (${selectedKeys.length})`,
-                          });
-                        }}
-                        className="px-8 py-4 bg-neon-red text-white font-black text-[10px] uppercase tracking-widest rounded-2xl hover:scale-105 active:scale-95 transition-all shadow-[0_0_20px_rgba(255,0,51,0.3)] shrink-0"
-                      >
-                        Supprimer la sélection ({selectedKeys.length})
-                      </button>
+                      <div className="flex items-center gap-3 shrink-0">
+                        <button
+                          onClick={() => setSelectedKeys([])}
+                          className="px-5 py-3.5 bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white font-black text-[10px] uppercase tracking-widest rounded-2xl transition-all border border-white/10"
+                        >
+                          Désélectionner
+                        </button>
+                        <button
+                          onClick={() => {
+                            setConfirmModal({
+                              isOpen: true,
+                              title: `Supprimer ${selectedKeys.length} images ?`,
+                              message: `Voulez-vous vraiment supprimer définitivement ces ${selectedKeys.length} fichiers ? Cette action est irréversible.`,
+                              type: "danger",
+                              onConfirm: deleteMultipleObjects,
+                              confirmText: `Supprimer (${selectedKeys.length})`,
+                            });
+                          }}
+                          className="px-7 py-3.5 bg-neon-red text-white font-black text-[10px] uppercase tracking-widest rounded-2xl hover:scale-105 active:scale-95 transition-all shadow-[0_0_20px_rgba(255,0,51,0.3)]"
+                        >
+                          Supprimer la sélection ({selectedKeys.length})
+                        </button>
+                      </div>
                     )}
                   </div>
                 </motion.div>
@@ -13587,7 +13932,7 @@ export function AdminDashboard() {
             isScanningUnused={isScanningUnused}
             onScanUnused={fetchUnusedImages}
             unusedCount={unusedImages.length}
-            isScanningDuplicates={isR2Loading}
+            isScanningDuplicates={isScanningDuplicates}
             onScanDuplicates={fetchDuplicates}
             duplicateCount={duplicateSets.length}
             isCleaningEncoding={maintenanceLoading}

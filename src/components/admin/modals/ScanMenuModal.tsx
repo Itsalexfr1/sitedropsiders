@@ -79,8 +79,8 @@ export function ScanMenuModal({
         },
         {
             id: 'duplicates',
-            label: 'Doublons R2',
-            description: 'Trouve les fichiers identiques uploadés plusieurs fois',
+            label: 'Doublons Multi-Clouds',
+            description: 'Détecte les doublons sur tous les Clouds (Photos, Vidéos, Audio)',
             icon: FileSearch,
             color: 'neon-cyan',
             action: onScanDuplicates,
