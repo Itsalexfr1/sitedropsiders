@@ -22,6 +22,7 @@
     "@react-oauth/google": "^0.13.4",
     "@uiw/react-md-editor": "^4.0.11",
     "appwrite": "^23.0.0",
+    "aws4fetch": "^1.0.20",
     "axios": "^1.13.5",
     "canvas-confetti": "^1.9.4",
     "cheerio": "^1.2.0",

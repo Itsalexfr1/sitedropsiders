@@ -82,6 +82,7 @@ import {
   Monitor,
   UserCheck,
   Share2,
+  Layers,
 } from "lucide-react";
 
 
@@ -1076,6 +1077,10 @@ export function AdminDashboard() {
     limit: number;
     remaining: number;
     objectCount: number;
+    photos?: { used: number; limit: number; remaining: number; objectCount: number };
+    videos?: { used: number; limit: number; remaining: number; objectCount: number };
+    audio?: { used: number; limit: number; remaining: number; objectCount: number };
+    backup?: { used: number; limit: number; remaining: number; objectCount: number };
   } | null>(null);
 
   const quizCounts = useMemo(() => {
@@ -3695,7 +3700,14 @@ export function AdminDashboard() {
                             🐝 {sbCredits.max - sbCredits.used} crédits
                           </span>
                         )}
-                        <span className="text-[10px] font-black text-white/60 uppercase tracking-widest">
+                        <span className={`text-[10px] font-black uppercase tracking-widest ${
+                          (r2Stats.limit - r2Stats.used) <= 1024 * 1024 * 1024
+                            ? "text-neon-red animate-pulse flex items-center gap-1"
+                            : "text-white/60"
+                        }`}>
+                          {(r2Stats.limit - r2Stats.used) <= 1024 * 1024 * 1024 && (
+                            <ShieldAlert className="w-3 h-3 text-neon-red inline" />
+                          )}
                           {(
                             (r2Stats.limit - r2Stats.used) /
                             1024 /
@@ -3734,6 +3746,58 @@ export function AdminDashboard() {
                       {r2Stats.objectCount.toLocaleString()}
                     </span>
                   </div>
+                                                                        {r2Stats.backup && (
+                    <>
+                      <div className="w-px h-8 bg-white/10 mx-1" />
+                      <div className="flex flex-col text-left">
+                        <span className="text-[9px] font-black text-neon-green uppercase tracking-widest leading-none mb-1.5 flex items-center gap-1">
+                          <ShieldCheck className="w-2.5 h-2.5 inline" /> Secours Cloud
+                        </span>
+                        <span className="text-xs font-black text-white tracking-tighter leading-none">
+                          {((r2Stats.backup.limit - r2Stats.backup.used) / 1024 / 1024 / 1024).toFixed(2)} GB
+                        </span>
+                      </div>
+                    </>
+                  )}
+                  {r2Stats.audio && (
+                    <>
+                      <div className="w-px h-8 bg-white/10 mx-1" />
+                      <div className="flex flex-col text-left">
+                        <span className="text-[9px] font-black text-neon-yellow uppercase tracking-widest leading-none mb-1.5 flex items-center gap-1">
+                          <Music className="w-2.5 h-2.5 inline" /> Audio Cloud
+                        </span>
+                        <span className="text-xs font-black text-white tracking-tighter leading-none">
+                          {((r2Stats.audio.limit - r2Stats.audio.used) / 1024 / 1024 / 1024).toFixed(2)} GB
+                        </span>
+                      </div>
+                    </>
+                  )}
+                  {r2Stats.videos && (
+                    <>
+                      <div className="w-px h-8 bg-white/10 mx-1" />
+                      <div className="flex flex-col text-left">
+                        <span className="text-[9px] font-black text-neon-purple uppercase tracking-widest leading-none mb-1.5 flex items-center gap-1">
+                          <Video className="w-2.5 h-2.5 inline" /> Vidéos Cloud
+                        </span>
+                        <span className="text-xs font-black text-white tracking-tighter leading-none">
+                          {((r2Stats.videos.limit - r2Stats.videos.used) / 1024 / 1024 / 1024).toFixed(2)} GB
+                        </span>
+                      </div>
+                    </>
+                  )}
+                  {r2Stats.photos && (
+                    <>
+                      <div className="w-px h-8 bg-white/10 mx-1" />
+                      <div className="flex flex-col text-left">
+                        <span className="text-[9px] font-black text-neon-cyan uppercase tracking-widest leading-none mb-1.5 flex items-center gap-1">
+                          <Camera className="w-2.5 h-2.5 inline" /> Photos Cloud
+                        </span>
+                        <span className="text-xs font-black text-white tracking-tighter leading-none">
+                          {((r2Stats.photos.limit - r2Stats.photos.used) / 1024 / 1024 / 1024).toFixed(2)} GB
+                        </span>
+                      </div>
+                    </>
+                  )}
                 </div>
               )}
 
@@ -3741,6 +3805,50 @@ export function AdminDashboard() {
             </div>
           </div>
         </motion.div>
+
+        {/* Alerte Moins de 1 Go Restant sur Cloudflare R2 */}
+        {r2Stats && (r2Stats.limit - r2Stats.used) <= 1024 * 1024 * 1024 && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-8 p-4 md:p-5 rounded-3xl bg-gradient-to-r from-red-950/90 via-red-900/70 to-black/90 border-2 border-neon-red/80 shadow-[0_0_35px_rgba(255,18,65,0.4)] flex flex-col md:flex-row items-center justify-between gap-4 backdrop-blur-md"
+          >
+            <div className="flex items-center gap-4 text-left">
+              <div className="w-12 h-12 rounded-2xl bg-neon-red/20 border border-neon-red/50 flex items-center justify-center shrink-0 animate-pulse text-neon-red shadow-[0_0_20px_rgba(255,18,65,0.3)]">
+                <ShieldAlert className="w-6 h-6" />
+              </div>
+              <div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="text-[10px] font-black uppercase tracking-widest text-neon-red bg-neon-red/20 px-2.5 py-1 rounded-full border border-neon-red/40 animate-pulse">
+                    ⚠️ Alerte Stockage R2
+                  </span>
+                  <span className="text-sm font-black text-white">
+                    Moins de 1 Go restant sur votre Cloud ({((r2Stats.limit - r2Stats.used) / (1024 * 1024)).toFixed(0)} Mo libres) !
+                  </span>
+                </div>
+                <p className="text-xs text-gray-300 mt-1.5 font-medium leading-relaxed">
+                  Votre quota gratuit Cloudflare R2 est presque atteint ({(r2Stats.used / (1024 * 1024 * 1024)).toFixed(2)} Go / 10 Go utilisés). C'est le moment de <strong>créer un nouveau compte Cloudflare gratuit</strong> pour repartir avec 10 Go vierges, ou de supprimer les fichiers inutilisés pour libérer de la place.
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2.5 shrink-0 w-full md:w-auto justify-end">
+              <button
+                onClick={fetchDuplicates}
+                className="px-4 py-2.5 bg-white/10 hover:bg-white/20 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all border border-white/10 flex items-center gap-2"
+              >
+                <Layers className="w-3.5 h-3.5 text-neon-yellow" />
+                Doublons
+              </button>
+              <button
+                onClick={fetchUnusedImages}
+                className="px-4 py-2.5 bg-neon-red/20 hover:bg-neon-red/30 text-neon-red rounded-xl text-xs font-black uppercase tracking-wider transition-all border border-neon-red/40 flex items-center gap-2 shadow-[0_0_15px_rgba(255,18,65,0.2)]"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                Nettoyer R2
+              </button>
+            </div>
+          </motion.div>
+        )}
 
         {/* Dashboard Tabs - Hidden but kept for state logic */}
         <div className="hidden">

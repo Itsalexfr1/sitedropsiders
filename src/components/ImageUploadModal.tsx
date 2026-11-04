@@ -37,6 +37,7 @@ export function ImageUploadModal({
     forceCrop = false
 }: ImageUploadModalProps) {
     const [isUploading, setIsUploading] = useState(false);
+    const [storageWarning, setStorageWarning] = useState<{ remainingMo: number; usedGo: number } | null>(null);
     const [status, setStatus] = useState<'idle' | 'success' | 'error'>('idle');
     const [message, setMessage] = useState('');
     const [uploadProgress, setUploadProgress] = useState(0);
@@ -842,6 +843,14 @@ export function ImageUploadModal({
                             </div>
 
                             <div className="space-y-6 relative z-10">
+                                {storageWarning && (
+                                    <div className="p-4 bg-gradient-to-r from-red-950/80 to-black/80 border border-neon-red/60 rounded-2xl flex items-center gap-3 text-left animate-pulse shadow-[0_0_20px_rgba(255,18,65,0.25)]">
+                                        <HardDrive className="w-5 h-5 text-neon-red shrink-0" />
+                                        <div className="text-xs text-white">
+                                            <span className="font-black text-neon-red uppercase tracking-wider">Alerte Réserve Cloud R2 :</span> Il reste moins de 1 Go libre ({storageWarning.remainingMo} Mo restants sur 10 Go). Pensez à recréer votre compte Cloudflare !
+                                        </div>
+                                    </div>
+                                )}
                                 {status === 'success' ? (
                                     <div className="py-12 flex flex-col items-center justify-center gap-4 text-center">
                                         <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="w-20 h-20 bg-green-500/10 rounded-full flex items-center justify-center border border-green-500/30">

@@ -1,7 +1,97 @@
+import { AwsClient } from 'aws4fetch';
 // @ts-nocheck - Deploy: 2026-10-21T17:22:50 - Tweet Slide theme colors & animations
 import webpush from 'web-push';
 import PostalMime from 'postal-mime';
 import { searchAirports, MAJOR_AIRPORTS } from './src/data/airports';
+
+// Helper: S3 Client for Photos Cloud (Cloudflare R2 Account 2)
+
+// Helper: S3 Client for Videos Cloud (Cloudflare R2 Account 3)
+
+// Helper: S3 Client for Audio Cloud (Cloudflare R2 Account 4)
+
+// Helper: S3 Client for Backup / Secours Cloud (Cloudflare R2 Account 5)
+
+// Helper: List objects from an external S3/R2 sub-cloud
+async function listS3Objects(s3Client: any, accountId: string, bucket: string, prefix = '') {
+    if (!s3Client || !accountId || !bucket) return [];
+    try {
+        const url = `https://${accountId}.r2.cloudflarestorage.com/${bucket}?list-type=2${prefix ? `&prefix=${encodeURIComponent(prefix)}` : ''}&max-keys=1000`;
+        const res = await s3Client.fetch(url);
+        if (!res.ok) return [];
+        const xml = await res.text();
+        const items: any[] = [];
+        const entries = xml.matchAll(/<Contents>([\s\S]*?)<\/Contents>/g);
+        for (const entry of entries) {
+            const block = entry[1];
+            const keyMatch = block.match(/<Key>(.*?)<\/Key>/);
+            const sizeMatch = block.match(/<Size>(\d+)<\/Size>/);
+            const dateMatch = block.match(/<LastModified>(.*?)<\/LastModified>/);
+            const etagMatch = block.match(/<ETag>(.*?)<\/ETag>/);
+            if (keyMatch && keyMatch[1]) {
+                items.push({
+                    key: keyMatch[1],
+                    size: sizeMatch ? parseInt(sizeMatch[1], 10) : 0,
+                    uploaded: dateMatch ? new Date(dateMatch[1]) : new Date(),
+                    etag: etagMatch ? etagMatch[1].replace(/"/g, '') : ''
+                });
+            }
+        }
+        return items;
+    } catch (e) {
+        console.warn(`Failed to list S3 objects for ${bucket}:`, e);
+        return [];
+    }
+}
+
+function getBackupS3Client(env: any) {
+    const keyId = env.BACKUP_R2_ACCESS_KEY_ID;
+    const secret = env.BACKUP_R2_SECRET_ACCESS_KEY;
+    if (!keyId || !secret) return null;
+    return new AwsClient({
+        accessKeyId: keyId,
+        secretAccessKey: secret,
+        service: 's3',
+        region: 'auto'
+    });
+}
+
+function getAudioS3Client(env: any) {
+    const keyId = env.AUDIO_R2_ACCESS_KEY_ID;
+    const secret = env.AUDIO_R2_SECRET_ACCESS_KEY;
+    if (!keyId || !secret) return null;
+    return new AwsClient({
+        accessKeyId: keyId,
+        secretAccessKey: secret,
+        service: 's3',
+        region: 'auto'
+    });
+}
+
+function getVideosS3Client(env: any) {
+    const keyId = env.VIDEOS_R2_ACCESS_KEY_ID;
+    const secret = env.VIDEOS_R2_SECRET_ACCESS_KEY;
+    if (!keyId || !secret) return null;
+    return new AwsClient({
+        accessKeyId: keyId,
+        secretAccessKey: secret,
+        service: 's3',
+        region: 'auto'
+    });
+}
+
+function getPhotosS3Client(env: any) {
+    const keyId = env.PHOTOS_R2_ACCESS_KEY_ID;
+    const secret = env.PHOTOS_R2_SECRET_ACCESS_KEY;
+    if (!keyId || !secret) return null;
+    return new AwsClient({
+        accessKeyId: keyId,
+        secretAccessKey: secret,
+        service: 's3',
+        region: 'auto'
+    });
+}
+
 
 const VAPID_PUB = '';
 const VAPID_PRI = '';
@@ -2713,7 +2803,122 @@ ${urls.map(u => `  <url>
                 const cleanName = filename.split('.')[0].replace(/[^a-zA-Z0-9]/g, '_').substring(0, 30);
                 const key = `${targetFolder}/${randomId}-${cleanName}.${extension}`;
 
-                // Create multipart upload
+                                                // Route Audio to Audio Cloud if configured
+                const audioS3 = getAudioS3Client(env);
+                if (isAudio && audioS3 && env.AUDIO_R2_ACCOUNT_ID && env.AUDIO_R2_BUCKET) {
+                    try {
+                        const s3Url = `https://${env.AUDIO_R2_ACCOUNT_ID}.r2.cloudflarestorage.com/${env.AUDIO_R2_BUCKET}/${encodeURIComponent(key)}?uploads`;
+                        const initRes = await audioS3.fetch(s3Url, {
+                            method: 'POST',
+                            headers: { 'Content-Type': resolvedType }
+                        });
+                        const xmlText = await initRes.text();
+                        const idMatch = xmlText.match(/<UploadId>(.*?)<\/UploadId>/);
+                        if (idMatch && idMatch[1]) {
+                            return new Response(JSON.stringify({
+                                success: true,
+                                uploadId: idMatch[1],
+                                key: key,
+                                cloud: 'audio'
+                            }), { headers });
+                        }
+                    } catch (s3Err) {
+                        console.warn('Audio Cloud init failed, fallback to main R2:', s3Err);
+                    }
+                }
+                // Route Videos to Videos Cloud if configured
+                const isVideo = resolvedType.startsWith('video/') || /\.(mp4|webm|mov|mkv)$/i.test(filename);
+                const videosS3 = getVideosS3Client(env);
+                if (isVideo && videosS3 && env.VIDEOS_R2_ACCOUNT_ID && env.VIDEOS_R2_BUCKET) {
+                    try {
+                        const s3Url = `https://${env.VIDEOS_R2_ACCOUNT_ID}.r2.cloudflarestorage.com/${env.VIDEOS_R2_BUCKET}/${encodeURIComponent(key)}?uploads`;
+                        const initRes = await videosS3.fetch(s3Url, {
+                            method: 'POST',
+                            headers: { 'Content-Type': resolvedType }
+                        });
+                        const xmlText = await initRes.text();
+                        const idMatch = xmlText.match(/<UploadId>(.*?)<\/UploadId>/);
+                        if (idMatch && idMatch[1]) {
+                            return new Response(JSON.stringify({
+                                success: true,
+                                uploadId: idMatch[1],
+                                key: key,
+                                cloud: 'videos'
+                            }), { headers });
+                        }
+                    } catch (s3Err) {
+                        console.warn('Videos Cloud init failed, fallback to main R2:', s3Err);
+                    }
+                }
+                // Route Photos to Photos Cloud if configured
+                                                const audioS3 = getAudioS3Client(env);
+                if (isAudio && audioS3 && env.AUDIO_R2_ACCOUNT_ID && env.AUDIO_R2_BUCKET) {
+                    try {
+                        const s3Url = `https://${env.AUDIO_R2_ACCOUNT_ID}.r2.cloudflarestorage.com/${env.AUDIO_R2_BUCKET}/${encodeURIComponent(key)}`;
+                        const s3Res = await audioS3.fetch(s3Url, {
+                            method: 'PUT',
+                            headers: { 'Content-Type': resolvedType },
+                            body: bytes
+                        });
+                        if (s3Res.ok) {
+                            return new Response(JSON.stringify({
+                                success: true,
+                                url: `/uploads/${key}`,
+                                key: key,
+                                cloud: 'audio'
+                            }), { headers });
+                        }
+                    } catch (s3Err) {
+                        console.warn('Direct upload to Audio Cloud failed, falling back:', s3Err);
+                    }
+                }
+                const isVideo = resolvedType && (resolvedType.startsWith('video/') || /\.(mp4|webm|mov|mkv)$/i.test(filename));
+                const videosS3 = getVideosS3Client(env);
+                if (isVideo && videosS3 && env.VIDEOS_R2_ACCOUNT_ID && env.VIDEOS_R2_BUCKET) {
+                    try {
+                        const s3Url = `https://${env.VIDEOS_R2_ACCOUNT_ID}.r2.cloudflarestorage.com/${env.VIDEOS_R2_BUCKET}/${encodeURIComponent(key)}`;
+                        const s3Res = await videosS3.fetch(s3Url, {
+                            method: 'PUT',
+                            headers: { 'Content-Type': resolvedType },
+                            body: bytes
+                        });
+                        if (s3Res.ok) {
+                            return new Response(JSON.stringify({
+                                success: true,
+                                url: `/uploads/${key}`,
+                                key: key,
+                                cloud: 'videos'
+                            }), { headers });
+                        }
+                    } catch (s3Err) {
+                        console.warn('Direct upload to Videos Cloud failed, falling back:', s3Err);
+                    }
+                }
+                const isPhoto = !isAudio && !resolvedType.startsWith('video/');
+                const photosS3 = getPhotosS3Client(env);
+                if (isPhoto && photosS3 && env.PHOTOS_R2_ACCOUNT_ID && env.PHOTOS_R2_BUCKET) {
+                    try {
+                        const s3Url = `https://${env.PHOTOS_R2_ACCOUNT_ID}.r2.cloudflarestorage.com/${env.PHOTOS_R2_BUCKET}/${encodeURIComponent(key)}?uploads`;
+                        const initRes = await photosS3.fetch(s3Url, {
+                            method: 'POST',
+                            headers: { 'Content-Type': resolvedType }
+                        });
+                        const xmlText = await initRes.text();
+                        const idMatch = xmlText.match(/<UploadId>(.*?)<\/UploadId>/);
+                        if (idMatch && idMatch[1]) {
+                            return new Response(JSON.stringify({
+                                success: true,
+                                uploadId: idMatch[1],
+                                key: key,
+                                cloud: 'photos'
+                            }), { headers });
+                        }
+                    } catch (s3Err) {
+                        console.warn('Photos Cloud init failed, fallback to main R2:', s3Err);
+                    }
+                }
+
+                // Default: Create multipart upload in primary R2
                 const upload = await env.R2.createMultipartUpload(key, {
                     httpMetadata: { contentType: resolvedType }
                 });
@@ -2743,6 +2948,73 @@ ${urls.map(u => `  <url>
                 const partNumber = parseInt(partNumStr, 10);
                 const bodyBuffer = await request.arrayBuffer();
 
+                                                // If key is an audio and Audio Cloud configured
+                const isAudioKey = key.startsWith('SONS/') || /\.(mp3|wav|m4a|aac|flac|ogg|oga|weba|webm)$/i.test(key);
+                const audioS3 = getAudioS3Client(env);
+                if (isAudioKey && audioS3 && env.AUDIO_R2_ACCOUNT_ID && env.AUDIO_R2_BUCKET) {
+                    try {
+                        const s3Url = `https://${env.AUDIO_R2_ACCOUNT_ID}.r2.cloudflarestorage.com/${env.AUDIO_R2_BUCKET}/${encodeURIComponent(key)}?partNumber=${partNumber}&uploadId=${encodeURIComponent(uploadId)}`;
+                        const partRes = await audioS3.fetch(s3Url, {
+                            method: 'PUT',
+                            body: bodyBuffer
+                        });
+                        if (partRes.ok) {
+                            const etag = partRes.headers.get('etag') || partRes.headers.get('ETag') || `"${partNumber}"`;
+                            return new Response(JSON.stringify({
+                                success: true,
+                                partNumber: partNumber,
+                                etag: etag
+                            }), { headers });
+                        }
+                    } catch (s3Err) {
+                        console.warn('Audio Cloud part upload error, falling back:', s3Err);
+                    }
+                }
+                // If key is a video and Videos Cloud configured
+                const isVideoKey = key.startsWith('VIDEOS/') || /\.(mp4|webm|mov|mkv)$/i.test(key);
+                const videosS3 = getVideosS3Client(env);
+                if (isVideoKey && videosS3 && env.VIDEOS_R2_ACCOUNT_ID && env.VIDEOS_R2_BUCKET) {
+                    try {
+                        const s3Url = `https://${env.VIDEOS_R2_ACCOUNT_ID}.r2.cloudflarestorage.com/${env.VIDEOS_R2_BUCKET}/${encodeURIComponent(key)}?partNumber=${partNumber}&uploadId=${encodeURIComponent(uploadId)}`;
+                        const partRes = await videosS3.fetch(s3Url, {
+                            method: 'PUT',
+                            body: bodyBuffer
+                        });
+                        if (partRes.ok) {
+                            const etag = partRes.headers.get('etag') || partRes.headers.get('ETag') || `"${partNumber}"`;
+                            return new Response(JSON.stringify({
+                                success: true,
+                                partNumber: partNumber,
+                                etag: etag
+                            }), { headers });
+                        }
+                    } catch (s3Err) {
+                        console.warn('Videos Cloud part upload error, falling back:', s3Err);
+                    }
+                }
+                // If key is a photo and Photos Cloud configured
+                const isPhotoKey = !key.startsWith('SONS/') && !key.startsWith('VIDEOS/');
+                const photosS3 = getPhotosS3Client(env);
+                if (isPhotoKey && photosS3 && env.PHOTOS_R2_ACCOUNT_ID && env.PHOTOS_R2_BUCKET) {
+                    try {
+                        const s3Url = `https://${env.PHOTOS_R2_ACCOUNT_ID}.r2.cloudflarestorage.com/${env.PHOTOS_R2_BUCKET}/${encodeURIComponent(key)}?partNumber=${partNumber}&uploadId=${encodeURIComponent(uploadId)}`;
+                        const partRes = await photosS3.fetch(s3Url, {
+                            method: 'PUT',
+                            body: bodyBuffer
+                        });
+                        if (partRes.ok) {
+                            const etag = partRes.headers.get('etag') || partRes.headers.get('ETag') || `"${partNumber}"`;
+                            return new Response(JSON.stringify({
+                                success: true,
+                                partNumber: partNumber,
+                                etag: etag
+                            }), { headers });
+                        }
+                    } catch (s3Err) {
+                        console.warn('Photos Cloud part upload error, falling back:', s3Err);
+                    }
+                }
+
                 const upload = env.R2.resumeMultipartUpload(key, uploadId);
                 const part = await upload.uploadPart(partNumber, bodyBuffer);
 
@@ -2769,6 +3041,56 @@ ${urls.map(u => `  <url>
 
                 // Sort parts by part number to be safe (R2 requires ordered parts)
                 const sortedParts = [...parts].sort((a, b) => a.partNumber - b.partNumber);
+
+                const isPhotoKey = !key.startsWith('SONS/') && !key.startsWith('VIDEOS/');
+                const photosS3 = getPhotosS3Client(env);
+                if (isPhotoKey && photosS3 && env.PHOTOS_R2_ACCOUNT_ID && env.PHOTOS_R2_BUCKET) {
+                    try {
+                        const xmlParts = sortedParts.map(p => `<Part><PartNumber>${p.partNumber}</PartNumber><ETag>${p.etag.replace(/"/g, '')}</ETag></Part>`).join('');
+                        const completeXml = `<CompleteMultipartUpload>${xmlParts}</CompleteMultipartUpload>`;
+                        const s3Url = `https://${env.PHOTOS_R2_ACCOUNT_ID}.r2.cloudflarestorage.com/${env.PHOTOS_R2_BUCKET}/${encodeURIComponent(key)}?uploadId=${encodeURIComponent(uploadId)}`;
+                        const completeRes = await photosS3.fetch(s3Url, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/xml' },
+                            body: completeXml
+                        });
+                        if (completeRes.ok) {
+                            return new Response(JSON.stringify({
+                                success: true,
+                                url: `/uploads/${key}`,
+                                key: key,
+                                cloud: 'photos'
+                            }), { headers });
+                        }
+                    } catch (s3Err) {
+                        console.warn('Photos Cloud complete error, falling back:', s3Err);
+                    }
+                }
+
+                const isPhotoKey = !key.startsWith('SONS/') && !key.startsWith('VIDEOS/');
+                const photosS3 = getPhotosS3Client(env);
+                if (isPhotoKey && photosS3 && env.PHOTOS_R2_ACCOUNT_ID && env.PHOTOS_R2_BUCKET) {
+                    try {
+                        const xmlParts = sortedParts.map(p => `<Part><PartNumber>${p.partNumber}</PartNumber><ETag>${p.etag.replace(/"/g, '')}</ETag></Part>`).join('');
+                        const completeXml = `<CompleteMultipartUpload>${xmlParts}</CompleteMultipartUpload>`;
+                        const s3Url = `https://${env.PHOTOS_R2_ACCOUNT_ID}.r2.cloudflarestorage.com/${env.PHOTOS_R2_BUCKET}/${encodeURIComponent(key)}?uploadId=${encodeURIComponent(uploadId)}`;
+                        const completeRes = await photosS3.fetch(s3Url, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/xml' },
+                            body: completeXml
+                        });
+                        if (completeRes.ok) {
+                            return new Response(JSON.stringify({
+                                success: true,
+                                url: `/uploads/${key}`,
+                                key: key,
+                                cloud: 'photos'
+                            }), { headers });
+                        }
+                    } catch (s3Err) {
+                        console.warn('Photos Cloud complete error, falling back:', s3Err);
+                    }
+                }
 
                 const upload = env.R2.resumeMultipartUpload(key, uploadId);
                 await upload.complete(sortedParts);
@@ -2866,6 +3188,52 @@ ${urls.map(u => `  <url>
                 }
                 
                 const key = `${targetFolder}/${hashHex}-${cleanName}.${extension}`;
+
+                const isPhoto = !isAudio && !resolvedType.startsWith('video/');
+                const photosS3 = getPhotosS3Client(env);
+                if (isPhoto && photosS3 && env.PHOTOS_R2_ACCOUNT_ID && env.PHOTOS_R2_BUCKET) {
+                    try {
+                        const s3Url = `https://${env.PHOTOS_R2_ACCOUNT_ID}.r2.cloudflarestorage.com/${env.PHOTOS_R2_BUCKET}/${encodeURIComponent(key)}`;
+                        const s3Res = await photosS3.fetch(s3Url, {
+                            method: 'PUT',
+                            headers: { 'Content-Type': resolvedType },
+                            body: bytes
+                        });
+                        if (s3Res.ok) {
+                            return new Response(JSON.stringify({
+                                success: true,
+                                url: `/uploads/${key}`,
+                                key: key,
+                                cloud: 'photos'
+                            }), { headers });
+                        }
+                    } catch (s3Err) {
+                        console.warn('Direct upload to Photos Cloud failed, falling back:', s3Err);
+                    }
+                }
+
+                const isPhoto = !isAudio && !resolvedType.startsWith('video/');
+                const photosS3 = getPhotosS3Client(env);
+                if (isPhoto && photosS3 && env.PHOTOS_R2_ACCOUNT_ID && env.PHOTOS_R2_BUCKET) {
+                    try {
+                        const s3Url = `https://${env.PHOTOS_R2_ACCOUNT_ID}.r2.cloudflarestorage.com/${env.PHOTOS_R2_BUCKET}/${encodeURIComponent(key)}`;
+                        const s3Res = await photosS3.fetch(s3Url, {
+                            method: 'PUT',
+                            headers: { 'Content-Type': resolvedType },
+                            body: bytes
+                        });
+                        if (s3Res.ok) {
+                            return new Response(JSON.stringify({
+                                success: true,
+                                url: `/uploads/${key}`,
+                                key: key,
+                                cloud: 'photos'
+                            }), { headers });
+                        }
+                    } catch (s3Err) {
+                        console.warn('Direct upload to Photos Cloud failed, falling back:', s3Err);
+                    }
+                }
 
                 await env.R2.put(key, bytes, {
                     httpMetadata: { contentType: resolvedType }
@@ -3245,6 +3613,90 @@ ${urls.map(u => `  <url>
             // Fallback inverse: essayer avec le préfixe 'uploads/'
             if (!object && !key.startsWith('uploads/') && !key.startsWith('migrated/')) {
                 object = await env.R2.get('uploads/' + key, getOptions);
+            }
+
+                                                if (!object && env.BACKUP_R2_PUBLIC_URL) {
+                // Vérifier si le fichier se trouve sur le Cloud de Secours
+                try {
+                    let bkpRes = await fetch(`${env.BACKUP_R2_PUBLIC_URL}/${key}`);
+                    if (!bkpRes.ok && key.startsWith('uploads/')) {
+                        bkpRes = await fetch(`${env.BACKUP_R2_PUBLIC_URL}/${key.replace('uploads/', '')}`);
+                    }
+                    if (bkpRes.ok) {
+                        const newHeaders = new Headers(bkpRes.headers);
+                        newHeaders.set('Access-Control-Allow-Origin', '*');
+                        newHeaders.set('Cache-Control', 'public, max-age=31536000, immutable');
+                        return new Response(bkpRes.body, {
+                            status: 200,
+                            headers: newHeaders
+                        });
+                    }
+                } catch (e) {
+                    console.warn('Backup Cloud retrieval failed:', e);
+                }
+            }
+
+            if (!object && env.AUDIO_R2_PUBLIC_URL) {
+                // Vérifier si le son se trouve sur le Cloud Audio
+                try {
+                    let audRes = await fetch(`${env.AUDIO_R2_PUBLIC_URL}/${key}`);
+                    if (!audRes.ok && key.startsWith('uploads/')) {
+                        audRes = await fetch(`${env.AUDIO_R2_PUBLIC_URL}/${key.replace('uploads/', '')}`);
+                    }
+                    if (audRes.ok) {
+                        const newHeaders = new Headers(audRes.headers);
+                        newHeaders.set('Access-Control-Allow-Origin', '*');
+                        newHeaders.set('Cache-Control', 'public, max-age=31536000, immutable');
+                        return new Response(audRes.body, {
+                            status: 200,
+                            headers: newHeaders
+                        });
+                    }
+                } catch (e) {
+                    console.warn('Audio Cloud retrieval failed:', e);
+                }
+            }
+
+            if (!object && env.VIDEOS_R2_PUBLIC_URL) {
+                // Vérifier si la vidéo se trouve sur le Cloud Vidéos
+                try {
+                    let vidRes = await fetch(`${env.VIDEOS_R2_PUBLIC_URL}/${key}`);
+                    if (!vidRes.ok && key.startsWith('uploads/')) {
+                        vidRes = await fetch(`${env.VIDEOS_R2_PUBLIC_URL}/${key.replace('uploads/', '')}`);
+                    }
+                    if (vidRes.ok) {
+                        const newHeaders = new Headers(vidRes.headers);
+                        newHeaders.set('Access-Control-Allow-Origin', '*');
+                        newHeaders.set('Cache-Control', 'public, max-age=31536000, immutable');
+                        return new Response(vidRes.body, {
+                            status: 200,
+                            headers: newHeaders
+                        });
+                    }
+                } catch (e) {
+                    console.warn('Videos Cloud retrieval failed:', e);
+                }
+            }
+
+            if (!object && env.PHOTOS_R2_PUBLIC_URL) {
+                // Vérifier si le fichier se trouve sur le Cloud Photos
+                try {
+                    let photoRes = await fetch(`${env.PHOTOS_R2_PUBLIC_URL}/${key}`);
+                    if (!photoRes.ok && key.startsWith('uploads/')) {
+                        photoRes = await fetch(`${env.PHOTOS_R2_PUBLIC_URL}/${key.replace('uploads/', '')}`);
+                    }
+                    if (photoRes.ok) {
+                        const newHeaders = new Headers(photoRes.headers);
+                        newHeaders.set('Access-Control-Allow-Origin', '*');
+                        newHeaders.set('Cache-Control', 'public, max-age=31536000, immutable');
+                        return new Response(photoRes.body, {
+                            status: 200,
+                            headers: newHeaders
+                        });
+                    }
+                } catch (e) {
+                    console.warn('Photos Cloud retrieval failed:', e);
+                }
             }
 
             if (!object) {
@@ -8100,11 +8552,112 @@ ${urls.map(u => `  <url>
                     cursor = listResult.cursor;
                 }
                 
+                                                                let backupUsed = 0;
+                let backupCount = 0;
+                const backupS3 = getBackupS3Client(env);
+                if (backupS3 && env.BACKUP_R2_ACCOUNT_ID && env.BACKUP_R2_BUCKET) {
+                    try {
+                        const s3ListUrl = `https://${env.BACKUP_R2_ACCOUNT_ID}.r2.cloudflarestorage.com/${env.BACKUP_R2_BUCKET}?list-type=2`;
+                        const s3ListRes = await backupS3.fetch(s3ListUrl);
+                        if (s3ListRes.ok) {
+                            const listXml = await s3ListRes.text();
+                            const sizeMatches = listXml.matchAll(/<Size>(\d+)<\/Size>/g);
+                            for (const m of sizeMatches) {
+                                backupUsed += parseInt(m[1], 10);
+                                backupCount++;
+                            }
+                        }
+                    } catch (e) {
+                        console.warn('Failed to fetch Backup Cloud stats:', e);
+                    }
+                }
+                let audioUsed = 0;
+                let audioCount = 0;
+                const audioS3 = getAudioS3Client(env);
+                if (audioS3 && env.AUDIO_R2_ACCOUNT_ID && env.AUDIO_R2_BUCKET) {
+                    try {
+                        const s3ListUrl = `https://${env.AUDIO_R2_ACCOUNT_ID}.r2.cloudflarestorage.com/${env.AUDIO_R2_BUCKET}?list-type=2`;
+                        const s3ListRes = await audioS3.fetch(s3ListUrl);
+                        if (s3ListRes.ok) {
+                            const listXml = await s3ListRes.text();
+                            const sizeMatches = listXml.matchAll(/<Size>(\d+)<\/Size>/g);
+                            for (const m of sizeMatches) {
+                                audioUsed += parseInt(m[1], 10);
+                                audioCount++;
+                            }
+                        }
+                    } catch (e) {
+                        console.warn('Failed to fetch Audio Cloud stats:', e);
+                    }
+                }
+                let videosUsed = 0;
+                let videosCount = 0;
+                const videosS3 = getVideosS3Client(env);
+                if (videosS3 && env.VIDEOS_R2_ACCOUNT_ID && env.VIDEOS_R2_BUCKET) {
+                    try {
+                        const s3ListUrl = `https://${env.VIDEOS_R2_ACCOUNT_ID}.r2.cloudflarestorage.com/${env.VIDEOS_R2_BUCKET}?list-type=2`;
+                        const s3ListRes = await videosS3.fetch(s3ListUrl);
+                        if (s3ListRes.ok) {
+                            const listXml = await s3ListRes.text();
+                            const sizeMatches = listXml.matchAll(/<Size>(\d+)<\/Size>/g);
+                            for (const m of sizeMatches) {
+                                videosUsed += parseInt(m[1], 10);
+                                videosCount++;
+                            }
+                        }
+                    } catch (e) {
+                        console.warn('Failed to fetch Videos Cloud stats:', e);
+                    }
+                }
+                let photosUsed = 0;
+                let photosCount = 0;
+                const photosS3 = getPhotosS3Client(env);
+                if (photosS3 && env.PHOTOS_R2_ACCOUNT_ID && env.PHOTOS_R2_BUCKET) {
+                    try {
+                        const s3ListUrl = `https://${env.PHOTOS_R2_ACCOUNT_ID}.r2.cloudflarestorage.com/${env.PHOTOS_R2_BUCKET}?list-type=2`;
+                        const s3ListRes = await photosS3.fetch(s3ListUrl);
+                        if (s3ListRes.ok) {
+                            const listXml = await s3ListRes.text();
+                            const sizeMatches = listXml.matchAll(/<Size>(\d+)<\/Size>/g);
+                            for (const m of sizeMatches) {
+                                photosUsed += parseInt(m[1], 10);
+                                photosCount++;
+                            }
+                        }
+                    } catch (e) {
+                        console.warn('Failed to fetch Photos Cloud stats:', e);
+                    }
+                }
+
                 return new Response(JSON.stringify({ 
                     used: totalSize, 
                     limit: 10737418240, // 10 GB (standard free limit)
                     objectCount,
-                    remaining: Math.max(0, 10737418240 - totalSize)
+                    remaining: Math.max(0, 10737418240 - totalSize),
+                    photos: {
+                        used: photosUsed,
+                        limit: 10737418240,
+                        objectCount: photosCount,
+                        remaining: Math.max(0, 10737418240 - photosUsed)
+                    },
+                    videos: {
+                        used: videosUsed,
+                        limit: 10737418240,
+                        objectCount: videosCount,
+                        remaining: Math.max(0, 10737418240 - videosUsed)
+                    },
+                    audio: {
+                        used: audioUsed,
+                        limit: 10737418240,
+                        objectCount: audioCount,
+                        remaining: Math.max(0, 10737418240 - audioUsed)
+                    },
+                    backup: {
+                        used: backupUsed,
+                        limit: 10737418240,
+                        objectCount: backupCount,
+                        remaining: Math.max(0, 10737418240 - backupUsed)
+                    }
                 }), { status: 200, headers });
             } catch (e: any) {
                 return new Response(JSON.stringify({ error: e.message }), { status: 500, headers: { ...headers, 'Cache-Control': 'no-cache, no-store, must-revalidate' } });
@@ -8773,6 +9326,32 @@ ${urls.map(u => `  <url>
                         if (!res.truncated) break;
                         currentCursor = res.cursor;
                         safetyCounter++;
+                    }
+
+                    // Agrégation transparente des sous-clouds (Photos, Vidéos, Audio, Secours)
+                    try {
+                        const subCloudPromises: Promise<any[]>[] = [];
+                        const isPhotoSearch = !prefix || prefix.toLowerCase().includes('upload');
+                        const isVideoSearch = !prefix || prefix.toLowerCase().includes('video');
+                        const isAudioSearch = !prefix || prefix.toLowerCase().includes('son');
+
+                        if (isPhotoSearch) {
+                            subCloudPromises.push(listS3Objects(getPhotosS3Client(env), env.PHOTOS_R2_ACCOUNT_ID, env.PHOTOS_R2_BUCKET, prefix));
+                        }
+                        if (isVideoSearch) {
+                            subCloudPromises.push(listS3Objects(getVideosS3Client(env), env.VIDEOS_R2_ACCOUNT_ID, env.VIDEOS_R2_BUCKET, prefix));
+                        }
+                        if (isAudioSearch) {
+                            subCloudPromises.push(listS3Objects(getAudioS3Client(env), env.AUDIO_R2_ACCOUNT_ID, env.AUDIO_R2_BUCKET, prefix));
+                        }
+                        subCloudPromises.push(listS3Objects(getBackupS3Client(env), env.BACKUP_R2_ACCOUNT_ID, env.BACKUP_R2_BUCKET, prefix));
+
+                        const subResults = await Promise.all(subCloudPromises);
+                        for (const subList of subResults) {
+                            allObjects.push(...subList);
+                        }
+                    } catch (subErr) {
+                        console.warn('Failed to aggregate sub-clouds:', subErr);
                     }
                     
                     // Sort by upload date (latest first)
