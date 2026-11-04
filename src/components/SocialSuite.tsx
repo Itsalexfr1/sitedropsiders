@@ -497,7 +497,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         return `${dayStr} ${monthStr} ${yearStr}`;
     };
     const [extraEditorialSlides, setExtraEditorialSlides] = useState<string[]>([]); // Slides 3, 4, 5... (texte de chaque slide)
-    const [skipEditorialSlide2, setSkipEditorialSlide2] = useState<boolean>(false); // Masquer Slide 2 dans l'export Reel (Slide 1 + Promo uniquement)
+    const [skipEditorialSlide2, setSkipEditorialSlide2] = useState<boolean>(true); // Masquer Slide 2 par défaut (Slide 1 + Promo uniquement, s'affiche uniquement si ajoutée)
     const [editorialSlide1Duration, setEditorialSlide1Duration] = useState<number>(5); // Durée Slide 1 (en secondes, min 2s, max 15s)
     const [editorialPromoDuration, setEditorialPromoDuration] = useState<number>(7); // Durée Promo (en secondes, fixée à 7s pour l'animation Instagram)
     const [exportFps, setExportFps] = useState<number>(30); // Fluidité vidéo : 30 FPS fluide par défaut (standard Instagram/Reels) ou 60 FPS Studio
@@ -535,6 +535,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     });
 
     const addEditorialSlide = () => {
+        if (skipEditorialSlide2 && theme !== 'JEU_DJ') {
+            setSkipEditorialSlide2(false);
+            setEditorialSlide(2);
+            setTimeout(() => generateImage(), 50);
+            return;
+        }
         if (extraEditorialSlides.length >= 18) return; // Limite stricte à 20 slides totales max (2 de base + 18 supplémentaires)
         const nextSlideNum = 2 + extraEditorialSlides.length + 1;
         setExtraEditorialSlides(prev => [...prev, '']);
@@ -614,11 +620,17 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     };
 
     const removeEditorialSlide = (slideIndexToRemove: number) => {
-        if (slideIndexToRemove < 3) return; // Les slides 1 et 2 restent indispensables
+        if (slideIndexToRemove === 2) {
+            setSkipEditorialSlide2(true);
+            setEditorialSlide(1);
+            setTimeout(() => generateImage(), 50);
+            return;
+        }
+        if (slideIndexToRemove < 3) return; // Slide 1 reste indispensable
         const extraIdx = slideIndexToRemove - 3;
         setExtraEditorialSlides(prev => prev.filter((_, idx) => idx !== extraIdx));
         if (editorialSlide >= slideIndexToRemove) {
-            setEditorialSlide(Math.max(2, editorialSlide - 1));
+            setEditorialSlide(Math.max(skipEditorialSlide2 ? 1 : 2, editorialSlide - 1));
         }
     };
 
@@ -11863,11 +11875,17 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         const prevSlide = editorialSlide;
         const prevAffiche = isEditorialAfficheActive;
         const isMusicTheme = (theme === 'MUSIQUE');
-        const numSlides = isMusicTheme ? (1 + musicTracks.length) : (2 + extraEditorialSlides.length);
+        const shouldSkipSlide2 = (theme !== 'JEU_DJ') && skipEditorialSlide2;
+        const slidesToDownload: number[] = isMusicTheme
+            ? [1, ...musicTracks.map((_, i) => i + 2)]
+            : (shouldSkipSlide2
+                ? [1, ...extraEditorialSlides.map((_, i) => i + 3)]
+                : [1, 2, ...extraEditorialSlides.map((_, i) => i + 3)]);
         const includeAffiche = Boolean(!isMusicTheme && (afficheImage || isEditorialAfficheActive));
         try {
-            for (let s = 1; s <= numSlides; s++) {
-                if (s > 1) await new Promise(r => setTimeout(r, 350));
+            for (let idx = 0; idx < slidesToDownload.length; idx++) {
+                const s = slidesToDownload[idx];
+                if (idx > 0) await new Promise(r => setTimeout(r, 350));
                 setEditorialSlide(s);
                 await new Promise(r => setTimeout(r, 60));
                 await generateImage(format, true);
@@ -16568,7 +16586,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 <span className="text-[9px] font-black uppercase text-white flex items-center gap-1.5">
                     🖼️ Visuel Slide {editorialSlide} sur {2 + extraEditorialSlides.length}
                 </span>
-                {editorialSlide >= 3 && (
+                {(editorialSlide >= 3 || (editorialSlide === 2 && theme !== 'JEU_DJ')) && (
                     <button
                         type="button"
                         onClick={() => removeEditorialSlide(editorialSlide)}
@@ -21065,17 +21083,52 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 >
                                     {theme === 'JEU_DJ' ? '👤 Slide 1 (Silhouette)' : '📌 Slide 1 (Cover)'}
                                 </button>
-                                <button
-                                    type="button"
-                                    onClick={() => { setIsCarouselPromoActive(false); setIsEditorialAfficheActive(false); setIsEditorialTweetActive(false); setEditorialSlide(2); }}
-                                    className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase transition-all flex items-center gap-1.5 ${
-                                        !isCarouselPromoActive && !isEditorialAfficheActive && !isEditorialTweetActive && editorialSlide === 2
-                                            ? 'bg-white text-black shadow-[0_0_12px_rgba(255,255,255,0.5)]'
-                                            : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
-                                    }`}
-                                >
-                                    {theme === 'JEU_DJ' ? '🌈 Slide 2 (Révélation)' : '📖 Slide 2'}
-                                </button>
+                                {skipEditorialSlide2 && theme !== 'JEU_DJ' ? (
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setSkipEditorialSlide2(false);
+                                            setIsCarouselPromoActive(false);
+                                            setIsEditorialAfficheActive(false);
+                                            setIsEditorialTweetActive(false);
+                                            setEditorialSlide(2);
+                                            setTimeout(() => generateImage(), 50);
+                                        }}
+                                        className="px-3 py-1.5 rounded-xl text-[9px] font-black uppercase transition-all flex items-center gap-1.5 bg-neon-cyan/15 border border-dashed border-neon-cyan/40 text-neon-cyan hover:bg-neon-cyan/25 hover:border-neon-cyan shadow-sm active:scale-95"
+                                        title="Ajouter la Slide 2 pour détailler votre article ou news"
+                                    >
+                                        ➕ Ajouter Slide 2
+                                    </button>
+                                ) : (
+                                    <div className="relative group flex items-center rounded-xl overflow-hidden border border-white/10 bg-white/5">
+                                        <button
+                                            type="button"
+                                            onClick={() => { setIsCarouselPromoActive(false); setIsEditorialAfficheActive(false); setIsEditorialTweetActive(false); setEditorialSlide(2); }}
+                                            className={`px-3 py-1.5 text-[9px] font-black uppercase transition-all flex items-center gap-1.5 ${
+                                                !isCarouselPromoActive && !isEditorialAfficheActive && !isEditorialTweetActive && editorialSlide === 2
+                                                    ? 'bg-white text-black shadow-[0_0_12px_rgba(255,255,255,0.5)]'
+                                                    : 'text-gray-300 hover:text-white hover:bg-white/10'
+                                            }`}
+                                        >
+                                            {theme === 'JEU_DJ' ? '🌈 Slide 2 (Révélation)' : '📖 Slide 2'}
+                                        </button>
+                                        {theme !== 'JEU_DJ' && (
+                                            <button
+                                                type="button"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    setSkipEditorialSlide2(true);
+                                                    if (editorialSlide === 2) setEditorialSlide(1);
+                                                    setTimeout(() => generateImage(), 50);
+                                                }}
+                                                className="px-2 py-1.5 text-[9px] font-bold text-gray-500 hover:text-red-400 hover:bg-red-500/15 border-l border-white/10 transition-colors"
+                                                title="Masquer / Retirer la Slide 2"
+                                            >
+                                                ✕
+                                            </button>
+                                        )}
+                                    </div>
+                                )}
                                 {extraEditorialSlides.map((_, idx) => {
                                     const sNum = idx + 3;
                                     return (
@@ -21580,34 +21633,51 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 >
                                     {theme === 'JEU_DJ' ? 'Slide 1 (Silhouette)' : 'Slide 1 (Cover)'}
                                 </button>
-                                <div className="flex items-center shrink-0 rounded-xl overflow-hidden border border-white/10 bg-white/5">
+                                {skipEditorialSlide2 && theme !== 'JEU_DJ' ? (
                                     <button
                                         type="button"
-                                        onClick={(e) => { e.stopPropagation(); setIsCarouselPromoActive(false); setIsEditorialAfficheActive(false); setIsEditorialTweetActive(false); setEditorialSlide(2); }}
-                                        className={`px-2 py-1 text-[8px] font-black uppercase transition-all ${
-                                            !isCarouselPromoActive && !isEditorialAfficheActive && !isEditorialTweetActive && editorialSlide === 2 ? 'bg-white text-black shadow-md' : 'text-gray-300 hover:text-white'
-                                        } ${skipEditorialSlide2 && theme !== 'JEU_DJ' ? 'opacity-50 line-through' : ''}`}
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            setSkipEditorialSlide2(false);
+                                            setIsCarouselPromoActive(false);
+                                            setIsEditorialAfficheActive(false);
+                                            setIsEditorialTweetActive(false);
+                                            setEditorialSlide(2);
+                                            setTimeout(() => generateImage(), 50);
+                                        }}
+                                        className="px-2.5 py-1 text-[8px] font-black uppercase transition-all shrink-0 bg-neon-cyan/15 text-neon-cyan border border-dashed border-neon-cyan/40 rounded-xl active:scale-95"
+                                        title="Ajouter Slide 2"
                                     >
-                                        {theme === 'JEU_DJ' ? 'Slide 2 (Révélation)' : `Slide 2 ${skipEditorialSlide2 ? '(Masquée)' : '(Détail)'}`}
+                                        ➕ Slide 2
                                     </button>
-                                    {theme !== 'JEU_DJ' && (
+                                ) : (
+                                    <div className="flex items-center shrink-0 rounded-xl overflow-hidden border border-white/10 bg-white/5">
                                         <button
                                             type="button"
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                setSkipEditorialSlide2(prev => !prev);
-                                            }}
-                                            className={`px-2 py-1 text-[9px] font-black transition-all border-l border-white/10 ${
-                                                skipEditorialSlide2
-                                                    ? 'bg-amber-500/30 text-amber-300'
-                                                    : 'text-gray-400 hover:text-white bg-white/5'
+                                            onClick={(e) => { e.stopPropagation(); setIsCarouselPromoActive(false); setIsEditorialAfficheActive(false); setIsEditorialTweetActive(false); setEditorialSlide(2); }}
+                                            className={`px-2 py-1 text-[8px] font-black uppercase transition-all ${
+                                                !isCarouselPromoActive && !isEditorialAfficheActive && !isEditorialTweetActive && editorialSlide === 2 ? 'bg-white text-black shadow-md' : 'text-gray-300 hover:text-white'
                                             }`}
-                                            title={skipEditorialSlide2 ? "Slide 2 masquée de l'export vidéo (cliquez pour inclure)" : "Slide 2 incluse (cliquez pour masquer de la vidéo)"}
                                         >
-                                            {skipEditorialSlide2 ? '🚫' : '👁️'}
+                                            {theme === 'JEU_DJ' ? 'Slide 2 (Révélation)' : 'Slide 2'}
                                         </button>
-                                    )}
-                                </div>
+                                        {theme !== 'JEU_DJ' && (
+                                            <button
+                                                type="button"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    setSkipEditorialSlide2(true);
+                                                    if (editorialSlide === 2) setEditorialSlide(1);
+                                                    setTimeout(() => generateImage(), 50);
+                                                }}
+                                                className="px-1.5 py-1 text-[8px] font-black text-gray-400 hover:text-red-400 border-l border-white/10"
+                                                title="Masquer Slide 2"
+                                            >
+                                                ✕
+                                            </button>
+                                        )}
+                                    </div>
+                                )}
                                 {extraEditorialSlides.map((_, idx) => {
                                     const sNum = idx + 3;
                                     const isSelected = !isCarouselPromoActive && !isEditorialAfficheActive && !isEditorialTweetActive && editorialSlide === sNum;
