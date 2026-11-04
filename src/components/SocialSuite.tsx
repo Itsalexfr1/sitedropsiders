@@ -9972,8 +9972,15 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         } else if (theme === 'TOP 10 FESTIVAL') {
             totalDuration = 4 * (16800 + 1200); // 4 slides (Cover + 3 Grid pages)
         } else {
+            const isReelWithPromo = (activeTab === 'REEL' && combinedMode === 'NONE' && theme !== 'PROMO');
             if (theme === 'MUSIQUE') {
                 totalDuration = 30000;
+            } else if (isReelWithPromo) {
+                const contentDur = (bgVideo && !isNaN(bgVideo.duration) && bgVideo.duration > 0)
+                    ? bgVideo.duration * 1000
+                    : 15000;
+                const promoDur = promoOutroStyle === 'PHONE_3D' ? 7000 : 5000;
+                totalDuration = Math.min(600000, contentDur + currentTransitionDuration + promoDur);
             } else {
                 totalDuration = (bgVideo && !isNaN(bgVideo.duration) && bgVideo.duration > 0)
                     ? bgVideo.duration * 1000
@@ -10973,11 +10980,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     if (isMp4OrMov) {
                         ffmpegArgs = ['-i', inputFileName, '-i', 'audio.wav',
                             '-map', '0:v:0', '-map', '1:a:0',
-                            '-c:v', 'copy', '-c:a', 'aac', '-b:a', '256k', '-ar', '48000', '-avoid_negative_ts', 'make_zero', '-shortest', '-movflags', '+faststart', 'output.mp4'];
+                            '-c:v', 'copy', '-c:a', 'aac', '-b:a', '256k', '-ar', '48000', '-avoid_negative_ts', 'make_zero', '-movflags', '+faststart', 'output.mp4'];
                     } else {
                         ffmpegArgs = ['-i', inputFileName, '-i', 'audio.wav', ...videoArgs,
                             '-map', '0:v:0', '-map', '1:a:0',
-                            '-c:a', 'aac', '-b:a', '256k', '-ar', '48000', '-avoid_negative_ts', 'make_zero', '-shortest', 'output.mp4'];
+                            '-c:a', 'aac', '-b:a', '256k', '-ar', '48000', '-avoid_negative_ts', 'make_zero', 'output.mp4'];
                     }
                 } else if (bgVideoBlob) {
                     // Fallback FFmpeg audio extraction si decodeAudioData natif a échoué
@@ -10997,11 +11004,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         if (isMp4OrMov) {
                             ffmpegArgs = ['-i', inputFileName, '-i', 'audio.wav',
                                 '-map', '0:v:0', '-map', '1:a:0',
-                                '-c:v', 'copy', '-c:a', 'aac', '-b:a', '256k', '-ar', '48000', '-avoid_negative_ts', 'make_zero', '-t', targetSec, '-shortest', '-movflags', '+faststart', 'output.mp4'];
+                                '-c:v', 'copy', '-c:a', 'aac', '-b:a', '256k', '-ar', '48000', '-avoid_negative_ts', 'make_zero', '-t', targetSec, '-movflags', '+faststart', 'output.mp4'];
                         } else {
                             ffmpegArgs = ['-i', inputFileName, '-i', 'audio.wav', ...videoArgs,
                                 '-map', '0:v:0', '-map', '1:a:0',
-                                '-c:a', 'aac', '-b:a', '256k', '-ar', '48000', '-avoid_negative_ts', 'make_zero', '-t', targetSec, '-shortest', 'output.mp4'];
+                                '-c:a', 'aac', '-b:a', '256k', '-ar', '48000', '-avoid_negative_ts', 'make_zero', '-t', targetSec, 'output.mp4'];
                         }
                     } else {
                         ffmpegArgs = ['-i', inputFileName, '-c:v', 'copy', '-an', '-movflags', '+faststart', 'output.mp4'];
@@ -11277,7 +11284,30 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     await playMusicSegment(singleAudioUrl, singleAudioStartTime);
                 }
             }
-            await renderDuration(totalDuration);
+
+            const isReelWithPromo = (activeTab === 'REEL' && combinedMode === 'NONE' && theme !== 'PROMO');
+            if (isReelWithPromo) {
+                const contentDur = (bgVideo && !isNaN(bgVideo.duration) && bgVideo.duration > 0)
+                    ? bgVideo.duration * 1000
+                    : 15000;
+                const promoDur = promoOutroStyle === 'PHONE_3D' ? 7000 : 5000;
+                const transitionDuration = currentTransitionDuration;
+
+                // 1. Rendu du Reel / vidéo principale (ex: vidéo Highlight de 45s)
+                await renderDuration(contentDur);
+
+                // 2. Transition fluide vers la slide Promo Dropsiders en fin de vidéo
+                const promoOffsetSec = await renderTransition(transitionDuration, undefined, () => {
+                    promoOutroOverrideRef.current = true;
+                    animStartTimeRef.current = Date.now();
+                });
+                transitionProgressRef.current = 0;
+
+                // 3. Rendu de la slide Promo Dropsiders en outro
+                await renderDuration(promoDur, promoOffsetSec);
+            } else {
+                await renderDuration(totalDuration);
+            }
         }
 
         if (progressInterval) clearInterval(progressInterval);
@@ -18771,7 +18801,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 }`}
                             >
                                 <Video className="w-4 h-4" />
-                                {isVideoRecording ? 'CAPTURE MP4 EN COURS...' : `🎬 EXPORTER EN VIDÉO MP4 (${activeTab === 'REEL' ? 'REEL 9:16' : theme})`}
+                                {isVideoRecording ? 'CAPTURE MP4 EN COURS...' : `🎬 EXPORTER EN VIDÉO MP4 (${activeTab === 'REEL' ? 'REEL 9:16 + OUTRO PROMO' : theme})`}
                             </button>
                         )}
                     </div>
