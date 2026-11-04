@@ -8319,13 +8319,6 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 // 2. BADGE OFFICIEL DROPSIDERS "HIGHLIGHT" (avec effet noir verre fumé, néon et balayage glare comme sur les autres thèmes)
                 drawTopCapsuleBadge('HIGHLIGHT', '#ffffff', '255, 255, 255');
 
-                // Bottom dark vignette gradient for legibility
-                const botGrad = ctx.createLinearGradient(0, canvas.height - (isReel ? 520 : 420), 0, canvas.height);
-                botGrad.addColorStop(0, 'rgba(0, 0, 0, 0)');
-                botGrad.addColorStop(0.4, 'rgba(0, 0, 0, 0.60)');
-                botGrad.addColorStop(1, 'rgba(0, 0, 0, 0.95)');
-                ctx.fillStyle = botGrad;
-                ctx.fillRect(0, canvas.height - (isReel ? 520 : 420), canvas.width, isReel ? 520 : 420);
 
                 // 4. Safe bottom position for the 3 stacked text lines
                 const safeBottom = canvas.height - (isReel ? 180 : 100);
