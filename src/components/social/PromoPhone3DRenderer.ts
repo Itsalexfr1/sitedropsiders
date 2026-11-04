@@ -1,8 +1,8 @@
 /**
  * PromoPhone3DRenderer.ts
  * Moteur de rendu Canvas haute définition pour le style Promo Smartphone 3D de Dropsiders.
- * Rendu Post 4:5 / Reel avec perspective 3D, animation Follow/Abonnement multi-réseaux,
- * profils dynamiques Instagram / TikTok / YouTube et dock interactif avec logos animés.
+ * Rendu Post 4:5 / Reel avec perspective 3D, profils ultra-réalistes Instagram, TikTok et YouTube,
+ * vraies publications et vidéos de Dropsiders, et dock avec cadre glissant fluide.
  */
 
 export interface PromoSocialProfiles {
@@ -85,8 +85,9 @@ function getSocialPaths(): SocialPaths | null {
 }
 
 /**
- * Dessin d'un logo réseau social avec gestion précise de l'état actif (cadre blanc) vs inactif (éteint).
- * @param activeProgress 0 = inactif (éteint/monochrome), 1 = actif (pleines couleurs officielles)
+ * Dessin d'un logo réseau social :
+ * - Actif sous le cadre blanc -> couleurs officielles vives
+ * - En dehors du cadre blanc -> monochrome éteint (aucun résidu de couleur)
  */
 function drawSocialIcon(
     ctx: CanvasRenderingContext2D,
@@ -116,18 +117,16 @@ function drawSocialIcon(
         }
     } else if (netName === 'TikTok') {
         if (activeProgress > 0.05) {
-            // Effet chromatique TikTok officiel sur le cadre blanc
             ctx.globalAlpha = activeProgress;
             ctx.fillStyle = '#25F4EE';
             ctx.fill(paths.ttPath1);
             ctx.fillStyle = '#FE2C55';
             ctx.fill(paths.ttPath2);
             ctx.fillStyle = '#010101';
-            ctx.globalAlpha = activeProgress * 0.9;
+            ctx.globalAlpha = activeProgress * 0.92;
             ctx.fill(paths.ttPath2);
         }
         if (activeProgress < 0.95) {
-            // Éteint / inactif : monochrome sans aucune couleur
             ctx.globalAlpha = 1 - activeProgress;
             ctx.fillStyle = 'rgba(255, 255, 255, 0.40)';
             ctx.fill(paths.ttPath1);
@@ -135,7 +134,6 @@ function drawSocialIcon(
         }
     } else if (netName === 'YouTube') {
         if (activeProgress > 0.05) {
-            // Actif : Rouge YouTube éclatant + triangle blanc
             ctx.globalAlpha = activeProgress;
             ctx.fillStyle = '#FF0000';
             ctx.fill(paths.ytBodyPath);
@@ -143,11 +141,11 @@ function drawSocialIcon(
             ctx.fill(paths.ytPlayPath);
         }
         if (activeProgress < 0.95) {
-            // Éteint / inactif : Monochrome atténué avec découpe sombre pour le triangle (ZERO rouge)
             ctx.globalAlpha = 1 - activeProgress;
             ctx.fillStyle = 'rgba(255, 255, 255, 0.40)';
             ctx.fill(paths.ytBodyPath);
-            ctx.fillStyle = '#0c0d12'; // Couleur fond du dock pour ajourer le triangle
+            // Découpe sombre du triangle de lecture pour un aspect ajouré net
+            ctx.fillStyle = '#0a0a0e';
             ctx.fill(paths.ytPlayPath);
         }
     }
@@ -156,7 +154,7 @@ function drawSocialIcon(
 }
 
 /**
- * Rendu de la Status Bar OLED de l'iPhone (Heure, Dynamic Island, 5G, Batterie)
+ * Status bar iOS épurée
  */
 function renderStatusBar(
     ctx: CanvasRenderingContext2D,
@@ -171,12 +169,10 @@ function renderStatusBar(
     ctx.textAlign = 'left';
     ctx.textBaseline = 'top';
 
-    // Heure dynamique
     const now = new Date();
     const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
     ctx.fillText(timeStr, screenX + 10 * s, statusY);
 
-    // Dynamic Island
     const islandW = 44 * s;
     const islandH = 11 * s;
     const islandX = screenX + (screenW - islandW) / 2;
@@ -188,17 +184,103 @@ function renderStatusBar(
     ctx.lineWidth = 1 * s;
     ctx.stroke();
 
-    // 5G & Batterie
     ctx.textAlign = 'right';
     ctx.font = `700 ${6.5 * s}px -apple-system, BlinkMacSystemFont, sans-serif`;
     ctx.fillText('5G', screenX + screenW - 20 * s, statusY);
 
-    // Icône batterie
     ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
     ctx.lineWidth = 1 * s;
     ctx.strokeRect(screenX + screenW - 17 * s, statusY + 1 * s, 12 * s, 7 * s);
     ctx.fillStyle = '#ffffff';
     ctx.fillRect(screenX + screenW - 15 * s, statusY + 2.5 * s, 8 * s, 4 * s);
+}
+
+/**
+ * Dessine un avatar Dropsiders net avec bordure et logo blanc officiel
+ */
+function drawDropsidersAvatar(
+    ctx: CanvasRenderingContext2D,
+    ax: number,
+    ay: number,
+    size: number,
+    borderCol: string,
+    s: number,
+    imageCache: Record<string, HTMLImageElement>
+) {
+    ctx.save();
+    // Cercle extérieur avec bordure nette
+    ctx.beginPath();
+    ctx.arc(ax + size / 2, ay + size / 2, size / 2, 0, Math.PI * 2);
+    ctx.fillStyle = '#050508';
+    ctx.fill();
+    ctx.strokeStyle = borderCol;
+    ctx.lineWidth = 1.8 * s;
+    ctx.stroke();
+
+    // Masque circulaire
+    ctx.beginPath();
+    ctx.arc(ax + size / 2, ay + size / 2, size / 2 - 1.5 * s, 0, Math.PI * 2);
+    ctx.clip();
+
+    // Image du logo blanc Dropsiders net
+    const logoImg = imageCache['/logo_white_official.png'] || imageCache['/logo_white.png'] || imageCache['/logo.png'] || imageCache['/images/instagram/avatar_clean.png'];
+    if (logoImg && logoImg.complete) {
+        const p = 5 * s;
+        ctx.drawImage(logoImg, ax + p, ay + p, size - p * 2, size - p * 2);
+    } else {
+        // Fallback texte stylisé si l'image charge encore
+        ctx.fillStyle = '#ffffff';
+        ctx.font = `900 ${10 * s}px "Montserrat", sans-serif`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('D', ax + size / 2, ay + size / 2);
+    }
+    ctx.restore();
+}
+
+/**
+ * Barre de navigation mobile du bas (commune aux applications pour combler le bas)
+ */
+function renderAppBottomNav(
+    ctx: CanvasRenderingContext2D,
+    w: number,
+    h: number,
+    s: number,
+    appType: 'IG' | 'TK' | 'YT'
+) {
+    const navH = 24 * s;
+    const navY = h - navH;
+
+    ctx.save();
+    ctx.fillStyle = '#0a0a0f';
+    ctx.fillRect(0, navY, w, navH);
+
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
+    ctx.lineWidth = 0.5 * s;
+    ctx.beginPath();
+    ctx.moveTo(0, navY);
+    ctx.lineTo(w, navY);
+    ctx.stroke();
+
+    ctx.font = `700 ${5.2 * s}px -apple-system, BlinkMacSystemFont, sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+
+    const items = appType === 'YT'
+        ? ['Accueil', 'Shorts', '＋', 'Abonnements', 'Vous']
+        : appType === 'TK'
+        ? ['Accueil', 'Amis', '＋', 'Boîte', 'Profil']
+        : ['Accueil', 'Recherche', '＋', 'Reels', 'Profil'];
+
+    const colW = w / items.length;
+    items.forEach((label, idx) => {
+        const ix = colW * idx + colW / 2;
+        const isSelected = idx === (appType === 'YT' ? 3 : items.length - 1);
+        ctx.fillStyle = isSelected ? '#ffffff' : '#6b7280';
+        ctx.fillText(label, ix, navY + navH / 2);
+    });
+
+    ctx.restore();
 }
 
 /**
@@ -213,7 +295,6 @@ function renderInstagramScreen(
     s: number,
     tAnim: number,
     isStaticPreview: boolean,
-    activeColor: { grad: string; color: string },
     stats: { followers: number; posts: number; following: number; handle: string },
     imageCache: Record<string, HTMLImageElement>
 ) {
@@ -226,9 +307,8 @@ function renderInstagramScreen(
     ctx.textBaseline = 'top';
     ctx.font = `900 ${9 * s}px -apple-system, BlinkMacSystemFont, sans-serif`;
     ctx.fillStyle = '#ffffff';
-    ctx.fillText('dropsiders.fr', 10 * s, headerY);
+    ctx.fillText('dropsiders.fr ▾', 10 * s, headerY);
 
-    // Ligne fine
     ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
     ctx.lineWidth = 0.5 * s;
     ctx.beginPath();
@@ -236,12 +316,12 @@ function renderInstagramScreen(
     ctx.lineTo(w, headerY + 13 * s);
     ctx.stroke();
 
-    // Avatar + Stats
-    const profileRowY = headerY + 19 * s;
+    // Avatar + Anneau Stories dégradé officiel
+    const profileRowY = headerY + 18 * s;
     const avatarSize = 42 * s;
     const avatarX = 10 * s;
 
-    // Anneau Stories Instagram dégradé officiel
+    // Anneau Stories
     ctx.save();
     ctx.beginPath();
     ctx.arc(avatarX + avatarSize / 2, profileRowY + avatarSize / 2, avatarSize / 2, 0, Math.PI * 2);
@@ -250,27 +330,25 @@ function renderInstagramScreen(
     ctx.fillStyle = ringGrad;
     ctx.fill();
 
-    // Intérieur noir
     ctx.beginPath();
     ctx.arc(avatarX + avatarSize / 2, profileRowY + avatarSize / 2, avatarSize / 2 - 2 * s, 0, Math.PI * 2);
     ctx.fillStyle = '#000000';
     ctx.fill();
     ctx.clip();
 
-    // Image avatar
-    const avatarImg = imageCache['/images/instagram/avatar_clean.png'] || imageCache['/logo.png'] || imageCache['/Logo.png'];
-    if (avatarImg && avatarImg.complete) {
-        ctx.drawImage(avatarImg, avatarX + 2 * s, profileRowY + 2 * s, avatarSize - 4 * s, avatarSize - 4 * s);
+    const logoImg = imageCache['/logo_white_official.png'] || imageCache['/logo_white.png'] || imageCache['/logo.png'];
+    if (logoImg && logoImg.complete) {
+        ctx.drawImage(logoImg, avatarX + 4 * s, profileRowY + 4 * s, avatarSize - 8 * s, avatarSize - 8 * s);
     }
     ctx.restore();
 
-    // Stats
+    // Stats Instagram
     const statsStartX = avatarX + avatarSize + 10 * s;
     const statsWidth = w - (avatarSize + 24 * s);
     const statColW = statsWidth / 3;
 
-    // Follow conditionnel à 1.4s
-    const isFollowed = isStaticPreview || tAnim >= 1.4;
+    // Follow conditionnel à 1.4s (en aperçu statique, bouton initial bleu "Suivre")
+    const isFollowed = !isStaticPreview && tAnim >= 1.4;
     const displayFollowers = isFollowed ? (stats.followers + 1) : stats.followers;
 
     const statsData = [
@@ -285,14 +363,7 @@ function renderInstagramScreen(
         ctx.textBaseline = 'top';
         ctx.font = `900 ${8.5 * s}px -apple-system, BlinkMacSystemFont, sans-serif`;
         ctx.fillStyle = (idx === 1 && isFollowed) ? '#4ade80' : '#ffffff';
-        if (idx === 1 && isFollowed) {
-            ctx.shadowColor = 'rgba(74, 222, 128, 0.8)';
-            ctx.shadowBlur = 8 * s;
-        } else {
-            ctx.shadowBlur = 0;
-        }
         ctx.fillText(st.val, sx, profileRowY + 7 * s);
-        ctx.shadowBlur = 0;
 
         ctx.font = `600 ${5.5 * s}px -apple-system, BlinkMacSystemFont, sans-serif`;
         ctx.fillStyle = '#9ca3af';
@@ -307,7 +378,6 @@ function renderInstagramScreen(
     ctx.fillStyle = '#ffffff';
     ctx.fillText('DROPSIDERS', 10 * s, bioY);
 
-    // Badge certifié bleu
     const certifX = 10 * s + ctx.measureText('DROPSIDERS').width + 4 * s;
     ctx.beginPath();
     ctx.arc(certifX + 3.5 * s, bioY + 4 * s, 3.5 * s, 0, Math.PI * 2);
@@ -318,7 +388,6 @@ function renderInstagramScreen(
     ctx.textAlign = 'center';
     ctx.fillText('✓', certifX + 3.5 * s, bioY + 2.5 * s);
 
-    // Description
     ctx.textAlign = 'left';
     ctx.font = `500 ${6 * s}px -apple-system, BlinkMacSystemFont, sans-serif`;
     ctx.fillStyle = '#e5e7eb';
@@ -332,18 +401,8 @@ function renderInstagramScreen(
     const btnW = w - 20 * s;
     const btnH = 17 * s;
     const btnX = 10 * s;
-
-    const isPressing = !isStaticPreview && tAnim >= 1.35 && tAnim < 1.55;
-    const btnScale = isPressing ? 0.94 : 1.0;
     const btnCenterX = btnX + btnW / 2;
     const btnCenterY = btnY + btnH / 2;
-
-    ctx.save();
-    if (btnScale !== 1.0) {
-        ctx.translate(btnCenterX, btnCenterY);
-        ctx.scale(btnScale, btnScale);
-        ctx.translate(-btnCenterX, -btnCenterY);
-    }
 
     ctx.beginPath();
     ctx.roundRect(btnX, btnY, btnW, btnH, 6 * s);
@@ -361,33 +420,13 @@ function renderInstagramScreen(
         ctx.fillText('✓ Suivi ▾', btnCenterX, btnCenterY);
     } else {
         ctx.fillStyle = '#0095f6';
-        ctx.shadowColor = 'rgba(0, 149, 246, 0.5)';
-        ctx.shadowBlur = 8 * s;
         ctx.fill();
 
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.font = `900 ${8 * s}px -apple-system, BlinkMacSystemFont, sans-serif`;
         ctx.fillStyle = '#ffffff';
-        ctx.shadowBlur = 0;
         ctx.fillText('Suivre', btnCenterX, btnCenterY);
-    }
-    ctx.restore();
-
-    // Shockwave
-    if (!isStaticPreview && tAnim >= 1.4 && tAnim < 2.1) {
-        const waveP = (tAnim - 1.4) / 0.7;
-        const waveR = (btnH / 2) + waveP * (60 * s);
-        const waveA = (1 - waveP) * 0.9;
-        ctx.save();
-        ctx.beginPath();
-        ctx.arc(btnCenterX, btnCenterY, waveR, 0, Math.PI * 2);
-        ctx.strokeStyle = `rgba(${activeColor.grad}, ${waveA})`;
-        ctx.lineWidth = 2.5 * s;
-        ctx.shadowColor = activeColor.color;
-        ctx.shadowBlur = 14 * s;
-        ctx.stroke();
-        ctx.restore();
     }
 
     // Highlights
@@ -421,7 +460,7 @@ function renderInstagramScreen(
         ctx.fillText(hl.lbl, hx + hlSize / 2, hlRowY + hlSize + 2 * s);
     });
 
-    // Ligne sous les highlights
+    // Grille 6 posts
     const postGridY = hlRowY + hlSize + 11 * s;
     ctx.strokeStyle = 'rgba(255, 255, 255, 0.07)';
     ctx.lineWidth = 0.5 * s;
@@ -430,12 +469,11 @@ function renderInstagramScreen(
     ctx.lineTo(w, postGridY);
     ctx.stroke();
 
-    // Grille 6 posts
     const gridCols = 3;
     const gridRows = 2;
     const gridGap = 1.5 * s;
     const cellW = (w - gridGap * (gridCols - 1)) / gridCols;
-    const cellH = (h - postGridY - gridGap) / gridRows;
+    const cellH = (h - 24 * s - postGridY - gridGap) / gridRows;
 
     const postUrls = [
         '/images/instagram/post_full_1.jpg',
@@ -461,11 +499,14 @@ function renderInstagramScreen(
         }
     });
 
+    // Barre d'onglets du bas de l'application
+    renderAppBottomNav(ctx, w, h, s, 'IG');
+
     ctx.restore();
 }
 
 /**
- * 2. PROFIL TIKTOK OFFICIEL DROPSIDERS
+ * 2. PROFIL TIKTOK OFFICIEL DROPSIDERS AVEC LES VRAIES PUBLICATIONS
  */
 function renderTiktokScreen(
     ctx: CanvasRenderingContext2D,
@@ -476,22 +517,20 @@ function renderTiktokScreen(
     s: number,
     tAnim: number,
     isStaticPreview: boolean,
-    activeColor: { grad: string; color: string },
     stats: { followers: number; likes: number; following: number; handle: string },
     imageCache: Record<string, HTMLImageElement>
 ) {
     ctx.save();
     ctx.translate(x, y);
 
-    // Header TikTok : Flèche gauche, Nom centré, 3 petits points droite
+    // Header : Handle centré avec chevron et notifications
     const headerY = 0;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'top';
     ctx.font = `900 ${9 * s}px -apple-system, BlinkMacSystemFont, sans-serif`;
     ctx.fillStyle = '#ffffff';
-    ctx.fillText('DROPSIDERS ▾', w / 2, headerY);
+    ctx.fillText(`${stats.handle || '@dropsiders.fr'} ▾`, w / 2, headerY);
 
-    // Ligne fine
     ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
     ctx.lineWidth = 0.5 * s;
     ctx.beginPath();
@@ -499,45 +538,25 @@ function renderTiktokScreen(
     ctx.lineTo(w, headerY + 13 * s);
     ctx.stroke();
 
-    // Avatar centré TikTok
-    const avatarY = headerY + 17 * s;
+    // Avatar centré avec halo cyan/magenta TikTok
+    const avatarY = headerY + 16 * s;
     const avatarSize = 46 * s;
     const avatarX = (w - avatarSize) / 2;
+    drawDropsidersAvatar(ctx, avatarX, avatarY, avatarSize, '#25F4EE', s, imageCache);
 
-    // Halo chromatique TikTok doux
-    ctx.save();
-    ctx.beginPath();
-    ctx.arc(avatarX + avatarSize / 2, avatarY + avatarSize / 2, avatarSize / 2 + 1.5 * s, 0, Math.PI * 2);
-    ctx.strokeStyle = '#25F4EE';
-    ctx.lineWidth = 1.5 * s;
-    ctx.stroke();
-
-    ctx.beginPath();
-    ctx.arc(avatarX + avatarSize / 2, avatarY + avatarSize / 2, avatarSize / 2, 0, Math.PI * 2);
-    ctx.fillStyle = '#000000';
-    ctx.fill();
-    ctx.clip();
-
-    const avatarImg = imageCache['/images/instagram/avatar_clean.png'] || imageCache['/logo.png'] || imageCache['/Logo.png'];
-    if (avatarImg && avatarImg.complete) {
-        ctx.drawImage(avatarImg, avatarX, avatarY, avatarSize, avatarSize);
-    }
-    ctx.restore();
-
-    // Handle TikTok sous l'avatar : @dropsiders.fr
-    const handleY = avatarY + avatarSize + 5 * s;
+    // Titre sous l'avatar : DROPSIDERS ✓
+    const nameY = avatarY + avatarSize + 4 * s;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'top';
-    ctx.font = `800 ${8 * s}px -apple-system, BlinkMacSystemFont, sans-serif`;
+    ctx.font = `900 ${8.5 * s}px -apple-system, BlinkMacSystemFont, sans-serif`;
     ctx.fillStyle = '#ffffff';
-    ctx.fillText(stats.handle || '@dropsiders.fr', w / 2, handleY);
+    ctx.fillText('DROPSIDERS ✓', w / 2, nameY);
 
-    // Stats TikTok (Abonnements, Abonnés, J'aime)
-    const statsY = handleY + 14 * s;
+    // Stats officielles TikTok (Abonnements, Abonnés, J'aime)
+    const statsY = nameY + 12 * s;
     const statColW = w / 3;
 
-    // Follow conditionnel à 4.7s
-    const isFollowed = isStaticPreview || (tAnim >= 4.7);
+    const isFollowed = !isStaticPreview && tAnim >= 4.7;
     const displayFollowers = isFollowed ? (stats.followers + 1) : stats.followers;
 
     const formatMetric = (val: number) => {
@@ -558,37 +577,20 @@ function renderTiktokScreen(
         ctx.textBaseline = 'top';
         ctx.font = `900 ${8.5 * s}px -apple-system, BlinkMacSystemFont, sans-serif`;
         ctx.fillStyle = (idx === 1 && isFollowed) ? '#25F4EE' : '#ffffff';
-        if (idx === 1 && isFollowed) {
-            ctx.shadowColor = 'rgba(37, 244, 238, 0.8)';
-            ctx.shadowBlur = 8 * s;
-        } else {
-            ctx.shadowBlur = 0;
-        }
         ctx.fillText(st.val, sx, statsY);
-        ctx.shadowBlur = 0;
 
         ctx.font = `600 ${5 * s}px -apple-system, BlinkMacSystemFont, sans-serif`;
         ctx.fillStyle = '#9ca3af';
-        ctx.fillText(st.lbl, sx, statsY + 11 * s);
+        ctx.fillText(st.lbl, sx, statsY + 10 * s);
     });
 
-    // Bouton Suivre TikTok signature rouge #FE2C55
-    const btnY = statsY + 22 * s;
+    // Bouton Suivre TikTok signature rouge #FE2C55 (aucun flou ni cercle noir)
+    const btnY = statsY + 20 * s;
     const btnW = w - 48 * s;
     const btnH = 17 * s;
     const btnX = (w - btnW) / 2;
-
-    const isPressing = !isStaticPreview && tAnim >= 4.55 && tAnim < 4.75;
-    const btnScale = isPressing ? 0.94 : 1.0;
     const btnCenterX = btnX + btnW / 2;
     const btnCenterY = btnY + btnH / 2;
-
-    ctx.save();
-    if (btnScale !== 1.0) {
-        ctx.translate(btnCenterX, btnCenterY);
-        ctx.scale(btnScale, btnScale);
-        ctx.translate(-btnCenterX, -btnCenterY);
-    }
 
     ctx.beginPath();
     ctx.roundRect(btnX, btnY, btnW, btnH, 4 * s);
@@ -605,38 +607,18 @@ function renderTiktokScreen(
         ctx.fillStyle = '#ffffff';
         ctx.fillText('✓ Abonné', btnCenterX, btnCenterY);
     } else {
-        ctx.fillStyle = '#FE2C55'; // Rouge TikTok officiel
-        ctx.shadowColor = 'rgba(254, 44, 85, 0.6)';
-        ctx.shadowBlur = 8 * s;
+        ctx.fillStyle = '#FE2C55';
         ctx.fill();
 
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.font = `900 ${8 * s}px -apple-system, BlinkMacSystemFont, sans-serif`;
         ctx.fillStyle = '#ffffff';
-        ctx.shadowBlur = 0;
         ctx.fillText('Suivre', btnCenterX, btnCenterY);
-    }
-    ctx.restore();
-
-    // Shockwave TikTok
-    if (!isStaticPreview && tAnim >= 4.7 && tAnim < 5.4) {
-        const waveP = (tAnim - 4.7) / 0.7;
-        const waveR = (btnH / 2) + waveP * (60 * s);
-        const waveA = (1 - waveP) * 0.9;
-        ctx.save();
-        ctx.beginPath();
-        ctx.arc(btnCenterX, btnCenterY, waveR, 0, Math.PI * 2);
-        ctx.strokeStyle = `rgba(254, 44, 85, ${waveA})`;
-        ctx.lineWidth = 2.5 * s;
-        ctx.shadowColor = '#FE2C55';
-        ctx.shadowBlur = 14 * s;
-        ctx.stroke();
-        ctx.restore();
     }
 
     // Bio TikTok
-    const bioY = btnY + btnH + 6 * s;
+    const bioY = btnY + btnH + 5 * s;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'top';
     ctx.font = `500 ${5.8 * s}px -apple-system, BlinkMacSystemFont, sans-serif`;
@@ -646,8 +628,8 @@ function renderTiktokScreen(
     ctx.fillStyle = '#60a5fa';
     ctx.fillText('🔗 dropsiders.fr', w / 2, bioY + 8 * s);
 
-    // Onglets TikTok (Grille vidéo sélectionnée)
-    const tabsY = bioY + 19 * s;
+    // Onglets TikTok (Grille vidéo active)
+    const tabsY = bioY + 18 * s;
     ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
     ctx.lineWidth = 0.5 * s;
     ctx.beginPath();
@@ -655,31 +637,58 @@ function renderTiktokScreen(
     ctx.lineTo(w, tabsY);
     ctx.stroke();
 
-    // Petit indicateur onglet vidéo actif
     const tabCenter = w / 3 / 2;
     ctx.fillStyle = '#ffffff';
-    ctx.beginPath();
-    ctx.roundRect(tabCenter - 10 * s, tabsY + 12 * s, 20 * s, 1.5 * s, 1 * s);
-    ctx.fill();
+    ctx.fillRect(tabCenter - 10 * s, tabsY + 10 * s, 20 * s, 1.5 * s);
 
-    // Grille 6 vidéos verticales TikTok (ratio 3:4) avec compteurs de vues
-    const vidGridY = tabsY + 16 * s;
+    // LES VRAIES PUBLICATIONS TIKTOK DE DROPSIDERS (avec accroches texte & compteurs réels)
+    const vidGridY = tabsY + 14 * s;
     const gridCols = 3;
     const gridRows = 2;
     const gridGap = 1.5 * s;
     const cellW = (w - gridGap * (gridCols - 1)) / gridCols;
-    const cellH = (h - vidGridY - gridGap) / gridRows;
+    const cellH = (h - 24 * s - vidGridY - gridGap) / gridRows;
 
-    const tkThumbs = [
-        { url: '/images/instagram/post_edclv.jpg', views: '184.2K', pin: true },
-        { url: '/images/instagram/post_johnsummit.jpg', views: '92.5K', pin: false },
-        { url: '/images/instagram/post_top100.jpg', views: '1.4M', pin: false },
-        { url: '/images/instagram/post_fckg.jpg', views: '420K', pin: false },
-        { url: '/images/instagram/post_festivals.jpg', views: '68.9K', pin: false },
-        { url: '/images/instagram/post_gta6.jpg', views: '312K', pin: false }
+    const realTiktoks = [
+        {
+            img: '/images/gta6_cover.jpg',
+            hook: 'CONCOURS GTA 6 + PS5 🎮',
+            views: '452.8K',
+            isPinned: true
+        },
+        {
+            img: '/assets/galeries/dj-snake-arenes-de-nimes-2025-france/img-1.jpg',
+            hook: 'DJ SNAKE AUX ARÈNES 🇫🇷',
+            views: '280.4K',
+            isPinned: false
+        },
+        {
+            img: '/assets/galeries/john-summit-ushuaia-ibiza-2025-espagne/img-2.jpg',
+            hook: 'JOHN SUMMIT À IBIZA 🔥',
+            views: '189.6K',
+            isPinned: false
+        },
+        {
+            img: '/assets/galeries/tomorrowland-2025-belgique/img-1.jpg',
+            hook: 'TOMORROWLAND 2026 ✨',
+            views: '340.1K',
+            isPinned: false
+        },
+        {
+            img: '/assets/galeries/edc-las-vegas-2025-usa/img-1.jpg',
+            hook: 'FEUX D\'ARTIFICE EDC 🎆',
+            views: '145.2K',
+            isPinned: false
+        },
+        {
+            img: '/assets/galeries/ultra-europe-2025-croatie/img-2.jpg',
+            hook: 'THE END OF GENESYS 🤯',
+            views: '890.5K',
+            isPinned: false
+        }
     ];
 
-    tkThumbs.forEach((item, idx) => {
+    realTiktoks.forEach((tk, idx) => {
         const col = idx % gridCols;
         const row = Math.floor(idx / gridCols);
         const px = col * (cellW + gridGap);
@@ -688,41 +697,54 @@ function renderTiktokScreen(
         ctx.fillStyle = '#111111';
         ctx.fillRect(px, py, cellW, cellH);
 
-        const img = imageCache[item.url] || imageCache[`/images/instagram/post_full_${(idx % 6) + 1}.jpg`];
+        const img = imageCache[tk.img] || imageCache[`/images/instagram/post_full_${idx + 1}.jpg`];
         if (img && img.complete) {
             ctx.drawImage(img, px, py, cellW, cellH);
         }
 
-        // Voile dégradé bas pour lisibilité compteur
-        const vGrad = ctx.createLinearGradient(px, py + cellH - 16 * s, px, py + cellH);
-        vGrad.addColorStop(0, 'rgba(0,0,0,0)');
+        // Voile dégradé bas & haut pour les textes TikTok
+        const vGrad = ctx.createLinearGradient(px, py, px, py + cellH);
+        vGrad.addColorStop(0, 'rgba(0,0,0,0.5)');
+        vGrad.addColorStop(0.3, 'rgba(0,0,0,0)');
+        vGrad.addColorStop(0.65, 'rgba(0,0,0,0)');
         vGrad.addColorStop(1, 'rgba(0,0,0,0.85)');
         ctx.fillStyle = vGrad;
-        ctx.fillRect(px, py + cellH - 16 * s, cellW, 16 * s);
+        ctx.fillRect(px, py, cellW, cellH);
 
         // Badge épinglé si besoin
-        if (item.pin) {
+        if (tk.isPinned) {
             ctx.fillStyle = '#FE2C55';
-            ctx.fillRect(px + 2 * s, py + 2 * s, 18 * s, 6.5 * s);
+            ctx.fillRect(px + 2 * s, py + 2 * s, 17 * s, 6 * s);
             ctx.fillStyle = '#ffffff';
-            ctx.font = `800 ${4 * s}px sans-serif`;
+            ctx.font = `800 ${3.8 * s}px sans-serif`;
             ctx.textAlign = 'center';
-            ctx.fillText('Épinglé', px + 11 * s, py + 3.5 * s);
+            ctx.textBaseline = 'middle';
+            ctx.fillText('Épinglé', px + 10.5 * s, py + 5 * s);
         }
 
-        // Play icon + Vues en bas à gauche
+        // Accroche texte TikTok au milieu
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.font = `900 ${4.5 * s}px "Montserrat", sans-serif`;
+        ctx.fillStyle = '#ffffff';
+        ctx.fillText(tk.hook, px + cellW / 2, py + cellH / 2);
+
+        // Vues TikTok en bas à gauche
         ctx.textAlign = 'left';
         ctx.textBaseline = 'bottom';
         ctx.font = `800 ${5 * s}px -apple-system, BlinkMacSystemFont, sans-serif`;
         ctx.fillStyle = '#ffffff';
-        ctx.fillText(`▶ ${item.views}`, px + 3 * s, py + cellH - 2 * s);
+        ctx.fillText(`▶ ${tk.views}`, px + 3 * s, py + cellH - 2 * s);
     });
+
+    // Barre d'onglets du bas de l'application TikTok
+    renderAppBottomNav(ctx, w, h, s, 'TK');
 
     ctx.restore();
 }
 
 /**
- * 3. PROFIL YOUTUBE OFFICIEL DROPSIDERS
+ * 3. PROFIL YOUTUBE OFFICIEL DROPSIDERS AVEC LES VRAIES VIDÉOS D'INTERVIEWS & SANS CERCLE NOIR
  */
 function renderYoutubeScreen(
     ctx: CanvasRenderingContext2D,
@@ -733,56 +755,49 @@ function renderYoutubeScreen(
     s: number,
     tAnim: number,
     isStaticPreview: boolean,
-    activeColor: { grad: string; color: string },
     stats: { subscribers: number; videos: number; handle: string },
     imageCache: Record<string, HTMLImageElement>
 ) {
     ctx.save();
     ctx.translate(x, y);
 
-    // Bannière YouTube Officielle en haut
-    const bannerH = 46 * s;
-    const bannerImg = imageCache['/Banniere_Fluide_Clean.jpg'] || imageCache['/Banniere_Dropsiders_Fluide.png'];
+    // Bannière YouTube Officielle : vraie photo festival avec incrustation DROPSIDERS
+    const bannerH = 50 * s;
+    const bannerImg = imageCache['/assets/galeries/tomorrowland-2025-belgique/img-1.jpg'] || imageCache['/Banniere_Fluide_Clean.jpg'];
     if (bannerImg && bannerImg.complete) {
         ctx.drawImage(bannerImg, 0, 0, w, bannerH);
     } else {
-        const bGrad = ctx.createLinearGradient(0, 0, w, bannerH);
-        bGrad.addColorStop(0, '#ff0033');
-        bGrad.addColorStop(1, '#111827');
-        ctx.fillStyle = bGrad;
+        ctx.fillStyle = '#111827';
         ctx.fillRect(0, 0, w, bannerH);
     }
 
-    // Avatar circulaire chevauchant la bannière
-    const avatarSize = 38 * s;
+    // Voile sombre sur la bannière avec logo de chaîne en filigrane
+    const bGrad = ctx.createLinearGradient(0, 0, 0, bannerH);
+    bGrad.addColorStop(0, 'rgba(0,0,0,0.3)');
+    bGrad.addColorStop(1, 'rgba(0,0,0,0.85)');
+    ctx.fillStyle = bGrad;
+    ctx.fillRect(0, 0, w, bannerH);
+
+    ctx.textAlign = 'right';
+    ctx.textBaseline = 'middle';
+    ctx.font = `900 italic ${9 * s}px "Montserrat", sans-serif`;
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
+    ctx.fillText('DROPSIDERS', w - 10 * s, bannerH / 2);
+
+    // Avatar circulaire YouTube net avec bordure blanche
+    const avatarSize = 40 * s;
     const avatarX = 10 * s;
-    const avatarY = bannerH - 12 * s;
-
-    ctx.save();
-    ctx.beginPath();
-    ctx.arc(avatarX + avatarSize / 2, avatarY + avatarSize / 2, avatarSize / 2 + 1.5 * s, 0, Math.PI * 2);
-    ctx.fillStyle = '#000000';
-    ctx.fill();
-
-    ctx.beginPath();
-    ctx.arc(avatarX + avatarSize / 2, avatarY + avatarSize / 2, avatarSize / 2, 0, Math.PI * 2);
-    ctx.clip();
-
-    const avatarImg = imageCache['/images/instagram/avatar_clean.png'] || imageCache['/logo.png'] || imageCache['/Logo.png'];
-    if (avatarImg && avatarImg.complete) {
-        ctx.drawImage(avatarImg, avatarX, avatarY, avatarSize, avatarSize);
-    }
-    ctx.restore();
+    const avatarY = bannerH - 14 * s;
+    drawDropsidersAvatar(ctx, avatarX, avatarY, avatarSize, '#ffffff', s, imageCache);
 
     // Titre de la chaîne : DROPSIDERS ✓
-    const channelNameY = avatarY + avatarSize + 5 * s;
+    const channelNameY = avatarY + avatarSize + 4 * s;
     ctx.textAlign = 'left';
     ctx.textBaseline = 'top';
     ctx.font = `900 ${9.5 * s}px "Montserrat", -apple-system, BlinkMacSystemFont, sans-serif`;
     ctx.fillStyle = '#ffffff';
     ctx.fillText('DROPSIDERS', 10 * s, channelNameY);
 
-    // Badge certifié YouTube (check gris officiel)
     const certifX = 10 * s + ctx.measureText('DROPSIDERS').width + 4 * s;
     ctx.beginPath();
     ctx.arc(certifX + 3.5 * s, channelNameY + 4.5 * s, 3.5 * s, 0, Math.PI * 2);
@@ -793,8 +808,8 @@ function renderYoutubeScreen(
     ctx.textAlign = 'center';
     ctx.fillText('✓', certifX + 3.5 * s, channelNameY + 3 * s);
 
-    // Sub-info YouTube : @dropsiders • 4.82K abonnés • 320 vidéos
-    const isSubscribed = isStaticPreview || (tAnim >= 8.0);
+    // Stats réelles de la chaîne
+    const isSubscribed = !isStaticPreview && tAnim >= 8.0;
     const displaySubs = isSubscribed ? (stats.subscribers + 1) : stats.subscribers;
 
     const formatMetric = (val: number) => {
@@ -809,36 +824,26 @@ function renderYoutubeScreen(
     ctx.fillStyle = '#aaaaaa';
     ctx.fillText(`${stats.handle || '@dropsiders'} • ${formatMetric(displaySubs)} abonnés • ${stats.videos} vidéos`, 10 * s, subInfoY);
 
-    // Bio snippet
+    // Bio YouTube
     const bioY = subInfoY + 8 * s;
     ctx.font = `500 ${5.2 * s}px -apple-system, BlinkMacSystemFont, sans-serif`;
     ctx.fillStyle = '#888888';
-    ctx.fillText('Chaîne officielle de Dropsiders. Reportages & livesets électro.', 10 * s, bioY);
+    ctx.fillText('Chaîne officielle de Dropsiders. Interviews exclusives & aftermovies.', 10 * s, bioY);
 
-    // Bouton S'abonner officiel YouTube (Pilule blanche -> Noir ✓ Abonné 🔔)
-    const btnY = bioY + 11 * s;
+    // Bouton S'abonner officiel YouTube : BLANC PUR éclatant (zéro cercle noir, zéro halo)
+    const btnY = bioY + 10 * s;
     const btnW = w - 20 * s;
     const btnH = 17 * s;
     const btnX = 10 * s;
-
-    const isPressing = !isStaticPreview && tAnim >= 7.85 && tAnim < 8.05;
-    const btnScale = isPressing ? 0.94 : 1.0;
     const btnCenterX = btnX + btnW / 2;
     const btnCenterY = btnY + btnH / 2;
-
-    ctx.save();
-    if (btnScale !== 1.0) {
-        ctx.translate(btnCenterX, btnCenterY);
-        ctx.scale(btnScale, btnScale);
-        ctx.translate(-btnCenterX, -btnCenterY);
-    }
 
     ctx.beginPath();
     ctx.roundRect(btnX, btnY, btnW, btnH, btnH / 2);
     if (isSubscribed) {
         ctx.fillStyle = '#272727';
         ctx.fill();
-        ctx.strokeStyle = 'rgba(255, 255, 255, 0.18)';
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.28)';
         ctx.lineWidth = 1 * s;
         ctx.stroke();
 
@@ -848,38 +853,18 @@ function renderYoutubeScreen(
         ctx.fillStyle = '#ffffff';
         ctx.fillText('✓ Abonné 🔔', btnCenterX, btnCenterY);
     } else {
-        ctx.fillStyle = '#ffffff'; // Blanc YouTube officiel
-        ctx.shadowColor = 'rgba(255, 255, 255, 0.4)';
-        ctx.shadowBlur = 8 * s;
+        ctx.fillStyle = '#ffffff';
         ctx.fill();
 
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.font = `900 ${8 * s}px -apple-system, BlinkMacSystemFont, sans-serif`;
         ctx.fillStyle = '#0f0f0f';
-        ctx.shadowBlur = 0;
         ctx.fillText("S'abonner", btnCenterX, btnCenterY);
-    }
-    ctx.restore();
-
-    // Shockwave YouTube rouge
-    if (!isStaticPreview && tAnim >= 8.0 && tAnim < 8.7) {
-        const waveP = (tAnim - 8.0) / 0.7;
-        const waveR = (btnH / 2) + waveP * (60 * s);
-        const waveA = (1 - waveP) * 0.9;
-        ctx.save();
-        ctx.beginPath();
-        ctx.arc(btnCenterX, btnCenterY, waveR, 0, Math.PI * 2);
-        ctx.strokeStyle = `rgba(255, 0, 0, ${waveA})`;
-        ctx.lineWidth = 2.5 * s;
-        ctx.shadowColor = '#FF0000';
-        ctx.shadowBlur = 14 * s;
-        ctx.stroke();
-        ctx.restore();
     }
 
     // Onglets YouTube (Accueil, Vidéos, Shorts)
-    const tabsY = btnY + btnH + 6 * s;
+    const tabsY = btnY + btnH + 5 * s;
     const ytTabs = ['Accueil', 'Vidéos', 'Shorts', 'Playlists'];
     const tabItemW = w / ytTabs.length;
 
@@ -897,67 +882,82 @@ function renderYoutubeScreen(
         }
     });
 
-    // Feed Vidéos YouTube (Grandes miniatures 16:9 avec titre, badges et vues)
-    const feedY = tabsY + 14 * s;
-    const vidCardW = w - 20 * s;
-    const vidCardH = 72 * s;
+    // LES VRAIES VIDÉOS DE LA CHAÎNE YOUTUBE DE DROPSIDERS (comble 100% de l'écran sans vide)
+    const feedY = tabsY + 13 * s;
+    const cardW = w - 20 * s;
+    const cardH = 58 * s;
 
-    const ytVideos = [
+    const realYoutubeVideos = [
         {
-            thumb: '/images/instagram/post_edclv.jpg',
-            title: 'EDC LAS VEGAS 2026 - RECAP EXCLUSIF',
-            views: '42 k vues • il y a 2 jours',
-            duration: '18:42'
+            thumb: '/assets/galeries/edc-las-vegas-2025-usa/img-1.jpg',
+            title: 'EDC Las Vegas : Interview HAYLA',
+            sub: 'DROPSIDERS • 18 k vues • il y a 3 mois',
+            duration: '14:20'
         },
         {
-            thumb: '/images/instagram/post_johnsummit.jpg',
-            title: 'JOHN SUMMIT LIVE @ USHUAÏA IBIZA',
-            views: '89 k vues • il y a 1 semaine',
-            duration: '48:15'
+            thumb: '/assets/galeries/tomorrowland-2025-belgique/img-1.jpg',
+            title: 'Tomorrowland Winter : Henri Pfr',
+            sub: 'DROPSIDERS • 34 k vues • il y a 5 mois',
+            duration: '09:45'
+        },
+        {
+            thumb: '/assets/galeries/john-summit-ushuaia-ibiza-2025-espagne/img-2.jpg',
+            title: 'Interview Da Tweekaz - EDC Las Vegas',
+            sub: 'DROPSIDERS • 28 k vues • il y a 1 an',
+            duration: '12:10'
+        },
+        {
+            thumb: '/assets/galeries/ultra-europe-2025-croatie/img-2.jpg',
+            title: 'Aftermovie Tomorrowland by Dropsiders',
+            sub: 'DROPSIDERS • 95 k vues • il y a 8 mois',
+            duration: '08:30'
         }
     ];
 
-    ytVideos.forEach((vid, idx) => {
-        const vy = feedY + idx * (vidCardH + 6 * s);
-        if (vy + vidCardH > h) return;
+    realYoutubeVideos.forEach((vid, idx) => {
+        const vy = feedY + idx * (cardH + 4 * s);
+        if (vy + cardH > h - 24 * s) return;
 
-        // Image vidéo
-        const imgH = 44 * s;
+        // Miniature 16:9 haute définition
+        const imgH = 38 * s;
         ctx.fillStyle = '#111111';
-        ctx.fillRect(10 * s, vy, vidCardW, imgH);
+        ctx.fillRect(10 * s, vy, cardW, imgH);
 
         const vImg = imageCache[vid.thumb] || imageCache[`/images/instagram/post_full_${idx + 1}.jpg`];
         if (vImg && vImg.complete) {
-            ctx.drawImage(vImg, 10 * s, vy, vidCardW, imgH);
+            ctx.drawImage(vImg, 10 * s, vy, cardW, imgH);
         }
 
-        // Badge durée bas droite miniature
+        // Badge durée bas droite
         ctx.fillStyle = 'rgba(0, 0, 0, 0.85)';
-        ctx.roundRect(10 * s + vidCardW - 20 * s, vy + imgH - 8 * s, 18 * s, 6.5 * s, 2 * s);
+        ctx.roundRect(10 * s + cardW - 19 * s, vy + imgH - 8 * s, 17 * s, 6.5 * s, 2 * s);
         ctx.fill();
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.font = `700 ${4 * s}px sans-serif`;
         ctx.fillStyle = '#ffffff';
-        ctx.fillText(vid.duration, 10 * s + vidCardW - 11 * s, vy + imgH - 4.8 * s);
+        ctx.fillText(vid.duration, 10 * s + cardW - 10.5 * s, vy + imgH - 4.8 * s);
 
-        // Titre & Vues sous la vidéo
+        // Titre réel de la vidéo
         ctx.textAlign = 'left';
         ctx.textBaseline = 'top';
         ctx.font = `800 ${6.2 * s}px -apple-system, BlinkMacSystemFont, sans-serif`;
         ctx.fillStyle = '#ffffff';
-        ctx.fillText(vid.title, 10 * s, vy + imgH + 3 * s);
+        ctx.fillText(vid.title, 10 * s, vy + imgH + 2.5 * s);
 
         ctx.font = `500 ${5 * s}px -apple-system, BlinkMacSystemFont, sans-serif`;
         ctx.fillStyle = '#888888';
-        ctx.fillText(vid.views, 10 * s, vy + imgH + 11 * s);
+        ctx.fillText(vid.sub, 10 * s, vy + imgH + 10 * s);
     });
+
+    // Barre d'onglets du bas de l'application YouTube
+    renderAppBottomNav(ctx, w, h, s, 'YT');
 
     ctx.restore();
 }
 
 /**
- * Moteur de rendu principal pour la Promo Smartphone 3D
+ * Rendu principal de la slide promo 3D
  */
 export function renderPromoPhone3D(opts: PromoPhone3DOptions) {
     const {
@@ -978,7 +978,6 @@ export function renderPromoPhone3D(opts: PromoPhone3DOptions) {
         previewNetwork
     } = opts;
 
-    // Fusion des stats avec les profils personnalisés
     const resolvedProfiles = {
         instagram: {
             handle: socialProfiles?.instagram?.handle || '@dropsiders.fr',
@@ -1002,16 +1001,15 @@ export function renderPromoPhone3D(opts: PromoPhone3DOptions) {
         }
     };
 
-    // Échelle de conversion depuis la référence 520px vers la résolution réelle du canvas
     const baseWidth = 520;
     const s = canvas.width / baseWidth;
 
-    // Voile sombre équilibré
+    // Voile sombre
     ctx.save();
     ctx.fillStyle = 'rgba(0, 0, 0, 0.60)';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // Lueur d'ambiance thème diffusée derrière le smartphone
+    // Lueur d'ambiance
     const glowX = canvas.width * 0.75;
     const glowY = canvas.height * 0.55;
     const glowR = canvas.width * 0.65;
@@ -1023,9 +1021,7 @@ export function renderPromoPhone3D(opts: PromoPhone3DOptions) {
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     ctx.restore();
 
-    // ==========================================
-    // 1. QUESTION ÉDITORIALE (Haut, Centrée)
-    // ==========================================
+    // 1. Question Éditoriale (Haut)
     ctx.save();
     ctx.textAlign = 'center';
     ctx.textBaseline = 'alphabetic';
@@ -1043,12 +1039,9 @@ export function renderPromoPhone3D(opts: PromoPhone3DOptions) {
         ctx.fillText(line, canvas.width / 2, qY + idx * (qFontSize * 1.25));
         ctx.restore();
     });
-
     ctx.restore();
 
-    // ==========================================
-    // 2. BLOC TYPOGRAPHIQUE ASYMÉTRIQUE (Gauche)
-    // ==========================================
+    // 2. Bloc Typographique Asymétrique (Gauche)
     const leftTextX = (isReel ? 30 : 24) * s;
     const leftTextWidth = 215 * s;
     const leftTextY = (isReel ? 340 : 275) * s;
@@ -1057,7 +1050,6 @@ export function renderPromoPhone3D(opts: PromoPhone3DOptions) {
     ctx.textAlign = 'left';
     ctx.textBaseline = 'top';
 
-    // 2.1 Phrase Principale
     const headlineFontSize = (isReel ? 20 : 18) * s;
     ctx.font = `900 italic ${headlineFontSize}px "Montserrat", sans-serif`;
     ctx.fillStyle = '#ffffff';
@@ -1089,7 +1081,6 @@ export function renderPromoPhone3D(opts: PromoPhone3DOptions) {
 
     curY += 8 * s;
 
-    // 2.2 Barre d'accent néon couleur active
     ctx.save();
     applyTextAnimCtx(ctx, 0.45, leftTextX, curY);
     ctx.beginPath();
@@ -1102,7 +1093,6 @@ export function renderPromoPhone3D(opts: PromoPhone3DOptions) {
 
     curY += 12 * s;
 
-    // 2.3 "ABONNE-TOI À"
     const subFontSize = (isReel ? 12 : 11.5) * s;
     ctx.save();
     applyTextAnimCtx(ctx, 0.65, leftTextX, curY);
@@ -1115,7 +1105,6 @@ export function renderPromoPhone3D(opts: PromoPhone3DOptions) {
 
     curY += subFontSize * 1.35;
 
-    // 2.4 "DROPSIDERS" en Orbitron néon
     const brandFontSize = (isReel ? 28 : 26) * s;
     ctx.save();
     applyTextAnimCtx(ctx, 0.85, leftTextX, curY);
@@ -1125,12 +1114,9 @@ export function renderPromoPhone3D(opts: PromoPhone3DOptions) {
     ctx.shadowBlur = 20 * s;
     ctx.fillText('DROPSIDERS', leftTextX, curY);
     ctx.restore();
-
     ctx.restore();
 
-    // ==========================================
-    // 3. LE SMARTPHONE 3D (Droite)
-    // ==========================================
+    // 3. Le Smartphone 3D (Droite)
     const phoneW = 228 * s;
     const phoneH = 472 * s;
     const phoneRight = ((isReel ? 20 : 12) + 1) * s;
@@ -1138,7 +1124,6 @@ export function renderPromoPhone3D(opts: PromoPhone3DOptions) {
     const phoneBaseX = canvas.width - phoneRight - phoneW;
     const phoneBaseY = canvas.height - phoneBottom - phoneH;
 
-    // Lévitation flottante douce
     const phaseY = (tAnim / 4.2) * Math.PI * 2;
     const phaseX = (tAnim / 3.6) * Math.PI * 2;
     const floatOffsetY = isStaticPreview ? 0 : Math.sin(phaseY) * (4.5 * s);
@@ -1153,7 +1138,7 @@ export function renderPromoPhone3D(opts: PromoPhone3DOptions) {
     ctx.rotate(dynamicTilt);
     ctx.translate(-(phoneX + phoneW / 2), -(phoneY + phoneH / 2));
 
-    // Lueur ambiante néon
+    // Halo extérieur
     ctx.save();
     ctx.beginPath();
     ctx.roundRect(phoneX, phoneY, phoneW, phoneH, 38 * s);
@@ -1163,7 +1148,7 @@ export function renderPromoPhone3D(opts: PromoPhone3DOptions) {
     ctx.fill();
     ctx.restore();
 
-    // Ombre portée profonde
+    // Ombre 3D
     ctx.save();
     ctx.beginPath();
     ctx.roundRect(phoneX, phoneY, phoneW, phoneH, 38 * s);
@@ -1175,7 +1160,7 @@ export function renderPromoPhone3D(opts: PromoPhone3DOptions) {
     ctx.fill();
     ctx.restore();
 
-    // Corps titane sombre
+    // Corps titane
     ctx.beginPath();
     ctx.roundRect(phoneX, phoneY, phoneW, phoneH, 38 * s);
     const phoneGrad = ctx.createLinearGradient(phoneX, phoneY, phoneX + phoneW, phoneY + phoneH);
@@ -1189,13 +1174,13 @@ export function renderPromoPhone3D(opts: PromoPhone3DOptions) {
     ctx.lineWidth = 1.5 * s;
     ctx.stroke();
 
-    // Boutons latéraux
+    // Boutons
     ctx.fillStyle = '#3a3b45';
     ctx.fillRect(phoneX - 3 * s, phoneY + 90 * s, 3 * s, 22 * s);
     ctx.fillRect(phoneX - 3 * s, phoneY + 122 * s, 3 * s, 22 * s);
     ctx.fillRect(phoneX + phoneW, phoneY + 108 * s, 3 * s, 34 * s);
 
-    // Écran OLED intérieur
+    // Écran OLED
     const pad = 7 * s;
     const screenX = phoneX + pad;
     const screenY = phoneY + pad;
@@ -1206,24 +1191,17 @@ export function renderPromoPhone3D(opts: PromoPhone3DOptions) {
     ctx.save();
     ctx.beginPath();
     ctx.roundRect(screenX, screenY, screenW, screenH, screenRadius);
-    ctx.clip(); // Masque de l'écran
+    ctx.clip();
 
-    // Fond noir OLED
     ctx.fillStyle = '#000000';
     ctx.fillRect(screenX, screenY, screenW, screenH);
 
-    // Status Bar fixe en haut
     renderStatusBar(ctx, screenX, screenY, screenW, s);
 
-    // ==========================================
-    // CALCUL DU CYCLE D'ANIMATION MULTI-RÉSEAUX (10s)
-    // 0 = Instagram (0.0s - 3.33s)
-    // 1 = TikTok    (3.33s - 6.66s)
-    // 2 = YouTube   (6.66s - 10.0s)
-    // ==========================================
+    // Cycle multi-réseaux 10s
     const cycleTotal = 10.0;
-    const slotDuration = cycleTotal / 3; // 3.333s
-    const transDuration = 0.52; // 0.52s de glissement d'écran ultra fluide
+    const slotDuration = cycleTotal / 3;
+    const transDuration = 0.52;
 
     let rawIdx = 0;
     let transitionProgress = 0;
@@ -1250,11 +1228,9 @@ export function renderPromoPhone3D(opts: PromoPhone3DOptions) {
             pillPos = rawIdx;
         } else {
             const p = (slotLocalTime - holdDuration) / transDuration;
-            // Easing cubique doux pour un glissement naturel
             transitionProgress = p < 0.5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2;
 
             if (rawIdx === 2) {
-                // De YouTube (2) vers Instagram (0) : retour fluide
                 pillPos = 2 - transitionProgress * 2;
             } else {
                 pillPos = rawIdx + transitionProgress;
@@ -1262,7 +1238,6 @@ export function renderPromoPhone3D(opts: PromoPhone3DOptions) {
         }
     }
 
-    // Zone d'affichage des applications sociales sous la status bar
     const appY = screenY + 22 * s;
     const appH = screenH - 22 * s;
 
@@ -1277,7 +1252,6 @@ export function renderPromoPhone3D(opts: PromoPhone3DOptions) {
                 s,
                 tAnim,
                 isStaticPreview,
-                activeColor,
                 resolvedProfiles.instagram,
                 imageCache
             );
@@ -1291,7 +1265,6 @@ export function renderPromoPhone3D(opts: PromoPhone3DOptions) {
                 s,
                 tAnim,
                 isStaticPreview,
-                activeColor,
                 resolvedProfiles.tiktok,
                 imageCache
             );
@@ -1305,24 +1278,20 @@ export function renderPromoPhone3D(opts: PromoPhone3DOptions) {
                 s,
                 tAnim,
                 isStaticPreview,
-                activeColor,
                 resolvedProfiles.youtube,
                 imageCache
             );
         }
     };
 
-    // Rendu avec transition par glissement horizontal si actif
     if (transitionProgress === 0) {
         renderNetworkScreen(rawIdx, 0);
     } else {
-        // L'écran actuel glisse vers la gauche
         renderNetworkScreen(rawIdx, -transitionProgress * screenW);
-        // Le prochain écran entre depuis la droite
         renderNetworkScreen(nextIdx, (1 - transitionProgress) * screenW);
     }
 
-    // Reflet spéculaire traversant sur l'écran
+    // Reflet spéculaire doux
     const glareProgress = isStaticPreview ? 0.35 : ((tAnim * 0.18) % 1.0);
     const glareX = screenX - screenW + glareProgress * (screenW * 3);
     const glareGrad = ctx.createLinearGradient(glareX, screenY, glareX + 120 * s, screenY + screenH);
@@ -1332,19 +1301,16 @@ export function renderPromoPhone3D(opts: PromoPhone3DOptions) {
     ctx.fillStyle = glareGrad;
     ctx.fillRect(screenX, screenY, screenW, screenH);
 
-    ctx.restore(); // Fin clip écran
-    ctx.restore(); // Fin perspective smartphone
+    ctx.restore();
+    ctx.restore();
 
-    // ==========================================
-    // 4. DOCK RÉSEAUX SOCIAUX AVEC CADRE BLANC GLISSANT ET LOGOS DYNAMIQUES
-    // ==========================================
+    // 4. Dock Réseaux Sociaux avec Pilule Blanche Glissante
     const dockW = 380 * s;
     const dockH = 28 * s;
     const dockX = (canvas.width - dockW) / 2;
     const dockY = canvas.height - (isReel ? 48 : 20) * s - dockH;
 
     ctx.save();
-    // Capsule fond sombre
     ctx.beginPath();
     ctx.roundRect(dockX, dockY, dockW, dockH, dockH / 2);
     ctx.fillStyle = 'rgba(10, 10, 14, 0.94)';
@@ -1355,14 +1321,12 @@ export function renderPromoPhone3D(opts: PromoPhone3DOptions) {
     ctx.lineWidth = 1 * s;
     ctx.stroke();
 
-    // Label SUIS-NOUS fixe à gauche
     ctx.textAlign = 'left';
     ctx.textBaseline = 'middle';
     ctx.font = `900 ${7 * s}px "Montserrat", sans-serif`;
     ctx.fillStyle = '#ffffff';
     ctx.fillText('SUIS-NOUS', dockX + 12 * s, dockY + dockH / 2);
 
-    // Séparateur vertical
     ctx.strokeStyle = 'rgba(255, 255, 255, 0.14)';
     ctx.lineWidth = 1 * s;
     ctx.beginPath();
@@ -1370,7 +1334,6 @@ export function renderPromoPhone3D(opts: PromoPhone3DOptions) {
     ctx.lineTo(dockX + 68 * s, dockY + dockH - 6 * s);
     ctx.stroke();
 
-    // 3 Réseaux avec pilule blanche glissante
     const nets = [
         { name: 'Instagram', handle: resolvedProfiles.instagram.handle },
         { name: 'TikTok', handle: resolvedProfiles.tiktok.handle },
@@ -1381,7 +1344,6 @@ export function renderPromoPhone3D(opts: PromoPhone3DOptions) {
     const netsAreaW = dockW - 78 * s;
     const netItemW = netsAreaW / 3;
 
-    // Dessin de la pilule blanche glissante continue
     const pillTargetX = netsStartX + pillPos * netItemW + 2 * s;
     const pillW = netItemW - 4 * s;
     const pillH = dockH - 6 * s;
@@ -1394,13 +1356,8 @@ export function renderPromoPhone3D(opts: PromoPhone3DOptions) {
     ctx.shadowBlur = 6 * s;
     ctx.fill();
 
-    // Rendu des 3 handles avec leurs logos :
-    // Lorsqu'il est sous la pilule blanche -> pleines couleurs de la marque
-    // Lorsqu'il n'est pas sous la pilule blanche -> éteint / monochrome atténué
     nets.forEach((net, idx) => {
         const nx = netsStartX + idx * netItemW + netItemW / 2;
-
-        // Calcul du degré d'activité selon la proximité avec la pilule blanche glissante
         const dist = Math.abs(pillPos - idx);
         const activeWeight = Math.max(0, Math.min(1, 1 - dist * 1.6));
 
@@ -1412,10 +1369,8 @@ export function renderPromoPhone3D(opts: PromoPhone3DOptions) {
         const totalW = iconSize + gap + textW;
         const startX = nx - totalW / 2;
 
-        // Dessin du logo avec transition de couleur (rouge/rose/chromatique vs éteint)
         drawSocialIcon(ctx, net.name, startX, dockY + dockH / 2, iconSize, activeWeight);
 
-        // Dessin du texte @handle : foncé sur la pilule blanche, atténué éteint en dehors
         ctx.textAlign = 'left';
         ctx.textBaseline = 'middle';
         if (activeWeight > 0.5) {

@@ -2239,7 +2239,16 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
         // Préchargement des assets pour la slide Promo Smartphone 3D
         const phoneAssets = [
+            'public/logo_white_official.png',
+            '/logo_white_official.png',
+            '/logo_white.png',
             '/images/instagram/avatar_clean.png',
+            '/assets/galeries/dj-snake-arenes-de-nimes-2025-france/img-1.jpg',
+            '/assets/galeries/john-summit-ushuaia-ibiza-2025-espagne/img-2.jpg',
+            '/assets/galeries/tomorrowland-2025-belgique/img-1.jpg',
+            '/assets/galeries/edc-las-vegas-2025-usa/img-1.jpg',
+            '/assets/galeries/ultra-europe-2025-croatie/img-2.jpg',
+            '/images/gta6_cover.jpg',
             '/Banniere_Fluide_Clean.jpg',
             '/images/instagram/post_full_1.jpg',
             '/images/instagram/post_full_2.jpg',
