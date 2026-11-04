@@ -9629,6 +9629,21 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         const file = e.target.files?.[0];
         if (!file) return;
         const url = URL.createObjectURL(file);
+
+        // Si l'utilisateur est sur la Slide AFFICHE : charger strictement dans l'AFFICHE (zéro pollution de Slide 1)
+        if (isEditorialAfficheActive) {
+            const img = new Image();
+            img.crossOrigin = "anonymous";
+            img.onload = () => {
+                imageCacheRef.current[url] = img;
+                afficheImageRef.current = img;
+                setAfficheImage(url);
+                generateImage();
+            };
+            img.src = url;
+            e.target.value = '';
+            return;
+        }
         const isVideo = file.type.startsWith('video/') || /\.(mp4|mov|webm|m4v|3gp|mkv|avi)$/i.test(file.name);
         if (isVideo) {
             bgVideoBlobRef.current = file;
@@ -14963,17 +14978,46 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         </button>
                     )}
 
-                    <button
-                        type="button"
-                        onClick={() => {
-                            setR2TargetType('affiche');
-                            setIsR2ModalOpen(true);
-                        }}
-                        className="w-full py-2.5 bg-white/5 border border-white/10 hover:border-neon-cyan/40 hover:bg-white/10 rounded-xl text-[9px] font-black uppercase text-white flex items-center justify-center gap-1.5 transition-all shadow-sm group active:scale-98"
-                    >
-                        <ImageIcon className="w-3.5 h-3.5 text-neon-cyan group-hover:scale-110 transition-transform" />
-                        <span>Ouvrir la Bibliothèque Cloud R2</span>
-                    </button>
+                    <div className="grid grid-cols-2 gap-2">
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setR2TargetType('affiche');
+                                setIsR2ModalOpen(true);
+                            }}
+                            className="py-2.5 bg-white/5 border border-white/10 hover:border-neon-cyan/40 hover:bg-white/10 rounded-xl text-[9px] font-black uppercase text-white flex items-center justify-center gap-1.5 transition-all shadow-sm group active:scale-98"
+                        >
+                            <ImageIcon className="w-3.5 h-3.5 text-neon-cyan group-hover:scale-110 transition-transform" />
+                            <span>Cloud R2</span>
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => {
+                                const input = document.createElement('input');
+                                input.type = 'file';
+                                input.accept = 'image/*';
+                                input.onchange = (ev: any) => {
+                                    const f = ev.target?.files?.[0];
+                                    if (!f) return;
+                                    const u = URL.createObjectURL(f);
+                                    const im = new Image();
+                                    im.crossOrigin = 'anonymous';
+                                    im.onload = () => {
+                                        imageCacheRef.current[u] = im;
+                                        afficheImageRef.current = im;
+                                        setAfficheImage(u);
+                                        generateImage();
+                                    };
+                                    im.src = u;
+                                };
+                                input.click();
+                            }}
+                            className="py-2.5 bg-white/5 border border-white/10 hover:border-[#ff3700]/40 hover:bg-white/10 rounded-xl text-[9px] font-black uppercase text-white flex items-center justify-center gap-1.5 transition-all shadow-sm group active:scale-98"
+                        >
+                            <Upload className="w-3.5 h-3.5 text-[#ff3700] group-hover:scale-110 transition-transform" />
+                            <span>Importer Fichier</span>
+                        </button>
+                    </div>
 
                     {/* Direct Image URL input */}
                     <div className="pt-1">
@@ -14987,9 +15031,15 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     updateAgendaAffiche(planningAfficheIdx, 'image', url);
                                 } else {
                                     setAfficheImage(url);
-                                    if (isEditorialAfficheActive) {
-                                        setEditorialSlideImages(prev => ({ ...prev, [editorialSlide]: url }));
-                                    }
+                                    // Slide 1 isolée : ne jamais écraser editorialSlideImages[1]
+                                    setEditorialSlideImages(prev => {
+                                        if (prev[1] && prev[1] === url && bgImage && bgImage !== url) {
+                                            const n = { ...prev };
+                                            delete n[1];
+                                            return n;
+                                        }
+                                        return prev;
+                                    });
                                 }
                             }}
                             className={`w-full bg-black/40 border border-white/10 rounded-xl p-2.5 text-white text-[9px] font-medium placeholder-gray-500 outline-none ${isMusicTheme ? 'focus:border-[#00ff66]/50' : (isPlanningAffiche ? 'focus:border-[#ff3700]/50' : 'focus:border-neon-red/50')} transition-all`}
@@ -22283,15 +22333,21 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             img.crossOrigin = "anonymous";
                             img.onload = () => {
                                 imageCacheRef.current[finalUrl] = img;
-                                setBgImage(finalUrl);
-                                setBgVideo(null);
-                                if (theme !== 'JEU_DJ') {
-                                    setDjOriginalImage(finalUrl);
-                                }
-                                setEditorialSlideImages(prev => ({ ...prev, [editorialSlide]: finalUrl }));
-                                if (isEditorialAfficheActive || theme === 'AFFICHE' || (theme === 'EVENTS' && ((eventsSlide === 2 && eventNormalSlidesCount === 0) || isEditorialAfficheActive))) {
+                                if (isEditorialAfficheActive) {
+                                    // Si l'utilisateur a choisi un visuel en étant sur l'affiche, ne toucher qu'à l'affiche
                                     setAfficheImage(finalUrl);
                                     afficheImageRef.current = img;
+                                } else {
+                                    setBgImage(finalUrl);
+                                    setBgVideo(null);
+                                    if (theme !== 'JEU_DJ') {
+                                        setDjOriginalImage(finalUrl);
+                                    }
+                                    setEditorialSlideImages(prev => ({ ...prev, [editorialSlide]: finalUrl }));
+                                    if (theme === 'AFFICHE' || (theme === 'EVENTS' && eventsSlide === 2 && eventNormalSlidesCount === 0)) {
+                                        setAfficheImage(finalUrl);
+                                        afficheImageRef.current = img;
+                                    }
                                 }
                                 generateImage();
                             };
@@ -22338,9 +22394,15 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             };
                             img.src = finalUrl;
                             setAfficheImage(finalUrl);
-                            if (isEditorialAfficheActive) {
-                                setEditorialSlideImages(prev => ({ ...prev, [editorialSlide]: finalUrl }));
-                            }
+                            // Slide 1 isolée : ne jamais écraser editorialSlideImages[1] avec l'affiche
+                            setEditorialSlideImages(prev => {
+                                if (prev[1] && prev[1] === finalUrl && bgImage && bgImage !== finalUrl) {
+                                    const n = { ...prev };
+                                    delete n[1];
+                                    return n;
+                                }
+                                return prev;
+                            });
                         }
                     } else if (r2TargetType === 'musicCover') {
                         if (r2TargetIdx !== null) {
