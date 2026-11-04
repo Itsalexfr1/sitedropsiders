@@ -6794,7 +6794,7 @@ export function AdminDashboard() {
                           >
                             <div className="w-12 h-12 rounded-lg overflow-hidden bg-black/40 border border-white/10 flex-shrink-0">
                               <img
-                                src={article.image}
+                                src={resolveImageUrl(article.image || article.cover)}
                                 alt=""
                                 className="w-full h-full object-cover group-hover:scale-110 transition-transform"
                               />
@@ -6834,7 +6834,7 @@ export function AdminDashboard() {
             {selectedSocialArticle && (
               <SocialSuite
                 title={selectedSocialArticle.title || ""}
-                imageUrl={selectedSocialArticle.image || ""}
+                imageUrl={resolveImageUrl(selectedSocialArticle.image || selectedSocialArticle.cover) || ""}
                 initialTheme={selectedSocialTheme as any}
                 onClose={() => {
                   setSelectedSocialArticle(null);
@@ -12638,7 +12638,7 @@ export function AdminDashboard() {
                                       ? 'text-amber-400 bg-amber-500/10 border-amber-500/30'
                                       : 'text-blue-400 bg-blue-500/10 border-blue-500/30';
 
-                                  const itemUrl = item.url || `/uploads/${item.key.replace(/^uploads\//, '')}`;
+                                  const itemUrl = resolveImageUrl(item.url || item.key);
 
                                   return (
                                     <div key={item.key} className="group relative">
@@ -12926,7 +12926,7 @@ export function AdminDashboard() {
                     ) : (
                       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6">
                         {unusedImages.map((item: any) => {
-                          const imageUrl = `https://dropsiders.fr/uploads/${item.key.replace("uploads/", "")}`;
+                          const imageUrl = resolveImageUrl(item.url || item.key);
                           return (
                             <div key={item.key} className="group relative">
                               <div

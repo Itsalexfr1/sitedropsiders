@@ -3215,6 +3215,20 @@ ${urls.map(u => `  <url>
                     // Content is base64
                     const base64Data = content.split(',')[1] || content;
                     bytes = Buffer.from(base64Data, 'base64');
+                } else if (reqContentType.includes('multipart/form-data')) {
+                    const formData = await request.formData();
+                    const fileEntry = formData.get('file') || formData.get('image');
+                    if (!fileEntry || typeof fileEntry !== 'object' || !('arrayBuffer' in fileEntry)) {
+                        return new Response(JSON.stringify({ error: 'Fichier introuvable dans le formulaire' }), { status: 400, headers });
+                    }
+                    const fileObj = fileEntry;
+                    filename = fileObj.name || url.searchParams.get('filename') || 'upload.jpg';
+                    type = fileObj.type || url.searchParams.get('type') || 'image/jpeg';
+                    bytes = new Uint8Array(await fileObj.arrayBuffer());
+                    subFolder = formData.get('path') || formData.get('subFolder') || url.searchParams.get('path') || null;
+                    if (!bytes || bytes.byteLength === 0) {
+                        return new Response(JSON.stringify({ error: 'Fichier vide' }), { status: 400, headers });
+                    }
                 } else {
                     // Direct binary upload
                     filename = url.searchParams.get('filename') || request.headers.get('X-File-Name') || 'file.mp3';
@@ -3758,6 +3772,9 @@ ${urls.map(u => `  <url>
                     if (!bkpRes.ok && key.startsWith('uploads/')) {
                         bkpRes = await fetch(`${env.BACKUP_R2_PUBLIC_URL}/${key.replace('uploads/', '')}`);
                     }
+                    if (!bkpRes.ok && !key.startsWith('uploads/') && !key.startsWith('migrated/')) {
+                        bkpRes = await fetch(`${env.BACKUP_R2_PUBLIC_URL}/uploads/${key}`);
+                    }
                     if (bkpRes.ok) {
                         const newHeaders = new Headers(bkpRes.headers);
                         newHeaders.set('Access-Control-Allow-Origin', '*');
@@ -3778,6 +3795,9 @@ ${urls.map(u => `  <url>
                     let audRes = await fetch(`${env.AUDIO_R2_PUBLIC_URL}/${key}`);
                     if (!audRes.ok && key.startsWith('uploads/')) {
                         audRes = await fetch(`${env.AUDIO_R2_PUBLIC_URL}/${key.replace('uploads/', '')}`);
+                    }
+                    if (!audRes.ok && !key.startsWith('SONS/')) {
+                        audRes = await fetch(`${env.AUDIO_R2_PUBLIC_URL}/SONS/${key}`);
                     }
                     if (audRes.ok) {
                         const newHeaders = new Headers(audRes.headers);
@@ -3800,6 +3820,9 @@ ${urls.map(u => `  <url>
                     if (!vidRes.ok && key.startsWith('uploads/')) {
                         vidRes = await fetch(`${env.VIDEOS_R2_PUBLIC_URL}/${key.replace('uploads/', '')}`);
                     }
+                    if (!vidRes.ok && !key.startsWith('VIDEOS/')) {
+                        vidRes = await fetch(`${env.VIDEOS_R2_PUBLIC_URL}/VIDEOS/${key}`);
+                    }
                     if (vidRes.ok) {
                         const newHeaders = new Headers(vidRes.headers);
                         newHeaders.set('Access-Control-Allow-Origin', '*');
@@ -3820,6 +3843,9 @@ ${urls.map(u => `  <url>
                     let photoRes = await fetch(`${env.PHOTOS_R2_PUBLIC_URL}/${key}`);
                     if (!photoRes.ok && key.startsWith('uploads/')) {
                         photoRes = await fetch(`${env.PHOTOS_R2_PUBLIC_URL}/${key.replace('uploads/', '')}`);
+                    }
+                    if (!photoRes.ok && !key.startsWith('uploads/') && !key.startsWith('migrated/')) {
+                        photoRes = await fetch(`${env.PHOTOS_R2_PUBLIC_URL}/uploads/${key}`);
                     }
                     if (photoRes.ok) {
                         const newHeaders = new Headers(photoRes.headers);
@@ -9744,8 +9770,8 @@ ${urls.map(u => `  <url>
                     const nextOffset = (offset + limit < allObjects.length) ? btoa((offset + limit).toString()) : undefined;
 
                     const buildUrl = (key: string) => {
-                        if (key.startsWith('uploads/')) return `/uploads/${key.replace('uploads/', '')}`;
-                        return `/uploads/${key}`;
+                        const cleanKey = key.startsWith('/') ? key.substring(1) : key;
+                        return `/uploads/${cleanKey}`;
                     };
 
                     return new Response(JSON.stringify({

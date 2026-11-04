@@ -7,6 +7,7 @@ import {
     Music as MusicIcon, Video as VideoIcon
 } from 'lucide-react';
 import { getAuthHeaders } from '../../utils/auth';
+import { resolveImageUrl } from '../../utils/image';
 import { ConfirmationModal } from '../ConfirmationModal';
 
 export function R2Explorer() {
@@ -234,7 +235,7 @@ export function R2Explorer() {
                                 >
                                     {isImage ? (
                                         <img 
-                                            src={photo.url} 
+                                            src={resolveImageUrl(photo.url || photo.key)} 
                                             alt={photo.key} 
                                             className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out"
                                             loading="lazy"
@@ -266,7 +267,7 @@ export function R2Explorer() {
                                         
                                         <div className="flex gap-2">
                                             <a 
-                                                href={photo.url} 
+                                                href={resolveImageUrl(photo.url || photo.key)} 
                                                 target="_blank" 
                                                 rel="noopener noreferrer"
                                                 className="flex-1 py-2 bg-white/10 hover:bg-white text-white hover:text-black rounded-xl transition-all flex items-center justify-center gap-2"
@@ -313,7 +314,7 @@ export function R2Explorer() {
                                                 <div className="w-12 h-12 rounded-xl overflow-hidden bg-black/40 border border-white/10 flex items-center justify-center">
                                                     {isImage ? (
                                                         <img 
-                                                            src={photo.url} 
+                                                            src={resolveImageUrl(photo.url || photo.key)} 
                                                             alt="" 
                                                             className="w-full h-full object-cover group-hover:scale-125 transition-transform" 
                                                             loading="lazy"
@@ -339,7 +340,7 @@ export function R2Explorer() {
                                             <td className="px-8 py-4">
                                                 <div className="flex justify-end gap-2">
                                                     <a 
-                                                        href={photo.url} 
+                                                        href={resolveImageUrl(photo.url || photo.key)} 
                                                         target="_blank" 
                                                         rel="noopener noreferrer"
                                                         className="p-2.5 bg-white/5 hover:bg-white hover:text-black rounded-xl text-gray-400 transition-all border border-white/10"

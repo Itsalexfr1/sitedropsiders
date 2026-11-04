@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Image as ImageIcon, Loader2, Trash2, ExternalLink, HardDrive, RefreshCw, ChevronLeft, ChevronRight, Search, Sparkles } from 'lucide-react';
 import { getAuthHeaders } from '../../../utils/auth';
+import { resolveImageUrl } from '../../../utils/image';
 import { enhanceFestivalPhoto } from '../../../utils/festivalPhotoEnhancer';
 import { ConfirmationModal } from '../../ConfirmationModal';
 
@@ -115,6 +116,7 @@ export function R2PhotosMenuModal({ isOpen, onClose, onSelect, mode = 'view' }: 
 
             const formData = new FormData();
             formData.append('file', fileToUpload);
+            formData.append('path', 'uploads');
             const res = await fetch('/api/r2/upload', {
                 method: 'POST',
                 headers: getAuthHeaders(),
@@ -236,7 +238,7 @@ export function R2PhotosMenuModal({ isOpen, onClose, onSelect, mode = 'view' }: 
                                             className="group relative aspect-square bg-white/5 border border-white/5 rounded-2xl overflow-hidden hover:border-white/20 transition-all hover:shadow-2xl hover:shadow-black"
                                         >
                                             <img 
-                                                src={photo.url} 
+                                                src={resolveImageUrl(photo.url || photo.key)} 
                                                 alt={photo.key} 
                                                 className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                                                 loading="lazy"
@@ -250,7 +252,7 @@ export function R2PhotosMenuModal({ isOpen, onClose, onSelect, mode = 'view' }: 
                                             <div className="absolute inset-x-0 bottom-0 p-3 bg-gradient-to-t from-black via-black/90 to-transparent translate-y-2 group-hover:translate-y-0 opacity-0 group-hover:opacity-100 transition-all duration-300">
                                                 {mode === 'select' ? (
                                                     <button 
-                                                        onClick={() => onSelect?.(photo.url)}
+                                                        onClick={() => onSelect?.(resolveImageUrl(photo.url || photo.key))}
                                                         className="w-full py-2 bg-neon-red text-white text-[9px] font-black uppercase rounded-lg mb-2 shadow-lg shadow-neon-red/30 hover:scale-105 active:scale-95 transition-all"
                                                     >
                                                         Sélectionner
@@ -262,7 +264,7 @@ export function R2PhotosMenuModal({ isOpen, onClose, onSelect, mode = 'view' }: 
                                                     <span className="text-[7px] text-gray-400 font-bold">{(photo.size / 1024).toFixed(1)} KB</span>
                                                     <div className="flex gap-1.5">
                                                         <a 
-                                                            href={photo.url} 
+                                                            href={resolveImageUrl(photo.url || photo.key)} 
                                                             target="_blank" 
                                                             rel="noopener noreferrer"
                                                             className="p-1 px-1.5 bg-white/10 hover:bg-neon-red text-white rounded-md transition-colors"

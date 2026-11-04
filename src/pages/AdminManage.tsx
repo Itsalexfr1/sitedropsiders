@@ -1455,7 +1455,7 @@ export function AdminManage() {
                 {socialItem && (
                     <SocialSuite
                         title={socialItem.title}
-                        imageUrl={socialItem.image}
+                        imageUrl={resolveImageUrl(socialItem.image || socialItem.cover)}
                         onClose={() => setSocialItem(null)}
                         initialTheme={getInitialSocialTheme(socialItem.category, socialItem.isFocus)}
                     />

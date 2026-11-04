@@ -8,9 +8,28 @@ import { resolveImageUrl } from '../../utils/image';
 import { fetchWithFallback } from '../../utils/fetcher';
 
 export function InterviewWidget({ accentColor = 'white', resolvedColor, featuredInterviews }: { accentColor?: string, resolvedColor?: string, featuredInterviews?: string[] }) {
-    const color = resolvedColor || `var(--color-neon-${accentColor})`;
+    const color = resolvedColor || (accentColor === 'white' ? '#ffffff' : `var(--color-neon-${accentColor})`);
     const { t, language } = useLanguage();
     const [newsData, setNewsData] = useState<any[]>([]);
+
+    const isLightColor = useMemo(() => {
+        const c = (accentColor || '').toLowerCase();
+        if (['white', 'yellow', 'lime', 'cyan', 'green', 'emerald'].includes(c)) return true;
+        if (resolvedColor) {
+            const rc = resolvedColor.toLowerCase();
+            if (rc === 'white' || rc === '#ffffff' || rc === '#fff') return true;
+            if (rc.includes('white') || rc.includes('yellow') || rc.includes('lime') || rc.includes('cyan')) return true;
+            if (rc.startsWith('#') && rc.length >= 7) {
+                const r = parseInt(rc.slice(1, 3), 16);
+                const g = parseInt(rc.slice(3, 5), 16);
+                const b = parseInt(rc.slice(5, 7), 16);
+                if (!isNaN(r) && !isNaN(g) && !isNaN(b)) {
+                    return (0.299 * r + 0.587 * g + 0.114 * b) > 150;
+                }
+            }
+        }
+        return false;
+    }, [accentColor, resolvedColor]);
 
     useEffect(() => {
         const fetchNews = async () => {
@@ -133,11 +152,14 @@ export function InterviewWidget({ accentColor = 'white', resolvedColor, featured
                                         <Mic2 className="w-6 h-6 text-white" />
                                     </div>
                                 </div>
-                                <div className="absolute top-4 left-4">
+                                <div className="absolute top-4 left-4 z-10">
                                     <span
-                                        className="px-3 py-1 text-white text-[9px] font-black rounded-full uppercase tracking-widest"
+                                        className={`px-3 py-1 text-[9px] font-black rounded-full uppercase tracking-widest ${
+                                            isLightColor ? 'text-black' : 'text-white'
+                                        }`}
                                         style={{
                                             backgroundColor: color,
+                                            color: isLightColor ? '#000000' : '#ffffff',
                                             boxShadow: `0 0 15px ${color}`
                                         }}
                                     >

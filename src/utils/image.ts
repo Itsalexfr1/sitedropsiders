@@ -65,8 +65,12 @@ export function resolveImageUrl(url: string | undefined | null, seed?: string): 
     if (processedUrl.startsWith('/uploads/uploads/')) {
         // do nothing
     }
-    // Case B: Starts with /uploads/migrated/ -> LIKELY CORRECT (single prefix)
-    else if (processedUrl.startsWith('/uploads/migrated/')) {
+    // Case B: Starts with /uploads/migrated/, /uploads/SONS/, /uploads/VIDEOS/ -> ALREADY CORRECT
+    else if (
+        processedUrl.startsWith('/uploads/migrated/') ||
+        processedUrl.startsWith('/uploads/SONS/') ||
+        processedUrl.startsWith('/uploads/VIDEOS/')
+    ) {
         // do nothing
     }
     // Case C: Starts with /uploads/FILENAME -> Add the missing "uploads/" segment

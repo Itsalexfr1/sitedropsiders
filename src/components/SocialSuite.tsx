@@ -341,7 +341,13 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     }, [theme]);
     const [showVoteLink, setShowVoteLink] = useState(false);
     const [customText, setCustomText] = useState(title || '');
-    const [bgImage, setBgImage] = useState<string>(imageUrl);
+    const [bgImage, setBgImage] = useState<string>(() => resolveImageUrl(imageUrl));
+
+    useEffect(() => {
+        if (imageUrl) {
+            setBgImage(resolveImageUrl(imageUrl));
+        }
+    }, [imageUrl]);
     const [bgVideo, setBgVideo] = useState<HTMLVideoElement | null>(null);
     const [isVideoAudioMuted, setIsVideoAudioMuted] = useState<boolean>(true);
     const [textColor, setTextColor] = useState('#ffffff');
@@ -1137,11 +1143,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         onError?: () => void
     ) => {
         if (!url) return;
+        const safeUrl = resolveImageUrl(url);
         const imgObj = new Image();
         imgObj.crossOrigin = 'anonymous';
         imgObj.onload = () => onLoad(imgObj);
         imgObj.onerror = () => {
-            const isExternalHttp = /^https?:\/\//i.test(url) && !url.includes('/api/proxy-media');
+            const isExternalHttp = /^https?:\/\//i.test(safeUrl) && !safeUrl.includes('/api/proxy-media');
             if (isExternalHttp) {
                 const proxiedImg = new Image();
                 proxiedImg.crossOrigin = 'anonymous';
@@ -1151,14 +1158,18 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     const fallbackImg = new Image();
                     fallbackImg.onload = () => onLoad(fallbackImg);
                     fallbackImg.onerror = () => { if (onError) onError(); };
-                    fallbackImg.src = url;
+                    fallbackImg.src = safeUrl;
                 };
-                proxiedImg.src = `/api/proxy-media?url=${encodeURIComponent(url)}`;
+                proxiedImg.src = `/api/proxy-media?url=${encodeURIComponent(safeUrl)}`;
             } else {
-                if (onError) onError();
+                // Pour les URLs R2 / locales, repli sans crossOrigin si un échec survient
+                const fallbackImg = new Image();
+                fallbackImg.onload = () => onLoad(fallbackImg);
+                fallbackImg.onerror = () => { if (onError) onError(); };
+                fallbackImg.src = safeUrl;
             }
         };
-        imgObj.src = url;
+        imgObj.src = safeUrl;
     };
 
     const formatAudioTime = (seconds: number) => {
@@ -3088,10 +3099,14 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         ? (editorialSlideImages[effectiveEditorialSlide] || (musiqueCoverUrl ? musiqueCoverUrl : bgImage))
                         : (editorialSlideImages[effectiveEditorialSlide] || bgImage);
             if (activeSlideImgSrc) {
-                if (imageCacheRef.current[activeSlideImgSrc]) {
+                const resolvedSlideImgSrc = resolveImageUrl(activeSlideImgSrc);
+                if (imageCacheRef.current[resolvedSlideImgSrc]) {
+                    img = imageCacheRef.current[resolvedSlideImgSrc];
+                } else if (imageCacheRef.current[activeSlideImgSrc]) {
                     img = imageCacheRef.current[activeSlideImgSrc];
                 } else {
-                    loadCorsSafeImage(activeSlideImgSrc, (imgObj) => {
+                    loadCorsSafeImage(resolvedSlideImgSrc, (imgObj) => {
+                        imageCacheRef.current[resolvedSlideImgSrc] = imgObj;
                         imageCacheRef.current[activeSlideImgSrc] = imgObj;
                         if (isCurrentSlideAffiche && currentSlideAfficheUrl && activeSlideImgSrc === currentSlideAfficheUrl && !afficheImageRef.current) {
                             afficheImageRef.current = imgObj;
@@ -8858,21 +8873,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 let subHeight = bodyText ? (subLines.length * subLineHeight) : 0;
                 let totalTextHeight = titleHeight + gapBetween + subHeight;
 
-                // Calcul dynamique de l'espace disponible pour éviter TOUT chevauchement avec les indicateurs en bas (ARTICLE COMPLET / VOTER / CTA Devinette)
+                // Calcul dynamique de l'espace disponible : ne déplace JAMAIS le texte principal quand showArticleLink est activé
                 let bottomLimit = canvas.height - (isReel ? 40 : 25);
                 if (shouldDrawDevinetteCta) {
                     bottomLimit = canvas.height - (isReel ? 60 : 44) - 26;
-                } else if (showArticleLink || showVoteLink) {
-                    const hasBothLinks = (showArticleLink && showVoteLink);
-                    if (isReel) {
-                        // En Reel/Story, l'indicateur est placé à canvas.height - 230 pour éviter l'interface Instagram
-                        // Marge de sécurité généreuse de 45px au-dessus de l'indicateur
-                        bottomLimit = canvas.height - (hasBothLinks ? 330 : 295);
-                    } else {
-                        // En Publication, l'indicateur est placé à canvas.height - 55
-                        // Marge de sécurité généreuse de 45px au-dessus de l'indicateur
-                        bottomLimit = canvas.height - (hasBothLinks ? 155 : 125);
-                    }
                 }
                 const availableSpace = Math.max(100, bottomLimit - dividerY);
 
@@ -9173,8 +9177,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
 
 
-                // 5. BOTTOM LINK INDICATORS (If activated)
-                let curIndicatorY = (effectiveTab === 'PUBLICATION') ? canvas.height - 55 : canvas.height - 230;
+                // 5. BOTTOM LINK INDICATORS (If activated - abaissé pour aérer l'espace sous le titre principal)
+                let curIndicatorY = (effectiveTab === 'PUBLICATION') ? canvas.height - 28 : canvas.height - 180;
                 if (showArticleLink) {
                     const textToDraw = articleLinkText || 'ARTICLE COMPLET SUR DROPSIDERS.FR';
                     ctx.save();
@@ -9361,7 +9365,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 ctx.shadowColor = 'rgba(215, 230, 255, 0.95)';
                 ctx.shadowBlur = 18;
                 ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
-                ctx.fillText(textToDraw, 40, canvas.height - 25);
+                ctx.fillText(textToDraw, 40, canvas.height - 20);
                 ctx.restore();
 
                 // 2. Ombre portée découpée noire nette
