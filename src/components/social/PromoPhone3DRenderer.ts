@@ -237,45 +237,13 @@ function drawDropsidersAvatar(
  * Barre de navigation mobile du bas pour combler le bas du téléphone
  */
 function renderAppBottomNav(
-    ctx: CanvasRenderingContext2D,
-    w: number,
-    h: number,
-    s: number,
-    appType: 'IG' | 'TK' | 'YT'
+    _ctx: CanvasRenderingContext2D,
+    _w: number,
+    _h: number,
+    _s: number,
+    _appType: 'IG' | 'TK' | 'YT'
 ) {
-    const navH = 24 * s;
-    const navY = h - navH;
-
-    ctx.save();
-    ctx.fillStyle = '#0a0a0f';
-    ctx.fillRect(0, navY, w, navH);
-
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
-    ctx.lineWidth = 0.5 * s;
-    ctx.beginPath();
-    ctx.moveTo(0, navY);
-    ctx.lineTo(w, navY);
-    ctx.stroke();
-
-    ctx.font = `700 ${5.2 * s}px -apple-system, BlinkMacSystemFont, sans-serif`;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-
-    const items = appType === 'YT'
-        ? ['Accueil', 'Shorts', '＋', 'Abonnements', 'Vous']
-        : appType === 'TK'
-        ? ['Accueil', 'Amis', '＋', 'Boîte', 'Profil']
-        : ['Accueil', 'Recherche', '＋', 'Reels', 'Profil'];
-
-    const colW = w / items.length;
-    items.forEach((label, idx) => {
-        const ix = colW * idx + colW / 2;
-        const isSelected = idx === (appType === 'YT' ? 3 : items.length - 1);
-        ctx.fillStyle = isSelected ? '#ffffff' : '#6b7280';
-        ctx.fillText(label, ix, navY + navH / 2);
-    });
-
-    ctx.restore();
+    // Barre de navigation inférieure masquée à la demande de l'utilisateur
 }
 
 /**
@@ -466,7 +434,7 @@ function renderInstagramScreen(
     const gridRows = 2;
     const gridGap = 1.5 * s;
     const cellW = (w - gridGap * (gridCols - 1)) / gridCols;
-    const cellH = (h - 24 * s - postGridY - gridGap) / gridRows;
+    const cellH = (h - 4 * s - postGridY - gridGap) / gridRows;
 
     const postUrls = [
         '/images/instagram/post_full_1.jpg',
@@ -645,7 +613,7 @@ function renderTiktokScreen(
     const gridRows = 2;
     const gridGap = 1.2 * s;
     const cellW = (w - gridGap * (gridCols - 1)) / gridCols;
-    const cellH = (h - 22 * s - vidGridY - gridGap) / gridRows;
+    const cellH = (h - 4 * s - vidGridY - gridGap) / gridRows;
 
     const realTiktokPosts = [
         { img: '/images/social/tk_post_1.jpg', fallback: '/images/instagram/post_full_1.jpg', views: '558,7 K', pinned: true },
@@ -942,7 +910,7 @@ function renderYoutubeScreen(
 
     realYoutubeVideos.forEach((vid, idx) => {
         const vy = feedY + idx * (rowH + rowGap);
-        if (vy >= h - 22 * s) return;
+        if (vy >= h) return;
 
         // Miniature 16:9 à gauche
         const thumbW = 58 * s;
