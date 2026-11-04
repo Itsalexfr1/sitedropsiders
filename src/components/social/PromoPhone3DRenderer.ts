@@ -1062,34 +1062,67 @@ export function renderPromoPhone3D(opts: PromoPhone3DOptions) {
     });
     ctx.restore();
 
-    // 2. Bloc Typographique Asymétrique (Gauche)
-    const leftTextX = (isReel ? 30 : 24) * s;
-    const leftTextWidth = 215 * s;
-    const leftTextY = (isReel ? 340 : 275) * s;
+    // 3. Dimensions & Position du Smartphone 3D (Droite)
+    const phoneW = (isReel ? 204 : 228) * s;
+    const phoneH = (isReel ? 435 : 472) * s;
+    const phoneRight = (isReel ? 30 : 13) * s;
+    const phoneBottom = (isReel ? 110 : 72) * s;
+    const phoneBaseX = canvas.width - phoneRight - phoneW;
+    const phoneBaseY = canvas.height - phoneBottom - phoneH;
+
+    // 2. Bloc Typographique (Gauche) - Aéré et centré verticalement avec le téléphone
+    const leftTextX = (isReel ? 34 : 24) * s;
+    const leftTextWidth = (isReel ? 220 : 215) * s;
+
+    const headlineFontSize = (isReel ? 22 : 18) * s;
+    const rawHeadline = effectiveHeadline || 'POUR NE RATER AUCUNE NEWS';
+    const rawParagraphs = rawHeadline.split('\n');
+    const headlineLines: string[] = [];
+
+    ctx.save();
+    ctx.font = `900 italic ${headlineFontSize}px "Montserrat", sans-serif`;
+    rawParagraphs.forEach(p => {
+        const words = p.trim().split(/\s+/).filter(Boolean);
+        let currentLine = '';
+        words.forEach(word => {
+            const testLine = currentLine ? `${currentLine} ${word}` : word;
+            if (ctx.measureText(testLine).width > leftTextWidth && currentLine) {
+                headlineLines.push(currentLine);
+                currentLine = word;
+            } else {
+                currentLine = testLine;
+            }
+        });
+        if (currentLine) headlineLines.push(currentLine);
+    });
+    ctx.restore();
+
+    const headlineLineHeight = headlineFontSize * (isReel ? 1.28 : 1.22);
+    const barGap = (isReel ? 16 : 8) * s;
+    const barHeight = (isReel ? 4.5 : 3.5) * s;
+    const subGap = (isReel ? 18 : 12) * s;
+    const subFontSize = (isReel ? 13 : 11.5) * s;
+    const subLineHeight = subFontSize * (isReel ? 1.45 : 1.35);
+    const brandGap = (isReel ? 12 : 8) * s;
+    const brandFontSize = (isReel ? 30 : 26) * s;
+
+    const totalTextBlockHeight = (headlineLines.length * headlineLineHeight) 
+        + barGap + barHeight 
+        + subGap + subLineHeight 
+        + brandGap + (brandFontSize * 1.05);
+
+    // Centrage vertical harmonieux du texte par rapport au smartphone 3D
+    const leftTextY = isReel
+        ? Math.round(phoneBaseY + (phoneH - totalTextBlockHeight) / 2)
+        : (275 * s);
 
     ctx.save();
     ctx.textAlign = 'left';
     ctx.textBaseline = 'top';
-
-    const headlineFontSize = (isReel ? 20 : 18) * s;
-    ctx.font = `900 italic ${headlineFontSize}px "Montserrat", sans-serif`;
     ctx.fillStyle = '#ffffff';
     ctx.shadowColor = 'rgba(0, 0, 0, 1)';
     ctx.shadowBlur = 18 * s;
-
-    const words = effectiveHeadline.split(' ');
-    const headlineLines: string[] = [];
-    let currentLine = '';
-    words.forEach(word => {
-        const testLine = currentLine ? `${currentLine} ${word}` : word;
-        if (ctx.measureText(testLine).width > leftTextWidth && currentLine) {
-            headlineLines.push(currentLine);
-            currentLine = word;
-        } else {
-            currentLine = testLine;
-        }
-    });
-    if (currentLine) headlineLines.push(currentLine);
+    ctx.font = `900 italic ${headlineFontSize}px "Montserrat", sans-serif`;
 
     let curY = leftTextY;
     headlineLines.forEach((line, idx) => {
@@ -1097,53 +1130,43 @@ export function renderPromoPhone3D(opts: PromoPhone3DOptions) {
         applyTextAnimCtx(ctx, 0.15 + idx * 0.08, leftTextX, curY);
         ctx.fillText(line, leftTextX, curY);
         ctx.restore();
-        curY += headlineFontSize * 1.22;
+        curY += headlineLineHeight;
     });
 
-    curY += 8 * s;
+    curY += barGap;
 
     ctx.save();
     applyTextAnimCtx(ctx, 0.45, leftTextX, curY);
     ctx.beginPath();
-    ctx.roundRect(leftTextX, curY, 48 * s, 3.5 * s, 2 * s);
+    ctx.roundRect(leftTextX, curY, (isReel ? 56 : 48) * s, barHeight, 2 * s);
     ctx.fillStyle = activeColor.color;
     ctx.shadowColor = activeColor.color;
-    ctx.shadowBlur = 12 * s;
+    ctx.shadowBlur = 14 * s;
     ctx.fill();
     ctx.restore();
 
-    curY += 12 * s;
+    curY += barHeight + subGap;
 
-    const subFontSize = (isReel ? 12 : 11.5) * s;
     ctx.save();
     applyTextAnimCtx(ctx, 0.65, leftTextX, curY);
     ctx.font = `700 ${subFontSize}px "Montserrat", sans-serif`;
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.72)';
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.78)';
     ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
     ctx.shadowBlur = 8 * s;
     ctx.fillText('ABONNE-TOI À', leftTextX, curY);
     ctx.restore();
 
-    curY += subFontSize * 1.35;
+    curY += subLineHeight + brandGap;
 
-    const brandFontSize = (isReel ? 28 : 26) * s;
     ctx.save();
     applyTextAnimCtx(ctx, 0.85, leftTextX, curY);
     ctx.font = `900 italic ${brandFontSize}px "Orbitron", sans-serif`;
     ctx.fillStyle = activeColor.color;
     ctx.shadowColor = activeColor.color;
-    ctx.shadowBlur = 20 * s;
+    ctx.shadowBlur = 22 * s;
     ctx.fillText('DROPSIDERS', leftTextX, curY);
     ctx.restore();
     ctx.restore();
-
-    // 3. Le Smartphone 3D (Droite)
-    const phoneW = 228 * s;
-    const phoneH = 472 * s;
-    const phoneRight = ((isReel ? 20 : 12) + 1) * s;
-    const phoneBottom = (isReel ? 90 : 72) * s;
-    const phoneBaseX = canvas.width - phoneRight - phoneW;
-    const phoneBaseY = canvas.height - phoneBottom - phoneH;
 
     const phaseY = (tAnim / 4.2) * Math.PI * 2;
     const phaseX = (tAnim / 3.6) * Math.PI * 2;
@@ -1262,6 +1285,7 @@ export function renderPromoPhone3D(opts: PromoPhone3DOptions) {
     const appY = screenY + 22 * s;
     const appH = screenH - 22 * s;
 
+    const innerScale = (screenW / 214);
     const renderNetworkScreen = (idx: number, offsetX: number) => {
         if (idx === 0) {
             renderInstagramScreen(
@@ -1270,7 +1294,7 @@ export function renderPromoPhone3D(opts: PromoPhone3DOptions) {
                 appY,
                 screenW,
                 appH,
-                s,
+                innerScale,
                 tAnim,
                 isStaticPreview,
                 resolvedProfiles.instagram,
@@ -1283,7 +1307,7 @@ export function renderPromoPhone3D(opts: PromoPhone3DOptions) {
                 appY,
                 screenW,
                 appH,
-                s,
+                innerScale,
                 tAnim,
                 isStaticPreview,
                 resolvedProfiles.tiktok,
@@ -1296,7 +1320,7 @@ export function renderPromoPhone3D(opts: PromoPhone3DOptions) {
                 appY,
                 screenW,
                 appH,
-                s,
+                innerScale,
                 tAnim,
                 isStaticPreview,
                 resolvedProfiles.youtube,

@@ -21045,23 +21045,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 >
                                     {theme === 'JEU_DJ' ? '👤 Slide 1 (Silhouette)' : '📌 Slide 1 (Cover)'}
                                 </button>
-                                {skipEditorialSlide2 && theme !== 'JEU_DJ' ? (
-                                    <button
-                                        type="button"
-                                        onClick={() => {
-                                            setSkipEditorialSlide2(false);
-                                            setIsCarouselPromoActive(false);
-                                            setIsEditorialAfficheActive(false);
-                                            setIsEditorialTweetActive(false);
-                                            setEditorialSlide(2);
-                                            setTimeout(() => generateImage(), 50);
-                                        }}
-                                        className="px-3 py-1.5 rounded-xl text-[9px] font-black uppercase transition-all flex items-center gap-1.5 bg-neon-cyan/15 border border-dashed border-neon-cyan/40 text-neon-cyan hover:bg-neon-cyan/25 hover:border-neon-cyan shadow-sm active:scale-95"
-                                        title="Ajouter la Slide 2 pour détailler votre article ou news"
-                                    >
-                                        ➕ Ajouter Slide 2
-                                    </button>
-                                ) : (
+                                {(!skipEditorialSlide2 || theme === 'JEU_DJ') && (
                                     <div className="relative group flex items-center rounded-xl overflow-hidden border border-white/10 bg-white/5">
                                         <button
                                             type="button"
@@ -21120,10 +21104,21 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         </div>
                                     );
                                 })}
-                                {extraEditorialSlides.length < 18 && (
+                                {((skipEditorialSlide2 && theme !== 'JEU_DJ') || extraEditorialSlides.length < 18) && (
                                     <button
                                         type="button"
-                                        onClick={addEditorialSlide}
+                                        onClick={() => {
+                                            if (skipEditorialSlide2 && theme !== 'JEU_DJ') {
+                                                setSkipEditorialSlide2(false);
+                                                setIsCarouselPromoActive(false);
+                                                setIsEditorialAfficheActive(false);
+                                                setIsEditorialTweetActive(false);
+                                                setEditorialSlide(2);
+                                                setTimeout(() => generateImage(), 50);
+                                            } else {
+                                                addEditorialSlide();
+                                            }
+                                        }}
                                         className="px-2.5 py-1.5 rounded-xl text-[9px] font-black uppercase transition-all bg-neon-cyan/15 text-neon-cyan border border-neon-cyan/30 hover:bg-neon-cyan/25 flex items-center gap-1 shadow-sm active:scale-95"
                                         title="Ajouter une slide au carrousel (20 max)"
                                     >
@@ -21595,24 +21590,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 >
                                     {theme === 'JEU_DJ' ? 'Slide 1 (Silhouette)' : 'Slide 1 (Cover)'}
                                 </button>
-                                {skipEditorialSlide2 && theme !== 'JEU_DJ' ? (
-                                    <button
-                                        type="button"
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            setSkipEditorialSlide2(false);
-                                            setIsCarouselPromoActive(false);
-                                            setIsEditorialAfficheActive(false);
-                                            setIsEditorialTweetActive(false);
-                                            setEditorialSlide(2);
-                                            setTimeout(() => generateImage(), 50);
-                                        }}
-                                        className="px-2.5 py-1 text-[8px] font-black uppercase transition-all shrink-0 bg-neon-cyan/15 text-neon-cyan border border-dashed border-neon-cyan/40 rounded-xl active:scale-95"
-                                        title="Ajouter Slide 2"
-                                    >
-                                        ➕ Slide 2
-                                    </button>
-                                ) : (
+                                {(!skipEditorialSlide2 || theme === 'JEU_DJ') && (
                                     <div className="flex items-center shrink-0 rounded-xl overflow-hidden border border-white/10 bg-white/5">
                                         <button
                                             type="button"
@@ -21665,10 +21643,22 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         </div>
                                     );
                                 })}
-                                {extraEditorialSlides.length < 18 && (
+                                {((skipEditorialSlide2 && theme !== 'JEU_DJ') || extraEditorialSlides.length < 18) && (
                                     <button
                                         type="button"
-                                        onClick={(e) => { e.stopPropagation(); addEditorialSlide(); }}
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            if (skipEditorialSlide2 && theme !== 'JEU_DJ') {
+                                                setSkipEditorialSlide2(false);
+                                                setIsCarouselPromoActive(false);
+                                                setIsEditorialAfficheActive(false);
+                                                setIsEditorialTweetActive(false);
+                                                setEditorialSlide(2);
+                                                setTimeout(() => generateImage(), 50);
+                                            } else {
+                                                addEditorialSlide();
+                                            }
+                                        }}
                                         className="px-2 py-1 rounded-xl text-[8px] font-black uppercase transition-all shrink-0 bg-neon-cyan/20 text-neon-cyan border border-neon-cyan/30"
                                         title="Ajouter une slide (20 max)"
                                     >
