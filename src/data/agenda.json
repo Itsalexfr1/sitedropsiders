@@ -537,25 +537,6 @@
     "additionalDates": []
   },
   {
-    "id": 1145,
-    "title": "Cultural Techno",
-    "date": "2026-11-06",
-    "startDate": "2026-11-06",
-    "endDate": "2026-11-03",
-    "venue": "Titan",
-    "location": "LYON",
-    "country": "FRANCE",
-    "type": "Clubs",
-    "image": "/uploads/uploads/cc12bca561263ba0-cre_ation_sans_titre_25_yjzb3q.webp",
-    "url": "https://shotgun.live/fr/events/lyonvsclermont",
-    "genre": "Hard Music",
-    "month": "NOVEMBRE",
-    "isWeekly": false,
-    "isSoldOut": false,
-    "isLiveDropsiders": false,
-    "additionalDates": []
-  },
-  {
     "id": 1146,
     "title": "Amygdala / Garcia Sauvage",
     "date": "2026-11-07",
