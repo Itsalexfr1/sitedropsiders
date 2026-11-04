@@ -2826,6 +2826,7 @@ ${urls.map(u => `  <url>
                         console.warn('Audio Cloud init failed, fallback to main R2:', s3Err);
                     }
                 }
+
                 // Route Videos to Videos Cloud if configured
                 const isVideo = resolvedType.startsWith('video/') || /\.(mp4|webm|mov|mkv)$/i.test(filename);
                 const videosS3 = getVideosS3Client(env);
@@ -2850,51 +2851,9 @@ ${urls.map(u => `  <url>
                         console.warn('Videos Cloud init failed, fallback to main R2:', s3Err);
                     }
                 }
+
                 // Route Photos to Photos Cloud if configured
-                                                const audioS3 = getAudioS3Client(env);
-                if (isAudio && audioS3 && env.AUDIO_R2_ACCOUNT_ID && env.AUDIO_R2_BUCKET) {
-                    try {
-                        const s3Url = `https://${env.AUDIO_R2_ACCOUNT_ID}.r2.cloudflarestorage.com/${env.AUDIO_R2_BUCKET}/${encodeURIComponent(key)}`;
-                        const s3Res = await audioS3.fetch(s3Url, {
-                            method: 'PUT',
-                            headers: { 'Content-Type': resolvedType },
-                            body: bytes
-                        });
-                        if (s3Res.ok) {
-                            return new Response(JSON.stringify({
-                                success: true,
-                                url: `/uploads/${key}`,
-                                key: key,
-                                cloud: 'audio'
-                            }), { headers });
-                        }
-                    } catch (s3Err) {
-                        console.warn('Direct upload to Audio Cloud failed, falling back:', s3Err);
-                    }
-                }
-                const isVideo = resolvedType && (resolvedType.startsWith('video/') || /\.(mp4|webm|mov|mkv)$/i.test(filename));
-                const videosS3 = getVideosS3Client(env);
-                if (isVideo && videosS3 && env.VIDEOS_R2_ACCOUNT_ID && env.VIDEOS_R2_BUCKET) {
-                    try {
-                        const s3Url = `https://${env.VIDEOS_R2_ACCOUNT_ID}.r2.cloudflarestorage.com/${env.VIDEOS_R2_BUCKET}/${encodeURIComponent(key)}`;
-                        const s3Res = await videosS3.fetch(s3Url, {
-                            method: 'PUT',
-                            headers: { 'Content-Type': resolvedType },
-                            body: bytes
-                        });
-                        if (s3Res.ok) {
-                            return new Response(JSON.stringify({
-                                success: true,
-                                url: `/uploads/${key}`,
-                                key: key,
-                                cloud: 'videos'
-                            }), { headers });
-                        }
-                    } catch (s3Err) {
-                        console.warn('Direct upload to Videos Cloud failed, falling back:', s3Err);
-                    }
-                }
-                const isPhoto = !isAudio && !resolvedType.startsWith('video/');
+                const isPhoto = !isAudio && !isVideo;
                 const photosS3 = getPhotosS3Client(env);
                 if (isPhoto && photosS3 && env.PHOTOS_R2_ACCOUNT_ID && env.PHOTOS_R2_BUCKET) {
                     try {
@@ -2917,7 +2876,6 @@ ${urls.map(u => `  <url>
                         console.warn('Photos Cloud init failed, fallback to main R2:', s3Err);
                     }
                 }
-
                 // Default: Create multipart upload in primary R2
                 const upload = await env.R2.createMultipartUpload(key, {
                     httpMetadata: { contentType: resolvedType }
@@ -3041,15 +2999,16 @@ ${urls.map(u => `  <url>
 
                 // Sort parts by part number to be safe (R2 requires ordered parts)
                 const sortedParts = [...parts].sort((a, b) => a.partNumber - b.partNumber);
+                const xmlParts = sortedParts.map(p => `<Part><PartNumber>${p.partNumber}</PartNumber><ETag>${p.etag.replace(/"/g, '')}</ETag></Part>`).join('');
+                const completeXml = `<CompleteMultipartUpload>${xmlParts}</CompleteMultipartUpload>`;
 
-                const isPhotoKey = !key.startsWith('SONS/') && !key.startsWith('VIDEOS/');
-                const photosS3 = getPhotosS3Client(env);
-                if (isPhotoKey && photosS3 && env.PHOTOS_R2_ACCOUNT_ID && env.PHOTOS_R2_BUCKET) {
+                // If key is audio
+                const isAudioKey = key.startsWith('SONS/') || /\.(mp3|wav|m4a|aac|flac|ogg|oga|weba|webm)$/i.test(key);
+                const audioS3 = getAudioS3Client(env);
+                if (isAudioKey && audioS3 && env.AUDIO_R2_ACCOUNT_ID && env.AUDIO_R2_BUCKET) {
                     try {
-                        const xmlParts = sortedParts.map(p => `<Part><PartNumber>${p.partNumber}</PartNumber><ETag>${p.etag.replace(/"/g, '')}</ETag></Part>`).join('');
-                        const completeXml = `<CompleteMultipartUpload>${xmlParts}</CompleteMultipartUpload>`;
-                        const s3Url = `https://${env.PHOTOS_R2_ACCOUNT_ID}.r2.cloudflarestorage.com/${env.PHOTOS_R2_BUCKET}/${encodeURIComponent(key)}?uploadId=${encodeURIComponent(uploadId)}`;
-                        const completeRes = await photosS3.fetch(s3Url, {
+                        const s3Url = `https://${env.AUDIO_R2_ACCOUNT_ID}.r2.cloudflarestorage.com/${env.AUDIO_R2_BUCKET}/${encodeURIComponent(key)}?uploadId=${encodeURIComponent(uploadId)}`;
+                        const completeRes = await audioS3.fetch(s3Url, {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/xml' },
                             body: completeXml
@@ -3059,20 +3018,43 @@ ${urls.map(u => `  <url>
                                 success: true,
                                 url: `/uploads/${key}`,
                                 key: key,
-                                cloud: 'photos'
+                                cloud: 'audio'
                             }), { headers });
                         }
                     } catch (s3Err) {
-                        console.warn('Photos Cloud complete error, falling back:', s3Err);
+                        console.warn('Audio Cloud complete error, falling back:', s3Err);
                     }
                 }
 
-                const isPhotoKey = !key.startsWith('SONS/') && !key.startsWith('VIDEOS/');
+                // If key is video
+                const isVideoKey = key.startsWith('VIDEOS/') || /\.(mp4|webm|mov|mkv)$/i.test(key);
+                const videosS3 = getVideosS3Client(env);
+                if (isVideoKey && videosS3 && env.VIDEOS_R2_ACCOUNT_ID && env.VIDEOS_R2_BUCKET) {
+                    try {
+                        const s3Url = `https://${env.VIDEOS_R2_ACCOUNT_ID}.r2.cloudflarestorage.com/${env.VIDEOS_R2_BUCKET}/${encodeURIComponent(key)}?uploadId=${encodeURIComponent(uploadId)}`;
+                        const completeRes = await videosS3.fetch(s3Url, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/xml' },
+                            body: completeXml
+                        });
+                        if (completeRes.ok) {
+                            return new Response(JSON.stringify({
+                                success: true,
+                                url: `/uploads/${key}`,
+                                key: key,
+                                cloud: 'videos'
+                            }), { headers });
+                        }
+                    } catch (s3Err) {
+                        console.warn('Videos Cloud complete error, falling back:', s3Err);
+                    }
+                }
+
+                // If key is photo
+                const isPhotoKey = !isAudioKey && !isVideoKey;
                 const photosS3 = getPhotosS3Client(env);
                 if (isPhotoKey && photosS3 && env.PHOTOS_R2_ACCOUNT_ID && env.PHOTOS_R2_BUCKET) {
                     try {
-                        const xmlParts = sortedParts.map(p => `<Part><PartNumber>${p.partNumber}</PartNumber><ETag>${p.etag.replace(/"/g, '')}</ETag></Part>`).join('');
-                        const completeXml = `<CompleteMultipartUpload>${xmlParts}</CompleteMultipartUpload>`;
                         const s3Url = `https://${env.PHOTOS_R2_ACCOUNT_ID}.r2.cloudflarestorage.com/${env.PHOTOS_R2_BUCKET}/${encodeURIComponent(key)}?uploadId=${encodeURIComponent(uploadId)}`;
                         const completeRes = await photosS3.fetch(s3Url, {
                             method: 'POST',
@@ -3159,13 +3141,14 @@ ${urls.map(u => `  <url>
 
                 const resolvedType = resolveMime(filename, type);
                 const isAudio = resolvedType.startsWith('audio/') || /\.(mp3|wav|m4a|aac|flac|ogg|oga|weba|webm)$/i.test(filename);
+                const isVideo = resolvedType.startsWith('video/') || /\.(mp4|webm|mov|mkv)$/i.test(filename);
 
                 // Security: restrict folder access for non-admin users
                 const isAdmin = authenticated;
                 if (!isAdmin) {
                     const allowedFolders = ['membre', 'SONS', 'VIDEOS', 'uploads'];
-                    const targetFolder = subFolder || (isAudio ? 'SONS' : (resolvedType && resolvedType.startsWith('video/') ? 'VIDEOS' : 'uploads'));
-                    if (!allowedFolders.includes(targetFolder)) {
+                    const checkFolder = subFolder || (isAudio ? 'SONS' : (isVideo ? 'VIDEOS' : 'uploads'));
+                    if (!allowedFolders.includes(checkFolder)) {
                         return new Response(JSON.stringify({ error: 'Accès non autorisé : dossier de destination restreint aux administrateurs' }), { status: 401, headers });
                     }
                 }
@@ -3183,13 +3166,60 @@ ${urls.map(u => `  <url>
                 let targetFolder = subFolder;
                 if (!targetFolder) {
                     if (isAudio) targetFolder = 'SONS';
-                    else if (resolvedType && resolvedType.startsWith('video/')) targetFolder = 'VIDEOS';
+                    else if (isVideo) targetFolder = 'VIDEOS';
                     else targetFolder = 'uploads';
                 }
                 
                 const key = `${targetFolder}/${hashHex}-${cleanName}.${extension}`;
 
-                const isPhoto = !isAudio && !resolvedType.startsWith('video/');
+                // 1. Audio Cloud
+                const audioS3 = getAudioS3Client(env);
+                if (isAudio && audioS3 && env.AUDIO_R2_ACCOUNT_ID && env.AUDIO_R2_BUCKET) {
+                    try {
+                        const s3Url = `https://${env.AUDIO_R2_ACCOUNT_ID}.r2.cloudflarestorage.com/${env.AUDIO_R2_BUCKET}/${encodeURIComponent(key)}`;
+                        const s3Res = await audioS3.fetch(s3Url, {
+                            method: 'PUT',
+                            headers: { 'Content-Type': resolvedType },
+                            body: bytes
+                        });
+                        if (s3Res.ok) {
+                            return new Response(JSON.stringify({
+                                success: true,
+                                url: `/uploads/${key}`,
+                                key: key,
+                                cloud: 'audio'
+                            }), { headers });
+                        }
+                    } catch (s3Err) {
+                        console.warn('Direct upload to Audio Cloud failed, falling back:', s3Err);
+                    }
+                }
+
+                // 2. Videos Cloud
+                const videosS3 = getVideosS3Client(env);
+                if (isVideo && videosS3 && env.VIDEOS_R2_ACCOUNT_ID && env.VIDEOS_R2_BUCKET) {
+                    try {
+                        const s3Url = `https://${env.VIDEOS_R2_ACCOUNT_ID}.r2.cloudflarestorage.com/${env.VIDEOS_R2_BUCKET}/${encodeURIComponent(key)}`;
+                        const s3Res = await videosS3.fetch(s3Url, {
+                            method: 'PUT',
+                            headers: { 'Content-Type': resolvedType },
+                            body: bytes
+                        });
+                        if (s3Res.ok) {
+                            return new Response(JSON.stringify({
+                                success: true,
+                                url: `/uploads/${key}`,
+                                key: key,
+                                cloud: 'videos'
+                            }), { headers });
+                        }
+                    } catch (s3Err) {
+                        console.warn('Direct upload to Videos Cloud failed, falling back:', s3Err);
+                    }
+                }
+
+                // 3. Photos Cloud
+                const isPhoto = !isAudio && !isVideo;
                 const photosS3 = getPhotosS3Client(env);
                 if (isPhoto && photosS3 && env.PHOTOS_R2_ACCOUNT_ID && env.PHOTOS_R2_BUCKET) {
                     try {
@@ -3212,12 +3242,26 @@ ${urls.map(u => `  <url>
                     }
                 }
 
-                const isPhoto = !isAudio && !resolvedType.startsWith('video/');
-                const photosS3 = getPhotosS3Client(env);
-                if (isPhoto && photosS3 && env.PHOTOS_R2_ACCOUNT_ID && env.PHOTOS_R2_BUCKET) {
-                    try {
-                        const s3Url = `https://${env.PHOTOS_R2_ACCOUNT_ID}.r2.cloudflarestorage.com/${env.PHOTOS_R2_BUCKET}/${encodeURIComponent(key)}`;
-                        const s3Res = await photosS3.fetch(s3Url, {
+                // 4. Primary R2 Bucket
+                try {
+                    await env.R2.put(key, bytes, {
+                        httpMetadata: { contentType: resolvedType }
+                    });
+
+                    return new Response(JSON.stringify({
+                        success: true,
+                        url: `/uploads/${key}`,
+                        key: key,
+                        cloud: 'primary'
+                    }), { headers });
+                } catch (putErr) {
+                    console.warn('Primary R2 put failed, attempting Secours / Backup Cloud:', putErr);
+                    
+                    // 5. Secours / Backup Cloud Fallback
+                    const backupS3 = getBackupS3Client(env);
+                    if (backupS3 && env.BACKUP_R2_ACCOUNT_ID && env.BACKUP_R2_BUCKET) {
+                        const s3Url = `https://${env.BACKUP_R2_ACCOUNT_ID}.r2.cloudflarestorage.com/${env.BACKUP_R2_BUCKET}/${encodeURIComponent(key)}`;
+                        const s3Res = await backupS3.fetch(s3Url, {
                             method: 'PUT',
                             headers: { 'Content-Type': resolvedType },
                             body: bytes
@@ -3227,26 +3271,12 @@ ${urls.map(u => `  <url>
                                 success: true,
                                 url: `/uploads/${key}`,
                                 key: key,
-                                cloud: 'photos'
+                                cloud: 'backup'
                             }), { headers });
                         }
-                    } catch (s3Err) {
-                        console.warn('Direct upload to Photos Cloud failed, falling back:', s3Err);
                     }
+                    throw putErr;
                 }
-
-                await env.R2.put(key, bytes, {
-                    httpMetadata: { contentType: resolvedType }
-                });
-
-                // URL is the R2 key served via /uploads/ proxy route
-                // The key already includes the folder (e.g. SONS/hash-name.mp3)
-                // so the correct public URL is /uploads/<key>, not /<key>
-                return new Response(JSON.stringify({
-                    success: true,
-                    url: `/uploads/${key}`,
-                    key: key
-                }), { headers });
             } catch (e: any) {
                 console.error('Upload error:', e);
                 return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
