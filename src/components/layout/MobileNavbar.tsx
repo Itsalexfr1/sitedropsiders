@@ -112,7 +112,7 @@ export function MobileNavbar() {
         <>
             {/* Bottom Bar */}
             <div
-                className="lg:hidden fixed bottom-0 left-0 right-0 z-[99999] w-full bg-black border-t border-white/10 flex items-center justify-around px-2 pt-3 pb-safe"
+                className={`lg:hidden fixed bottom-0 left-0 right-0 z-[99999] w-full bg-black border-t border-white/10 flex items-center justify-around px-2 pt-3 pb-safe ${isMenuOpen ? "pointer-events-none opacity-0" : ""}`}
             >
                 {mainItems.map((item) => {
                     const isActive = location.pathname === item.path;
@@ -174,7 +174,7 @@ export function MobileNavbar() {
             {/* Expanded Menu Modal */}
             <AnimatePresence>
                 {isMenuOpen && (
-                    <div className="fixed inset-0 z-[120] lg:hidden">
+                    <div className="fixed inset-0 z-[100000] lg:hidden">
 
                         <motion.div
                             initial={{ opacity: 0 }}
@@ -188,7 +188,7 @@ export function MobileNavbar() {
                             animate={{ y: 0 }}
                             exit={{ y: "100%" }}
                             transition={{ type: "spring", damping: 25, stiffness: 200 }}
-                            className="absolute bottom-0 left-0 right-0 bg-[#0f0f0f] border-t border-white/10 rounded-t-[2.5rem] p-8 pb-12 shadow-2xl"
+                            className="absolute bottom-0 left-0 right-0 bg-[#0f0f0f] border-t border-white/10 rounded-t-[2.5rem] p-6 sm:p-8 pb-14 shadow-2xl max-h-[85vh] overflow-y-auto overscroll-contain"
                         >
                             <div className="w-12 h-1.5 bg-white/10 rounded-full mx-auto mb-8" />
 

@@ -11,12 +11,12 @@ export function StatsMenuModal({ isOpen, onClose }: StatsMenuModalProps) {
     return (
         <AnimatePresence>
             {isOpen && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/90 backdrop-blur-xl">
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-6 bg-black/90 backdrop-blur-xl overflow-y-auto">
                     <motion.div
                         initial={{ opacity: 0, scale: 0.9, y: 20 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                        className="bg-dark-bg border border-white/10 rounded-[3rem] p-10 max-w-xl w-full shadow-2xl relative overflow-hidden"
+                        className="bg-dark-bg border border-white/10 rounded-[2rem] sm:rounded-[3rem] p-6 sm:p-10 max-w-xl w-full shadow-2xl relative my-auto max-h-[92vh] flex flex-col overflow-y-auto"
                     >
                         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-neon-cyan via-white to-neon-cyan" />
 

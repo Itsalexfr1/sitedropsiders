@@ -764,53 +764,53 @@ export function AdminManage() {
                             <select
                                 value={sortBy}
                                 onChange={(e) => setSortBy(e.target.value as any)}
-                                className="bg-transparent border-none text-xs font-bold text-white focus:ring-0 cursor-pointer uppercase tracking-widest"
+                                className="bg-black/60 border border-white/10 rounded-xl px-3 py-2 text-xs font-bold text-white focus:border-neon-red outline-none cursor-pointer uppercase tracking-widest min-h-[38px]"
                             >
                                 {/* Options communes à tous les onglets */}
-                                <option className="bg-dark-bg" value="manual">Ordre Manuel</option>
-                                <option className="bg-dark-bg" value="title">Nom / Titre</option>
+                                <option className="bg-[#141414] text-white" value="manual">Ordre Manuel</option>
+                                <option className="bg-[#141414] text-white" value="title">Nom / Titre</option>
 
                                 {/* News, Musique, Interviews, Focus, Brouillons */}
                                 {(activeTab === 'News' || activeTab === 'Musique' || activeTab === 'Interviews' || activeTab === 'Focus' || activeTab === 'Brouillons') && (
                                     <>
-                                        <option className="bg-dark-bg" value="date">Date de publication</option>
-                                        <option className="bg-dark-bg" value="pubDate">ID / Plus récent</option>
+                                        <option className="bg-[#141414] text-white" value="date">Date de publication</option>
+                                        <option className="bg-[#141414] text-white" value="pubDate">ID / Plus récent</option>
                                     </>
                                 )}
 
                                 {/* Recaps */}
                                 {activeTab === 'Recaps' && (
                                     <>
-                                        <option className="bg-dark-bg" value="date">Date de l&apos;événement</option>
-                                        <option className="bg-dark-bg" value="year">Année</option>
-                                        <option className="bg-dark-bg" value="location">Lieu</option>
-                                        <option className="bg-dark-bg" value="country">Pays</option>
-                                        <option className="bg-dark-bg" value="pubDate">Date de publication</option>
+                                        <option className="bg-[#141414] text-white" value="date">Date de l&apos;événement</option>
+                                        <option className="bg-[#141414] text-white" value="year">Année</option>
+                                        <option className="bg-[#141414] text-white" value="location">Lieu</option>
+                                        <option className="bg-[#141414] text-white" value="country">Pays</option>
+                                        <option className="bg-[#141414] text-white" value="pubDate">Date de publication</option>
                                     </>
                                 )}
 
                                 {/* Agenda */}
                                 {activeTab === 'Agenda' && (
                                     <>
-                                        <option className="bg-dark-bg" value="date">Date de l&apos;événement</option>
-                                        <option className="bg-dark-bg" value="year">Année</option>
-                                        <option className="bg-dark-bg" value="location">Lieu</option>
-                                        <option className="bg-dark-bg" value="country">Pays</option>
+                                        <option className="bg-[#141414] text-white" value="date">Date de l&apos;événement</option>
+                                        <option className="bg-[#141414] text-white" value="year">Année</option>
+                                        <option className="bg-[#141414] text-white" value="location">Lieu</option>
+                                        <option className="bg-[#141414] text-white" value="country">Pays</option>
                                     </>
                                 )}
 
                                 {/* Communauté (Galerie) */}
                                 {activeTab === 'Communauté' && (
                                     <>
-                                        <option className="bg-dark-bg" value="date">Date</option>
-                                        <option className="bg-dark-bg" value="pubDate">Plus récent (ID)</option>
+                                        <option className="bg-[#141414] text-white" value="date">Date</option>
+                                        <option className="bg-[#141414] text-white" value="pubDate">Plus récent (ID)</option>
                                     </>
                                 )}
 
                                 {/* Membres */}
                                 {activeTab === 'Membres' && (
                                     <>
-                                        <option className="bg-dark-bg" value="date">Dernière connexion</option>
+                                        <option className="bg-[#141414] text-white" value="date">Dernière connexion</option>
                                     </>
                                 )}
                             </select>

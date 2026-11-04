@@ -3152,7 +3152,7 @@ ${generateSocialsHtml()}
                                                                     if (suggestion.country) setCountry(suggestion.country);
                                                                     setShowSuggestions(false);
                                                                 }}
-                                                                className="w-full px-4 py-3 text-left hover:bg-white/5 transition-colors border-b border-white/5 last:border-0 flex justify-between items-center group"
+                                                                onMouseDown={(e) => e.preventDefault()} className="w-full px-4 py-3 text-left hover:bg-white/5 transition-colors border-b border-white/5 last:border-0 flex justify-between items-center group cursor-pointer"
                                                             >
                                                                 <span className="text-white font-medium group-hover:text-neon-cyan transition-colors">{suggestion.city}</span>
                                                                 {suggestion.country && <span className="text-xs text-gray-500 uppercase italic">{suggestion.country}</span>}
@@ -3584,7 +3584,7 @@ ${generateSocialsHtml()}
                                                         .map((artist, idx) => (
                                                             <div
                                                                 key={idx}
-                                                                className="flex items-center justify-between group/item px-3 py-2.5 hover:bg-white/5 transition-colors border-b border-white/5 last:border-0 cursor-pointer"
+                                                                onMouseDown={(e) => e.preventDefault()} className="flex items-center justify-between group/item px-3 py-2.5 hover:bg-white/5 transition-colors border-b border-white/5 last:border-0 cursor-pointer"
                                                                 onClick={() => {
                                                                     setArtistNameLabel(artist.name);
                                                                     setArtistSocials(artist.socials);

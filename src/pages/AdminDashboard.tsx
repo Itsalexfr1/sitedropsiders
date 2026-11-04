@@ -5719,12 +5719,12 @@ export function AdminDashboard() {
           {/* Modal Message & Newsletter */}
           <AnimatePresence>
             {isMessagesNewsletterModalOpen && (
-              <div className="fixed inset-0 z-[200] flex items-center justify-center p-6 bg-black/95 backdrop-blur-xl">
+              <div className="fixed inset-0 z-[200] flex items-center justify-center p-3 sm:p-6 bg-black/95 backdrop-blur-xl overflow-y-auto">
                 <motion.div
                   initial={{ opacity: 0, scale: 0.9, y: 20 }}
                   animate={{ opacity: 1, scale: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                  className="bg-[#0a0a0a] border border-white/10 rounded-[3rem] p-10 max-w-4xl w-full shadow-2xl relative overflow-hidden"
+                  className="bg-[#0a0a0a] border border-white/10 rounded-[2rem] sm:rounded-[3rem] p-6 sm:p-10 max-w-4xl w-full shadow-2xl relative my-auto max-h-[92vh] flex flex-col overflow-y-auto"
                 >
                   <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-neon-orange via-white to-neon-orange" />
                   <div className="flex justify-between items-start mb-12">
@@ -5792,12 +5792,12 @@ export function AdminDashboard() {
           {/* Modal GENERATEURS */}
           <AnimatePresence>
             {isGeneratorsModalOpen && (
-              <div className="fixed inset-0 z-[200] flex items-center justify-center p-6 bg-black/95 backdrop-blur-xl">
+              <div className="fixed inset-0 z-[200] flex items-center justify-center p-3 sm:p-6 bg-black/95 backdrop-blur-xl overflow-y-auto">
                 <motion.div
                   initial={{ opacity: 0, scale: 0.9, y: 20 }}
                   animate={{ opacity: 1, scale: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                  className="bg-[#0a0a0a] border border-white/10 rounded-[3rem] p-10 max-w-5xl w-full shadow-2xl relative overflow-hidden"
+                  className="bg-[#0a0a0a] border border-white/10 rounded-[2rem] sm:rounded-[3rem] p-6 sm:p-10 max-w-5xl w-full shadow-2xl relative my-auto max-h-[92vh] flex flex-col overflow-y-auto"
                 >
                   <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-neon-purple via-white to-neon-purple" />
                   <div className="flex justify-between items-start mb-6 md:mb-12">
@@ -6308,12 +6308,12 @@ export function AdminDashboard() {
           {/* Modal Choix Interview */}
           <AnimatePresence>
             {isInterviewModalOpen && (
-              <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/95 backdrop-blur-xl">
+              <div className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-6 bg-black/95 backdrop-blur-xl overflow-y-auto">
                 <motion.div
                   initial={{ opacity: 0, scale: 0.9, y: 20 }}
                   animate={{ opacity: 1, scale: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                  className="bg-dark-bg border border-white/10 rounded-[3rem] p-10 max-w-2xl w-full shadow-2xl relative overflow-hidden"
+                  className="bg-dark-bg border border-white/10 rounded-[2rem] sm:rounded-[3rem] p-6 sm:p-10 max-w-2xl w-full shadow-2xl relative my-auto max-h-[92vh] flex flex-col overflow-y-auto"
                 >
                   <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-right from-neon-purple via-neon-red to-neon-orange" />
 
@@ -6535,12 +6535,12 @@ export function AdminDashboard() {
           {/* Modal News */}
           <AnimatePresence>
             {isNewsModalOpen && (
-              <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/95 backdrop-blur-xl">
+              <div className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-6 bg-black/95 backdrop-blur-xl overflow-y-auto">
                 <motion.div
                   initial={{ opacity: 0, scale: 0.9, y: 20 }}
                   animate={{ opacity: 1, scale: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                  className="bg-dark-bg border border-white/10 rounded-[3rem] p-10 max-w-2xl w-full shadow-2xl relative overflow-hidden"
+                  className="bg-dark-bg border border-white/10 rounded-[2rem] sm:rounded-[3rem] p-6 sm:p-10 max-w-2xl w-full shadow-2xl relative my-auto max-h-[92vh] flex flex-col overflow-y-auto"
                 >
                   <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-neon-blue via-neon-cyan to-neon-blue" />
 
@@ -6685,12 +6685,12 @@ export function AdminDashboard() {
           {/* Modal Social Studio */}
           <AnimatePresence>
             {isSocialModalOpen && (
-              <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/90 backdrop-blur-xl">
+              <div className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-6 bg-black/90 backdrop-blur-xl overflow-y-auto">
                 <motion.div
                   initial={{ opacity: 0, scale: 0.9, y: 20 }}
                   animate={{ opacity: 1, scale: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                  className="bg-dark-bg border border-white/10 rounded-[3rem] p-10 max-w-2xl w-full shadow-2xl relative overflow-hidden"
+                  className="bg-dark-bg border border-white/10 rounded-[2rem] sm:rounded-[3rem] p-6 sm:p-10 max-w-2xl w-full shadow-2xl relative my-auto max-h-[92vh] flex flex-col overflow-y-auto"
                 >
                   <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-neon-red via-[#ee2a7b] to-[#f9ce34]" />
 
@@ -6858,12 +6858,12 @@ export function AdminDashboard() {
           {/* Modal RADIO & TV */}
           <AnimatePresence>
             {isRadioTvModalOpen && (
-              <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/95 backdrop-blur-xl">
+              <div className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-6 bg-black/95 backdrop-blur-xl overflow-y-auto">
                 <motion.div
                   initial={{ opacity: 0, scale: 0.9, y: 20 }}
                   animate={{ opacity: 1, scale: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                  className="bg-dark-bg border border-white/10 rounded-[3rem] p-8 md:p-10 max-w-3xl w-full shadow-2xl relative overflow-hidden"
+                  className="bg-dark-bg border border-white/10 rounded-[2rem] sm:rounded-[3rem] p-6 sm:p-10 max-w-3xl w-full shadow-2xl relative my-auto max-h-[92vh] flex flex-col overflow-y-auto"
                 >
                   <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-neon-red via-neon-purple to-neon-cyan" />
 
@@ -6970,12 +6970,12 @@ export function AdminDashboard() {
           {/* Modal Agenda */}
           <AnimatePresence>
             {isAgendaModalOpen && (
-              <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/95 backdrop-blur-xl">
+              <div className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-6 bg-black/95 backdrop-blur-xl overflow-y-auto">
                 <motion.div
                   initial={{ opacity: 0, scale: 0.9, y: 20 }}
                   animate={{ opacity: 1, scale: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                  className="bg-dark-bg border border-white/10 rounded-[3rem] p-10 max-w-lg w-full shadow-2xl relative overflow-hidden"
+                  className="bg-dark-bg border border-white/10 rounded-[2rem] sm:rounded-[3rem] p-6 sm:p-10 max-w-lg w-full shadow-2xl relative my-auto max-h-[92vh] flex flex-col overflow-y-auto"
                 >
                   <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-neon-yellow via-neon-orange to-neon-yellow" />
 
@@ -7074,12 +7074,12 @@ export function AdminDashboard() {
           {/* Modal Communauté */}
           <AnimatePresence>
             {isGalerieModalOpen && (
-              <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/95 backdrop-blur-xl">
+              <div className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-6 bg-black/95 backdrop-blur-xl overflow-y-auto">
                 <motion.div
                   initial={{ opacity: 0, scale: 0.9, y: 20 }}
                   animate={{ opacity: 1, scale: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                  className="bg-dark-bg border border-white/10 rounded-[3rem] p-10 max-w-lg w-full shadow-2xl relative overflow-hidden"
+                  className="bg-dark-bg border border-white/10 rounded-[2rem] sm:rounded-[3rem] p-6 sm:p-10 max-w-lg w-full shadow-2xl relative my-auto max-h-[92vh] flex flex-col overflow-y-auto"
                 >
                   <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-neon-red via-neon-purple to-neon-red" />
 
@@ -7148,12 +7148,12 @@ export function AdminDashboard() {
           {/* Modal Musique */}
           <AnimatePresence>
             {isMusiqueModalOpen && (
-              <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/90 backdrop-blur-xl">
+              <div className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-6 bg-black/90 backdrop-blur-xl overflow-y-auto">
                 <motion.div
                   initial={{ opacity: 0, scale: 0.9, y: 20 }}
                   animate={{ opacity: 1, scale: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                  className="bg-dark-bg border border-white/10 rounded-[3rem] p-10 max-w-2xl w-full shadow-2xl relative overflow-hidden"
+                  className="bg-dark-bg border border-white/10 rounded-[2rem] sm:rounded-[3rem] p-6 sm:p-10 max-w-2xl w-full shadow-2xl relative my-auto max-h-[92vh] flex flex-col overflow-y-auto"
                 >
                   <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-neon-green via-white to-neon-green" />
 
@@ -7227,12 +7227,12 @@ export function AdminDashboard() {
           {/* Modal Récaps */}
           <AnimatePresence>
             {isRecapModalOpen && (
-              <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/90 backdrop-blur-xl">
+              <div className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-6 bg-black/90 backdrop-blur-xl overflow-y-auto">
                 <motion.div
                   initial={{ opacity: 0, scale: 0.9, y: 20 }}
                   animate={{ opacity: 1, scale: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                  className="bg-dark-bg border border-white/10 rounded-[3rem] p-10 max-w-2xl w-full shadow-2xl relative overflow-hidden"
+                  className="bg-dark-bg border border-white/10 rounded-[2rem] sm:rounded-[3rem] p-6 sm:p-10 max-w-2xl w-full shadow-2xl relative my-auto max-h-[92vh] flex flex-col overflow-y-auto"
                 >
                   <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-neon-red via-white to-neon-red" />
 
@@ -7319,12 +7319,12 @@ export function AdminDashboard() {
           {/* Modal Accueil */}
           <AnimatePresence>
             {isAccueilModalOpen && (
-              <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/90 backdrop-blur-xl">
+              <div className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-6 bg-black/90 backdrop-blur-xl overflow-y-auto">
                 <motion.div
                   initial={{ opacity: 0, scale: 0.9, y: 20 }}
                   animate={{ opacity: 1, scale: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                  className="bg-dark-bg border border-white/10 rounded-[3rem] p-10 max-w-xl w-full shadow-2xl relative overflow-hidden"
+                  className="bg-dark-bg border border-white/10 rounded-[2rem] sm:rounded-[3rem] p-6 sm:p-10 max-w-xl w-full shadow-2xl relative my-auto max-h-[92vh] flex flex-col overflow-y-auto"
                 >
                   <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-neon-blue via-white to-neon-blue" />
 
@@ -7889,12 +7889,12 @@ export function AdminDashboard() {
           {/* Modal Thèmes/Labels */}
           <AnimatePresence>
             {isThemesModalOpen && (
-              <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/90 backdrop-blur-xl">
+              <div className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-6 bg-black/90 backdrop-blur-xl overflow-y-auto">
                 <motion.div
                   initial={{ opacity: 0, scale: 0.9, y: 20 }}
                   animate={{ opacity: 1, scale: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                  className="bg-dark-bg border border-white/10 rounded-[3rem] p-10 max-w-xl w-full shadow-2xl relative overflow-hidden"
+                  className="bg-dark-bg border border-white/10 rounded-[2rem] sm:rounded-[3rem] p-6 sm:p-10 max-w-xl w-full shadow-2xl relative my-auto max-h-[92vh] flex flex-col overflow-y-auto"
                 >
                   <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-neon-purple via-white to-neon-purple" />
 
@@ -8045,12 +8045,12 @@ export function AdminDashboard() {
           {/* Modal Spotify */}
           <AnimatePresence>
             {isSpotifyModalOpen && (
-              <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/90 backdrop-blur-xl">
+              <div className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-6 bg-black/90 backdrop-blur-xl overflow-y-auto">
                 <motion.div
                   initial={{ opacity: 0, scale: 0.9, y: 20 }}
                   animate={{ opacity: 1, scale: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                  className="bg-dark-bg border border-white/10 rounded-[3rem] p-10 max-w-xl w-full shadow-2xl relative overflow-hidden"
+                  className="bg-dark-bg border border-white/10 rounded-[2rem] sm:rounded-[3rem] p-6 sm:p-10 max-w-xl w-full shadow-2xl relative my-auto max-h-[92vh] flex flex-col overflow-y-auto"
                 >
                   <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-neon-green via-white to-neon-green" />
 
@@ -8098,12 +8098,12 @@ export function AdminDashboard() {
           {/* Modal Newsletter */}
           <AnimatePresence>
             {isNewsletterModalOpen && (
-              <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/90 backdrop-blur-xl">
+              <div className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-6 bg-black/90 backdrop-blur-xl overflow-y-auto">
                 <motion.div
                   initial={{ opacity: 0, scale: 0.9, y: 20 }}
                   animate={{ opacity: 1, scale: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                  className="bg-dark-bg border border-white/10 rounded-[3rem] p-10 max-w-xl w-full shadow-2xl relative overflow-hidden"
+                  className="bg-dark-bg border border-white/10 rounded-[2rem] sm:rounded-[3rem] p-6 sm:p-10 max-w-xl w-full shadow-2xl relative my-auto max-h-[92vh] flex flex-col overflow-y-auto"
                 >
                   <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-green-400 via-white to-green-400" />
 
@@ -8331,12 +8331,12 @@ export function AdminDashboard() {
           {/* Modal Contenu (À‰ditorial) */}
           <AnimatePresence>
             {isContenuModalOpen && (
-              <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/95 backdrop-blur-xl">
+              <div className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-6 bg-black/95 backdrop-blur-xl overflow-y-auto">
                 <motion.div
                   initial={{ opacity: 0, scale: 0.9, y: 20 }}
                   animate={{ opacity: 1, scale: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                  className="bg-dark-bg border border-white/10 rounded-[3rem] p-8 md:p-10 max-w-5xl w-full shadow-2xl relative overflow-hidden"
+                  className="bg-dark-bg border border-white/10 rounded-[2rem] sm:rounded-[3rem] p-6 sm:p-10 max-w-5xl w-full shadow-2xl relative my-auto max-h-[92vh] flex flex-col overflow-y-auto"
                 >
                   <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-neon-cyan via-white to-neon-cyan" />
 
@@ -8577,7 +8577,7 @@ export function AdminDashboard() {
           {/* Modal Extension Notifications */}
           <AnimatePresence>
             {isExtensionNotifModalOpen && (
-              <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/95 backdrop-blur-xl">
+              <div className="fixed inset-0 z-[110] flex items-center justify-center p-3 sm:p-6 bg-black/95 backdrop-blur-xl overflow-y-auto">
                 <motion.div
                   initial={{ opacity: 0, scale: 0.9, y: 20 }}
                   animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -8737,12 +8737,12 @@ export function AdminDashboard() {
           {/* Modal Communauté */}
           <AnimatePresence>
             {isCommunauteModalOpen && (
-              <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/95 backdrop-blur-xl">
+              <div className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-6 bg-black/95 backdrop-blur-xl overflow-y-auto">
                 <motion.div
                   initial={{ opacity: 0, scale: 0.9, y: 20 }}
                   animate={{ opacity: 1, scale: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                  className="bg-dark-bg border border-white/10 rounded-[3rem] p-10 max-w-4xl w-full shadow-2xl relative overflow-hidden"
+                  className="bg-dark-bg border border-white/10 rounded-[2rem] sm:rounded-[3rem] p-6 sm:p-10 max-w-4xl w-full shadow-2xl relative my-auto max-h-[92vh] flex flex-col overflow-y-auto"
                 >
                   <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-neon-red via-white to-neon-red" />
 
@@ -8885,12 +8885,12 @@ export function AdminDashboard() {
           {/* Modal Team */}
           <AnimatePresence>
             {isTeamModalOpen && (
-              <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/95 backdrop-blur-xl">
+              <div className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-6 bg-black/95 backdrop-blur-xl overflow-y-auto">
                 <motion.div
                   initial={{ opacity: 0, scale: 0.9, y: 20 }}
                   animate={{ opacity: 1, scale: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                  className="bg-dark-bg border border-white/10 rounded-[3rem] p-10 max-w-4xl w-full shadow-2xl relative overflow-hidden"
+                  className="bg-dark-bg border border-white/10 rounded-[2rem] sm:rounded-[3rem] p-6 sm:p-10 max-w-4xl w-full shadow-2xl relative my-auto max-h-[92vh] flex flex-col overflow-y-auto"
                 >
                   <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-neon-blue via-white to-neon-blue" />
 
@@ -8962,12 +8962,12 @@ export function AdminDashboard() {
           {/* Modal Mots de passe */}
           <AnimatePresence>
             {isSettingsModalOpen && (
-              <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/90 backdrop-blur-xl">
+              <div className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-6 bg-black/90 backdrop-blur-xl overflow-y-auto">
                 <motion.div
                   initial={{ opacity: 0, scale: 0.9, y: 20 }}
                   animate={{ opacity: 1, scale: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                  className="bg-dark-bg border border-white/10 rounded-[3rem] p-10 max-w-xl w-full shadow-2xl relative overflow-hidden"
+                  className="bg-dark-bg border border-white/10 rounded-[2rem] sm:rounded-[3rem] p-6 sm:p-10 max-w-xl w-full shadow-2xl relative my-auto max-h-[92vh] flex flex-col overflow-y-auto"
                 >
                   <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-neon-purple via-white to-neon-purple" />
 
@@ -9015,7 +9015,7 @@ export function AdminDashboard() {
           {/* Modal Live / Takeover removed, merged to TakeoverPage */}
           <AnimatePresence>
             {false && (
-              <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/95 backdrop-blur-2xl">
+              <div className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-6 bg-black/95 backdrop-blur-xl overflow-y-auto">
                 <motion.div
                   initial={{ opacity: 0, scale: 0.9, y: 20 }}
                   animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -10394,7 +10394,7 @@ export function AdminDashboard() {
           {/* Modal Notifications */}
           <AnimatePresence>
             {isNotificationModalOpen && (
-              <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/95 backdrop-blur-xl">
+              <div className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-6 bg-black/95 backdrop-blur-xl overflow-y-auto">
                 <motion.div
                   initial={{ opacity: 0, scale: 0.9, y: 20 }}
                   animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -11717,7 +11717,7 @@ export function AdminDashboard() {
           {/* MODAL TEST QUIZ */}
           <AnimatePresence>
             {isTestingModalOpen && testQuiz && (
-              <div className="fixed inset-0 z-[200] flex items-center justify-center p-6 bg-black/98 backdrop-blur-2xl">
+              <div className="fixed inset-0 z-[200] flex items-center justify-center p-3 sm:p-6 bg-black/98 backdrop-blur-xl overflow-y-auto">
                 <motion.div
                   initial={{ opacity: 0, scale: 0.9, y: 20 }}
                   animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -13053,7 +13053,7 @@ export function AdminDashboard() {
           {/* Residences photos management modal */}
           <AnimatePresence>
             {isResidencesModalOpen && (
-              <div className="fixed inset-0 z-[150] flex items-center justify-center p-6 bg-black/95 backdrop-blur-xl">
+              <div className="fixed inset-0 z-[150] flex items-center justify-center p-3 sm:p-6 bg-black/95 backdrop-blur-xl overflow-y-auto">
                 <motion.div
                   initial={{ opacity: 0, scale: 0.9, y: 20 }}
                   animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -13506,12 +13506,12 @@ export function AdminDashboard() {
           {/* Maintenance Modal */}
           <AnimatePresence>
             {isMaintenanceModalOpen && (
-              <div className="fixed inset-0 z-[200] flex items-center justify-center p-6 bg-black/95 backdrop-blur-xl">
+              <div className="fixed inset-0 z-[200] flex items-center justify-center p-3 sm:p-6 bg-black/95 backdrop-blur-xl overflow-y-auto">
                 <motion.div
                   initial={{ opacity: 0, scale: 0.9, y: 20 }}
                   animate={{ opacity: 1, scale: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                  className="bg-[#0a0a0a] border border-white/10 rounded-[3rem] p-10 max-w-2xl w-full shadow-2xl relative overflow-hidden"
+                  className="bg-[#0a0a0a] border border-white/10 rounded-[2rem] sm:rounded-[3rem] p-6 sm:p-10 max-w-2xl w-full shadow-2xl relative my-auto max-h-[92vh] flex flex-col overflow-y-auto"
                 >
                   <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-neon-yellow via-neon-orange to-neon-yellow" />
 

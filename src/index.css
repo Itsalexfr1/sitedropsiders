@@ -1045,6 +1045,21 @@ body {
     filter: none !important;
   }
 
+  /* Native select & dropdown mobile dark theme contrast */
+  select {
+    color-scheme: dark;
+  }
+
+  select option {
+    background-color: #141414 !important;
+    color: #ffffff !important;
+  }
+
+  select optgroup {
+    background-color: #141414 !important;
+    color: #888888 !important;
+  }
+
   /* Safari-safe touch optimizations */
   * {
     -webkit-tap-highlight-color: transparent;

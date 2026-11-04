@@ -1990,7 +1990,7 @@ export function RecapCreate() {
                                                             {festivalSuggestions.map((item, idx) => (
                                                                 <div
                                                                     key={idx}
-                                                                    className="flex items-center justify-between group/item px-4 py-2.5 hover:bg-white/5 transition-colors border-b border-white/5 last:border-0 cursor-pointer"
+                                                                    onMouseDown={(e) => e.preventDefault()} className="flex items-center justify-between group/item px-4 py-2.5 hover:bg-white/5 transition-colors border-b border-white/5 last:border-0 cursor-pointer"
                                                                     onClick={() => {
                                                                         setFestivalNameLabel(item.name);
                                                                         setFestivalSocials(prev => ({

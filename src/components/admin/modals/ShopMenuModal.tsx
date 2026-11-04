@@ -11,12 +11,12 @@ export function ShopMenuModal({ isOpen, onClose }: ShopMenuModalProps) {
     return (
         <AnimatePresence>
             {isOpen && (
-                <div className="fixed inset-0 z-[110] flex items-center justify-center p-6 bg-black/95 backdrop-blur-2xl">
+                <div className="fixed inset-0 z-[110] flex items-center justify-center p-3 sm:p-6 bg-black/95 backdrop-blur-2xl overflow-y-auto">
                     <motion.div
                         initial={{ opacity: 0, scale: 0.95, y: 30 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.95, y: 30 }}
-                        className="bg-[#050505] border border-white/10 rounded-[3rem] p-10 max-w-2xl w-full shadow-[0_0_100px_rgba(255,18,114,0.15)] relative overflow-hidden"
+                        className="bg-[#050505] border border-white/10 rounded-[2rem] sm:rounded-[3rem] p-6 sm:p-10 max-w-2xl w-full shadow-[0_0_100px_rgba(255,18,114,0.15)] relative my-auto max-h-[92vh] flex flex-col overflow-y-auto"
                     >
                         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-neon-red via-white to-neon-red" />
                         
