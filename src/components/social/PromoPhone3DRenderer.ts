@@ -850,8 +850,8 @@ function renderYoutubeScreen(
 
     // VRAIES VIDÉOS DROPSIDERS YOUTUBE (Disposition horizontale réaliste YouTube Mobile)
     const feedY = secY + 9 * s;
-    const rowH = 30 * s;
-    const rowGap = 3.5 * s;
+    const rowH = 34 * s;
+    const rowGap = 4 * s;
 
     const realYoutubeVideos = [
         {
@@ -895,16 +895,58 @@ function renderYoutubeScreen(
             titleLine2: 'Dropsiders !',
             sub: '35 vues • il y a 1 an',
             duration: '0:29'
+        },
+        {
+            thumb: '/images/social/yt_thumb_7.jpg',
+            titleLine1: 'Interview : Acraze',
+            titleLine2: '(Tomorrowland 2022)',
+            sub: '78 vues • il y a 4 ans',
+            duration: '6:43'
+        },
+        {
+            thumb: '/images/social/yt_thumb_8.jpg',
+            titleLine1: 'Aftermovie Tomorrowland',
+            titleLine2: 'by Dropsiders',
+            sub: '142 vues • il y a 4 ans',
+            duration: '1:43'
+        },
+        {
+            thumb: '/images/social/yt_thumb_9.jpg',
+            titleLine1: 'INTERVIEW : Fedde Legrand',
+            titleLine2: '(Saga Festival 2022)',
+            sub: '35 vues • il y a 4 ans',
+            duration: '3:24'
+        },
+        {
+            thumb: '/images/social/yt_thumb_10.jpg',
+            titleLine1: 'INTERVIEW : Yves V',
+            titleLine2: '(Tomorrowland Winter 2022)',
+            sub: '49 vues • il y a 4 ans',
+            duration: '2:37'
+        },
+        {
+            thumb: '/images/social/yt_thumb_11.jpg',
+            titleLine1: 'INTERVIEW : Topic',
+            titleLine2: '(Tomorrowland Winter 2022)',
+            sub: '30 vues • il y a 4 ans',
+            duration: '3:32'
+        },
+        {
+            thumb: '/images/social/yt_thumb_12.jpg',
+            titleLine1: 'INTERVIEW : Vintage Culture',
+            titleLine2: '(Tomorrowland Winter 2022)',
+            sub: '137 vues • il y a 4 ans',
+            duration: '3:32'
         }
     ];
 
     realYoutubeVideos.forEach((vid, idx) => {
         const vy = feedY + idx * (rowH + rowGap);
-        if (vy + rowH > h - 22 * s) return;
+        if (vy >= h - 22 * s) return;
 
         // Miniature 16:9 à gauche
-        const thumbW = 52 * s;
-        const thumbH = 28 * s;
+        const thumbW = 58 * s;
+        const thumbH = 32 * s;
         const thumbX = 10 * s;
 
         ctx.save();
@@ -943,14 +985,14 @@ function renderYoutubeScreen(
 
         ctx.textAlign = 'left';
         ctx.textBaseline = 'top';
-        ctx.font = `700 ${4.8 * s}px -apple-system, BlinkMacSystemFont, sans-serif`;
+        ctx.font = `700 ${5.2 * s}px -apple-system, BlinkMacSystemFont, sans-serif`;
         ctx.fillStyle = '#ffffff';
         ctx.fillText(vid.titleLine1, textX, vy + 1 * s);
-        ctx.fillText(vid.titleLine2, textX, vy + 6.8 * s);
+        ctx.fillText(vid.titleLine2, textX, vy + 7.2 * s);
 
         ctx.font = `500 ${4.5 * s}px -apple-system, BlinkMacSystemFont, sans-serif`;
         ctx.fillStyle = '#888888';
-        ctx.fillText(vid.sub, textX, vy + 15 * s);
+        ctx.fillText(vid.sub, textX, vy + 16 * s);
 
         // Menu 3 petits points verticaux à droite
         const menuX = w - 10 * s;
