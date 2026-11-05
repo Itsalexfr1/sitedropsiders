@@ -9589,6 +9589,13 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         setAnimReplayKey(k => k + 1);
     }, [editorialSlide, agendaSlide, artisteFestivalSlide, eventsSlide, isCarouselPromoActive, isEditorialAfficheActive, isEditorialTweetActive, theme]);
 
+    // En mode REEL, ARTISTE FESTIVAL est verrouillé sur la Slide 2 (Spotlight) car la Slide 1 Cover fait doublon avec le thème REELS
+    useEffect(() => {
+        if (activeTab === 'REEL' && theme === 'ARTISTE FESTIVAL' && artisteFestivalSlide !== 2) {
+            setArtisteFestivalSlide(2);
+        }
+    }, [activeTab, theme, artisteFestivalSlide]);
+
     // Pre-charger les pochettes des tracks du thème MUSIQUE (avec contournement CORS automatique sur mobile)
     useEffect(() => {
         musicTracks.forEach(t => {
@@ -10402,7 +10409,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             setIsEditorialAfficheActive(false);
             setIsEditorialTweetActive(false);
         } else {
-            setArtisteFestivalSlide(1);
+            setArtisteFestivalSlide(activeTab === 'REEL' ? 2 : 1);
             setEventsSlide(1);
             setIsCarouselPromoActive(false);
             setIsEditorialAfficheActive(false);
@@ -12206,6 +12213,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             animStartTimeRef.current = Date.now();
         }
         setTheme(newTheme);
+        if (newTheme === 'ARTISTE FESTIVAL' && activeTab === 'REEL') {
+            setArtisteFestivalSlide(2);
+        }
         setArticleLinkText(getAutoArticleLinkText(newTheme));
         if (newTheme !== 'PROMO') {
             setPromoCategory(newTheme);
@@ -12432,7 +12442,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
         const currentMeta = getMobileThemeMeta(theme);
         const currentDisplayName = theme === 'ARTISTE FESTIVAL'
-            ? (artisteFestivalSlide === 2 ? 'SPOTLIGHT' : 'ARTISTE FESTIVAL')
+            ? (activeTab === 'REEL' || artisteFestivalSlide === 2 ? 'SPOTLIGHT' : 'ARTISTE FESTIVAL')
             : theme === 'JEU_FESTIVAL' ? 'DEVINE FESTIVAL'
             : theme === 'JEU_DJ' ? 'DEVINE LE DJ'
             : theme === 'JEU' ? 'DEVINE CLIP'
@@ -12452,8 +12462,14 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             // 🎵 Musique
             { id: 'MUSIQUE', label: 'MUSIQUE', category: 'MUSIC', action: () => handleSetTheme('MUSIQUE'), active: theme === 'MUSIQUE', style: 'bg-neon-green/20 border-neon-green text-neon-green shadow-[0_0_12px_rgba(0,255,102,0.35)]' },
             { id: 'HIGHLIGHTS', label: 'HIGHLIGHTS', category: 'MUSIC', action: () => handleSetTheme('HIGHLIGHTS'), active: theme === 'HIGHLIGHTS', style: 'bg-white/20 border-white text-white shadow-[0_0_12px_rgba(255,255,255,0.35)]' },
-            { id: 'SPOTLIGHT', label: 'SPOTLIGHT', category: 'MUSIC', action: () => { handleSetTheme('ARTISTE FESTIVAL'); setArtisteFestivalSlide(2); }, active: theme === 'SPOTLIGHT' || (theme === 'ARTISTE FESTIVAL' && artisteFestivalSlide === 2), style: 'bg-neon-red/20 border-neon-red text-neon-red shadow-[0_0_12px_rgba(255,0,51,0.35)]' },
-            { id: 'ARTISTE FESTIVAL', label: 'ARTISTE FESTIVAL', category: 'MUSIC', action: () => { handleSetTheme('ARTISTE FESTIVAL'); setArtisteFestivalSlide(1); }, active: theme === 'ARTISTE FESTIVAL' && artisteFestivalSlide === 1, style: 'bg-neon-red/20 border-neon-red text-neon-red shadow-[0_0_12px_rgba(255,0,51,0.35)]' },
+            ...(activeTab === 'REEL'
+                ? [
+                    { id: 'SPOTLIGHT', label: 'SPOTLIGHT', category: 'MUSIC', action: () => { handleSetTheme('ARTISTE FESTIVAL'); setArtisteFestivalSlide(2); }, active: theme === 'SPOTLIGHT' || theme === 'ARTISTE FESTIVAL', style: 'bg-neon-red/20 border-neon-red text-neon-red shadow-[0_0_12px_rgba(255,0,51,0.35)]' }
+                  ]
+                : [
+                    { id: 'SPOTLIGHT', label: 'SPOTLIGHT', category: 'MUSIC', action: () => { handleSetTheme('ARTISTE FESTIVAL'); setArtisteFestivalSlide(2); }, active: theme === 'SPOTLIGHT' || (theme === 'ARTISTE FESTIVAL' && artisteFestivalSlide === 2), style: 'bg-neon-red/20 border-neon-red text-neon-red shadow-[0_0_12px_rgba(255,0,51,0.35)]' },
+                    { id: 'ARTISTE FESTIVAL', label: 'ARTISTE FESTIVAL', category: 'MUSIC', action: () => { handleSetTheme('ARTISTE FESTIVAL'); setArtisteFestivalSlide(1); }, active: theme === 'ARTISTE FESTIVAL' && artisteFestivalSlide === 1, style: 'bg-neon-red/20 border-neon-red text-neon-red shadow-[0_0_12px_rgba(255,0,51,0.35)]' },
+                  ]),
             { id: 'TRACKLIST', label: 'TRACKLIST', category: 'MUSIC', action: () => { if (activeTab !== 'REEL') setActiveTab('REEL'); handleSetTheme('TRACKLIST'); }, active: theme === 'TRACKLIST', style: 'bg-orange-500/20 border-orange-500 text-orange-500 shadow-[0_0_12px_rgba(255,120,0,0.35)]' },
 
             // 📅 Agenda
@@ -14891,34 +14907,41 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
     const artisteFestivalEditor = (
         <div className="space-y-4">
-            {/* CARROUSEL SLIDE SWITCHER */}
-            <div className="p-1.5 bg-black/60 border border-neon-red/30 rounded-2xl flex gap-1 shadow-xl">
-                <button
-                    type="button"
-                    onClick={() => setArtisteFestivalSlide(1)}
-                    className={`flex-1 py-3 px-3 rounded-xl text-[10px] font-black uppercase transition-all flex items-center justify-center gap-2 ${
-                        artisteFestivalSlide === 1
-                            ? 'bg-neon-red text-white shadow-[0_0_15px_rgba(255,0,51,0.5)] scale-[1.02]'
-                            : 'text-gray-400 hover:text-white hover:bg-white/5'
-                    }`}
-                >
-                    <span className="text-xs">🎪</span> Slide 1 : Cover Festival
-                </button>
-                <button
-                    type="button"
-                    onClick={() => setArtisteFestivalSlide(2)}
-                    className={`flex-1 py-3 px-3 rounded-xl text-[10px] font-black uppercase transition-all flex items-center justify-center gap-2 ${
-                        artisteFestivalSlide === 2
-                            ? 'bg-neon-red text-white shadow-[0_0_15px_rgba(255,0,51,0.5)] scale-[1.02]'
-                            : 'text-gray-400 hover:text-white hover:bg-white/5'
-                    }`}
-                >
-                    <span className="text-xs">⭐</span> Slide 2 : Spotlight Artiste
-                </button>
-            </div>
+            {/* CARROUSEL SLIDE SWITCHER - Uniquement en mode Post / Publication */}
+            {activeTab !== 'REEL' ? (
+                <div className="p-1.5 bg-black/60 border border-neon-red/30 rounded-2xl flex gap-1 shadow-xl">
+                    <button
+                        type="button"
+                        onClick={() => setArtisteFestivalSlide(1)}
+                        className={`flex-1 py-3 px-3 rounded-xl text-[10px] font-black uppercase transition-all flex items-center justify-center gap-2 ${
+                            artisteFestivalSlide === 1
+                                ? 'bg-neon-red text-white shadow-[0_0_15px_rgba(255,0,51,0.5)] scale-[1.02]'
+                                : 'text-gray-400 hover:text-white hover:bg-white/5'
+                        }`}
+                    >
+                        <span className="text-xs">🎪</span> Slide 1 : Cover Festival
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => setArtisteFestivalSlide(2)}
+                        className={`flex-1 py-3 px-3 rounded-xl text-[10px] font-black uppercase transition-all flex items-center justify-center gap-2 ${
+                            artisteFestivalSlide === 2
+                                ? 'bg-neon-red text-white shadow-[0_0_15px_rgba(255,0,51,0.5)] scale-[1.02]'
+                                : 'text-gray-400 hover:text-white hover:bg-white/5'
+                        }`}
+                    >
+                        <span className="text-xs">⭐</span> Slide 2 : Spotlight Artiste
+                    </button>
+                </div>
+            ) : (
+                <div className="px-3.5 py-2.5 bg-neon-red/10 border border-neon-red/30 rounded-2xl flex items-center justify-between text-[10px] font-black uppercase text-neon-red">
+                    <span className="flex items-center gap-2"><span>⭐</span> MODE REEL / STORY : SPOTLIGHT ARTISTE</span>
+                    <span className="text-[8px] bg-neon-red/25 px-2 py-0.5 rounded text-white font-mono">9:16</span>
+                </div>
+            )}
 
             {/* Slide 1 Content */}
-            {artisteFestivalSlide === 1 && (
+            {activeTab !== 'REEL' && artisteFestivalSlide === 1 && (
                 <div className="space-y-3">
                     <div className="space-y-1">
                         <label className="text-[9px] font-black text-gray-400 uppercase">Nom du Festival</label>
@@ -14955,11 +14978,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             )}
 
             {/* Slide 2 Content (Spotlight) */}
-            {artisteFestivalSlide === 2 && (
+            {(activeTab === 'REEL' || artisteFestivalSlide === 2) && (
                 <div className="space-y-3">
                     <div className="px-1 py-1 text-[9px] font-bold text-gray-400 uppercase flex items-center justify-between">
                         <span>Édition Spotlight de l'Artiste</span>
-                        <span className="text-neon-red">Slide 2</span>
+                        <span className="text-neon-red">{activeTab === 'REEL' ? 'Story 9:16' : 'Slide 2'}</span>
                     </div>
                     {spotlightEditor}
                 </div>
@@ -16970,11 +16993,29 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         }
 
         if (theme === 'ARTISTE FESTIVAL') {
+            if (activeTab === 'REEL') {
+                return (
+                    <div className="p-3 bg-white/5 border border-white/10 rounded-2xl space-y-2.5 shadow-xl">
+                        <div className="flex items-center justify-between text-[8px] font-bold text-gray-400 uppercase px-1">
+                            <span>Export Story Spotlight</span>
+                            <span className="text-neon-red font-mono">Format Story (9:16)</span>
+                        </div>
+                        <button
+                            type="button"
+                            onClick={() => downloadArtisteFestivalSlide(2, 'REEL')}
+                            disabled={isDownloading}
+                            className="w-full py-2.5 bg-neon-red hover:bg-neon-red/90 text-white font-black text-[10px] uppercase rounded-xl transition-all flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(255,0,51,0.4)]"
+                        >
+                            <Download className="w-4 h-4" /> Télécharger Spotlight (Story 9:16)
+                        </button>
+                    </div>
+                );
+            }
             return (
                 <div className="p-3 bg-white/5 border border-white/10 rounded-2xl space-y-2.5 shadow-xl">
                     <div className="flex items-center justify-between text-[8px] font-bold text-gray-400 uppercase px-1">
                         <span>Export Carrousel Artiste Festival</span>
-                        <span className="text-neon-red">Format {activeTab === 'REEL' ? 'Story' : 'Post (4:5)'}</span>
+                        <span className="text-neon-red">Format Post (4:5)</span>
                     </div>
                     <div className="grid grid-cols-2 gap-2">
                         <button
@@ -20487,7 +20528,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                                         const currentMeta = getThemeMeta(theme);
                                         const currentDisplayName = theme === 'ARTISTE FESTIVAL'
-                                            ? (artisteFestivalSlide === 2 ? 'SPOTLIGHT' : 'ARTISTE FESTIVAL')
+                                            ? (activeTab === 'REEL' || artisteFestivalSlide === 2 ? 'SPOTLIGHT' : 'ARTISTE FESTIVAL')
                                             : theme === 'JEU_FESTIVAL' ? 'DEVINE FESTIVAL'
                                             : theme === 'JEU_DJ' ? 'DEVINE LE DJ'
                                             : theme === 'JEU' ? 'DEVINE CLIP'
@@ -20506,8 +20547,14 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                             // 🎵 Musique
                                             { id: 'MUSIQUE', label: 'MUSIQUE', category: 'MUSIC', action: () => handleSetTheme('MUSIQUE'), active: theme === 'MUSIQUE', style: 'bg-neon-green/20 border-neon-green text-neon-green shadow-[0_0_12px_rgba(0,255,102,0.35)]' },
                                             { id: 'HIGHLIGHTS', label: 'HIGHLIGHTS', category: 'MUSIC', action: () => handleSetTheme('HIGHLIGHTS'), active: theme === 'HIGHLIGHTS', style: 'bg-white/20 border-white text-white shadow-[0_0_12px_rgba(255,255,255,0.35)]' },
-                                            { id: 'SPOTLIGHT', label: 'SPOTLIGHT', category: 'MUSIC', action: () => { handleSetTheme('ARTISTE FESTIVAL'); setArtisteFestivalSlide(2); }, active: theme === 'SPOTLIGHT' || (theme === 'ARTISTE FESTIVAL' && artisteFestivalSlide === 2), style: 'bg-neon-red/20 border-neon-red text-neon-red shadow-[0_0_12px_rgba(255,0,51,0.35)]' },
-                                            { id: 'ARTISTE FESTIVAL', label: 'ARTISTE FESTIVAL', category: 'MUSIC', action: () => { handleSetTheme('ARTISTE FESTIVAL'); setArtisteFestivalSlide(1); }, active: theme === 'ARTISTE FESTIVAL' && artisteFestivalSlide === 1, style: 'bg-neon-red/20 border-neon-red text-neon-red shadow-[0_0_12px_rgba(255,0,51,0.35)]' },
+                                            ...(activeTab === 'REEL'
+                                                ? [
+                                                    { id: 'SPOTLIGHT', label: 'SPOTLIGHT', category: 'MUSIC', action: () => { handleSetTheme('ARTISTE FESTIVAL'); setArtisteFestivalSlide(2); }, active: theme === 'SPOTLIGHT' || theme === 'ARTISTE FESTIVAL', style: 'bg-neon-red/20 border-neon-red text-neon-red shadow-[0_0_12px_rgba(255,0,51,0.35)]' }
+                                                  ]
+                                                : [
+                                                    { id: 'SPOTLIGHT', label: 'SPOTLIGHT', category: 'MUSIC', action: () => { handleSetTheme('ARTISTE FESTIVAL'); setArtisteFestivalSlide(2); }, active: theme === 'SPOTLIGHT' || (theme === 'ARTISTE FESTIVAL' && artisteFestivalSlide === 2), style: 'bg-neon-red/20 border-neon-red text-neon-red shadow-[0_0_12px_rgba(255,0,51,0.35)]' },
+                                                    { id: 'ARTISTE FESTIVAL', label: 'ARTISTE FESTIVAL', category: 'MUSIC', action: () => { handleSetTheme('ARTISTE FESTIVAL'); setArtisteFestivalSlide(1); }, active: theme === 'ARTISTE FESTIVAL' && artisteFestivalSlide === 1, style: 'bg-neon-red/20 border-neon-red text-neon-red shadow-[0_0_12px_rgba(255,0,51,0.35)]' },
+                                                  ]),
                                             ...(activeTab === 'REEL' ? [{ id: 'TRACKLIST', label: 'TRACKLIST', category: 'MUSIC', action: () => handleSetTheme('TRACKLIST'), active: theme === 'TRACKLIST', style: 'bg-orange-500/20 border-orange-500 text-orange-500 shadow-[0_0_12px_rgba(255,120,0,0.35)]' }] : []),
 
                                             // 📅 Agenda
@@ -21018,7 +21065,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                     {/* Preview */}
                     <div className="flex-1 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-neutral-900/60 via-[#0a0a0f] to-[#020202] flex flex-col items-center justify-center relative overflow-hidden h-full border-l border-white/10">
-                        {theme === 'ARTISTE FESTIVAL' && (
+                        {theme === 'ARTISTE FESTIVAL' && activeTab !== 'REEL' && (
                             <div className="mb-3 flex items-center gap-1.5 bg-black/80 backdrop-blur-md px-3 py-1.5 rounded-2xl border border-white/10 shadow-2xl z-20 flex-wrap justify-center">
                                 <span className="text-[9px] font-black text-gray-400 uppercase tracking-wider mr-1">Carrousel Insta :</span>
                                 <button
@@ -21588,7 +21635,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             }
                         }}
                     >
-                        {theme === 'ARTISTE FESTIVAL' && (
+                        {theme === 'ARTISTE FESTIVAL' && activeTab !== 'REEL' && (
                             <div className="absolute top-16 left-1/2 -translate-x-1/2 z-30 flex items-center gap-1.5 bg-black/85 backdrop-blur-md px-2.5 py-1 rounded-2xl border border-white/10 shadow-2xl max-w-[95vw] overflow-x-auto scrollbar-none">
                                 <button
                                     type="button"
