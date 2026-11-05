@@ -1673,9 +1673,20 @@ Alex (Dropsiders)`;
                                                 setSenderEmail('info@dropsiders.fr');
                                                 const activeMsg = selected || selectedArchived;
                                                 if (activeMsg && activeMsg.recipient) {
-                                                    const prefix = activeMsg.recipient.split('@')[0];
-                                                    const matched = editors.find(e => e.username && e.username.toLowerCase() === prefix.toLowerCase());
-                                                    setSignatureName(matched ? matched.username : (prefix.charAt(0).toUpperCase() + prefix.slice(1)));
+                                                    const prefix = activeMsg.recipient.split('@')[0].toLowerCase();
+                                                    const matched = editors.find(e => 
+                                                        (e.username && e.username.toLowerCase() === prefix) ||
+                                                        (e.username && e.username.toLowerCase().startsWith(prefix)) ||
+                                                        (e.name && e.name.toLowerCase() === prefix) ||
+                                                        (e.email && e.email.toLowerCase().includes(prefix))
+                                                    );
+                                                    if (matched) {
+                                                        setSignatureName(matched.username);
+                                                    } else if (prefix === 'alex' || prefix === 'partenariat' || prefix === 'contact' || isAlex) {
+                                                        setSignatureName('Alex');
+                                                    } else {
+                                                        setSignatureName(currentEditor ? currentEditor.username : 'Alex');
+                                                    }
                                                 } else {
                                                     setSignatureName(currentEditor ? currentEditor.username : 'Alex');
                                                 }
