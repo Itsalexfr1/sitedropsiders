@@ -8197,6 +8197,164 @@ ${urls.map(u => `  <url>
             }
         }
 
+        // ── INBOUND EMAIL WEBHOOK (Brevo Inbound Email Routing) ──
+        if (path === '/api/email/inbound' && request.method === 'POST') {
+            try {
+                const body: any = await request.json().catch(() => ({}));
+                console.log('[BREVO INBOUND] Received webhook payload:', JSON.stringify(body).slice(0, 300));
+
+                const items: any[] = Array.isArray(body?.items)
+                    ? body.items
+                    : (Array.isArray(body) ? body : (body && typeof body === 'object' && Object.keys(body).length > 0 ? [body] : []));
+
+                if (items.length === 0) {
+                    return new Response(JSON.stringify({ success: true, count: 0 }), { status: 200, headers });
+                }
+
+                const CONTACTS_PATH = 'src/data/contacts.json';
+                const BREVO_KEY = env.BREVO_API_KEY;
+
+                // Charger la liste des éditeurs pour mapper les adresses
+                let editorsList: any[] = [];
+                try {
+                    const editorsFile = await fetchGitHubFile('src/data/editors.json', { ...gitConfig, bypassCache: true });
+                    if (editorsFile && Array.isArray(editorsFile.content)) {
+                        editorsList = editorsFile.content;
+                    }
+                } catch (e) {
+                    console.error('[BREVO INBOUND] Failed to fetch editors:', e);
+                }
+
+                const newContactsToSave: any[] = [];
+
+                for (const item of items) {
+                    const fromAddress = item.sender || item.From?.Address || item.from || 'inconnu@inconnu.com';
+                    const fromName = item.senderName || item.From?.Name || fromAddress;
+                    const toAddress = (item.recipient || (item.To && item.To[0]?.Address) || item.to || 'contact@dropsiders.fr').toLowerCase().trim();
+                    const subject = item.subject || item.Subject || '(Sans objet)';
+                    const textContent = item.rawTextBody || item.RawTextContent || (item.rawHtmlBody ? item.rawHtmlBody.replace(/<[^>]*>/g, ' ') : '') || '(Message vide)';
+                    const htmlContent = item.rawHtmlBody || item.RawHtmlContent || null;
+
+                    const newMsg = {
+                        id: (Date.now() + Math.floor(Math.random() * 1000)).toString(),
+                        name: fromName,
+                        email: fromAddress,
+                        subject: subject,
+                        message: textContent,
+                        html: htmlContent,
+                        recipient: toAddress,
+                        attachments: Array.isArray(item.attachments) ? item.attachments : [],
+                        date: new Date().toISOString(),
+                        read: false,
+                        replied: false
+                    };
+
+                    newContactsToSave.push(newMsg);
+
+                    // Déterminer la destination de notification
+                    let destinationEmail = 'alexflex30@gmail.com';
+                    let destinationName = 'Alex (Partenariats Dropsiders)';
+
+                    const usernamePrefix = toAddress.split('@')[0].toLowerCase();
+                    const matchedEditor = editorsList.find((e: any) =>
+                        (e.dropsiders_email && e.dropsiders_email.toLowerCase() === toAddress) ||
+                        (e.username && e.username.toLowerCase() === usernamePrefix) ||
+                        (e.pseudo && e.pseudo.toLowerCase() === usernamePrefix)
+                    );
+
+                    if (matchedEditor && matchedEditor.email) {
+                        destinationEmail = matchedEditor.email;
+                        destinationName = matchedEditor.pseudo || matchedEditor.username || 'Membre Dropsiders';
+                    } else if (toAddress.includes('guillaume')) {
+                        destinationEmail = 'guillaume.chery.naumont@gmail.com';
+                        destinationName = 'Guillaume (Vidéaste)';
+                    } else if (toAddress.includes('partenariat') || toAddress.includes('alex') || toAddress.includes('contact')) {
+                        destinationEmail = 'alexflex30@gmail.com';
+                        destinationName = 'Alex (Partenariats)';
+                    }
+
+                    // Envoi de la notification officielle avec le bouton rouge vers le site
+                    if (BREVO_KEY) {
+                        const previewText = textContent.length > 300 ? textContent.slice(0, 300) + '...' : textContent;
+                        try {
+                            await fetch('https://api.brevo.com/v3/smtp/email', {
+                                method: 'POST',
+                                headers: {
+                                    'accept': 'application/json',
+                                    'api-key': BREVO_KEY,
+                                    'content-type': 'application/json'
+                                },
+                                body: JSON.stringify({
+                                    sender: { name: 'Dropsiders Crew Hub', email: 'bot@dropsiders.fr' },
+                                    to: [{ email: destinationEmail, name: destinationName }],
+                                    subject: `[DROPSIDERS CREW] Nouveau message sur ${toAddress} : ${subject}`,
+                                    htmlContent: `
+                                        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; padding: 25px; background: #070709; color: #ffffff;">
+                                            <div style="max-width: 600px; margin: 0 auto; background: #111217; border: 1px solid #22242e; border-radius: 18px; overflow: hidden; box-shadow: 0 10px 40px rgba(0,0,0,0.6);">
+                                                <div style="background: linear-gradient(135deg, #ff1241, #990022); padding: 22px; text-align: center;">
+                                                    <h2 style="margin: 0; color: #ffffff; font-size: 17px; font-weight: 900; text-transform: uppercase; letter-spacing: 1.5px;">
+                                                        Nouveau mail reçu sur ${toAddress}
+                                                    </h2>
+                                                </div>
+                                                <div style="padding: 25px;">
+                                                    <p style="margin: 0 0 10px 0; font-size: 13px; color: #a1a1aa;">
+                                                        <strong>Expéditeur :</strong> <span style="color: #ffffff; font-weight: 600;">${fromName} (${fromAddress})</span>
+                                                    </p>
+                                                    <p style="margin: 0 0 10px 0; font-size: 13px; color: #a1a1aa;">
+                                                        <strong>Destinataire :</strong> <span style="color: #00ffd5; font-weight: 700;">${toAddress}</span>
+                                                    </p>
+                                                    <p style="margin: 0 0 18px 0; font-size: 13px; color: #a1a1aa;">
+                                                        <strong>Sujet :</strong> <span style="color: #ffffff; font-weight: 700;">${subject}</span>
+                                                    </p>
+                                                    <div style="background: #090a0d; border: 1px solid #1c1e26; border-radius: 12px; padding: 18px; color: #e4e4e7; font-size: 14px; line-height: 1.6; white-space: pre-wrap;">
+${previewText}
+                                                    </div>
+
+                                                    <div style="margin-top: 25px; text-align: center;">
+                                                        <a href="https://dropsiders.fr/admin" style="display: inline-block; background: #ff1241; color: #ffffff; text-decoration: none; padding: 14px 32px; border-radius: 12px; font-weight: 900; font-size: 14px; text-transform: uppercase; letter-spacing: 0.8px; box-shadow: 0 4px 20px rgba(255,18,65,0.4);">
+                                                            👉 Voir et Répondre sur Dropsiders
+                                                        </a>
+                                                    </div>
+                                                </div>
+                                                <div style="background: #0b0c10; padding: 12px; text-align: center; border-top: 1px solid #1b1c24;">
+                                                    <p style="margin: 0; font-size: 11px; color: #71717a;">Système Dropsiders Crew Hub · Brevo Inbound</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    `
+                                })
+                            });
+                            console.log(`[BREVO INBOUND] Notification sent to ${destinationEmail}`);
+                        } catch (err) {
+                            console.error('[BREVO INBOUND] Failed to send email notification:', err);
+                        }
+                    }
+                }
+
+                // Sauvegarder dans contacts.json
+                if (newContactsToSave.length > 0) {
+                    await mutateGitHubJsonFile<any[]>(
+                        CONTACTS_PATH,
+                        (contacts) => {
+                            const list = Array.isArray(contacts) ? [...contacts] : [];
+                            list.push(...newContactsToSave);
+                            return {
+                                updatedData: list,
+                                commitMessage: `[INBOUND EMAIL] Reçu ${newContactsToSave.length} message(s) sur crew [skip ci] [CF-Pages-Skip]`
+                            };
+                        },
+                        gitConfig
+                    );
+                    console.log(`[BREVO INBOUND] Saved ${newContactsToSave.length} contact(s) to contacts.json`);
+                }
+
+                return new Response(JSON.stringify({ success: true, count: newContactsToSave.length }), { status: 200, headers });
+            } catch (e: any) {
+                console.error('[BREVO INBOUND FATAL ERROR]', e);
+                return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
+            }
+        }
+
         if (path === '/api/facture/send' && request.method === 'POST') {
             const BREVO_KEY = env.BREVO_API_KEY;
             if (!BREVO_KEY) return new Response(JSON.stringify({ error: 'Brevo API Key missing' }), { status: 500, headers });
