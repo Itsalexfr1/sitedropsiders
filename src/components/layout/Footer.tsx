@@ -279,8 +279,17 @@ export function Footer() {
 
                         <span className="hidden md:inline-block text-white/10 text-xs">|</span>
 
-                        <p className="text-[9px] font-black text-gray-600 uppercase tracking-[0.3em] flex items-center gap-1.5">
-                            Powered by <span className="text-neon-red font-bold">Dropsiders</span>
+                        <p className="text-[9px] font-black text-gray-500 uppercase tracking-[0.25em] flex items-center gap-1.5">
+                            Powered by{' '}
+                            <Link
+                                to="/websiders"
+                                onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+                                className="font-bold text-gray-300 hover:text-white transition-colors flex items-center gap-0.5 group/ws"
+                                title="WebsidersFR · Solution de création de sites web"
+                            >
+                                <span className="text-neon-red group-hover/ws:text-neon-cyan transition-colors">Websiders</span>
+                                <span className="text-white group-hover/ws:text-neon-cyan transition-colors">FR</span>
+                            </Link>
                         </p>
                     </div>
 

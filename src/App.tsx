@@ -50,6 +50,7 @@ const AdminStats = lazyRetry(() => import('./pages/AdminStats').then(m => m.Admi
 const AdminSpotify = lazyRetry(() => import('./pages/AdminSpotify').then(m => m.AdminSpotify));
 const AdminShop = lazyRetry(() => import('./pages/AdminShop').then(m => m.AdminShop));
 const KitMedia = lazyRetry(() => import('./pages/KitMedia'));
+const Websiders = lazyRetry(() => import('./pages/Websiders').then(m => m.Websiders));
 const AdminHome = lazyRetry(() => import('./pages/AdminHome').then(m => m.AdminHome));
 const AdminInstagram = lazyRetry(() => import('./pages/AdminInstagram').then(m => m.AdminInstagram));
 const AdminSettings = lazyRetry(() => import('./pages/AdminSettings').then(m => m.AdminSettings));
@@ -230,6 +231,9 @@ const router = createBrowserRouter([
       { path: "cgu", element: <TermsOfService /> },
       { path: "cookies", element: <CookiesPolicy /> },
       { path: "kit-media", element: <KitMedia /> },
+      { path: "websiders", element: <Websiders /> },
+      { path: "websidersfr", element: <Navigate to="/websiders" replace /> },
+      { path: "websiders-fr", element: <Navigate to="/websiders" replace /> },
       { path: "clips", element: <Navigate to="/galerie" replace /> },
       { path: "contact", element: <Contact /> },
       { path: "a-propos", element: <About /> },
