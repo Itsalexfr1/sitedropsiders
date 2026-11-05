@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useLocation } from 'react-router-dom';
 import { usePlayer } from '../../context/PlayerContext';
 import { CustomMixPlayer } from './CustomMixPlayer';
 import { Play, Pause, Maximize2, X, Music, Minimize2, SkipForward, SkipBack, Sparkles, RotateCcw, RotateCw } from 'lucide-react';
@@ -33,6 +34,9 @@ export function GlobalPlayerContainer() {
         setToastMessage(msg);
         setTimeout(() => setToastMessage(''), 4500);
     };
+
+    const location = useLocation();
+    if (location.pathname.startsWith('/websiders')) return null;
 
     const generateMiniStory = async (e: React.MouseEvent) => {
         e.stopPropagation();

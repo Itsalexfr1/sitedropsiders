@@ -2882,6 +2882,7 @@ const STUDIO_ROUTES = [
     '/recaps/create',
     '/galerie/create',
     '/newsletter/studio',
+    '/websiders',
 ];
 
 export function DropsidersRadioPlayer() {
@@ -2895,14 +2896,14 @@ export function DropsidersRadioPlayer() {
     // Masquer sur les pages studio (générateurs)
     const isStudioPage = STUDIO_ROUTES.some(route => location.pathname.startsWith(route));
 
-    // Quand un mix est lancé et que la radio est en cours de lecture, couper la radio
+    // Quand un mix est lancé ou sur Websiders, couper la radio
     useEffect(() => {
-        if (isMixActive && audio.isPlaying) {
+        if ((isMixActive || location.pathname.startsWith('/websiders')) && audio.isPlaying) {
             audio.handleStop();
         }
-    }, [isMixActive, audio.isPlaying]);
+    }, [isMixActive, location.pathname, audio.isPlaying]);
 
-    if (location.pathname === '/tv') return null;
+    if (location.pathname === '/tv' || location.pathname.startsWith('/websiders')) return null;
 
     return (
         <>

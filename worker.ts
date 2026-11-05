@@ -7586,7 +7586,7 @@ ${urls.map(u => `  <url>
         if (path === '/api/contact' && request.method === 'POST') {
             try {
                 const body = await request.json();
-                const { name, email, subject, message, attachments, recipient } = body;
+                const { name, email, subject, message, attachments, recipient, source, phone, budget, projectType } = body;
                 if (!name || !email || !subject || !message) {
                     return new Response(JSON.stringify({ error: 'Missing fields' }), { status: 400, headers });
                 }
@@ -7650,7 +7650,13 @@ ${urls.map(u => `  <url>
                     justin: { email: 'justinche17@yahoo.com', crewEmail: 'justin@crew.dropsiders.fr', name: 'Justin' }
                 };
 
-                if (recipient && String(recipient).trim() && String(recipient).trim().toLowerCase() !== 'contact@dropsiders.fr') {
+                const isWebsiders = source === 'websiders' || (recipient && (String(recipient).toLowerCase().includes('alex@dropsiders.fr') || String(recipient).toLowerCase().includes('websiders')));
+
+                if (isWebsiders) {
+                    targetRecipientName = 'Alex (Websiders)';
+                    targetRecipientEmail = 'alex@dropsiders.fr';
+                    targetCrewEmail = 'alex@dropsiders.fr';
+                } else if (recipient && String(recipient).trim() && String(recipient).trim().toLowerCase() !== 'contact@dropsiders.fr') {
                     const rawRecip = String(recipient).trim();
                     const cleanRecip = rawRecip.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 
@@ -7686,7 +7692,11 @@ ${urls.map(u => `  <url>
                 const newMsg = {
                     id: Date.now().toString(),
                     name, email, subject, message,
-                    recipient: targetCrewEmail || (targetRecipientName ? `${targetRecipientName} (Équipe)` : 'contact@dropsiders.fr'),
+                    recipient: isWebsiders ? 'alex@dropsiders.fr' : (targetCrewEmail || (targetRecipientName ? `${targetRecipientName} (Équipe)` : 'contact@dropsiders.fr')),
+                    source: isWebsiders ? 'websiders' : 'site',
+                    phone: phone || undefined,
+                    budget: budget || undefined,
+                    projectType: projectType || undefined,
                     attachments: processedAttachments,
                     date: new Date().toISOString(),
                     read: false,
@@ -7700,7 +7710,7 @@ ${urls.map(u => `  <url>
                         list.push(newMsg);
                         return {
                             updatedData: list,
-                            commitMessage: `New contact: ${name} (for ${targetRecipientName || 'General'}) [skip ci] [CF-Pages-Skip]`
+                            commitMessage: `New contact: ${name} (for ${isWebsiders ? 'Websiders - Alex' : (targetRecipientName || 'General')}) [skip ci] [CF-Pages-Skip]`
                         };
                     },
                     gitConfig
@@ -7715,7 +7725,10 @@ ${urls.map(u => `  <url>
                             const toRecipients: any[] = [];
                             const bccRecipients: any[] = [];
 
-                            if (targetRecipientEmail && targetRecipientEmail.toLowerCase().trim() !== ALEX_EMAIL) {
+                            if (isWebsiders) {
+                                toRecipients.push({ email: 'alex@dropsiders.fr', name: 'Alex' });
+                                toRecipients.push({ email: ALEX_EMAIL, name: 'Alex' });
+                            } else if (targetRecipientEmail && targetRecipientEmail.toLowerCase().trim() !== ALEX_EMAIL) {
                                 toRecipients.push({ email: targetRecipientEmail, name: targetRecipientName || 'Membre Dropsiders' });
                                 // Alex en copie invisible (BCC)
                                 bccRecipients.push({ email: ALEX_EMAIL, name: 'Alex (Admin Dropsiders)' });
@@ -7723,9 +7736,11 @@ ${urls.map(u => `  <url>
                                 toRecipients.push({ email: ALEX_EMAIL, name: 'Alex' });
                             }
 
-                            const emailSubject = targetRecipientName
-                                ? `[MESSAGE POUR ${targetRecipientName.toUpperCase()}] ${name} : ${subject}`
-                                : `[NOUVEAU MESSAGE SITE] ${name} : ${subject}`;
+                            const emailSubject = isWebsiders
+                                ? `[DEVIS WEBSIDERS] ${name} : ${subject}`
+                                : (targetRecipientName
+                                    ? `[MESSAGE POUR ${targetRecipientName.toUpperCase()}] ${name} : ${subject}`
+                                    : `[NOUVEAU MESSAGE SITE] ${name} : ${subject}`);
 
                             // 1. Notif au destinataire avec Alex en BCC
                             await fetch('https://api.brevo.com/v3/smtp/email', {
@@ -7811,29 +7826,76 @@ ${urls.map(u => `  <url>
                             });
 
                             // 2. Confirmation Utilisateur
-                            await fetch('https://api.brevo.com/v3/smtp/email', {
-                                method: 'POST',
-                                headers: { 'accept': 'application/json', 'api-key': BREVO_KEY, 'content-type': 'application/json' },
-                                body: JSON.stringify({
-                                    sender: { name: 'Dropsiders', email: 'contact@dropsiders.fr' },
-                                    to: [{ email: email, name: name }],
-                                    subject: `Confirmation de réception : ${subject}`,
-                                    htmlContent: `
-                                        <div style="font-family:'Helvetica Neue',Helvetica,Arial,sans-serif; color:#ffffff; background:#000000; padding:30px 5px; text-align:center;">
-                                            <div style="width:100%; max-width:600px; margin:0 auto; background:#111111; border:1px solid #333333; border-radius:24px; overflow:hidden; text-align:left; box-shadow: 0 0 30px rgba(255,0,51,0.1);">
-                                                <div style="padding:40px 20px;">
-                                                    <div style="text-align:center; margin-bottom:30px;">
-                                                        <img src="https://dropsiders.fr/Logo.png" width="120" alt="Dropsiders">
+                            if (isWebsiders) {
+                                await fetch('https://api.brevo.com/v3/smtp/email', {
+                                    method: 'POST',
+                                    headers: { 'accept': 'application/json', 'api-key': BREVO_KEY, 'content-type': 'application/json' },
+                                    body: JSON.stringify({
+                                        sender: { name: 'Websiders FR', email: 'alex@dropsiders.fr' },
+                                        to: [{ email: email, name: name }],
+                                        subject: `Websiders · Confirmation de votre demande de projet`,
+                                        htmlContent: `
+                                            <div style="font-family:'Helvetica Neue',Helvetica,Arial,sans-serif; color:#ffffff; background:#08090d; padding:30px 10px; text-align:center;">
+                                                <div style="width:100%; max-width:600px; margin:0 auto; background:#10121a; border:1px solid rgba(255,255,255,0.1); border-radius:24px; overflow:hidden; text-align:left; box-shadow: 0 0 30px rgba(0,255,213,0.1);">
+                                                    <div style="padding:40px 25px;">
+                                                        <div style="text-align:center; margin-bottom:25px;">
+                                                            <h1 style="color:#ffffff; font-size:24px; font-weight:900; letter-spacing:-0.5px; margin:0;">
+                                                                <span style="color:#ff1111;">WEB</span><span style="color:#00ffd5;">SIDERS</span><span style="color:#ffffff;"> FR</span>
+                                                            </h1>
+                                                            <p style="color:#71717a; font-size:11px; text-transform:uppercase; letter-spacing:1px; margin-top:4px;">Solution de création de site web</p>
+                                                        </div>
+                                                        
+                                                        <h2 style="color:#00ffd5; font-size:18px; font-weight:800; text-transform:uppercase; margin-bottom:18px; text-align:center;">Votre demande de devis a bien été reçue !</h2>
+                                                        
+                                                        <div style="color:#e4e4e7; font-size:14px; line-height:1.6; margin-bottom:25px;">
+                                                            Bonjour <strong>${name}</strong>,<br><br>
+                                                            Nous avons bien reçu les détails de votre projet <strong>"${subject}"</strong>.<br>
+                                                            Alex et l'équipe <strong>Websiders FR</strong> étudient votre demande et reviendront vers vous sous <strong>24 heures</strong> avec une proposition adaptée.
+                                                        </div>
+
+                                                        <div style="background:#181a26; border-left:3px solid #00ffd5; border-radius:10px; padding:16px; margin-bottom:25px;">
+                                                            <p style="color:#71717a; font-size:10px; font-weight:bold; text-transform:uppercase; margin-top:0; margin-bottom:6px;">Récapitulatif de votre demande :</p>
+                                                            ${phone ? `<p style="color:#a1a1aa; font-size:12px; margin:2px 0;"><strong>Téléphone :</strong> ${phone}</p>` : ''}
+                                                            ${projectType ? `<p style="color:#a1a1aa; font-size:12px; margin:2px 0;"><strong>Type de site :</strong> ${projectType}</p>` : ''}
+                                                            ${budget ? `<p style="color:#a1a1aa; font-size:12px; margin:2px 0;"><strong>Budget envisagé :</strong> ${budget}</p>` : ''}
+                                                            <div style="color:#e4e4e7; font-size:12.5px; line-height:1.5; margin-top:8px; font-style:italic;">"${message}"</div>
+                                                        </div>
+                                                        
+                                                        <p style="color:#71717a; font-size:11px; text-align:center; margin:0;">
+                                                            À très vite,<br>
+                                                            <strong style="color:#ffffff;">Alex — Websiders FR</strong><br>
+                                                            <span style="color:#00ffd5; font-size:10px;">alex@dropsiders.fr</span>
+                                                        </p>
                                                     </div>
-                                                    
-                                                    <h2 style="color:#ff0033; font-size:20px; font-weight:900; text-transform:uppercase; margin-bottom:20px; text-align:center;">Merci pour votre message !</h2>
-                                                    
-                                                    <div style="color:#ffffff; font-size:15px; line-height:1.6; margin-bottom:30px; padding:0 10px;">
-                                                        Bonjour <strong>${name}</strong>,<br><br>
-                                                        Nous avons bien reçu votre demande concernant "<strong>${subject}</strong>".<br>
-                                                        ${targetRecipientName ? `Votre message a été transmis directement à <strong>${targetRecipientName}</strong>.<br>` : ''}
-                                                        Notre équipe va l'étudier avec attention et vous répondra dans les plus brefs délais.
-                                                    </div>
+                                                </div>
+                                            </div>
+                                        `
+                                    })
+                                });
+                            } else {
+                                await fetch('https://api.brevo.com/v3/smtp/email', {
+                                    method: 'POST',
+                                    headers: { 'accept': 'application/json', 'api-key': BREVO_KEY, 'content-type': 'application/json' },
+                                    body: JSON.stringify({
+                                        sender: { name: 'Dropsiders', email: 'contact@dropsiders.fr' },
+                                        to: [{ email: email, name: name }],
+                                        subject: `Confirmation de réception : ${subject}`,
+                                        htmlContent: `
+                                            <div style="font-family:'Helvetica Neue',Helvetica,Arial,sans-serif; color:#ffffff; background:#000000; padding:30px 5px; text-align:center;">
+                                                <div style="width:100%; max-width:600px; margin:0 auto; background:#111111; border:1px solid #333333; border-radius:24px; overflow:hidden; text-align:left; box-shadow: 0 0 30px rgba(255,0,51,0.1);">
+                                                    <div style="padding:40px 20px;">
+                                                        <div style="text-align:center; margin-bottom:30px;">
+                                                            <img src="https://dropsiders.fr/Logo.png" width="120" alt="Dropsiders">
+                                                        </div>
+                                                        
+                                                        <h2 style="color:#ff0033; font-size:20px; font-weight:900; text-transform:uppercase; margin-bottom:20px; text-align:center;">Merci pour votre message !</h2>
+                                                        
+                                                        <div style="color:#ffffff; font-size:15px; line-height:1.6; margin-bottom:30px; padding:0 10px;">
+                                                            Bonjour <strong>${name}</strong>,<br><br>
+                                                            Nous avons bien reçu votre demande concernant "<strong>${subject}</strong>".<br>
+                                                            ${targetRecipientName ? `Votre message a été transmis directement à <strong>${targetRecipientName}</strong>.<br>` : ''}
+                                                            Notre équipe va l'étudier avec attention et vous répondra dans les plus brefs délais.
+                                                        </div>
 
                                                     <div style="background:#080808; border-left:3px solid #ff0033; border-radius:12px; padding:20px; margin-bottom:30px;">
                                                         <p style="color:#666; font-size:11px; font-weight:bold; text-transform:uppercase; margin-top:0; margin-bottom:10px;">Rappel de votre message :</p>
