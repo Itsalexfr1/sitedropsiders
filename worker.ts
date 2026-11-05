@@ -8303,6 +8303,9 @@ ${urls.map(u => `  <url>
                     if (BREVO_KEY) {
                         const previewText = textContent.length > 300 ? textContent.slice(0, 300) + '...' : textContent;
                         const cleanFirstName = (destinationName || '').split('(')[0].trim() || 'l\'équipe';
+                        const renderedBody = (htmlContent && htmlContent.trim().length > 0)
+                            ? `<div style="max-height: 400px; overflow-y: auto; color: #e4e4e7; font-size: 13.5px; line-height: 1.6;">${htmlContent}</div>`
+                            : `<div style="color: #e4e4e7; font-size: 13.5px; line-height: 1.6; white-space: pre-wrap;">${previewText}</div>`;
                         try {
                             await fetch('https://api.brevo.com/v3/smtp/email', {
                                 method: 'POST',
@@ -8330,7 +8333,7 @@ ${urls.map(u => `  <url>
           <!-- Top Neon Header -->
           <tr>
             <td align="center" style="padding: 32px 24px 24px 24px; background: linear-gradient(180deg, rgba(255, 18, 65, 0.18) 0%, rgba(18, 19, 28, 0) 100%); border-bottom: 1px solid rgba(255, 18, 65, 0.2);">
-              <img src="https://dropsiders.fr/logo.png" alt="Dropsiders" width="85" style="display: block; margin: 0 auto 16px auto; max-width: 85px; height: auto; filter: drop-shadow(0 0 18px rgba(255,18,65,0.85));" />
+              <img src="https://dropsiders.fr/Logo.png" alt="Dropsiders" width="85" style="display: block; margin: 0 auto 16px auto; max-width: 85px; height: auto; filter: drop-shadow(0 0 18px rgba(255,18,65,0.85));" />
               <div style="display: inline-block; padding: 4px 14px; border-radius: 9999px; background-color: rgba(255, 18, 65, 0.14); border: 1px solid rgba(255, 18, 65, 0.4); color: #ff3b5c; font-size: 10px; font-weight: 900; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 10px;">
                 ⚡ Message Crew Entrant
               </div>
@@ -8377,7 +8380,7 @@ ${urls.map(u => `  <url>
                     <div style="font-size: 10px; color: #ff3b5c; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;">
                       💬 Extrait du message
                     </div>
-                    <div style="color: #e4e4e7; font-size: 13.5px; line-height: 1.6; white-space: pre-wrap; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">${previewText}</div>
+                    ${renderedBody}
                   </td>
                 </tr>
               </table>
