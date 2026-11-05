@@ -165,8 +165,8 @@ const lat2tile = (lat: number, zoom: number) => {
 // Petits helpers visuels pour les accordéons rétractables (badge d'état + chevron)
 const AccordionBadge = ({ active, label }: { active: boolean; label: string }) => (
     <span className={`px-1.5 py-0.5 rounded-md text-[7.5px] font-black uppercase tracking-wider border whitespace-nowrap ${active
-            ? 'bg-neon-cyan/15 border-neon-cyan/40 text-neon-cyan shadow-[0_0_8px_rgba(0,240,255,0.3)]'
-            : 'bg-white/5 border-white/10 text-gray-500'
+        ? 'bg-neon-cyan/15 border-neon-cyan/40 text-neon-cyan shadow-[0_0_8px_rgba(0,240,255,0.3)]'
+        : 'bg-white/5 border-white/10 text-gray-500'
         }`}>
         {label}
     </span>
@@ -857,8 +857,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         type="button"
                         onClick={() => onChange('zoom', btn.val)}
                         className={`py-1 rounded-lg text-[7.5px] font-black uppercase border transition-all ${zoom === btn.val
-                                ? 'bg-white/20 border-white text-white shadow-sm'
-                                : 'bg-white/5 border-white/5 text-gray-400 hover:text-white hover:bg-white/10'
+                            ? 'bg-white/20 border-white text-white shadow-sm'
+                            : 'bg-white/5 border-white/5 text-gray-400 hover:text-white hover:bg-white/10'
                             }`}
                     >
                         {btn.label}
@@ -933,7 +933,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 const parsed = JSON.parse(saved);
                 if (Array.isArray(parsed) && parsed.length === 10) return parsed;
             }
-        } catch (_) {}
+        } catch (_) { }
         return DEFAULT_TOP_10_TRACKS;
     });
 
@@ -949,7 +949,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const updateTop10Track = (rank: number, patch: Partial<Top10TrackItem>) => {
         setTop10Tracks(prev => {
             const next = prev.map(t => t.rank === rank ? { ...t, ...patch } : t);
-            try { localStorage.setItem('dropsiders_top10_tracks_v5', JSON.stringify(next)); } catch (_) {}
+            try { localStorage.setItem('dropsiders_top10_tracks_v5', JSON.stringify(next)); } catch (_) { }
             return next;
         });
         setTimeout(() => generateImage(), 50);
@@ -969,7 +969,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         v.onloadedmetadata = () => {
             const tr = top10Tracks.find(t => t.rank === rank);
             if (tr?.videoStartTime) {
-                try { v.currentTime = tr.videoStartTime; } catch (_) {}
+                try { v.currentTime = tr.videoStartTime; } catch (_) { }
             }
             generateImage();
         };
@@ -1110,7 +1110,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         }).catch(e => {
             console.warn("Test clip play failed:", e);
             v.muted = true;
-            v.play().catch(() => {});
+            v.play().catch(() => { });
         });
     };
 
@@ -8665,117 +8665,171 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.fillText(rankTitle, canvas.width / 2, badgeY + badgeH / 2);
                     ctx.restore();
 
-                    // 5. Cadre Scène Vidéo Widescreen 16:9
-                    const stageX = 80;
-                    const stageY = 430;
-                    const stageW = 920;
-                    const stageH = 518;
-                    const stageR = 24;
+                    // 5. Cadre Pochette Carrée 1:1 au Centre
+                    const cardSize = 660;
+                    const cardX = Math.round((canvas.width - cardSize) / 2); // 210px
+                    const cardY = 410;
+                    const cardR = 28;
 
+                    // A) Halo d'ambiance vibrant derrière la pochette
                     ctx.save();
-                    ctx.beginPath();
-                    ctx.roundRect(stageX, stageY, stageW, stageH, stageR);
-                    ctx.clip();
+                    const coverHalo = ctx.createRadialGradient(
+                        canvas.width / 2, cardY + cardSize / 2, cardSize * 0.18,
+                        canvas.width / 2, cardY + cardSize / 2, cardSize * 0.8
+                    );
+                    coverHalo.addColorStop(0, `rgba(${rankColorRgb}, 0.32)`);
+                    coverHalo.addColorStop(0.55, `rgba(${rankColorRgb}, 0.06)`);
+                    coverHalo.addColorStop(1, 'rgba(0, 0, 0, 0)');
+                    ctx.fillStyle = coverHalo;
+                    ctx.fillRect(cardX - 120, cardY - 120, cardSize + 240, cardSize + 240);
+                    ctx.restore();
 
-                    ctx.fillStyle = '#050608';
-                    ctx.fillRect(stageX, stageY, stageW, stageH);
-
-                    let videoElement = activeTrack.videoUrl ? getOrCreateTop10Video(activeTrack.rank, activeTrack.videoUrl) : null;
-                    let hasDrawnVisual = false;
-
-                    if (videoElement && videoElement.readyState >= 2) {
-                        try {
-                            const vw = videoElement.videoWidth || 16;
-                            const vh = videoElement.videoHeight || 9;
-                            const vAspect = vw / vh;
-                            const stageAspect = stageW / stageH;
-                            let drawW = stageW;
-                            let drawH = stageH;
-                            let drawX = stageX;
-                            let drawY = stageY;
-
-                            if (vAspect > stageAspect) {
-                                drawH = stageH;
-                                drawW = stageH * vAspect;
-                                drawX = stageX - (drawW - stageW) / 2;
-                            } else {
-                                drawW = stageW;
-                                drawH = stageW / vAspect;
-                                drawY = stageY - (drawH - stageH) / 2;
-                            }
-                            ctx.drawImage(videoElement, drawX, drawY, drawW, drawH);
-                            hasDrawnVisual = true;
-                        } catch (_) {}
-                    }
-
-                    if (!hasDrawnVisual && activeTrack.cover) {
-                        const coverImg = imageCacheRef.current[activeTrack.cover];
-                        if (coverImg && coverImg.complete) {
-                            ctx.drawImage(coverImg, stageX, stageY, stageW, stageH);
-                            hasDrawnVisual = true;
+                    // B) Récupération / Chargement de la Pochette
+                    let coverImg: HTMLImageElement | null = null;
+                    if (activeTrack.cover) {
+                        const resolvedCover = resolveImageUrl(activeTrack.cover);
+                        if (imageCacheRef.current[resolvedCover]) {
+                            coverImg = imageCacheRef.current[resolvedCover];
+                        } else if (imageCacheRef.current[activeTrack.cover]) {
+                            coverImg = imageCacheRef.current[activeTrack.cover];
+                        } else {
+                            loadCorsSafeImage(resolvedCover, (loadedImg) => {
+                                imageCacheRef.current[resolvedCover] = loadedImg;
+                                imageCacheRef.current[activeTrack.cover!] = loadedImg;
+                                generateImage();
+                            });
                         }
                     }
 
-                    if (!hasDrawnVisual && img) {
-                        try {
-                            ctx.drawImage(img, stageX, stageY, stageW, stageH);
-                            hasDrawnVisual = true;
-                        } catch (_) {}
-                    }
+                    // C) Ombre portée 3D réaliste
+                    ctx.save();
+                    ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
+                    ctx.shadowBlur = 45;
+                    ctx.shadowOffsetX = 0;
+                    ctx.shadowOffsetY = 18;
+                    ctx.beginPath();
+                    ctx.roundRect(cardX, cardY, cardSize, cardSize, cardR);
+                    ctx.fillStyle = '#080a0e';
+                    ctx.fill();
+                    ctx.restore();
 
-                    if (!hasDrawnVisual) {
-                        ctx.fillStyle = 'rgba(255, 255, 255, 0.05)';
-                        ctx.fillRect(stageX, stageY, stageW, stageH);
+                    // D) Dessin de l'image de la pochette ou vinyle haute couture
+                    ctx.save();
+                    ctx.beginPath();
+                    ctx.roundRect(cardX, cardY, cardSize, cardSize, cardR);
+                    ctx.clip();
+
+                    if (coverImg && coverImg.complete) {
+                        ctx.drawImage(coverImg, cardX, cardY, cardSize, cardSize);
+                    } else if (img && img.complete) {
+                        ctx.drawImage(img, cardX, cardY, cardSize, cardSize);
+                    } else {
+                        // Placeholder vinyle avec sillons gravés
+                        const phGrad = ctx.createLinearGradient(cardX, cardY, cardX + cardSize, cardY + cardSize);
+                        phGrad.addColorStop(0, '#161922');
+                        phGrad.addColorStop(0.5, '#0b0d13');
+                        phGrad.addColorStop(1, '#050608');
+                        ctx.fillStyle = phGrad;
+                        ctx.fillRect(cardX, cardY, cardSize, cardSize);
+
+                        const vCenterX = cardX + cardSize / 2;
+                        const vCenterY = cardY + cardSize / 2;
+                        [0.42, 0.35, 0.28, 0.21, 0.14].forEach(rRatio => {
+                            ctx.beginPath();
+                            ctx.arc(vCenterX, vCenterY, cardSize * rRatio, 0, Math.PI * 2);
+                            ctx.strokeStyle = 'rgba(255, 255, 255, 0.06)';
+                            ctx.lineWidth = 1.5;
+                            ctx.stroke();
+                        });
+
+                        ctx.beginPath();
+                        ctx.arc(vCenterX, vCenterY, 44, 0, Math.PI * 2);
+                        ctx.fillStyle = '#06080c';
+                        ctx.fill();
+                        ctx.strokeStyle = rankColor;
+                        ctx.lineWidth = 2.5;
+                        ctx.stroke();
+
+                        ctx.beginPath();
+                        ctx.arc(vCenterX, vCenterY, 10, 0, Math.PI * 2);
                         ctx.fillStyle = rankColor;
-                        ctx.font = '800 24px "Montserrat", sans-serif';
+                        ctx.fill();
+
+                        ctx.font = '800 22px "Montserrat", sans-serif';
+                        ctx.fillStyle = '#ffffff';
                         ctx.textAlign = 'center';
                         ctx.textBaseline = 'middle';
-                        ctx.fillText('⚡ CLIP EN ATTENTE / CHARGEMENT', stageX + stageW / 2, stageY + stageH / 2);
+                        ctx.fillText('POCHETTE 1:1', vCenterX, cardY + cardSize * 0.82);
                     }
 
-                    const stageVig = ctx.createLinearGradient(0, stageY + stageH - 80, 0, stageY + stageH);
-                    stageVig.addColorStop(0, 'rgba(0,0,0,0)');
-                    stageVig.addColorStop(1, 'rgba(0,0,0,0.65)');
-                    ctx.fillStyle = stageVig;
-                    ctx.fillRect(stageX, stageY + stageH - 80, stageW, 80);
+                    // Reflet gloss sur le haut de la pochette
+                    const glossGrad = ctx.createLinearGradient(cardX, cardY, cardX, cardY + cardSize * 0.35);
+                    glossGrad.addColorStop(0, 'rgba(255, 255, 255, 0.15)');
+                    glossGrad.addColorStop(1, 'rgba(255, 255, 255, 0)');
+                    ctx.fillStyle = glossGrad;
+                    ctx.fillRect(cardX, cardY, cardSize, cardSize * 0.35);
+
+                    // Glare sweep diagonal animé (balayage argenté)
+                    const sweepTime = isVideoExport ? animTime : (Date.now() - animStartTimeRef.current) / 1000;
+                    const sweepCycle = 3.0;
+                    const sweepT = sweepTime % sweepCycle;
+                    if (sweepT < 1.4) {
+                        const progress = sweepT / 1.4;
+                        const sweepX = cardX - 100 + (cardSize + 200) * progress;
+                        const beamW = 70;
+                        const slant = cardSize * 0.4;
+                        const glareGrad = ctx.createLinearGradient(sweepX - beamW, cardY, sweepX + beamW, cardY + cardSize);
+                        glareGrad.addColorStop(0, 'rgba(255, 255, 255, 0)');
+                        glareGrad.addColorStop(0.5, 'rgba(255, 255, 255, 0.4)');
+                        glareGrad.addColorStop(1, 'rgba(255, 255, 255, 0)');
+                        ctx.fillStyle = glareGrad;
+                        ctx.beginPath();
+                        ctx.moveTo(sweepX - beamW, cardY);
+                        ctx.lineTo(sweepX + beamW, cardY);
+                        ctx.lineTo(sweepX + beamW - slant, cardY + cardSize);
+                        ctx.lineTo(sweepX - beamW - slant, cardY + cardSize);
+                        ctx.closePath();
+                        ctx.fill();
+                    }
 
                     ctx.restore();
 
-                    // Bordure de la scène vidéo
+                    // E) Bordure néon & Coins cyber autour de la pochette
                     ctx.save();
                     ctx.strokeStyle = rankColor;
                     ctx.lineWidth = 2.5;
-                    ctx.shadowColor = `rgba(${rankColorRgb}, 0.5)`;
-                    ctx.shadowBlur = 16;
+                    ctx.shadowColor = `rgba(${rankColorRgb}, 0.6)`;
+                    ctx.shadowBlur = 18;
                     ctx.beginPath();
-                    ctx.roundRect(stageX, stageY, stageW, stageH, stageR);
+                    ctx.roundRect(cardX, cardY, cardSize, cardSize, cardR);
                     ctx.stroke();
 
                     // Coins cyber néon
+                    const cLen = 32;
                     ctx.strokeStyle = '#ffffff';
                     ctx.lineWidth = 4;
                     ctx.shadowColor = rankColor;
                     ctx.shadowBlur = 10;
                     ctx.beginPath();
-                    ctx.moveTo(stageX + stageR, stageY); ctx.lineTo(stageX, stageY); ctx.lineTo(stageX, stageY + stageR);
+                    ctx.moveTo(cardX + cardR, cardY); ctx.lineTo(cardX, cardY); ctx.lineTo(cardX, cardY + cardR);
                     ctx.stroke();
                     ctx.beginPath();
-                    ctx.moveTo(stageX + stageW - stageR, stageY); ctx.lineTo(stageX + stageW, stageY); ctx.lineTo(stageX + stageW, stageY + stageR);
+                    ctx.moveTo(cardX + cardSize - cardR, cardY); ctx.lineTo(cardX + cardSize, cardY); ctx.lineTo(cardX + cardSize, cardY + cardR);
                     ctx.stroke();
                     ctx.beginPath();
-                    ctx.moveTo(stageX, stageY + stageH - stageR); ctx.lineTo(stageX, stageY + stageH); ctx.lineTo(stageX + stageR, stageY + stageH);
+                    ctx.moveTo(cardX, cardY + cardSize - cardR); ctx.lineTo(cardX, cardY + cardSize); ctx.lineTo(cardX + cardR, cardY + cardSize);
                     ctx.stroke();
                     ctx.beginPath();
-                    ctx.moveTo(stageX + stageW - stageR, stageY + stageH); ctx.lineTo(stageX + stageW, stageY + stageH); ctx.lineTo(stageX + stageW, stageY + stageH - stageR);
+                    ctx.moveTo(cardX + cardSize - cardR, cardY + cardSize); ctx.lineTo(cardX + cardSize, cardY + cardSize); ctx.lineTo(cardX + cardSize, cardY + cardSize - cardR);
                     ctx.stroke();
                     ctx.restore();
 
-                    // Barre de progression sous la vidéo
+                    // F) Barre de progression sous la pochette
                     ctx.save();
-                    const pBarW = stageW;
+                    const pBarW = cardSize;
                     const pBarH = 4;
-                    const pBarX = stageX;
-                    const pBarY = stageY + stageH + 16;
+                    const pBarX = cardX;
+                    const pBarY = cardY + cardSize + 18;
                     ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
                     ctx.beginPath();
                     ctx.roundRect(pBarX, pBarY, pBarW, pBarH, 2);
@@ -8806,10 +8860,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
                     ctx.shadowBlur = 18;
                     ctx.shadowOffsetY = 4;
-                    ctx.fillText(artistStr, canvas.width / 2, 1070);
+                    ctx.fillText(artistStr, canvas.width / 2, 1145);
 
                     const titleStr = (activeTrack.title || 'TITRE DU MORCEAU').toUpperCase();
-                    let titleFontSize = 54;
+                    let titleFontSize = 52;
                     ctx.font = `900 ${titleFontSize}px "Montserrat", sans-serif`;
                     if ('letterSpacing' in ctx) (ctx as any).letterSpacing = '1px';
                     let titleW = ctx.measureText(titleStr).width;
@@ -8820,13 +8874,13 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.fillStyle = rankColor;
                     ctx.shadowColor = `rgba(${rankColorRgb}, 0.75)`;
                     ctx.shadowBlur = 24;
-                    ctx.fillText(titleStr, canvas.width / 2, 1140);
+                    ctx.fillText(titleStr, canvas.width / 2, 1215);
                     ctx.restore();
 
                     // 7. Visualiseur Waveform Audio Animé
                     ctx.save();
                     const waveBars = 32;
-                    const waveCenterY = 1250;
+                    const waveCenterY = 1310;
                     const waveMaxH = 70;
                     const waveTotalW = 600;
                     const waveBarW = 10;
@@ -11949,7 +12003,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 const rank = 10 - i;
                 setTop10ActiveRank(rank);
                 if (prevVideo) {
-                    try { prevVideo.pause(); prevVideo.muted = true; } catch (_) {}
+                    try { prevVideo.pause(); prevVideo.muted = true; } catch (_) { }
                 }
                 const tr = top10Tracks.find(t => t.rank === rank);
                 let currentV: HTMLVideoElement | null = null;
@@ -11959,15 +12013,15 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         try {
                             currentV.muted = isVideoAudioMuted;
                             currentV.currentTime = tr.videoStartTime || 0;
-                            await currentV.play().catch(() => {});
-                        } catch (_) {}
+                            await currentV.play().catch(() => { });
+                        } catch (_) { }
                     }
                 }
                 prevVideo = currentV;
                 await renderDuration(singleTrackMs, 0);
             }
             if (prevVideo) {
-                try { prevVideo.pause(); prevVideo.muted = true; } catch (_) {}
+                try { prevVideo.pause(); prevVideo.muted = true; } catch (_) { }
             }
         } else {
             if (theme === 'MUSIQUE' && musicAudioEl) {
@@ -12992,8 +13046,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 </span>
                 <span className="flex items-center gap-1.5">
                     <span className={`px-1.5 py-0.5 rounded-md text-[7.5px] font-black uppercase tracking-wider border ${bgAnimation !== 'NONE'
-                            ? 'bg-neon-cyan/15 border-neon-cyan/40 text-neon-cyan shadow-[0_0_8px_rgba(0,240,255,0.3)]'
-                            : 'bg-white/5 border-white/10 text-gray-500'
+                        ? 'bg-neon-cyan/15 border-neon-cyan/40 text-neon-cyan shadow-[0_0_8px_rgba(0,240,255,0.3)]'
+                        : 'bg-white/5 border-white/10 text-gray-500'
                         }`}>
                         {bgAnimation !== 'NONE' ? '● Active' : 'Statique'}
                     </span>
@@ -13026,8 +13080,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 }
                             }}
                             className={`py-2 px-1 rounded-xl text-[8.5px] font-black uppercase border transition-all flex flex-col items-center justify-center gap-0.5 ${bgAnimation === anim.id
-                                    ? anim.activeClass
-                                    : 'bg-white/5 border-white/10 text-gray-400 hover:text-white hover:bg-white/10'
+                                ? anim.activeClass
+                                : 'bg-white/5 border-white/10 text-gray-400 hover:text-white hover:bg-white/10'
                                 }`}
                         >
                             <span className="text-[11px] leading-none">{anim.icon}</span>
@@ -13146,8 +13200,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             type="button"
                             onClick={() => setThemeCategoryFilter(cat.key as any)}
                             className={`px-2.5 py-1.5 rounded-xl text-[9px] font-black uppercase whitespace-nowrap transition-all border shrink-0 ${themeCategoryFilter === cat.key
-                                    ? 'bg-white text-black border-white shadow-sm'
-                                    : 'bg-black/40 text-gray-400 border-white/10 hover:text-white hover:bg-white/10'
+                                ? 'bg-white text-black border-white shadow-sm'
+                                : 'bg-black/40 text-gray-400 border-white/10 hover:text-white hover:bg-white/10'
                                 }`}
                         >
                             {cat.label}
@@ -13163,8 +13217,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             type="button"
                             onClick={() => item.action()}
                             className={`py-2.5 px-1.5 rounded-xl text-[8px] font-black uppercase border transition-all text-center truncate ${item.active
-                                    ? item.style
-                                    : 'bg-white/5 border-white/5 text-gray-400 hover:text-white hover:bg-white/10 hover:border-white/15'
+                                ? item.style
+                                : 'bg-white/5 border-white/5 text-gray-400 hover:text-white hover:bg-white/10 hover:border-white/15'
                                 }`}
                             title={item.label}
                         >
@@ -13182,8 +13236,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 type="button"
                 onClick={() => handleSetTheme('JEU')}
                 className={`flex-1 py-2 px-2 rounded-xl text-[9px] font-black uppercase transition-all flex items-center justify-center gap-1 ${theme === 'JEU'
-                        ? 'bg-neon-cyan text-black shadow-[0_0_15px_rgba(0,240,255,0.4)] scale-[1.02]'
-                        : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
+                    ? 'bg-neon-cyan text-black shadow-[0_0_15px_rgba(0,240,255,0.4)] scale-[1.02]'
+                    : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
                     }`}
             >
                 🎬 Devine Clip
@@ -13192,8 +13246,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 type="button"
                 onClick={() => handleSetTheme('JEU_FESTIVAL')}
                 className={`flex-1 py-2 px-2 rounded-xl text-[9px] font-black uppercase transition-all flex items-center justify-center gap-1 ${theme === 'JEU_FESTIVAL'
-                        ? 'bg-[#ffaa00] text-black shadow-[0_0_15px_rgba(255,170,0,0.4)] scale-[1.02]'
-                        : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
+                    ? 'bg-[#ffaa00] text-black shadow-[0_0_15px_rgba(255,170,0,0.4)] scale-[1.02]'
+                    : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
                     }`}
             >
                 🎪 Devine Festival
@@ -13202,8 +13256,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 type="button"
                 onClick={() => handleSetTheme('JEU_DJ')}
                 className={`flex-1 py-2 px-2 rounded-xl text-[9px] font-black uppercase transition-all flex items-center justify-center gap-1 ${theme === 'JEU_DJ'
-                        ? 'bg-[#bd00ff] text-white shadow-[0_0_15px_rgba(189,0,255,0.5)] scale-[1.02]'
-                        : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
+                    ? 'bg-[#bd00ff] text-white shadow-[0_0_15px_rgba(189,0,255,0.5)] scale-[1.02]'
+                    : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
                     }`}
             >
                 👤 Devine DJ
@@ -13576,8 +13630,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     type="button"
                                     onClick={() => setAgendaCoverTitle(t)}
                                     className={`px-2 py-0.5 rounded text-[7px] font-black uppercase transition-all border ${agendaCoverTitle.toUpperCase() === t
-                                            ? 'bg-[#ff3700] border-[#ff3700] text-black shadow-sm'
-                                            : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'
+                                        ? 'bg-[#ff3700] border-[#ff3700] text-black shadow-sm'
+                                        : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'
                                         }`}
                                 >
                                     {t}
@@ -13630,8 +13684,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         setPlanningDate(m);
                                     }}
                                     className={`py-1 rounded-lg text-[8px] font-black uppercase transition-all border ${agendaMonth.toUpperCase() === m
-                                            ? 'bg-[#ff3700] border-[#ff3700] text-black shadow-[0_0_10px_rgba(255,55,0,0.5)]'
-                                            : 'bg-white/5 border-white/10 text-gray-400 hover:text-white hover:bg-white/10'
+                                        ? 'bg-[#ff3700] border-[#ff3700] text-black shadow-[0_0_10px_rgba(255,55,0,0.5)]'
+                                        : 'bg-white/5 border-white/10 text-gray-400 hover:text-white hover:bg-white/10'
                                         }`}
                                 >
                                     {m.slice(0, 4)}
@@ -13691,8 +13745,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     type="button"
                                     onClick={() => setAgendaCoverBadge(b)}
                                     className={`px-2 py-0.5 rounded text-[7px] font-black uppercase transition-all border ${agendaCoverBadge.toUpperCase() === b
-                                            ? 'bg-[#ff3700] border-[#ff3700] text-black shadow-sm'
-                                            : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'
+                                        ? 'bg-[#ff3700] border-[#ff3700] text-black shadow-sm'
+                                        : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'
                                         }`}
                                 >
                                     {b}
@@ -13728,8 +13782,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     type="button"
                                     onClick={() => setAgendaCoverGenres(g)}
                                     className={`px-2 py-0.5 rounded text-[7px] font-black uppercase transition-all border ${agendaCoverGenres.toUpperCase() === g
-                                            ? 'bg-[#ff3700] border-[#ff3700] text-black shadow-sm'
-                                            : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'
+                                        ? 'bg-[#ff3700] border-[#ff3700] text-black shadow-sm'
+                                        : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'
                                         }`}
                                 >
                                     {g}
@@ -13748,8 +13802,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 type="button"
                                 onClick={() => setShowAgendaCoverCta(!showAgendaCoverCta)}
                                 className={`px-2.5 py-1 rounded-full text-[8px] font-black uppercase transition-all border flex items-center gap-1.5 cursor-pointer ${showAgendaCoverCta
-                                        ? 'bg-[#ff3700]/20 border-[#ff3700]/50 text-[#ff3700] shadow-[0_0_8px_rgba(255,55,0,0.3)]'
-                                        : 'bg-white/5 border-white/15 text-gray-400 hover:text-white'
+                                    ? 'bg-[#ff3700]/20 border-[#ff3700]/50 text-[#ff3700] shadow-[0_0_8px_rgba(255,55,0,0.3)]'
+                                    : 'bg-white/5 border-white/15 text-gray-400 hover:text-white'
                                     }`}
                                 title={showAgendaCoverCta ? "Cliquer pour masquer la phrase" : "Cliquer pour afficher la phrase"}
                             >
@@ -13786,8 +13840,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                             type="button"
                                             onClick={() => setAgendaCoverCta(cta)}
                                             className={`px-2 py-0.5 rounded text-[7px] font-black transition-all border text-left ${agendaCoverCta === cta
-                                                    ? 'bg-[#ff3700] border-[#ff3700] text-black shadow-sm'
-                                                    : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'
+                                                ? 'bg-[#ff3700] border-[#ff3700] text-black shadow-sm'
+                                                : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'
                                                 }`}
                                         >
                                             {cta}
@@ -13852,8 +13906,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         type="button"
                                         onClick={() => setAgendaBadgeText(badge)}
                                         className={`px-2 py-0.5 rounded text-[7px] font-black uppercase transition-all border ${agendaBadgeText.toUpperCase() === badge
-                                                ? 'bg-[#ff3700] border-[#ff3700] text-black shadow-[0_0_8px_rgba(255,55,0,0.5)]'
-                                                : 'bg-white/5 border-white/10 text-gray-400 hover:text-white hover:bg-white/10'
+                                            ? 'bg-[#ff3700] border-[#ff3700] text-black shadow-[0_0_8px_rgba(255,55,0,0.5)]'
+                                            : 'bg-white/5 border-white/10 text-gray-400 hover:text-white hover:bg-white/10'
                                             }`}
                                     >
                                         {badge}
@@ -13877,8 +13931,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         setPlanningDate(m);
                                     }}
                                     className={`py-1 rounded-lg text-[8px] font-black uppercase transition-all border ${agendaMonth.toUpperCase() === m
-                                            ? 'bg-[#ff3700] border-[#ff3700] text-black shadow-[0_0_10px_rgba(255,55,0,0.5)]'
-                                            : 'bg-white/5 border-white/10 text-gray-400 hover:text-white hover:bg-white/10'
+                                        ? 'bg-[#ff3700] border-[#ff3700] text-black shadow-[0_0_10px_rgba(255,55,0,0.5)]'
+                                        : 'bg-white/5 border-white/10 text-gray-400 hover:text-white hover:bg-white/10'
                                         }`}
                                 >
                                     {m.slice(0, 4)}
@@ -14257,8 +14311,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             setTimeout(() => generateImage(), 50);
                         }}
                         className={`text-[8px] font-black px-2 py-0.5 rounded-lg border transition-all ${showDividerDate
-                                ? 'bg-neon-cyan/20 border-neon-cyan/40 text-neon-cyan hover:bg-neon-cyan/30'
-                                : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'
+                            ? 'bg-neon-cyan/20 border-neon-cyan/40 text-neon-cyan hover:bg-neon-cyan/30'
+                            : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'
                             }`}
                         title={showDividerDate ? "Masquer la date et rendre la barre blanche continue" : "Afficher la date au centre de la barre blanche"}
                     >
@@ -14354,8 +14408,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     </span>
                     <span className="flex items-center gap-1.5 shrink-0">
                         <span className={`px-1.5 py-0.5 rounded-md text-[7.5px] font-black uppercase tracking-wider border ${textAnimation !== 'NONE'
-                                ? 'bg-neon-cyan/15 border-neon-cyan/40 text-neon-cyan shadow-[0_0_8px_rgba(0,240,255,0.3)]'
-                                : 'bg-white/5 border-white/10 text-gray-500'
+                            ? 'bg-neon-cyan/15 border-neon-cyan/40 text-neon-cyan shadow-[0_0_8px_rgba(0,240,255,0.3)]'
+                            : 'bg-white/5 border-white/10 text-gray-500'
                             }`}>
                             {textAnimation !== 'NONE' ? '● Active' : 'Statique'}
                         </span>
@@ -14406,8 +14460,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 }
                             }}
                             className={`py-2 px-1 rounded-xl text-[8.5px] font-black uppercase border transition-all flex flex-col items-center justify-center gap-0.5 ${textAnimation === anim.id
-                                    ? anim.activeClass
-                                    : 'bg-white/5 border-white/10 text-gray-400 hover:text-white hover:bg-white/10'
+                                ? anim.activeClass
+                                : 'bg-white/5 border-white/10 text-gray-400 hover:text-white hover:bg-white/10'
                                 }`}
                         >
                             <span className="text-[11px] leading-none">{anim.icon}</span>
@@ -14429,8 +14483,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         <MessageSquare className="w-3.5 h-3.5 text-neon-red shrink-0" />
                         <span className="text-[10px] font-black uppercase text-white truncate">Accroche Question</span>
                         <span className={`text-[8px] px-1.5 py-0.5 rounded font-bold shrink-0 ${showPromoHook
-                                ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
-                                : 'bg-neon-cyan/20 text-neon-cyan border border-neon-cyan/30'
+                            ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                            : 'bg-neon-cyan/20 text-neon-cyan border border-neon-cyan/30'
                             }`}>
                             {showPromoHook ? 'Active' : 'Désactivée'}
                         </span>
@@ -14442,8 +14496,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             setTimeout(() => generateImage(), 50);
                         }}
                         className={`px-2.5 py-1.5 rounded-xl text-[9px] font-black uppercase transition-all flex items-center gap-1 border shrink-0 ${showPromoHook
-                                ? 'bg-emerald-500/20 border-emerald-500/40 text-emerald-300 hover:bg-emerald-500/30'
-                                : 'bg-neon-cyan/20 border-neon-cyan/40 text-neon-cyan hover:bg-neon-cyan/30 shadow-[0_0_10px_rgba(0,240,255,0.2)]'
+                            ? 'bg-emerald-500/20 border-emerald-500/40 text-emerald-300 hover:bg-emerald-500/30'
+                            : 'bg-neon-cyan/20 border-neon-cyan/40 text-neon-cyan hover:bg-neon-cyan/30 shadow-[0_0_10px_rgba(0,240,255,0.2)]'
                             }`}
                     >
                         {showPromoHook ? '👁️ Activée' : '🚫 Désactivée'}
@@ -14477,8 +14531,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             setTimeout(() => generateImage(), 50);
                         }}
                         className={`py-2 px-3 rounded-lg text-[9.5px] font-black uppercase flex items-center justify-center gap-1.5 transition-all ${promoOutroStyle === 'PHONE_3D'
-                                ? 'bg-gradient-to-r from-blue-600 to-cyan-500 text-white shadow-md shadow-blue-500/30'
-                                : 'text-gray-400 hover:text-white bg-transparent'
+                            ? 'bg-gradient-to-r from-blue-600 to-cyan-500 text-white shadow-md shadow-blue-500/30'
+                            : 'text-gray-400 hover:text-white bg-transparent'
                             }`}
                     >
                         <Smartphone className="w-3.5 h-3.5" />
@@ -14491,8 +14545,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             setTimeout(() => generateImage(), 50);
                         }}
                         className={`py-2 px-3 rounded-lg text-[9.5px] font-black uppercase flex items-center justify-center gap-1.5 transition-all ${promoOutroStyle === 'INSTAGRAM'
-                                ? 'bg-gradient-to-r from-[#bc1888] to-[#0095f6] text-white shadow-md shadow-pink-500/30'
-                                : 'text-gray-400 hover:text-white bg-transparent'
+                            ? 'bg-gradient-to-r from-[#bc1888] to-[#0095f6] text-white shadow-md shadow-pink-500/30'
+                            : 'text-gray-400 hover:text-white bg-transparent'
                             }`}
                     >
                         <Instagram className="w-3.5 h-3.5" />
@@ -14521,8 +14575,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 setTimeout(() => generateImage(), 50);
                             }}
                             className={`py-1.5 px-1.5 rounded-lg text-[9px] font-black uppercase flex items-center justify-center gap-1 transition-all ${promoPreviewNetwork === 'INSTAGRAM'
-                                    ? 'bg-gradient-to-r from-[#833ab4] via-[#fd1d1d] to-[#fcb045] text-white shadow-md shadow-pink-500/25'
-                                    : 'text-gray-400 hover:text-white bg-transparent'
+                                ? 'bg-gradient-to-r from-[#833ab4] via-[#fd1d1d] to-[#fcb045] text-white shadow-md shadow-pink-500/25'
+                                : 'text-gray-400 hover:text-white bg-transparent'
                                 }`}
                         >
                             <Instagram className="w-3 h-3" />
@@ -14535,8 +14589,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 setTimeout(() => generateImage(), 50);
                             }}
                             className={`py-1.5 px-1.5 rounded-lg text-[9px] font-black uppercase flex items-center justify-center gap-1 transition-all ${promoPreviewNetwork === 'TIKTOK'
-                                    ? 'bg-gradient-to-r from-[#25F4EE] to-[#FE2C55] text-black font-extrabold shadow-md shadow-cyan-500/25'
-                                    : 'text-gray-400 hover:text-white bg-transparent'
+                                ? 'bg-gradient-to-r from-[#25F4EE] to-[#FE2C55] text-black font-extrabold shadow-md shadow-cyan-500/25'
+                                : 'text-gray-400 hover:text-white bg-transparent'
                                 }`}
                         >
                             <Share2 className="w-3 h-3" />
@@ -14549,8 +14603,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 setTimeout(() => generateImage(), 50);
                             }}
                             className={`py-1.5 px-1.5 rounded-lg text-[9px] font-black uppercase flex items-center justify-center gap-1 transition-all ${promoPreviewNetwork === 'YOUTUBE'
-                                    ? 'bg-[#FF0000] text-white shadow-md shadow-red-500/30 font-black'
-                                    : 'text-gray-400 hover:text-white bg-transparent'
+                                ? 'bg-[#FF0000] text-white shadow-md shadow-red-500/30 font-black'
+                                : 'text-gray-400 hover:text-white bg-transparent'
                                 }`}
                         >
                             <Video className="w-3 h-3" />
@@ -15095,8 +15149,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 type="button"
                                 onClick={() => handleHighlightsColorChange('colorArtist', 'WHITE')}
                                 className={`px-2 py-0.5 rounded text-[8px] font-black uppercase border transition-all ${currentHighlightsColorArtist === 'WHITE'
-                                        ? 'bg-white text-black border-white shadow-sm'
-                                        : 'bg-white/5 text-gray-400 border-white/10'
+                                    ? 'bg-white text-black border-white shadow-sm'
+                                    : 'bg-white/5 text-gray-400 border-white/10'
                                     }`}
                             >
                                 Blanc
@@ -15105,8 +15159,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 type="button"
                                 onClick={() => handleHighlightsColorChange('colorArtist', 'RED')}
                                 className={`px-2 py-0.5 rounded text-[8px] font-black uppercase border transition-all ${currentHighlightsColorArtist === 'RED'
-                                        ? 'bg-red-600 text-white border-red-500 shadow-[0_0_10px_rgba(255,18,65,0.6)]'
-                                        : 'bg-white/5 text-gray-400 border-white/10 hover:text-red-400'
+                                    ? 'bg-red-600 text-white border-red-500 shadow-[0_0_10px_rgba(255,18,65,0.6)]'
+                                    : 'bg-white/5 text-gray-400 border-white/10 hover:text-red-400'
                                     }`}
                             >
                                 Rouge
@@ -15122,8 +15176,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 type="button"
                                 onClick={() => handleHighlightsColorChange('colorFestival', 'WHITE')}
                                 className={`px-2 py-0.5 rounded text-[8px] font-black uppercase border transition-all ${currentHighlightsColorFestival === 'WHITE'
-                                        ? 'bg-white text-black border-white shadow-sm'
-                                        : 'bg-white/5 text-gray-400 border-white/10'
+                                    ? 'bg-white text-black border-white shadow-sm'
+                                    : 'bg-white/5 text-gray-400 border-white/10'
                                     }`}
                             >
                                 Blanc
@@ -15132,8 +15186,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 type="button"
                                 onClick={() => handleHighlightsColorChange('colorFestival', 'RED')}
                                 className={`px-2 py-0.5 rounded text-[8px] font-black uppercase border transition-all ${currentHighlightsColorFestival === 'RED'
-                                        ? 'bg-red-600 text-white border-red-500 shadow-[0_0_10px_rgba(255,18,65,0.6)]'
-                                        : 'bg-white/5 text-gray-400 border-white/10 hover:text-red-400'
+                                    ? 'bg-red-600 text-white border-red-500 shadow-[0_0_10px_rgba(255,18,65,0.6)]'
+                                    : 'bg-white/5 text-gray-400 border-white/10 hover:text-red-400'
                                     }`}
                             >
                                 Rouge
@@ -15149,8 +15203,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 type="button"
                                 onClick={() => handleHighlightsColorChange('colorCity', 'WHITE')}
                                 className={`px-2 py-0.5 rounded text-[8px] font-black uppercase border transition-all ${currentHighlightsColorCity === 'WHITE'
-                                        ? 'bg-white text-black border-white shadow-sm'
-                                        : 'bg-white/5 text-gray-400 border-white/10'
+                                    ? 'bg-white text-black border-white shadow-sm'
+                                    : 'bg-white/5 text-gray-400 border-white/10'
                                     }`}
                             >
                                 Blanc
@@ -15159,8 +15213,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 type="button"
                                 onClick={() => handleHighlightsColorChange('colorCity', 'RED')}
                                 className={`px-2 py-0.5 rounded text-[8px] font-black uppercase border transition-all ${currentHighlightsColorCity === 'RED'
-                                        ? 'bg-red-600 text-white border-red-500 shadow-[0_0_10px_rgba(255,18,65,0.6)]'
-                                        : 'bg-white/5 text-gray-400 border-white/10 hover:text-red-400'
+                                    ? 'bg-red-600 text-white border-red-500 shadow-[0_0_10px_rgba(255,18,65,0.6)]'
+                                    : 'bg-white/5 text-gray-400 border-white/10 hover:text-red-400'
                                     }`}
                             >
                                 Rouge
@@ -15176,8 +15230,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 type="button"
                                 onClick={() => handleHighlightsColorChange('colorCountry', 'WHITE')}
                                 className={`px-2 py-0.5 rounded text-[8px] font-black uppercase border transition-all ${currentHighlightsColorCountry === 'WHITE'
-                                        ? 'bg-white text-black border-white shadow-sm'
-                                        : 'bg-white/5 text-gray-400 border-white/10'
+                                    ? 'bg-white text-black border-white shadow-sm'
+                                    : 'bg-white/5 text-gray-400 border-white/10'
                                     }`}
                             >
                                 Blanc
@@ -15186,8 +15240,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 type="button"
                                 onClick={() => handleHighlightsColorChange('colorCountry', 'RED')}
                                 className={`px-2 py-0.5 rounded text-[8px] font-black uppercase border transition-all ${currentHighlightsColorCountry === 'RED'
-                                        ? 'bg-red-600 text-white border-red-500 shadow-[0_0_10px_rgba(255,18,65,0.6)]'
-                                        : 'bg-white/5 text-gray-400 border-white/10 hover:text-red-400'
+                                    ? 'bg-red-600 text-white border-red-500 shadow-[0_0_10px_rgba(255,18,65,0.6)]'
+                                    : 'bg-white/5 text-gray-400 border-white/10 hover:text-red-400'
                                     }`}
                             >
                                 Rouge
@@ -15203,8 +15257,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 type="button"
                                 onClick={() => handleHighlightsColorChange('colorDate', 'WHITE')}
                                 className={`px-2.5 py-0.5 rounded text-[8px] font-black uppercase border transition-all ${currentHighlightsColorDate === 'WHITE'
-                                        ? 'bg-white text-black border-white shadow-sm'
-                                        : 'bg-white/5 text-gray-400 border-white/10'
+                                    ? 'bg-white text-black border-white shadow-sm'
+                                    : 'bg-white/5 text-gray-400 border-white/10'
                                     }`}
                             >
                                 Blanc
@@ -15213,8 +15267,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 type="button"
                                 onClick={() => handleHighlightsColorChange('colorDate', 'RED')}
                                 className={`px-2.5 py-0.5 rounded text-[8px] font-black uppercase border transition-all ${currentHighlightsColorDate === 'RED'
-                                        ? 'bg-red-600 text-white border-red-500 shadow-[0_0_10px_rgba(255,18,65,0.6)]'
-                                        : 'bg-white/5 text-gray-400 border-white/10 hover:text-red-400'
+                                    ? 'bg-red-600 text-white border-red-500 shadow-[0_0_10px_rgba(255,18,65,0.6)]'
+                                    : 'bg-white/5 text-gray-400 border-white/10 hover:text-red-400'
                                     }`}
                             >
                                 Rouge
@@ -15505,8 +15559,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         type="button"
                         onClick={() => setArtisteFestivalSlide(1)}
                         className={`flex-1 py-3 px-3 rounded-xl text-[10px] font-black uppercase transition-all flex items-center justify-center gap-2 ${artisteFestivalSlide === 1
-                                ? 'bg-neon-red text-white shadow-[0_0_15px_rgba(255,0,51,0.5)] scale-[1.02]'
-                                : 'text-gray-400 hover:text-white hover:bg-white/5'
+                            ? 'bg-neon-red text-white shadow-[0_0_15px_rgba(255,0,51,0.5)] scale-[1.02]'
+                            : 'text-gray-400 hover:text-white hover:bg-white/5'
                             }`}
                     >
                         <span className="text-xs">🎪</span> Slide 1 : Cover Festival
@@ -15515,8 +15569,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         type="button"
                         onClick={() => setArtisteFestivalSlide(2)}
                         className={`flex-1 py-3 px-3 rounded-xl text-[10px] font-black uppercase transition-all flex items-center justify-center gap-2 ${artisteFestivalSlide === 2
-                                ? 'bg-neon-red text-white shadow-[0_0_15px_rgba(255,0,51,0.5)] scale-[1.02]'
-                                : 'text-gray-400 hover:text-white hover:bg-white/5'
+                            ? 'bg-neon-red text-white shadow-[0_0_15px_rgba(255,0,51,0.5)] scale-[1.02]'
+                            : 'text-gray-400 hover:text-white hover:bg-white/5'
                             }`}
                     >
                         <span className="text-xs">⭐</span> Slide 2 : Spotlight Artiste
@@ -15595,8 +15649,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             playTransitionPreview(trans.id);
                         }}
                         className={`px-1.5 py-0.5 rounded-lg text-[8px] font-black uppercase transition-all flex items-center gap-1 ${slideTransition === trans.id
-                                ? 'bg-neon-red text-white shadow-sm'
-                                : 'text-gray-400 hover:text-white hover:bg-white/5'
+                            ? 'bg-neon-red text-white shadow-sm'
+                            : 'text-gray-400 hover:text-white hover:bg-white/5'
                             }`}
                         title={`${trans.label} - ${trans.desc}`}
                     >
@@ -15664,8 +15718,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 playTransitionPreview(trans.id);
                             }}
                             className={`py-2 px-1 rounded-xl text-[8px] font-black uppercase border transition-all flex flex-col items-center justify-center gap-0.5 ${slideTransition === trans.id
-                                    ? 'bg-neon-red border-neon-red text-white shadow-[0_0_12px_rgba(255,0,51,0.5)] scale-[1.02]'
-                                    : 'bg-white/5 border-white/10 text-gray-400 hover:text-white hover:bg-white/10'
+                                ? 'bg-neon-red border-neon-red text-white shadow-[0_0_12px_rgba(255,0,51,0.5)] scale-[1.02]'
+                                : 'bg-white/5 border-white/10 text-gray-400 hover:text-white hover:bg-white/10'
                                 }`}
                             title={trans.desc}
                         >
@@ -15701,8 +15755,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         type="button"
                         onClick={() => setSkipEditorialSlide2(!skipEditorialSlide2)}
                         className={`px-2.5 py-1 rounded-lg text-[8px] font-black uppercase transition-all border active:scale-95 ${skipEditorialSlide2
-                                ? 'bg-amber-500/20 border-amber-500/50 text-amber-300 shadow-[0_0_10px_rgba(245,158,11,0.2)]'
-                                : 'bg-white/10 border-white/20 text-gray-300 hover:text-white'
+                            ? 'bg-amber-500/20 border-amber-500/50 text-amber-300 shadow-[0_0_10px_rgba(245,158,11,0.2)]'
+                            : 'bg-white/10 border-white/20 text-gray-300 hover:text-white'
                             }`}
                     >
                         {skipEditorialSlide2 ? '🚫 Slide 2 Masquée' : '👁️ Slide 2 Incluse'}
@@ -15724,8 +15778,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 type="button"
                                 onClick={() => setEditorialSlide1Duration(s)}
                                 className={`flex-1 py-1 rounded-lg text-[8px] font-black transition-all border active:scale-95 ${editorialSlide1Duration === s
-                                        ? 'bg-amber-500 text-black border-amber-400'
-                                        : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'
+                                    ? 'bg-amber-500 text-black border-amber-400'
+                                    : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'
                                     }`}
                             >
                                 {s}s
@@ -15754,8 +15808,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 type="button"
                                 onClick={() => setExportFps(f)}
                                 className={`px-2 py-0.5 rounded text-[7.5px] font-black uppercase transition-all border active:scale-95 ${exportFps === f
-                                        ? 'bg-neon-cyan text-black border-neon-cyan'
-                                        : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'
+                                    ? 'bg-neon-cyan text-black border-neon-cyan'
+                                    : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'
                                     }`}
                             >
                                 {f} FPS
@@ -16139,8 +16193,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 setTimeout(() => generateImage(), 50);
                             }}
                             className={`px-2.5 py-1 rounded-full text-[8px] font-black uppercase transition-all ${showTweetTranslation
-                                    ? 'bg-neon-cyan/20 border border-neon-cyan text-neon-cyan'
-                                    : 'bg-white/5 border border-white/10 text-gray-500'
+                                ? 'bg-neon-cyan/20 border border-neon-cyan text-neon-cyan'
+                                : 'bg-white/5 border border-white/10 text-gray-500'
                                 }`}
                         >
                             {showTweetTranslation ? 'CADRE VISIBLE' : 'MASQUÉ'}
@@ -16251,8 +16305,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             type="button"
                             onClick={() => { setTweetAnimMode('FLOAT'); animStartTimeRef.current = Date.now(); setTimeout(() => generateImage(), 30); }}
                             className={`p-2.5 rounded-xl border text-left transition-all ${tweetAnimMode === 'FLOAT'
-                                    ? 'bg-white/10 text-white shadow-md'
-                                    : 'bg-black/30 border-white/10 text-gray-400 hover:text-white hover:border-white/20'
+                                ? 'bg-white/10 text-white shadow-md'
+                                : 'bg-black/30 border-white/10 text-gray-400 hover:text-white hover:border-white/20'
                                 }`}
                             style={tweetAnimMode === 'FLOAT' ? { borderColor: activeColor?.color || '#ff0033' } : {}}
                         >
@@ -16264,8 +16318,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             type="button"
                             onClick={() => { setTweetAnimMode('SCANNER'); animStartTimeRef.current = Date.now(); setTimeout(() => generateImage(), 30); }}
                             className={`p-2.5 rounded-xl border text-left transition-all ${tweetAnimMode === 'SCANNER'
-                                    ? 'bg-white/10 text-white shadow-md'
-                                    : 'bg-black/30 border-white/10 text-gray-400 hover:text-white hover:border-white/20'
+                                ? 'bg-white/10 text-white shadow-md'
+                                : 'bg-black/30 border-white/10 text-gray-400 hover:text-white hover:border-white/20'
                                 }`}
                             style={tweetAnimMode === 'SCANNER' ? { borderColor: activeColor?.color || '#ff0033' } : {}}
                         >
@@ -16277,8 +16331,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             type="button"
                             onClick={() => { setTweetAnimMode('POPUP'); animStartTimeRef.current = Date.now(); setTimeout(() => generateImage(), 30); }}
                             className={`p-2.5 rounded-xl border text-left transition-all ${tweetAnimMode === 'POPUP'
-                                    ? 'bg-white/10 text-white shadow-md'
-                                    : 'bg-black/30 border-white/10 text-gray-400 hover:text-white hover:border-white/20'
+                                ? 'bg-white/10 text-white shadow-md'
+                                : 'bg-black/30 border-white/10 text-gray-400 hover:text-white hover:border-white/20'
                                 }`}
                             style={tweetAnimMode === 'POPUP' ? { borderColor: activeColor?.color || '#ff0033' } : {}}
                         >
@@ -16290,8 +16344,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             type="button"
                             onClick={() => { setTweetAnimMode('TILT'); animStartTimeRef.current = Date.now(); setTimeout(() => generateImage(), 30); }}
                             className={`p-2.5 rounded-xl border text-left transition-all ${tweetAnimMode === 'TILT'
-                                    ? 'bg-white/10 text-white shadow-md'
-                                    : 'bg-black/30 border-white/10 text-gray-400 hover:text-white hover:border-white/20'
+                                ? 'bg-white/10 text-white shadow-md'
+                                : 'bg-black/30 border-white/10 text-gray-400 hover:text-white hover:border-white/20'
                                 }`}
                             style={tweetAnimMode === 'TILT' ? { borderColor: activeColor?.color || '#ff0033' } : {}}
                         >
@@ -16304,8 +16358,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         type="button"
                         onClick={() => { setTweetAnimMode(tweetAnimMode === 'NONE' ? 'FLOAT' : 'NONE'); animStartTimeRef.current = Date.now(); setTimeout(() => generateImage(), 30); }}
                         className={`w-full py-2 rounded-xl border text-[8.5px] font-black uppercase transition-all flex items-center justify-center gap-1.5 ${tweetAnimMode === 'NONE'
-                                ? 'bg-amber-500/20 border-amber-500/40 text-amber-300'
-                                : 'bg-black/20 border-white/10 text-gray-400 hover:text-white'
+                            ? 'bg-amber-500/20 border-amber-500/40 text-amber-300'
+                            : 'bg-black/20 border-white/10 text-gray-400 hover:text-white'
                             }`}
                     >
                         <span>{tweetAnimMode === 'NONE' ? '🛑 Mode Fixe Actif (Pas d\'animation)' : 'Désactiver l\'animation (Mode Fixe)'}</span>
@@ -16731,8 +16785,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 type="button"
                                 onClick={() => setCdjPlayerRing(prev => !prev)}
                                 className={`px-2.5 py-2 rounded-xl text-[8.5px] font-black uppercase transition-all flex items-center justify-between border cursor-pointer ${cdjPlayerRing
-                                        ? 'bg-[#ff0033]/20 border-[#ff0033]/60 text-white shadow-[0_0_12px_rgba(255,0,51,0.3)]'
-                                        : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'
+                                    ? 'bg-[#ff0033]/20 border-[#ff0033]/60 text-white shadow-[0_0_12px_rgba(255,0,51,0.3)]'
+                                    : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'
                                     }`}
                             >
                                 <span className="flex items-center gap-1.5">
@@ -16748,8 +16802,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 type="button"
                                 onClick={() => setMusicBgMotion(prev => !prev)}
                                 className={`px-2.5 py-2 rounded-xl text-[8.5px] font-black uppercase transition-all flex items-center justify-between border cursor-pointer ${musicBgMotion
-                                        ? 'bg-[#00ff66]/20 border-[#00ff66]/60 text-white shadow-[0_0_12px_rgba(0,255,102,0.3)]'
-                                        : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'
+                                    ? 'bg-[#00ff66]/20 border-[#00ff66]/60 text-white shadow-[0_0_12px_rgba(0,255,102,0.3)]'
+                                    : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'
                                     }`}
                             >
                                 <span className="flex items-center gap-1.5">
@@ -16889,8 +16943,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         setTimeout(() => generateImage(), 50);
                     }}
                     className={`py-2 px-2.5 rounded-lg text-[9px] font-black uppercase transition-all flex items-center justify-center gap-1.5 ${editorialSlide === 1 && !isCarouselPromoActive && !isEditorialAfficheActive
-                            ? 'bg-gradient-to-r from-[#bd00ff] to-[#7928ca] text-white shadow-[0_0_12px_rgba(189,0,255,0.4)]'
-                            : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
+                        ? 'bg-gradient-to-r from-[#bd00ff] to-[#7928ca] text-white shadow-[0_0_12px_rgba(189,0,255,0.4)]'
+                        : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
                         }`}
                 >
                     <span>👤</span>
@@ -16905,8 +16959,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         setTimeout(() => generateImage(), 50);
                     }}
                     className={`py-2 px-2.5 rounded-lg text-[9px] font-black uppercase transition-all flex items-center justify-center gap-1.5 ${editorialSlide === 2 && !isCarouselPromoActive && !isEditorialAfficheActive
-                            ? 'bg-gradient-to-r from-neon-cyan to-emerald-500 text-black font-black shadow-[0_0_12px_rgba(0,240,255,0.4)]'
-                            : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
+                        ? 'bg-gradient-to-r from-neon-cyan to-emerald-500 text-black font-black shadow-[0_0_12px_rgba(0,240,255,0.4)]'
+                        : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
                         }`}
                 >
                     <span>🌈</span>
@@ -16996,10 +17050,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 onClick={handleIsolateDjSilhouette}
                                 disabled={isIsolatingSilhouette || !(djOriginalImage || editorialSlideImages[1] || bgImage)}
                                 className={`flex-1 py-2 px-3 rounded-xl text-[9px] font-black uppercase transition-all flex items-center justify-center gap-2 shadow-lg ${isIsolatingSilhouette
-                                        ? 'bg-purple-900/50 text-purple-300 border border-purple-500/40 cursor-wait'
-                                        : !(djOriginalImage || editorialSlideImages[1] || bgImage)
-                                            ? 'bg-white/5 text-gray-500 border border-white/5 cursor-not-allowed'
-                                            : 'bg-gradient-to-r from-[#bd00ff] to-[#7928ca] hover:from-[#d13aff] hover:to-[#9333ea] text-white shadow-[0_0_15px_rgba(189,0,255,0.4)] active:scale-98'
+                                    ? 'bg-purple-900/50 text-purple-300 border border-purple-500/40 cursor-wait'
+                                    : !(djOriginalImage || editorialSlideImages[1] || bgImage)
+                                        ? 'bg-white/5 text-gray-500 border border-white/5 cursor-not-allowed'
+                                        : 'bg-gradient-to-r from-[#bd00ff] to-[#7928ca] hover:from-[#d13aff] hover:to-[#9333ea] text-white shadow-[0_0_15px_rgba(189,0,255,0.4)] active:scale-98'
                                     }`}
                             >
                                 {isIsolatingSilhouette ? (
@@ -17059,8 +17113,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     type="button"
                                     onClick={() => setDjSilhouetteColor(c.color)}
                                     className={`px-2 py-1 rounded-lg text-[8px] font-black uppercase transition-all flex items-center gap-1.5 border ${djSilhouetteColor.toLowerCase() === c.color.toLowerCase()
-                                            ? 'bg-white/20 border-white text-white shadow-md'
-                                            : 'bg-black/40 border-white/10 text-gray-400 hover:text-white'
+                                        ? 'bg-white/20 border-white text-white shadow-md'
+                                        : 'bg-black/40 border-white/10 text-gray-400 hover:text-white'
                                         }`}
                                 >
                                     <span className="w-2.5 h-2.5 rounded-full shadow-sm" style={{ backgroundColor: c.color }} />
@@ -17094,8 +17148,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 type="button"
                                 onClick={() => setDjShowQuestionMark(!djShowQuestionMark)}
                                 className={`px-2.5 py-1 rounded-lg text-[8px] font-black uppercase transition-all border ${djShowQuestionMark
-                                        ? 'bg-[#bd00ff]/20 border-[#bd00ff] text-[#bd00ff]'
-                                        : 'bg-white/5 border-white/10 text-gray-500'
+                                    ? 'bg-[#bd00ff]/20 border-[#bd00ff] text-[#bd00ff]'
+                                    : 'bg-white/5 border-white/10 text-gray-500'
                                     }`}
                             >
                                 {djShowQuestionMark ? 'ACTIF' : 'MASQUÉ'}
@@ -17131,8 +17185,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         setTimeout(() => generateImage(), 50);
                                     }}
                                     className={`py-1.5 px-1.5 rounded-lg text-[8px] font-black uppercase transition-all border text-center ${djAppearanceAnim === eff.id
-                                            ? 'bg-[#bd00ff] border-[#bd00ff] text-white shadow-[0_0_10px_rgba(189,0,255,0.4)] scale-[1.02]'
-                                            : 'bg-white/5 border-white/10 text-gray-400 hover:text-white hover:bg-white/10'
+                                        ? 'bg-[#bd00ff] border-[#bd00ff] text-white shadow-[0_0_10px_rgba(189,0,255,0.4)] scale-[1.02]'
+                                        : 'bg-white/5 border-white/10 text-gray-400 hover:text-white hover:bg-white/10'
                                         }`}
                                     title={eff.desc}
                                 >
@@ -17483,8 +17537,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 setTimeout(() => generateImage(), 50);
                             }}
                             className={`py-1 px-2.5 rounded-lg text-[8px] font-black uppercase transition-all flex items-center gap-1 ${(djSlideModes[editorialSlide] === 'SILHOUETTE' || (djSlideModes[editorialSlide] === undefined && editorialSlide % 2 === 1))
-                                    ? 'bg-[#bd00ff] text-white shadow-md scale-[1.02]'
-                                    : 'text-gray-400 hover:text-white'
+                                ? 'bg-[#bd00ff] text-white shadow-md scale-[1.02]'
+                                : 'text-gray-400 hover:text-white'
                                 }`}
                         >
                             👤 Silhouette
@@ -17496,8 +17550,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 setTimeout(() => generateImage(), 50);
                             }}
                             className={`py-1 px-2.5 rounded-lg text-[8px] font-black uppercase transition-all flex items-center gap-1 ${(djSlideModes[editorialSlide] === 'REVEAL' || (djSlideModes[editorialSlide] === undefined && editorialSlide % 2 === 0))
-                                    ? 'bg-emerald-500 text-black font-black shadow-md scale-[1.02]'
-                                    : 'text-gray-400 hover:text-white'
+                                ? 'bg-emerald-500 text-black font-black shadow-md scale-[1.02]'
+                                : 'text-gray-400 hover:text-white'
                                 }`}
                         >
                             🌈 Reveal Couleur
@@ -17817,8 +17871,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                                 setCustomText(updated);
                                             }}
                                             className={`px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all border ${isHighlighted
-                                                    ? 'shadow-md border-transparent'
-                                                    : 'bg-white/5 border-white/10 text-gray-400 hover:text-white hover:bg-white/10 hover:border-white/20'
+                                                ? 'shadow-md border-transparent'
+                                                : 'bg-white/5 border-white/10 text-gray-400 hover:text-white hover:bg-white/10 hover:border-white/20'
                                                 }`}
                                             style={isHighlighted ? {
                                                 backgroundColor: `${activeColor.color}30`,
@@ -17877,8 +17931,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 type="button"
                                 onClick={() => setShowTitleOnSlide2(!showTitleOnSlide2)}
                                 className={`px-3 py-1.5 rounded-xl text-[9.5px] font-black uppercase transition-all flex items-center gap-1.5 border ${showTitleOnSlide2
-                                        ? 'bg-emerald-500/20 border-emerald-500/40 text-emerald-300 hover:bg-emerald-500/30'
-                                        : 'bg-white/10 border-white/20 text-white hover:bg-white/20 shadow-md'
+                                    ? 'bg-emerald-500/20 border-emerald-500/40 text-emerald-300 hover:bg-emerald-500/30'
+                                    : 'bg-white/10 border-white/20 text-white hover:bg-white/20 shadow-md'
                                     }`}
                             >
                                 {showTitleOnSlide2 ? '👁️ Titre Visible' : '🚫 Titre Masqué'}
@@ -17961,8 +18015,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                                             updateEditorialSlideText(editorialSlide, res.join(''));
                                                         }}
                                                         className={`px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all border ${isHighlighted
-                                                                ? 'shadow-md border-transparent'
-                                                                : 'bg-white/5 border-white/10 text-gray-400 hover:text-white hover:bg-white/10 hover:border-white/20'
+                                                            ? 'shadow-md border-transparent'
+                                                            : 'bg-white/5 border-white/10 text-gray-400 hover:text-white hover:bg-white/10 hover:border-white/20'
                                                             }`}
                                                         style={isHighlighted ? {
                                                             backgroundColor: `${activeColor.color}30`,
@@ -18426,7 +18480,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 type="button"
                                 onClick={() => {
                                     setTop10Tracks(DEFAULT_TOP_10_TRACKS);
-                                    try { localStorage.setItem('dropsiders_top10_tracks_v5', JSON.stringify(DEFAULT_TOP_10_TRACKS)); } catch (_) {}
+                                    try { localStorage.setItem('dropsiders_top10_tracks_v5', JSON.stringify(DEFAULT_TOP_10_TRACKS)); } catch (_) { }
                                     setTimeout(() => generateImage(), 50);
                                 }}
                                 className="text-[8px] text-gray-500 hover:text-red-400 font-bold uppercase transition-colors"
@@ -18536,7 +18590,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         setTop10ActiveRank(t.rank);
                                         const v = t.videoUrl ? getOrCreateTop10Video(t.rank, t.videoUrl) : null;
                                         if (v && t.videoStartTime) {
-                                            try { v.currentTime = t.videoStartTime; } catch (_) {}
+                                            try { v.currentTime = t.videoStartTime; } catch (_) { }
                                         }
                                         setTimeout(() => generateImage(), 30);
                                     }}
@@ -18607,11 +18661,54 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         />
                     </div>
 
-                    {/* Clip Vidéo YouTube / MP4 */}
+                    {/* Pochette Carrée 1:1 (Cover) */}
                     <div className="space-y-1.5 pt-1 border-t border-white/5">
                         <label className="text-[8.5px] font-black text-white uppercase tracking-wider flex items-center justify-between">
-                            <span>🎬 Clip Vidéo (Lien YouTube / MP4)</span>
-                            {activeTrack.videoUrl && <span className="text-emerald-400 text-[7.5px] font-mono">✓ Clip connecté</span>}
+                            <span>🖼️ Pochette du Morceau (Cover 1:1)</span>
+                            {activeTrack.cover && <span className="text-emerald-400 text-[7.5px] font-mono">✓ Pochette chargée</span>}
+                        </label>
+                        <div className="flex items-center gap-2">
+                            <div className="w-10 h-10 rounded-xl overflow-hidden bg-black/60 border border-white/10 shrink-0 flex items-center justify-center">
+                                {activeTrack.cover ? (
+                                    <img src={activeTrack.cover} alt="Cover" className="w-full h-full object-cover" />
+                                ) : (
+                                    <span className="text-[14px]">💿</span>
+                                )}
+                            </div>
+                            <input
+                                type="text"
+                                value={activeTrack.cover || ''}
+                                onChange={e => updateTop10Track(activeTrack.rank, { cover: e.target.value })}
+                                placeholder="URL de la pochette (ou auto-détectée via le lien)..."
+                                className="flex-1 bg-white/5 border border-white/10 rounded-xl p-2 text-white font-mono text-[10px] focus:border-neon-cyan/50 outline-none truncate"
+                            />
+                            <label className="px-2.5 py-2 bg-white/10 hover:bg-white/20 text-white rounded-xl text-[9px] font-black uppercase cursor-pointer transition-all shrink-0 border border-white/10 flex items-center gap-1" title="Importer une image locale">
+                                <span>📁</span>
+                                <input
+                                    type="file"
+                                    accept="image/*"
+                                    className="hidden"
+                                    onChange={e => {
+                                        const file = e.target.files?.[0];
+                                        if (file) {
+                                            const reader = new FileReader();
+                                            reader.onload = (ev) => {
+                                                const dataUrl = ev.target?.result as string;
+                                                if (dataUrl) updateTop10Track(activeTrack.rank, { cover: dataUrl });
+                                            };
+                                            reader.readAsDataURL(file);
+                                        }
+                                    }}
+                                />
+                            </label>
+                        </div>
+                    </div>
+
+                    {/* Clip Vidéo / Audio (Lien YouTube / MP4) */}
+                    <div className="space-y-1.5 pt-1 border-t border-white/5">
+                        <label className="text-[8.5px] font-black text-white uppercase tracking-wider flex items-center justify-between">
+                            <span>🎵 Lien Vidéo / Audio (Lien YouTube / MP4)</span>
+                            {activeTrack.videoUrl && <span className="text-emerald-400 text-[7.5px] font-mono">✓ Son & vidéo connectés</span>}
                         </label>
                         <div className="flex gap-2">
                             <input
@@ -18642,7 +18739,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             </button>
                         </div>
                         <p className="text-[7.5px] text-gray-500 font-mono">
-                            💡 En collant un lien YouTube, l'Artiste, le Titre et le clip vidéo sont extraits automatiquement.
+                            💡 En collant un lien, l'Artiste, le Titre, la Pochette et l'extrait audio sont récupérés automatiquement.
                         </p>
                     </div>
 
@@ -18665,7 +18762,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     const next = Math.max(0, (activeTrack.videoStartTime || 0) - 15);
                                     updateTop10Track(activeTrack.rank, { videoStartTime: next });
                                     const v = activeTrack.videoUrl ? getOrCreateTop10Video(activeTrack.rank, activeTrack.videoUrl) : null;
-                                    if (v) try { v.currentTime = next; } catch (_) {}
+                                    if (v) try { v.currentTime = next; } catch (_) { }
                                 }}
                                 className="flex-1 py-1 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-[9px] font-mono text-gray-300"
                             >
@@ -18677,7 +18774,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     const next = Math.max(0, (activeTrack.videoStartTime || 0) - 5);
                                     updateTop10Track(activeTrack.rank, { videoStartTime: next });
                                     const v = activeTrack.videoUrl ? getOrCreateTop10Video(activeTrack.rank, activeTrack.videoUrl) : null;
-                                    if (v) try { v.currentTime = next; } catch (_) {}
+                                    if (v) try { v.currentTime = next; } catch (_) { }
                                 }}
                                 className="flex-1 py-1 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-[9px] font-mono text-gray-300"
                             >
@@ -18691,7 +18788,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     const next = Math.max(0, Number(e.target.value) || 0);
                                     updateTop10Track(activeTrack.rank, { videoStartTime: next });
                                     const v = activeTrack.videoUrl ? getOrCreateTop10Video(activeTrack.rank, activeTrack.videoUrl) : null;
-                                    if (v) try { v.currentTime = next; } catch (_) {}
+                                    if (v) try { v.currentTime = next; } catch (_) { }
                                 }}
                                 className="w-16 bg-white/10 border border-white/20 rounded-lg p-1 text-center font-mono text-white text-[10px] outline-none"
                             />
@@ -18701,7 +18798,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     const next = (activeTrack.videoStartTime || 0) + 5;
                                     updateTop10Track(activeTrack.rank, { videoStartTime: next });
                                     const v = activeTrack.videoUrl ? getOrCreateTop10Video(activeTrack.rank, activeTrack.videoUrl) : null;
-                                    if (v) try { v.currentTime = next; } catch (_) {}
+                                    if (v) try { v.currentTime = next; } catch (_) { }
                                 }}
                                 className="flex-1 py-1 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-[9px] font-mono text-gray-300"
                             >
@@ -18713,7 +18810,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     const next = (activeTrack.videoStartTime || 0) + 15;
                                     updateTop10Track(activeTrack.rank, { videoStartTime: next });
                                     const v = activeTrack.videoUrl ? getOrCreateTop10Video(activeTrack.rank, activeTrack.videoUrl) : null;
-                                    if (v) try { v.currentTime = next; } catch (_) {}
+                                    if (v) try { v.currentTime = next; } catch (_) { }
                                 }}
                                 className="flex-1 py-1 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-[9px] font-mono text-gray-300"
                             >
@@ -18725,11 +18822,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         <button
                             type="button"
                             onClick={() => handleTop10TestClip(activeTrack.rank)}
-                            className={`w-full py-2.5 rounded-xl border text-[10px] font-black uppercase transition-all flex items-center justify-center gap-2 shadow-lg active:scale-98 ${
-                                top10TestingRank === activeTrack.rank
+                            className={`w-full py-2.5 rounded-xl border text-[10px] font-black uppercase transition-all flex items-center justify-center gap-2 shadow-lg active:scale-98 ${top10TestingRank === activeTrack.rank
                                     ? 'bg-amber-500 text-black border-amber-400 animate-pulse'
                                     : 'bg-white/10 hover:bg-white/20 border-white/20 text-white'
-                            }`}
+                                }`}
                         >
                             {top10TestingRank === activeTrack.rank ? (
                                 <>⏹ Arrêter le test</>
@@ -18802,8 +18898,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             setTimeout(() => generateImage(), 50);
                         }}
                         className={`py-2.5 px-3 rounded-xl text-xs font-black uppercase transition-all flex items-center justify-center gap-2 ${concoursMode === 'GTA6'
-                                ? 'bg-gradient-to-r from-pink-600 to-purple-600 text-white shadow-[0_0_15px_rgba(255,0,127,0.5)] border border-pink-400'
-                                : 'text-gray-400 hover:text-white hover:bg-white/5'
+                            ? 'bg-gradient-to-r from-pink-600 to-purple-600 text-white shadow-[0_0_15px_rgba(255,0,127,0.5)] border border-pink-400'
+                            : 'text-gray-400 hover:text-white hover:bg-white/5'
                             }`}
                     >
                         🎮 Template GTA 6
@@ -18818,8 +18914,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             setTimeout(() => generateImage(), 50);
                         }}
                         className={`py-2.5 px-3 rounded-xl text-xs font-black uppercase transition-all flex items-center justify-center gap-2 ${concoursMode === 'FESTIVAL'
-                                ? 'bg-[#008cff] text-white shadow-[0_0_15px_rgba(0,140,255,0.5)] border border-[#38bdf8]'
-                                : 'text-gray-400 hover:text-white hover:bg-white/5'
+                            ? 'bg-[#008cff] text-white shadow-[0_0_15px_rgba(0,140,255,0.5)] border border-[#38bdf8]'
+                            : 'text-gray-400 hover:text-white hover:bg-white/5'
                             }`}
                     >
                         🎪 Mode Festival
@@ -18852,8 +18948,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         setTimeout(() => generateImage(), 50);
                                     }}
                                     className={`p-2 rounded-xl border text-[9px] font-bold text-center transition-all truncate ${bgImage === preset.url
-                                            ? 'bg-pink-500/20 border-pink-500 text-pink-300 shadow-[0_0_10px_rgba(255,0,127,0.3)]'
-                                            : 'bg-white/5 border-white/10 text-gray-300 hover:bg-white/10'
+                                        ? 'bg-pink-500/20 border-pink-500 text-pink-300 shadow-[0_0_10px_rgba(255,0,127,0.3)]'
+                                        : 'bg-white/5 border-white/10 text-gray-300 hover:bg-white/10'
                                         }`}
                                 >
                                     {preset.name}
@@ -19156,8 +19252,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             setTimeout(() => generateImage(), 50);
                         }}
                         className={`p-2.5 rounded-xl border text-left transition-all ${mapAnimMode === 'FLIGHT_ROUTE'
-                                ? 'bg-neon-cyan/20 border-neon-cyan text-white shadow-[0_0_12px_rgba(0,240,255,0.35)]'
-                                : 'bg-white/5 border-white/10 text-gray-400 hover:bg-white/10'
+                            ? 'bg-neon-cyan/20 border-neon-cyan text-white shadow-[0_0_12px_rgba(0,240,255,0.35)]'
+                            : 'bg-white/5 border-white/10 text-gray-400 hover:bg-white/10'
                             }`}
                     >
                         <div className="text-[10px] font-black uppercase text-neon-cyan flex items-center gap-1.5">
@@ -19177,8 +19273,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             setTimeout(() => generateImage(), 50);
                         }}
                         className={`p-2.5 rounded-xl border text-left transition-all ${mapAnimMode === 'DEEP_DIVE'
-                                ? 'bg-neon-cyan/20 border-neon-cyan text-white shadow-[0_0_12px_rgba(0,240,255,0.35)]'
-                                : 'bg-white/5 border-white/10 text-gray-400 hover:bg-white/10'
+                            ? 'bg-neon-cyan/20 border-neon-cyan text-white shadow-[0_0_12px_rgba(0,240,255,0.35)]'
+                            : 'bg-white/5 border-white/10 text-gray-400 hover:bg-white/10'
                             }`}
                     >
                         <div className="text-[10px] font-black uppercase text-neon-cyan flex items-center gap-1.5">
@@ -19270,8 +19366,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     setTimeout(() => generateImage(), 50);
                                 }}
                                 className={`px-2.5 py-0.5 rounded-md text-[7.5px] font-black border transition-all ${mapAnimDuration === sec
-                                        ? 'bg-neon-cyan/30 border-neon-cyan text-white shadow-[0_0_8px_rgba(0,240,255,0.4)]'
-                                        : 'bg-white/5 border-white/10 text-gray-400'
+                                    ? 'bg-neon-cyan/30 border-neon-cyan text-white shadow-[0_0_8px_rgba(0,240,255,0.4)]'
+                                    : 'bg-white/5 border-white/10 text-gray-400'
                                     }`}
                             >
                                 {sec}s {sec === 12 ? '(Rapide)' : sec === 15 ? '(Cinématique)' : '(Ultra-Fluide)'}
@@ -19561,8 +19657,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                                 setTimeout(() => generateImage(), 50);
                                             }}
                                             className={`px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all border ${isHighlighted
-                                                    ? 'bg-neon-red/25 border-neon-red text-neon-red shadow-[0_0_10px_rgba(255,18,65,0.4)]'
-                                                    : 'bg-white/5 border-white/10 text-gray-400 hover:text-white hover:bg-white/10 hover:border-white/20'
+                                                ? 'bg-neon-red/25 border-neon-red text-neon-red shadow-[0_0_10px_rgba(255,18,65,0.4)]'
+                                                : 'bg-white/5 border-white/10 text-gray-400 hover:text-white hover:bg-white/10 hover:border-white/20'
                                                 }`}
                                             title={isHighlighted ? "Cliquer pour repasser en blanc" : "Cliquer pour illuminer en rouge"}
                                         >
@@ -19619,8 +19715,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             setTimeout(() => generateImage(), 50);
                         }}
                         className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase transition-all flex items-center gap-1.5 border ${showSwipe
-                                ? 'bg-neon-red/20 border-neon-red/50 text-neon-red shadow-[0_0_10px_rgba(255,18,65,0.35)]'
-                                : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'
+                            ? 'bg-neon-red/20 border-neon-red/50 text-neon-red shadow-[0_0_10px_rgba(255,18,65,0.35)]'
+                            : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'
                             }`}
                     >
                         {showSwipe ? '● Swipe ON' : '○ Swipe OFF'}
@@ -19908,8 +20004,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 onClick={() => startVideoRecording('PLANNING')}
                                 disabled={isVideoRecording}
                                 className={`w-full py-3.5 rounded-2xl text-[10px] font-black uppercase flex items-center justify-center gap-2.5 transition-all shadow-xl ${isVideoRecording
-                                        ? 'bg-[#ff3700]/30 text-[#ff3700] border border-[#ff3700]/50 animate-pulse'
-                                        : 'bg-gradient-to-r from-[#ff3700] via-orange-500 to-amber-500 text-black hover:brightness-110 active:scale-[0.98] shadow-[0_0_25px_rgba(255,55,0,0.45)]'
+                                    ? 'bg-[#ff3700]/30 text-[#ff3700] border border-[#ff3700]/50 animate-pulse'
+                                    : 'bg-gradient-to-r from-[#ff3700] via-orange-500 to-amber-500 text-black hover:brightness-110 active:scale-[0.98] shadow-[0_0_25px_rgba(255,55,0,0.45)]'
                                     }`}
                             >
                                 <Video className="w-4 h-4 text-black" />
@@ -19921,8 +20017,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 onClick={() => startVideoRecording('EDITORIAL')}
                                 disabled={isVideoRecording}
                                 className={`w-full py-3.5 rounded-2xl text-[10px] font-black uppercase flex items-center justify-center gap-2.5 transition-all shadow-xl ${isVideoRecording
-                                        ? 'bg-red-500/30 text-red-400 border border-red-500/50 animate-pulse'
-                                        : 'bg-gradient-to-r from-neon-red via-rose-500 to-pink-600 text-white hover:brightness-110 active:scale-[0.98] shadow-[0_0_25px_rgba(255,0,51,0.45)]'
+                                    ? 'bg-red-500/30 text-red-400 border border-red-500/50 animate-pulse'
+                                    : 'bg-gradient-to-r from-neon-red via-rose-500 to-pink-600 text-white hover:brightness-110 active:scale-[0.98] shadow-[0_0_25px_rgba(255,0,51,0.45)]'
                                     }`}
                             >
                                 <Video className="w-4 h-4" />
@@ -19940,8 +20036,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 onClick={() => startVideoRecording('NONE')}
                                 disabled={isVideoRecording}
                                 className={`w-full py-3.5 rounded-2xl text-[10px] font-black uppercase flex items-center justify-center gap-2.5 transition-all shadow-xl ${isVideoRecording
-                                        ? 'bg-red-500/30 text-red-400 border border-red-500/50 animate-pulse'
-                                        : 'bg-gradient-to-r from-neon-red to-pink-600 text-white hover:brightness-110 active:scale-[0.98] shadow-[0_0_25px_rgba(255,0,51,0.45)]'
+                                    ? 'bg-red-500/30 text-red-400 border border-red-500/50 animate-pulse'
+                                    : 'bg-gradient-to-r from-neon-red to-pink-600 text-white hover:brightness-110 active:scale-[0.98] shadow-[0_0_25px_rgba(255,0,51,0.45)]'
                                     }`}
                             >
                                 <Video className="w-4 h-4" />
@@ -20025,8 +20121,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             onClick={exportSpecialTikTokVideo}
                             disabled={isVideoRecording}
                             className={`w-full py-3.5 rounded-2xl text-[10px] font-black uppercase flex items-center justify-center gap-2.5 transition-all shadow-xl ${isVideoRecording
-                                    ? 'bg-[#00f2fe]/20 text-[#00f2fe] border border-[#00f2fe]/40 animate-pulse'
-                                    : 'bg-gradient-to-r from-[#00f2fe] via-black to-[#fe0979] text-white hover:brightness-110 active:scale-[0.98] shadow-[0_0_25px_rgba(0,242,254,0.35)] border border-[#00f2fe]/50'
+                                ? 'bg-[#00f2fe]/20 text-[#00f2fe] border border-[#00f2fe]/40 animate-pulse'
+                                : 'bg-gradient-to-r from-[#00f2fe] via-black to-[#fe0979] text-white hover:brightness-110 active:scale-[0.98] shadow-[0_0_25px_rgba(0,242,254,0.35)] border border-[#00f2fe]/50'
                                 }`}
                         >
                             <svg className="w-4 h-4 text-[#00f2fe]" viewBox="0 0 24 24" fill="currentColor">
@@ -20133,8 +20229,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             type="button"
                             onClick={() => { setIsCarouselPromoActive(false); setEditorialSlide(1); }}
                             className={`flex-1 min-w-[110px] py-2 px-2.5 rounded-xl text-[9.5px] font-black uppercase transition-all flex items-center justify-center gap-1.5 ${!isCarouselPromoActive && editorialSlide === 1
-                                    ? 'bg-[#00ff66] text-black shadow-[0_0_15px_rgba(0,255,102,0.5)] scale-[1.02]'
-                                    : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
+                                ? 'bg-[#00ff66] text-black shadow-[0_0_15px_rgba(0,255,102,0.5)] scale-[1.02]'
+                                : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
                                 }`}
                         >
                             <span className="text-xs">📢</span> Slide 1 : Annonce {musicIntroAudio && <span className="text-[10px]" title="Audio attaché">🎵</span>}
@@ -20149,8 +20245,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     type="button"
                                     onClick={() => { setIsCarouselPromoActive(false); setEditorialSlide(sNum); }}
                                     className={`flex-1 min-w-[110px] py-2 px-2.5 rounded-xl text-[9.5px] font-black uppercase transition-all flex items-center justify-center gap-1.5 ${isSelected
-                                            ? 'bg-[#00ff66] text-black shadow-[0_0_15px_rgba(0,255,102,0.5)] scale-[1.02]'
-                                            : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
+                                        ? 'bg-[#00ff66] text-black shadow-[0_0_15px_rgba(0,255,102,0.5)] scale-[1.02]'
+                                        : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
                                         }`}
                                 >
                                     <span className="text-xs">💿</span> S{sNum} : {tr.title ? (tr.title.length > 10 ? tr.title.substring(0, 10) + '...' : tr.title) : `Track ${idx + 1}`} {tr.audio && <span className="text-[10px]" title="Audio attaché">🎵</span>}
@@ -20165,8 +20261,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 setTimeout(() => generateImage(), 50);
                             }}
                             className={`flex-1 min-w-[110px] py-2 px-2.5 rounded-xl text-[9.5px] font-black uppercase transition-all flex items-center justify-center gap-1.5 ${isCarouselPromoActive
-                                    ? 'bg-neon-red text-white shadow-[0_0_15px_rgba(255,0,51,0.5)] scale-[1.02]'
-                                    : 'bg-neon-red/10 border border-neon-red/30 text-neon-red hover:bg-neon-red/20'
+                                ? 'bg-neon-red text-white shadow-[0_0_15px_rgba(255,0,51,0.5)] scale-[1.02]'
+                                : 'bg-neon-red/10 border border-neon-red/30 text-neon-red hover:bg-neon-red/20'
                                 }`}
                             title="Slide de fin d'outro promo Dropsiders"
                         >
@@ -20220,8 +20316,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                             setTimeout(() => generateImage(), 50);
                                         }}
                                         className={`px-2.5 py-1 rounded-xl text-[8.5px] font-black uppercase transition-all flex items-center gap-1 border ${showMusicDate
-                                                ? 'bg-[#00ff66]/20 border-[#00ff66]/40 text-[#00ff66] hover:bg-[#00ff66]/30'
-                                                : 'bg-white/10 border-white/20 text-gray-400 hover:text-white'
+                                            ? 'bg-[#00ff66]/20 border-[#00ff66]/40 text-[#00ff66] hover:bg-[#00ff66]/30'
+                                            : 'bg-white/10 border-white/20 text-gray-400 hover:text-white'
                                             }`}
                                     >
                                         {showMusicDate ? '👁️ Masquer la date' : '👁️ Afficher la date'}
@@ -20384,8 +20480,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                                 type="button"
                                                 onClick={() => setMusicIntroAudioStartTime(0)}
                                                 className={`py-1.5 rounded-lg text-[8px] font-black uppercase border transition-all ${musicIntroAudioStartTime === 0
-                                                        ? 'bg-white/20 border-white text-white shadow-sm'
-                                                        : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'
+                                                    ? 'bg-white/20 border-white text-white shadow-sm'
+                                                    : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'
                                                     }`}
                                             >
                                                 ⏮️ Début (0:00)
@@ -20403,8 +20499,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                                     }
                                                 }}
                                                 className={`py-1.5 rounded-lg text-[8px] font-black uppercase border transition-all ${musicIntroAudioStartTime > 0
-                                                        ? 'bg-[#00ff66] text-black border-[#00ff66] font-black shadow-sm'
-                                                        : 'bg-[#00ff66]/10 border-[#00ff66]/30 text-[#00ff66] hover:bg-[#00ff66]/20'
+                                                    ? 'bg-[#00ff66] text-black border-[#00ff66] font-black shadow-sm'
+                                                    : 'bg-[#00ff66]/10 border-[#00ff66]/30 text-[#00ff66] hover:bg-[#00ff66]/20'
                                                     }`}
                                             >
                                                 ⚡ Drop (30s)
@@ -20748,8 +20844,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                                 type="button"
                                                 onClick={() => updateMusicTrack(activeTrackIdx, { audioStartTime: 0 })}
                                                 className={`py-1 rounded text-[7.5px] font-black uppercase border transition-all ${(activeTrack.audioStartTime || 0) === 0
-                                                        ? 'bg-white/20 border-white text-white shadow-sm'
-                                                        : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'
+                                                    ? 'bg-white/20 border-white text-white shadow-sm'
+                                                    : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'
                                                     }`}
                                             >
                                                 0:00 (Intro)
@@ -20762,8 +20858,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                                     updateMusicTrack(activeTrackIdx, { audioStartTime: Math.min(30, maxStart) });
                                                 }}
                                                 className={`py-1 rounded text-[7.5px] font-black uppercase border transition-all ${(activeTrack.audioStartTime || 0) === 30
-                                                        ? 'bg-[#00ff66] text-black border-[#00ff66] font-black shadow-sm'
-                                                        : 'bg-[#00ff66]/10 border-[#00ff66]/30 text-[#00ff66] hover:bg-[#00ff66]/20'
+                                                    ? 'bg-[#00ff66] text-black border-[#00ff66] font-black shadow-sm'
+                                                    : 'bg-[#00ff66]/10 border-[#00ff66]/30 text-[#00ff66] hover:bg-[#00ff66]/20'
                                                     }`}
                                             >
                                                 ⚡ 0:30
@@ -20776,8 +20872,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                                     updateMusicTrack(activeTrackIdx, { audioStartTime: Math.min(45, maxStart) });
                                                 }}
                                                 className={`py-1 rounded text-[7.5px] font-black uppercase border transition-all ${(activeTrack.audioStartTime || 0) === 45
-                                                        ? 'bg-[#00ff66] text-black border-[#00ff66] font-black shadow-sm'
-                                                        : 'bg-[#00ff66]/10 border-[#00ff66]/30 text-[#00ff66] hover:bg-[#00ff66]/20'
+                                                    ? 'bg-[#00ff66] text-black border-[#00ff66] font-black shadow-sm'
+                                                    : 'bg-[#00ff66]/10 border-[#00ff66]/30 text-[#00ff66] hover:bg-[#00ff66]/20'
                                                     }`}
                                             >
                                                 🔥 0:45
@@ -20790,8 +20886,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                                     updateMusicTrack(activeTrackIdx, { audioStartTime: Math.min(60, maxStart) });
                                                 }}
                                                 className={`py-1 rounded text-[7.5px] font-black uppercase border transition-all ${(activeTrack.audioStartTime || 0) === 60
-                                                        ? 'bg-[#00ff66] text-black border-[#00ff66] font-black shadow-sm'
-                                                        : 'bg-[#00ff66]/10 border-[#00ff66]/30 text-[#00ff66] hover:bg-[#00ff66]/20'
+                                                    ? 'bg-[#00ff66] text-black border-[#00ff66] font-black shadow-sm'
+                                                    : 'bg-[#00ff66]/10 border-[#00ff66]/30 text-[#00ff66] hover:bg-[#00ff66]/20'
                                                     }`}
                                             >
                                                 💥 1:00
@@ -21161,8 +21257,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 <button
                                     onClick={() => setAgendaPickerMonth('ALL')}
                                     className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase transition-all whitespace-nowrap border ${agendaPickerMonth === 'ALL'
-                                            ? 'bg-[#ff3700] border-[#ff3700] text-black shadow-md shadow-[#ff3700]/30'
-                                            : 'bg-white/5 border-white/10 text-gray-400 hover:text-white hover:bg-white/10'
+                                        ? 'bg-[#ff3700] border-[#ff3700] text-black shadow-md shadow-[#ff3700]/30'
+                                        : 'bg-white/5 border-white/10 text-gray-400 hover:text-white hover:bg-white/10'
                                         }`}
                                 >
                                     Tous ({siteAgendaEvents.length})
@@ -21174,8 +21270,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                             key={m}
                                             onClick={() => setAgendaPickerMonth(m)}
                                             className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase transition-all whitespace-nowrap border ${agendaPickerMonth === m
-                                                    ? 'bg-[#ff3700] border-[#ff3700] text-black shadow-md shadow-[#ff3700]/30'
-                                                    : 'bg-white/5 border-white/10 text-gray-400 hover:text-white hover:bg-white/10'
+                                                ? 'bg-[#ff3700] border-[#ff3700] text-black shadow-md shadow-[#ff3700]/30'
+                                                : 'bg-white/5 border-white/10 text-gray-400 hover:text-white hover:bg-white/10'
                                                 }`}
                                         >
                                             {m} ({count})
@@ -21217,14 +21313,14 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                                     );
                                                 }}
                                                 className={`group relative flex items-center gap-3 p-3 rounded-2xl border transition-all cursor-pointer text-left ${isSelected
-                                                        ? 'bg-[#ff3700]/15 border-[#ff3700] shadow-lg shadow-[#ff3700]/10'
-                                                        : 'bg-white/[0.03] border-white/10 hover:bg-white/[0.07] hover:border-white/20'
+                                                    ? 'bg-[#ff3700]/15 border-[#ff3700] shadow-lg shadow-[#ff3700]/10'
+                                                    : 'bg-white/[0.03] border-white/10 hover:bg-white/[0.07] hover:border-white/20'
                                                     }`}
                                             >
                                                 {/* Checkbox indicator */}
                                                 <div className={`w-6 h-6 rounded-lg flex items-center justify-center flex-shrink-0 transition-all ${isSelected
-                                                        ? 'bg-[#ff3700] text-black font-black'
-                                                        : 'border border-white/20 text-transparent group-hover:border-white/40'
+                                                    ? 'bg-[#ff3700] text-black font-black'
+                                                    : 'border border-white/20 text-transparent group-hover:border-white/40'
                                                     }`}>
                                                     <Check className="w-3.5 h-3.5 stroke-[3]" />
                                                 </div>
@@ -21385,8 +21481,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 type="button"
                                 onClick={() => setSidebarStep('text')}
                                 className={`py-2 px-1 rounded-xl text-[9px] font-black uppercase flex flex-col items-center justify-center gap-0.5 transition-all ${sidebarStep === 'text'
-                                        ? 'bg-gradient-to-r from-neon-red to-[#ff007f] text-white shadow-[0_0_15px_rgba(255,18,65,0.4)] scale-[1.02]'
-                                        : 'text-gray-400 hover:text-white hover:bg-white/5'
+                                    ? 'bg-gradient-to-r from-neon-red to-[#ff007f] text-white shadow-[0_0_15px_rgba(255,18,65,0.4)] scale-[1.02]'
+                                    : 'text-gray-400 hover:text-white hover:bg-white/5'
                                     }`}
                             >
                                 <span className="text-xs">✍️</span>
@@ -21396,8 +21492,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 type="button"
                                 onClick={() => setSidebarStep('visual')}
                                 className={`py-2 px-1 rounded-xl text-[9px] font-black uppercase flex flex-col items-center justify-center gap-0.5 transition-all ${sidebarStep === 'visual'
-                                        ? 'bg-gradient-to-r from-neon-cyan to-blue-500 text-black shadow-[0_0_15px_rgba(0,255,255,0.4)] scale-[1.02]'
-                                        : 'text-gray-400 hover:text-white hover:bg-white/5'
+                                    ? 'bg-gradient-to-r from-neon-cyan to-blue-500 text-black shadow-[0_0_15px_rgba(0,255,255,0.4)] scale-[1.02]'
+                                    : 'text-gray-400 hover:text-white hover:bg-white/5'
                                     }`}
                             >
                                 <span className="text-xs">🖼️</span>
@@ -21407,8 +21503,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 type="button"
                                 onClick={() => setSidebarStep('export')}
                                 className={`py-2 px-1 rounded-xl text-[9px] font-black uppercase flex flex-col items-center justify-center gap-0.5 transition-all ${sidebarStep === 'export'
-                                        ? 'bg-gradient-to-r from-emerald-400 to-green-500 text-black shadow-[0_0_15px_rgba(16,185,129,0.4)] scale-[1.02]'
-                                        : 'text-gray-400 hover:text-white hover:bg-white/5'
+                                    ? 'bg-gradient-to-r from-emerald-400 to-green-500 text-black shadow-[0_0_15px_rgba(16,185,129,0.4)] scale-[1.02]'
+                                    : 'text-gray-400 hover:text-white hover:bg-white/5'
                                     }`}
                             >
                                 <span className="text-xs">🚀</span>
@@ -21518,8 +21614,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                                                 setIsThemeAccordionOpen(!isThemeAccordionOpen);
                                                             }}
                                                             className={`flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-[9px] font-black uppercase border transition-all ${isThemeAccordionOpen
-                                                                    ? 'bg-white/20 border-white/30 text-white shadow-sm'
-                                                                    : 'bg-white/5 border-white/10 text-gray-300 group-hover:bg-white/10 group-hover:text-white group-hover:border-white/25'
+                                                                ? 'bg-white/20 border-white/30 text-white shadow-sm'
+                                                                : 'bg-white/5 border-white/10 text-gray-300 group-hover:bg-white/10 group-hover:text-white group-hover:border-white/25'
                                                                 }`}
                                                         >
                                                             <span>{isThemeAccordionOpen ? 'Fermer' : 'Changer'}</span>
@@ -21551,8 +21647,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                                                             type="button"
                                                                             onClick={() => setThemeCategoryFilter(cat.key as any)}
                                                                             className={`px-2.5 py-1 rounded-lg text-[8.5px] font-black uppercase whitespace-nowrap transition-all border ${themeCategoryFilter === cat.key
-                                                                                    ? 'bg-white text-black border-white shadow-sm'
-                                                                                    : 'bg-black/40 text-gray-400 border-white/10 hover:text-white hover:bg-white/10'
+                                                                                ? 'bg-white text-black border-white shadow-sm'
+                                                                                : 'bg-black/40 text-gray-400 border-white/10 hover:text-white hover:bg-white/10'
                                                                                 }`}
                                                                         >
                                                                             {cat.label}
@@ -21570,8 +21666,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                                                                 item.action();
                                                                             }}
                                                                             className={`py-2 px-1 rounded-xl text-[8px] font-black uppercase border transition-all text-center truncate ${item.active
-                                                                                    ? item.style
-                                                                                    : 'bg-white/5 border-white/5 text-gray-400 hover:text-white hover:bg-white/10 hover:border-white/15'
+                                                                                ? item.style
+                                                                                : 'bg-white/5 border-white/5 text-gray-400 hover:text-white hover:bg-white/10 hover:border-white/15'
                                                                                 }`}
                                                                             title={item.label}
                                                                         >
@@ -21801,8 +21897,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                                             }
                                                         }}
                                                         className={`py-2 px-2 rounded-xl border text-[8.5px] font-black uppercase flex items-center justify-center gap-1 transition-all active:scale-95 ${!isVideoAudioMuted
-                                                                ? 'bg-[#00ff66]/15 border-[#00ff66]/40 text-[#00ff66]'
-                                                                : 'bg-white/5 border-white/10 text-gray-300 hover:text-white'
+                                                            ? 'bg-[#00ff66]/15 border-[#00ff66]/40 text-[#00ff66]'
+                                                            : 'bg-white/5 border-white/10 text-gray-300 hover:text-white'
                                                             }`}
                                                         title={!isVideoAudioMuted ? 'Couper le son' : 'Activer le son'}
                                                     >
@@ -21980,8 +22076,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     type="button"
                                     onClick={() => { setIsCarouselPromoActive(false); setArtisteFestivalSlide(1); }}
                                     className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase transition-all flex items-center gap-1.5 ${!isCarouselPromoActive && artisteFestivalSlide === 1
-                                            ? 'bg-neon-red text-white shadow-[0_0_12px_rgba(255,0,51,0.5)]'
-                                            : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
+                                        ? 'bg-neon-red text-white shadow-[0_0_12px_rgba(255,0,51,0.5)]'
+                                        : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
                                         }`}
                                 >
                                     🎪 Slide 1 (Cover)
@@ -21990,8 +22086,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     type="button"
                                     onClick={() => { setIsCarouselPromoActive(false); setArtisteFestivalSlide(2); }}
                                     className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase transition-all flex items-center gap-1.5 ${!isCarouselPromoActive && artisteFestivalSlide === 2
-                                            ? 'bg-neon-red text-white shadow-[0_0_12px_rgba(255,0,51,0.5)]'
-                                            : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
+                                        ? 'bg-neon-red text-white shadow-[0_0_12px_rgba(255,0,51,0.5)]'
+                                        : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
                                         }`}
                                 >
                                     ⭐ Slide 2 (Spotlight)
@@ -22003,8 +22099,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         setTimeout(() => generateImage(), 50);
                                     }}
                                     className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase transition-all flex items-center gap-1.5 ${isCarouselPromoActive
-                                            ? 'bg-neon-red text-white shadow-[0_0_12px_rgba(255,0,51,0.5)]'
-                                            : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
+                                        ? 'bg-neon-red text-white shadow-[0_0_12px_rgba(255,0,51,0.5)]'
+                                        : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
                                         }`}
                                 >
                                     🔥 Slide PROMO
@@ -22019,8 +22115,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     type="button"
                                     onClick={() => { setIsCarouselPromoActive(false); setEventsSlide(1); if (theme === 'AFFICHE') handleSetTheme('EVENTS'); }}
                                     className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase transition-all flex items-center gap-1.5 ${!isCarouselPromoActive && eventsSlide === 1 && theme !== 'AFFICHE'
-                                            ? 'bg-[#ff3700] text-white shadow-[0_0_12px_rgba(255,55,0,0.5)]'
-                                            : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
+                                        ? 'bg-[#ff3700] text-white shadow-[0_0_12px_rgba(255,55,0,0.5)]'
+                                        : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
                                         }`}
                                 >
                                     📢 Slide 1 (Post)
@@ -22029,8 +22125,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     type="button"
                                     onClick={() => { setIsCarouselPromoActive(false); setEventsSlide(2); }}
                                     className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase transition-all flex items-center gap-1.5 ${!isCarouselPromoActive && (eventsSlide === 2 || theme === 'AFFICHE')
-                                            ? 'bg-[#ff3700] text-white shadow-[0_0_12px_rgba(255,55,0,0.5)]'
-                                            : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
+                                        ? 'bg-[#ff3700] text-white shadow-[0_0_12px_rgba(255,55,0,0.5)]'
+                                        : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
                                         }`}
                                 >
                                     🎨 Slide 2 (Affiche)
@@ -22042,8 +22138,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         setTimeout(() => generateImage(), 50);
                                     }}
                                     className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase transition-all flex items-center gap-1.5 ${isCarouselPromoActive
-                                            ? 'bg-neon-red text-white shadow-[0_0_12px_rgba(255,0,51,0.5)]'
-                                            : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
+                                        ? 'bg-neon-red text-white shadow-[0_0_12px_rgba(255,0,51,0.5)]'
+                                        : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
                                         }`}
                                 >
                                     🔥 Slide PROMO
@@ -22058,8 +22154,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     type="button"
                                     onClick={() => { setIsCarouselPromoActive(false); setEditorialSlide(1); }}
                                     className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase transition-all flex items-center gap-1.5 ${!isCarouselPromoActive && editorialSlide === 1
-                                            ? 'bg-[#00ff66] text-black shadow-[0_0_12px_rgba(0,255,102,0.6)]'
-                                            : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
+                                        ? 'bg-[#00ff66] text-black shadow-[0_0_12px_rgba(0,255,102,0.6)]'
+                                        : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
                                         }`}
                                 >
                                     🎵 Slide 1 (Annonce)
@@ -22072,8 +22168,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                             type="button"
                                             onClick={() => { setIsCarouselPromoActive(false); setEditorialSlide(sNum); }}
                                             className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase transition-all flex items-center gap-1.5 ${!isCarouselPromoActive && editorialSlide === sNum
-                                                    ? 'bg-[#00ff66] text-black shadow-[0_0_12px_rgba(0,255,102,0.6)]'
-                                                    : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
+                                                ? 'bg-[#00ff66] text-black shadow-[0_0_12px_rgba(0,255,102,0.6)]'
+                                                : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
                                                 }`}
                                         >
                                             💿 S{sNum} (Track {tIdx + 1})
@@ -22097,8 +22193,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         setTimeout(() => generateImage(), 50);
                                     }}
                                     className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase transition-all flex items-center gap-1.5 ${isCarouselPromoActive
-                                            ? 'bg-neon-red text-white shadow-[0_0_12px_rgba(255,0,51,0.5)]'
-                                            : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
+                                        ? 'bg-neon-red text-white shadow-[0_0_12px_rgba(255,0,51,0.5)]'
+                                        : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
                                         }`}
                                 >
                                     🔥 Slide PROMO
@@ -22113,8 +22209,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     type="button"
                                     onClick={() => { setIsCarouselPromoActive(false); setAgendaSlide(1); }}
                                     className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase transition-all flex items-center gap-1.5 ${!isCarouselPromoActive && agendaSlide === 1
-                                            ? 'bg-[#ff3700] text-black shadow-[0_0_12px_rgba(255,55,0,0.6)] font-black'
-                                            : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
+                                        ? 'bg-[#ff3700] text-black shadow-[0_0_12px_rgba(255,55,0,0.6)] font-black'
+                                        : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
                                         }`}
                                 >
                                     📌 Slide 1 (Cover)
@@ -22123,8 +22219,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     type="button"
                                     onClick={() => { setIsCarouselPromoActive(false); setAgendaSlide(2); }}
                                     className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase transition-all flex items-center gap-1.5 ${!isCarouselPromoActive && agendaSlide === 2
-                                            ? 'bg-[#ff3700] text-black shadow-[0_0_12px_rgba(255,55,0,0.6)] font-black'
-                                            : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
+                                        ? 'bg-[#ff3700] text-black shadow-[0_0_12px_rgba(255,55,0,0.6)] font-black'
+                                        : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
                                         }`}
                                 >
                                     📋 Slide 2 (Événements)
@@ -22138,8 +22234,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                                 type="button"
                                                 onClick={() => { setIsCarouselPromoActive(false); setAgendaSlide(sNum); }}
                                                 className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase transition-all flex items-center gap-1.5 ${isSelected
-                                                        ? 'bg-[#ff3700] text-black shadow-[0_0_12px_rgba(255,55,0,0.6)] font-black'
-                                                        : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
+                                                    ? 'bg-[#ff3700] text-black shadow-[0_0_12px_rgba(255,55,0,0.6)] font-black'
+                                                    : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
                                                     }`}
                                             >
                                                 🖼️ S{sNum} (Affiche {idx + 1})
@@ -22175,8 +22271,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         setTimeout(() => generateImage(), 50);
                                     }}
                                     className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase transition-all flex items-center gap-1.5 ${isCarouselPromoActive
-                                            ? 'bg-neon-red text-white shadow-[0_0_12px_rgba(255,0,51,0.5)]'
-                                            : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
+                                        ? 'bg-neon-red text-white shadow-[0_0_12px_rgba(255,0,51,0.5)]'
+                                        : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
                                         }`}
                                 >
                                     🔥 Slide PROMO
@@ -22191,8 +22287,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     type="button"
                                     onClick={() => { setIsCarouselPromoActive(false); setIsEditorialAfficheActive(false); setIsEditorialTweetActive(false); setEditorialSlide(1); }}
                                     className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase transition-all flex items-center gap-1.5 ${!isCarouselPromoActive && !isEditorialAfficheActive && !isEditorialTweetActive && editorialSlide === 1
-                                            ? 'bg-white text-black shadow-[0_0_12px_rgba(255,255,255,0.5)]'
-                                            : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
+                                        ? 'bg-white text-black shadow-[0_0_12px_rgba(255,255,255,0.5)]'
+                                        : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
                                         }`}
                                 >
                                     {theme === 'JEU_DJ' ? '👤 Slide 1 (Silhouette)' : '📌 Slide 1 (Cover)'}
@@ -22203,8 +22299,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                             type="button"
                                             onClick={() => { setIsCarouselPromoActive(false); setIsEditorialAfficheActive(false); setIsEditorialTweetActive(false); setEditorialSlide(2); }}
                                             className={`px-3 py-1.5 text-[9px] font-black uppercase transition-all flex items-center gap-1.5 ${!isCarouselPromoActive && !isEditorialAfficheActive && !isEditorialTweetActive && editorialSlide === 2
-                                                    ? 'bg-white text-black shadow-[0_0_12px_rgba(255,255,255,0.5)]'
-                                                    : 'text-gray-300 hover:text-white hover:bg-white/10'
+                                                ? 'bg-white text-black shadow-[0_0_12px_rgba(255,255,255,0.5)]'
+                                                : 'text-gray-300 hover:text-white hover:bg-white/10'
                                                 }`}
                                         >
                                             {theme === 'JEU_DJ' ? '🌈 Slide 2 (Révélation)' : '📖 Slide 2'}
@@ -22234,8 +22330,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                                 type="button"
                                                 onClick={() => { setIsCarouselPromoActive(false); setIsEditorialAfficheActive(false); setIsEditorialTweetActive(false); setEditorialSlide(sNum); }}
                                                 className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase transition-all flex items-center gap-1.5 ${!isCarouselPromoActive && !isEditorialAfficheActive && !isEditorialTweetActive && editorialSlide === sNum
-                                                        ? 'bg-white text-black shadow-[0_0_12px_rgba(255,255,255,0.5)]'
-                                                        : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
+                                                    ? 'bg-white text-black shadow-[0_0_12px_rgba(255,255,255,0.5)]'
+                                                    : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
                                                     }`}
                                             >
                                                 📄 Slide {sNum}
@@ -22285,8 +22381,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                             setTimeout(() => generateImage(), 50);
                                         }}
                                         className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase transition-all flex items-center gap-1.5 ${!isCarouselPromoActive && isEditorialAfficheActive
-                                                ? 'bg-[#ff3700] text-white shadow-[0_0_12px_rgba(255,55,0,0.5)]'
-                                                : 'bg-[#ff3700]/10 border border-[#ff3700]/30 text-[#ff3700] hover:bg-[#ff3700]/20'
+                                            ? 'bg-[#ff3700] text-white shadow-[0_0_12px_rgba(255,55,0,0.5)]'
+                                            : 'bg-[#ff3700]/10 border border-[#ff3700]/30 text-[#ff3700] hover:bg-[#ff3700]/20'
                                             }`}
                                     >
                                         🖼️ Slide AFFICHE
@@ -22302,8 +22398,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                             setTimeout(() => generateImage(), 50);
                                         }}
                                         className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase transition-all flex items-center gap-1.5 ${!isCarouselPromoActive && isEditorialTweetActive
-                                                ? 'bg-neon-cyan text-black shadow-[0_0_12px_rgba(0,240,255,0.5)]'
-                                                : 'bg-neon-cyan/10 border border-neon-cyan/30 text-neon-cyan hover:bg-neon-cyan/20'
+                                            ? 'bg-neon-cyan text-black shadow-[0_0_12px_rgba(0,240,255,0.5)]'
+                                            : 'bg-neon-cyan/10 border border-neon-cyan/30 text-neon-cyan hover:bg-neon-cyan/20'
                                             }`}
                                     >
                                         🐦 Slide TWEET
@@ -22318,8 +22414,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         setTimeout(() => generateImage(), 50);
                                     }}
                                     className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase transition-all flex items-center gap-1.5 ${isCarouselPromoActive
-                                            ? 'bg-neon-red text-white shadow-[0_0_12px_rgba(255,0,51,0.5)]'
-                                            : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
+                                        ? 'bg-neon-red text-white shadow-[0_0_12px_rgba(255,0,51,0.5)]'
+                                        : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
                                         }`}
                                 >
                                     🔥 Slide PROMO
@@ -22386,8 +22482,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                             }
                                         }}
                                         className={`absolute top-3.5 right-3.5 z-40 px-3 py-1.5 rounded-full flex items-center gap-1.5 text-[9px] font-black uppercase backdrop-blur-md shadow-2xl transition-all active:scale-95 border ${!isVideoAudioMuted
-                                                ? 'bg-[#00ff66]/20 border-[#00ff66]/60 text-[#00ff66] shadow-[0_0_15px_rgba(0,255,102,0.4)]'
-                                                : 'bg-black/75 border-white/20 text-white hover:bg-black/90 hover:border-white/40'
+                                            ? 'bg-[#00ff66]/20 border-[#00ff66]/60 text-[#00ff66] shadow-[0_0_15px_rgba(0,255,102,0.4)]'
+                                            : 'bg-black/75 border-white/20 text-white hover:bg-black/90 hover:border-white/40'
                                             }`}
                                         title={isVideoAudioMuted ? "Activer le son de la vidéo" : "Couper le son de la vidéo"}
                                     >
@@ -22421,8 +22517,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                                 playAudioPreviewFrom(currentMusicAudio, currentMusicStart);
                                             }}
                                             className={`absolute ${bgVideo ? 'top-12' : 'top-3.5'} right-3.5 z-40 px-3 py-1.5 rounded-full flex items-center gap-1.5 text-[9px] font-black uppercase backdrop-blur-md shadow-2xl transition-all active:scale-95 border ${isTrackPlaying
-                                                    ? 'bg-[#00ff66]/25 border-[#00ff66]/70 text-[#00ff66] shadow-[0_0_15px_rgba(0,255,102,0.45)]'
-                                                    : 'bg-black/75 border-[#00ff66]/40 text-[#00ff66] hover:bg-black/90'
+                                                ? 'bg-[#00ff66]/25 border-[#00ff66]/70 text-[#00ff66] shadow-[0_0_15px_rgba(0,255,102,0.45)]'
+                                                : 'bg-black/75 border-[#00ff66]/40 text-[#00ff66] hover:bg-black/90'
                                                 }`}
                                             title={isTrackPlaying ? "Couper l'extrait audio" : "Écouter l'extrait audio du morceau"}
                                         >
@@ -22548,8 +22644,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         setTimeout(() => generateImage(), 50);
                                     }}
                                     className={`px-2.5 py-1 rounded-xl text-[8px] font-black uppercase transition-all shrink-0 ${isCarouselPromoActive
-                                            ? 'bg-neon-red text-white shadow-md'
-                                            : 'text-gray-400'
+                                        ? 'bg-neon-red text-white shadow-md'
+                                        : 'text-gray-400'
                                         }`}
                                 >
                                     🔥 PROMO
@@ -22583,8 +22679,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         setTimeout(() => generateImage(), 50);
                                     }}
                                     className={`px-2.5 py-1 rounded-xl text-[8px] font-black uppercase transition-all shrink-0 ${isCarouselPromoActive
-                                            ? 'bg-neon-red text-white shadow-md'
-                                            : 'text-gray-400'
+                                        ? 'bg-neon-red text-white shadow-md'
+                                        : 'text-gray-400'
                                         }`}
                                 >
                                     🔥 PROMO
@@ -22633,8 +22729,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         setTimeout(() => generateImage(), 50);
                                     }}
                                     className={`px-2.5 py-1 rounded-xl text-[8px] font-black uppercase transition-all shrink-0 ${isCarouselPromoActive
-                                            ? 'bg-neon-red text-white shadow-md'
-                                            : 'text-gray-400'
+                                        ? 'bg-neon-red text-white shadow-md'
+                                        : 'text-gray-400'
                                         }`}
                                 >
                                     🔥 PROMO
@@ -22702,8 +22798,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         setTimeout(() => generateImage(), 50);
                                     }}
                                     className={`px-2.5 py-1 rounded-xl text-[8px] font-black uppercase transition-all shrink-0 ${isCarouselPromoActive
-                                            ? 'bg-neon-red text-white shadow-md'
-                                            : 'text-gray-400'
+                                        ? 'bg-neon-red text-white shadow-md'
+                                        : 'text-gray-400'
                                         }`}
                                 >
                                     🔥 PROMO
@@ -22836,8 +22932,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         setTimeout(() => generateImage(), 50);
                                     }}
                                     className={`px-2.5 py-1 rounded-xl text-[8px] font-black uppercase transition-all shrink-0 ${isCarouselPromoActive
-                                            ? 'bg-neon-red text-white shadow-md'
-                                            : 'text-gray-400'
+                                        ? 'bg-neon-red text-white shadow-md'
+                                        : 'text-gray-400'
                                         }`}
                                 >
                                     🔥 PROMO
@@ -22931,8 +23027,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                             }
                                         }}
                                         className={`px-3.5 py-1.5 rounded-full flex items-center gap-1.5 text-[9px] font-black uppercase backdrop-blur-md shadow-2xl transition-all active:scale-95 border ${!isVideoAudioMuted
-                                                ? 'bg-[#00ff66]/20 border-[#00ff66]/60 text-[#00ff66] shadow-[0_0_15px_rgba(0,255,102,0.4)]'
-                                                : 'bg-black/80 border-white/20 text-white hover:bg-black hover:border-white/40'
+                                            ? 'bg-[#00ff66]/20 border-[#00ff66]/60 text-[#00ff66] shadow-[0_0_15px_rgba(0,255,102,0.4)]'
+                                            : 'bg-black/80 border-white/20 text-white hover:bg-black hover:border-white/40'
                                             }`}
                                         title={isVideoAudioMuted ? "Activer le son de la vidéo" : "Couper le son de la vidéo"}
                                     >
@@ -22966,8 +23062,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                                 playAudioPreviewFrom(currentMusicAudio, currentMusicStart);
                                             }}
                                             className={`px-3.5 py-1.5 rounded-full flex items-center gap-1.5 text-[9px] font-black uppercase backdrop-blur-md shadow-2xl transition-all active:scale-95 border ${isTrackPlaying
-                                                    ? 'bg-[#00ff66]/25 border-[#00ff66]/70 text-[#00ff66] shadow-[0_0_15px_rgba(0,255,102,0.45)]'
-                                                    : 'bg-black/85 border-[#00ff66]/45 text-[#00ff66]'
+                                                ? 'bg-[#00ff66]/25 border-[#00ff66]/70 text-[#00ff66] shadow-[0_0_15px_rgba(0,255,102,0.45)]'
+                                                : 'bg-black/85 border-[#00ff66]/45 text-[#00ff66]'
                                                 }`}
                                             title={isTrackPlaying ? "Couper l'extrait audio" : "Écouter l'extrait audio du morceau"}
                                         >
@@ -23189,8 +23285,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                                                     }
                                                                 }}
                                                                 className={`py-2 px-2 rounded-xl border text-[8.5px] font-black uppercase flex items-center justify-center gap-1 transition-all active:scale-95 ${!isVideoAudioMuted
-                                                                        ? 'bg-[#00ff66]/15 border-[#00ff66]/40 text-[#00ff66]'
-                                                                        : 'bg-white/5 border-white/10 text-gray-300 hover:text-white'
+                                                                    ? 'bg-[#00ff66]/15 border-[#00ff66]/40 text-[#00ff66]'
+                                                                    : 'bg-white/5 border-white/10 text-gray-300 hover:text-white'
                                                                     }`}
                                                             >
                                                                 {!isVideoAudioMuted ? <Volume2 className="w-3.5 h-3.5" /> : <VolumeX className="w-3.5 h-3.5" />}
