@@ -952,7 +952,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
     const updateTop10Track = (rank: number, patch: Partial<Top10TrackItem>) => {
         setTop10Tracks(prev => {
-            const next = prev.map(t => t.rank === rank ? { ...t, ...patch } : t);
+            const next = prev.map(t => Number(t.rank) === Number(rank) ? { ...t, ...patch } : t);
             try {
                 // Évite d'exploser le quota de 5Mo de localStorage avec les grosses images base64
                 const forStorage = next.map(tr => ({
@@ -963,6 +963,28 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             } catch (_) { }
             return next;
         });
+        setTimeout(() => generateImage(), 30);
+    };
+
+    const selectTop10Track = (targetRank: number) => {
+        stopPreviewPlayer();
+        if (top10TestingRank !== null) {
+            const prevTr = top10Tracks.find(t => t.rank === top10TestingRank);
+            if (prevTr?.videoUrl) {
+                const v = getOrCreateTop10Video(top10TestingRank, prevTr.videoUrl);
+                if (v) try { v.pause(); v.muted = true; } catch (_) { }
+            }
+            setTop10TestingRank(null);
+        }
+        if (top10TestTimerRef.current) clearTimeout(top10TestTimerRef.current);
+        setTop10ActiveRank(targetRank);
+        const targetTr = top10Tracks.find(t => Number(t.rank) === Number(targetRank));
+        if (targetTr?.videoUrl) {
+            const v = getOrCreateTop10Video(targetRank, targetTr.videoUrl);
+            if (v && targetTr.videoStartTime) {
+                try { v.currentTime = targetTr.videoStartTime; } catch (_) { }
+            }
+        }
         setTimeout(() => generateImage(), 30);
     };
 
@@ -1077,7 +1099,6 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             if (extractedTitle) patch.title = extractedTitle.toUpperCase();
             if (extractedCover) {
                 patch.cover = extractedCover;
-                setBgImage(extractedCover); // Dérive Tomorrowland immédiate avec cette pochette
             }
             if (extractedAudio) patch.audioUrl = extractedAudio;
 
@@ -8595,16 +8616,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         animTime = deterministicAnimTimeRef.current;
                         currentTrackIndex = Math.min(9, Math.max(0, Math.floor(animTime / durPerTrack)));
                         trackProgress = (animTime % durPerTrack) / durPerTrack;
-                    } else if (top10TestingRank !== null) {
-                        const trIdx = top10Tracks.findIndex(t => t.rank === top10TestingRank);
-                        currentTrackIndex = trIdx >= 0 ? trIdx : 0;
-                        animTime = (Date.now() - animStartTimeRef.current) / 1000;
-                        trackProgress = (animTime % durPerTrack) / durPerTrack;
                     } else {
-                        const trIdx = top10Tracks.findIndex(t => t.rank === top10ActiveRank);
+                        const trIdx = top10Tracks.findIndex(t => Number(t.rank) === Number(top10ActiveRank));
                         currentTrackIndex = trIdx >= 0 ? trIdx : 0;
                         animTime = (Date.now() - animStartTimeRef.current) / 1000;
-                        trackProgress = 0.5;
+                        trackProgress = (top10TestingRank === top10ActiveRank) ? ((animTime % durPerTrack) / durPerTrack) : 0.5;
                     }
 
                     const activeTrack = top10Tracks[currentTrackIndex] || top10Tracks[0];
@@ -8633,8 +8649,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         isPodium = true;
                     }
 
-                    // 0. Récupération / Préchargement de la Pochette pour le fond et le premier plan
-                    const trackCoverSrc = activeTrack.cover || bgImage || editorialSlideImages[1] || '';
+                    // 0. Récupération de la Pochette UNIQUEMENT pour la track active (zéro fuite entre tracks)
+                    const trackCoverSrc = activeTrack.cover || '';
                     let coverImg: HTMLImageElement | null = null;
                     if (trackCoverSrc) {
                         const resolvedCover = resolveImageUrl(trackCoverSrc);
@@ -8656,10 +8672,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.fillStyle = '#020306';
                     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-                    // A) Dérive cinématique floutée de la pochette (Ken Burns fluide)
+                    // A) Dérive cinématique floutée de la pochette propre à cette track
                     const bgSource = (coverImg && (coverImg.naturalWidth > 0 || coverImg.complete))
                         ? coverImg
-                        : ((img && (img.naturalWidth > 0 || img.complete)) ? img : null);
+                        : null;
                     if (bgSource) {
                         ctx.save();
                         const bgScale = 1.15 + Math.sin(animTime * 0.40) * 0.05;
@@ -8837,8 +8853,6 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                     if (coverImg && (coverImg.naturalWidth > 0 || coverImg.complete)) {
                         ctx.drawImage(coverImg, cardX, cardY, cardSize, cardSize);
-                    } else if (img && (img.naturalWidth > 0 || img.complete)) {
-                        ctx.drawImage(img, cardX, cardY, cardSize, cardSize);
                     } else {
                         // Placeholder vinyle avec sillons gravés
                         const phGrad = ctx.createLinearGradient(cardX, cardY, cardX + cardSize, cardY + cardSize);
@@ -18710,7 +18724,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     <div className="grid grid-cols-5 gap-1.5">
                         {top10Tracks.map(t => {
                             const isCur = t.rank === top10ActiveRank;
-                            const hasVid = Boolean(t.videoUrl);
+                            const hasMedia = Boolean(t.audioUrl || t.videoUrl || t.cover || t.title);
 
                             let pillStyle = 'bg-white/5 border-white/10 text-gray-300 hover:bg-white/10';
                             if (isCur) {
@@ -18718,27 +18732,20 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 else if (t.rank === 2) pillStyle = 'bg-gray-300/25 border-gray-200 text-white shadow-[0_0_10px_rgba(255,255,255,0.3)]';
                                 else if (t.rank === 3) pillStyle = 'bg-amber-600/25 border-amber-500 text-amber-200 shadow-[0_0_10px_rgba(205,127,50,0.3)]';
                                 else pillStyle = 'bg-neon-cyan/20 border-neon-cyan text-neon-cyan shadow-[0_0_10px_rgba(0,240,255,0.35)]';
-                            } else if (hasVid) {
-                                pillStyle = 'bg-white/10 border-emerald-500/40 text-emerald-300';
+                            } else if (hasMedia) {
+                                pillStyle = 'bg-white/10 border-emerald-500/50 text-emerald-300 shadow-[0_0_8px_rgba(16,185,129,0.2)]';
                             }
 
                             return (
                                 <button
                                     key={t.rank}
                                     type="button"
-                                    onClick={() => {
-                                        setTop10ActiveRank(t.rank);
-                                        const v = t.videoUrl ? getOrCreateTop10Video(t.rank, t.videoUrl) : null;
-                                        if (v && t.videoStartTime) {
-                                            try { v.currentTime = t.videoStartTime; } catch (_) { }
-                                        }
-                                        setTimeout(() => generateImage(), 30);
-                                    }}
+                                    onClick={() => selectTop10Track(t.rank)}
                                     className={`py-2 px-1 rounded-xl border text-[11px] font-black transition-all flex flex-col items-center justify-center gap-0.5 active:scale-95 ${pillStyle}`}
                                 >
                                     <span>{t.rank === 1 ? '👑 #1' : `#${t.rank}`}</span>
                                     <span className="text-[7px] font-mono opacity-80">
-                                        {hasVid ? '🎬 Prêt' : 'Éditer'}
+                                        {hasMedia ? '✓ Prêt' : 'Éditer'}
                                     </span>
                                 </button>
                             );
@@ -18822,7 +18829,6 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     const val = e.target.value;
                                     updateTop10Track(activeTrack.rank, { cover: val });
                                     if (val) {
-                                        setBgImage(val);
                                         const im = new Image();
                                         im.crossOrigin = 'anonymous';
                                         im.src = val;
@@ -18849,7 +18855,6 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                                 const dataUrl = ev.target?.result as string;
                                                 if (dataUrl) {
                                                     updateTop10Track(activeTrack.rank, { cover: dataUrl });
-                                                    setBgImage(dataUrl);
                                                     const im = new Image();
                                                     im.crossOrigin = 'anonymous';
                                                     im.src = dataUrl;
@@ -19021,10 +19026,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         {activeTrack.rank < 10 && (
                             <button
                                 type="button"
-                                onClick={() => {
-                                    setTop10ActiveRank(activeTrack.rank + 1);
-                                    generateImage();
-                                }}
+                                onClick={() => selectTop10Track(activeTrack.rank + 1)}
                                 className="py-2 px-3 bg-white/5 hover:bg-white/10 text-gray-300 rounded-xl text-[9px] font-black uppercase border border-white/10"
                             >
                                 ← Track #{activeTrack.rank + 1}
@@ -19033,10 +19035,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         {activeTrack.rank > 1 && (
                             <button
                                 type="button"
-                                onClick={() => {
-                                    setTop10ActiveRank(activeTrack.rank - 1);
-                                    generateImage();
-                                }}
+                                onClick={() => selectTop10Track(activeTrack.rank - 1)}
                                 className="ml-auto py-2 px-3 bg-neon-cyan/20 hover:bg-neon-cyan text-neon-cyan hover:text-black rounded-xl text-[9px] font-black uppercase border border-neon-cyan/50 transition-all"
                             >
                                 Track #{activeTrack.rank - 1} →
