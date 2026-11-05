@@ -179,7 +179,7 @@ export function MixPage() {
                     { src: mix.cover, sizes: '128x128', type: 'image/png' },
                     { src: mix.cover, sizes: '96x96', type: 'image/png' },
                 ] : [
-                    { src: '/images/branding/logo-dropsiders.png', sizes: '512x512', type: 'image/png' }
+                    { src: '/Logo.png', sizes: '512x512', type: 'image/png' }
                 ]
             });
 
@@ -491,7 +491,7 @@ export function MixPage() {
             <SEO
                 title={`${mix.title} | Lecteur Dédié Dropsiders`}
                 description={`Écoute "${mix.title}" par ${mix.username || 'Dropsiders DJ'} en continu et en arrière-plan sur Dropsiders Player.`}
-                image={mix.cover || '/images/branding/meta-banner.png'}
+                image={mix.cover || '/Logo.png'}
             />
 
             {/* Native HTML5 Audio Element for Background / Lock Screen / MediaSession Playback */}

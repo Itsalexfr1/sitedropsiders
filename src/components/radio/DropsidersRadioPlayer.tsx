@@ -1570,7 +1570,7 @@ function useRadioAudio() {
                 title: currentSet.title || currentSet.artist || 'Dropsiders Radio',
                 artist: currentSet.artist || 'Dropsiders Radio',
                 album: 'Web Radio Electro 24/7',
-                artwork: [{ src: '/favicon.png', sizes: '96x96', type: 'image/png' }],
+                artwork: [{ src: '/Logo.png', sizes: '96x96', type: 'image/png' }],
             });
             navigator.mediaSession.setActionHandler('play', () => window.dispatchEvent(new CustomEvent('dropsiders_radio_cmd_play')));
             navigator.mediaSession.setActionHandler('pause', () => window.dispatchEvent(new CustomEvent('dropsiders_radio_cmd_pause')));

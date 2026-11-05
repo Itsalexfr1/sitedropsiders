@@ -335,7 +335,7 @@ export function AdminInstagram() {
                                                     alt="DROPSIDERS"
                                                     className="w-full h-full object-contain"
                                                     onError={(e) => {
-                                                        (e.target as HTMLImageElement).src = '/DROPSIDERS_logo_blanc.svg';
+                                                        (e.target as HTMLImageElement).src = '/logo_white.png';
                                                     }}
                                                 />
                                             </div>

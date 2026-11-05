@@ -308,7 +308,7 @@ export function InterviewRandomizer() {
                             </div>
 
                             <div className="absolute bottom-6 md:bottom-10 inset-x-0 flex justify-center">
-                                <img src="/logo-dropsiders-white.png" className="h-4 md:h-6 opacity-20" alt="" />
+                                <img src="/logo_white.png" className="h-4 md:h-6 opacity-20" alt="" />
                             </div>
                         </motion.div>
                     </div>
