@@ -914,21 +914,21 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     };
 
     const DEFAULT_TOP_10_TRACKS: Top10TrackItem[] = [
-        { rank: 10, title: 'RUMBLE', artist: 'SKRILLEX, FRED AGAIN.., FLOWDAN', cover: '', videoStartTime: 40 },
-        { rank: 9, title: '(IT GOES LIKE) NANANA', artist: 'PEGGY GOU', cover: '', videoStartTime: 30 },
-        { rank: 8, title: 'RHYME DUST', artist: 'MK, DOM DOLLA', cover: '', videoStartTime: 45 },
-        { rank: 7, title: 'BABY AGAIN..', artist: 'FRED AGAIN.., SKRILLEX, FOUR TET', cover: '', videoStartTime: 50 },
-        { rank: 6, title: 'ATMOSPHERE', artist: 'FISHER, KITA ALEXANDER', cover: '', videoStartTime: 35 },
-        { rank: 5, title: 'DRUGS FROM AMSTERDAM', artist: 'MAU P', cover: '', videoStartTime: 60 },
-        { rank: 4, title: 'PUSH UP', artist: 'CREEDS', cover: '', videoStartTime: 45 },
-        { rank: 3, title: 'RAY OF SOLAR', artist: 'SWEDISH HOUSE MAFIA', cover: '', videoStartTime: 55 },
-        { rank: 2, title: 'WHERE YOU ARE', artist: 'JOHN SUMMIT, HAYLA', cover: '', videoStartTime: 48 },
-        { rank: 1, title: 'MIRACLE', artist: 'CALVIN HARRIS, ELLIE GOULDING', cover: '', videoStartTime: 60 },
+        { rank: 10, title: '', artist: '', cover: '', videoStartTime: 0 },
+        { rank: 9, title: '', artist: '', cover: '', videoStartTime: 0 },
+        { rank: 8, title: '', artist: '', cover: '', videoStartTime: 0 },
+        { rank: 7, title: '', artist: '', cover: '', videoStartTime: 0 },
+        { rank: 6, title: '', artist: '', cover: '', videoStartTime: 0 },
+        { rank: 5, title: '', artist: '', cover: '', videoStartTime: 0 },
+        { rank: 4, title: '', artist: '', cover: '', videoStartTime: 0 },
+        { rank: 3, title: '', artist: '', cover: '', videoStartTime: 0 },
+        { rank: 2, title: '', artist: '', cover: '', videoStartTime: 0 },
+        { rank: 1, title: '', artist: '', cover: '', videoStartTime: 0 },
     ];
 
     const [top10Tracks, setTop10Tracks] = useState<Top10TrackItem[]>(() => {
         try {
-            const saved = localStorage.getItem('dropsiders_top10_tracks_v2');
+            const saved = localStorage.getItem('dropsiders_top10_tracks_v5');
             if (saved) {
                 const parsed = JSON.parse(saved);
                 if (Array.isArray(parsed) && parsed.length === 10) return parsed;
@@ -949,7 +949,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const updateTop10Track = (rank: number, patch: Partial<Top10TrackItem>) => {
         setTop10Tracks(prev => {
             const next = prev.map(t => t.rank === rank ? { ...t, ...patch } : t);
-            try { localStorage.setItem('dropsiders_top10_tracks_v2', JSON.stringify(next)); } catch (_) {}
+            try { localStorage.setItem('dropsiders_top10_tracks_v5', JSON.stringify(next)); } catch (_) {}
             return next;
         });
         setTimeout(() => generateImage(), 50);
@@ -980,13 +980,77 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const handleTop10ResolveVideo = async (rank: number, rawUrl: string) => {
         if (!rawUrl) return;
         const trimmed = rawUrl.trim();
+        setTop10ResolvingRank(rank);
+
+        // 1. EXTRACTION AUTOMATIQUE DES MÉTADONNÉES (ARTISTE, TITRE, COVER) - COMME DANS MUSIQUE
+        try {
+            let extractedArtist = '';
+            let extractedTitle = '';
+            let extractedCover = '';
+
+            // A) Tentative avec le résolveur de musique (Beatport, Spotify, iTunes, etc.)
+            const musicMeta = await resolveMusicSnippet(trimmed).catch(() => null);
+            if (musicMeta) {
+                if (musicMeta.artist) extractedArtist = musicMeta.artist.trim();
+                if (musicMeta.title) extractedTitle = musicMeta.title.trim();
+                if (musicMeta.coverUrl) extractedCover = musicMeta.coverUrl.trim();
+            }
+
+            // B) Si artiste ou titre encore manquant, interroger YouTube oEmbed
+            if ((!extractedArtist || !extractedTitle) && trimmed.match(/(youtube\.com|youtu\.be)/i)) {
+                try {
+                    const ytOembedUrl = `https://www.youtube.com/oembed?url=${encodeURIComponent(trimmed)}&format=json`;
+                    const ytRes = await fetch(ytOembedUrl);
+                    if (ytRes.ok) {
+                        const ytData = await ytRes.json();
+                        if (ytData.title) {
+                            let clean = ytData.title
+                                .replace(/\((?:official\s*(?:video|audio|music\s*video|visualizer|clip|lyric\s*video)|4k|hd|remaster(?:ed)?|out\s*now)[^)]*\)/gi, '')
+                                .replace(/\[(?:official\s*(?:video|audio|music\s*video|visualizer|clip|lyric\s*video)|4k|hd|remaster(?:ed)?)[^\]]*\]/gi, '')
+                                .trim();
+
+                            const split = clean.split(/\s+[-–—:]\s+/);
+                            if (split.length >= 2) {
+                                if (!extractedArtist) extractedArtist = split[0].trim();
+                                if (!extractedTitle) extractedTitle = split.slice(1).join(' - ').trim();
+                            } else {
+                                if (!extractedTitle) extractedTitle = clean;
+                                if (!extractedArtist && ytData.author_name) {
+                                    extractedArtist = ytData.author_name.replace(/- Topic$/i, '').trim();
+                                }
+                            }
+                        }
+                        if (!extractedCover && ytData.thumbnail_url) {
+                            extractedCover = ytData.thumbnail_url;
+                        }
+                    }
+                } catch (oeErr) {
+                    console.warn("YouTube oEmbed fetch error:", oeErr);
+                }
+            }
+
+            // Application immédiate des métadonnées extraites
+            const patch: Partial<Top10TrackItem> = {};
+            if (extractedArtist) patch.artist = extractedArtist.toUpperCase();
+            if (extractedTitle) patch.title = extractedTitle.toUpperCase();
+            if (extractedCover) patch.cover = extractedCover;
+
+            if (Object.keys(patch).length > 0) {
+                updateTop10Track(rank, patch);
+            }
+        } catch (e) {
+            console.warn("Erreur extraction métadonnées Top 10 :", e);
+        }
+
+        // 2. RÉSOLUTION DU FLUX VIDÉO DIRECT (MP4 / H264)
         if (trimmed.includes('.mp4') || trimmed.includes('.webm') || trimmed.startsWith('blob:') || trimmed.startsWith('data:')) {
             updateTop10Track(rank, { videoUrl: trimmed });
             getOrCreateTop10Video(rank, trimmed);
+            setTop10ResolvingRank(null);
             return;
         }
+
         if (trimmed.match(/(youtube|youtu\.be|tiktok|instagram|twitter|x\.com)/i)) {
-            setTop10ResolvingRank(rank);
             try {
                 const res = await fetch('/api/downloader-proxy', {
                     method: 'POST',
@@ -1015,6 +1079,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             }
         } else {
             updateTop10Track(rank, { videoUrl: trimmed });
+            setTop10ResolvingRank(null);
         }
     };
 
@@ -18356,9 +18421,23 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         <span className="text-[10px] font-black text-neon-cyan uppercase tracking-wider flex items-center gap-1.5">
                             🔥 Configuration Générale Top 10
                         </span>
-                        <span className="text-[9px] font-bold text-gray-400 font-mono">
-                            {Math.round(10 * top10TrackDuration)}s au total
-                        </span>
+                        <div className="flex items-center gap-2">
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setTop10Tracks(DEFAULT_TOP_10_TRACKS);
+                                    try { localStorage.setItem('dropsiders_top10_tracks_v5', JSON.stringify(DEFAULT_TOP_10_TRACKS)); } catch (_) {}
+                                    setTimeout(() => generateImage(), 50);
+                                }}
+                                className="text-[8px] text-gray-500 hover:text-red-400 font-bold uppercase transition-colors"
+                                title="Réinitialiser toutes les 10 pistes à vide"
+                            >
+                                ✕ Vider les 10 pistes
+                            </button>
+                            <span className="text-[9px] font-bold text-gray-400 font-mono">
+                                {Math.round(10 * top10TrackDuration)}s au total
+                            </span>
+                        </div>
                     </div>
 
                     <div className="space-y-1">
@@ -18481,35 +18560,49 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 {activeTrack.rank === 1 ? '👑 N° 1 CHAMPION' : activeTrack.rank === 2 ? '🥈 N° 2 PODIUM' : activeTrack.rank === 3 ? '🥉 N° 3 PODIUM' : `POSITION #${activeTrack.rank}`}
                             </span>
                         </div>
-                        <span className="text-[8px] font-black uppercase tracking-wider text-gray-400">
-                            Track {11 - activeTrack.rank} / 10
-                        </span>
+                        <div className="flex items-center gap-2.5">
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    updateTop10Track(activeTrack.rank, { artist: '', title: '', videoUrl: '', cover: '', videoStartTime: 0 });
+                                }}
+                                className="text-[8px] text-gray-500 hover:text-red-400 font-bold uppercase transition-colors"
+                                title="Vider cette position"
+                            >
+                                ✕ Vider
+                            </button>
+                            <span className="text-[8px] font-black uppercase tracking-wider text-gray-400">
+                                Track {11 - activeTrack.rank} / 10
+                            </span>
+                        </div>
                     </div>
 
                     {/* Artiste */}
                     <div className="space-y-1">
-                        <label className="text-[8.5px] font-black text-white uppercase tracking-wider">
-                            Nom de l'Artiste
+                        <label className="text-[8.5px] font-black text-white uppercase tracking-wider flex items-center justify-between">
+                            <span>Nom de l'Artiste</span>
+                            <span className="text-[7.5px] text-gray-500 font-normal">Rempli auto via lien</span>
                         </label>
                         <input
                             type="text"
                             value={activeTrack.artist}
                             onChange={e => updateTop10Track(activeTrack.rank, { artist: e.target.value.toUpperCase() })}
-                            placeholder="EX: SKRILLEX, FRED AGAIN.."
+                            placeholder="EX: NOM DE L'ARTISTE (OU AUTO DÉTECTÉ)"
                             className="w-full bg-white/5 border border-white/10 rounded-xl p-2.5 text-white font-black uppercase text-[11px] tracking-wider focus:border-neon-cyan/50 outline-none"
                         />
                     </div>
 
                     {/* Titre */}
                     <div className="space-y-1">
-                        <label className="text-[8.5px] font-black text-white uppercase tracking-wider">
-                            Titre du Morceau
+                        <label className="text-[8.5px] font-black text-white uppercase tracking-wider flex items-center justify-between">
+                            <span>Titre du Morceau</span>
+                            <span className="text-[7.5px] text-gray-500 font-normal">Rempli auto via lien</span>
                         </label>
                         <input
                             type="text"
                             value={activeTrack.title}
                             onChange={e => updateTop10Track(activeTrack.rank, { title: e.target.value.toUpperCase() })}
-                            placeholder="EX: RUMBLE"
+                            placeholder="EX: TITRE DU MORCEAU (OU AUTO DÉTECTÉ)"
                             className="w-full bg-white/5 border border-white/10 rounded-xl p-2.5 text-white font-black uppercase text-[11px] tracking-wider focus:border-neon-cyan/50 outline-none"
                         />
                     </div>
@@ -18528,6 +18621,14 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     const val = e.target.value;
                                     updateTop10Track(activeTrack.rank, { videoUrl: val });
                                 }}
+                                onPaste={e => {
+                                    const pasted = e.clipboardData.getData('text');
+                                    if (pasted && pasted.trim()) {
+                                        setTimeout(() => {
+                                            handleTop10ResolveVideo(activeTrack.rank, pasted.trim());
+                                        }, 100);
+                                    }
+                                }}
                                 placeholder="Coller lien YouTube ou MP4..."
                                 className="flex-1 bg-white/5 border border-white/10 rounded-xl p-2 text-white font-mono text-[10px] focus:border-neon-cyan/50 outline-none truncate"
                             />
@@ -18540,6 +18641,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 {top10ResolvingRank === activeTrack.rank ? '⏳...' : '⚡ Valider'}
                             </button>
                         </div>
+                        <p className="text-[7.5px] text-gray-500 font-mono">
+                            💡 En collant un lien YouTube, l'Artiste, le Titre et le clip vidéo sont extraits automatiquement.
+                        </p>
                     </div>
 
                     {/* Start Time Découpage */}
