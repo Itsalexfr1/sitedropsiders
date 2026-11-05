@@ -146,7 +146,7 @@ export function Footer() {
             {/* Background Decorative Element */}
             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[1px] bg-gradient-to-r from-transparent via-neon-red/50 to-transparent" />
 
-            <div className="w-full px-4 md:px-12 xl:px-16 2xl:px-24 pt-10 pb-6 md:pt-12 md:pb-6">
+            <div className="w-full px-4 md:px-12 xl:px-16 2xl:px-24 pt-10 pb-24 md:pt-12 md:pb-28 lg:pb-32">
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-y-8 lg:gap-8 xl:gap-12 mb-8">
                     {/* Brand Section */}
                     <motion.div
