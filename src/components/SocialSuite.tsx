@@ -917,19 +917,20 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         videoStartTime?: number;
         audioUrl?: string;
         audioStartTime?: number;
+        sourceUrl?: string;
     };
 
     const DEFAULT_TOP_10_TRACKS: Top10TrackItem[] = [
-        { rank: 10, title: '', artist: '', cover: '', videoStartTime: 0, audioStartTime: 0 },
-        { rank: 9, title: '', artist: '', cover: '', videoStartTime: 0, audioStartTime: 0 },
-        { rank: 8, title: '', artist: '', cover: '', videoStartTime: 0, audioStartTime: 0 },
-        { rank: 7, title: '', artist: '', cover: '', videoStartTime: 0, audioStartTime: 0 },
-        { rank: 6, title: '', artist: '', cover: '', videoStartTime: 0, audioStartTime: 0 },
-        { rank: 5, title: '', artist: '', cover: '', videoStartTime: 0, audioStartTime: 0 },
-        { rank: 4, title: '', artist: '', cover: '', videoStartTime: 0, audioStartTime: 0 },
-        { rank: 3, title: '', artist: '', cover: '', videoStartTime: 0, audioStartTime: 0 },
-        { rank: 2, title: '', artist: '', cover: '', videoStartTime: 0, audioStartTime: 0 },
-        { rank: 1, title: '', artist: '', cover: '', videoStartTime: 0, audioStartTime: 0 },
+        { rank: 10, title: '', artist: '', cover: '', sourceUrl: '', videoStartTime: 0, audioStartTime: 0 },
+        { rank: 9, title: '', artist: '', cover: '', sourceUrl: '', videoStartTime: 0, audioStartTime: 0 },
+        { rank: 8, title: '', artist: '', cover: '', sourceUrl: '', videoStartTime: 0, audioStartTime: 0 },
+        { rank: 7, title: '', artist: '', cover: '', sourceUrl: '', videoStartTime: 0, audioStartTime: 0 },
+        { rank: 6, title: '', artist: '', cover: '', sourceUrl: '', videoStartTime: 0, audioStartTime: 0 },
+        { rank: 5, title: '', artist: '', cover: '', sourceUrl: '', videoStartTime: 0, audioStartTime: 0 },
+        { rank: 4, title: '', artist: '', cover: '', sourceUrl: '', videoStartTime: 0, audioStartTime: 0 },
+        { rank: 3, title: '', artist: '', cover: '', sourceUrl: '', videoStartTime: 0, audioStartTime: 0 },
+        { rank: 2, title: '', artist: '', cover: '', sourceUrl: '', videoStartTime: 0, audioStartTime: 0 },
+        { rank: 1, title: '', artist: '', cover: '', sourceUrl: '', videoStartTime: 0, audioStartTime: 0 },
     ];
 
     const [top10Tracks, setTop10Tracks] = useState<Top10TrackItem[]>(() => {
@@ -971,7 +972,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const selectTop10Track = (targetRank: number) => {
         stopPreviewPlayer();
         if (top10TestingRank !== null) {
-            const prevTr = top10Tracks.find(t => t.rank === top10TestingRank);
+            const prevTr = top10Tracks.find(t => Number(t.rank) === Number(top10TestingRank));
             if (prevTr?.videoUrl) {
                 const v = getOrCreateTop10Video(top10TestingRank, prevTr.videoUrl);
                 if (v) try { v.pause(); v.muted = true; } catch (_) { }
@@ -979,7 +980,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             setTop10TestingRank(null);
         }
         if (top10TestTimerRef.current) clearTimeout(top10TestTimerRef.current);
-        setTop10ActiveRank(targetRank);
+        setTop10ActiveRank(Number(targetRank));
         const targetTr = top10Tracks.find(t => Number(t.rank) === Number(targetRank));
         if (targetTr?.videoUrl) {
             const v = getOrCreateTop10Video(targetRank, targetTr.videoUrl);
@@ -1002,7 +1003,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         v.loop = true;
         v.src = url;
         v.onloadedmetadata = () => {
-            const tr = top10Tracks.find(t => t.rank === rank);
+            const tr = top10Tracks.find(t => Number(t.rank) === Number(rank));
             if (tr?.videoStartTime) {
                 try { v.currentTime = tr.videoStartTime; } catch (_) { }
             }
@@ -1032,33 +1033,41 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 if (musicMeta.audioUrl) extractedAudio = musicMeta.audioUrl.trim();
             }
 
-            // B) Si lien YouTube et artiste/titre encore manquant, appel oEmbed YouTube direct
+            // B) Si lien YouTube et artiste/titre encore manquant, appel direct avec CORS garanti
             if ((!extractedArtist || !extractedTitle) && trimmed.match(/(youtube\.com|youtu\.be)/i)) {
                 try {
-                    const ytOembedUrl = `https://www.youtube.com/oembed?url=${encodeURIComponent(trimmed)}&format=json`;
-                    const ytRes = await fetch(ytOembedUrl);
-                    if (ytRes.ok) {
-                        const ytData = await ytRes.json();
-                        if (ytData.title) {
-                            let clean = ytData.title
-                                .replace(/\((?:official\s*(?:video|audio|music\s*video|visualizer|clip|lyric\s*video)|4k|hd|remaster(?:ed)?|out\s*now)[^)]*\)/gi, '')
-                                .replace(/\[(?:official\s*(?:video|audio|music\s*video|visualizer|clip|lyric\s*video)|4k|hd|remaster(?:ed)?)[^\]]*\]/gi, '')
-                                .trim();
+                    let ytData: any = null;
+                    try {
+                        const noRes = await fetch(`https://noembed.com/embed?url=${encodeURIComponent(trimmed)}`);
+                        if (noRes.ok) ytData = await noRes.json();
+                    } catch (_) { }
 
-                            const split = clean.split(/\s+[-–—:]\s+/);
-                            if (split.length >= 2) {
-                                if (!extractedArtist) extractedArtist = split[0].trim();
-                                if (!extractedTitle) extractedTitle = split.slice(1).join(' - ').trim();
-                            } else {
-                                if (!extractedTitle) extractedTitle = clean;
-                                if (!extractedArtist && ytData.author_name) {
-                                    extractedArtist = ytData.author_name.replace(/- Topic$/i, '').trim();
-                                }
+                    if (!ytData?.title) {
+                        try {
+                            const pRes = await fetch(`/api/proxy-media?url=${encodeURIComponent(`https://www.youtube.com/oembed?url=${encodeURIComponent(trimmed)}&format=json`)}`);
+                            if (pRes.ok) ytData = await pRes.json();
+                        } catch (_) { }
+                    }
+
+                    if (ytData?.title) {
+                        let clean = ytData.title
+                            .replace(/\((?:official\s*(?:video|audio|music\s*video|visualizer|clip|lyric\s*video)|4k|hd|remaster(?:ed)?|out\s*now)[^)]*\)/gi, '')
+                            .replace(/\[(?:official\s*(?:video|audio|music\s*video|visualizer|clip|lyric\s*video)|4k|hd|remaster(?:ed)?)[^\]]*\]/gi, '')
+                            .trim();
+
+                        const split = clean.split(/\s+[-–—:]\s+/);
+                        if (split.length >= 2) {
+                            if (!extractedArtist) extractedArtist = split[0].trim();
+                            if (!extractedTitle) extractedTitle = split.slice(1).join(' - ').trim();
+                        } else {
+                            if (!extractedTitle) extractedTitle = clean;
+                            if (!extractedArtist && ytData.author_name) {
+                                extractedArtist = ytData.author_name.replace(/- Topic$/i, '').trim();
                             }
                         }
-                        if (!extractedCover && ytData.thumbnail_url) {
-                            extractedCover = ytData.thumbnail_url;
-                        }
+                    }
+                    if (!extractedCover && ytData?.thumbnail_url) {
+                        extractedCover = ytData.thumbnail_url;
                     }
                 } catch (oeErr) {
                     console.warn("YouTube oEmbed fetch error:", oeErr);
@@ -1093,7 +1102,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 });
             }
 
-            const patch: Partial<Top10TrackItem> = {};
+            const patch: Partial<Top10TrackItem> = {
+                sourceUrl: trimmed
+            };
             if (extractedArtist) patch.artist = extractedArtist.toUpperCase();
             if (extractedTitle) patch.title = extractedTitle.toUpperCase();
             if (extractedCover) {
@@ -1845,11 +1856,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     };
 
     const handleTop10TestClip = (rank: number) => {
-        const tr = top10Tracks.find(t => t.rank === rank);
+        const tr = top10Tracks.find(t => Number(t.rank) === Number(rank));
         if (!tr) return;
         const soundSrc = tr.audioUrl || (tr.videoUrl && tr.videoUrl.match(/\.(mp3|m4a|aac|wav|ogg)/i) ? tr.videoUrl : '');
 
-        if (top10TestingRank === rank) {
+        if (Number(top10TestingRank) === Number(rank)) {
             stopPreviewPlayer();
             if (tr.videoUrl) {
                 const v = getOrCreateTop10Video(rank, tr.videoUrl);
@@ -11573,7 +11584,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     const singleDur = top10TrackDuration || 3.5;
                     for (let i = 0; i < 10; i++) {
                         const rank = 10 - i;
-                        const tr = top10Tracks.find(t => t.rank === rank);
+                        const tr = top10Tracks.find(t => Number(t.rank) === Number(rank));
                         const aUrl = tr?.audioUrl || (tr?.videoUrl && tr.videoUrl.match(/\.(mp3|m4a|aac|wav|ogg)/i) ? tr.videoUrl : '');
                         if (aUrl) {
                             audioSegments.push({
@@ -12177,7 +12188,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 if (prevVideo) {
                     try { prevVideo.pause(); prevVideo.muted = true; } catch (_) { }
                 }
-                const tr = top10Tracks.find(t => t.rank === rank);
+                const tr = top10Tracks.find(t => Number(t.rank) === Number(rank));
                 let currentV: HTMLVideoElement | null = null;
                 if (tr?.videoUrl) {
                     currentV = getOrCreateTop10Video(rank, tr.videoUrl);
@@ -18635,7 +18646,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     );
 
     const top10TracksEditor = (() => {
-        const activeTrack = top10Tracks.find(t => t.rank === top10ActiveRank) || top10Tracks[0];
+        const activeTrack = top10Tracks.find(t => Number(t.rank) === Number(top10ActiveRank)) || top10Tracks[0];
         const podiumColor = activeTrack.rank === 1 ? 'text-amber-400' : activeTrack.rank === 2 ? 'text-gray-300' : activeTrack.rank === 3 ? 'text-amber-600' : 'text-neon-cyan';
         const podiumBorder = activeTrack.rank === 1 ? 'border-amber-400/60 shadow-[0_0_15px_rgba(255,215,0,0.3)]' : activeTrack.rank === 2 ? 'border-gray-300/60' : activeTrack.rank === 3 ? 'border-amber-600/60' : 'border-neon-cyan/40';
 
@@ -18741,8 +18752,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                     <div className="grid grid-cols-5 gap-1.5">
                         {top10Tracks.map(t => {
-                            const isCur = t.rank === top10ActiveRank;
-                            const hasMedia = Boolean(t.audioUrl || t.videoUrl || t.cover || t.title);
+                            const isCur = Number(t.rank) === Number(top10ActiveRank);
+                            const hasMedia = Boolean(t.sourceUrl || t.audioUrl || t.videoUrl || t.cover || t.title);
 
                             let pillStyle = 'bg-white/5 border-white/10 text-gray-300 hover:bg-white/10';
                             if (isCur) {
@@ -18762,8 +18773,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     className={`py-2 px-1 rounded-xl border text-[11px] font-black transition-all flex flex-col items-center justify-center gap-0.5 active:scale-95 ${pillStyle}`}
                                 >
                                     <span>{t.rank === 1 ? '👑 #1' : `#${t.rank}`}</span>
-                                    <span className="text-[7px] font-mono opacity-80">
-                                        {hasMedia ? '✓ Prêt' : 'Éditer'}
+                                    <span className="text-[7.5px] font-mono truncate max-w-full px-1">
+                                        {t.title ? (t.title.length > 7 ? t.title.slice(0, 6) + '…' : t.title) : (hasMedia ? '✓ Prêt' : 'Vide')}
                                     </span>
                                 </button>
                             );
@@ -18905,7 +18916,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             <span>🎵 Extrait Audio / Vidéo (Spotify, Beatport, Deezer, YouTube...)</span>
                             {(activeTrack.audioUrl || activeTrack.videoUrl) ? (
                                 <span className="text-emerald-400 text-[8px] font-mono">
-                                    ✓ Audio connecté ({activeTrack.audioUrl ? 'Beatport/Spotify' : 'Vidéo'})
+                                    ✓ Connecté ({activeTrack.audioUrl ? 'Beatport/Spotify Audio' : 'Vidéo'})
                                 </span>
                             ) : (
                                 <span className="text-gray-500 text-[7.5px]">En attente de lien</span>
@@ -18914,17 +18925,26 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         <div className="flex gap-2">
                             <input
                                 type="text"
-                                value={activeTrack.audioUrl || activeTrack.videoUrl || ''}
+                                value={activeTrack.sourceUrl !== undefined ? activeTrack.sourceUrl : (activeTrack.videoUrl || activeTrack.audioUrl || '')}
                                 onChange={e => {
                                     const val = e.target.value;
-                                    updateTop10Track(activeTrack.rank, { audioUrl: val, videoUrl: val });
+                                    updateTop10Track(activeTrack.rank, { sourceUrl: val });
                                 }}
                                 onPaste={e => {
                                     const pasted = e.clipboardData.getData('text');
                                     if (pasted && pasted.trim()) {
+                                        const clean = pasted.trim();
+                                        updateTop10Track(activeTrack.rank, { sourceUrl: clean });
                                         setTimeout(() => {
-                                            handleTop10ResolveVideo(activeTrack.rank, pasted.trim());
-                                        }, 100);
+                                            handleTop10ResolveVideo(activeTrack.rank, clean);
+                                        }, 50);
+                                    }
+                                }}
+                                onKeyDown={e => {
+                                    if (e.key === 'Enter') {
+                                        e.preventDefault();
+                                        const urlToResolve = activeTrack.sourceUrl || activeTrack.videoUrl || activeTrack.audioUrl || '';
+                                        if (urlToResolve) handleTop10ResolveVideo(activeTrack.rank, urlToResolve);
                                     }
                                 }}
                                 placeholder="Coller lien Spotify, Beatport, Deezer, YouTube..."
@@ -18932,15 +18952,18 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             />
                             <button
                                 type="button"
-                                onClick={() => handleTop10ResolveVideo(activeTrack.rank, activeTrack.audioUrl || activeTrack.videoUrl || '')}
-                                disabled={top10ResolvingRank === activeTrack.rank || (!activeTrack.audioUrl && !activeTrack.videoUrl)}
+                                onClick={() => {
+                                    const urlToResolve = activeTrack.sourceUrl || activeTrack.videoUrl || activeTrack.audioUrl || '';
+                                    if (urlToResolve) handleTop10ResolveVideo(activeTrack.rank, urlToResolve);
+                                }}
+                                disabled={top10ResolvingRank === activeTrack.rank || (!activeTrack.sourceUrl && !activeTrack.audioUrl && !activeTrack.videoUrl)}
                                 className="px-3 py-2 bg-neon-cyan/20 border border-neon-cyan text-neon-cyan rounded-xl text-[9px] font-black uppercase hover:bg-neon-cyan hover:text-black transition-all disabled:opacity-40 disabled:pointer-events-none shrink-0"
                             >
                                 {top10ResolvingRank === activeTrack.rank ? '⏳...' : '⚡ Extraire'}
                             </button>
                         </div>
                         <p className="text-[7.5px] text-gray-500 font-mono">
-                            💡 En collant un lien Spotify, Beatport, Deezer ou YouTube, l'Artiste, le Titre, la Pochette et l'extrait audio sont détectés automatiquement sans erreur serveur.
+                            💡 Chaque position possède son propre lien indépendant. Collez un lien Spotify, YouTube, Beatport ou Deezer pour remplir cette position.
                         </p>
                     </div>
 
