@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     Radio, Play, Pause, Volume2, VolumeX, Clock, Sparkles,
-    MessageSquare, Send, Calendar, History,
+    MessageSquare, Send, History,
     User, MapPin, Disc3, Music2, Zap, Check, Search, X, Heart
 } from 'lucide-react';
 import {
@@ -200,8 +200,6 @@ function HistorySection({
     const [searchDay, setSearchDay] = useState('');
     const [searchTime, setSearchTime] = useState('');
     const [searchResult, setSearchResult] = useState<RadioHistoryEntry | null | 'none'>(null);
-    const [expandedDays, setExpandedDays] = useState<Record<string, boolean>>({});
-    const [visibleDaysCount, setVisibleDaysCount] = useState(7);
 
     // 1. Calcul dynamique de l'historique complet et fidèle sur 30 jours (1 mois)
     const computedHistory = useMemo(() => {
@@ -300,16 +298,6 @@ function HistorySection({
             .filter(d => { if (seen.has(d)) return false; seen.add(d); return true; });
     }, [history]);
 
-    // Grouper par jour
-    const grouped = useMemo(() => {
-        const map = new Map<string, RadioHistoryEntry[]>();
-        [...history].sort((a, b) => b.timestamp - a.timestamp).forEach(e => {
-            if (!map.has(e.day)) map.set(e.day, []);
-            map.get(e.day)!.push(e);
-        });
-        return map;
-    }, [history]);
-
     // Convertir "HH:MM" ou "HHhMM" en minutes depuis minuit
     const timeToMinutes = (t: string) => {
         if (!t) return -1;
@@ -349,10 +337,6 @@ function HistorySection({
         setSearchDay('');
         setSearchTime('');
         setSearchResult(null);
-    };
-
-    const toggleExpandDay = (day: string) => {
-        setExpandedDays(prev => ({ ...prev, [day]: !prev[day] }));
     };
 
     const isSearchActive = searchResult !== null;
@@ -588,97 +572,6 @@ function HistorySection({
                     )}
                 </AnimatePresence>
             </div>
-
-            {/* ── Historique de la journée en cours uniquement ── */}
-            {Array.from(grouped.entries()).slice(0, 1).map(([day, entries]) => {
-                const isExpanded = !!expandedDays[day];
-                const displayedEntries = isExpanded ? entries : entries.slice(0, 3);
-
-                return (
-                    <div key={day} className="space-y-3">
-                        <div className="flex items-center gap-2 pt-2">
-                            <Calendar className="w-3.5 h-3.5 text-purple-400" />
-                            <span className="text-[11px] font-black uppercase tracking-widest text-purple-300 capitalize">{day}</span>
-                            <div className="flex-1 h-px bg-white/10" />
-                            <span className="text-[9px] font-mono text-gray-500 uppercase">{entries.length} titres</span>
-                        </div>
-
-                        <div className="space-y-2">
-                            {displayedEntries.map((entry, i) => {
-                                const isHighlighted = !!(searchResult && searchResult !== 'none' && searchResult.id === entry.id);
-                                const trackKey = `${entry.artist} - ${entry.title}`;
-                                const isVoted = votedTracks.includes(trackKey);
-
-                                return (
-                                    <motion.div
-                                        key={entry.id}
-                                        initial={{ opacity: 0, x: -6 }}
-                                        animate={{ opacity: 1, x: 0 }}
-                                        transition={{ delay: Math.min(0.2, i * 0.015) }}
-                                        className={`flex items-center justify-between gap-3 p-3 rounded-xl border transition-all group ${
-                                            isHighlighted
-                                                ? 'bg-gradient-to-r from-purple-950/60 to-[#07070f] border-purple-500/50 shadow-[0_0_15px_rgba(168,85,247,0.15)]'
-                                                : 'bg-white/[0.03] border-white/[0.08] hover:border-white/15 hover:bg-white/[0.05]'
-                                        }`}
-                                    >
-                                        <div className="flex items-center gap-3 min-w-0 flex-1">
-                                            <div className="shrink-0 text-center w-12">
-                                                <p className={`text-[10px] font-mono font-bold ${isHighlighted ? 'text-purple-300' : 'text-cyan-400'}`}>{entry.startTime}</p>
-                                                <p className="text-[8px] font-mono text-gray-600">{entry.endTime}</p>
-                                            </div>
-                                            <div className="w-px h-8 bg-white/10 shrink-0" />
-                                            <div className="min-w-0 flex-1">
-                                                <p className={`text-[11px] font-black uppercase italic tracking-tight truncate ${isHighlighted ? 'text-white' : 'text-gray-200'}`}>{entry.artist}</p>
-                                                <p className="text-[10px] text-gray-400 truncate">{entry.title}</p>
-                                                {entry.blockTitle && (
-                                                    <p className="text-[8px] font-bold text-cyan-400/80 uppercase tracking-wider truncate mt-0.5">
-                                                        📻 {entry.blockTitle}
-                                                    </p>
-                                                )}
-                                            </div>
-                                        </div>
-
-                                        <div className="flex items-center gap-2 shrink-0">
-                                            {onVote && (
-                                                <button
-                                                    type="button"
-                                                    onClick={() => onVote(trackKey, entry.youtubeId || entry.audioUrl)}
-                                                    disabled={voteLoading}
-                                                    className={`p-1.5 rounded-lg border transition-all cursor-pointer ${
-                                                        isVoted
-                                                            ? 'bg-red-500/20 text-red-400 border-red-500/50'
-                                                            : 'bg-white/5 hover:bg-red-500/20 text-gray-500 hover:text-red-400 border-white/10'
-                                                    }`}
-                                                    title={isVoted ? 'Déjà voté' : 'Voter pour ce titre dans le Top 5'}
-                                                >
-                                                    <Heart className={`w-3.5 h-3.5 ${isVoted ? 'fill-current text-red-400' : ''}`} />
-                                                </button>
-                                            )}
-                                            {isHighlighted ? (
-                                                <div className="w-2 h-2 rounded-full bg-purple-400 animate-ping mr-1" />
-                                            ) : (
-                                                <Music2 className="w-3.5 h-3.5 text-gray-600 group-hover:text-gray-400 transition-colors mr-1" />
-                                            )}
-                                        </div>
-                                    </motion.div>
-                                );
-                            })}
-
-                            {entries.length > 3 && (
-                                <button
-                                    type="button"
-                                    onClick={() => toggleExpandDay(day)}
-                                    className="w-full py-2.5 rounded-xl bg-white/[0.02] hover:bg-white/[0.06] border border-white/[0.08] text-[10px] font-mono text-purple-300 hover:text-white transition-all cursor-pointer text-center"
-                                >
-                                    {isExpanded
-                                        ? '▲ Réduire la liste'
-                                        : `▼ Afficher tous les ${entries.length} titres de la journée (+${entries.length - 3})`}
-                                </button>
-                            )}
-                        </div>
-                    </div>
-                );
-            })}
         </div>
     );
 }
