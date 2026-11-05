@@ -8262,8 +8262,10 @@ ${urls.map(u => `  <url>
                     const usernamePrefix = toAddress.split('@')[0].toLowerCase();
                     const matchedEditor = editorsList.find((e: any) =>
                         (e.dropsiders_email && e.dropsiders_email.toLowerCase() === toAddress) ||
+                        (e.dropsiders_email && e.dropsiders_email.toLowerCase().replace('@dropsiders.fr', '@crew.dropsiders.fr') === toAddress) ||
                         (e.username && e.username.toLowerCase() === usernamePrefix) ||
-                        (e.pseudo && e.pseudo.toLowerCase() === usernamePrefix)
+                        (e.pseudo && e.pseudo.toLowerCase() === usernamePrefix) ||
+                        (e.pseudo && e.pseudo.toLowerCase().startsWith(usernamePrefix))
                     );
 
                     if (matchedEditor && matchedEditor.email) {
