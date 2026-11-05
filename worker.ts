@@ -8315,40 +8315,105 @@ ${urls.map(u => `  <url>
                                     sender: { name: 'Dropsiders Crew Hub', email: 'bot@dropsiders.fr' },
                                     to: [{ email: destinationEmail, name: destinationName }],
                                     subject: `[DROPSIDERS CREW] Nouveau message pour ${cleanFirstName} : ${subject}`,
-                                    htmlContent: `
-                                        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; padding: 25px; background: #070709; color: #ffffff;">
-                                            <div style="max-width: 600px; margin: 0 auto; background: #111217; border: 1px solid #22242e; border-radius: 18px; overflow: hidden; box-shadow: 0 10px 40px rgba(0,0,0,0.6);">
-                                                <div style="background: linear-gradient(135deg, #ff1241, #990022); padding: 22px; text-align: center;">
-                                                    <h2 style="margin: 0; color: #ffffff; font-size: 17px; font-weight: 900; text-transform: uppercase; letter-spacing: 1.5px;">
-                                                        Nouveau mail pour ${cleanFirstName.toUpperCase()}
-                                                    </h2>
-                                                </div>
-                                                <div style="padding: 25px;">
-                                                    <p style="margin: 0 0 10px 0; font-size: 13px; color: #a1a1aa;">
-                                                        <strong>Expéditeur :</strong> <span style="color: #ffffff; font-weight: 600;">${fromName} (${fromAddress})</span>
-                                                    </p>
-                                                    <p style="margin: 0 0 10px 0; font-size: 13px; color: #a1a1aa;">
-                                                        <strong>Destinataire :</strong> <span style="color: #00ffd5; font-weight: 700;">${cleanFirstName} (${toAddress})</span>
-                                                    </p>
-                                                    <p style="margin: 0 0 18px 0; font-size: 13px; color: #a1a1aa;">
-                                                        <strong>Sujet :</strong> <span style="color: #ffffff; font-weight: 700;">${subject}</span>
-                                                    </p>
-                                                    <div style="background: #090a0d; border: 1px solid #1c1e26; border-radius: 12px; padding: 18px; color: #e4e4e7; font-size: 14px; line-height: 1.6; white-space: pre-wrap;">
-${previewText}
-                                                    </div>
+                                    htmlContent: `<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="margin: 0; padding: 0; background-color: #0d0e15; background: #0d0e15 linear-gradient(180deg, #1f0712 0%, #10121b 35%, #0a0b10 100%); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased;">
+  <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: transparent;">
+    <tr>
+      <td align="center" style="padding: 24px 12px 36px 12px;">
+        <table border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 600px; background-color: #12131c; border: 1px solid rgba(255, 18, 65, 0.35); border-radius: 20px; overflow: hidden; box-shadow: 0 15px 50px rgba(0,0,0,0.7), 0 0 40px rgba(255, 18, 65, 0.15);">
+          
+          <!-- Top Neon Header -->
+          <tr>
+            <td align="center" style="padding: 32px 24px 24px 24px; background: linear-gradient(180deg, rgba(255, 18, 65, 0.18) 0%, rgba(18, 19, 28, 0) 100%); border-bottom: 1px solid rgba(255, 18, 65, 0.2);">
+              <img src="https://dropsiders.fr/logo.png" alt="Dropsiders" width="85" style="display: block; margin: 0 auto 16px auto; max-width: 85px; height: auto; filter: drop-shadow(0 0 18px rgba(255,18,65,0.85));" />
+              <div style="display: inline-block; padding: 4px 14px; border-radius: 9999px; background-color: rgba(255, 18, 65, 0.14); border: 1px solid rgba(255, 18, 65, 0.4); color: #ff3b5c; font-size: 10px; font-weight: 900; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 10px;">
+                ⚡ Message Crew Entrant
+              </div>
+              <h1 style="margin: 0; color: #ffffff; font-size: 22px; font-weight: 900; text-transform: uppercase; letter-spacing: 1.2px; line-height: 1.2;">
+                Nouveau mail pour <span style="color: #ff3b5c;">${cleanFirstName.toUpperCase()}</span>
+              </h1>
+            </td>
+          </tr>
 
-                                                    <div style="margin-top: 25px; text-align: center;">
-                                                        <a href="https://dropsiders.fr/admin" style="display: inline-block; background: #ff1241; color: #ffffff; text-decoration: none; padding: 14px 32px; border-radius: 12px; font-weight: 900; font-size: 14px; text-transform: uppercase; letter-spacing: 0.8px; box-shadow: 0 4px 20px rgba(255,18,65,0.4);">
-                                                            👉 Voir et Répondre sur Dropsiders
-                                                        </a>
-                                                    </div>
-                                                </div>
-                                                <div style="background: #0b0c10; padding: 12px; text-align: center; border-top: 1px solid #1b1c24;">
-                                                    <p style="margin: 0; font-size: 11px; color: #71717a;">Système Dropsiders Crew Hub · Brevo Inbound</p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    `
+          <!-- Content Body -->
+          <tr>
+            <td style="padding: 28px 24px;">
+              
+              <!-- Info Cards -->
+              <table border="0" cellpadding="0" cellspacing="0" width="100%" style="margin-bottom: 16px;">
+                <tr>
+                  <td width="48%" valign="top" style="background-color: #181a26; border: 1px solid rgba(255, 255, 255, 0.07); border-radius: 12px; padding: 14px;">
+                    <div style="font-size: 10px; color: #a1a1aa; font-weight: 800; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 4px;">Expéditeur</div>
+                    <div style="font-size: 13px; color: #ffffff; font-weight: 700; word-break: break-all;">${fromName}</div>
+                    <div style="font-size: 11px; color: #71717a; margin-top: 2px; word-break: break-all;">${fromAddress}</div>
+                  </td>
+                  <td width="4%">&nbsp;</td>
+                  <td width="48%" valign="top" style="background-color: #181a26; border: 1px solid rgba(255, 255, 255, 0.07); border-radius: 12px; padding: 14px;">
+                    <div style="font-size: 10px; color: #a1a1aa; font-weight: 800; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 4px;">Boîte Reçue</div>
+                    <div style="font-size: 13px; color: #00ffd5; font-weight: 800; font-family: monospace; word-break: break-all;">${toAddress}</div>
+                  </td>
+                </tr>
+              </table>
+
+              <!-- Subject Card -->
+              <table border="0" cellpadding="0" cellspacing="0" width="100%" style="margin-bottom: 16px;">
+                <tr>
+                  <td style="background-color: #181a26; border: 1px solid rgba(255, 255, 255, 0.07); border-radius: 12px; padding: 14px;">
+                    <div style="font-size: 10px; color: #a1a1aa; font-weight: 800; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 4px;">Objet du message</div>
+                    <div style="font-size: 14px; color: #ffffff; font-weight: 700;">${subject}</div>
+                  </td>
+                </tr>
+              </table>
+
+              <!-- Message Preview -->
+              <table border="0" cellpadding="0" cellspacing="0" width="100%" style="margin-bottom: 24px;">
+                <tr>
+                  <td style="background-color: #0b0c12; border: 1px solid rgba(255, 18, 65, 0.25); border-left: 3px solid #ff1241; border-radius: 12px; padding: 18px;">
+                    <div style="font-size: 10px; color: #ff3b5c; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;">
+                      💬 Extrait du message
+                    </div>
+                    <div style="color: #e4e4e7; font-size: 13.5px; line-height: 1.6; white-space: pre-wrap; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">${previewText}</div>
+                  </td>
+                </tr>
+              </table>
+
+              <!-- Call to Action Button -->
+              <table border="0" cellpadding="0" cellspacing="0" width="100%">
+                <tr>
+                  <td align="center">
+                    <a href="https://dropsiders.fr/admin" target="_blank" style="display: block; box-sizing: border-box; width: 100%; background: linear-gradient(135deg, #ff1241 0%, #e6002f 50%, #ff3b14 100%); color: #ffffff; text-decoration: none; padding: 16px 24px; border-radius: 14px; font-weight: 900; font-size: 14px; text-transform: uppercase; letter-spacing: 1.2px; text-align: center; box-shadow: 0 10px 30px rgba(255, 18, 65, 0.45); border: 1px solid rgba(255, 255, 255, 0.2);">
+                      👉 Voir et Répondre sur Dropsiders
+                    </a>
+                    <div style="font-size: 11px; color: #71717a; margin-top: 10px; font-weight: 500;">
+                      Réponds directement depuis ton espace admin avec la signature officielle
+                    </div>
+                  </td>
+                </tr>
+              </table>
+
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td align="center" style="background-color: #0c0d14; border-top: 1px solid rgba(255, 255, 255, 0.05); padding: 14px 20px;">
+              <span style="font-size: 11px; color: #52525b; font-weight: 500;">
+                Système Dropsiders Crew Hub · Inbound Sécurisé
+              </span>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`
                                 })
                             });
                             console.log(`[BREVO INBOUND] Notification sent to ${destinationEmail}`);
