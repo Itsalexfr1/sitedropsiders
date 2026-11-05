@@ -7929,7 +7929,8 @@ ${urls.map(u => `  <url>
                                     replyTo: { email: 'contact@dropsiders.fr', name: 'Dropsiders' }
                                 })
                             });
-                        } catch (e) {
+                        }
+                    } catch (e) {
                             console.error('Failed to send notification emails:', e);
                         }
                     })());
