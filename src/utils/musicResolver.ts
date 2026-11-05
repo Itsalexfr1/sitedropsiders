@@ -318,34 +318,61 @@ export async function resolveMusicSnippet(
             const res = await fetch(oembedUrl);
             if (res.ok) {
                 const oembed = await res.json();
-                const songTitle = oembed.title || '';
+                let songTitle = oembed.title || '';
+                let artistName = '';
+
+                // Formats Spotify:
+                // "Rumble - song and lyrics by Skrillex, Fred again.., Flowdan | Spotify"
+                // "Rumble | Spotify"
+                // "Artist - Title"
+                const matchSongAndLyrics = songTitle.match(/^(.*?)\s*[-–—]\s*song\s+and\s+lyrics\s+by\s+(.*?)(?:\s*\|\s*Spotify)?$/i);
+                if (matchSongAndLyrics) {
+                    songTitle = matchSongAndLyrics[1].trim();
+                    artistName = matchSongAndLyrics[2].trim();
+                } else {
+                    songTitle = songTitle.replace(/\s*\|\s*Spotify$/i, '').trim();
+                    const split = songTitle.split(/\s*[-–—:]\s*/);
+                    if (split.length >= 2) {
+                        artistName = split[0].trim();
+                        songTitle = split.slice(1).join(' - ').trim();
+                    }
+                }
+
+                const searchQuery = [artistName, songTitle].filter(Boolean).join(' ').trim() || songTitle;
 
                 // A. Essayer Beatport en priorité pour obtenir l'extrait long de 120s centré sur le drop !
-                if (songTitle) {
-                    const bpResult = await searchBeatportSnippet(songTitle, 'beatport');
+                if (searchQuery) {
+                    const bpResult = await searchBeatportSnippet(searchQuery, 'beatport');
                     if (bpResult) {
                         if (!bpResult.coverUrl && oembed.thumbnail_url) {
                             bpResult.coverUrl = oembed.thumbnail_url;
                         }
+                        if (artistName && !bpResult.artist) bpResult.artist = artistName;
+                        if (songTitle && !bpResult.title) bpResult.title = songTitle;
                         return bpResult;
                     }
                 }
 
                 // B. Fallback iTunes (30s)
-                const result = await searchItunesSnippet(songTitle, 'spotify');
-                if (result) {
-                    if (!result.coverUrl && oembed.thumbnail_url) {
-                        result.coverUrl = oembed.thumbnail_url;
+                if (searchQuery) {
+                    const result = await searchItunesSnippet(searchQuery, 'spotify');
+                    if (result) {
+                        if (!result.coverUrl && oembed.thumbnail_url) {
+                            result.coverUrl = oembed.thumbnail_url;
+                        }
+                        if (artistName && !result.artist) result.artist = artistName;
+                        if (songTitle && !result.title) result.title = songTitle;
+                        return result;
                     }
-                    return result;
                 }
 
-                // C. Si pas d'audio preview, on renvoie quand même la cover Spotify et le titre
+                // C. Si pas d'audio preview, on renvoie quand même la cover Spotify et le titre / artiste
                 if (oembed.thumbnail_url || songTitle) {
                     return {
                         audioUrl: '',
                         coverUrl: oembed.thumbnail_url,
                         title: songTitle,
+                        artist: artistName,
                         platform: 'spotify'
                     };
                 }
@@ -476,24 +503,53 @@ export async function resolveMusicSnippet(
         }
     }
 
-    // 7. Lien YouTube (ex: https://www.youtube.com/watch?v=... ou https://youtu.be/...)
-    if (trimmed.includes('youtube.com/watch') || trimmed.includes('youtu.be/')) {
+    // 7. Lien YouTube (ex: https://www.youtube.com/... ou https://youtu.be/... ou shorts)
+    if (trimmed.includes('youtube.com/') || trimmed.includes('youtu.be/')) {
         try {
             const ytOembed = `https://www.youtube.com/oembed?url=${encodeURIComponent(trimmed)}&format=json`;
             const res = await fetch(ytOembed);
             if (res.ok) {
                 const data = await res.json();
                 if (data.title) {
-                    const cleanedTitle = cleanQuery(data.title);
-                    const bpRes = await searchBeatportSnippet(cleanedTitle, 'beatport');
-                    if (bpRes) return bpRes;
+                    const clean = data.title
+                        .replace(/\((?:official\s*(?:video|audio|music\s*video|visualizer|clip|lyric\s*video)|4k|hd|remaster(?:ed)?|extended\s*mix|out\s*now)[^)]*\)/gi, '')
+                        .replace(/\[(?:official\s*(?:video|audio|music\s*video|visualizer|clip|lyric\s*video)|4k|hd|remaster(?:ed)?|extended\s*mix)[^\]]*\]/gi, '')
+                        .trim();
 
-                    const result = await searchItunesSnippet(cleanedTitle, 'youtube');
-                    if (result) return result;
+                    let ytArtist = '';
+                    let ytTitle = '';
+                    const split = clean.split(/\s+[-–—:]\s+/);
+                    if (split.length >= 2) {
+                        ytArtist = split[0].trim();
+                        ytTitle = split.slice(1).join(' - ').trim();
+                    } else {
+                        ytTitle = clean;
+                        if (data.author_name) {
+                            ytArtist = data.author_name.replace(/- Topic$/i, '').trim();
+                        }
+                    }
+
+                    const query = [ytArtist, ytTitle].filter(Boolean).join(' ').trim() || cleanQuery(clean);
+                    const bpRes = await searchBeatportSnippet(query, 'beatport');
+                    if (bpRes) {
+                        if (!bpRes.coverUrl && data.thumbnail_url) bpRes.coverUrl = data.thumbnail_url;
+                        if (ytArtist && !bpRes.artist) bpRes.artist = ytArtist;
+                        if (ytTitle && !bpRes.title) bpRes.title = ytTitle;
+                        return bpRes;
+                    }
+
+                    const result = await searchItunesSnippet(query, 'youtube');
+                    if (result) {
+                        if (!result.coverUrl && data.thumbnail_url) result.coverUrl = data.thumbnail_url;
+                        if (ytArtist && !result.artist) result.artist = ytArtist;
+                        if (ytTitle && !result.title) result.title = ytTitle;
+                        return result;
+                    }
                     return {
                         audioUrl: '',
                         coverUrl: data.thumbnail_url,
-                        title: cleanedTitle,
+                        title: ytTitle || clean,
+                        artist: ytArtist,
                         platform: 'youtube'
                     };
                 }

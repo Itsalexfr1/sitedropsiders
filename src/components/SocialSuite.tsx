@@ -630,14 +630,16 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             }
             if (theme === 'TOP 10 TRACKS') {
                 updateTop10Track(top10ActiveRank, { cover: url });
-                setBgImage(url);
-            }
-            setEditorialSlideImages(prev => ({ ...prev, [editorialSlide]: url }));
-            if (editorialSlide === 1) {
-                setBgImage(url);
+            } else {
+                setEditorialSlideImages(prev => ({ ...prev, [editorialSlide]: url }));
+                if (editorialSlide === 1) {
+                    setBgImage(url);
+                }
             }
             const imgObj = new Image();
-            imgObj.crossOrigin = 'anonymous';
+            if (!url.startsWith('blob:') && !url.startsWith('data:')) {
+                imgObj.crossOrigin = 'anonymous';
+            }
             imgObj.src = url;
             imgObj.onload = () => {
                 imageCacheRef.current[url] = imgObj;
@@ -1076,13 +1078,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
             // D) Préchargement de la pochette pour éviter les erreurs CORS et le canvas tainting
             if (extractedCover) {
-                const img = new Image();
-                img.crossOrigin = 'anonymous';
-                img.onload = () => {
+                loadCorsSafeImage(extractedCover, (img) => {
                     imageCacheRef.current[extractedCover] = img;
                     generateImage();
-                };
-                img.src = extractedCover;
+                });
             }
 
             // E) Préchargement audio en Blob mémoire vive (RAM) pour éliminer les latences et coupures
@@ -1423,27 +1422,44 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         onError?: () => void
     ) => {
         if (!url) return;
+        // 0. Base64 et Blob : ne JAMAIS fixer crossOrigin (sécurité navigateur Chromium)
+        if (url.startsWith('data:') || url.startsWith('blob:')) {
+            const imgObj = new Image();
+            imgObj.onload = () => onLoad(imgObj);
+            imgObj.onerror = () => { if (onError) onError(); };
+            imgObj.src = url;
+            return;
+        }
+
         const safeUrl = resolveImageUrl(url);
+        if (safeUrl.startsWith('data:') || safeUrl.startsWith('blob:')) {
+            const imgObj = new Image();
+            imgObj.onload = () => onLoad(imgObj);
+            imgObj.onerror = () => { if (onError) onError(); };
+            imgObj.src = safeUrl;
+            return;
+        }
+
         const imgObj = new Image();
         imgObj.crossOrigin = 'anonymous';
         imgObj.onload = () => onLoad(imgObj);
         imgObj.onerror = () => {
-            const isExternalHttp = /^https?:\/\//i.test(safeUrl) && !safeUrl.includes('/api/proxy-media');
+            const isExternalHttp = /^https?:\/\//i.test(safeUrl) && !safeUrl.includes('/api/proxy-image') && !safeUrl.includes('/api/proxy-media');
             if (isExternalHttp) {
                 const proxiedImg = new Image();
                 proxiedImg.crossOrigin = 'anonymous';
                 proxiedImg.onload = () => onLoad(proxiedImg);
                 proxiedImg.onerror = () => {
-                    // Dernier recours sans attribut crossOrigin pour afficher l'image malgré tout
                     const fallbackImg = new Image();
+                    fallbackImg.crossOrigin = 'anonymous';
                     fallbackImg.onload = () => onLoad(fallbackImg);
                     fallbackImg.onerror = () => { if (onError) onError(); };
-                    fallbackImg.src = safeUrl;
+                    fallbackImg.src = `/api/proxy-media?url=${encodeURIComponent(safeUrl)}`;
                 };
-                proxiedImg.src = `/api/proxy-media?url=${encodeURIComponent(safeUrl)}`;
+                proxiedImg.src = `/api/proxy-image?url=${encodeURIComponent(safeUrl)}`;
             } else {
-                // Pour les URLs R2 / locales, repli sans crossOrigin si un échec survient
                 const fallbackImg = new Image();
+                fallbackImg.crossOrigin = 'anonymous';
                 fallbackImg.onload = () => onLoad(fallbackImg);
                 fallbackImg.onerror = () => { if (onError) onError(); };
                 fallbackImg.src = safeUrl;
@@ -10514,19 +10530,21 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         } else {
             // Pre-load image to ensure it works immediately with canvas
             const img = new Image();
-            img.crossOrigin = "anonymous";
+            if (!url.startsWith('blob:') && !url.startsWith('data:')) {
+                img.crossOrigin = "anonymous";
+            }
             img.onload = () => {
                 imageCacheRef.current[url] = img;
-                setBgImage(url);
-                setBgVideo(null);
-                if (theme !== 'JEU_DJ') {
-                    setDjOriginalImage(url);
-                }
                 if (theme === 'TOP 10 TRACKS') {
-                updateTop10Track(top10ActiveRank, { cover: url });
-                setBgImage(url);
-            }
-            setEditorialSlideImages(prev => ({ ...prev, [editorialSlide]: url }));
+                    updateTop10Track(top10ActiveRank, { cover: url });
+                } else {
+                    setBgImage(url);
+                    if (theme !== 'JEU_DJ') {
+                        setDjOriginalImage(url);
+                    }
+                }
+                setBgVideo(null);
+                setEditorialSlideImages(prev => ({ ...prev, [editorialSlide]: url }));
                 generateImage();
             };
             img.src = url;
@@ -18826,16 +18844,13 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 type="text"
                                 value={activeTrack.cover || ''}
                                 onChange={e => {
-                                    const val = e.target.value;
+                                    const val = e.target.value.trim();
                                     updateTop10Track(activeTrack.rank, { cover: val });
                                     if (val) {
-                                        const im = new Image();
-                                        im.crossOrigin = 'anonymous';
-                                        im.src = val;
-                                        im.onload = () => {
+                                        loadCorsSafeImage(val, (im) => {
                                             imageCacheRef.current[val] = im;
                                             generateImage();
-                                        };
+                                        });
                                     }
                                 }}
                                 placeholder="URL de la pochette (ou auto-détectée via le lien)..."
@@ -18854,18 +18869,18 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                             reader.onload = (ev) => {
                                                 const dataUrl = ev.target?.result as string;
                                                 if (dataUrl) {
-                                                    updateTop10Track(activeTrack.rank, { cover: dataUrl });
                                                     const im = new Image();
-                                                    im.crossOrigin = 'anonymous';
-                                                    im.src = dataUrl;
                                                     im.onload = () => {
                                                         imageCacheRef.current[dataUrl] = im;
+                                                        updateTop10Track(activeTrack.rank, { cover: dataUrl });
                                                         generateImage();
                                                     };
+                                                    im.src = dataUrl;
                                                 }
                                             };
                                             reader.readAsDataURL(file);
                                         }
+                                        e.target.value = '';
                                     }}
                                 />
                             </label>
@@ -21288,10 +21303,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                                 setDjOriginalImage(url);
                                             }
                                             if (theme === 'TOP 10 TRACKS') {
-                updateTop10Track(top10ActiveRank, { cover: url });
-                setBgImage(url);
-            }
-            setEditorialSlideImages(prev => ({ ...prev, [editorialSlide]: url }));
+                                                updateTop10Track(top10ActiveRank, { cover: url });
+                                            }
+                                            setEditorialSlideImages(prev => ({ ...prev, [editorialSlide]: url }));
                                         }
                                         generateImage();
                                     };
@@ -23738,7 +23752,6 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                     if (r2TargetType === 'top10_track_cover' && r2TargetIdx !== null) {
                         updateTop10Track(r2TargetIdx, { cover: finalUrl });
-                        setBgImage(finalUrl);
                         const img = new Image();
                         img.crossOrigin = "anonymous";
                         img.onload = () => {

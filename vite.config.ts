@@ -106,7 +106,7 @@ export default defineConfig({
       name: 'media-proxy-dev',
       configureServer(server) {
         server.middlewares.use(async (req, res, next) => {
-          if (req.url && req.url.startsWith('/api/proxy-media')) {
+          if (req.url && (req.url.startsWith('/api/proxy-media') || req.url.startsWith('/api/proxy-image'))) {
             try {
               const reqUrl = new URL(req.url, 'http://localhost:5173');
               const target = reqUrl.searchParams.get('url');
@@ -124,7 +124,8 @@ export default defineConfig({
               res.writeHead(upstream.status, {
                 'Access-Control-Allow-Origin': '*',
                 'Access-Control-Allow-Methods': 'GET, HEAD, OPTIONS',
-                'Content-Type': upstream.headers.get('content-type') || 'application/octet-stream',
+                'Content-Type': upstream.headers.get('content-type') || (req.url.startsWith('/api/proxy-image') ? 'image/jpeg' : 'application/octet-stream'),
+                'Cache-Control': 'public, max-age=86400',
               });
               const arrayBuf = await upstream.arrayBuffer();
               res.end(Buffer.from(arrayBuf));
