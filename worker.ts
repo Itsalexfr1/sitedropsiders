@@ -8302,6 +8302,7 @@ ${urls.map(u => `  <url>
                     // Envoi de la notification officielle avec le bouton rouge vers le site
                     if (BREVO_KEY) {
                         const previewText = textContent.length > 300 ? textContent.slice(0, 300) + '...' : textContent;
+                        const cleanFirstName = (destinationName || '').split('(')[0].trim() || 'l\'équipe';
                         try {
                             await fetch('https://api.brevo.com/v3/smtp/email', {
                                 method: 'POST',
@@ -8313,13 +8314,13 @@ ${urls.map(u => `  <url>
                                 body: JSON.stringify({
                                     sender: { name: 'Dropsiders Crew Hub', email: 'bot@dropsiders.fr' },
                                     to: [{ email: destinationEmail, name: destinationName }],
-                                    subject: `[DROPSIDERS CREW] Nouveau message sur ${toAddress} : ${subject}`,
+                                    subject: `[DROPSIDERS CREW] Nouveau message pour ${cleanFirstName} : ${subject}`,
                                     htmlContent: `
                                         <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; padding: 25px; background: #070709; color: #ffffff;">
                                             <div style="max-width: 600px; margin: 0 auto; background: #111217; border: 1px solid #22242e; border-radius: 18px; overflow: hidden; box-shadow: 0 10px 40px rgba(0,0,0,0.6);">
                                                 <div style="background: linear-gradient(135deg, #ff1241, #990022); padding: 22px; text-align: center;">
                                                     <h2 style="margin: 0; color: #ffffff; font-size: 17px; font-weight: 900; text-transform: uppercase; letter-spacing: 1.5px;">
-                                                        Nouveau mail reçu sur ${toAddress}
+                                                        Nouveau mail pour ${cleanFirstName.toUpperCase()}
                                                     </h2>
                                                 </div>
                                                 <div style="padding: 25px;">
@@ -8327,7 +8328,7 @@ ${urls.map(u => `  <url>
                                                         <strong>Expéditeur :</strong> <span style="color: #ffffff; font-weight: 600;">${fromName} (${fromAddress})</span>
                                                     </p>
                                                     <p style="margin: 0 0 10px 0; font-size: 13px; color: #a1a1aa;">
-                                                        <strong>Destinataire :</strong> <span style="color: #00ffd5; font-weight: 700;">${toAddress}</span>
+                                                        <strong>Destinataire :</strong> <span style="color: #00ffd5; font-weight: 700;">${cleanFirstName} (${toAddress})</span>
                                                     </p>
                                                     <p style="margin: 0 0 18px 0; font-size: 13px; color: #a1a1aa;">
                                                         <strong>Sujet :</strong> <span style="color: #ffffff; font-weight: 700;">${subject}</span>
