@@ -1,1 +1,15 @@
-[]
+[
+  {
+    "id": "1793847887493",
+    "name": "Alex Light",
+    "email": "alexflex30@gmail.com",
+    "subject": "test",
+    "message": "   \n",
+    "html": "<div dir=\"ltr\"><br></div>\n",
+    "recipient": "alex@crew.dropsiders.fr",
+    "attachments": [],
+    "date": "2026-11-05T03:04:47.279Z",
+    "read": false,
+    "replied": false
+  }
+]
