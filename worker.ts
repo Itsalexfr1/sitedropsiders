@@ -7586,7 +7586,7 @@ ${urls.map(u => `  <url>
         if (path === '/api/contact' && request.method === 'POST') {
             try {
                 const body = await request.json();
-                const { name, email, subject, message, attachments } = body;
+                const { name, email, subject, message, attachments, recipient } = body;
                 if (!name || !email || !subject || !message) {
                     return new Response(JSON.stringify({ error: 'Missing fields' }), { status: 400, headers });
                 }
@@ -7630,11 +7630,63 @@ ${urls.map(u => `  <url>
                     });
                 }
 
+                // --- RESOLVE TARGET TEAM MEMBER ROUTING ---
+                let targetRecipientName = '';
+                let targetRecipientEmail: string | null = null;
+                let targetCrewEmail: string | null = null;
+
+                const EDITORS_PATH = 'src/data/editors.json';
+                const editorsFile = await fetchGitHubFile(EDITORS_PATH, gitConfig);
+                const editors: any[] = editorsFile?.content || [];
+
+                // Known team member fallback map
+                const knownTeamDirectory: Record<string, { email: string, crewEmail: string, name: string }> = {
+                    alex: { email: 'alexflex30@gmail.com', crewEmail: 'alex@crew.dropsiders.fr', name: 'Alex' },
+                    guillaume: { email: 'guillaume.chery.naumont@gmail.com', crewEmail: 'guillaume@crew.dropsiders.fr', name: 'Guillaume' },
+                    julien: { email: 'baechlejulien@gmail.com', crewEmail: 'julien@crew.dropsiders.fr', name: 'Julien' },
+                    tanguy: { email: 'tanguypollet98@gmail.com', crewEmail: 'tanguy@crew.dropsiders.fr', name: 'Tanguy' },
+                    tiffany: { email: 'tiffany.tournier@hotmail.com', crewEmail: 'tiffany@crew.dropsiders.fr', name: 'Tiffany' },
+                    maori: { email: 'maori.dechaine@gmail.com', crewEmail: 'maori@crew.dropsiders.fr', name: 'Maori' },
+                    justin: { email: 'justinche17@yahoo.com', crewEmail: 'justin@crew.dropsiders.fr', name: 'Justin' }
+                };
+
+                if (recipient && String(recipient).trim() && String(recipient).trim().toLowerCase() !== 'contact@dropsiders.fr') {
+                    const rawRecip = String(recipient).trim();
+                    const cleanRecip = rawRecip.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+
+                    // Match against editors.json
+                    const matchedEditor = editors.find((e: any) => {
+                        const pseudo = (e.pseudo || e.username || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+                        const dEmail = (e.dropsiders_email || '').toLowerCase();
+                        return pseudo.includes(cleanRecip) || cleanRecip.includes(pseudo) || dEmail.includes(cleanRecip);
+                    });
+
+                    if (matchedEditor) {
+                        targetRecipientName = matchedEditor.pseudo || matchedEditor.username || rawRecip;
+                        targetRecipientEmail = matchedEditor.email || null;
+                        targetCrewEmail = matchedEditor.dropsiders_email || `${cleanRecip.replace(/[^a-z0-9]/g, '')}@crew.dropsiders.fr`;
+                    } else {
+                        // Check directory
+                        for (const [key, data] of Object.entries(knownTeamDirectory)) {
+                            if (cleanRecip.includes(key) || key.includes(cleanRecip)) {
+                                targetRecipientName = data.name;
+                                targetRecipientEmail = data.email;
+                                targetCrewEmail = data.crewEmail;
+                                break;
+                            }
+                        }
+                    }
+
+                    if (!targetRecipientName) {
+                        targetRecipientName = rawRecip;
+                    }
+                }
+
                 const CONTACTS_PATH = 'src/data/contacts.json';
                 const newMsg = {
                     id: Date.now().toString(),
                     name, email, subject, message,
-                    recipient: 'contact@dropsiders.fr',
+                    recipient: targetCrewEmail || (targetRecipientName ? `${targetRecipientName} (Équipe)` : 'contact@dropsiders.fr'),
                     attachments: processedAttachments,
                     date: new Date().toISOString(),
                     read: false,
@@ -7648,45 +7700,109 @@ ${urls.map(u => `  <url>
                         list.push(newMsg);
                         return {
                             updatedData: list,
-                            commitMessage: `New contact: ${name} (with ${processedAttachments.length} attachments) [skip ci] [CF-Pages-Skip]`
+                            commitMessage: `New contact: ${name} (for ${targetRecipientName || 'General'}) [skip ci] [CF-Pages-Skip]`
                         };
                     },
                     gitConfig
                 );
 
-                // --- SEND NOTIFICATION EMAIL TO ADMIN ---
+                // --- SEND NOTIFICATION EMAIL (MEMBRE + ALEX EN COPIE INVISIBLE) ---
                 const BREVO_KEY = env.BREVO_API_KEY;
                 if (BREVO_KEY) {
                     ctx.waitUntil((async () => {
                         try {
-                            // 1. Notif Admin
+                            const ALEX_EMAIL = 'alexflex30@gmail.com';
+                            const toRecipients: any[] = [];
+                            const bccRecipients: any[] = [];
+
+                            if (targetRecipientEmail && targetRecipientEmail.toLowerCase().trim() !== ALEX_EMAIL) {
+                                toRecipients.push({ email: targetRecipientEmail, name: targetRecipientName || 'Membre Dropsiders' });
+                                // Alex en copie invisible (BCC)
+                                bccRecipients.push({ email: ALEX_EMAIL, name: 'Alex (Admin Dropsiders)' });
+                            } else {
+                                toRecipients.push({ email: ALEX_EMAIL, name: 'Alex' });
+                            }
+
+                            const emailSubject = targetRecipientName
+                                ? `[MESSAGE POUR ${targetRecipientName.toUpperCase()}] ${name} : ${subject}`
+                                : `[NOUVEAU MESSAGE SITE] ${name} : ${subject}`;
+
+                            // 1. Notif au destinataire avec Alex en BCC
                             await fetch('https://api.brevo.com/v3/smtp/email', {
                                 method: 'POST',
                                 headers: { 'accept': 'application/json', 'api-key': BREVO_KEY, 'content-type': 'application/json' },
                                 body: JSON.stringify({
-                                    sender: { name: 'Dropsiders System', email: 'bot@dropsiders.fr' },
-                                    to: [{ email: 'alexflex30@gmail.com', name: 'Alex' }],
-                                    subject: `[NOUVEAU MESSAGE SITE] ${name} : ${subject}`,
+                                    sender: { name: 'Dropsiders Contact', email: 'contact@dropsiders.fr' },
+                                    to: toRecipients,
+                                    ...(bccRecipients.length > 0 ? { bcc: bccRecipients } : {}),
+                                    replyTo: { email: email, name: name },
+                                    subject: emailSubject,
                                     htmlContent: `
-                                        <div style="font-family: sans-serif; padding: 20px; background: #f9f9f9; color: #333;">
-                                            <div style="max-width: 600px; margin: 0 auto; background: #fff; padding: 30px; border-radius: 10px; border: 1px solid #eee;">
-                                                <h2 style="color: #ff0033; margin-top: 0;">Nouveau message reçu !</h2>
-                                                <p><strong>De :</strong> ${name} (${email})</p>
-                                                <p><strong>Sujet :</strong> ${subject}</p>
-                                                <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
-                                                <div style="white-space: pre-wrap; line-height: 1.6;">${message}</div>
-                                                
-                                                ${processedAttachments.length > 0 ? `
-                                                    <div style="margin-top: 20px; padding: 15px; background: #f0f0f0; border-radius: 8px;">
-                                                        <p style="margin-top: 0; font-weight: bold; font-size: 12px; color: #666;">PIÈCES JOINTES :</p>
-                                                        <ul style="margin: 0; padding-left: 20px; font-size: 13px;">
-                                                            ${processedAttachments.map((a: any) => `<li><a href="${a.url || '#'}">${a.name}</a> (${(a.size/1024).toFixed(0)} KB)</li>`).join('')}
-                                                        </ul>
+                                        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #0b0c10; padding: 30px 15px; color: #ffffff;">
+                                            <div style="max-width: 600px; margin: 0 auto; background-color: #12131a; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 20px; overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.6);">
+                                                <!-- Header -->
+                                                <div style="background: linear-gradient(135deg, #181a26 0%, #12131a 100%); padding: 25px 30px; border-bottom: 1px solid rgba(255, 255, 255, 0.06); text-align: center;">
+                                                    <img src="https://dropsiders.fr/Logo.png" alt="Dropsiders" height="40" style="height: 40px; width: auto; margin-bottom: 12px;" />
+                                                    <div>
+                                                        <span style="display: inline-block; background-color: rgba(255, 17, 17, 0.15); border: 1px solid rgba(255, 17, 17, 0.4); color: #ff1111; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 1.2px; padding: 4px 12px; border-radius: 20px;">
+                                                            ${targetRecipientName ? `Message pour ${targetRecipientName}` : 'Nouveau message site'}
+                                                        </span>
                                                     </div>
-                                                ` : ''}
+                                                </div>
 
-                                                <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
-                                                <a href="https://dropsiders.fr/admin" style="display: inline-block; background: #000; color: #fff; text-decoration: none; padding: 12px 25px; border-radius: 5px; font-weight: bold; font-size: 14px;">Répondre via l'Admin</a>
+                                                <!-- Body -->
+                                                <div style="padding: 26px 30px;">
+                                                    <!-- Details Grid -->
+                                                    <table border="0" cellpadding="0" cellspacing="0" width="100%" style="margin-bottom: 18px;">
+                                                        <tr>
+                                                            <td width="48%" valign="top" style="background-color: #181a26; border: 1px solid rgba(255, 255, 255, 0.07); border-radius: 12px; padding: 14px;">
+                                                                <div style="font-size: 10px; color: #a1a1aa; font-weight: 800; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 4px;">Expéditeur</div>
+                                                                <div style="font-size: 13px; color: #ffffff; font-weight: 700; word-break: break-all;">${name}</div>
+                                                                <div style="font-size: 11px; color: #71717a; margin-top: 2px; word-break: break-all;">${email}</div>
+                                                            </td>
+                                                            <td width="4%">&nbsp;</td>
+                                                            <td width="48%" valign="top" style="background-color: #181a26; border: 1px solid rgba(255, 255, 255, 0.07); border-radius: 12px; padding: 14px;">
+                                                                <div style="font-size: 10px; color: #a1a1aa; font-weight: 800; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 4px;">Destinataire</div>
+                                                                <div style="font-size: 13px; color: #00ffd5; font-weight: 700;">${targetRecipientName || 'Équipe Dropsiders'}</div>
+                                                                <div style="font-size: 11px; color: #71717a; margin-top: 2px;">${targetCrewEmail || 'contact@dropsiders.fr'}</div>
+                                                            </td>
+                                                        </tr>
+                                                    </table>
+
+                                                    <!-- Sujet -->
+                                                    <div style="background-color: #181a26; border: 1px solid rgba(255, 255, 255, 0.07); border-radius: 12px; padding: 14px; margin-bottom: 18px;">
+                                                        <div style="font-size: 10px; color: #a1a1aa; font-weight: 800; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 4px;">Objet du message</div>
+                                                        <div style="font-size: 14px; color: #ffffff; font-weight: 700;">${subject}</div>
+                                                    </div>
+
+                                                    <!-- Message -->
+                                                    <div style="background-color: #181a26; border-left: 3px solid #ff1111; border-radius: 8px; padding: 18px; margin-bottom: 22px;">
+                                                        <div style="font-size: 11px; color: #ff1111; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;">Message :</div>
+                                                        <div style="font-size: 13.5px; line-height: 1.6; color: #e4e4e7; white-space: pre-wrap;">${message}</div>
+                                                    </div>
+
+                                                    ${processedAttachments.length > 0 ? `
+                                                        <div style="margin-bottom: 22px; padding: 14px; background-color: #181a26; border-radius: 12px;">
+                                                            <div style="font-size: 10px; font-weight: 800; color: #a1a1aa; text-transform: uppercase; margin-bottom: 8px;">Pièces jointes :</div>
+                                                            <ul style="margin: 0; padding-left: 20px; font-size: 12px; color: #00ffd5;">
+                                                                ${processedAttachments.map((a: any) => `<li><a href="${a.url || '#'}" style="color: #00ffd5;">${a.name}</a> (${(a.size/1024).toFixed(0)} KB)</li>`).join('')}
+                                                            </ul>
+                                                        </div>
+                                                    ` : ''}
+
+                                                    <!-- Action Button -->
+                                                    <div style="text-align: center; margin-top: 25px;">
+                                                        <a href="mailto:${email}?subject=${encodeURIComponent('Re: ' + subject)}" style="display: inline-block; background: linear-gradient(135deg, #ff1111 0%, #ff4b1f 100%); color: #ffffff; text-decoration: none; padding: 13px 26px; border-radius: 12px; font-weight: 800; font-size: 12.5px; text-transform: uppercase; letter-spacing: 0.8px; box-shadow: 0 4px 15px rgba(255, 17, 17, 0.4);">
+                                                            Répondre directement à ${name}
+                                                        </a>
+                                                    </div>
+
+                                                    <div style="text-align: center; margin-top: 14px;">
+                                                        <a href="https://dropsiders.fr/admin" style="font-size: 11px; color: #71717a; text-decoration: underline;">
+                                                            Gérer ce message sur Dropsiders Admin
+                                                        </a>
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
                                     `,
@@ -7715,6 +7831,7 @@ ${urls.map(u => `  <url>
                                                     <div style="color:#ffffff; font-size:15px; line-height:1.6; margin-bottom:30px; padding:0 10px;">
                                                         Bonjour <strong>${name}</strong>,<br><br>
                                                         Nous avons bien reçu votre demande concernant "<strong>${subject}</strong>".<br>
+                                                        ${targetRecipientName ? `Votre message a été transmis directement à <strong>${targetRecipientName}</strong>.<br>` : ''}
                                                         Notre équipe va l'étudier avec attention et vous répondra dans les plus brefs délais.
                                                     </div>
 

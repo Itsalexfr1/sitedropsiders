@@ -1,9 +1,10 @@
-﻿import { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { Link } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
 import { TeamContactModal } from '../components/widgets/TeamContactModal';
 import { resolveImageUrl } from '../utils/image';
-import { Instagram, Music } from 'lucide-react';
+import { Instagram, Music, Mail } from 'lucide-react';
 
 export function Team() {
     const { t } = useLanguage();
@@ -46,20 +47,33 @@ export function Team() {
                         className="group relative"
                     >
                         <div className="relative block overflow-hidden rounded-2xl aspect-square mb-4 group-hover:shadow-[0_0_30px_rgba(204,255,0,0.3)] transition-all duration-500 max-w-[200px] mx-auto border border-white/5">
-                            <div className="absolute inset-0 bg-black/40 z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-6 backdrop-blur-[2px]">
-                                <a
-                                    href={member.socials.instagram}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="w-12 h-12 rounded-full bg-white/10 border border-white/20 flex items-center justify-center hover:bg-neon-lime/20 hover:border-neon-lime/50 hover:scale-110 transition-all duration-300 backdrop-blur-xl group/social"
-                                >
-                                    <Instagram className="w-6 h-6 text-white opacity-80 group-hover/social:opacity-100 group-hover/social:text-neon-lime transition-all duration-300" />
-                                </a>
-                                {member.socials.tiktok && member.socials.tiktok !== '#' && (
+                            <div className="absolute inset-0 bg-black/40 z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-3 sm:gap-4 backdrop-blur-[2px]">
+                                {member.socials?.instagram && member.socials.instagram !== '#' && (
+                                    <a
+                                        href={member.socials.instagram}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        title={`Instagram de ${member.name}`}
+                                        className="w-12 h-12 rounded-full bg-white/10 border border-white/20 flex items-center justify-center hover:bg-neon-lime/20 hover:border-neon-lime/50 hover:scale-110 transition-all duration-300 backdrop-blur-xl group/social"
+                                    >
+                                        <Instagram className="w-6 h-6 text-white opacity-80 group-hover/social:opacity-100 group-hover/social:text-neon-lime transition-all duration-300" />
+                                    </a>
+                                )}
+                                {member.mail_enabled !== false && (
+                                    <Link
+                                        to={`/contact?to=${encodeURIComponent(member.name)}`}
+                                        title={`Contacter ${member.name} par mail`}
+                                        className="w-12 h-12 rounded-full bg-white/10 border border-white/20 flex items-center justify-center hover:bg-neon-lime/20 hover:border-neon-lime/50 hover:scale-110 transition-all duration-300 backdrop-blur-xl group/social"
+                                    >
+                                        <Mail className="w-6 h-6 text-white opacity-80 group-hover/social:opacity-100 group-hover/social:text-neon-lime transition-all duration-300" />
+                                    </Link>
+                                )}
+                                {member.socials?.tiktok && member.socials.tiktok !== '#' && (
                                     <a
                                         href={member.socials.tiktok}
                                         target="_blank"
                                         rel="noopener noreferrer"
+                                        title={`TikTok de ${member.name}`}
                                         className="w-12 h-12 rounded-full bg-white/10 border border-white/20 flex items-center justify-center hover:bg-neon-lime/20 hover:border-neon-lime/50 hover:scale-110 transition-all duration-300 backdrop-blur-xl group/social"
                                     >
                                         <Music className="w-5 h-5 text-white opacity-80 group-hover/social:opacity-100 group-hover/social:text-neon-lime transition-all duration-300" />

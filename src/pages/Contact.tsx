@@ -1,11 +1,22 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Mail, Send, CheckCircle, AlertCircle, Loader } from 'lucide-react';
+import { Mail, Send, CheckCircle, AlertCircle, Loader, User, X } from 'lucide-react';
+import { useSearchParams } from 'react-router-dom';
 
 import { useLanguage } from '../context/LanguageContext';
 
 export function Contact() {
     const { t } = useLanguage();
+    const [searchParams, setSearchParams] = useSearchParams();
+    const [recipient, setRecipient] = useState(() => searchParams.get('to') || searchParams.get('dest') || '');
+
+    useEffect(() => {
+        const to = searchParams.get('to') || searchParams.get('dest');
+        if (to !== null) {
+            setRecipient(to);
+        }
+    }, [searchParams]);
+
     const [formData, setFormData] = useState({
         name: '',
         email: '',
@@ -41,7 +52,10 @@ export function Contact() {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify(formData),
+                body: JSON.stringify({
+                    ...formData,
+                    recipient: recipient.trim() || undefined
+                }),
             });
 
             if (!response.ok) {
@@ -89,6 +103,40 @@ export function Contact() {
                     className="bg-white/5 border border-white/10 rounded-[2.5rem] p-8 md:p-12 backdrop-blur-xl shadow-2xl relative overflow-hidden group"
                 >
                     <div className="absolute inset-0 bg-gradient-to-br from-white/[0.02] to-transparent pointer-events-none" />
+
+                    {recipient && (
+                        <motion.div
+                            initial={{ opacity: 0, y: -10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="mb-8 p-4 md:p-5 bg-gradient-to-r from-neon-red/15 via-neon-red/5 to-transparent border border-neon-red/30 rounded-2xl flex items-center justify-between gap-4 backdrop-blur-md relative z-10 shadow-[0_0_20px_rgba(255,17,17,0.15)]"
+                        >
+                            <div className="flex items-center gap-3 sm:gap-4">
+                                <div className="w-10 h-10 rounded-xl bg-neon-red/20 border border-neon-red/40 flex items-center justify-center text-neon-red shrink-0 shadow-[0_0_15px_rgba(255,17,17,0.3)]">
+                                    <User className="w-5 h-5" />
+                                </div>
+                                <div>
+                                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-neon-red">Message direct pour</p>
+                                    <p className="text-base sm:text-lg font-display font-black text-white italic tracking-wide uppercase">
+                                        {recipient} <span className="text-xs font-normal text-gray-400 not-italic ml-1 hidden sm:inline">· Membre du Crew Dropsiders</span>
+                                    </p>
+                                </div>
+                            </div>
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setRecipient('');
+                                    searchParams.delete('to');
+                                    searchParams.delete('dest');
+                                    setSearchParams(searchParams, { replace: true });
+                                }}
+                                className="text-[11px] font-bold text-gray-300 hover:text-white transition-colors flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 shrink-0"
+                                title="Envoyer un message général à Dropsiders"
+                            >
+                                <X className="w-3.5 h-3.5 text-gray-400" />
+                                <span className="hidden sm:inline">Message général</span>
+                            </button>
+                        </motion.div>
+                    )}
 
                     <form onSubmit={handleSubmit} className="space-y-6 relative z-10">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
