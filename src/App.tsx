@@ -1,6 +1,6 @@
 import { useEffect, Suspense, useState } from 'react';
 import { AlertCircle, RefreshCw, X, Bell } from 'lucide-react';
-import { createBrowserRouter, RouterProvider, Outlet, useLocation, useNavigate, Navigate } from 'react-router-dom';
+import { createBrowserRouter, RouterProvider, Outlet, useLocation, useNavigate, Navigate, useRouteError } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Layout } from './components/layout/Layout';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
@@ -85,6 +85,28 @@ const ModViewPage = lazyRetry(() => import('./pages/ModViewPage').then(m => m.Mo
 
 
 function ErrorFallback() {
+  const error: any = useRouteError();
+
+  useEffect(() => {
+    if (error) {
+      console.error('[Dropsiders ErrorBoundary]', error);
+    }
+  }, [error]);
+
+  const handleRefresh = async () => {
+    try {
+      if ('caches' in window) {
+        const keys = await caches.keys();
+        await Promise.all(keys.map(k => caches.delete(k)));
+      }
+      if ('serviceWorker' in navigator) {
+        const regs = await navigator.serviceWorker.getRegistrations();
+        await Promise.all(regs.map(r => r.unregister()));
+      }
+    } catch (_) {}
+    window.location.reload();
+  };
+
   return (
     <div className="min-h-screen bg-[#050505] flex items-center justify-center p-6">
       <div className="max-w-md w-full bg-white/5 border border-white/10 rounded-[2.5rem] p-8 md:p-12 text-center space-y-8 relative overflow-hidden">
@@ -105,10 +127,15 @@ function ErrorFallback() {
               Le site a reçu une mise à jour ou un petit grain de sable s'est glissé. 
               <br />Rafraîchis la page pour profiter de la dernière version.
             </p>
+            {error?.message && (
+              <p className="text-[10px] text-gray-500 font-mono break-all pt-2 opacity-75">
+                {String(error.message)}
+              </p>
+            )}
           </div>
 
           <button
-            onClick={() => window.location.reload()}
+            onClick={handleRefresh}
             className="w-full mt-10 py-5 bg-white text-black rounded-2xl font-black text-[10px] uppercase tracking-[0.3em] hover:bg-neon-red hover:text-white transition-all duration-300 flex items-center justify-center gap-3 shadow-[0_10px_20px_rgba(0,0,0,0.4)] hover:shadow-neon-red/20 active:scale-95 cursor-pointer"
           >
             <RefreshCw className="w-4 h-4 animate-spin-slow" /> RAFRAÎCHIR L'EXPÉRIENCE
