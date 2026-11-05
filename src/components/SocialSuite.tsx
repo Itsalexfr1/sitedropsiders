@@ -10082,36 +10082,29 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         const renderDuration = async (durationMs: number, startOffsetSec: number = 0): Promise<void> => {
             if (useWebCodecs) {
                 const numFrames = Math.max(1, Math.round((durationMs / 1000) * fps));
+                const frameInterval = 1000 / fps;
+                const hasPlayingBgVideo = Boolean(bgVideo && !isNaN(bgVideo.duration) && bgVideo.duration > 0);
+                if (bgVideo && hasPlayingBgVideo && bgVideo.paused) {
+                    await bgVideo.play().catch(() => {});
+                }
+                const segmentStartTime = performance.now();
+
                 for (let f = 0; f < numFrames; f++) {
+                    // Cadence fluide en temps réel alignée sur le décodage matériel de la vidéo de fond
+                    if (hasPlayingBgVideo) {
+                        const targetMs = f * frameInterval;
+                        const now = performance.now() - segmentStartTime;
+                        const delay = targetMs - now;
+                        if (delay > 2) {
+                            await new Promise(r => setTimeout(r, delay));
+                        }
+                    }
+
                     const slideElapsedSec = startOffsetSec + (f / fps);
                     deterministicAnimTimeRef.current = slideElapsedSec;
                     deterministicTotalTimeRef.current = totalFramesEncoded / fps;
                     animStartTimeRef.current = Date.now() - (slideElapsedSec * 1000);
                     recordingStartTimeRef.current = Date.now() - ((totalFramesEncoded / fps) * 1000);
-
-                    if (bgVideo && !isNaN(bgVideo.duration) && bgVideo.duration > 0) {
-                        const targetTime = (totalFramesEncoded / fps) % bgVideo.duration;
-                        if (Math.abs(bgVideo.currentTime - targetTime) > 0.002) {
-                            await new Promise<void>((res) => {
-                                let done = false;
-                                const onDone = () => {
-                                    if (done) return;
-                                    done = true;
-                                    res();
-                                };
-                                if ('requestVideoFrameCallback' in bgVideo) {
-                                    (bgVideo as any).requestVideoFrameCallback(() => onDone());
-                                }
-                                bgVideo.addEventListener('seeked', onDone, { once: true });
-                                try {
-                                    bgVideo.currentTime = targetTime;
-                                } catch {
-                                    onDone();
-                                }
-                                setTimeout(onDone, 60);
-                            });
-                        }
-                    }
 
                     isExportRenderingRef.current = true;
                     try {
@@ -10203,7 +10196,23 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
             if (useWebCodecs) {
                 const numFrames = Math.max(1, Math.round((durationMs / 1000) * fps));
+                const frameInterval = 1000 / fps;
+                const hasPlayingBgVideo = Boolean(bgVideo && !isNaN(bgVideo.duration) && bgVideo.duration > 0);
+                if (bgVideo && hasPlayingBgVideo && bgVideo.paused) {
+                    await bgVideo.play().catch(() => {});
+                }
+                const transitionStartTime = performance.now();
+
                 for (let f = 0; f < numFrames; f++) {
+                    if (hasPlayingBgVideo) {
+                        const targetMs = f * frameInterval;
+                        const now = performance.now() - transitionStartTime;
+                        const delay = targetMs - now;
+                        if (delay > 2) {
+                            await new Promise(r => setTimeout(r, delay));
+                        }
+                    }
+
                     const progress = numFrames <= 1 ? 1 : f / (numFrames - 1);
                     if (onProgress) onProgress(progress);
 
@@ -10212,26 +10221,6 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     deterministicTotalTimeRef.current = totalFramesEncoded / fps;
                     animStartTimeRef.current = Date.now();
                     recordingStartTimeRef.current = Date.now() - ((totalFramesEncoded / fps) * 1000);
-
-                    if (bgVideo && !isNaN(bgVideo.duration) && bgVideo.duration > 0) {
-                        const targetTime = (totalFramesEncoded / fps) % bgVideo.duration;
-                        if (Math.abs(bgVideo.currentTime - targetTime) > 0.002) {
-                            await new Promise<void>((res) => {
-                                let done = false;
-                                const onDone = () => {
-                                    if (done) return;
-                                    done = true;
-                                    res();
-                                };
-                                if ('requestVideoFrameCallback' in bgVideo) {
-                                    (bgVideo as any).requestVideoFrameCallback(() => onDone());
-                                }
-                                bgVideo.addEventListener('seeked', onDone, { once: true });
-                                try { bgVideo.currentTime = targetTime; } catch { onDone(); }
-                                setTimeout(onDone, 60);
-                            });
-                        }
-                    }
 
                     // Ease cubique
                     const ease = progress < 0.5 ? 4 * progress * progress * progress : 1 - Math.pow(-2 * progress + 2, 3) / 2;
@@ -10500,8 +10489,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 });
                 bgVideo.loop = true;
 
-                // En mode WebCodecs déterministe, bgVideo DOIT RESTER PAUSED pour que le seek frame-par-frame soit parfait !
-                // On ne play() bgVideo que si useWebCodecs est faux (MediaRecorder temps réel).
+                // En mode MediaRecorder temps réel, on connecte la piste audio via Web Audio / captureStream
                 if (!useWebCodecs) {
                     const isIOSWebKit = typeof navigator !== 'undefined' && (
                         /iPad|iPhone|iPod/i.test(navigator.userAgent) ||
@@ -10576,17 +10564,21 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             }
                         }
                     }
+                }
 
-                    // Démarrage de la lecture vidéo
-                    bgVideo.muted = isIOSWebKit ? isVideoAudioMuted : false;
-                    bgVideo.volume = 1;
-                    try {
-                        await bgVideo.play();
-                    } catch (playErr) {
-                        console.warn('[Export] bgVideo.play() avec son échoué, essai en sourdine:', playErr);
-                        bgVideo.muted = true;
-                        await bgVideo.play().catch(() => {});
-                    }
+                // Démarrage de la lecture vidéo fluide en arrière-plan (pour WebCodecs ET MediaRecorder)
+                const isIOSWebKit = typeof navigator !== 'undefined' && (
+                    /iPad|iPhone|iPod/i.test(navigator.userAgent) ||
+                    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
+                );
+                bgVideo.muted = isIOSWebKit ? isVideoAudioMuted : (useWebCodecs ? true : false);
+                bgVideo.volume = 1;
+                try {
+                    await bgVideo.play();
+                } catch (playErr) {
+                    console.warn('[Export] bgVideo.play() avec son échoué, essai en sourdine:', playErr);
+                    bgVideo.muted = true;
+                    await bgVideo.play().catch(() => {});
                 }
             } catch (e) {
                 console.error('Erreur init bgVideo :', e);
