@@ -85,20 +85,20 @@ export function NewsletterForm({ variant = 'default' }: NewsletterFormProps) {
 
     return (
         <div className={`w-full ${isCompact ? 'max-w-md' : 'max-w-2xl'} mx-auto`}>
-            <form onSubmit={handleSubmit} className={isCompact ? 'space-y-4' : 'space-y-6'}>
+            <form onSubmit={handleSubmit} className={isCompact ? 'space-y-2.5' : 'space-y-6'}>
                 <div className="relative group">
-                    <label htmlFor="email" className={`block text-xs font-black text-gray-500 uppercase tracking-widest ${isCompact ? 'mb-1.5' : 'mb-3'} transition-colors group-focus-within:text-white`}>
+                    <label htmlFor="email" className={`block ${isCompact ? 'text-[9px] mb-1' : 'text-xs mb-3'} font-black text-gray-500 uppercase tracking-widest transition-colors group-focus-within:text-white`}>
                         {t('newsletter_form.email_label') || 'EMAIL ADDRESS'}
                     </label>
                     <div className="relative">
-                        <Mail className={`absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-neon-red transition-colors ${isCompact ? 'w-4 h-4' : 'w-5 h-5'}`} />
+                        <Mail className={`absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-neon-red transition-colors ${isCompact ? 'w-3.5 h-3.5' : 'w-5 h-5'}`} />
                         <input
                             type="email"
                             id="email"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                             placeholder={t('newsletter_form.email_placeholder') || 'Enter your email'}
-                            className={`w-full pl-12 pr-4 ${isCompact ? 'py-3 text-sm' : 'py-4'} bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-neon-red focus:bg-white/10 transition-all duration-300`}
+                            className={`w-full ${isCompact ? 'pl-9 pr-3 py-2 text-xs' : 'pl-12 pr-4 py-4'} bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-neon-red focus:bg-white/10 transition-all duration-300`}
                             required
                         />
                     </div>
@@ -151,17 +151,17 @@ export function NewsletterForm({ variant = 'default' }: NewsletterFormProps) {
                     disabled={isSubmitting}
                     whileHover={{ scale: isSubmitting ? 1 : 1.02 }}
                     whileTap={{ scale: isSubmitting ? 1 : 0.98 }}
-                    className={`w-full ${isCompact ? 'py-3 text-sm' : 'py-5 text-lg'} bg-gradient-to-r from-neon-red to-neon-red text-white font-display font-black uppercase tracking-tight rounded-xl hover:shadow-[0_0_30px_rgba(255,0,51,0.5)] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center ${isCompact ? 'gap-2' : 'gap-3'}`}
+                    className={`w-full ${isCompact ? 'py-2.5 text-xs' : 'py-5 text-lg'} bg-gradient-to-r from-neon-red to-neon-red text-white font-display font-black uppercase tracking-tight rounded-xl hover:shadow-[0_0_25px_rgba(255,0,51,0.4)] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center ${isCompact ? 'gap-1.5' : 'gap-3'}`}
                 >
                     {isSubmitting ? (
                         <>
-                            <Loader2 className={`${isCompact ? 'w-4 h-4' : 'w-5 h-5'} animate-spin`} />
-                            <span className={isCompact ? 'text-[11px]' : ''}>{t('newsletter_form.submitting_btn')}</span>
+                            <Loader2 className={`${isCompact ? 'w-3.5 h-3.5' : 'w-5 h-5'} animate-spin`} />
+                            <span className={isCompact ? 'text-[10px]' : ''}>{t('newsletter_form.submitting_btn')}</span>
                         </>
                     ) : (
                         <>
                             {!isCompact && <Mail className="w-5 h-5" />}
-                            <span className={isCompact ? 'text-[11px]' : ''}>{t('newsletter_form.submit_btn')}</span>
+                            <span className={isCompact ? 'text-[10px]' : ''}>{t('newsletter_form.submit_btn')}</span>
                         </>
                     )}
                 </motion.button>
@@ -173,10 +173,10 @@ export function NewsletterForm({ variant = 'default' }: NewsletterFormProps) {
                             initial={{ opacity: 0, y: -10 }}
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0, y: -10 }}
-                            className="flex items-center gap-3 p-4 bg-neon-green/10 border border-neon-green/30 rounded-xl"
+                            className={`flex items-center gap-3 ${isCompact ? 'p-2.5' : 'p-4'} bg-neon-green/10 border border-neon-green/30 rounded-xl`}
                         >
-                            <CheckCircle2 className="w-5 h-5 text-neon-green flex-shrink-0" />
-                            <p className="text-sm text-neon-green font-bold">
+                            <CheckCircle2 className={`${isCompact ? 'w-4 h-4' : 'w-5 h-5'} text-neon-green flex-shrink-0`} />
+                            <p className={`${isCompact ? 'text-xs' : 'text-sm'} text-neon-green font-bold`}>
                                 {t('newsletter_form.success_msg')}
                             </p>
                         </motion.div>
@@ -187,16 +187,16 @@ export function NewsletterForm({ variant = 'default' }: NewsletterFormProps) {
                             initial={{ opacity: 0, y: -10 }}
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0, y: -10 }}
-                            className="flex items-center gap-3 p-4 bg-neon-red/10 border border-neon-red/30 rounded-xl"
+                            className={`flex items-center gap-3 ${isCompact ? 'p-2.5' : 'p-4'} bg-neon-red/10 border border-neon-red/30 rounded-xl`}
                         >
-                            <AlertCircle className="w-5 h-5 text-neon-red flex-shrink-0" />
-                            <p className="text-sm text-neon-red font-bold">{errorMessage}</p>
+                            <AlertCircle className={`${isCompact ? 'w-4 h-4' : 'w-5 h-5'} text-neon-red flex-shrink-0`} />
+                            <p className={`${isCompact ? 'text-xs' : 'text-sm'} text-neon-red font-bold`}>{errorMessage}</p>
                         </motion.div>
                     )}
                 </AnimatePresence>
 
                 {/* Privacy Notice */}
-                <p className="text-xs text-gray-500 text-center leading-relaxed">
+                <p className={`${isCompact ? 'text-[9.5px]' : 'text-xs'} text-gray-500 text-center leading-relaxed`}>
                     {t('newsletter_form.privacy_notice')}
                     <a href="#/politique-de-confidentialite" className="text-neon-cyan hover:underline">
                         {t('newsletter_form.privacy_link')}
