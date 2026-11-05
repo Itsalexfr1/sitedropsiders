@@ -8600,17 +8600,114 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         isPodium = true;
                     }
 
-                    // 1. Ambiance de fond sombre haute définition
+                    // 0. Récupération / Préchargement de la Pochette pour le fond et le premier plan
+                    let coverImg: HTMLImageElement | null = null;
+                    if (activeTrack.cover) {
+                        const resolvedCover = resolveImageUrl(activeTrack.cover);
+                        if (imageCacheRef.current[resolvedCover]) {
+                            coverImg = imageCacheRef.current[resolvedCover];
+                        } else if (imageCacheRef.current[activeTrack.cover]) {
+                            coverImg = imageCacheRef.current[activeTrack.cover];
+                        } else {
+                            loadCorsSafeImage(resolvedCover, (loadedImg) => {
+                                imageCacheRef.current[resolvedCover] = loadedImg;
+                                imageCacheRef.current[activeTrack.cover!] = loadedImg;
+                                generateImage();
+                            });
+                        }
+                    }
+
+                    // 1. Fond Dynamique Animé Immersif (Style Tomorrowland One World Radio)
                     ctx.save();
-                    const bgVig = ctx.createRadialGradient(
-                        canvas.width / 2, canvas.height * 0.45, 100,
-                        canvas.width / 2, canvas.height * 0.45, canvas.height * 0.85
-                    );
-                    bgVig.addColorStop(0, `rgba(${rankColorRgb}, 0.12)`);
-                    bgVig.addColorStop(0.45, 'rgba(8, 10, 16, 0.88)');
-                    bgVig.addColorStop(1, 'rgba(2, 3, 6, 0.98)');
-                    ctx.fillStyle = bgVig;
+                    ctx.fillStyle = '#020306';
                     ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                    // A) Dérive cinématique floutée de la pochette (Ken Burns fluide)
+                    const bgSource = (coverImg && coverImg.complete) ? coverImg : ((img && img.complete) ? img : null);
+                    if (bgSource) {
+                        ctx.save();
+                        const bgScale = 1.15 + Math.sin(animTime * 0.40) * 0.05;
+                        const bgDriftX = Math.sin(animTime * 0.30) * 28;
+                        const bgDriftY = Math.cos(animTime * 0.22) * 22;
+
+                        ctx.translate(canvas.width / 2 + bgDriftX, canvas.height / 2 + bgDriftY);
+                        ctx.scale(bgScale, bgScale);
+
+                        if ('filter' in ctx) {
+                            (ctx as any).filter = 'blur(45px) brightness(0.40) saturate(1.45)';
+                        }
+                        ctx.globalAlpha = 0.85;
+                        ctx.drawImage(bgSource, -canvas.width / 2 - 40, -canvas.height / 2 - 40, canvas.width + 80, canvas.height + 80);
+                        if ('filter' in ctx) {
+                            (ctx as any).filter = 'none';
+                        }
+                        ctx.restore();
+                    }
+
+                    // B) Onde d'énergie / Aura pulsante concentrique One World Radio
+                    const auraBreath = 1.0 + Math.sin(animTime * 1.8) * 0.12;
+                    const auraGrad = ctx.createRadialGradient(
+                        canvas.width / 2, 740, 120 * auraBreath,
+                        canvas.width / 2, 740, 680 * auraBreath
+                    );
+                    auraGrad.addColorStop(0, `rgba(${rankColorRgb}, 0.28)`);
+                    auraGrad.addColorStop(0.55, `rgba(${rankColorRgb}, 0.06)`);
+                    auraGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+                    ctx.fillStyle = auraGrad;
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                    // C) Particules & Poussières Magiques Festival (Fairy Dust Tomorrowland)
+                    const particleCount = 45;
+                    for (let p = 0; p < particleCount; p++) {
+                        const seedX = ((p * 137.5) % 1) * canvas.width;
+                        const speed = 32 + ((p * 31.7) % 48); // Vitesse d'ascension lente
+                        const swaySpeed = 0.9 + ((p * 19.3) % 1.4);
+                        const swayAmp = 15 + ((p * 27.1) % 25);
+                        const pSize = 1.5 + ((p * 37.3) % 4.0); // 1.5px à 5.5px
+
+                        const totalH = canvas.height + 140;
+                        const rawY = (canvas.height + 70) - ((animTime * speed + p * 89.3) % totalH);
+                        const pX = seedX + Math.sin(animTime * swaySpeed + p * 1.8) * swayAmp;
+                        const pY = rawY;
+
+                        let pAlpha = 1.0;
+                        if (pY > canvas.height - 180) {
+                            pAlpha = Math.max(0, (canvas.height - pY) / 180);
+                        } else if (pY < 220) {
+                            pAlpha = Math.max(0, pY / 220);
+                        }
+
+                        const sparkle = 0.65 + 0.35 * Math.sin(animTime * 3.2 + p * 2.3);
+                        const finalAlpha = pAlpha * sparkle * (pSize > 3.8 ? 0.40 : 0.75);
+
+                        if (finalAlpha > 0.02) {
+                            ctx.save();
+                            ctx.globalAlpha = finalAlpha;
+                            ctx.beginPath();
+                            ctx.arc(pX, pY, pSize, 0, Math.PI * 2);
+                            const isGold = (p % 3 === 0);
+                            ctx.fillStyle = isGold ? '#ffe680' : rankColor;
+                            ctx.shadowColor = isGold ? 'rgba(255, 215, 0, 0.85)' : `rgba(${rankColorRgb}, 0.85)`;
+                            ctx.shadowBlur = pSize * 3;
+                            ctx.fill();
+                            ctx.restore();
+                        }
+                    }
+
+                    // D) Vignette sombre cinématique haut et bas pour contraste des textes
+                    const topVig = ctx.createLinearGradient(0, 0, 0, 320);
+                    topVig.addColorStop(0, 'rgba(2, 3, 6, 0.90)');
+                    topVig.addColorStop(0.7, 'rgba(2, 3, 6, 0.60)');
+                    topVig.addColorStop(1, 'rgba(2, 3, 6, 0)');
+                    ctx.fillStyle = topVig;
+                    ctx.fillRect(0, 0, canvas.width, 320);
+
+                    const botVig = ctx.createLinearGradient(0, canvas.height - 420, 0, canvas.height);
+                    botVig.addColorStop(0, 'rgba(2, 3, 6, 0)');
+                    botVig.addColorStop(0.35, 'rgba(2, 3, 6, 0.70)');
+                    botVig.addColorStop(1, 'rgba(2, 3, 6, 0.96)');
+                    ctx.fillStyle = botVig;
+                    ctx.fillRect(0, canvas.height - 420, canvas.width, 420);
                     ctx.restore();
 
                     // 2. Top-Left Badge Dropsiders
@@ -8683,23 +8780,6 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.fillStyle = coverHalo;
                     ctx.fillRect(cardX - 120, cardY - 120, cardSize + 240, cardSize + 240);
                     ctx.restore();
-
-                    // B) Récupération / Chargement de la Pochette
-                    let coverImg: HTMLImageElement | null = null;
-                    if (activeTrack.cover) {
-                        const resolvedCover = resolveImageUrl(activeTrack.cover);
-                        if (imageCacheRef.current[resolvedCover]) {
-                            coverImg = imageCacheRef.current[resolvedCover];
-                        } else if (imageCacheRef.current[activeTrack.cover]) {
-                            coverImg = imageCacheRef.current[activeTrack.cover];
-                        } else {
-                            loadCorsSafeImage(resolvedCover, (loadedImg) => {
-                                imageCacheRef.current[resolvedCover] = loadedImg;
-                                imageCacheRef.current[activeTrack.cover!] = loadedImg;
-                                generateImage();
-                            });
-                        }
-                    }
 
                     // C) Ombre portée 3D réaliste
                     ctx.save();
