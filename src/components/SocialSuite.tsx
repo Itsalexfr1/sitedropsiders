@@ -604,6 +604,19 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         reader.onload = (e) => {
             const url = e.target?.result as string;
             if (!url) return;
+            if (isEditorialAfficheActive || theme === 'AFFICHE' || (theme === 'EVENTS' && eventsSlide === 2)) {
+                setAfficheImage(url);
+                const imgObj = new Image();
+                imgObj.crossOrigin = 'anonymous';
+                imgObj.src = url;
+                imgObj.onload = () => {
+                    imageCacheRef.current[url] = imgObj;
+                    imageCacheRef.current[resolveImageUrl(url)] = imgObj;
+                    afficheImageRef.current = imgObj;
+                    generateImage();
+                };
+                return;
+            }
             setEditorialSlideImages(prev => ({ ...prev, [editorialSlide]: url }));
             if (editorialSlide === 1) {
                 setBgImage(url);
@@ -3128,10 +3141,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             );
             const currentSlideAfficheUrl = (theme === 'PLANNING' && effectiveAgendaSlide >= 3)
                 ? (agendaAffiches[effectiveAgendaSlide - 3]?.image || '')
-                : (afficheImage || (isEditorialAfficheRequested ? (editorialSlideImages[effectiveEditorialSlide] || '') : '') || '');
+                : (afficheImage || '');
 
             const activeSlideImgSrc = isCurrentSlideAffiche
-                ? (currentSlideAfficheUrl || (isEditorialAfficheRequested ? editorialSlideImages[effectiveEditorialSlide] : '') || bgImage)
+                ? (currentSlideAfficheUrl || bgImage)
                 : (theme === 'JEU_DJ' && effectiveEditorialSlide === 2 && (!editorialSlideImages[2] || editorialSlideImages[2] === djOriginalImage))
                     ? (editorialSlideImages[1] || bgImage)
                     : isMusiqueTrackSlide
@@ -3198,7 +3211,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
             // Dans le slide AFFICHE ou MUSIQUE slide >= 2, le visuel dédié (affiche ou cover) prend la priorité absolue sur le fond uploadé pour la slide 1 (bgImage) !
             let effectiveImg = isCurrentSlideAffiche
-                ? ((currentSlideAfficheUrl && (afficheImageRef.current || imageCacheRef.current[currentSlideAfficheUrl])) || img)
+                ? ((currentSlideAfficheUrl && (afficheImageRef.current || imageCacheRef.current[currentSlideAfficheUrl] || imageCacheRef.current[resolveImageUrl(currentSlideAfficheUrl)])) || img)
                 : isMusiqueTrackSlide
                     ? (editorialSlideImages[effectiveEditorialSlide] ? img : (musiqueCoverImg || img))
                     : img;
@@ -6460,25 +6473,29 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 ctx.clip();
 
                 const posterUrl = currentSlideAfficheUrl;
-                let poster = (afficheImage && afficheImageRef.current) 
-                    || (posterUrl && imageCacheRef.current[posterUrl]) 
-                    || (isEditorialAfficheRequested && editorialSlideImages[effectiveEditorialSlide] ? imageCacheRef.current[editorialSlideImages[effectiveEditorialSlide]] : null)
-                    || img;
+                const posterResolved = posterUrl ? resolveImageUrl(posterUrl) : '';
+                let poster: HTMLImageElement | null = null;
+                if (afficheImage && afficheImageRef.current && afficheImageRef.current.complete && afficheImageRef.current.naturalWidth > 0) {
+                    poster = afficheImageRef.current;
+                } else if (posterUrl && (imageCacheRef.current[posterUrl] || imageCacheRef.current[posterResolved])) {
+                    poster = imageCacheRef.current[posterUrl] || imageCacheRef.current[posterResolved];
+                }
 
                 if (posterUrl && (!poster || !poster.complete || poster.naturalWidth === 0)) {
-                    if (imageCacheRef.current[posterUrl]) {
-                        poster = imageCacheRef.current[posterUrl];
+                    if (imageCacheRef.current[posterUrl] || imageCacheRef.current[posterResolved]) {
+                        poster = imageCacheRef.current[posterUrl] || imageCacheRef.current[posterResolved];
                     } else {
                         const tempImg = new Image();
                         tempImg.crossOrigin = 'anonymous';
                         tempImg.onload = () => {
                             imageCacheRef.current[posterUrl] = tempImg;
+                            imageCacheRef.current[posterResolved] = tempImg;
                             if (afficheImage && posterUrl === afficheImage) {
                                 afficheImageRef.current = tempImg;
                             }
                             generateImage();
                         };
-                        tempImg.src = posterUrl;
+                        tempImg.src = posterResolved || posterUrl;
                         if (!poster) poster = tempImg;
                     }
                 }
@@ -11570,10 +11587,36 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         if (!canvasRef.current) return;
         setIsDownloading(true);
         try {
+            const isAfficheActive = isEditorialAfficheActive || theme === 'AFFICHE' || (theme === 'EVENTS' && eventsSlide === 2);
+            if (isAfficheActive) {
+                editorialAfficheOverrideRef.current = true;
+                if (afficheImage) {
+                    const resolved = resolveImageUrl(afficheImage);
+                    if (!imageCacheRef.current[afficheImage] && !imageCacheRef.current[resolved]) {
+                        await new Promise<void>((resolve) => {
+                            const im = new Image();
+                            im.crossOrigin = 'anonymous';
+                            im.onload = () => {
+                                imageCacheRef.current[afficheImage] = im;
+                                imageCacheRef.current[resolved] = im;
+                                afficheImageRef.current = im;
+                                resolve();
+                            };
+                            im.onerror = () => resolve();
+                            im.src = resolved;
+                        });
+                    } else if (imageCacheRef.current[resolved] && !afficheImageRef.current) {
+                        afficheImageRef.current = imageCacheRef.current[resolved];
+                    }
+                }
+            }
+            await new Promise(r => setTimeout(r, 60));
             await generateImage(format, true);
-            const fileName = theme === 'PLANNING'
-                ? `${format === 'REEL' ? 'STORY' : 'POST'}-agenda-slide${agendaSlide}-${agendaSlide === 1 ? 'cover' : 'events'}.png`
-                : `${format === 'REEL' ? 'STORY' : 'POST'}-${theme.toLowerCase().replace(/\s+/g, '-')}.png`;
+            const fileName = isAfficheActive
+                ? `${format === 'REEL' ? 'STORY' : 'POST'}-${theme.toLowerCase().replace(/\s+/g, '-')}-slide-affiche.png`
+                : (theme === 'PLANNING'
+                    ? `${format === 'REEL' ? 'STORY' : 'POST'}-agenda-slide${agendaSlide}-${agendaSlide === 1 ? 'cover' : 'events'}.png`
+                    : `${format === 'REEL' ? 'STORY' : 'POST'}-${theme.toLowerCase().replace(/\s+/g, '-')}.png`);
             const isMobile = /iPad|iPhone|iPod|Android/.test(navigator.userAgent) || ('maxTouchPoints' in navigator && navigator.maxTouchPoints > 0);
 
             if (isMobile && navigator.share) {
@@ -11604,6 +11647,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             console.error(e);
             setErrorMessage("Erreur lors de l'exportation PNG.");
         } finally {
+            editorialAfficheOverrideRef.current = false;
             setTimeout(() => {
                 setIsDownloading(false);
                 generateImage(); // Restore preview with overlays
@@ -11823,9 +11867,36 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         if (!canvasRef.current) return;
         setIsDownloading(true);
         const prevSlide = eventsSlide;
+        const prevAffiche = isEditorialAfficheActive;
         try {
+            if (slideNumber === 2) {
+                editorialAfficheOverrideRef.current = true;
+                setIsEditorialAfficheActive(true);
+                if (afficheImage) {
+                    const resolved = resolveImageUrl(afficheImage);
+                    if (!imageCacheRef.current[afficheImage] && !imageCacheRef.current[resolved]) {
+                        await new Promise<void>((resolve) => {
+                            const im = new Image();
+                            im.crossOrigin = 'anonymous';
+                            im.onload = () => {
+                                imageCacheRef.current[afficheImage] = im;
+                                imageCacheRef.current[resolved] = im;
+                                afficheImageRef.current = im;
+                                resolve();
+                            };
+                            im.onerror = () => resolve();
+                            im.src = resolved;
+                        });
+                    } else if (imageCacheRef.current[resolved] && !afficheImageRef.current) {
+                        afficheImageRef.current = imageCacheRef.current[resolved];
+                    }
+                }
+            } else {
+                editorialAfficheOverrideRef.current = false;
+                setIsEditorialAfficheActive(false);
+            }
             setEventsSlide(slideNumber);
-            await new Promise(r => setTimeout(r, 60));
+            await new Promise(r => setTimeout(r, 80));
             await generateImage(format, true);
             const fileName = `${format === 'REEL' ? 'STORY' : 'POST'}-event-slide${slideNumber}-${slideNumber === 1 ? 'post' : 'affiche'}.png`;
             const dataUrl = canvasRef.current.toDataURL('image/png');
@@ -11839,6 +11910,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             console.error(e);
             setErrorMessage(`Erreur lors du téléchargement de la slide ${slideNumber}.`);
         } finally {
+            editorialAfficheOverrideRef.current = false;
+            setIsEditorialAfficheActive(prevAffiche);
             setTimeout(() => {
                 setEventsSlide(prevSlide);
                 setIsDownloading(false);
@@ -11954,7 +12027,26 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         try {
             editorialAfficheOverrideRef.current = true;
             setIsEditorialAfficheActive(true);
-            await new Promise(r => setTimeout(r, 60));
+            if (afficheImage) {
+                const resolved = resolveImageUrl(afficheImage);
+                if (!imageCacheRef.current[afficheImage] && !imageCacheRef.current[resolved]) {
+                    await new Promise<void>((resolve) => {
+                        const im = new Image();
+                        im.crossOrigin = 'anonymous';
+                        im.onload = () => {
+                            imageCacheRef.current[afficheImage] = im;
+                            imageCacheRef.current[resolved] = im;
+                            afficheImageRef.current = im;
+                            resolve();
+                        };
+                        im.onerror = () => resolve();
+                        im.src = resolved;
+                    });
+                } else if (imageCacheRef.current[resolved] && !afficheImageRef.current) {
+                    afficheImageRef.current = imageCacheRef.current[resolved];
+                }
+            }
+            await new Promise(r => setTimeout(r, 80));
             await generateImage(format, true);
             const fileName = `${format === 'REEL' ? 'STORY' : 'POST'}-${theme.toLowerCase().replace(/\s+/g, '-')}-slide-affiche.png`;
             const dataUrl = canvasRef.current.toDataURL('image/png');
@@ -11968,9 +12060,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             console.error(e);
             setErrorMessage("Erreur lors du téléchargement de la slide Affiche.");
         } finally {
+            editorialAfficheOverrideRef.current = false;
+            setIsEditorialAfficheActive(prevAffiche);
             setTimeout(() => {
-                editorialAfficheOverrideRef.current = false;
-                setIsEditorialAfficheActive(prevAffiche);
                 setIsDownloading(false);
                 generateImage();
             }, 400);
@@ -12013,7 +12105,26 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 await new Promise(r => setTimeout(r, 350));
                 editorialAfficheOverrideRef.current = true;
                 setIsEditorialAfficheActive(true);
-                await new Promise(r => setTimeout(r, 60));
+                if (afficheImage) {
+                    const resolved = resolveImageUrl(afficheImage);
+                    if (!imageCacheRef.current[afficheImage] && !imageCacheRef.current[resolved]) {
+                        await new Promise<void>((resolve) => {
+                            const im = new Image();
+                            im.crossOrigin = 'anonymous';
+                            im.onload = () => {
+                                imageCacheRef.current[afficheImage] = im;
+                                imageCacheRef.current[resolved] = im;
+                                afficheImageRef.current = im;
+                                resolve();
+                            };
+                            im.onerror = () => resolve();
+                            im.src = resolved;
+                        });
+                    } else if (imageCacheRef.current[resolved] && !afficheImageRef.current) {
+                        afficheImageRef.current = imageCacheRef.current[resolved];
+                    }
+                }
+                await new Promise(r => setTimeout(r, 80));
                 await generateImage(format, true);
                 const dataUrl = canvasRef.current.toDataURL('image/png');
                 const a = document.createElement('a');
@@ -19919,12 +20030,18 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     img.crossOrigin = "anonymous";
                                     img.onload = () => {
                                         imageCacheRef.current[url] = img;
-                                        setBgImage(url);
-                                        setBgVideo(null);
-                                        if (theme !== 'JEU_DJ') {
-                                            setDjOriginalImage(url);
+                                        imageCacheRef.current[resolveImageUrl(url)] = img;
+                                        if (isEditorialAfficheActive || theme === 'AFFICHE' || (theme === 'EVENTS' && eventsSlide === 2)) {
+                                            setAfficheImage(url);
+                                            afficheImageRef.current = img;
+                                        } else {
+                                            setBgImage(url);
+                                            setBgVideo(null);
+                                            if (theme !== 'JEU_DJ') {
+                                                setDjOriginalImage(url);
+                                            }
+                                            setEditorialSlideImages(prev => ({ ...prev, [editorialSlide]: url }));
                                         }
-                                        setEditorialSlideImages(prev => ({ ...prev, [editorialSlide]: url }));
                                         generateImage();
                                     };
                                     img.src = url;
