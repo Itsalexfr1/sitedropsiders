@@ -8303,6 +8303,26 @@ ${urls.map(u => `  <url>
                     if (BREVO_KEY) {
                         const previewText = textContent.length > 300 ? textContent.slice(0, 300) + '...' : textContent;
                         const cleanFirstName = (destinationName || '').split('(')[0].trim() || 'l\'équipe';
+                        let recipientTag = 'Alex - Partenariats';
+                        if (toAddress.includes('partenariat')) {
+                            recipientTag = 'Alex - Partenariats';
+                        } else if (toAddress.includes('guillaume')) {
+                            recipientTag = 'Guillaume - Vidéaste';
+                        } else if (toAddress.includes('julien')) {
+                            recipientTag = 'Julien - Rédacteur';
+                        } else if (toAddress.includes('tanguy')) {
+                            recipientTag = 'Tanguy - Éditeur';
+                        } else if (toAddress.includes('tiffany')) {
+                            recipientTag = 'Tiffany - Rédactrice';
+                        } else if (toAddress.includes('maori')) {
+                            recipientTag = 'Maori - Photographe';
+                        } else if (matchedEditor) {
+                            const role = matchedEditor.role || 'Rédacteur Média';
+                            const name = matchedEditor.pseudo || matchedEditor.username || cleanFirstName;
+                            recipientTag = `${name} - ${role}`;
+                        } else {
+                            recipientTag = `${cleanFirstName} - Dropsiders`;
+                        }
                         const renderedBody = (htmlContent && htmlContent.trim().length > 0)
                             ? `<div style="max-height: 400px; overflow-y: auto; color: #e4e4e7; font-size: 13.5px; line-height: 1.6;">${htmlContent}</div>`
                             : `<div style="color: #e4e4e7; font-size: 13.5px; line-height: 1.6; white-space: pre-wrap;">${previewText}</div>`;
@@ -8358,7 +8378,8 @@ ${urls.map(u => `  <url>
                   <td width="4%">&nbsp;</td>
                   <td width="48%" valign="top" style="background-color: #181a26; border: 1px solid rgba(255, 255, 255, 0.07); border-radius: 12px; padding: 14px;">
                     <div style="font-size: 10px; color: #a1a1aa; font-weight: 800; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 4px;">Boîte Reçue</div>
-                    <div style="font-size: 13px; color: #00ffd5; font-weight: 800; font-family: monospace; word-break: break-all;">${toAddress}</div>
+                    <div style="font-size: 13px; color: #ffffff; font-weight: 700; word-break: break-all; margin-bottom: 2px;">${recipientTag}</div>
+                    <div style="font-size: 11.5px; color: #00ffd5; font-weight: 800; font-family: monospace; word-break: break-all;">${toAddress}</div>
                   </td>
                 </tr>
               </table>
