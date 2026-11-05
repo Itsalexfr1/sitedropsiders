@@ -8303,25 +8303,23 @@ ${urls.map(u => `  <url>
                     if (BREVO_KEY) {
                         const previewText = textContent.length > 300 ? textContent.slice(0, 300) + '...' : textContent;
                         const cleanFirstName = (destinationName || '').split('(')[0].trim() || 'l\'équipe';
-                        let recipientTag = 'Alex - Partenariats';
-                        if (toAddress.includes('partenariat')) {
-                            recipientTag = 'Alex - Partenariats';
+                        let recipientTag = 'Alex';
+                        if (toAddress.includes('partenariat') || toAddress.includes('alex') || toAddress.includes('contact')) {
+                            recipientTag = 'Alex';
                         } else if (toAddress.includes('guillaume')) {
-                            recipientTag = 'Guillaume - Vidéaste';
+                            recipientTag = 'Guillaume';
                         } else if (toAddress.includes('julien')) {
-                            recipientTag = 'Julien - Rédacteur';
+                            recipientTag = 'Julien';
                         } else if (toAddress.includes('tanguy')) {
-                            recipientTag = 'Tanguy - Éditeur';
+                            recipientTag = 'Tanguy';
                         } else if (toAddress.includes('tiffany')) {
-                            recipientTag = 'Tiffany - Rédactrice';
+                            recipientTag = 'Tiffany';
                         } else if (toAddress.includes('maori')) {
-                            recipientTag = 'Maori - Photographe';
+                            recipientTag = 'Maori';
                         } else if (matchedEditor) {
-                            const role = matchedEditor.role || 'Rédacteur Média';
-                            const name = matchedEditor.pseudo || matchedEditor.username || cleanFirstName;
-                            recipientTag = `${name} - ${role}`;
+                            recipientTag = matchedEditor.pseudo || matchedEditor.username || cleanFirstName;
                         } else {
-                            recipientTag = `${cleanFirstName} - Dropsiders`;
+                            recipientTag = cleanFirstName;
                         }
                         const renderedBody = (htmlContent && htmlContent.trim().length > 0)
                             ? `<div style="max-height: 400px; overflow-y: auto; color: #e4e4e7; font-size: 13.5px; line-height: 1.6;">${htmlContent}</div>`
