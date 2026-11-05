@@ -8228,12 +8228,32 @@ ${urls.map(u => `  <url>
                 const newContactsToSave: any[] = [];
 
                 for (const item of items) {
-                    const rawFrom = item.sender || item.From?.Address || item.envelope?.from || item.headers?.from || item.from || 'inconnu@inconnu.com';
-                    const fromAddress = typeof rawFrom === 'string' ? (rawFrom.match(/<([^>]+)>/)?.[1] || rawFrom).trim() : 'inconnu@inconnu.com';
-                    const fromName = item.senderName || item.From?.Name || (typeof rawFrom === 'string' && rawFrom.includes('<') ? rawFrom.split('<')[0].replace(/["']/g, '').trim() : fromAddress);
+                    // Priorité aux en-têtes réels de l'email (pour ignorer le SRS et l'adresse relais CloudMailin)
+                    const rawFrom = item.headers?.from || item.headers?.From || item.sender || item.From?.Address || item.from || item.envelope?.from || 'inconnu@inconnu.com';
+                    let fromAddress = typeof rawFrom === 'string' ? (rawFrom.match(/<([^>]+)>/)?.[1] || rawFrom).trim() : 'inconnu@inconnu.com';
+                    
+                    // Nettoyage SRS si jamais présent
+                    if (fromAddress.toLowerCase().includes('srs0=')) {
+                        const srsMatch = fromAddress.match(/srs0=[^=]+=[^=]+=([^=]+)=([^@]+)@/i);
+                        if (srsMatch) fromAddress = `${srsMatch[2]}@${srsMatch[1]}`;
+                    }
 
-                    const rawTo = item.recipient || (item.To && item.To[0]?.Address) || item.envelope?.to || item.headers?.to || item.to || 'contact@dropsiders.fr';
-                    const toAddress = (typeof rawTo === 'string' ? (rawTo.match(/<([^>]+)>/)?.[1] || rawTo) : 'contact@dropsiders.fr').toLowerCase().trim();
+                    let fromName = item.senderName || item.From?.Name || '';
+                    if (!fromName && typeof rawFrom === 'string' && rawFrom.includes('<')) {
+                        fromName = rawFrom.split('<')[0].replace(/["']/g, '').trim();
+                    }
+                    if (!fromName) fromName = fromAddress;
+
+                    // Destinataire d'origine : chercher crew.dropsiders.fr dans headers.to ou envelope
+                    const rawTo = item.headers?.to || item.headers?.To || item.headers?.['x-forwarded-to'] || item.recipient || (item.To && item.To[0]?.Address) || item.to || item.envelope?.to || 'contact@dropsiders.fr';
+                    let toAddress = (typeof rawTo === 'string' ? (rawTo.match(/<([^>]+)>/)?.[1] || rawTo) : 'contact@dropsiders.fr').toLowerCase().trim();
+                    
+                    // Si plusieurs destinataires dans headers.to, extraire celui qui correspond à dropsiders.fr
+                    if (toAddress.includes(',')) {
+                        const parts = toAddress.split(',').map(p => p.trim());
+                        const dropPart = parts.find(p => p.includes('dropsiders.fr'));
+                        if (dropPart) toAddress = (dropPart.match(/<([^>]+)>/)?.[1] || dropPart).trim();
+                    }
 
                     const subject = item.subject || item.Subject || item.headers?.subject || '(Sans objet)';
                     const textContent = item.rawTextBody || item.RawTextContent || item.plain || (item.rawHtmlBody ? item.rawHtmlBody.replace(/<[^>]*>/g, ' ') : '') || (item.html ? item.html.replace(/<[^>]*>/g, ' ') : '') || '(Message vide)';
