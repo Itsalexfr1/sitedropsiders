@@ -628,6 +628,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 };
                 return;
             }
+            if (theme === 'TOP 10 TRACKS') {
+                updateTop10Track(top10ActiveRank, { cover: url });
+                setBgImage(url);
+            }
             setEditorialSlideImages(prev => ({ ...prev, [editorialSlide]: url }));
             if (editorialSlide === 1) {
                 setBgImage(url);
@@ -773,7 +777,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const recordingTimeLeft2Ref = useRef<HTMLSpanElement | null>(null);
     const [isR2ModalOpen, setIsR2ModalOpen] = useState(false);
     const [r2TargetIdx, setR2TargetIdx] = useState<number | null>(null);
-    const [r2TargetType, setR2TargetType] = useState<'top5' | 'top10' | 'background' | 'logo' | 'affiche' | 'musicCover' | 'musicAudio' | 'musicIntroAudio' | null>(null);
+    const [r2TargetType, setR2TargetType] = useState<'top5' | 'top10' | 'top10_track_cover' | 'background' | 'logo' | 'affiche' | 'musicCover' | 'musicAudio' | 'musicIntroAudio' | null>(null);
 
     // AFFICHE Theme States (Poster Événement Flottant)
     const [afficheImage, setAfficheImage] = useState<string>('');
@@ -914,21 +918,21 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     };
 
     const DEFAULT_TOP_10_TRACKS: Top10TrackItem[] = [
-        { rank: 10, title: '', artist: '', cover: '', videoStartTime: 0 },
-        { rank: 9, title: '', artist: '', cover: '', videoStartTime: 0 },
-        { rank: 8, title: '', artist: '', cover: '', videoStartTime: 0 },
-        { rank: 7, title: '', artist: '', cover: '', videoStartTime: 0 },
-        { rank: 6, title: '', artist: '', cover: '', videoStartTime: 0 },
-        { rank: 5, title: '', artist: '', cover: '', videoStartTime: 0 },
-        { rank: 4, title: '', artist: '', cover: '', videoStartTime: 0 },
-        { rank: 3, title: '', artist: '', cover: '', videoStartTime: 0 },
-        { rank: 2, title: '', artist: '', cover: '', videoStartTime: 0 },
-        { rank: 1, title: '', artist: '', cover: '', videoStartTime: 0 },
+        { rank: 10, title: '', artist: '', cover: '', videoStartTime: 0, audioStartTime: 0 },
+        { rank: 9, title: '', artist: '', cover: '', videoStartTime: 0, audioStartTime: 0 },
+        { rank: 8, title: '', artist: '', cover: '', videoStartTime: 0, audioStartTime: 0 },
+        { rank: 7, title: '', artist: '', cover: '', videoStartTime: 0, audioStartTime: 0 },
+        { rank: 6, title: '', artist: '', cover: '', videoStartTime: 0, audioStartTime: 0 },
+        { rank: 5, title: '', artist: '', cover: '', videoStartTime: 0, audioStartTime: 0 },
+        { rank: 4, title: '', artist: '', cover: '', videoStartTime: 0, audioStartTime: 0 },
+        { rank: 3, title: '', artist: '', cover: '', videoStartTime: 0, audioStartTime: 0 },
+        { rank: 2, title: '', artist: '', cover: '', videoStartTime: 0, audioStartTime: 0 },
+        { rank: 1, title: '', artist: '', cover: '', videoStartTime: 0, audioStartTime: 0 },
     ];
 
     const [top10Tracks, setTop10Tracks] = useState<Top10TrackItem[]>(() => {
         try {
-            const saved = localStorage.getItem('dropsiders_top10_tracks_v5');
+            const saved = localStorage.getItem('dropsiders_top10_tracks_v7');
             if (saved) {
                 const parsed = JSON.parse(saved);
                 if (Array.isArray(parsed) && parsed.length === 10) return parsed;
@@ -949,10 +953,17 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const updateTop10Track = (rank: number, patch: Partial<Top10TrackItem>) => {
         setTop10Tracks(prev => {
             const next = prev.map(t => t.rank === rank ? { ...t, ...patch } : t);
-            try { localStorage.setItem('dropsiders_top10_tracks_v5', JSON.stringify(next)); } catch (_) { }
+            try {
+                // Évite d'exploser le quota de 5Mo de localStorage avec les grosses images base64
+                const forStorage = next.map(tr => ({
+                    ...tr,
+                    cover: (tr.cover && tr.cover.startsWith('data:') && tr.cover.length > 50000) ? '' : tr.cover
+                }));
+                localStorage.setItem('dropsiders_top10_tracks_v7', JSON.stringify(forStorage));
+            } catch (_) { }
             return next;
         });
-        setTimeout(() => generateImage(), 50);
+        setTimeout(() => generateImage(), 30);
     };
 
     const getOrCreateTop10Video = (rank: number, url: string): HTMLVideoElement | null => {
@@ -982,21 +993,22 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         const trimmed = rawUrl.trim();
         setTop10ResolvingRank(rank);
 
-        // 1. EXTRACTION AUTOMATIQUE DES MÉTADONNÉES (ARTISTE, TITRE, COVER) - COMME DANS MUSIQUE
         try {
             let extractedArtist = '';
             let extractedTitle = '';
             let extractedCover = '';
+            let extractedAudio = '';
 
-            // A) Tentative avec le résolveur de musique (Beatport, Spotify, iTunes, etc.)
+            // A) Résolution intelligente universelle (Spotify, Beatport, Deezer, Soundcloud, Apple Music, YouTube...)
             const musicMeta = await resolveMusicSnippet(trimmed).catch(() => null);
             if (musicMeta) {
                 if (musicMeta.artist) extractedArtist = musicMeta.artist.trim();
                 if (musicMeta.title) extractedTitle = musicMeta.title.trim();
                 if (musicMeta.coverUrl) extractedCover = musicMeta.coverUrl.trim();
+                if (musicMeta.audioUrl) extractedAudio = musicMeta.audioUrl.trim();
             }
 
-            // B) Si artiste ou titre encore manquant, interroger YouTube oEmbed
+            // B) Si lien YouTube et artiste/titre encore manquant, appel oEmbed YouTube direct
             if ((!extractedArtist || !extractedTitle) && trimmed.match(/(youtube\.com|youtu\.be)/i)) {
                 try {
                     const ytOembedUrl = `https://www.youtube.com/oembed?url=${encodeURIComponent(trimmed)}&format=json`;
@@ -1029,89 +1041,59 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 }
             }
 
-            // Application immédiate des métadonnées extraites
+            // C) Si nous avons extrait un titre et artiste mais pas encore d'audio, chercher sur Beatport/iTunes
+            if (!extractedAudio && (extractedTitle || extractedArtist)) {
+                try {
+                    const searchRes = await resolveMusicSnippet(`${extractedArtist} ${extractedTitle}`.trim()).catch(() => null);
+                    if (searchRes) {
+                        if (searchRes.audioUrl) extractedAudio = searchRes.audioUrl;
+                        if (!extractedCover && searchRes.coverUrl) extractedCover = searchRes.coverUrl;
+                    }
+                } catch (_) { }
+            }
+
+            // D) Préchargement de la pochette pour éviter les erreurs CORS et le canvas tainting
+            if (extractedCover) {
+                const img = new Image();
+                img.crossOrigin = 'anonymous';
+                img.onload = () => {
+                    imageCacheRef.current[extractedCover] = img;
+                    generateImage();
+                };
+                img.src = extractedCover;
+            }
+
+            // E) Préchargement audio en Blob mémoire vive (RAM) pour éliminer les latences et coupures
+            if (extractedAudio) {
+                getPreloadedAudioBlobUrl(extractedAudio).then(blobUrl => {
+                    if (blobUrl) {
+                        updateTop10Track(rank, { audioUrl: blobUrl });
+                    }
+                });
+            }
+
             const patch: Partial<Top10TrackItem> = {};
             if (extractedArtist) patch.artist = extractedArtist.toUpperCase();
             if (extractedTitle) patch.title = extractedTitle.toUpperCase();
-            if (extractedCover) patch.cover = extractedCover;
-
-            if (Object.keys(patch).length > 0) {
-                updateTop10Track(rank, patch);
+            if (extractedCover) {
+                patch.cover = extractedCover;
+                setBgImage(extractedCover); // Dérive Tomorrowland immédiate avec cette pochette
             }
+            if (extractedAudio) patch.audioUrl = extractedAudio;
+
+            // F) Fichiers vidéo directs (MP4, WebM, Blob)
+            if (trimmed.includes('.mp4') || trimmed.includes('.webm') || trimmed.startsWith('blob:') || trimmed.startsWith('data:')) {
+                patch.videoUrl = trimmed;
+                getOrCreateTop10Video(rank, trimmed);
+            }
+
+            updateTop10Track(rank, patch);
+
         } catch (e) {
             console.warn("Erreur extraction métadonnées Top 10 :", e);
-        }
-
-        // 2. RÉSOLUTION DU FLUX VIDÉO DIRECT (MP4 / H264)
-        if (trimmed.includes('.mp4') || trimmed.includes('.webm') || trimmed.startsWith('blob:') || trimmed.startsWith('data:')) {
-            updateTop10Track(rank, { videoUrl: trimmed });
-            getOrCreateTop10Video(rank, trimmed);
-            setTop10ResolvingRank(null);
-            return;
-        }
-
-        if (trimmed.match(/(youtube|youtu\.be|tiktok|instagram|twitter|x\.com)/i)) {
-            try {
-                const res = await fetch('/api/downloader-proxy', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        url: trimmed,
-                        videoQuality: '720',
-                        vQuality: '720',
-                        downloadMode: 'auto',
-                        youtubeVideoCodec: 'h264'
-                    })
-                });
-                const data = await res.json();
-                const directUrl = data.url || data.text;
-                if (directUrl) {
-                    updateTop10Track(rank, { videoUrl: directUrl });
-                    getOrCreateTop10Video(rank, directUrl);
-                } else {
-                    updateTop10Track(rank, { videoUrl: trimmed });
-                }
-            } catch (err) {
-                console.warn('Downloader proxy error:', err);
-                updateTop10Track(rank, { videoUrl: trimmed });
-            } finally {
-                setTop10ResolvingRank(null);
-            }
-        } else {
-            updateTop10Track(rank, { videoUrl: trimmed });
+        } finally {
             setTop10ResolvingRank(null);
         }
-    };
-
-    const handleTop10TestClip = (rank: number) => {
-        const tr = top10Tracks.find(t => t.rank === rank);
-        if (!tr?.videoUrl) return;
-        const v = getOrCreateTop10Video(rank, tr.videoUrl);
-        if (!v) return;
-
-        if (top10TestingRank === rank) {
-            v.pause();
-            setTop10TestingRank(null);
-            if (top10TestTimerRef.current) clearTimeout(top10TestTimerRef.current);
-            return;
-        }
-
-        v.muted = false;
-        v.currentTime = tr.videoStartTime || 0;
-        v.play().then(() => {
-            setTop10TestingRank(rank);
-            if (top10TestTimerRef.current) clearTimeout(top10TestTimerRef.current);
-            top10TestTimerRef.current = setTimeout(() => {
-                v.pause();
-                v.muted = true;
-                setTop10TestingRank(null);
-                generateImage();
-            }, (top10TrackDuration || 3.5) * 1000);
-        }).catch(e => {
-            console.warn("Test clip play failed:", e);
-            v.muted = true;
-            v.play().catch(() => { });
-        });
     };
 
     // MUSIQUE : Slide 1 = Annonce, Slides 2 à 19 = Tracks (pochette + titre + artiste + label + extrait audio), Slide 20 = Promo
@@ -1822,6 +1804,57 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         } catch (err) {
             console.warn("Erreur lecture preview :", err);
             setActiveAudioPreviewSrc(null);
+        }
+    };
+
+    const handleTop10TestClip = (rank: number) => {
+        const tr = top10Tracks.find(t => t.rank === rank);
+        if (!tr) return;
+        const soundSrc = tr.audioUrl || (tr.videoUrl && tr.videoUrl.match(/\.(mp3|m4a|aac|wav|ogg)/i) ? tr.videoUrl : '');
+
+        if (top10TestingRank === rank) {
+            stopPreviewPlayer();
+            if (tr.videoUrl) {
+                const v = getOrCreateTop10Video(rank, tr.videoUrl);
+                if (v) try { v.pause(); v.muted = true; } catch (_) { }
+            }
+            setTop10TestingRank(null);
+            if (top10TestTimerRef.current) clearTimeout(top10TestTimerRef.current);
+            return;
+        }
+
+        const dur = (top10TrackDuration || 3.5) * 1000;
+
+        if (soundSrc) {
+            playAudioPreviewFrom(soundSrc, tr.audioStartTime || tr.videoStartTime || 0);
+            setTop10TestingRank(rank);
+            if (top10TestTimerRef.current) clearTimeout(top10TestTimerRef.current);
+            top10TestTimerRef.current = setTimeout(() => {
+                stopPreviewPlayer();
+                setTop10TestingRank(null);
+                generateImage();
+            }, dur);
+            return;
+        }
+
+        if (tr.videoUrl) {
+            const v = getOrCreateTop10Video(rank, tr.videoUrl);
+            if (!v) return;
+            v.muted = false;
+            v.currentTime = tr.videoStartTime || 0;
+            v.play().then(() => {
+                setTop10TestingRank(rank);
+                if (top10TestTimerRef.current) clearTimeout(top10TestTimerRef.current);
+                top10TestTimerRef.current = setTimeout(() => {
+                    v.pause();
+                    v.muted = true;
+                    setTop10TestingRank(null);
+                    generateImage();
+                }, dur);
+            }).catch(e => {
+                console.warn("Test clip play failed:", e);
+                v.muted = true;
+            });
         }
     };
 
@@ -8601,17 +8634,18 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     }
 
                     // 0. Récupération / Préchargement de la Pochette pour le fond et le premier plan
+                    const trackCoverSrc = activeTrack.cover || bgImage || editorialSlideImages[1] || '';
                     let coverImg: HTMLImageElement | null = null;
-                    if (activeTrack.cover) {
-                        const resolvedCover = resolveImageUrl(activeTrack.cover);
-                        if (imageCacheRef.current[resolvedCover]) {
+                    if (trackCoverSrc) {
+                        const resolvedCover = resolveImageUrl(trackCoverSrc);
+                        if (imageCacheRef.current[trackCoverSrc] && (imageCacheRef.current[trackCoverSrc].naturalWidth > 0 || imageCacheRef.current[trackCoverSrc].complete)) {
+                            coverImg = imageCacheRef.current[trackCoverSrc];
+                        } else if (imageCacheRef.current[resolvedCover] && (imageCacheRef.current[resolvedCover].naturalWidth > 0 || imageCacheRef.current[resolvedCover].complete)) {
                             coverImg = imageCacheRef.current[resolvedCover];
-                        } else if (imageCacheRef.current[activeTrack.cover]) {
-                            coverImg = imageCacheRef.current[activeTrack.cover];
                         } else {
-                            loadCorsSafeImage(resolvedCover, (loadedImg) => {
+                            loadCorsSafeImage(trackCoverSrc, (loadedImg) => {
+                                imageCacheRef.current[trackCoverSrc] = loadedImg;
                                 imageCacheRef.current[resolvedCover] = loadedImg;
-                                imageCacheRef.current[activeTrack.cover!] = loadedImg;
                                 generateImage();
                             });
                         }
@@ -8623,7 +8657,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
                     // A) Dérive cinématique floutée de la pochette (Ken Burns fluide)
-                    const bgSource = (coverImg && coverImg.complete) ? coverImg : ((img && img.complete) ? img : null);
+                    const bgSource = (coverImg && (coverImg.naturalWidth > 0 || coverImg.complete))
+                        ? coverImg
+                        : ((img && (img.naturalWidth > 0 || img.complete)) ? img : null);
                     if (bgSource) {
                         ctx.save();
                         const bgScale = 1.15 + Math.sin(animTime * 0.40) * 0.05;
@@ -8799,9 +8835,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.roundRect(cardX, cardY, cardSize, cardSize, cardR);
                     ctx.clip();
 
-                    if (coverImg && coverImg.complete) {
+                    if (coverImg && (coverImg.naturalWidth > 0 || coverImg.complete)) {
                         ctx.drawImage(coverImg, cardX, cardY, cardSize, cardSize);
-                    } else if (img && img.complete) {
+                    } else if (img && (img.naturalWidth > 0 || img.complete)) {
                         ctx.drawImage(img, cardX, cardY, cardSize, cardSize);
                     } else {
                         // Placeholder vinyle avec sillons gravés
@@ -8927,7 +8963,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.textAlign = 'center';
                     ctx.textBaseline = 'middle';
 
-                    const artistStr = (activeTrack.artist || 'ARTISTE').toUpperCase();
+                    const hasArtist = Boolean(activeTrack.artist?.trim());
+                    const artistStr = (activeTrack.artist || 'NOM DE L\'ARTISTE').toUpperCase();
                     let artistFontSize = 36;
                     ctx.font = `900 ${artistFontSize}px "Montserrat", sans-serif`;
                     if ('letterSpacing' in ctx) (ctx as any).letterSpacing = '2px';
@@ -8936,12 +8973,13 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         artistFontSize = Math.max(22, Math.floor(artistFontSize * (920 / artistW)));
                         ctx.font = `900 ${artistFontSize}px "Montserrat", sans-serif`;
                     }
-                    ctx.fillStyle = '#ffffff';
-                    ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
-                    ctx.shadowBlur = 18;
+                    ctx.fillStyle = hasArtist ? '#ffffff' : 'rgba(255, 255, 255, 0.35)';
+                    ctx.shadowColor = hasArtist ? 'rgba(0, 0, 0, 0.95)' : 'transparent';
+                    ctx.shadowBlur = hasArtist ? 18 : 0;
                     ctx.shadowOffsetY = 4;
                     ctx.fillText(artistStr, canvas.width / 2, 1145);
 
+                    const hasTitle = Boolean(activeTrack.title?.trim());
                     const titleStr = (activeTrack.title || 'TITRE DU MORCEAU').toUpperCase();
                     let titleFontSize = 52;
                     ctx.font = `900 ${titleFontSize}px "Montserrat", sans-serif`;
@@ -8951,9 +8989,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         titleFontSize = Math.max(26, Math.floor(titleFontSize * (940 / titleW)));
                         ctx.font = `900 ${titleFontSize}px "Montserrat", sans-serif`;
                     }
-                    ctx.fillStyle = rankColor;
-                    ctx.shadowColor = `rgba(${rankColorRgb}, 0.75)`;
-                    ctx.shadowBlur = 24;
+                    ctx.fillStyle = hasTitle ? rankColor : `rgba(${rankColorRgb}, 0.35)`;
+                    ctx.shadowColor = hasTitle ? `rgba(${rankColorRgb}, 0.75)` : 'transparent';
+                    ctx.shadowBlur = hasTitle ? 24 : 0;
                     ctx.fillText(titleStr, canvas.width / 2, 1215);
                     ctx.restore();
 
@@ -10470,7 +10508,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 if (theme !== 'JEU_DJ') {
                     setDjOriginalImage(url);
                 }
-                setEditorialSlideImages(prev => ({ ...prev, [editorialSlide]: url }));
+                if (theme === 'TOP 10 TRACKS') {
+                updateTop10Track(top10ActiveRank, { cover: url });
+                setBgImage(url);
+            }
+            setEditorialSlideImages(prev => ({ ...prev, [editorialSlide]: url }));
                 generateImage();
             };
             img.src = url;
@@ -11395,7 +11437,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             }
 
             // Détection de présence de son dans le projet
-            const hasAnyAudioSource = Boolean(bgVideoBlob || hasAnyMusicAudio || (bgVideo && (bgVideo.currentSrc || bgVideo.src)));
+            const hasAnyTop10Audio = theme === 'TOP 10 TRACKS' && top10Tracks.some(t => Boolean(t.audioUrl || t.videoUrl));
+            const hasAnyAudioSource = Boolean(bgVideoBlob || hasAnyMusicAudio || hasAnyTop10Audio || (bgVideo && (bgVideo.currentSrc || bgVideo.src)));
 
             // FAST-PATH MP4 : si STRICTEMENT AUCUN SON dans le projet (vidéo muette), téléchargement direct immédiat
             if (!hasAnyAudioSource && videoBlob.type.includes('mp4')) {
@@ -11491,6 +11534,23 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             ? (musicIntroAudio ? (musicIntroAudioStartTime || 0) : (musicTracks[0]?.audioStartTime || 0))
                             : (musicTracks[currentTrIdx]?.audioStartTime || 0);
                         if (audioUrl) audioSegments.push({ url: audioUrl, startOffset: 0, sourceOffset: srcOffset, duration: 30 });
+                    }
+                }
+
+                if (theme === 'TOP 10 TRACKS') {
+                    const singleDur = top10TrackDuration || 3.5;
+                    for (let i = 0; i < 10; i++) {
+                        const rank = 10 - i;
+                        const tr = top10Tracks.find(t => t.rank === rank);
+                        const aUrl = tr?.audioUrl || (tr?.videoUrl && tr.videoUrl.match(/\.(mp3|m4a|aac|wav|ogg)/i) ? tr.videoUrl : '');
+                        if (aUrl) {
+                            audioSegments.push({
+                                url: aUrl,
+                                startOffset: i * singleDur,
+                                sourceOffset: tr?.audioStartTime || tr?.videoStartTime || 0,
+                                duration: singleDur
+                            });
+                        }
                     }
                 }
 
@@ -18560,13 +18620,13 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 type="button"
                                 onClick={() => {
                                     setTop10Tracks(DEFAULT_TOP_10_TRACKS);
-                                    try { localStorage.setItem('dropsiders_top10_tracks_v5', JSON.stringify(DEFAULT_TOP_10_TRACKS)); } catch (_) { }
+                                    try { localStorage.setItem('dropsiders_top10_tracks_v7', JSON.stringify(DEFAULT_TOP_10_TRACKS)); } catch (_) { }
                                     setTimeout(() => generateImage(), 50);
                                 }}
-                                className="text-[8px] text-gray-500 hover:text-red-400 font-bold uppercase transition-colors"
+                                className="px-2 py-1 bg-red-500/10 hover:bg-red-500/25 border border-red-500/30 text-red-400 hover:text-white rounded-lg text-[8.5px] font-black uppercase transition-all"
                                 title="Réinitialiser toutes les 10 pistes à vide"
                             >
-                                ✕ Vider les 10 pistes
+                                ✕ TOUT EFFACER (VIDER LE TOP 10)
                             </button>
                             <span className="text-[9px] font-bold text-gray-400 font-mono">
                                 {Math.round(10 * top10TrackDuration)}s au total
@@ -18698,9 +18758,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             <button
                                 type="button"
                                 onClick={() => {
-                                    updateTop10Track(activeTrack.rank, { artist: '', title: '', videoUrl: '', cover: '', videoStartTime: 0 });
+                                    updateTop10Track(activeTrack.rank, { artist: '', title: '', videoUrl: '', cover: '', audioUrl: '', videoStartTime: 0, audioStartTime: 0 });
                                 }}
-                                className="text-[8px] text-gray-500 hover:text-red-400 font-bold uppercase transition-colors"
+                                className="px-2 py-0.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 hover:text-white rounded-md text-[8px] font-bold uppercase transition-colors"
                                 title="Vider cette position"
                             >
                                 ✕ Vider
@@ -18758,7 +18818,20 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             <input
                                 type="text"
                                 value={activeTrack.cover || ''}
-                                onChange={e => updateTop10Track(activeTrack.rank, { cover: e.target.value })}
+                                onChange={e => {
+                                    const val = e.target.value;
+                                    updateTop10Track(activeTrack.rank, { cover: val });
+                                    if (val) {
+                                        setBgImage(val);
+                                        const im = new Image();
+                                        im.crossOrigin = 'anonymous';
+                                        im.src = val;
+                                        im.onload = () => {
+                                            imageCacheRef.current[val] = im;
+                                            generateImage();
+                                        };
+                                    }
+                                }}
                                 placeholder="URL de la pochette (ou auto-détectée via le lien)..."
                                 className="flex-1 bg-white/5 border border-white/10 rounded-xl p-2 text-white font-mono text-[10px] focus:border-neon-cyan/50 outline-none truncate"
                             />
@@ -18774,29 +18847,57 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                             const reader = new FileReader();
                                             reader.onload = (ev) => {
                                                 const dataUrl = ev.target?.result as string;
-                                                if (dataUrl) updateTop10Track(activeTrack.rank, { cover: dataUrl });
+                                                if (dataUrl) {
+                                                    updateTop10Track(activeTrack.rank, { cover: dataUrl });
+                                                    setBgImage(dataUrl);
+                                                    const im = new Image();
+                                                    im.crossOrigin = 'anonymous';
+                                                    im.src = dataUrl;
+                                                    im.onload = () => {
+                                                        imageCacheRef.current[dataUrl] = im;
+                                                        generateImage();
+                                                    };
+                                                }
                                             };
                                             reader.readAsDataURL(file);
                                         }
                                     }}
                                 />
                             </label>
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setR2TargetType('top10_track_cover');
+                                    setR2TargetIdx(activeTrack.rank);
+                                    setIsR2ModalOpen(true);
+                                }}
+                                className="px-2.5 py-2 bg-white/10 hover:bg-white/20 text-white rounded-xl text-[9px] font-black uppercase transition-all shrink-0 border border-white/10 flex items-center gap-1"
+                                title="Choisir dans la médiathèque Dropsiders R2"
+                            >
+                                <span>🖼️ R2</span>
+                            </button>
                         </div>
                     </div>
 
-                    {/* Clip Vidéo / Audio (Lien YouTube / MP4) */}
+                    {/* Extrait Audio / Vidéo (Spotify, Beatport, Deezer, Soundcloud, YouTube...) */}
                     <div className="space-y-1.5 pt-1 border-t border-white/5">
                         <label className="text-[8.5px] font-black text-white uppercase tracking-wider flex items-center justify-between">
-                            <span>🎵 Lien Vidéo / Audio (Lien YouTube / MP4)</span>
-                            {activeTrack.videoUrl && <span className="text-emerald-400 text-[7.5px] font-mono">✓ Son & vidéo connectés</span>}
+                            <span>🎵 Extrait Audio / Vidéo (Spotify, Beatport, Deezer, YouTube...)</span>
+                            {(activeTrack.audioUrl || activeTrack.videoUrl) ? (
+                                <span className="text-emerald-400 text-[8px] font-mono">
+                                    ✓ Audio connecté ({activeTrack.audioUrl ? 'Beatport/Spotify' : 'Vidéo'})
+                                </span>
+                            ) : (
+                                <span className="text-gray-500 text-[7.5px]">En attente de lien</span>
+                            )}
                         </label>
                         <div className="flex gap-2">
                             <input
                                 type="text"
-                                value={activeTrack.videoUrl || ''}
+                                value={activeTrack.audioUrl || activeTrack.videoUrl || ''}
                                 onChange={e => {
                                     const val = e.target.value;
-                                    updateTop10Track(activeTrack.rank, { videoUrl: val });
+                                    updateTop10Track(activeTrack.rank, { audioUrl: val, videoUrl: val });
                                 }}
                                 onPaste={e => {
                                     const pasted = e.clipboardData.getData('text');
@@ -18806,20 +18907,20 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         }, 100);
                                     }
                                 }}
-                                placeholder="Coller lien YouTube ou MP4..."
+                                placeholder="Coller lien Spotify, Beatport, Deezer, YouTube..."
                                 className="flex-1 bg-white/5 border border-white/10 rounded-xl p-2 text-white font-mono text-[10px] focus:border-neon-cyan/50 outline-none truncate"
                             />
                             <button
                                 type="button"
-                                onClick={() => handleTop10ResolveVideo(activeTrack.rank, activeTrack.videoUrl || '')}
-                                disabled={top10ResolvingRank === activeTrack.rank || !activeTrack.videoUrl}
+                                onClick={() => handleTop10ResolveVideo(activeTrack.rank, activeTrack.audioUrl || activeTrack.videoUrl || '')}
+                                disabled={top10ResolvingRank === activeTrack.rank || (!activeTrack.audioUrl && !activeTrack.videoUrl)}
                                 className="px-3 py-2 bg-neon-cyan/20 border border-neon-cyan text-neon-cyan rounded-xl text-[9px] font-black uppercase hover:bg-neon-cyan hover:text-black transition-all disabled:opacity-40 disabled:pointer-events-none shrink-0"
                             >
-                                {top10ResolvingRank === activeTrack.rank ? '⏳...' : '⚡ Valider'}
+                                {top10ResolvingRank === activeTrack.rank ? '⏳...' : '⚡ Extraire'}
                             </button>
                         </div>
                         <p className="text-[7.5px] text-gray-500 font-mono">
-                            💡 En collant un lien, l'Artiste, le Titre, la Pochette et l'extrait audio sont récupérés automatiquement.
+                            💡 En collant un lien Spotify, Beatport, Deezer ou YouTube, l'Artiste, le Titre, la Pochette et l'extrait audio sont détectés automatiquement sans erreur serveur.
                         </p>
                     </div>
 
@@ -18839,8 +18940,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             <button
                                 type="button"
                                 onClick={() => {
-                                    const next = Math.max(0, (activeTrack.videoStartTime || 0) - 15);
-                                    updateTop10Track(activeTrack.rank, { videoStartTime: next });
+                                    const next = Math.max(0, (activeTrack.audioStartTime || activeTrack.videoStartTime || 0) - 15);
+                                    updateTop10Track(activeTrack.rank, { videoStartTime: next, audioStartTime: next });
                                     const v = activeTrack.videoUrl ? getOrCreateTop10Video(activeTrack.rank, activeTrack.videoUrl) : null;
                                     if (v) try { v.currentTime = next; } catch (_) { }
                                 }}
@@ -18851,8 +18952,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             <button
                                 type="button"
                                 onClick={() => {
-                                    const next = Math.max(0, (activeTrack.videoStartTime || 0) - 5);
-                                    updateTop10Track(activeTrack.rank, { videoStartTime: next });
+                                    const next = Math.max(0, (activeTrack.audioStartTime || activeTrack.videoStartTime || 0) - 5);
+                                    updateTop10Track(activeTrack.rank, { videoStartTime: next, audioStartTime: next });
                                     const v = activeTrack.videoUrl ? getOrCreateTop10Video(activeTrack.rank, activeTrack.videoUrl) : null;
                                     if (v) try { v.currentTime = next; } catch (_) { }
                                 }}
@@ -18863,10 +18964,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             <input
                                 type="number"
                                 min={0}
-                                value={activeTrack.videoStartTime || 0}
+                                value={activeTrack.audioStartTime || activeTrack.videoStartTime || 0}
                                 onChange={e => {
                                     const next = Math.max(0, Number(e.target.value) || 0);
-                                    updateTop10Track(activeTrack.rank, { videoStartTime: next });
+                                    updateTop10Track(activeTrack.rank, { videoStartTime: next, audioStartTime: next });
                                     const v = activeTrack.videoUrl ? getOrCreateTop10Video(activeTrack.rank, activeTrack.videoUrl) : null;
                                     if (v) try { v.currentTime = next; } catch (_) { }
                                 }}
@@ -18875,8 +18976,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             <button
                                 type="button"
                                 onClick={() => {
-                                    const next = (activeTrack.videoStartTime || 0) + 5;
-                                    updateTop10Track(activeTrack.rank, { videoStartTime: next });
+                                    const next = (activeTrack.audioStartTime || activeTrack.videoStartTime || 0) + 5;
+                                    updateTop10Track(activeTrack.rank, { videoStartTime: next, audioStartTime: next });
                                     const v = activeTrack.videoUrl ? getOrCreateTop10Video(activeTrack.rank, activeTrack.videoUrl) : null;
                                     if (v) try { v.currentTime = next; } catch (_) { }
                                 }}
@@ -18887,8 +18988,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             <button
                                 type="button"
                                 onClick={() => {
-                                    const next = (activeTrack.videoStartTime || 0) + 15;
-                                    updateTop10Track(activeTrack.rank, { videoStartTime: next });
+                                    const next = (activeTrack.audioStartTime || activeTrack.videoStartTime || 0) + 15;
+                                    updateTop10Track(activeTrack.rank, { videoStartTime: next, audioStartTime: next });
                                     const v = activeTrack.videoUrl ? getOrCreateTop10Video(activeTrack.rank, activeTrack.videoUrl) : null;
                                     if (v) try { v.currentTime = next; } catch (_) { }
                                 }}
@@ -20110,6 +20211,19 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                             ? `🎬 EXPORTER VIDÉO (${activeTab === 'REEL' ? 'REEL 9:16' : 'POST 1:1'} • ${exportFps} FPS • SLIDE 1 [${editorialSlide1Duration}s] + PROMO [${editorialPromoDuration}s]) • MP4`
                                             : `🎬 EXPORTER CARROUSEL VIDÉO COMPLET (${activeTab === 'REEL' ? 'REEL 9:16' : 'POST 1:1'} • ${exportFps} FPS • ${2 + extraEditorialSlides.length} SLIDES + PROMO) • MP4`}
                             </button>
+                        ) : theme === 'TOP 10 TRACKS' ? (
+                            <button
+                                type="button"
+                                onClick={() => startVideoRecording('NONE')}
+                                disabled={isVideoRecording}
+                                className={`w-full py-3.5 rounded-2xl text-[10px] font-black uppercase flex items-center justify-center gap-2.5 transition-all shadow-xl ${isVideoRecording
+                                    ? 'bg-neon-cyan/30 text-neon-cyan border border-neon-cyan/50 animate-pulse'
+                                    : 'bg-gradient-to-r from-neon-cyan via-blue-500 to-indigo-600 text-black hover:brightness-110 active:scale-[0.98] shadow-[0_0_25px_rgba(0,240,255,0.45)]'
+                                    }`}
+                            >
+                                <Video className="w-4 h-4 text-black" />
+                                {isVideoRecording ? 'CAPTURE TOP 10 TRACKS EN COURS...' : `🎬 EXPORTER LE REEL TOP 10 TRACKS (REEL 9:16 • 10 MORCEAUX • ${Math.round(10 * top10TrackDuration)}s) • MP4`}
+                            </button>
                         ) : (
                             <button
                                 type="button"
@@ -21174,7 +21288,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                             if (theme !== 'JEU_DJ') {
                                                 setDjOriginalImage(url);
                                             }
-                                            setEditorialSlideImages(prev => ({ ...prev, [editorialSlide]: url }));
+                                            if (theme === 'TOP 10 TRACKS') {
+                updateTop10Track(top10ActiveRank, { cover: url });
+                setBgImage(url);
+            }
+            setEditorialSlideImages(prev => ({ ...prev, [editorialSlide]: url }));
                                         }
                                         generateImage();
                                     };
@@ -23610,7 +23728,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     setR2TargetType(null);
                 }}
                 aspect={
-                    (r2TargetType === 'top10' || r2TargetType === 'top5') ? 1 :
+                    (r2TargetType === 'top10' || r2TargetType === 'top5' || r2TargetType === 'top10_track_cover') ? 1 :
                         (r2TargetType === 'background') ? (activeTab === 'REEL' ? 9 / 16 : 1) :
                             undefined
                 }
@@ -23619,13 +23737,26 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     const finalUrl = Array.isArray(url) ? url[0] : url;
                     if (!finalUrl) return;
 
-                    if ((r2TargetType === 'top5' || r2TargetType === 'top10') && r2TargetIdx !== null) {
+                    if (r2TargetType === 'top10_track_cover' && r2TargetIdx !== null) {
+                        updateTop10Track(r2TargetIdx, { cover: finalUrl });
+                        setBgImage(finalUrl);
+                        const img = new Image();
+                        img.crossOrigin = "anonymous";
+                        img.onload = () => {
+                            imageCacheRef.current[finalUrl] = img;
+                            generateImage();
+                        };
+                        img.src = finalUrl;
+                    } else if ((r2TargetType === 'top5' || r2TargetType === 'top10') && r2TargetIdx !== null) {
                         const n = [...top5Items];
                         if (n[r2TargetIdx]) {
                             n[r2TargetIdx].photo = finalUrl;
                             setTop5Items(n);
                         }
                     } else if (r2TargetType === 'background') {
+                        if (theme === 'TOP 10 TRACKS') {
+                            updateTop10Track(top10ActiveRank, { cover: finalUrl });
+                        }
                         const isVid = finalUrl.match(/\.(mp4|webm|mov|ogg)$/i) || finalUrl.includes('/video/upload/');
                         if (isVid) {
                             const video = document.createElement('video');
