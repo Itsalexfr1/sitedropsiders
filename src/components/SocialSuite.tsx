@@ -948,6 +948,16 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const [top10Subtitle, setTop10Subtitle] = useState<string>('FESTIVAL 2026');
     const [top10TrackDuration, setTop10TrackDuration] = useState<number>(3.5); // 3.5s par track
     const [top10ActiveRank, setTop10ActiveRank] = useState<number>(10);
+    const top10TracksRef = useRef<Top10TrackItem[]>(top10Tracks);
+    top10TracksRef.current = top10Tracks;
+    const top10ActiveRankRef = useRef<number>(top10ActiveRank);
+    top10ActiveRankRef.current = top10ActiveRank;
+    const top10TitleRef = useRef<string>(top10Title);
+    top10TitleRef.current = top10Title;
+    const top10SubtitleRef = useRef<string>(top10Subtitle);
+    top10SubtitleRef.current = top10Subtitle;
+    const top10TrackDurationRef = useRef<number>(top10TrackDuration);
+    top10TrackDurationRef.current = top10TrackDuration;
     const top10VideoElementsRef = useRef<Record<number, HTMLVideoElement>>({});
     const [top10ResolvingRank, setTop10ResolvingRank] = useState<number | null>(null);
     const [top10TestingRank, setTop10TestingRank] = useState<number | null>(null);
@@ -956,6 +966,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const updateTop10Track = (rank: number, patch: Partial<Top10TrackItem>) => {
         setTop10Tracks(prev => {
             const next = prev.map(t => Number(t.rank) === Number(rank) ? { ...t, ...patch } : t);
+            top10TracksRef.current = next;
             try {
                 // Évite d'exploser le quota de 5Mo de localStorage avec les grosses images base64
                 const forStorage = next.map(tr => ({
@@ -970,9 +981,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     };
 
     const selectTop10Track = (targetRank: number) => {
+        const numRank = Number(targetRank);
+        top10ActiveRankRef.current = numRank;
         stopPreviewPlayer();
+        const currentTracks = top10TracksRef.current?.length === 10 ? top10TracksRef.current : top10Tracks;
         if (top10TestingRank !== null) {
-            const prevTr = top10Tracks.find(t => Number(t.rank) === Number(top10TestingRank));
+            const prevTr = currentTracks.find(t => Number(t.rank) === Number(top10TestingRank));
             if (prevTr?.videoUrl) {
                 const v = getOrCreateTop10Video(top10TestingRank, prevTr.videoUrl);
                 if (v) try { v.pause(); v.muted = true; } catch (_) { }
@@ -980,10 +994,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             setTop10TestingRank(null);
         }
         if (top10TestTimerRef.current) clearTimeout(top10TestTimerRef.current);
-        setTop10ActiveRank(Number(targetRank));
-        const targetTr = top10Tracks.find(t => Number(t.rank) === Number(targetRank));
+        setTop10ActiveRank(numRank);
+        const targetTr = currentTracks.find(t => Number(t.rank) === numRank);
         if (targetTr?.videoUrl) {
-            const v = getOrCreateTop10Video(targetRank, targetTr.videoUrl);
+            const v = getOrCreateTop10Video(numRank, targetTr.videoUrl);
             if (v && targetTr.videoStartTime) {
                 try { v.currentTime = targetTr.videoStartTime; } catch (_) { }
             }
@@ -8632,7 +8646,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 } else if (theme === 'TOP 10 TRACKS') {
                     const isReel = effectiveTab === 'REEL';
                     const isVideoExport = isVideoRecordingRef.current;
-                    const durPerTrack = top10TrackDuration || 3.5;
+                    const durPerTrack = top10TrackDurationRef.current || top10TrackDuration || 3.5;
+                    const currentTracks = (top10TracksRef.current && top10TracksRef.current.length === 10) ? top10TracksRef.current : top10Tracks;
+                    const currentActiveRank = top10ActiveRankRef.current ?? top10ActiveRank;
 
                     // Déterminer la track active
                     let currentTrackIndex = 0;
@@ -8641,16 +8657,19 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                     if (isVideoExport) {
                         animTime = deterministicAnimTimeRef.current;
-                        currentTrackIndex = Math.min(9, Math.max(0, Math.floor(animTime / durPerTrack)));
+                        const countdownStep = Math.min(9, Math.max(0, Math.floor(animTime / durPerTrack)));
+                        const targetRank = 10 - countdownStep;
+                        const trIdx = currentTracks.findIndex(t => Number(t.rank) === Number(targetRank));
+                        currentTrackIndex = trIdx >= 0 ? trIdx : countdownStep;
                         trackProgress = (animTime % durPerTrack) / durPerTrack;
                     } else {
-                        const trIdx = top10Tracks.findIndex(t => Number(t.rank) === Number(top10ActiveRank));
+                        const trIdx = currentTracks.findIndex(t => Number(t.rank) === Number(currentActiveRank));
                         currentTrackIndex = trIdx >= 0 ? trIdx : 0;
                         animTime = (Date.now() - animStartTimeRef.current) / 1000;
-                        trackProgress = (top10TestingRank === top10ActiveRank) ? ((animTime % durPerTrack) / durPerTrack) : 0.5;
+                        trackProgress = (top10TestingRank === currentActiveRank) ? ((animTime % durPerTrack) / durPerTrack) : 0.5;
                     }
 
-                    const activeTrack = top10Tracks[currentTrackIndex] || top10Tracks[0];
+                    const activeTrack = currentTracks[currentTrackIndex] || currentTracks[0];
                     const activeRank = activeTrack.rank;
 
                     // Thématique couleur du rang (Podium Or, Argent, Bronze ou Cyber Néon)
@@ -8685,6 +8704,15 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             coverImg = imageCacheRef.current[trackCoverSrc];
                         } else if (imageCacheRef.current[resolvedCover] && (imageCacheRef.current[resolvedCover].naturalWidth > 0 || imageCacheRef.current[resolvedCover].complete)) {
                             coverImg = imageCacheRef.current[resolvedCover];
+                        } else if (exportMode || isVideoExport) {
+                            await new Promise<void>((res) => {
+                                loadCorsSafeImage(trackCoverSrc, (loadedImg) => {
+                                    imageCacheRef.current[trackCoverSrc] = loadedImg;
+                                    imageCacheRef.current[resolvedCover] = loadedImg;
+                                    coverImg = loadedImg;
+                                    res();
+                                }, () => res());
+                            });
                         } else {
                             loadCorsSafeImage(trackCoverSrc, (loadedImg) => {
                                 imageCacheRef.current[trackCoverSrc] = loadedImg;
@@ -8797,7 +8825,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.textAlign = 'center';
                     ctx.textBaseline = 'middle';
 
-                    const t10Title = (top10Title || 'TOP 10 DES TRACKS LES PLUS JOUÉES').toUpperCase();
+                    const t10Title = (top10TitleRef.current || top10Title || 'TOP 10 DES TRACKS LES PLUS JOUÉES').toUpperCase();
                     ctx.font = '900 28px "Montserrat", sans-serif';
                     if ('letterSpacing' in ctx) (ctx as any).letterSpacing = '3px';
                     ctx.fillStyle = '#ffffff';
@@ -8805,7 +8833,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.shadowBlur = 12;
                     ctx.fillText(t10Title, canvas.width / 2, 230);
 
-                    const t10Subtitle = (top10Subtitle || 'FESTIVAL 2026').toUpperCase();
+                    const t10Subtitle = (top10SubtitleRef.current || top10Subtitle || 'FESTIVAL 2026').toUpperCase();
                     ctx.font = '800 18px "Montserrat", sans-serif';
                     if ('letterSpacing' in ctx) (ctx as any).letterSpacing = '4px';
                     ctx.fillStyle = rankColor;
@@ -10392,7 +10420,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             anim = requestAnimationFrame(loop);
         } else { generateImage(); }
         return () => cancelAnimationFrame(anim);
-    }, [bgImage, bgVideo, customText, theme, showSwipe, showArticleLink, articleLinkText, showVoteLink, top5Items, currentPreviewIndex, activeTab, rotation, themeColor, isVideoRecording, transitionProgress, showText, planningDate, planningItems, agendaMonth, agendaBadgeText, agendaSlide, agendaCoverBadge, agendaCoverTitle, agendaCoverYear, agendaCoverGenres, agendaCoverCta, showAgendaCoverCta, artisteFestivalSlide, eventsSlide, editorialSlide, isEditorialAfficheActive, isEditorialTweetActive, showTitleOnSlide2, showMusicDate, editorialDate, showDividerDate, citationAuthor, citationMedia, extraEditorialSlides, musicTracks, calendarMonth, calendarEvents, isRetouchMode, retouchPath, isTransparent, showBottomLogo, artistLogo, festivalLogo, bgOffsetX, bgOffsetY, artistNameText, festivalNameText, isArtistLogoNegative, mapFestivalText, mapCityCountry, mapZoom, mapLatitude, mapLongitude, mapStyle, isMapLoading, mapPinColor, mapLabelText, showMapPin, showMapLabel, mapAnimMode, isMapAnimPlaying, mapScrubTime, mapAnimDuration, mapDestLatitude, mapDestLongitude, mapDestFestivalText, mapDestVenue, mapDestCity, mapDestCountry, mapDestPinColor, imgLayoutMode, quizColor1, quizColor2, showFrame, conseilsTitle, conseilsSubtext, isConseilsLargeTitle, concoursFestivalName, concoursFestivalHandle, concoursBottomColor, concoursLateralText, concoursLateralOpacity, concoursBadgeTextColor, concoursMode, concoursGTAHeadline, concoursGTATitle, concoursGTAPlatformText, concoursGTACondition1, concoursGTACondition2, concoursGTACondition3, concoursGTACondition4, afficheImage, afficheGlow, afficheBorderColor, afficheMode, afficheScale, afficheOffsetY, tweetImage, tweetScale, tweetOffsetY, tweetGlow, tweetHeadline, tweetBadge, tweetBorderColor, tweetTranslation, showTweetTranslation, tweetAnimMode, textAnimation, animReplayKey, bgAnimation, cdjPlayerRing, musicBgMotion, isCarouselPromoActive, promoCustomPhrase, promoCustomSubphrase, promoOutroStyle, isPromoAnimPlaying, promoCategory, showPromoHook, showPromoHeadline, showPromoLine1, showPromoLine2, djCutoutImage, djOriginalImage, djSilhouetteColor, djGlowIntensity, djShowQuestionMark, djAppearanceAnim, editorialSlideImages, editorialSlideCutouts, editorialSlideTitles, djSlideModes, agendaAffiches, highlightsSlideArtists, highlightsColorArtist, highlightsColorFestival, highlightsColorCity, highlightsColorCountry, highlightsColorDate, afficheImgZoom, afficheImgPanX, afficheImgPanY]);
+    }, [bgImage, bgVideo, customText, theme, showSwipe, showArticleLink, articleLinkText, showVoteLink, top5Items, currentPreviewIndex, activeTab, rotation, themeColor, isVideoRecording, transitionProgress, showText, planningDate, planningItems, agendaMonth, agendaBadgeText, agendaSlide, agendaCoverBadge, agendaCoverTitle, agendaCoverYear, agendaCoverGenres, agendaCoverCta, showAgendaCoverCta, artisteFestivalSlide, eventsSlide, editorialSlide, isEditorialAfficheActive, isEditorialTweetActive, showTitleOnSlide2, showMusicDate, editorialDate, showDividerDate, citationAuthor, citationMedia, extraEditorialSlides, musicTracks, top10Tracks, top10ActiveRank, top10Title, top10Subtitle, top10TrackDuration, top10TestingRank, calendarMonth, calendarEvents, isRetouchMode, retouchPath, isTransparent, showBottomLogo, artistLogo, festivalLogo, bgOffsetX, bgOffsetY, artistNameText, festivalNameText, isArtistLogoNegative, mapFestivalText, mapCityCountry, mapZoom, mapLatitude, mapLongitude, mapStyle, isMapLoading, mapPinColor, mapLabelText, showMapPin, showMapLabel, mapAnimMode, isMapAnimPlaying, mapScrubTime, mapAnimDuration, mapDestLatitude, mapDestLongitude, mapDestFestivalText, mapDestVenue, mapDestCity, mapDestCountry, mapDestPinColor, imgLayoutMode, quizColor1, quizColor2, showFrame, conseilsTitle, conseilsSubtext, isConseilsLargeTitle, concoursFestivalName, concoursFestivalHandle, concoursBottomColor, concoursLateralText, concoursLateralOpacity, concoursBadgeTextColor, concoursMode, concoursGTAHeadline, concoursGTATitle, concoursGTAPlatformText, concoursGTACondition1, concoursGTACondition2, concoursGTACondition3, concoursGTACondition4, afficheImage, afficheGlow, afficheBorderColor, afficheMode, afficheScale, afficheOffsetY, tweetImage, tweetScale, tweetOffsetY, tweetGlow, tweetHeadline, tweetBadge, tweetBorderColor, tweetTranslation, showTweetTranslation, tweetAnimMode, textAnimation, animReplayKey, bgAnimation, cdjPlayerRing, musicBgMotion, isCarouselPromoActive, promoCustomPhrase, promoCustomSubphrase, promoOutroStyle, isPromoAnimPlaying, promoCategory, showPromoHook, showPromoHeadline, showPromoLine1, showPromoLine2, djCutoutImage, djOriginalImage, djSilhouetteColor, djGlowIntensity, djShowQuestionMark, djAppearanceAnim, editorialSlideImages, editorialSlideCutouts, editorialSlideTitles, djSlideModes, agendaAffiches, highlightsSlideArtists, highlightsColorArtist, highlightsColorFestival, highlightsColorCity, highlightsColorCountry, highlightsColorDate, afficheImgZoom, afficheImgPanX, afficheImgPanY]);
 
     // Rejouer l'animation de texte proprement depuis le début à chaque changement de slide ou de thème
     useEffect(() => {
@@ -10424,6 +10452,24 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             }
         });
     }, [musicTracks]);
+
+    // Pre-charger les pochettes des tracks du thème TOP 10 TRACKS
+    useEffect(() => {
+        if (theme !== 'TOP 10 TRACKS') return;
+        top10Tracks.forEach(t => {
+            const rawCover = t.cover;
+            if (rawCover) {
+                const resolved = resolveImageUrl(rawCover);
+                if (!imageCacheRef.current[rawCover] && !imageCacheRef.current[resolved]) {
+                    loadCorsSafeImage(rawCover, (img) => {
+                        imageCacheRef.current[rawCover] = img;
+                        imageCacheRef.current[resolved] = img;
+                        generateImage();
+                    });
+                }
+            }
+        });
+    }, [theme, top10Tracks]);
 
     // Pre-charger tous les extraits audio en mémoire RAM (zéro buffering, zéro micro-coupure)
     useEffect(() => {
@@ -11581,10 +11627,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 }
 
                 if (theme === 'TOP 10 TRACKS') {
-                    const singleDur = top10TrackDuration || 3.5;
+                    const singleDur = top10TrackDurationRef.current || top10TrackDuration || 3.5;
+                    const currentTracks = (top10TracksRef.current && top10TracksRef.current.length === 10) ? top10TracksRef.current : top10Tracks;
                     for (let i = 0; i < 10; i++) {
                         const rank = 10 - i;
-                        const tr = top10Tracks.find(t => Number(t.rank) === Number(rank));
+                        const tr = currentTracks.find(t => Number(t.rank) === Number(rank));
                         const aUrl = tr?.audioUrl || (tr?.videoUrl && tr.videoUrl.match(/\.(mp3|m4a|aac|wav|ogg)/i) ? tr.videoUrl : '');
                         if (aUrl) {
                             audioSegments.push({
@@ -12179,16 +12226,18 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 }
             }
         } else if (theme === 'TOP 10 TRACKS') {
-            const singleTrackDur = (top10TrackDuration || 3.5);
+            const singleTrackDur = (top10TrackDurationRef.current || top10TrackDuration || 3.5);
             const singleTrackMs = Math.round(singleTrackDur * 1000);
             let prevVideo: HTMLVideoElement | null = null;
+            const currentTracks = (top10TracksRef.current && top10TracksRef.current.length === 10) ? top10TracksRef.current : top10Tracks;
             for (let i = 0; i < 10; i++) {
                 const rank = 10 - i;
                 setTop10ActiveRank(rank);
+                top10ActiveRankRef.current = rank;
                 if (prevVideo) {
                     try { prevVideo.pause(); prevVideo.muted = true; } catch (_) { }
                 }
-                const tr = top10Tracks.find(t => Number(t.rank) === Number(rank));
+                const tr = currentTracks.find(t => Number(t.rank) === Number(rank));
                 let currentV: HTMLVideoElement | null = null;
                 if (tr?.videoUrl) {
                     currentV = getOrCreateTop10Video(rank, tr.videoUrl);
@@ -12201,7 +12250,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     }
                 }
                 prevVideo = currentV;
-                await renderDuration(singleTrackMs, 0);
+                await renderDuration(singleTrackMs, i * singleTrackDur);
             }
             if (prevVideo) {
                 try { prevVideo.pause(); prevVideo.muted = true; } catch (_) { }
@@ -18663,6 +18712,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 type="button"
                                 onClick={() => {
                                     setTop10Tracks(DEFAULT_TOP_10_TRACKS);
+                                    top10TracksRef.current = DEFAULT_TOP_10_TRACKS;
                                     try { localStorage.setItem('dropsiders_top10_tracks_v7', JSON.stringify(DEFAULT_TOP_10_TRACKS)); } catch (_) { }
                                     setTimeout(() => generateImage(), 50);
                                 }}
