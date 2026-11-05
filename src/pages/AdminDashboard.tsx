@@ -13479,6 +13479,77 @@ export function AdminDashboard() {
                         </div>
                       </div>
 
+                      {/* Option Mail Membre (@crew.dropsiders.fr) */}
+                      <div className="p-4 bg-white/5 border border-white/10 rounded-2xl space-y-3 font-outfit">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <h4 className="text-xs font-bold text-white uppercase italic flex items-center gap-2">
+                              <Mail className="w-3.5 h-3.5 text-neon-cyan" />
+                              Boîte Mail Équipe (@crew.dropsiders.fr)
+                              {editingTeamMember.mail_enabled !== false ? (
+                                <span className="text-[8px] bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-2 py-0.5 rounded-full font-mono">
+                                  ACTIVÉ
+                                </span>
+                              ) : (
+                                <span className="text-[8px] bg-white/10 text-gray-400 border border-white/20 px-2 py-0.5 rounded-full font-mono">
+                                  DÉSACTIVÉ
+                                </span>
+                              )}
+                            </h4>
+                            <p className="text-[10px] text-gray-400 mt-0.5">
+                              Activer ou désactiver l'adresse officielle et le relais pour ce membre.
+                            </p>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setEditingTeamMember({
+                                ...editingTeamMember,
+                                mail_enabled: !(editingTeamMember.mail_enabled !== false),
+                              })
+                            }
+                            className={`w-12 h-7 rounded-full p-1 transition-all border ${
+                              editingTeamMember.mail_enabled !== false
+                                ? "bg-neon-cyan border-neon-cyan shadow-[0_0_12px_rgba(0,242,254,0.4)]"
+                                : "bg-black/60 border-white/20"
+                            }`}
+                          >
+                            <div
+                              className={`w-5 h-5 rounded-full bg-white transition-transform ${
+                                editingTeamMember.mail_enabled !== false
+                                  ? "translate-x-5"
+                                  : "translate-x-0"
+                              }`}
+                            />
+                          </button>
+                        </div>
+
+                        {editingTeamMember.mail_enabled !== false && (
+                          <div className="pt-2 border-t border-white/5 space-y-2">
+                            <div>
+                              <label className="block text-[9px] font-black text-neon-cyan uppercase tracking-widest mb-1">
+                                Email de Réception Personnel (Transfert Brevo)
+                              </label>
+                              <input
+                                type="email"
+                                value={editingTeamMember.email || ""}
+                                onChange={(e) =>
+                                  setEditingTeamMember({
+                                    ...editingTeamMember,
+                                    email: e.target.value.toLowerCase().trim(),
+                                  })
+                                }
+                                className="w-full bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-white text-xs font-mono focus:outline-none focus:border-neon-cyan transition-colors"
+                                placeholder="ex: alexflex30@gmail.com"
+                              />
+                            </div>
+                            <p className="text-[9px] text-gray-400">
+                              Adresse @crew attribuée : <strong className="text-neon-cyan font-mono">{(editingTeamMember.name || 'membre').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]/g, '')}@crew.dropsiders.fr</strong>
+                            </p>
+                          </div>
+                        )}
+                      </div>
+
                       <div className="flex gap-4 pt-4">
                         <button
                           onClick={() => {

@@ -30,6 +30,8 @@ export interface UnifiedPerson {
     permissions: string[];
     verified?: boolean;
     created?: string;
+    dropsidersEmail?: string;
+    mailEnabled?: boolean;
 }
 
 export const ROLE_PRESETS = [
@@ -344,6 +346,12 @@ export function AdminTeam() {
             const perms = matchedEditor?.permissions || tm.permissions || [];
             const hasAdminAccess = !!matchedEditor || (perms.length > 0);
 
+            const cleanPrefix = (tm.name || matchedEditor?.pseudo || matchedEditor?.username || 'membre')
+                .toLowerCase()
+                .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+                .replace(/[^a-z0-9]/g, '');
+            const defaultCrewEmail = `${cleanPrefix}@crew.dropsiders.fr`;
+
             result.push({
                 id: tm.id || Date.now() + Math.random(),
                 name: tm.name || matchedEditor?.pseudo || matchedEditor?.username || 'Membre',
@@ -354,6 +362,8 @@ export function AdminTeam() {
                 hasAdminAccess: hasAdminAccess,
                 email: matchedEditor?.email || tm.email || '',
                 originalEmail: matchedEditor?.email,
+                dropsidersEmail: matchedEditor?.dropsiders_email || tm.dropsiders_email || defaultCrewEmail,
+                mailEnabled: matchedEditor?.mail_enabled !== undefined ? (matchedEditor.mail_enabled !== false) : (tm.mail_enabled !== false),
                 preset: detectPreset(perms),
                 permissions: perms,
                 verified: matchedEditor?.verified !== false,
@@ -366,6 +376,12 @@ export function AdminTeam() {
             const cleanEmail = (ed.email || '').toLowerCase().trim();
             if (!matchedEditorEmails.has(cleanEmail)) {
                 const perms = ed.permissions || [];
+                const cleanPrefix = (ed.pseudo || ed.username || ed.name || 'editeur')
+                    .toLowerCase()
+                    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+                    .replace(/[^a-z0-9]/g, '');
+                const defaultCrewEmail = `${cleanPrefix}@crew.dropsiders.fr`;
+
                 result.push({
                     id: Date.now() + Math.floor(Math.random() * 100000),
                     name: ed.name || ed.pseudo || ed.username || 'Éditeur',
@@ -376,6 +392,8 @@ export function AdminTeam() {
                     hasAdminAccess: true,
                     email: ed.email || '',
                     originalEmail: ed.email,
+                    dropsidersEmail: ed.dropsiders_email || defaultCrewEmail,
+                    mailEnabled: ed.mail_enabled !== false,
                     preset: detectPreset(perms),
                     permissions: perms,
                     verified: ed.verified !== false,
@@ -508,6 +526,8 @@ export function AdminTeam() {
             showOnPublicSite: true,
             hasAdminAccess: true,
             email: '',
+            dropsidersEmail: '',
+            mailEnabled: true,
             preset: 'editorial',
             permissions: [...ROLE_PRESETS.find(p => p.id === 'editorial')!.permissions],
             verified: false
@@ -519,7 +539,11 @@ export function AdminTeam() {
 
     // Open Modal to Edit
     const openEditModal = (person: UnifiedPerson) => {
-        setEditingPerson({ ...person });
+        setEditingPerson({
+            ...person,
+            dropsidersEmail: person.dropsidersEmail || `${person.name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]/g, '')}@crew.dropsiders.fr`,
+            mailEnabled: person.mailEnabled !== false
+        });
         setActiveModalTab('public');
         setShowCustomPerms(person.preset === 'custom');
         setIsModalOpen(true);
@@ -678,7 +702,10 @@ export function AdminTeam() {
                     name: p.name.trim(),
                     role: p.role.trim() || 'Membre Team',
                     image: p.image,
-                    socials: p.socials
+                    socials: p.socials,
+                    email: p.email?.trim() || '',
+                    dropsiders_email: p.mailEnabled !== false ? (p.dropsidersEmail || `${p.name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]/g, '')}@crew.dropsiders.fr`) : null,
+                    mail_enabled: p.mailEnabled !== false
                 }));
 
             await apiFetch('/api/team/update', {
@@ -686,6 +713,9 @@ export function AdminTeam() {
                 headers: getAuthHeaders(),
                 body: JSON.stringify({ members: publicMembers })
             });
+
+            const defaultDropsidersEmail = `${editingPerson.name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]/g, '')}@crew.dropsiders.fr`;
+            const resolvedDropsidersEmail = editingPerson.dropsidersEmail?.trim() || defaultDropsidersEmail;
 
             // 2. Synchronize Editor permissions (for /api/editors/update-permissions)
             if (editingPerson.hasAdminAccess && editingPerson.email.trim()) {
@@ -699,7 +729,9 @@ export function AdminTeam() {
                         role: editingPerson.role.trim(),
                         permissions: permsToSave,
                         isInvite: editingPerson.verified === false,
-                        verified: editingPerson.verified !== false
+                        verified: editingPerson.verified !== false,
+                        dropsiders_email: editingPerson.mailEnabled !== false ? resolvedDropsidersEmail : null,
+                        mail_enabled: editingPerson.mailEnabled !== false
                     })
                 });
 
@@ -711,8 +743,24 @@ export function AdminTeam() {
                         body: JSON.stringify({ email: editingPerson.originalEmail })
                     });
                 }
+            } else if (editingPerson.email.trim() && editingPerson.mailEnabled !== false) {
+                // Member without admin access, but with mail routing active
+                await apiFetch('/api/editors/update-permissions', {
+                    method: 'POST',
+                    headers: getAuthHeaders(),
+                    body: JSON.stringify({
+                        email: editingPerson.email.trim(),
+                        pseudo: editingPerson.name.trim(),
+                        role: editingPerson.role.trim(),
+                        permissions: [],
+                        isInvite: false,
+                        verified: true,
+                        dropsiders_email: resolvedDropsidersEmail,
+                        mail_enabled: true
+                    })
+                });
             } else if (!editingPerson.hasAdminAccess && editingPerson.originalEmail) {
-                // Admin access was removed: delete editor from backend
+                // Admin access and mail were removed: delete editor from backend
                 await apiFetch('/api/editors/delete', {
                     method: 'POST',
                     headers: getAuthHeaders(),
@@ -1118,6 +1166,22 @@ export function AdminTeam() {
                                                     </div>
                                                 )}
 
+                                                {person.dropsidersEmail && (
+                                                    <div className="text-[10px] text-gray-400 font-mono truncate flex items-center justify-between gap-1.5 pt-1">
+                                                        <div className="flex items-center gap-1.5 truncate">
+                                                            <Mail className="w-3 h-3 text-neon-cyan shrink-0" />
+                                                            <span className="truncate text-neon-cyan/90">{person.dropsidersEmail}</span>
+                                                        </div>
+                                                        <span className={`text-[8px] font-black uppercase px-1.5 py-0.5 rounded border shrink-0 ${
+                                                            person.mailEnabled !== false
+                                                                ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
+                                                                : 'bg-white/5 text-gray-500 border-white/10'
+                                                        }`}>
+                                                            {person.mailEnabled !== false ? 'Mail On' : 'Mail Off'}
+                                                        </span>
+                                                    </div>
+                                                )}
+
                                                 {person.hasAdminAccess && person.email && (
                                                     <div className="flex items-center justify-between pt-2 border-t border-white/5">
                                                         <span className="text-[9px] font-bold uppercase">
@@ -1505,6 +1569,74 @@ export function AdminTeam() {
                                                     <p className="text-[10px] text-gray-500 mt-1">
                                                         Cette adresse e-mail sera utilisée pour recevoir l'invitation et valider la connexion Google ou mot de passe.
                                                     </p>
+                                                </div>
+
+                                                {/* Option: Boîte Mail & Transfert @crew.dropsiders.fr */}
+                                                <div className="p-5 bg-white/[0.03] border border-white/10 rounded-2xl space-y-4">
+                                                    <div className="flex items-center justify-between">
+                                                        <div>
+                                                            <h5 className="text-xs font-bold text-white uppercase italic flex items-center gap-2">
+                                                                 <Mail className="w-4 h-4 text-neon-cyan" />
+                                                                 Boîte Mail Équipe (@crew.dropsiders.fr)
+                                                                 {editingPerson.mailEnabled !== false ? (
+                                                                     <span className="text-[9px] bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 px-2.5 py-0.5 rounded-full font-mono font-bold tracking-wider">
+                                                                         MAIL ACTIVÉ
+                                                                     </span>
+                                                                 ) : (
+                                                                     <span className="text-[9px] bg-white/10 text-gray-400 border border-white/20 px-2.5 py-0.5 rounded-full font-mono font-bold tracking-wider">
+                                                                         MAIL DÉSACTIVÉ
+                                                                     </span>
+                                                                 )}
+                                                             </h5>
+                                                             <p className="text-[10px] text-gray-400 mt-0.5">
+                                                                 Activer ou désactiver l'adresse officielle et le relais des emails entrants pour ce membre.
+                                                             </p>
+                                                        </div>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => setEditingPerson({
+                                                                ...editingPerson,
+                                                                mailEnabled: !(editingPerson.mailEnabled !== false)
+                                                            })}
+                                                            className={`w-14 h-8 rounded-full p-1 transition-all border ${
+                                                                editingPerson.mailEnabled !== false
+                                                                    ? 'bg-neon-cyan border-neon-cyan shadow-[0_0_15px_rgba(0,242,254,0.4)]'
+                                                                    : 'bg-black/60 border-white/20'
+                                                            }`}
+                                                        >
+                                                            <div className={`w-6 h-6 rounded-full bg-white transition-transform ${
+                                                                editingPerson.mailEnabled !== false ? 'translate-x-6' : 'translate-x-0'
+                                                            }`} />
+                                                        </button>
+                                                    </div>
+
+                                                    {editingPerson.mailEnabled !== false && (
+                                                        <div className="pt-3 border-t border-white/5 space-y-3">
+                                                            <div>
+                                                                <label className="block text-[10px] font-black text-neon-cyan uppercase tracking-widest mb-1.5">
+                                                                    Adresse @crew.dropsiders.fr assignée
+                                                                </label>
+                                                                <input
+                                                                    type="text"
+                                                                    value={editingPerson.dropsidersEmail !== undefined ? editingPerson.dropsidersEmail : (editingPerson.name ? `${editingPerson.name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]/g, '')}@crew.dropsiders.fr` : '')}
+                                                                    onChange={(e) => setEditingPerson({ ...editingPerson, dropsidersEmail: e.target.value.toLowerCase().trim() })}
+                                                                    placeholder="prenom@crew.dropsiders.fr"
+                                                                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-xs text-white font-mono focus:outline-none focus:border-neon-cyan transition-all"
+                                                                />
+                                                            </div>
+                                                            <div className="p-3 bg-neon-cyan/5 border border-neon-cyan/20 rounded-xl text-[11px] text-gray-300 flex items-start gap-2">
+                                                                <span className="text-neon-cyan font-bold text-xs mt-0.5">⚡</span>
+                                                                <div>
+                                                                    <span className="font-semibold text-white">Relais Brevo actif : </span>
+                                                                    {editingPerson.email ? (
+                                                                        <span>Les messages reçus sur cette adresse sont automatiquement transférés vers <strong className="text-neon-cyan font-mono">{editingPerson.email}</strong>.</span>
+                                                                    ) : (
+                                                                        <span className="text-neon-red font-medium">Renseignez l'email de connexion ci-dessus pour recevoir les notifications.</span>
+                                                                    )}
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    )}
                                                 </div>
 
                                                 {/* Compte Validé / En attente Toggle */}

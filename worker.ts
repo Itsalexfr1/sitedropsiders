@@ -4691,7 +4691,7 @@ ${urls.map(u => `  <url>
         }
 
         if (path === '/api/editors/update-permissions' && request.method === 'POST') {
-            const { email, permissions, pseudo, role, isInvite, verified } = await request.json();
+            const { email, permissions, pseudo, role, isInvite, verified, dropsiders_email, mail_enabled } = await request.json();
             const cleanEmail = email.toLowerCase().trim();
             const file = await fetchGitHubFile(EDITORS_PATH, gitConfig) || { content: [], sha: null };
 
@@ -4710,10 +4710,14 @@ ${urls.map(u => `  <url>
                 } else if (isInvite !== undefined) {
                     file.content[index].verified = !isInvite;
                 }
+                if (dropsiders_email !== undefined) file.content[index].dropsiders_email = dropsiders_email;
+                if (mail_enabled !== undefined) file.content[index].mail_enabled = mail_enabled;
             } else {
                 // Create new editor mapping
                 file.content.push({
                     email: cleanEmail,
+                    dropsiders_email: dropsiders_email || null,
+                    mail_enabled: mail_enabled !== false,
                     username: pseudo || '',
                     pseudo: pseudo || '',
                     role: role || '',
@@ -8288,9 +8292,15 @@ ${urls.map(u => `  <url>
                         (e.pseudo && e.pseudo.toLowerCase().startsWith(usernamePrefix))
                     );
 
-                    if (matchedEditor && matchedEditor.email) {
-                        destinationEmail = matchedEditor.email;
-                        destinationName = matchedEditor.pseudo || matchedEditor.username || 'Membre Dropsiders';
+                    if (matchedEditor) {
+                        if (matchedEditor.mail_enabled === false) {
+                            console.log(`[BREVO INBOUND] Mail routing explicitly disabled for ${matchedEditor.pseudo || matchedEditor.email}. Skipping notification email.`);
+                            continue;
+                        }
+                        if (matchedEditor.email) {
+                            destinationEmail = matchedEditor.email;
+                            destinationName = matchedEditor.pseudo || matchedEditor.username || 'Membre Dropsiders';
+                        }
                     } else if (toAddress.includes('guillaume')) {
                         destinationEmail = 'guillaume.chery.naumont@gmail.com';
                         destinationName = 'Guillaume (Vidéaste)';
