@@ -938,7 +938,13 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             const saved = localStorage.getItem('dropsiders_top10_tracks_v7');
             if (saved) {
                 const parsed = JSON.parse(saved);
-                if (Array.isArray(parsed) && parsed.length === 10) return parsed;
+                if (Array.isArray(parsed) && parsed.length === 10) {
+                    return parsed.map((tr: Top10TrackItem) => ({
+                        ...tr,
+                        // Assainir tout blob URL périmé qui bloquerait la lecture audio
+                        audioUrl: (tr.audioUrl && tr.audioUrl.startsWith('blob:')) ? (tr.sourceUrl || '') : tr.audioUrl
+                    }));
+                }
             }
         } catch (_) { }
         return DEFAULT_TOP_10_TRACKS;
@@ -946,7 +952,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
     const [top10Title, setTop10Title] = useState<string>('TOP 10 DES TRACKS LES PLUS JOUÉES');
     const [top10Subtitle, setTop10Subtitle] = useState<string>('FESTIVAL 2026');
-    const [top10TrackDuration, setTop10TrackDuration] = useState<number>(3.5); // 3.5s par track
+    const [top10HasPromoOutro, setTop10HasPromoOutro] = useState<boolean>(true); // Outro Téléphone 3D à la fin
+    const [top10TrackDuration, setTop10TrackDuration] = useState<number>(5.3); // 5.3s × 10 + 7s outro = 60s (1 min pile)
     const [top10ActiveRank, setTop10ActiveRank] = useState<number>(10);
     const top10TracksRef = useRef<Top10TrackItem[]>(top10Tracks);
     top10TracksRef.current = top10Tracks;
@@ -958,6 +965,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     top10SubtitleRef.current = top10Subtitle;
     const top10TrackDurationRef = useRef<number>(top10TrackDuration);
     top10TrackDurationRef.current = top10TrackDuration;
+    const top10HasPromoOutroRef = useRef<boolean>(top10HasPromoOutro);
+    top10HasPromoOutroRef.current = top10HasPromoOutro;
     const top10VideoElementsRef = useRef<Record<number, HTMLVideoElement>>({});
     const [top10ResolvingRank, setTop10ResolvingRank] = useState<number | null>(null);
     const [top10TestingRank, setTop10TestingRank] = useState<number | null>(null);
@@ -968,10 +977,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             const next = prev.map(t => Number(t.rank) === Number(rank) ? { ...t, ...patch } : t);
             top10TracksRef.current = next;
             try {
-                // Évite d'exploser le quota de 5Mo de localStorage avec les grosses images base64
+                // Évite d'exploser le quota de 5Mo de localStorage avec les grosses images base64 et ne jamais persister de blob URL audio éphémère
                 const forStorage = next.map(tr => ({
                     ...tr,
-                    cover: (tr.cover && tr.cover.startsWith('data:') && tr.cover.length > 50000) ? '' : tr.cover
+                    cover: (tr.cover && tr.cover.startsWith('data:') && tr.cover.length > 50000) ? '' : tr.cover,
+                    audioUrl: (tr.audioUrl && tr.audioUrl.startsWith('blob:')) ? (tr.sourceUrl || '') : tr.audioUrl
                 }));
                 localStorage.setItem('dropsiders_top10_tracks_v7', JSON.stringify(forStorage));
             } catch (_) { }
@@ -1109,11 +1119,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
             // E) Préchargement audio en Blob mémoire vive (RAM) pour éliminer les latences et coupures
             if (extractedAudio) {
-                getPreloadedAudioBlobUrl(extractedAudio).then(blobUrl => {
-                    if (blobUrl) {
-                        updateTop10Track(rank, { audioUrl: blobUrl });
-                    }
-                });
+                getPreloadedAudioBlobUrl(extractedAudio).catch(() => null);
             }
 
             const patch: Partial<Top10TrackItem> = {
@@ -1869,10 +1875,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         }
     };
 
-    const handleTop10TestClip = (rank: number) => {
-        const tr = top10Tracks.find(t => Number(t.rank) === Number(rank));
+    const handleTop10TestClip = async (rank: number) => {
+        const currentTracks = (top10TracksRef.current && top10TracksRef.current.length === 10) ? top10TracksRef.current : top10Tracks;
+        const tr = currentTracks.find(t => Number(t.rank) === Number(rank));
         if (!tr) return;
-        const soundSrc = tr.audioUrl || (tr.videoUrl && tr.videoUrl.match(/\.(mp3|m4a|aac|wav|ogg)/i) ? tr.videoUrl : '');
 
         if (Number(top10TestingRank) === Number(rank)) {
             stopPreviewPlayer();
@@ -1885,7 +1891,17 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             return;
         }
 
-        const dur = (top10TrackDuration || 3.5) * 1000;
+        let soundSrc = tr.audioUrl || (tr.videoUrl && tr.videoUrl.match(/\.(mp3|m4a|aac|wav|ogg)/i) ? tr.videoUrl : '');
+
+        // Si l'audio n'est pas encore extrait mais qu'une URL source est disponible, tenter l'extraction
+        if (!soundSrc && tr.sourceUrl) {
+            await handleTop10ResolveVideo(rank, tr.sourceUrl);
+            const updatedTracks = top10TracksRef.current || currentTracks;
+            const updatedTr = updatedTracks.find(t => Number(t.rank) === Number(rank));
+            soundSrc = updatedTr?.audioUrl || '';
+        }
+
+        const dur = (top10TrackDurationRef.current || top10TrackDuration || 5.3) * 1000;
 
         if (soundSrc) {
             playAudioPreviewFrom(soundSrc, tr.audioStartTime || tr.videoStartTime || 0);
@@ -8722,33 +8738,53 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         }
                     }
 
-                    // 1. Fond Dynamique Animé Immersif (Style Tomorrowland One World Radio)
+                    // 1. Fond Dynamique Animé Immersif (Vidéo de fond personnalisée ou Style Tomorrowland One World Radio)
                     ctx.save();
                     ctx.fillStyle = '#020306';
                     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-                    // A) Dérive cinématique floutée de la pochette propre à cette track
-                    const bgSource = (coverImg && (coverImg.naturalWidth > 0 || coverImg.complete))
-                        ? coverImg
-                        : null;
-                    if (bgSource) {
+                    // A) Si une vidéo d'arrière-plan personnalisée a été importée par l'utilisateur
+                    if (bgVideo && (bgVideo.videoWidth > 0 || bgVideo.readyState >= 2)) {
                         ctx.save();
-                        const bgScale = 1.15 + Math.sin(animTime * 0.40) * 0.05;
-                        const bgDriftX = Math.sin(animTime * 0.30) * 28;
-                        const bgDriftY = Math.cos(animTime * 0.22) * 22;
+                        const vScale = Math.max(canvas.width / bgVideo.videoWidth, canvas.height / bgVideo.videoHeight);
+                        const vw = bgVideo.videoWidth * vScale;
+                        const vh = bgVideo.videoHeight * vScale;
+                        const vx = ((canvas.width - vw) / 2) + bgOffsetX;
+                        const vy = ((canvas.height - vh) / 2) + bgOffsetY;
+                        ctx.drawImage(bgVideo, vx, vy, vw, vh);
 
-                        ctx.translate(canvas.width / 2 + bgDriftX, canvas.height / 2 + bgDriftY);
-                        ctx.scale(bgScale, bgScale);
-
-                        if ('filter' in ctx) {
-                            (ctx as any).filter = 'blur(45px) brightness(0.40) saturate(1.45)';
-                        }
-                        ctx.globalAlpha = 0.85;
-                        ctx.drawImage(bgSource, -canvas.width / 2 - 40, -canvas.height / 2 - 40, canvas.width + 80, canvas.height + 80);
-                        if ('filter' in ctx) {
-                            (ctx as any).filter = 'none';
-                        }
+                        // Voile d'ambiance festival sombre pour faire ressortir la pochette et les titres
+                        const bgDarkOverlay = ctx.createLinearGradient(0, 0, 0, canvas.height);
+                        bgDarkOverlay.addColorStop(0, 'rgba(2, 3, 6, 0.55)');
+                        bgDarkOverlay.addColorStop(0.5, 'rgba(2, 3, 6, 0.70)');
+                        bgDarkOverlay.addColorStop(1, 'rgba(2, 3, 6, 0.92)');
+                        ctx.fillStyle = bgDarkOverlay;
+                        ctx.fillRect(0, 0, canvas.width, canvas.height);
                         ctx.restore();
+                    } else {
+                        // Sinon dérive cinématique floutée de la pochette propre à cette track
+                        const bgSource = (coverImg && (coverImg.naturalWidth > 0 || coverImg.complete))
+                            ? coverImg
+                            : null;
+                        if (bgSource) {
+                            ctx.save();
+                            const bgScale = 1.15 + Math.sin(animTime * 0.40) * 0.05;
+                            const bgDriftX = Math.sin(animTime * 0.30) * 28;
+                            const bgDriftY = Math.cos(animTime * 0.22) * 22;
+
+                            ctx.translate(canvas.width / 2 + bgDriftX, canvas.height / 2 + bgDriftY);
+                            ctx.scale(bgScale, bgScale);
+
+                            if ('filter' in ctx) {
+                                (ctx as any).filter = 'blur(45px) brightness(0.40) saturate(1.45)';
+                            }
+                            ctx.globalAlpha = 0.85;
+                            ctx.drawImage(bgSource, -canvas.width / 2 - 40, -canvas.height / 2 - 40, canvas.width + 80, canvas.height + 80);
+                            if ('filter' in ctx) {
+                                (ctx as any).filter = 'none';
+                            }
+                            ctx.restore();
+                        }
                     }
 
                     // B) Onde d'énergie / Aura pulsante concentrique One World Radio
@@ -10909,7 +10945,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         } else if (theme === 'TOP 10 FESTIVAL') {
             totalDuration = 4 * (16800 + 1200); // 4 slides (Cover + 3 Grid pages)
         } else if (theme === 'TOP 10 TRACKS') {
-            totalDuration = Math.round(10 * (top10TrackDuration || 3.5) * 1000);
+            totalDuration = 60000; // Strictement 1 min pile (60s) : 10 tracks × 5.3s (53s) + 7s Outro Téléphone 3D
         } else {
             const isReelWithPromo = (activeTab === 'REEL' && combinedMode === 'NONE' && theme !== 'PROMO');
             if (theme === 'MUSIQUE') {
@@ -11526,7 +11562,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             }
 
             // Détection de présence de son dans le projet
-            const hasAnyTop10Audio = theme === 'TOP 10 TRACKS' && top10Tracks.some(t => Boolean(t.audioUrl || t.videoUrl));
+            const currentTracksForAudio = (top10TracksRef.current && top10TracksRef.current.length === 10) ? top10TracksRef.current : top10Tracks;
+            const hasAnyTop10Audio = theme === 'TOP 10 TRACKS' && currentTracksForAudio.some(t => Boolean(t.audioUrl || t.videoUrl));
             const hasAnyAudioSource = Boolean(bgVideoBlob || hasAnyMusicAudio || hasAnyTop10Audio || (bgVideo && (bgVideo.currentSrc || bgVideo.src)));
 
             // FAST-PATH MP4 : si STRICTEMENT AUCUN SON dans le projet (vidéo muette), téléchargement direct immédiat
@@ -11627,7 +11664,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 }
 
                 if (theme === 'TOP 10 TRACKS') {
-                    const singleDur = top10TrackDurationRef.current || top10TrackDuration || 3.5;
+                    const singleDur = 5.3; // 10 tracks x 5.3s = 53s audio
                     const currentTracks = (top10TracksRef.current && top10TracksRef.current.length === 10) ? top10TracksRef.current : top10Tracks;
                     for (let i = 0; i < 10; i++) {
                         const rank = 10 - i;
@@ -12226,8 +12263,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 }
             }
         } else if (theme === 'TOP 10 TRACKS') {
-            const singleTrackDur = (top10TrackDurationRef.current || top10TrackDuration || 3.5);
-            const singleTrackMs = Math.round(singleTrackDur * 1000);
+            const singleTrackDur = 5.3; // 10 tracks × 5.3s = 53s
+            const singleTrackMs = 5300;
             let prevVideo: HTMLVideoElement | null = null;
             const currentTracks = (top10TracksRef.current && top10TracksRef.current.length === 10) ? top10TracksRef.current : top10Tracks;
             for (let i = 0; i < 10; i++) {
@@ -12255,6 +12292,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             if (prevVideo) {
                 try { prevVideo.pause(); prevVideo.muted = true; } catch (_) { }
             }
+
+            // OUTRO TÉLÉPHONE 3D AUTOMATIQUE (7.0s) : TOTAL 1 MINUTE PILE (60S)
+            promoOutroOverrideRef.current = true;
+            animStartTimeRef.current = Date.now();
+            await renderDuration(7000, 53.0);
         } else {
             if (theme === 'MUSIQUE' && musicAudioEl) {
                 let singleAudioUrl = '';
@@ -18721,8 +18763,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             >
                                 ✕ TOUT EFFACER (VIDER LE TOP 10)
                             </button>
-                            <span className="text-[9px] font-bold text-gray-400 font-mono">
-                                {Math.round(10 * top10TrackDuration)}s au total
+                            <span className="text-[9px] font-bold text-neon-cyan font-mono">
+                                1 min pile (60s)
                             </span>
                         </div>
                     </div>
@@ -18759,33 +18801,19 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         />
                     </div>
 
-                    {/* Durée par track */}
-                    <div className="space-y-1.5 pt-1">
+                    {/* Durée strictement fixe à 1 minute pile (60s) */}
+                    <div className="p-3 bg-neon-cyan/10 border border-neon-cyan/30 rounded-xl space-y-1">
                         <div className="flex items-center justify-between">
-                            <label className="text-[8.5px] font-black text-gray-400 uppercase tracking-wider">
-                                Durée d'extrait par track
-                            </label>
-                            <span className="text-[10px] font-black text-white font-mono">
-                                {top10TrackDuration}s
+                            <span className="text-[9px] font-black text-neon-cyan uppercase tracking-wider flex items-center gap-1.5">
+                                ⏱️ Durée Totale : 1 Minute Pile (60s)
+                            </span>
+                            <span className="px-1.5 py-0.5 bg-neon-cyan/20 text-neon-cyan text-[7.5px] font-black uppercase rounded">
+                                Verrouillé 1 Min
                             </span>
                         </div>
-                        <input
-                            type="range"
-                            min={2}
-                            max={6}
-                            step={0.5}
-                            value={top10TrackDuration}
-                            onChange={e => {
-                                setTop10TrackDuration(Number(e.target.value));
-                                generateImage();
-                            }}
-                            className="w-full accent-neon-cyan bg-white/10 rounded-lg h-2 cursor-pointer"
-                        />
-                        <div className="flex justify-between text-[7.5px] text-gray-500 font-mono">
-                            <span>2s (Flash)</span>
-                            <span>3.5s (Recommandé)</span>
-                            <span>6s (Long)</span>
-                        </div>
+                        <p className="text-[8px] text-gray-300 font-mono">
+                            10 tracks × 5.3s (53s) + 7s Outro Téléphone 3D = 60s pile.
+                        </p>
                     </div>
                 </div>
 
@@ -19132,16 +19160,16 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     </div>
                 </div>
 
-                {/* 4. BOUTON EXPORT VIDÉO REEL 9:16 */}
+                {/* 4. BOUTON EXPORT VIDÉO REEL 9:16 (1 MIN PILE / 60S) */}
                 <button
                     type="button"
                     onClick={() => startVideoRecording('NONE')}
                     className="w-full py-3.5 bg-gradient-to-r from-neon-red via-red-600 to-amber-500 hover:brightness-110 text-white rounded-2xl text-[11px] font-black uppercase tracking-wider transition-all flex items-center justify-center gap-2 shadow-[0_0_25px_rgba(255,0,51,0.4)] active:scale-98"
                 >
-                    <Sparkles className="w-4 h-4" /> 🎬 EXPORTER VIDÉO TOP 10 (9:16 - {Math.round(10 * top10TrackDuration)}s)
+                    <Sparkles className="w-4 h-4" /> 🎬 EXPORTER VIDÉO TOP 10 (9:16 - 1 MIN / 60S)
                 </button>
                 <p className="text-[7.5px] text-center text-gray-500 font-mono">
-                    Enchaîne automatiquement les 10 tracks du #10 au #1 avec vidéo et transitions
+                    Enchaîne les 10 tracks (#10 ➔ #1) puis l'outro interactive Téléphone 3D (60s pile)
                 </p>
             </div>
         );
