@@ -8351,7 +8351,7 @@ ${urls.map(u => `  <url>
           <!-- Top Neon Header -->
           <tr>
             <td align="center" style="padding: 32px 24px 24px 24px; background: linear-gradient(180deg, rgba(255, 18, 65, 0.18) 0%, rgba(18, 19, 28, 0) 100%); border-bottom: 1px solid rgba(255, 18, 65, 0.2);">
-              <img src="https://dropsiders.fr/Logo.png" alt="Dropsiders" width="85" style="display: block; margin: 0 auto 16px auto; max-width: 85px; height: auto; filter: drop-shadow(0 0 18px rgba(255,18,65,0.85));" />
+              <img src="https://dropsiders.fr/Logo.png" alt="Dropsiders" width="165" style="display: block; margin: 0 auto 18px auto; max-width: 165px; height: auto; filter: drop-shadow(0 0 20px rgba(255,18,65,0.85));" />
               <div style="display: inline-block; padding: 4px 14px; border-radius: 9999px; background-color: rgba(255, 18, 65, 0.14); border: 1px solid rgba(255, 18, 65, 0.4); color: #ff3b5c; font-size: 10px; font-weight: 900; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 10px;">
                 ⚡ Message Crew Entrant
               </div>
