@@ -1,19 +1,19 @@
 import { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { 
-    Globe, 
-    Sparkles, 
-    Code2, 
-    Zap, 
-    ShieldCheck, 
-    Smartphone, 
-    ArrowRight, 
-    CheckCircle2, 
-    Radio, 
-    ShoppingBag, 
-    Calendar, 
-    Database, 
+import {
+    Globe,
+    Sparkles,
+    Code2,
+    Zap,
+    ShieldCheck,
+    Smartphone,
+    ArrowRight,
+    CheckCircle2,
+    Radio,
+    ShoppingBag,
+    Calendar,
+    Database,
     Mail,
     Server,
     TrendingUp,
@@ -27,7 +27,14 @@ import {
     Phone,
     Clock,
     DollarSign,
-    Check
+    Check,
+    Tv,
+    Play,
+    Volume2,
+    Sliders,
+    Eye,
+    Lock,
+    Award
 } from 'lucide-react';
 import { SEO } from '../components/utils/SEO';
 
@@ -38,9 +45,12 @@ export function Websiders() {
     const [email, setEmail] = useState('');
     const [phone, setPhone] = useState('');
     const [projectType, setProjectType] = useState('Site Vitrine / Portfolio');
-    const [budget, setBudget] = useState('1 500 € – 3 000 €');
-    const [timeline, setTimeline] = useState('1 à 3 mois');
+    const [budget, setBudget] = useState('500 € – 1 500 €');
+    const [timeline, setTimeline] = useState('⚡ Livraison Express (Sous 1 semaine max)');
     const [description, setDescription] = useState('');
+
+    // Active Dashboard Modal Tab Preview
+    const [activeModalTab, setActiveModalTab] = useState<'radio' | 'tv' | 'agenda' | 'social' | 'team'>('radio');
 
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isSuccess, setIsSuccess] = useState(false);
@@ -108,7 +118,7 @@ ${description.trim()}`,
             icon: <Code2 className="w-6 h-6 text-neon-cyan" />,
             badge: "FRONT-END & PWA",
             title: "Technologie React 19 & PWA",
-            valueAgency: "6 000 € – 9 000 € en agence",
+            valueAgency: "Livraison sous 1 semaine max",
             points: [
                 "Développement 100% sur mesure en React, TypeScript et Tailwind CSS (aucun CMS lourd)",
                 "PWA installable sur smartphone (iOS / Android) comme une véritable application",
@@ -120,7 +130,7 @@ ${description.trim()}`,
             icon: <Radio className="w-6 h-6 text-neon-red" />,
             badge: "AUDIO & STREAMING",
             title: "Web Radio 24/7 & Flux TV",
-            valueAgency: "4 500 € – 7 000 € en agence",
+            valueAgency: "Lecteur persistant sans coupure",
             points: [
                 "Lecteur audio persistant qui ne coupe jamais lors de la navigation sur le site",
                 "Affichage des métadonnées du titre en direct, votes Top 5 et intégration Shoutcast/Icecast",
@@ -132,7 +142,7 @@ ${description.trim()}`,
             icon: <Server className="w-6 h-6 text-neon-purple" />,
             badge: "INFRASTRUCTURE EDGE",
             title: "Cloudflare Serverless & CDN Mondial",
-            valueAgency: "4 000 € – 6 500 € en agence",
+            valueAgency: "Zéro latence mondiale",
             points: [
                 "Code exécuté sur plus de 330 datacenters dans le monde pour une latence nulle",
                 "Résistance native aux pics de millions de requêtes sans jamais faire tomber le serveur",
@@ -144,11 +154,11 @@ ${description.trim()}`,
             icon: <Database className="w-6 h-6 text-emerald-400" />,
             badge: "CMS & ADMINISTRATION",
             title: "Dashboard Admin & Mails d'Équipe",
-            valueAgency: "5 000 € – 8 000 € en agence",
+            valueAgency: "Modals intuitives sans code",
             points: [
                 "Espace d'administration propriétaire intuitif sans aucune compétence technique requise",
                 "Gestion fine des rôles et permissions par rédacteur, photographe ou modérateur",
-                "Boîtes mails officielles (@crew) avec routage automatique Brevo et copies invisibles",
+                "Boîtes mails officielles personnalisées avec routage automatique Brevo",
                 "Outils intégrés de nettoyage automatique des médias et détection d'erreurs en direct"
             ]
         },
@@ -156,7 +166,7 @@ ${description.trim()}`,
             icon: <ShoppingBag className="w-6 h-6 text-amber-400" />,
             badge: "BUSINESS & AUTOMATION",
             title: "E-Commerce Stripe & Newsletters",
-            valueAgency: "2 500 € – 4 000 € en agence",
+            valueAgency: "Tunnel de paiement sécurisé",
             points: [
                 "Boutique en ligne moderne avec tunnel d'achat express et paiements Stripe sécurisés",
                 "Génération automatique de factures PDF conformes et suivi des ventes",
@@ -169,18 +179,19 @@ ${description.trim()}`,
     const pricingPlans = [
         {
             name: "STARTER VITRINE",
-            price: "1 490 €",
-            badge: "Idéal Lancement",
+            price: "290 €",
+            badge: "Livraison sous 1 semaine max",
             projectTypeValue: "Site Vitrine / Portfolio",
-            budgetValue: "< 1 500 €",
+            budgetValue: "200 € – 500 €",
             desc: "Pour créateurs, DJs, artistes et indépendants voulant une présence web ultra-stylée et moderne.",
             features: [
                 "Site vitrine immersif 1 à 3 pages",
                 "Design sombre néon 100% sur-mesure",
                 "Progressive Web App (installable smartphone)",
-                "Formulaire de contact intelligent",
+                "Formulaire de contact intelligent avec notifications",
                 "Optimisation SEO Google & Réseaux sociaux",
-                "Hébergement Edge Cloudflare inclus (0€/m)"
+                "⚡ Livraison garantie sous 1 semaine maximum",
+                "Hébergement Edge Cloudflare inclus"
             ],
             color: "border-white/10 hover:border-neon-cyan/50",
             btnColor: "bg-white/10 hover:bg-neon-cyan hover:text-black",
@@ -188,12 +199,12 @@ ${description.trim()}`,
         },
         {
             name: "PRO & CRÉATEUR",
-            price: "2 990 €",
+            price: "890 €",
             badge: "Le Plus Populaire",
             featured: true,
             projectTypeValue: "Plateforme Pro & Créateur",
-            budgetValue: "1 500 € – 3 000 €",
-            desc: "Pour les marques, labels et médias en expansion ayant besoin de publier du contenu en autonomie.",
+            budgetValue: "500 € – 1 500 €",
+            desc: "Pour les marques, labels et médias en expansion ayant besoin de publier du contenu en totale autonomie.",
             features: [
                 "Tout le pack Starter inclus",
                 "Pages illimitées (Articles, Événements, Galerie)",
@@ -201,6 +212,7 @@ ${description.trim()}`,
                 "Multi-éditeurs avec gestion des permissions",
                 "Newsletter intégrée et collecte d'emails",
                 "Adresses emails professionnelles personnalisées",
+                "⚡ Livraison garantie sous 1 semaine maximum",
                 "Vitesse de chargement garantie < 0.5s"
             ],
             color: "border-neon-red/60 bg-gradient-to-b from-neon-red/10 via-white/[0.02] to-transparent shadow-[0_0_35px_rgba(255,17,17,0.2)]",
@@ -208,12 +220,12 @@ ${description.trim()}`,
             btnText: "Choisir ce Pack"
         },
         {
-            name: "MÉDIA & EMPIRE",
-            price: "Sur Devis",
+            name: "MÉDIA & SUR-MESURE",
+            price: "2 490 €",
             badge: "L'Équivalent Dropsiders",
             projectTypeValue: "Média, Web Radio & Streaming",
-            budgetValue: "Plus de 6 000 €",
-            desc: "La réplique exacte de notre architecture complète pour les projets médias et événementiels d'envergure.",
+            budgetValue: "1 500 € – 3 000 €",
+            desc: "La réplique exacte de notre architecture complète pour les projets médias et événementiels d'envergure (de 2 000 € à 5 000 € max).",
             features: [
                 "Tout le pack Pro & Créateur inclus",
                 "Web Radio 24/7 avec lecteur audio persistant",
@@ -221,7 +233,8 @@ ${description.trim()}`,
                 "Boutique E-commerce & Billetterie Stripe",
                 "Studio visuel intégré pour générer des stories",
                 "Routage d'emails complexe & copies invisibles",
-                "Accompagnement VIP & évolution sur mesure"
+                "⚡ Livraison clé en main sous 1 semaine maximum",
+                "Accompagnement VIP & évolutions sur mesure"
             ],
             color: "border-white/10 hover:border-neon-purple/50",
             btnColor: "bg-white/10 hover:bg-neon-purple hover:text-white",
@@ -238,23 +251,23 @@ ${description.trim()}`,
     ];
 
     const budgetOptions = [
-        "< 1 500 €",
+        "200 € – 500 €",
+        "500 € – 1 500 €",
         "1 500 € – 3 000 €",
-        "3 000 € – 6 000 €",
-        "Plus de 6 000 €"
+        "3 000 € – 5 000 €"
     ];
 
     const timelineOptions = [
-        "Dès que possible (< 1 mois)",
-        "1 à 3 mois",
+        "⚡ Livraison Express (Sous 1 semaine max)",
+        "1 à 2 semaines",
         "Pas d'urgence"
     ];
 
     return (
         <div className="min-h-screen bg-[#07080c] text-white font-sans selection:bg-neon-cyan selection:text-black">
-            <SEO 
+            <SEO
                 title="WebsidersFR · Solution de Création de Site Web par Dropsiders"
-                description="Websiders est la solution de création de sites web sur-mesure propulsée par Dropsiders. Architecture React, vitesse éclair, web radio et dashboard sans code."
+                description="Websiders est la solution de création de sites web sur-mesure propulsée par Dropsiders. Tarifs de 200€ à 5 000€, livraison garantie sous 1 semaine maximum."
             />
 
             {/* ─── DEDICATED WEBSIDERS HEADER ─── */}
@@ -272,7 +285,8 @@ ${description.trim()}`,
                     </Link>
 
                     <nav className="hidden md:flex items-center gap-6 text-xs uppercase tracking-wider font-bold text-gray-300">
-                        <a href="#estimation" className="hover:text-neon-cyan transition-colors">L'Estimation</a>
+                        <a href="#modals-dashboard" className="hover:text-neon-cyan transition-colors">Aperçu Dashboard</a>
+                        <a href="#estimation" className="hover:text-neon-cyan transition-colors">Prix & Délais</a>
                         <a href="#piliers" className="hover:text-neon-cyan transition-colors">Technologies</a>
                         <a href="#tarifs" className="hover:text-neon-cyan transition-colors">Formules</a>
                     </nav>
@@ -281,11 +295,11 @@ ${description.trim()}`,
                         <button
                             type="button"
                             onClick={() => scrollToForm()}
-                            className="px-4 py-2 rounded-xl bg-gradient-to-r from-neon-red to-orange-600 text-white font-black uppercase tracking-wider text-[11px] hover:shadow-[0_0_20px_rgba(255,17,17,0.4)] transition-all"
+                            className="px-4 py-2 rounded-xl bg-gradient-to-r from-neon-red to-orange-600 text-white font-black uppercase tracking-wider text-[11px] hover:shadow-[0_0_20px_rgba(255,17,17,0.4)] transition-all cursor-pointer"
                         >
                             Demander un devis
                         </button>
-                        <Link 
+                        <Link
                             to="/"
                             className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-gray-400 hover:text-white transition-colors text-[11px] font-bold uppercase tracking-wider"
                             title="Revenir sur Dropsiders.fr"
@@ -304,9 +318,9 @@ ${description.trim()}`,
                 <div className="absolute bottom-1/4 left-0 w-[30rem] h-[30rem] bg-neon-red/10 blur-[150px] pointer-events-none rounded-full" />
 
                 <div className="max-w-6xl mx-auto relative z-10 space-y-24">
-                    
+
                     {/* 1. HERO SECTION */}
-                    <motion.div 
+                    <motion.div
                         initial={{ opacity: 0, y: 25 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.7 }}
@@ -329,52 +343,409 @@ ${description.trim()}`,
                             Solution de création de site web sur-mesure & haute performance
                         </p>
 
+                        <div className="flex flex-wrap items-center justify-center gap-3">
+                            <span className="px-3 py-1 rounded-full bg-neon-cyan/15 border border-neon-cyan/30 text-neon-cyan text-xs font-bold uppercase tracking-wider">
+                                💰 Tarifs de 200 € à 5 000 € Max
+                            </span>
+                            <span className="px-3 py-1 rounded-full bg-neon-red/15 border border-neon-red/30 text-neon-red text-xs font-bold uppercase tracking-wider">
+                                ⚡ Livraison sous 1 semaine maximum
+                            </span>
+                        </div>
+
                         <p className="text-sm sm:text-base text-gray-400 max-w-2xl mx-auto leading-relaxed">
-                            L'ingénierie, la vitesse et le design immersif qui propulsent un média de <strong>plus de 60 000 passionnés</strong>, 
-                            désormais mis au service de votre projet, marque, festival ou activité.
+                            L'ingénierie, la vitesse et le design immersif qui propulsent un média de <strong>plus de 60 000 passionnés</strong>,
+                            désormais mis au service de votre projet, marque, artiste ou festival.
                         </p>
 
                         <div className="pt-4 flex flex-wrap items-center justify-center gap-4">
-                            <button 
+                            <button
                                 onClick={() => scrollToForm()}
                                 className="px-8 py-4 rounded-xl bg-gradient-to-r from-neon-red to-orange-600 text-white font-black uppercase tracking-wider text-xs md:text-sm hover:shadow-[0_0_30px_rgba(255,17,17,0.5)] transition-all transform hover:scale-105 flex items-center gap-2 cursor-pointer"
                             >
-                                <span>Démarrer un projet avec Alex</span>
+                                <span>Démarrer un projet</span>
                                 <ArrowRight className="w-4 h-4" />
                             </button>
-                            <a 
-                                href="#estimation"
+                            <a
+                                href="#modals-dashboard"
                                 className="px-8 py-4 rounded-xl bg-white/5 border border-white/10 hover:border-white/20 text-gray-300 hover:text-white font-bold uppercase tracking-wider text-xs md:text-sm transition-all backdrop-blur-md"
                             >
-                                Voir l'estimation financière
+                                Voir les Modals Dashboard
                             </a>
                         </div>
                     </motion.div>
 
-                    {/* 2. CASE STUDY & ESTIMATION BANNER */}
+                    {/* 2. SHOWCASE DES MODALS DU TABLEAU DE BORD (RADIO, TV, AGENDA, ETC.) */}
+                    <div id="modals-dashboard" className="space-y-8">
+                        <div className="text-center space-y-3">
+                            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-neon-cyan/10 border border-neon-cyan/30 text-neon-cyan text-[10px] font-black uppercase tracking-widest">
+                                <Sparkles className="w-3.5 h-3.5" />
+                                BACK-OFFICE & OUTILS D'ADMINISTRATION
+                            </div>
+                            <h2 className="text-2xl sm:text-4xl font-display font-black text-white italic tracking-tight uppercase">
+                                Les Modals & Écrans du Dashboard Dropsiders
+                            </h2>
+                            <p className="text-xs sm:text-sm text-gray-400 max-w-2xl mx-auto">
+                                Découvrez en direct les interfaces réelles qui pilotent la Radio 24/7, la régie TV, l'agenda festivals et le studio réseaux sociaux. Votre futur site disposera des mêmes outils intuitifs sans code.
+                            </p>
+                        </div>
+
+                        {/* Interactive Tabs */}
+                        <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3">
+                            {[
+                                { id: 'radio', label: 'Studio Radio 24/7', icon: <Radio className="w-4 h-4" /> },
+                                { id: 'tv', label: 'Régie Dropsiders TV', icon: <Tv className="w-4 h-4" /> },
+                                { id: 'agenda', label: 'Gestionnaire Agenda', icon: <Calendar className="w-4 h-4" /> },
+                                { id: 'social', label: 'Studio Visuels & Stories', icon: <Sparkles className="w-4 h-4" /> },
+                                { id: 'team', label: 'Rôles & Permissions', icon: <Users className="w-4 h-4" /> }
+                            ].map((tab) => (
+                                <button
+                                    key={tab.id}
+                                    type="button"
+                                    onClick={() => setActiveModalTab(tab.id as any)}
+                                    className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all cursor-pointer ${
+                                        activeModalTab === tab.id
+                                            ? 'bg-neon-cyan/20 border border-neon-cyan text-white shadow-[0_0_20px_rgba(0,255,213,0.3)]'
+                                            : 'bg-white/5 border border-white/10 text-gray-400 hover:text-white hover:bg-white/10'
+                                    }`}
+                                >
+                                    {tab.icon}
+                                    <span>{tab.label}</span>
+                                </button>
+                            ))}
+                        </div>
+
+                        {/* Modal Frame Window */}
+                        <div className="p-4 sm:p-6 rounded-3xl bg-[#0c0e15] border border-white/15 shadow-2xl relative overflow-hidden">
+                            {/* Window Top Bar */}
+                            <div className="flex items-center justify-between pb-4 mb-4 border-b border-white/10">
+                                <div className="flex items-center gap-2">
+                                    <span className="w-3 h-3 rounded-full bg-red-500/80 inline-block" />
+                                    <span className="w-3 h-3 rounded-full bg-amber-500/80 inline-block" />
+                                    <span className="w-3 h-3 rounded-full bg-emerald-500/80 inline-block" />
+                                    <span className="text-[11px] font-mono text-gray-400 ml-2">
+                                        dropsiders-admin://{activeModalTab}-modal
+                                    </span>
+                                </div>
+                                <div className="flex items-center gap-2 text-[10px] uppercase tracking-widest text-emerald-400 font-mono">
+                                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+                                    Système Actif · Production Live
+                                </div>
+                            </div>
+
+                            {/* TAB 1: STUDIO RADIO 24/7 */}
+                            {activeModalTab === 'radio' && (
+                                <motion.div 
+                                    key="radio"
+                                    initial={{ opacity: 0, y: 10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    className="space-y-6"
+                                >
+                                    <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 p-5 rounded-2xl bg-gradient-to-r from-neon-red/15 via-black/40 to-transparent border border-neon-red/30">
+                                        <div className="flex items-center gap-4">
+                                            <div className="w-14 h-14 rounded-2xl bg-neon-red/20 border border-neon-red/40 flex items-center justify-center text-neon-red shrink-0 shadow-[0_0_20px_rgba(255,17,17,0.3)]">
+                                                <Radio className="w-7 h-7" />
+                                            </div>
+                                            <div>
+                                                <div className="flex items-center gap-2">
+                                                    <span className="px-2 py-0.5 rounded-full bg-neon-red text-white text-[9px] font-black uppercase tracking-widest animate-pulse">
+                                                        ● EN DIRECT
+                                                    </span>
+                                                    <span className="text-xs font-mono text-gray-400">Stream 320 Kbps HD</span>
+                                                </div>
+                                                <h3 className="text-lg sm:text-xl font-display font-black text-white italic tracking-tight uppercase mt-0.5">
+                                                    Circoloco DC-10 Ibiza (Summer Edition)
+                                                </h3>
+                                                <p className="text-xs text-neon-cyan font-mono">Artiste : Ricardo Villalobos · Feel The Drop</p>
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center gap-3">
+                                            <span className="px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 text-xs font-mono text-gray-300">
+                                                👥 1 420 auditeurs connectés
+                                            </span>
+                                            <span className="px-3 py-1.5 rounded-xl bg-emerald-500/20 border border-emerald-500/40 text-xs font-bold text-emerald-400">
+                                                Statut : Stable (99.9%)
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    {/* Waveform visualizer mock */}
+                                    <div className="p-5 rounded-2xl bg-black/60 border border-white/10 space-y-3">
+                                        <div className="flex items-center justify-between text-xs text-gray-400">
+                                            <span>Spectre Audio Électro Live</span>
+                                            <span className="text-neon-cyan font-mono">Gain: +0.2 dB · Auto-Limiter ON</span>
+                                        </div>
+                                        <div className="h-16 flex items-end gap-1 px-2 py-1 bg-[#090b10] rounded-xl overflow-hidden border border-white/5">
+                                            {[40, 65, 80, 45, 90, 75, 30, 85, 95, 60, 40, 70, 88, 100, 65, 45, 80, 92, 50, 75, 85, 60, 95, 70, 40, 80, 60, 90, 45, 85, 70, 50].map((h, idx) => (
+                                                <div 
+                                                    key={idx} 
+                                                    style={{ height: `${h}%` }}
+                                                    className={`flex-1 rounded-t-sm transition-all duration-300 ${
+                                                        idx % 3 === 0 ? 'bg-neon-red' : idx % 2 === 0 ? 'bg-neon-cyan' : 'bg-purple-500'
+                                                    }`}
+                                                />
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    {/* Controls Grid */}
+                                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                        <div className="p-4 rounded-xl bg-white/5 border border-white/10 space-y-1">
+                                            <span className="text-[10px] uppercase tracking-wider text-gray-400 font-bold">Flux Shoutcast / Icecast</span>
+                                            <p className="text-xs font-mono text-white">live.dropsiders.fr:8000/stream</p>
+                                            <span className="text-[10px] text-emerald-400 font-semibold">✓ Synchronisation continue</span>
+                                        </div>
+                                        <div className="p-4 rounded-xl bg-white/5 border border-white/10 space-y-1">
+                                            <span className="text-[10px] uppercase tracking-wider text-gray-400 font-bold">Lecteur Persistant</span>
+                                            <p className="text-xs font-bold text-neon-cyan">Ne coupe jamais en naviguant</p>
+                                            <span className="text-[10px] text-gray-400">Mini-player discret en bas d'écran</span>
+                                        </div>
+                                        <div className="p-4 rounded-xl bg-white/5 border border-white/10 space-y-1">
+                                            <span className="text-[10px] uppercase tracking-wider text-gray-400 font-bold">Top 5 & Votes Communauté</span>
+                                            <p className="text-xs font-bold text-white">Classement hebdomadaire interactif</p>
+                                            <span className="text-[10px] text-neon-red font-semibold">Votes sécurisés anti-spam</span>
+                                        </div>
+                                    </div>
+                                </motion.div>
+                            )}
+
+                            {/* TAB 2: RÉGIE DROPSIDERS TV */}
+                            {activeModalTab === 'tv' && (
+                                <motion.div 
+                                    key="tv"
+                                    initial={{ opacity: 0, y: 10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    className="space-y-6"
+                                >
+                                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                                        {/* Video Monitor */}
+                                        <div className="lg:col-span-2 p-5 rounded-2xl bg-black border border-white/10 space-y-3 relative overflow-hidden group">
+                                            <div className="aspect-video w-full rounded-xl bg-gradient-to-br from-purple-950/40 via-black to-red-950/30 border border-white/10 flex flex-col items-center justify-center relative overflow-hidden">
+                                                <div className="absolute top-3 left-3 flex items-center gap-2">
+                                                    <span className="px-2.5 py-0.5 rounded-full bg-neon-red text-white text-[9px] font-black uppercase tracking-widest animate-pulse">
+                                                        ● DIRECT TV 1080p
+                                                    </span>
+                                                    <span className="text-[10px] font-mono text-gray-300 bg-black/60 px-2 py-0.5 rounded">
+                                                        Tomorrowland Mainstage Set
+                                                    </span>
+                                                </div>
+                                                <div className="w-16 h-16 rounded-full bg-neon-cyan/20 border border-neon-cyan/50 flex items-center justify-center text-neon-cyan shadow-[0_0_25px_rgba(0,255,213,0.4)] group-hover:scale-110 transition-transform">
+                                                    <Play className="w-7 h-7 fill-current ml-1" />
+                                                </div>
+                                                <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between text-[11px] text-gray-400 font-mono bg-black/70 px-3 py-1.5 rounded-lg border border-white/5">
+                                                    <span>Flux HLS / YouTube Studio Sync</span>
+                                                    <span>Enchaînement automatique sans écran noir</span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Program playlist */}
+                                        <div className="p-5 rounded-2xl bg-white/[0.03] border border-white/10 space-y-3 flex flex-col justify-between">
+                                            <div className="space-y-3">
+                                                <span className="text-[10px] font-black uppercase tracking-widest text-neon-cyan">
+                                                    Grille des programmes TV
+                                                </span>
+                                                <div className="space-y-2">
+                                                    {[
+                                                        { time: "En cours", title: "Cercle Live at Pyramids", active: true },
+                                                        { time: "14:30", title: "Defqon.1 Endshow Festival", active: false },
+                                                        { time: "16:00", title: "Ultra Miami Mainstage Recap", active: false },
+                                                        { time: "18:00", title: "Interviews Exclusives DJs", active: false }
+                                                    ].map((item, idx) => (
+                                                        <div 
+                                                            key={idx}
+                                                            className={`p-2.5 rounded-xl border text-xs flex items-center justify-between ${
+                                                                item.active 
+                                                                    ? 'bg-neon-red/15 border-neon-red/40 text-white' 
+                                                                    : 'bg-white/5 border-white/5 text-gray-400'
+                                                            }`}
+                                                        >
+                                                            <span className="font-mono text-[10px] font-bold">{item.time}</span>
+                                                            <span className="font-semibold truncate max-w-[150px]">{item.title}</span>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                            <button className="w-full py-2.5 rounded-xl bg-neon-cyan/20 border border-neon-cyan/40 text-neon-cyan font-bold text-xs uppercase tracking-wider hover:bg-neon-cyan hover:text-black transition-all">
+                                                + Ajouter un flux vidéo
+                                            </button>
+                                        </div>
+                                    </div>
+                                </motion.div>
+                            )}
+
+                            {/* TAB 3: GESTIONNAIRE AGENDA */}
+                            {activeModalTab === 'agenda' && (
+                                <motion.div 
+                                    key="agenda"
+                                    initial={{ opacity: 0, y: 10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    className="space-y-6"
+                                >
+                                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-2">
+                                        <div>
+                                            <h3 className="text-lg font-display font-black text-white uppercase italic">
+                                                Gestionnaire d'Événements & Billetterie
+                                            </h3>
+                                            <p className="text-xs text-gray-400">
+                                                142 festivals référencés avec géolocalisation, dates et liens billetteries affiliés
+                                            </p>
+                                        </div>
+                                        <button className="px-4 py-2 rounded-xl bg-gradient-to-r from-neon-red to-orange-600 text-white font-bold text-xs uppercase tracking-wider">
+                                            + Ajouter un Festival
+                                        </button>
+                                    </div>
+
+                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                        {[
+                                            { name: "Tomorrowland 2026", date: "17 - 26 Juillet 2026", place: "Boom, Belgique", status: "Complet", clics: "14 200 clics" },
+                                            { name: "Electrobeach EMF", date: "10 - 12 Juillet 2026", place: "Barcarès, France", status: "Billetterie Ouverte", clics: "8 940 clics" },
+                                            { name: "Awakenings Festival", date: "11 - 13 Juillet 2026", place: "Hilvarenbeek, Pays-Bas", status: "Bientôt Sold Out", clics: "6 310 clics" }
+                                        ].map((fest, idx) => (
+                                            <div key={idx} className="p-4 rounded-2xl bg-white/[0.03] border border-white/10 hover:border-neon-cyan/40 transition-all space-y-3">
+                                                <div className="flex items-center justify-between">
+                                                    <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-white/10 text-gray-300">
+                                                        {fest.place}
+                                                    </span>
+                                                    <span className="text-[9px] font-bold text-emerald-400">
+                                                        {fest.status}
+                                                    </span>
+                                                </div>
+                                                <div>
+                                                    <h4 className="text-sm font-bold text-white uppercase">{fest.name}</h4>
+                                                    <p className="text-xs text-gray-400 font-mono mt-0.5">{fest.date}</p>
+                                                </div>
+                                                <div className="pt-2 border-t border-white/5 flex items-center justify-between text-xs text-neon-cyan">
+                                                    <span>{fest.clics}</span>
+                                                    <span className="hover:underline cursor-pointer">Modifier la fiche →</span>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </motion.div>
+                            )}
+
+                            {/* TAB 4: STUDIO VISUELS */}
+                            {activeModalTab === 'social' && (
+                                <motion.div 
+                                    key="social"
+                                    initial={{ opacity: 0, y: 10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    className="space-y-6"
+                                >
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+                                        <div className="space-y-4">
+                                            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-500/20 text-purple-300 text-[10px] font-bold uppercase tracking-wider">
+                                                GÉNÉRATEUR VISUEL EN 1 CLIC
+                                            </div>
+                                            <h3 className="text-xl sm:text-2xl font-display font-black text-white uppercase italic">
+                                                Créez vos visuels Instagram & Stories instantanément
+                                            </h3>
+                                            <p className="text-xs sm:text-sm text-gray-300 leading-relaxed">
+                                                Fini les heures passées sur Canva ou Photoshop : le studio visuel intégré génère automatiquement les annonces d'articles, line-ups et citations au format parfait 9:16 ou 1:1 prêt à poster.
+                                            </p>
+                                            <div className="flex flex-wrap gap-2 text-xs">
+                                                <span className="px-3 py-1 rounded-lg bg-white/5 border border-white/10 text-gray-300">✓ Export PNG HD</span>
+                                                <span className="px-3 py-1 rounded-lg bg-white/5 border border-white/10 text-gray-300">✓ Rendu 3D Smartphone</span>
+                                                <span className="px-3 py-1 rounded-lg bg-white/5 border border-white/10 text-gray-300">✓ Charte graphique respectée</span>
+                                            </div>
+                                        </div>
+
+                                        {/* Mock Visual */}
+                                        <div className="p-6 rounded-2xl bg-gradient-to-br from-neon-red/20 via-black to-purple-950/30 border border-white/10 text-center space-y-3">
+                                            <div className="w-36 h-56 mx-auto rounded-xl bg-gradient-to-b from-[#151822] to-black border-2 border-white/20 shadow-2xl p-3 flex flex-col justify-between text-left">
+                                                <div className="space-y-1">
+                                                    <span className="text-[8px] font-black uppercase text-neon-red">DROPSIDERS NEWS</span>
+                                                    <div className="text-[11px] font-display font-black text-white uppercase leading-tight">
+                                                        MARTIN GARRIX DÉVOILE SON NOUVEAU SHOW
+                                                    </div>
+                                                </div>
+                                                <div className="h-16 rounded bg-white/5 border border-white/10 flex items-center justify-center text-[10px] text-gray-400">
+                                                    [Photo HD]
+                                                </div>
+                                                <div className="text-[8px] font-mono text-neon-cyan flex justify-between">
+                                                    <span>dropsiders.fr</span>
+                                                    <span>Swipe Up</span>
+                                                </div>
+                                            </div>
+                                            <p className="text-[11px] text-gray-400">Exemple de story générée en 2 secondes chrono</p>
+                                        </div>
+                                    </div>
+                                </motion.div>
+                            )}
+
+                            {/* TAB 5: RÔLES & PERMISSIONS */}
+                            {activeModalTab === 'team' && (
+                                <motion.div 
+                                    key="team"
+                                    initial={{ opacity: 0, y: 10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    className="space-y-6"
+                                >
+                                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-2">
+                                        <div>
+                                            <h3 className="text-lg font-display font-black text-white uppercase italic">
+                                                Équipe, Boîtes Mails & Permissions
+                                            </h3>
+                                            <p className="text-xs text-gray-400">
+                                                Chaque membre dispose de son accès sécurisé et de son adresse email officielle avec routage automatique
+                                            </p>
+                                        </div>
+                                        <span className="px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-400 text-xs font-bold font-mono">
+                                            ✓ Protection Brevo Active
+                                        </span>
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        {[
+                                            { role: "SuperAdmin / Fondateur", mail: "alex@dropsiders.fr", badge: "Accès Total", color: "text-neon-red" },
+                                            { role: "Rédacteurs en Chef", mail: "redaction@dropsiders.fr", badge: "Gestion News & Interviews", color: "text-neon-cyan" },
+                                            { role: "Photographes & Événements", mail: "photos@dropsiders.fr", badge: "Upload Galerie & Recaps", color: "text-purple-400" },
+                                            { role: "Partenariats & Régie Pub", mail: "contact@dropsiders.fr", badge: "Gestion Devis & Mails", color: "text-amber-400" }
+                                        ].map((m, idx) => (
+                                            <div key={idx} className="p-3.5 rounded-xl bg-white/[0.03] border border-white/5 flex items-center justify-between text-xs">
+                                                <div>
+                                                    <span className={`font-bold ${m.color}`}>{m.role}</span>
+                                                    <p className="text-[11px] font-mono text-gray-400">{m.mail}</p>
+                                                </div>
+                                                <span className="px-3 py-1 rounded-full bg-white/5 border border-white/10 text-gray-300 text-[10px] font-bold">
+                                                    {m.badge}
+                                                </span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </motion.div>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* 3. CASE STUDY & ESTIMATION BANNER */}
                     <div id="estimation" className="p-8 sm:p-12 rounded-3xl bg-gradient-to-br from-white/[0.04] via-black/80 to-white/[0.02] border border-white/10 space-y-8 relative overflow-hidden backdrop-blur-xl shadow-2xl">
                         <div className="flex flex-col lg:flex-row items-center justify-between gap-8 pb-8 border-b border-white/10">
-                            <div className="space-y-2 text-center lg:text-left">
+                            <div className="space-y-3 text-center lg:text-left">
                                 <span className="text-[10px] font-black text-neon-cyan uppercase tracking-[0.3em]">
-                                    VALEUR RÉELLE D'UN SITE COMME DROPSIDERS
+                                    DES TARIFS JUSTES & UNE VITESSE ÉCLAIR
                                 </span>
                                 <h2 className="text-2xl sm:text-4xl font-display font-black text-white italic tracking-tight uppercase">
-                                    Une plateforme estimée entre 18 000 € et 35 000 € HT
+                                    Des sites de 200 € à 5 000 € maximum
                                 </h2>
                                 <p className="text-xs sm:text-sm text-gray-400 max-w-xl">
-                                    Réaliser un tel site auprès d'une agence traditionnelle mobilise des développeurs front-end, 
-                                    ingénieurs cloud et designers UX pendant plusieurs mois. Voici comment se décompose cette valeur :
+                                    Là où une agence traditionnelle facture entre 5 000 € et 25 000 € avec des mois d'attente, Websiders vous livre une plateforme sur-mesure ultra-rapide avec un engagement de livraison ferme.
                                 </p>
                             </div>
-                            <div className="p-5 rounded-2xl bg-neon-cyan/10 border border-neon-cyan/30 text-center shrink-0 min-w-[240px]">
-                                <div className="text-3xl font-display font-black text-neon-cyan italic">
-                                    5 € à 20 €
+                            
+                            {/* Livraision Express Banner */}
+                            <div className="p-6 rounded-2xl bg-gradient-to-br from-neon-cyan/20 to-neon-red/10 border border-neon-cyan/40 text-center shrink-0 min-w-[260px] shadow-[0_0_30px_rgba(0,255,213,0.15)]">
+                                <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-neon-cyan/20 text-neon-cyan text-[10px] font-black uppercase tracking-widest mb-1.5">
+                                    ⚡ RAPIDITÉ RECORD
                                 </div>
-                                <div className="text-[10px] text-gray-400 uppercase tracking-widest font-semibold mt-1">
-                                    Coût mensuel d'infrastructure
+                                <div className="text-3xl sm:text-4xl font-display font-black text-white italic tracking-tight">
+                                    SOUS 1 SEMAINE
                                 </div>
-                                <p className="text-[9px] text-neon-cyan/80 mt-1">
-                                    (Au lieu de 200€ à 400€/mois pour un serveur lourd)
+                                <div className="text-[11px] text-neon-cyan font-bold uppercase tracking-wider mt-1">
+                                    Livraison Clé en Main Maximum
+                                </div>
+                                <p className="text-[10px] text-gray-400 mt-1">
+                                    De 200 € à 5 000 € · Prêt à l'emploi
                                 </p>
                             </div>
                         </div>
@@ -386,13 +757,13 @@ ${description.trim()}`,
                                     <span className="w-8 h-8 rounded-lg bg-red-500/20 flex items-center justify-center text-red-400 font-bold text-xs">VS</span>
                                     <div>
                                         <h4 className="text-sm font-bold text-white uppercase tracking-wider">Agence Web Classique</h4>
-                                        <p className="text-[10px] text-gray-400">WordPress, thèmes lourds, plugins instables</p>
+                                        <p className="text-[10px] text-gray-400">Délais à rallonge (2 à 4 mois), CMS lourd, prix exorbitants</p>
                                     </div>
                                 </div>
                                 <ul className="space-y-2 text-xs text-gray-400">
+                                    <li className="flex items-start gap-2">❌ Délais de 2 à 4 mois pour un simple site</li>
+                                    <li className="flex items-start gap-2">❌ Devis gonflés (5 000 € à plus de 20 000 €)</li>
                                     <li className="flex items-start gap-2">❌ Temps de chargement lent (2 à 4 secondes)</li>
-                                    <li className="flex items-start gap-2">❌ Serveurs dédiés coûteux (200€ à 400€/mois)</li>
-                                    <li className="flex items-start gap-2">❌ Vulnérabilités de sécurité et plugins piratables</li>
                                     <li className="flex items-start gap-2">❌ Radio qui coupe dès qu'on change de page</li>
                                 </ul>
                             </div>
@@ -401,21 +772,21 @@ ${description.trim()}`,
                                 <div className="flex items-center gap-3">
                                     <span className="w-8 h-8 rounded-lg bg-emerald-500/20 flex items-center justify-center text-emerald-400 font-bold text-xs">⚡</span>
                                     <div>
-                                        <h4 className="text-sm font-bold text-white uppercase tracking-wider">L'Architecture Websiders</h4>
+                                        <h4 className="text-sm font-bold text-white uppercase tracking-wider">L'Engagement Websiders</h4>
                                         <p className="text-[10px] text-gray-400">React 19, Cloudflare Edge Workers, PWA</p>
                                     </div>
                                 </div>
                                 <ul className="space-y-2 text-xs text-gray-300">
+                                    <li className="flex items-start gap-2 text-emerald-400">✓ Livraison garantie sous 1 semaine maximum</li>
+                                    <li className="flex items-start gap-2 text-emerald-400">✓ Tarifs ultra-compétitifs de 200 € à 5 000 € max</li>
                                     <li className="flex items-start gap-2 text-emerald-400">✓ Vitesse instantanée : chargement sous 0.5s</li>
-                                    <li className="flex items-start gap-2 text-emerald-400">✓ Frais de serveur réduits à presque 0€/mois</li>
-                                    <li className="flex items-start gap-2 text-emerald-400">✓ Sécurité absolue anti-DDoS sans failles CMS</li>
                                     <li className="flex items-start gap-2 text-emerald-400">✓ Radio persistante & lecteurs streaming continus</li>
                                 </ul>
                             </div>
                         </div>
                     </div>
 
-                    {/* 3. LES 5 PILIERS TECHNIQUES */}
+                    {/* 4. LES 5 PILIERS TECHNIQUES */}
                     <div id="piliers" className="space-y-10">
                         <div className="text-center space-y-3">
                             <span className="text-[10px] font-black text-neon-red uppercase tracking-[0.3em]">
@@ -431,7 +802,7 @@ ${description.trim()}`,
 
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                             {architecturePillars.map((pillar, idx) => (
-                                <motion.div 
+                                <motion.div
                                     key={idx}
                                     whileHover={{ y: -5 }}
                                     className="p-7 rounded-2xl bg-white/[0.025] border border-white/10 hover:border-neon-cyan/40 hover:bg-white/[0.04] transition-all space-y-4 group relative flex flex-col justify-between"
@@ -472,13 +843,13 @@ ${description.trim()}`,
                                         <Sparkles className="w-6 h-6" />
                                     </div>
                                     <h4 className="text-lg font-display font-black text-white italic uppercase tracking-tight">
-                                        Une Équipe Passionnée & Accessible
+                                        Une Équipe Passionnée & Réactive
                                     </h4>
                                     <p className="text-xs text-gray-300 leading-relaxed">
-                                        Pas de jargon obscur ni de réunions inutiles : vous échangez directement avec Alex pour concrétiser votre vision.
+                                        Pas de jargon obscur ni de réunions inutiles : vous échangez directement avec une équipe d'experts pour concrétiser votre vision et être en ligne en 7 jours.
                                     </p>
                                 </div>
-                                <button 
+                                <button
                                     onClick={() => scrollToForm()}
                                     className="w-full py-3 rounded-xl bg-white/10 hover:bg-white hover:text-black font-bold uppercase tracking-widest text-[11px] text-center transition-all cursor-pointer"
                                 >
@@ -488,7 +859,7 @@ ${description.trim()}`,
                         </div>
                     </div>
 
-                    {/* 4. FORMULES & TARIFS */}
+                    {/* 5. FORMULES & TARIFS (200€ à 5 000€) */}
                     <div id="tarifs" className="space-y-10">
                         <div className="text-center space-y-3">
                             <span className="text-[10px] font-black text-neon-cyan uppercase tracking-[0.3em]">
@@ -498,13 +869,13 @@ ${description.trim()}`,
                                 Nos Formules de Création
                             </h3>
                             <p className="text-xs sm:text-sm text-gray-400 max-w-xl mx-auto">
-                                Des tarifs transparents et compétitifs, conçus pour vous donner accès aux technologies des grands médias.
+                                Des tarifs accessibles allant de 200 € à 5 000 € maximum, avec livraison garantie sous 1 semaine.
                             </p>
                         </div>
 
                         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-stretch">
                             {pricingPlans.map((plan, i) => (
-                                <motion.div 
+                                <motion.div
                                     key={i}
                                     whileHover={{ y: -6 }}
                                     className={`p-8 rounded-3xl border flex flex-col justify-between space-y-6 relative backdrop-blur-xl ${plan.color}`}
@@ -541,7 +912,7 @@ ${description.trim()}`,
                                         </ul>
                                     </div>
 
-                                    <button 
+                                    <button
                                         type="button"
                                         onClick={() => scrollToForm(plan.projectTypeValue, plan.budgetValue)}
                                         className={`w-full py-3.5 rounded-xl text-center font-black uppercase tracking-wider text-xs transition-all cursor-pointer ${plan.btnColor}`}
@@ -553,9 +924,9 @@ ${description.trim()}`,
                         </div>
                     </div>
 
-                    {/* 5. DEDICATED WEBSIDERS ESTIMATE FORM */}
+                    {/* 6. DEDICATED WEBSIDERS ESTIMATE FORM */}
                     <div ref={formRef} id="formulaire-devis" className="pt-6">
-                        <motion.div 
+                        <motion.div
                             initial={{ opacity: 0, scale: 0.98 }}
                             whileInView={{ opacity: 1, scale: 1 }}
                             viewport={{ once: true }}
@@ -573,13 +944,13 @@ ${description.trim()}`,
                                         Démarrer Votre Projet
                                     </h3>
                                     <p className="text-xs sm:text-sm text-gray-300 leading-relaxed">
-                                        Remplissez ce formulaire dédié à Websiders. Votre demande sera transmise en direct à <strong className="text-neon-cyan font-mono">alex@dropsiders.fr</strong> avec une réponse garantie sous 24h.
+                                        Remplissez ce formulaire pour recevoir une proposition adaptée à votre budget (de 200 € à 5 000 €). Réponse garantie sous 24h ouvrées.
                                     </p>
                                 </div>
 
                                 <AnimatePresence mode="wait">
                                     {isSuccess ? (
-                                        <motion.div 
+                                        <motion.div
                                             initial={{ opacity: 0, scale: 0.95 }}
                                             animate={{ opacity: 1, scale: 1 }}
                                             className="p-8 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-center space-y-4"
@@ -591,7 +962,7 @@ ${description.trim()}`,
                                                 Demande de projet envoyée avec succès !
                                             </h4>
                                             <p className="text-xs sm:text-sm text-gray-300 leading-relaxed max-w-md mx-auto">
-                                                Merci pour votre confiance. Alex a bien reçu votre demande sur <strong>alex@dropsiders.fr</strong> et prépare une première étude personnalisée pour vous recontacter très rapidement.
+                                                Merci pour votre confiance. Votre demande a bien été reçue par notre équipe sur <strong>alex@dropsiders.fr</strong> et nous préparons une première proposition pour vous recontacter très rapidement.
                                             </p>
                                             <button
                                                 type="button"
@@ -614,11 +985,10 @@ ${description.trim()}`,
                                                             key={pt}
                                                             type="button"
                                                             onClick={() => setProjectType(pt)}
-                                                            className={`p-3 rounded-xl border text-xs font-bold text-left transition-all cursor-pointer ${
-                                                                projectType === pt
-                                                                    ? 'bg-neon-cyan/20 border-neon-cyan text-white shadow-[0_0_15px_rgba(0,255,213,0.3)]'
-                                                                    : 'bg-white/5 border-white/10 text-gray-400 hover:text-white hover:border-white/20'
-                                                            }`}
+                                                            className={`p-3 rounded-xl border text-xs font-bold text-left transition-all cursor-pointer ${projectType === pt
+                                                                ? 'bg-neon-cyan/20 border-neon-cyan text-white shadow-[0_0_15px_rgba(0,255,213,0.3)]'
+                                                                : 'bg-white/5 border-white/10 text-gray-400 hover:text-white hover:border-white/20'
+                                                                }`}
                                                         >
                                                             {pt}
                                                         </button>
@@ -626,10 +996,10 @@ ${description.trim()}`,
                                                 </div>
                                             </div>
 
-                                            {/* Budget selector */}
+                                            {/* Budget selector (200€ à 5 000€) */}
                                             <div className="space-y-2">
                                                 <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">
-                                                    Budget envisagé
+                                                    Budget envisagé (200 € à 5 000 €)
                                                 </label>
                                                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                                                     {budgetOptions.map((b) => (
@@ -637,11 +1007,10 @@ ${description.trim()}`,
                                                             key={b}
                                                             type="button"
                                                             onClick={() => setBudget(b)}
-                                                            className={`p-2.5 rounded-xl border text-xs font-bold text-center transition-all cursor-pointer ${
-                                                                budget === b
-                                                                    ? 'bg-neon-red/20 border-neon-red text-white shadow-[0_0_15px_rgba(255,17,17,0.3)]'
-                                                                    : 'bg-white/5 border-white/10 text-gray-400 hover:text-white hover:border-white/20'
-                                                            }`}
+                                                            className={`p-2.5 rounded-xl border text-xs font-bold text-center transition-all cursor-pointer ${budget === b
+                                                                ? 'bg-neon-red/20 border-neon-red text-white shadow-[0_0_15px_rgba(255,17,17,0.3)]'
+                                                                : 'bg-white/5 border-white/10 text-gray-400 hover:text-white hover:border-white/20'
+                                                                }`}
                                                         >
                                                             {b}
                                                         </button>
@@ -674,7 +1043,7 @@ ${description.trim()}`,
                                                         required
                                                         value={email}
                                                         onChange={(e) => setEmail(e.target.value)}
-                                                        placeholder="ex: alex@exemple.com"
+                                                        placeholder="ex: contact@exemple.com"
                                                         className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-white text-xs placeholder:text-gray-600 focus:outline-none focus:border-neon-cyan transition-all"
                                                     />
                                                 </div>
@@ -697,7 +1066,7 @@ ${description.trim()}`,
 
                                                 <div className="space-y-1.5">
                                                     <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">
-                                                        Délai de réalisation
+                                                        Délai de réalisation souhaité
                                                     </label>
                                                     <select
                                                         value={timeline}
@@ -740,11 +1109,11 @@ ${description.trim()}`,
                                                 className="w-full py-4 rounded-xl bg-gradient-to-r from-neon-cyan to-blue-600 text-black font-black uppercase tracking-widest text-xs hover:shadow-[0_0_30px_rgba(0,255,213,0.5)] transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
                                             >
                                                 {isSubmitting ? (
-                                                    <span>Envoi en cours à Alex...</span>
+                                                    <span>Envoi de votre demande en cours...</span>
                                                 ) : (
                                                     <>
                                                         <Send className="w-4 h-4" />
-                                                        <span>Transmettre ma demande à Alex (alex@dropsiders.fr)</span>
+                                                        <span>Transmettre ma demande de devis (alex@dropsiders.fr)</span>
                                                     </>
                                                 )}
                                             </button>
