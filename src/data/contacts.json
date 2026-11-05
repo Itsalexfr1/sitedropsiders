@@ -1,1 +1,15 @@
-[]
+[
+  {
+    "id": "1793885367242",
+    "name": "Tanguy Pollet",
+    "email": "tanguypollet98@gmail.com",
+    "subject": "(Sans objet)",
+    "message": "Test\r\nEnvoyé de mon iPhone",
+    "html": null,
+    "recipient": "tanguy@crew.dropsiders.fr",
+    "attachments": [],
+    "date": "2026-11-05T13:29:27.089Z",
+    "read": false,
+    "replied": false
+  }
+]
