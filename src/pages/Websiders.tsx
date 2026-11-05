@@ -1,19 +1,19 @@
 import { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import {
-    Globe,
-    Sparkles,
-    Code2,
-    Zap,
-    ShieldCheck,
-    Smartphone,
-    ArrowRight,
-    CheckCircle2,
-    Radio,
-    ShoppingBag,
-    Calendar,
-    Database,
+import { 
+    Globe, 
+    Sparkles, 
+    Code2, 
+    Zap, 
+    ShieldCheck, 
+    Smartphone, 
+    ArrowRight, 
+    CheckCircle2, 
+    Radio, 
+    ShoppingBag, 
+    Calendar, 
+    Database, 
     Mail,
     Server,
     TrendingUp,
@@ -34,7 +34,13 @@ import {
     Sliders,
     Eye,
     Lock,
-    Award
+    Award,
+    Instagram,
+    Share2,
+    Download,
+    Maximize2,
+    X,
+    Palette
 } from 'lucide-react';
 import { SEO } from '../components/utils/SEO';
 
@@ -50,7 +56,10 @@ export function Websiders() {
     const [description, setDescription] = useState('');
 
     // Active Dashboard Modal Tab Preview
-    const [activeModalTab, setActiveModalTab] = useState<'radio' | 'tv' | 'agenda' | 'social' | 'team'>('radio');
+    const [activeModalTab, setActiveModalTab] = useState<'radio' | 'tv' | 'agenda' | 'social' | 'team'>('social');
+
+    // Lightbox image preview state
+    const [previewImage, setPreviewImage] = useState<{ src: string; title: string; subtitle: string } | null>(null);
 
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isSuccess, setIsSuccess] = useState(false);
@@ -113,6 +122,46 @@ ${description.trim()}`,
         }
     };
 
+    // Social Studio gallery items with real screenshots
+    const socialStudioPhotos = [
+        {
+            src: "/social-studio-previews/social-news-story.jpg",
+            title: "Story News & Annonce Électro",
+            format: "Format 9:16 (Story / Reel)",
+            desc: "Génération automatique du visuel d'actualité avec accroche, photo de scène et lien swipe-up vers le site."
+        },
+        {
+            src: "/social-studio-previews/social-mockup-render.jpg",
+            title: "Mise en Scène 3D Smartphone",
+            format: "Rendu 3D Photoréaliste",
+            desc: "Visualisation ultra-réaliste de votre site web intégré sur écran de smartphone pour vos campagnes Instagram."
+        },
+        {
+            src: "/social-studio-previews/social-promo-slide.jpg",
+            title: "Slide Promotionnelle & Call To Action",
+            format: "Format Carré & Story",
+            desc: "Visuels promotionnels avec typographie percutante, logos officiels et badges d'engagement pour vos réseaux."
+        },
+        {
+            src: "/social-studio-previews/social-story-quote.jpg",
+            title: "Carrousel Citations & Interviews",
+            format: "Format Slide Réseaux",
+            desc: "Mise en valeur d'extraits d'interviews, citations d'artistes ou déclarations phares sans logiciel de retouche."
+        },
+        {
+            src: "/social-studio-previews/social-artist-slide.jpg",
+            title: "Fiche Artiste & Annonce Festival",
+            format: "Line-Up & Dates",
+            desc: "Annonce d'artistes et programmation festival prête à publier avec alignement parfait et charte respectée."
+        },
+        {
+            src: "/social-studio-previews/social-top100-slide.png",
+            title: "Classements & Top 100",
+            format: "Grille de Résultats",
+            desc: "Mise en forme dynamique des classements, votes Top 5 et sondages communautaires en 1 clic."
+        }
+    ];
+
     const architecturePillars = [
         {
             icon: <Code2 className="w-6 h-6 text-neon-cyan" />,
@@ -136,6 +185,18 @@ ${description.trim()}`,
                 "Affichage des métadonnées du titre en direct, votes Top 5 et intégration Shoutcast/Icecast",
                 "Dropsiders TV : chaîne vidéo continue avec enchaînement automatisé des flux",
                 "Studio visuel intégré pour générer des stories et visuels réseaux en 1 clic"
+            ]
+        },
+        {
+            icon: <Sparkles className="w-6 h-6 text-purple-400" />,
+            badge: "RÉSEAUX SOCIAUX",
+            title: "Social Studio 1-Clic Intégré",
+            valueAgency: "Économie de 500€/m sur Canva/Photoshop",
+            points: [
+                "Générateur automatique de stories Instagram (9:16) et posts réseaux sociaux (1:1)",
+                "Export direct haute définition en PNG & MP4 prêt à publier en 2 secondes",
+                "Rendu 3D smartphone photoréaliste intégré pour valoriser votre site",
+                "Palettes thématiques adaptatives (News, Festivals, Interviews, Concours)"
             ]
         },
         {
@@ -209,11 +270,11 @@ ${description.trim()}`,
                 "Tout le pack Starter inclus",
                 "Pages illimitées (Articles, Événements, Galerie)",
                 "Dashboard d'administration complet sans code",
+                "Social Studio intégré pour générer des stories",
                 "Multi-éditeurs avec gestion des permissions",
                 "Newsletter intégrée et collecte d'emails",
                 "Adresses emails professionnelles personnalisées",
-                "⚡ Livraison garantie sous 1 semaine maximum",
-                "Vitesse de chargement garantie < 0.5s"
+                "⚡ Livraison garantie sous 1 semaine maximum"
             ],
             color: "border-neon-red/60 bg-gradient-to-b from-neon-red/10 via-white/[0.02] to-transparent shadow-[0_0_35px_rgba(255,17,17,0.2)]",
             btnColor: "bg-gradient-to-r from-neon-red to-orange-600 hover:shadow-[0_0_30px_rgba(255,17,17,0.6)] text-white",
@@ -230,8 +291,8 @@ ${description.trim()}`,
                 "Tout le pack Pro & Créateur inclus",
                 "Web Radio 24/7 avec lecteur audio persistant",
                 "Dropsiders TV vidéo avec streaming continu",
+                "Social Studio Pro complet avec exports 3D",
                 "Boutique E-commerce & Billetterie Stripe",
-                "Studio visuel intégré pour générer des stories",
                 "Routage d'emails complexe & copies invisibles",
                 "⚡ Livraison clé en main sous 1 semaine maximum",
                 "Accompagnement VIP & évolutions sur mesure"
@@ -265,7 +326,7 @@ ${description.trim()}`,
 
     return (
         <div className="min-h-screen bg-[#07080c] text-white font-sans selection:bg-neon-cyan selection:text-black">
-            <SEO
+            <SEO 
                 title="WebsidersFR · Solution de Création de Site Web par Dropsiders"
                 description="Websiders est la solution de création de sites web sur-mesure propulsée par Dropsiders. Tarifs de 200€ à 5 000€, livraison garantie sous 1 semaine maximum."
             />
@@ -286,6 +347,10 @@ ${description.trim()}`,
 
                     <nav className="hidden md:flex items-center gap-6 text-xs uppercase tracking-wider font-bold text-gray-300">
                         <a href="#modals-dashboard" className="hover:text-neon-cyan transition-colors">Aperçu Dashboard</a>
+                        <a href="#social-studio" className="hover:text-purple-400 transition-colors flex items-center gap-1.5">
+                            <Sparkles className="w-3.5 h-3.5 text-purple-400" />
+                            <span>Social Studio</span>
+                        </a>
                         <a href="#estimation" className="hover:text-neon-cyan transition-colors">Prix & Délais</a>
                         <a href="#piliers" className="hover:text-neon-cyan transition-colors">Technologies</a>
                         <a href="#tarifs" className="hover:text-neon-cyan transition-colors">Formules</a>
@@ -299,7 +364,7 @@ ${description.trim()}`,
                         >
                             Demander un devis
                         </button>
-                        <Link
+                        <Link 
                             to="/"
                             className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-gray-400 hover:text-white transition-colors text-[11px] font-bold uppercase tracking-wider"
                             title="Revenir sur Dropsiders.fr"
@@ -318,9 +383,9 @@ ${description.trim()}`,
                 <div className="absolute bottom-1/4 left-0 w-[30rem] h-[30rem] bg-neon-red/10 blur-[150px] pointer-events-none rounded-full" />
 
                 <div className="max-w-6xl mx-auto relative z-10 space-y-24">
-
+                    
                     {/* 1. HERO SECTION */}
-                    <motion.div
+                    <motion.div 
                         initial={{ opacity: 0, y: 25 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.7 }}
@@ -350,31 +415,35 @@ ${description.trim()}`,
                             <span className="px-3 py-1 rounded-full bg-neon-red/15 border border-neon-red/30 text-neon-red text-xs font-bold uppercase tracking-wider">
                                 ⚡ Livraison sous 1 semaine maximum
                             </span>
+                            <span className="px-3 py-1 rounded-full bg-purple-500/15 border border-purple-500/30 text-purple-300 text-xs font-bold uppercase tracking-wider">
+                                🎨 Social Studio Inclus
+                            </span>
                         </div>
 
                         <p className="text-sm sm:text-base text-gray-400 max-w-2xl mx-auto leading-relaxed">
-                            L'ingénierie, la vitesse et le design immersif qui propulsent un média de <strong>plus de 60 000 passionnés</strong>,
+                            L'ingénierie, la vitesse et le design immersif qui propulsent un média de <strong>plus de 60 000 passionnés</strong>, 
                             désormais mis au service de votre projet, marque, artiste ou festival.
                         </p>
 
                         <div className="pt-4 flex flex-wrap items-center justify-center gap-4">
-                            <button
+                            <button 
                                 onClick={() => scrollToForm()}
                                 className="px-8 py-4 rounded-xl bg-gradient-to-r from-neon-red to-orange-600 text-white font-black uppercase tracking-wider text-xs md:text-sm hover:shadow-[0_0_30px_rgba(255,17,17,0.5)] transition-all transform hover:scale-105 flex items-center gap-2 cursor-pointer"
                             >
                                 <span>Démarrer un projet</span>
                                 <ArrowRight className="w-4 h-4" />
                             </button>
-                            <a
-                                href="#modals-dashboard"
-                                className="px-8 py-4 rounded-xl bg-white/5 border border-white/10 hover:border-white/20 text-gray-300 hover:text-white font-bold uppercase tracking-wider text-xs md:text-sm transition-all backdrop-blur-md"
+                            <a 
+                                href="#social-studio"
+                                className="px-8 py-4 rounded-xl bg-white/5 border border-white/10 hover:border-purple-500/40 text-gray-300 hover:text-white font-bold uppercase tracking-wider text-xs md:text-sm transition-all backdrop-blur-md flex items-center gap-2"
                             >
-                                Voir les Modals Dashboard
+                                <Sparkles className="w-4 h-4 text-purple-400" />
+                                <span>Découvrir le Social Studio</span>
                             </a>
                         </div>
                     </motion.div>
 
-                    {/* 2. SHOWCASE DES MODALS DU TABLEAU DE BORD (RADIO, TV, AGENDA, ETC.) */}
+                    {/* 2. SHOWCASE DES MODALS DU TABLEAU DE BORD (RADIO, TV, AGENDA, SOCIAL, TEAM) */}
                     <div id="modals-dashboard" className="space-y-8">
                         <div className="text-center space-y-3">
                             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-neon-cyan/10 border border-neon-cyan/30 text-neon-cyan text-[10px] font-black uppercase tracking-widest">
@@ -385,17 +454,17 @@ ${description.trim()}`,
                                 Les Modals & Écrans du Dashboard Dropsiders
                             </h2>
                             <p className="text-xs sm:text-sm text-gray-400 max-w-2xl mx-auto">
-                                Découvrez en direct les interfaces réelles qui pilotent la Radio 24/7, la régie TV, l'agenda festivals et le studio réseaux sociaux. Votre futur site disposera des mêmes outils intuitifs sans code.
+                                Découvrez en direct les interfaces réelles qui pilotent la Radio 24/7, la régie TV, l'agenda festivals et le Social Studio. Votre futur site disposera des mêmes outils intuitifs sans code.
                             </p>
                         </div>
 
                         {/* Interactive Tabs */}
                         <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3">
                             {[
+                                { id: 'social', label: 'Social Studio 1-Clic', icon: <Sparkles className="w-4 h-4 text-purple-400" /> },
                                 { id: 'radio', label: 'Studio Radio 24/7', icon: <Radio className="w-4 h-4" /> },
                                 { id: 'tv', label: 'Régie Dropsiders TV', icon: <Tv className="w-4 h-4" /> },
                                 { id: 'agenda', label: 'Gestionnaire Agenda', icon: <Calendar className="w-4 h-4" /> },
-                                { id: 'social', label: 'Studio Visuels & Stories', icon: <Sparkles className="w-4 h-4" /> },
                                 { id: 'team', label: 'Rôles & Permissions', icon: <Users className="w-4 h-4" /> }
                             ].map((tab) => (
                                 <button
@@ -432,7 +501,86 @@ ${description.trim()}`,
                                 </div>
                             </div>
 
-                            {/* TAB 1: STUDIO RADIO 24/7 */}
+                            {/* TAB 1: SOCIAL STUDIO PHOTOS & CONTROLS */}
+                            {activeModalTab === 'social' && (
+                                <motion.div 
+                                    key="social"
+                                    initial={{ opacity: 0, y: 10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    className="space-y-6"
+                                >
+                                    <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 p-5 rounded-2xl bg-gradient-to-r from-purple-900/30 via-black/40 to-neon-red/10 border border-purple-500/30">
+                                        <div className="flex items-center gap-4">
+                                            <div className="w-14 h-14 rounded-2xl bg-purple-500/20 border border-purple-500/40 flex items-center justify-center text-purple-400 shrink-0 shadow-[0_0_20px_rgba(168,85,247,0.3)]">
+                                                <Sparkles className="w-7 h-7" />
+                                            </div>
+                                            <div>
+                                                <div className="flex items-center gap-2">
+                                                    <span className="px-2 py-0.5 rounded-full bg-purple-500 text-white text-[9px] font-black uppercase tracking-widest">
+                                                        SOCIAL STUDIO PRO
+                                                    </span>
+                                                    <span className="text-xs font-mono text-gray-400">Générateur 1-Clic Stories & Posts</span>
+                                                </div>
+                                                <h3 className="text-lg sm:text-xl font-display font-black text-white italic tracking-tight uppercase mt-0.5">
+                                                    Création Automatique de Visuels Réseaux Sociaux
+                                                </h3>
+                                                <p className="text-xs text-purple-300 font-mono">26 Palettes Automatiques · Export PNG HD & MP4 en 2 secondes</p>
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <a 
+                                                href="#social-studio" 
+                                                className="px-4 py-2 rounded-xl bg-purple-500/20 border border-purple-500/40 text-purple-300 hover:bg-purple-500 hover:text-white text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-1.5"
+                                            >
+                                                <span>Voir la galerie photo</span>
+                                                <ArrowRight className="w-3.5 h-3.5" />
+                                            </a>
+                                        </div>
+                                    </div>
+
+                                    {/* Real Photos Grid inside the modal */}
+                                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                                        {[
+                                            { src: "/social-studio-previews/social-news-story.jpg", title: "Story News 9:16", badge: "News & Actu" },
+                                            { src: "/social-studio-previews/social-mockup-render.jpg", title: "Rendu 3D Mobile", badge: "Mockup 3D" },
+                                            { src: "/social-studio-previews/social-promo-slide.jpg", title: "Slide Promo Néon", badge: "Engagement" },
+                                            { src: "/social-studio-previews/social-story-quote.jpg", title: "Citation & Interview", badge: "Carrousel" }
+                                        ].map((photo, pIdx) => (
+                                            <div 
+                                                key={pIdx}
+                                                onClick={() => setPreviewImage({ src: photo.src, title: photo.title, subtitle: photo.badge })}
+                                                className="group relative rounded-2xl overflow-hidden bg-black/60 border border-white/10 hover:border-purple-400/60 transition-all cursor-pointer shadow-lg"
+                                            >
+                                                <div className="aspect-[9/14] w-full overflow-hidden">
+                                                    <img 
+                                                        src={photo.src} 
+                                                        alt={photo.title}
+                                                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                                    />
+                                                </div>
+                                                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-80 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-3">
+                                                    <span className="text-[9px] font-bold text-purple-400 uppercase tracking-wider">{photo.badge}</span>
+                                                    <p className="text-xs font-bold text-white uppercase">{photo.title}</p>
+                                                    <div className="mt-1 flex items-center gap-1 text-[9px] text-gray-300 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                        <Maximize2 className="w-3 h-3 text-neon-cyan" />
+                                                        <span>Cliquer pour agrandir</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+
+                                    <div className="p-4 rounded-xl bg-white/5 border border-white/10 flex flex-wrap items-center justify-between gap-3 text-xs text-gray-300">
+                                        <div className="flex items-center gap-2">
+                                            <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                                            <span>Aucun besoin de graphiste : chaque article rédigé génère sa story en 1 clic</span>
+                                        </div>
+                                        <span className="text-[11px] font-mono text-neon-cyan">Économisez 500 € à 1 500 € / mois de frais de community management</span>
+                                    </div>
+                                </motion.div>
+                            )}
+
+                            {/* TAB 2: STUDIO RADIO 24/7 */}
                             {activeModalTab === 'radio' && (
                                 <motion.div 
                                     key="radio"
@@ -508,7 +656,7 @@ ${description.trim()}`,
                                 </motion.div>
                             )}
 
-                            {/* TAB 2: RÉGIE DROPSIDERS TV */}
+                            {/* TAB 3: RÉGIE DROPSIDERS TV */}
                             {activeModalTab === 'tv' && (
                                 <motion.div 
                                     key="tv"
@@ -573,7 +721,7 @@ ${description.trim()}`,
                                 </motion.div>
                             )}
 
-                            {/* TAB 3: GESTIONNAIRE AGENDA */}
+                            {/* TAB 4: GESTIONNAIRE AGENDA */}
                             {activeModalTab === 'agenda' && (
                                 <motion.div 
                                     key="agenda"
@@ -624,55 +772,6 @@ ${description.trim()}`,
                                 </motion.div>
                             )}
 
-                            {/* TAB 4: STUDIO VISUELS */}
-                            {activeModalTab === 'social' && (
-                                <motion.div 
-                                    key="social"
-                                    initial={{ opacity: 0, y: 10 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    className="space-y-6"
-                                >
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
-                                        <div className="space-y-4">
-                                            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-500/20 text-purple-300 text-[10px] font-bold uppercase tracking-wider">
-                                                GÉNÉRATEUR VISUEL EN 1 CLIC
-                                            </div>
-                                            <h3 className="text-xl sm:text-2xl font-display font-black text-white uppercase italic">
-                                                Créez vos visuels Instagram & Stories instantanément
-                                            </h3>
-                                            <p className="text-xs sm:text-sm text-gray-300 leading-relaxed">
-                                                Fini les heures passées sur Canva ou Photoshop : le studio visuel intégré génère automatiquement les annonces d'articles, line-ups et citations au format parfait 9:16 ou 1:1 prêt à poster.
-                                            </p>
-                                            <div className="flex flex-wrap gap-2 text-xs">
-                                                <span className="px-3 py-1 rounded-lg bg-white/5 border border-white/10 text-gray-300">✓ Export PNG HD</span>
-                                                <span className="px-3 py-1 rounded-lg bg-white/5 border border-white/10 text-gray-300">✓ Rendu 3D Smartphone</span>
-                                                <span className="px-3 py-1 rounded-lg bg-white/5 border border-white/10 text-gray-300">✓ Charte graphique respectée</span>
-                                            </div>
-                                        </div>
-
-                                        {/* Mock Visual */}
-                                        <div className="p-6 rounded-2xl bg-gradient-to-br from-neon-red/20 via-black to-purple-950/30 border border-white/10 text-center space-y-3">
-                                            <div className="w-36 h-56 mx-auto rounded-xl bg-gradient-to-b from-[#151822] to-black border-2 border-white/20 shadow-2xl p-3 flex flex-col justify-between text-left">
-                                                <div className="space-y-1">
-                                                    <span className="text-[8px] font-black uppercase text-neon-red">DROPSIDERS NEWS</span>
-                                                    <div className="text-[11px] font-display font-black text-white uppercase leading-tight">
-                                                        MARTIN GARRIX DÉVOILE SON NOUVEAU SHOW
-                                                    </div>
-                                                </div>
-                                                <div className="h-16 rounded bg-white/5 border border-white/10 flex items-center justify-center text-[10px] text-gray-400">
-                                                    [Photo HD]
-                                                </div>
-                                                <div className="text-[8px] font-mono text-neon-cyan flex justify-between">
-                                                    <span>dropsiders.fr</span>
-                                                    <span>Swipe Up</span>
-                                                </div>
-                                            </div>
-                                            <p className="text-[11px] text-gray-400">Exemple de story générée en 2 secondes chrono</p>
-                                        </div>
-                                    </div>
-                                </motion.div>
-                            )}
-
                             {/* TAB 5: RÔLES & PERMISSIONS */}
                             {activeModalTab === 'team' && (
                                 <motion.div 
@@ -718,7 +817,103 @@ ${description.trim()}`,
                         </div>
                     </div>
 
-                    {/* 3. CASE STUDY & ESTIMATION BANNER */}
+                    {/* 3. DEDICATED SOCIAL STUDIO SPOTLIGHT & PHOTO GALLERY */}
+                    <div id="social-studio" className="p-8 sm:p-14 rounded-3xl bg-gradient-to-br from-purple-950/30 via-[#0b0d14] to-neon-red/10 border border-purple-500/30 space-y-10 shadow-[0_0_80px_rgba(168,85,247,0.15)] relative overflow-hidden">
+                        <div className="absolute top-0 right-0 w-96 h-96 bg-purple-600/10 blur-[150px] pointer-events-none rounded-full" />
+                        
+                        <div className="flex flex-col lg:flex-row items-start lg:items-end justify-between gap-6 pb-6 border-b border-white/10 relative z-10">
+                            <div className="space-y-3">
+                                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-500/20 text-purple-300 text-[10px] font-black uppercase tracking-widest border border-purple-500/40">
+                                    <Sparkles className="w-3.5 h-3.5" />
+                                    FONCTIONNALITÉ STAR WEBSIDERS
+                                </div>
+                                <h2 className="text-3xl sm:text-5xl font-display font-black text-white italic tracking-tight uppercase">
+                                    Le Social Studio Dropsiders en Action
+                                </h2>
+                                <p className="text-xs sm:text-sm text-gray-300 max-w-2xl leading-relaxed">
+                                    Voici les véritables créations générées par notre Social Studio. Chaque article, line-up ou annonce publié sur votre site peut être transformé en story Instagram HD ou post réseaux sociaux en un instant.
+                                </p>
+                            </div>
+                            <div className="flex items-center gap-3">
+                                <button
+                                    onClick={() => scrollToForm('Média, Web Radio & Streaming', '1 500 € – 3 000 €')}
+                                    className="px-6 py-3.5 rounded-xl bg-gradient-to-r from-purple-600 to-neon-red text-white font-black uppercase tracking-wider text-xs hover:shadow-[0_0_30px_rgba(168,85,247,0.5)] transition-all cursor-pointer flex items-center gap-2 shrink-0"
+                                >
+                                    <Sparkles className="w-4 h-4" />
+                                    <span>Intégrer ce studio sur mon site</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* High-Impact Photos Showcase Grid */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 relative z-10">
+                            {socialStudioPhotos.map((photo, idx) => (
+                                <motion.div 
+                                    key={idx}
+                                    whileHover={{ y: -6 }}
+                                    onClick={() => setPreviewImage({ src: photo.src, title: photo.title, subtitle: photo.format })}
+                                    className="group rounded-2xl overflow-hidden bg-black/60 border border-white/10 hover:border-purple-400/60 transition-all cursor-pointer shadow-xl flex flex-col justify-between"
+                                >
+                                    <div className="relative aspect-[4/5] w-full overflow-hidden bg-black/80">
+                                        <img 
+                                            src={photo.src} 
+                                            alt={photo.title}
+                                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                        />
+                                        <div className="absolute top-3 left-3">
+                                            <span className="px-2.5 py-1 rounded-full bg-black/70 backdrop-blur-md border border-white/10 text-[9px] font-mono text-purple-300 font-bold uppercase tracking-wider">
+                                                {photo.format}
+                                            </span>
+                                        </div>
+                                        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                            <div className="p-3 rounded-full bg-purple-600/90 text-white shadow-lg">
+                                                <Maximize2 className="w-5 h-5" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="p-5 space-y-2 border-t border-white/5 bg-[#0e1017]">
+                                        <div className="flex items-center justify-between">
+                                            <h4 className="text-base font-bold text-white uppercase group-hover:text-purple-300 transition-colors">
+                                                {photo.title}
+                                            </h4>
+                                            <Instagram className="w-4 h-4 text-gray-500 group-hover:text-purple-400 transition-colors shrink-0" />
+                                        </div>
+                                        <p className="text-xs text-gray-400 leading-relaxed">
+                                            {photo.desc}
+                                        </p>
+                                    </div>
+                                </motion.div>
+                            ))}
+                        </div>
+
+                        {/* Advantages Bar */}
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4 border-t border-white/10 relative z-10">
+                            <div className="p-4 rounded-xl bg-white/[0.03] border border-white/10 flex items-start gap-3">
+                                <Palette className="w-5 h-5 text-purple-400 shrink-0 mt-0.5" />
+                                <div>
+                                    <h5 className="text-xs font-bold text-white uppercase">26 Palettes Automatiques</h5>
+                                    <p className="text-[11px] text-gray-400 mt-0.5">Couleurs et dégradés intelligents adaptés à votre sujet</p>
+                                </div>
+                            </div>
+                            <div className="p-4 rounded-xl bg-white/[0.03] border border-white/10 flex items-start gap-3">
+                                <Smartphone className="w-5 h-5 text-neon-cyan shrink-0 mt-0.5" />
+                                <div>
+                                    <h5 className="text-xs font-bold text-white uppercase">Mise en scène 3D Photoréaliste</h5>
+                                    <p className="text-[11px] text-gray-400 mt-0.5">Rendus de smartphones 3D pour des stories percutantes</p>
+                                </div>
+                            </div>
+                            <div className="p-4 rounded-xl bg-white/[0.03] border border-white/10 flex items-start gap-3">
+                                <Zap className="w-5 h-5 text-neon-red shrink-0 mt-0.5" />
+                                <div>
+                                    <h5 className="text-xs font-bold text-white uppercase">Export Express PNG & MP4</h5>
+                                    <p className="text-[11px] text-gray-400 mt-0.5">Génération locale instantanée sans temps d'attente</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* 4. CASE STUDY & ESTIMATION BANNER */}
                     <div id="estimation" className="p-8 sm:p-12 rounded-3xl bg-gradient-to-br from-white/[0.04] via-black/80 to-white/[0.02] border border-white/10 space-y-8 relative overflow-hidden backdrop-blur-xl shadow-2xl">
                         <div className="flex flex-col lg:flex-row items-center justify-between gap-8 pb-8 border-b border-white/10">
                             <div className="space-y-3 text-center lg:text-left">
@@ -764,6 +959,7 @@ ${description.trim()}`,
                                     <li className="flex items-start gap-2">❌ Délais de 2 à 4 mois pour un simple site</li>
                                     <li className="flex items-start gap-2">❌ Devis gonflés (5 000 € à plus de 20 000 €)</li>
                                     <li className="flex items-start gap-2">❌ Temps de chargement lent (2 à 4 secondes)</li>
+                                    <li className="flex items-start gap-2">❌ Pas de studio pour créer les visuels des réseaux</li>
                                     <li className="flex items-start gap-2">❌ Radio qui coupe dès qu'on change de page</li>
                                 </ul>
                             </div>
@@ -773,12 +969,13 @@ ${description.trim()}`,
                                     <span className="w-8 h-8 rounded-lg bg-emerald-500/20 flex items-center justify-center text-emerald-400 font-bold text-xs">⚡</span>
                                     <div>
                                         <h4 className="text-sm font-bold text-white uppercase tracking-wider">L'Engagement Websiders</h4>
-                                        <p className="text-[10px] text-gray-400">React 19, Cloudflare Edge Workers, PWA</p>
+                                        <p className="text-[10px] text-gray-400">React 19, Cloudflare Edge Workers, PWA & Social Studio</p>
                                     </div>
                                 </div>
                                 <ul className="space-y-2 text-xs text-gray-300">
                                     <li className="flex items-start gap-2 text-emerald-400">✓ Livraison garantie sous 1 semaine maximum</li>
                                     <li className="flex items-start gap-2 text-emerald-400">✓ Tarifs ultra-compétitifs de 200 € à 5 000 € max</li>
+                                    <li className="flex items-start gap-2 text-emerald-400">✓ Social Studio intégré pour générer vos stories en 1 clic</li>
                                     <li className="flex items-start gap-2 text-emerald-400">✓ Vitesse instantanée : chargement sous 0.5s</li>
                                     <li className="flex items-start gap-2 text-emerald-400">✓ Radio persistante & lecteurs streaming continus</li>
                                 </ul>
@@ -786,14 +983,14 @@ ${description.trim()}`,
                         </div>
                     </div>
 
-                    {/* 4. LES 5 PILIERS TECHNIQUES */}
+                    {/* 5. LES 6 PILIERS TECHNIQUES */}
                     <div id="piliers" className="space-y-10">
                         <div className="text-center space-y-3">
                             <span className="text-[10px] font-black text-neon-red uppercase tracking-[0.3em]">
                                 ANATOMIE TECHNIQUE
                             </span>
                             <h3 className="text-2xl sm:text-4xl font-display font-black text-white italic tracking-tight uppercase">
-                                Les 5 Piliers d'un Site d'Élite
+                                Les 6 Piliers d'un Site d'Élite
                             </h3>
                             <p className="text-xs sm:text-sm text-gray-400 max-w-xl mx-auto">
                                 Chaque brique a été conçue sur mesure pour offrir le maximum de puissance et d'autonomie à votre projet.
@@ -802,7 +999,7 @@ ${description.trim()}`,
 
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                             {architecturePillars.map((pillar, idx) => (
-                                <motion.div
+                                <motion.div 
                                     key={idx}
                                     whileHover={{ y: -5 }}
                                     className="p-7 rounded-2xl bg-white/[0.025] border border-white/10 hover:border-neon-cyan/40 hover:bg-white/[0.04] transition-all space-y-4 group relative flex flex-col justify-between"
@@ -835,31 +1032,10 @@ ${description.trim()}`,
                                     </div>
                                 </motion.div>
                             ))}
-
-                            {/* Summary Bonus Card */}
-                            <div className="p-7 rounded-2xl bg-gradient-to-br from-neon-red/10 via-neon-purple/5 to-transparent border border-white/10 flex flex-col justify-between space-y-6">
-                                <div className="space-y-3">
-                                    <div className="w-12 h-12 rounded-xl bg-neon-red/20 border border-neon-red/40 flex items-center justify-center text-neon-red">
-                                        <Sparkles className="w-6 h-6" />
-                                    </div>
-                                    <h4 className="text-lg font-display font-black text-white italic uppercase tracking-tight">
-                                        Une Équipe Passionnée & Réactive
-                                    </h4>
-                                    <p className="text-xs text-gray-300 leading-relaxed">
-                                        Pas de jargon obscur ni de réunions inutiles : vous échangez directement avec une équipe d'experts pour concrétiser votre vision et être en ligne en 7 jours.
-                                    </p>
-                                </div>
-                                <button
-                                    onClick={() => scrollToForm()}
-                                    className="w-full py-3 rounded-xl bg-white/10 hover:bg-white hover:text-black font-bold uppercase tracking-widest text-[11px] text-center transition-all cursor-pointer"
-                                >
-                                    Parler de mon idée
-                                </button>
-                            </div>
                         </div>
                     </div>
 
-                    {/* 5. FORMULES & TARIFS (200€ à 5 000€) */}
+                    {/* 6. FORMULES & TARIFS (200€ à 5 000€) */}
                     <div id="tarifs" className="space-y-10">
                         <div className="text-center space-y-3">
                             <span className="text-[10px] font-black text-neon-cyan uppercase tracking-[0.3em]">
@@ -875,7 +1051,7 @@ ${description.trim()}`,
 
                         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-stretch">
                             {pricingPlans.map((plan, i) => (
-                                <motion.div
+                                <motion.div 
                                     key={i}
                                     whileHover={{ y: -6 }}
                                     className={`p-8 rounded-3xl border flex flex-col justify-between space-y-6 relative backdrop-blur-xl ${plan.color}`}
@@ -912,7 +1088,7 @@ ${description.trim()}`,
                                         </ul>
                                     </div>
 
-                                    <button
+                                    <button 
                                         type="button"
                                         onClick={() => scrollToForm(plan.projectTypeValue, plan.budgetValue)}
                                         className={`w-full py-3.5 rounded-xl text-center font-black uppercase tracking-wider text-xs transition-all cursor-pointer ${plan.btnColor}`}
@@ -924,9 +1100,9 @@ ${description.trim()}`,
                         </div>
                     </div>
 
-                    {/* 6. DEDICATED WEBSIDERS ESTIMATE FORM */}
+                    {/* 7. DEDICATED WEBSIDERS ESTIMATE FORM */}
                     <div ref={formRef} id="formulaire-devis" className="pt-6">
-                        <motion.div
+                        <motion.div 
                             initial={{ opacity: 0, scale: 0.98 }}
                             whileInView={{ opacity: 1, scale: 1 }}
                             viewport={{ once: true }}
@@ -950,7 +1126,7 @@ ${description.trim()}`,
 
                                 <AnimatePresence mode="wait">
                                     {isSuccess ? (
-                                        <motion.div
+                                        <motion.div 
                                             initial={{ opacity: 0, scale: 0.95 }}
                                             animate={{ opacity: 1, scale: 1 }}
                                             className="p-8 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-center space-y-4"
@@ -985,10 +1161,11 @@ ${description.trim()}`,
                                                             key={pt}
                                                             type="button"
                                                             onClick={() => setProjectType(pt)}
-                                                            className={`p-3 rounded-xl border text-xs font-bold text-left transition-all cursor-pointer ${projectType === pt
-                                                                ? 'bg-neon-cyan/20 border-neon-cyan text-white shadow-[0_0_15px_rgba(0,255,213,0.3)]'
-                                                                : 'bg-white/5 border-white/10 text-gray-400 hover:text-white hover:border-white/20'
-                                                                }`}
+                                                            className={`p-3 rounded-xl border text-xs font-bold text-left transition-all cursor-pointer ${
+                                                                projectType === pt
+                                                                    ? 'bg-neon-cyan/20 border-neon-cyan text-white shadow-[0_0_15px_rgba(0,255,213,0.3)]'
+                                                                    : 'bg-white/5 border-white/10 text-gray-400 hover:text-white hover:border-white/20'
+                                                            }`}
                                                         >
                                                             {pt}
                                                         </button>
@@ -1007,10 +1184,11 @@ ${description.trim()}`,
                                                             key={b}
                                                             type="button"
                                                             onClick={() => setBudget(b)}
-                                                            className={`p-2.5 rounded-xl border text-xs font-bold text-center transition-all cursor-pointer ${budget === b
-                                                                ? 'bg-neon-red/20 border-neon-red text-white shadow-[0_0_15px_rgba(255,17,17,0.3)]'
-                                                                : 'bg-white/5 border-white/10 text-gray-400 hover:text-white hover:border-white/20'
-                                                                }`}
+                                                            className={`p-2.5 rounded-xl border text-xs font-bold text-center transition-all cursor-pointer ${
+                                                                budget === b
+                                                                    ? 'bg-neon-red/20 border-neon-red text-white shadow-[0_0_15px_rgba(255,17,17,0.3)]'
+                                                                    : 'bg-white/5 border-white/10 text-gray-400 hover:text-white hover:border-white/20'
+                                                            }`}
                                                         >
                                                             {b}
                                                         </button>
@@ -1130,6 +1308,46 @@ ${description.trim()}`,
 
                 </div>
             </div>
+
+            {/* ─── LIGHTBOX MODAL FOR PREVIEWS ─── */}
+            <AnimatePresence>
+                {previewImage && (
+                    <div 
+                        className="fixed inset-0 z-[120] bg-black/95 backdrop-blur-2xl flex items-center justify-center p-4 sm:p-8"
+                        onClick={() => setPreviewImage(null)}
+                    >
+                        <motion.div 
+                            initial={{ opacity: 0, scale: 0.9 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.9 }}
+                            className="relative max-w-4xl max-h-[90vh] bg-[#0c0e15] border border-white/20 rounded-3xl overflow-hidden flex flex-col p-4 shadow-2xl"
+                            onClick={(e) => e.stopPropagation()}
+                        >
+                            <div className="flex items-center justify-between pb-3 mb-2 border-b border-white/10">
+                                <div>
+                                    <span className="text-[9px] font-mono text-purple-400 font-bold uppercase tracking-widest">
+                                        {previewImage.subtitle}
+                                    </span>
+                                    <h4 className="text-base font-bold text-white uppercase">{previewImage.title}</h4>
+                                </div>
+                                <button 
+                                    onClick={() => setPreviewImage(null)}
+                                    className="p-2 rounded-xl bg-white/10 hover:bg-white/20 text-gray-400 hover:text-white transition-colors"
+                                >
+                                    <X className="w-5 h-5" />
+                                </button>
+                            </div>
+                            <div className="overflow-auto flex items-center justify-center p-2 max-h-[75vh]">
+                                <img 
+                                    src={previewImage.src} 
+                                    alt={previewImage.title}
+                                    className="max-h-[70vh] w-auto object-contain rounded-xl border border-white/10 shadow-2xl"
+                                />
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
 
             {/* ─── DEDICATED WEBSIDERS FOOTER ─── */}
             <footer className="border-t border-white/10 bg-[#050608] px-4 sm:px-8 py-8 text-center text-xs text-gray-500 space-y-3">
