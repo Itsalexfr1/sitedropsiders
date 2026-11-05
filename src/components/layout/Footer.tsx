@@ -146,20 +146,20 @@ export function Footer() {
             {/* Background Decorative Element */}
             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[1px] bg-gradient-to-r from-transparent via-neon-red/50 to-transparent" />
 
-            <div className="w-full px-4 md:px-12 xl:px-16 2xl:px-24 pt-10 pb-24 md:pt-12 md:pb-28 lg:pb-32">
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-y-8 lg:gap-8 xl:gap-12 mb-8">
+            <div className="w-full px-4 md:px-12 xl:px-16 2xl:px-24 pt-8 pb-20 md:pt-10 md:pb-24">
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-y-6 lg:gap-6 xl:gap-10 mb-6">
                     {/* Brand Section */}
                     <motion.div
-                        className="lg:col-span-4 flex flex-col items-center lg:items-start text-center lg:text-left space-y-4 group/brand w-full"
+                        className="lg:col-span-4 flex flex-col items-center lg:items-start text-center lg:text-left space-y-3 group/brand w-full"
                         whileHover={{ scale: 1.01 }}
                         transition={{ type: 'spring', stiffness: 300, damping: 20 }}
                     >
-                        <div className="flex flex-col gap-3 items-center lg:items-start w-full">
+                        <div className="flex flex-col gap-2.5 items-center lg:items-start w-full">
                             <Link to="/" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="block">
-                                <img src="/Logo.png" alt="DROPSIDERS" className={`logo-img h-11 md:h-14 w-auto max-w-[280px] object-contain logo-footer cursor-pointer hover:opacity-80 transition-all duration-500 ${!isDarkMode ? 'invert brightness-0' : ''}`} />
+                                <img src="/Logo.png" alt="DROPSIDERS" className={`logo-img h-10 md:h-12 w-auto max-w-[260px] object-contain logo-footer cursor-pointer hover:opacity-80 transition-all duration-500 ${!isDarkMode ? 'invert brightness-0' : ''}`} />
                             </Link>
                             <motion.h2
-                                className="text-xl md:text-2xl font-display font-black text-white italic tracking-tighter uppercase leading-tight transition-all duration-300 w-full max-w-lg md:max-w-none px-4 md:px-0"
+                                className="text-lg md:text-xl font-display font-black text-white italic tracking-tighter uppercase leading-tight transition-all duration-300 w-full max-w-lg md:max-w-none px-4 md:px-0"
                                 dangerouslySetInnerHTML={{ __html: t('footer.slogan') }}
                                 whileHover={{
                                     scale: 1.04,
@@ -178,14 +178,14 @@ export function Footer() {
 
                     {/* Social Section - "REJOIGNEZ-NOUS" */}
                     <motion.div
-                        className="lg:col-span-4 space-y-3.5 text-center lg:text-left group/social"
+                        className="lg:col-span-4 space-y-3 text-center lg:text-left group/social"
                         whileHover={{ scale: 1.01 }}
                         transition={{ type: 'spring', stiffness: 300, damping: 20 }}
                     >
-                        <h4 className="text-[10px] font-black text-neon-red uppercase tracking-[0.4em] mb-1.5">
+                        <h4 className="text-[10px] font-black text-neon-red uppercase tracking-[0.4em] mb-1">
                             <ZoomText text={t('footer.community').replace(/<[^>]*>/g, '')} />
                         </h4>
-                        <div className="space-y-3">
+                        <div className="space-y-2.5">
                             <h3 className="text-sm md:text-base font-display font-black text-white uppercase italic tracking-tight">
                                 <ZoomText text={t('footer.join').replace(/<[^>]*>/g, '')} />
                             </h3>
@@ -206,11 +206,11 @@ export function Footer() {
                                     </motion.a>
                                 ))}
                             </div>
-                            <div className="bg-gradient-to-br from-neon-red/10 to-neon-red/5 border border-neon-red/20 rounded-xl px-4 py-3 text-center space-y-2 relative overflow-hidden group/form">
+                            <div className="bg-gradient-to-br from-neon-red/10 to-neon-red/5 border border-neon-red/20 rounded-xl px-3.5 py-2.5 text-center space-y-1.5 relative overflow-hidden group/form">
                                 <div className="absolute top-0 left-1/2 -translate-x-1/2 w-20 h-20 bg-neon-red/20 blur-3xl rounded-full" />
-                                <div className="relative z-10 space-y-1.5">
-                                    <div className="w-7 h-7 mx-auto bg-neon-red/20 rounded-full flex items-center justify-center border border-neon-red/30 group-hover/form:scale-110 transition-transform">
-                                        <Mail className="w-3.5 h-3.5 text-neon-red" />
+                                <div className="relative z-10 space-y-1">
+                                    <div className="w-6 h-6 mx-auto bg-neon-red/20 rounded-full flex items-center justify-center border border-neon-red/30 group-hover/form:scale-110 transition-transform">
+                                        <Mail className="w-3 h-3 text-neon-red" />
                                     </div>
                                     <div className="space-y-0.5">
                                         <h4 className="text-xs font-display font-black text-white uppercase italic tracking-tight" dangerouslySetInnerHTML={{ __html: t('article_detail.newsletter_title') }} />
@@ -228,7 +228,7 @@ export function Footer() {
 
                     {/* Navigation Section */}
                     <motion.div
-                        className="lg:col-span-4 space-y-3.5 group/nav"
+                        className="lg:col-span-4 space-y-3 group/nav"
                         whileHover={{ scale: 1.01 }}
                         transition={{ type: 'spring', stiffness: 300, damping: 20 }}
                     >
@@ -252,12 +252,12 @@ export function Footer() {
                     </motion.div>
                 </div>
 
-                {/* Bottom Bar: Copyright & Legal */}
-                <div className="pt-6 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-4 relative">
-                    <div className="flex flex-col md:flex-row items-center gap-4 md:gap-6">
-                        <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest flex items-center gap-2">
+                {/* Bottom Bar: Copyright, Kit Média, Powered By & Legal on the same line */}
+                <div className="pt-4 border-t border-white/5 flex flex-col xl:flex-row justify-between items-center gap-3.5 relative">
+                    <div className="flex flex-wrap items-center justify-center xl:justify-start gap-3.5 md:gap-5">
+                        <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest flex items-center gap-1.5">
                             <ZoomText text={`© ${getCopyrightDate()} DROPSIDERS. ${t('footer.rights')}`} />
-                            <Link to="/admin" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="text-gray-800 hover:text-neon-red transition-colors ml-2" title="Admin">
+                            <Link to="/admin" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="text-gray-800 hover:text-neon-red transition-colors ml-1" title="Admin">
                                 <Lock className="w-3 h-3" />
                             </Link>
                         </p>
@@ -265,42 +265,42 @@ export function Footer() {
                         <Link
                             to="/kit-media"
                             onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-                            className="flex items-center gap-3 bg-white/5 border border-white/10 rounded-xl px-3.5 py-1.5 hover:bg-white/10 transition-all group"
+                            className="flex items-center gap-2.5 bg-white/5 border border-white/10 rounded-xl px-3 py-1.5 hover:bg-white/10 transition-all group"
                         >
-                            <div className="w-7 h-7 bg-black rounded-lg flex items-center justify-center border border-white/10 shadow-lg overflow-hidden shrink-0 group-hover:border-neon-red transition-colors">
+                            <div className="w-6 h-6 bg-black rounded-lg flex items-center justify-center border border-white/10 shadow-lg overflow-hidden shrink-0 group-hover:border-neon-red transition-colors">
                                 <img src="/logo_presentation.png" alt="Dropsiders" className="w-full h-full object-contain p-0.5" />
                             </div>
                             <div className="flex flex-col">
-                                <span className="text-[9px] font-black text-white uppercase tracking-widest">Kit Média</span>
-                                <span className="text-[6px] font-black text-gray-700 uppercase tracking-widest mt-0.5">News • Récaps Events • Interviews • Concours</span>
+                                <span className="text-[8.5px] font-black text-white uppercase tracking-widest">Kit Média</span>
+                                <span className="text-[5.5px] font-black text-gray-700 uppercase tracking-widest">News • Récaps • Interviews</span>
                             </div>
-                            <Globe className="w-3.5 h-3.5 text-gray-600 group-hover:text-neon-red transition-colors ml-1.5" />
+                            <Globe className="w-3 h-3 text-gray-600 group-hover:text-neon-red transition-colors ml-1" />
                         </Link>
+
+                        <span className="hidden md:inline-block text-white/10 text-xs">|</span>
+
+                        <p className="text-[9px] font-black text-gray-600 uppercase tracking-[0.3em] flex items-center gap-1.5">
+                            Powered by <span className="text-neon-red font-bold">Dropsiders</span>
+                        </p>
                     </div>
-                    <div className="flex flex-wrap justify-center gap-4 md:gap-6 text-center">
-                        <Link to="/politique-de-confidentialite" className="text-[9.5px] font-black text-gray-500 hover:text-neon-red transition-colors uppercase tracking-widest">
+
+                    <div className="flex flex-wrap justify-center gap-3.5 md:gap-5 text-center">
+                        <Link to="/politique-de-confidentialite" className="text-[9px] font-black text-gray-500 hover:text-neon-red transition-colors uppercase tracking-widest">
                             <ZoomText text={t('footer.privacy')} />
                         </Link>
-                        <Link to="/cgu" className="text-[9.5px] font-black text-gray-500 hover:text-neon-red transition-colors uppercase tracking-widest">
+                        <Link to="/cgu" className="text-[9px] font-black text-gray-500 hover:text-neon-red transition-colors uppercase tracking-widest">
                             <ZoomText text={t('footer.terms')} />
                         </Link>
-                        <Link to="/mentions-legales" className="text-[9.5px] font-black text-gray-500 hover:text-neon-red transition-colors uppercase tracking-widest">
+                        <Link to="/mentions-legales" className="text-[9px] font-black text-gray-500 hover:text-neon-red transition-colors uppercase tracking-widest">
                             <ZoomText text={t('footer.legal')} />
                         </Link>
-                        <Link to="/a-propos" className="text-[9.5px] font-black text-gray-500 hover:text-neon-red transition-colors uppercase tracking-widest">
+                        <Link to="/a-propos" className="text-[9px] font-black text-gray-500 hover:text-neon-red transition-colors uppercase tracking-widest">
                             <ZoomText text={language === 'en' ? 'About Us' : 'À propos'} />
                         </Link>
-                        <Link to="/cookies" className="text-[9.5px] font-black text-gray-500 hover:text-neon-red transition-colors uppercase tracking-widest">
+                        <Link to="/cookies" className="text-[9px] font-black text-gray-500 hover:text-neon-red transition-colors uppercase tracking-widest">
                             <ZoomText text={t('footer.cookies')} />
                         </Link>
                     </div>
-                </div>
-
-                {/* Powered By Section */}
-                <div className="mt-4 pt-3 border-t border-white/5 flex justify-center">
-                    <p className="text-[9px] font-black text-gray-600 uppercase tracking-[0.4em] flex items-center gap-2">
-                        Powered by <span className="text-neon-red">Dropsiders</span>
-                    </p>
                 </div>
             </div>
             {/* Corner Accent */}
