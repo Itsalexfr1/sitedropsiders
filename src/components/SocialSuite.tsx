@@ -9261,77 +9261,59 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         ctx.fillText('POCHETTE 1:1', vCenterX, cardY + cardSize * 0.82);
                     }
 
-                    // Reflet gloss sur le haut de la pochette
-                    const glossGrad = ctx.createLinearGradient(cardX, cardY, cardX, cardY + cardSize * 0.35);
-                    glossGrad.addColorStop(0, 'rgba(255, 255, 255, 0.15)');
-                    glossGrad.addColorStop(1, 'rgba(255, 255, 255, 0)');
-                    ctx.fillStyle = glossGrad;
-                    ctx.fillRect(cardX, cardY, cardSize, cardSize * 0.35);
+                    // Reflet permanent de vitre (effet plaque de verre protectrice / cadre sous verre)
+                    const glassAmbient = ctx.createLinearGradient(cardX, cardY, cardX + cardSize, cardY + cardSize);
+                    glassAmbient.addColorStop(0, 'rgba(255, 255, 255, 0.12)');
+                    glassAmbient.addColorStop(0.28, 'rgba(255, 255, 255, 0.04)');
+                    glassAmbient.addColorStop(0.55, 'rgba(255, 255, 255, 0.0)');
+                    glassAmbient.addColorStop(1, 'rgba(0, 0, 0, 0.15)');
+                    ctx.fillStyle = glassAmbient;
+                    ctx.fillRect(cardX, cardY, cardSize, cardSize);
 
-                    // Glare sweep diagonal cinématique haute précision (balayage fluide 45° de coin à coin)
+                    // Biseau spéculaire supérieur ultra-fin (arête du verre taillé)
+                    const glassEdge = ctx.createLinearGradient(cardX, cardY, cardX, cardY + 4);
+                    glassEdge.addColorStop(0, 'rgba(255, 255, 255, 0.30)');
+                    glassEdge.addColorStop(1, 'rgba(255, 255, 255, 0)');
+                    ctx.fillStyle = glassEdge;
+                    ctx.fillRect(cardX, cardY, cardSize, 4);
+
+                    // Balayage lumineux de vitre (grande onde de lumière diffuse, zéro trait dur)
                     const sweepTime = isVideoExport ? animTime : (Date.now() - animStartTimeRef.current) / 1000;
-                    const sweepCycle = 3.2; // Cycle toutes les 3.2s
-                    const sweepDuration = 1.25; // 1.25s de glisse ultra-fluide
-                    const sweepDelay = 0.25; // Déclenchement 0.25s après l'apparition du track
+                    const sweepCycle = 3.4; // Cycle toutes les 3.4s
+                    const sweepDuration = 1.35; // 1.35s de glisse douce
+                    const sweepDelay = 0.25; // Déclenchement 0.25s après le track
                     const cycleT = (sweepTime + sweepCycle - sweepDelay) % sweepCycle;
                     if (cycleT < sweepDuration) {
                         const rawP = cycleT / sweepDuration;
-                        // Smoothstep easing pour une accélération douce et une décélération soyeuse
+                        // Smoothstep easing pour une transition soyeuse et naturelle
                         const easeP = rawP * rawP * (3 - 2 * rawP);
 
                         const cX = cardX + cardSize / 2;
                         const cY = cardY + cardSize / 2;
                         const diag = cardSize * Math.SQRT2; // ~933px
 
-                        // Balayage complet : démarre 100% hors champ au coin haut-gauche et sort 100% hors champ au coin bas-droit
-                        const beamSpan = diag + 260;
-                        const curX = -diag / 2 - 130 + beamSpan * easeP;
+                        // Large onde de reflet de vitre (440px de large, aucun trait ni arête blanche)
+                        const glassW = 440;
+                        const beamSpan = diag + glassW + 100;
+                        const curX = -diag / 2 - glassW / 2 - 50 + beamSpan * easeP;
 
                         ctx.save();
                         ctx.translate(cX, cY);
-                        ctx.rotate(Math.PI / 4); // 45° exact : l'axe X est la diagonale coin haut-gauche -> coin bas-droit
-                        ctx.globalCompositeOperation = 'screen'; // Incrustation spéculaire naturelle sans aplat opaque
+                        ctx.rotate(Math.PI / 4); // Diagonale coin haut-gauche -> coin bas-droit
+                        ctx.globalCompositeOperation = 'screen'; // Incrustation douce et lumineuse sans aplat
 
-                        // 1. Halo lumineux diffus (halo spéculaire ambiant large)
-                        const haloW = 160;
-                        const haloGrad = ctx.createLinearGradient(curX - haloW / 2, 0, curX + haloW / 2, 0);
-                        haloGrad.addColorStop(0, 'rgba(255, 255, 255, 0)');
-                        haloGrad.addColorStop(0.25, `rgba(${rankColorRgb}, 0.12)`);
-                        haloGrad.addColorStop(0.5, 'rgba(255, 255, 255, 0.40)');
-                        haloGrad.addColorStop(0.75, `rgba(${rankColorRgb}, 0.12)`);
-                        haloGrad.addColorStop(1, 'rgba(255, 255, 255, 0)');
-                        ctx.fillStyle = haloGrad;
-                        ctx.fillRect(curX - haloW / 2, -diag, haloW, diag * 2);
+                        // Dégradé en cloche ultra-doux (pure réflexion de verre)
+                        const glassGrad = ctx.createLinearGradient(curX - glassW / 2, 0, curX + glassW / 2, 0);
+                        glassGrad.addColorStop(0.00, 'rgba(255, 255, 255, 0)');
+                        glassGrad.addColorStop(0.20, 'rgba(255, 255, 255, 0.015)');
+                        glassGrad.addColorStop(0.38, 'rgba(255, 255, 255, 0.07)');
+                        glassGrad.addColorStop(0.50, 'rgba(255, 255, 255, 0.20)');
+                        glassGrad.addColorStop(0.62, 'rgba(255, 255, 255, 0.07)');
+                        glassGrad.addColorStop(0.80, 'rgba(255, 255, 255, 0.015)');
+                        glassGrad.addColorStop(1.00, 'rgba(255, 255, 255, 0)');
 
-                        // 2. Faisceau principal intense (brillance verre chromé argenté)
-                        const coreW = 34;
-                        const coreGrad = ctx.createLinearGradient(curX - coreW / 2, 0, curX + coreW / 2, 0);
-                        coreGrad.addColorStop(0, 'rgba(255, 255, 255, 0)');
-                        coreGrad.addColorStop(0.25, 'rgba(255, 255, 255, 0.50)');
-                        coreGrad.addColorStop(0.5, 'rgba(255, 255, 255, 0.95)');
-                        coreGrad.addColorStop(0.75, 'rgba(255, 255, 255, 0.50)');
-                        coreGrad.addColorStop(1, 'rgba(255, 255, 255, 0)');
-                        ctx.fillStyle = coreGrad;
-                        ctx.fillRect(curX - coreW / 2, -diag, coreW, diag * 2);
-
-                        // 3. Arête laser centrale hyper-nette
-                        const bladeW = 6;
-                        const bladeGrad = ctx.createLinearGradient(curX - bladeW / 2, 0, curX + bladeW / 2, 0);
-                        bladeGrad.addColorStop(0, 'rgba(255, 255, 255, 0)');
-                        bladeGrad.addColorStop(0.5, '#ffffff');
-                        bladeGrad.addColorStop(1, 'rgba(255, 255, 255, 0)');
-                        ctx.fillStyle = bladeGrad;
-                        ctx.fillRect(curX - bladeW / 2, -diag, bladeW, diag * 2);
-
-                        // 4. Reflet suiveur fin (double réflexion de vitre de protection / vinyle)
-                        const trailOffset = -34;
-                        const trailW = 10;
-                        const trailGrad = ctx.createLinearGradient(curX + trailOffset - trailW / 2, 0, curX + trailOffset + trailW / 2, 0);
-                        trailGrad.addColorStop(0, 'rgba(255, 255, 255, 0)');
-                        trailGrad.addColorStop(0.5, 'rgba(255, 255, 255, 0.32)');
-                        trailGrad.addColorStop(1, 'rgba(255, 255, 255, 0)');
-                        ctx.fillStyle = trailGrad;
-                        ctx.fillRect(curX + trailOffset - trailW / 2, -diag, trailW, diag * 2);
+                        ctx.fillStyle = glassGrad;
+                        ctx.fillRect(curX - glassW / 2, -diag, glassW, diag * 2);
 
                         ctx.restore();
                     }
