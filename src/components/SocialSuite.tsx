@@ -9640,15 +9640,15 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     });
                     ctx.restore();
 
-                    // 2b. Logo Officiel de l'Artiste (ou nom stylé) au-dessus de la place
+                    // 2b. Logo Officiel de l'Artiste (ou nom stylé) au-dessus de la place (Agrandie pour une forte présence)
                     const countdownArtistName = (top10IntroArtistRef.current || top10IntroArtist || top10ArtistSearch || activeTrack.artist || 'ARTISTE').toUpperCase().trim();
                     const countdownLogoObj = artistLogoRef.current;
                     const countdownHasLogo = Boolean(artistLogo && artistLogo.trim() !== '' && !artistLogo.includes('JOHN-SUMMIT-GIVEAWAY') && countdownLogoObj && (countdownLogoObj.naturalWidth > 0 || countdownLogoObj.complete));
-                    const logoAreaCenterY = 355;
+                    const logoAreaCenterY = 358;
 
                     if (countdownHasLogo && countdownLogoObj) {
-                        const maxLogoW = 420;
-                        const maxLogoH = 80;
+                        const maxLogoW = 580;
+                        const maxLogoH = 98;
                         let lw = countdownLogoObj.width;
                         let lh = countdownLogoObj.height;
                         const ratio = Math.min(maxLogoW / lw, maxLogoH / lh);
@@ -9675,10 +9675,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         }
                         ctx.textAlign = 'center';
                         ctx.textBaseline = 'middle';
-                        let aFontSize = 32;
+                        let aFontSize = 38;
                         ctx.font = `900 italic ${aFontSize}px "Montserrat", sans-serif`;
                         if ('letterSpacing' in ctx) (ctx as any).letterSpacing = '3px';
-                        while (ctx.measureText(countdownArtistName).width > 700 && aFontSize > 20) {
+                        while (ctx.measureText(countdownArtistName).width > 750 && aFontSize > 22) {
                             aFontSize -= 2;
                             ctx.font = `900 italic ${aFontSize}px "Montserrat", sans-serif`;
                         }
