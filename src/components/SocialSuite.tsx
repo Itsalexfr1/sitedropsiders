@@ -7838,11 +7838,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.fillText(trackNumText, centerX, pillY);
                     ctx.restore();
 
-                    // B) TITRE DU MORCEAU (Aéré avec espace respirable sous le numéro de track)
-                    const titleY = isStory ? 1300 : 880;
+                    // B) TITRE DU MORCEAU (Aéré sous la pilule, verrouillé avec l'artiste)
+                    const titleY = isStory ? 1285 : 868;
                     const titleText = currentTrack.title?.trim() || `TITRE DU MORCEAU`;
                     ctx.save();
-                    let titleFontSize = isStory ? 52 : 38;
+                    let titleFontSize = isStory ? 50 : 38;
                     ctx.font = `900 ${titleFontSize}px "Montserrat", sans-serif`;
                     const plainTitleUpper = stripTags(titleText).toUpperCase();
                     while (ctx.measureText(plainTitleUpper).width > contentWidth && titleFontSize > 22) {
@@ -7884,12 +7884,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     }
                     ctx.restore();
 
-                    // C) ARTISTE (Agrandie & valorisée : vert néon gras italique bien visible)
-                    const artistY = isStory ? 1405 : 955;
+                    // C) ARTISTE (Rapproché du titre : bloc typographique unifié et puissant)
+                    const artistY = isStory ? 1348 : 916;
                     const artistText = currentTrack.artist?.trim() || 'NOM DE L\'ARTISTE';
                     const artistUpper = artistText.toUpperCase();
                     ctx.save();
-                    let artistFontSize = isStory ? 48 : 36;
+                    let artistFontSize = isStory ? 44 : 32;
                     ctx.font = `800 italic ${artistFontSize}px "Montserrat", sans-serif`;
                     while (ctx.measureText(artistUpper).width > contentWidth && artistFontSize > 20) {
                         artistFontSize -= 2;
@@ -7914,10 +7914,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     }
                     ctx.restore();
 
-                    // D) LABEL DISCOGRAPHIQUE (Badge capsule élégant si renseigné)
+                    // D) LABEL DISCOGRAPHIQUE (Badge capsule élégant parfaitement cadré en dessous)
                     const labelRaw = currentTrack.label?.trim();
                     if (labelRaw) {
-                        const labelY = isStory ? 1505 : 1025;
+                        const labelY = isStory ? 1425 : 975;
                         const labelDisplay = `LABEL : ${labelRaw.toUpperCase()}`;
                         ctx.save();
                         if (!isStaticPngExport && textAnimation !== 'NONE') {
