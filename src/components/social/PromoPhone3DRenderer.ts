@@ -1264,26 +1264,27 @@ export function renderPromoPhone3D(opts: PromoPhone3DOptions) {
         transitionProgress = 0;
         pillPos = rawIdx;
     } else {
-        const loopTime = (tAnim % cycleTotal + cycleTotal) % cycleTotal;
-        const currentSlot = Math.floor(loopTime / slotDuration);
+        // En Reel / Outro, le temps s'arrête sur YouTube sans jamais boucler vers Instagram
+        const loopTime = isReel
+            ? Math.min(tAnim, cycleTotal - 0.001)
+            : ((tAnim % cycleTotal + cycleTotal) % cycleTotal);
+
+        const currentSlot = Math.min(2, Math.floor(loopTime / slotDuration));
         const slotLocalTime = loopTime - currentSlot * slotDuration;
 
-        rawIdx = currentSlot % 3;
-        nextIdx = (rawIdx + 1) % 3;
+        rawIdx = currentSlot;
+        nextIdx = Math.min(2, rawIdx + 1);
 
         const holdDuration = slotDuration - transDuration;
-        if (slotLocalTime < holdDuration) {
+        if (rawIdx === 2 || slotLocalTime < holdDuration) {
+            // Sur YouTube (dernier réseau), ou en phase de maintien : reste 100% fixe sur YouTube jusqu'à la fin
             transitionProgress = 0;
             pillPos = rawIdx;
         } else {
+            // Transition fluide uniquement d'Instagram vers TikTok (0->1) ou de TikTok vers YouTube (1->2)
             const p = (slotLocalTime - holdDuration) / transDuration;
             transitionProgress = p < 0.5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2;
-
-            if (rawIdx === 2) {
-                pillPos = 2 - transitionProgress * 2;
-            } else {
-                pillPos = rawIdx + transitionProgress;
-            }
+            pillPos = rawIdx + transitionProgress;
         }
     }
 
