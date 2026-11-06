@@ -984,136 +984,155 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
     const [isAutoFillingTop10, setIsAutoFillingTop10] = useState<boolean>(false);
     const [top10ArtistSearch, setTop10ArtistSearch] = useState<string>('');
+    const [top10RawTextImport, setTop10RawTextImport] = useState<string>('');
+    const [showRawTextImportModal, setShowRawTextImportModal] = useState<boolean>(false);
 
-    const TOP_10_ARTIST_PRESETS: Record<string, { artistName: string; defaultTitle?: string; tracks: { rank: number; title: string; artist: string; streams: string }[] }> = {
-        garrix: {
-            artistName: 'MARTIN GARRIX',
-            defaultTitle: 'MARTIN GARRIX • TOP 10 TRACKS',
-            tracks: [
-                { rank: 10, title: "DON'T LOOK DOWN", artist: "MARTIN GARRIX FT. USHER", streams: "316 000 000" },
-                { rank: 9, title: "SO FAR AWAY", artist: "MARTIN GARRIX & DAVID GUETTA", streams: "415 000 000" },
-                { rank: 8, title: "LIKE I DO", artist: "MARTIN GARRIX, DAVID GUETTA, BROOKS", streams: "511 000 000" },
-                { rank: 7, title: "HIGH ON LIFE", artist: "MARTIN GARRIX FT. BONN", streams: "526 000 000" },
-                { rank: 6, title: "ANIMALS", artist: "MARTIN GARRIX", streams: "530 000 000" },
-                { rank: 5, title: "OCEAN", artist: "MARTIN GARRIX FT. KHALID", streams: "585 000 000" },
-                { rank: 4, title: "THERE FOR YOU", artist: "MARTIN GARRIX & TROYE SIVAN", streams: "652 000 000" },
-                { rank: 3, title: "SUMMER DAYS", artist: "MARTIN GARRIX FT. MACKLEMORE", streams: "753 000 000" },
-                { rank: 2, title: "SCARED TO BE LONELY", artist: "MARTIN GARRIX & DUA LIPA", streams: "1 553 000 000" },
-                { rank: 1, title: "IN THE NAME OF LOVE", artist: "MARTIN GARRIX & BEBE REXHA", streams: "1 826 000 000" }
-            ]
-        },
-        dvlm: {
-            artistName: 'DIMITRI VEGAS & LIKE MIKE',
-            defaultTitle: 'DIMITRI VEGAS & LIKE MIKE • TOP 10',
-            tracks: [
-                { rank: 10, title: "MELODY", artist: "DIMITRI VEGAS & LIKE MIKE, STEVE AOKI, UMMET OZCAN", streams: "65 000 000" },
-                { rank: 9, title: "HEY BABY", artist: "DIMITRI VEGAS & LIKE MIKE VS. DIPLO", streams: "80 000 000" },
-                { rank: 8, title: "CROWD CONTROL", artist: "DIMITRI VEGAS & LIKE MIKE VS. W&W", streams: "85 000 000" },
-                { rank: 7, title: "MAMMOTH", artist: "DIMITRI VEGAS & LIKE MIKE, MOGUAI", streams: "108 000 000" },
-                { rank: 6, title: "THE HUM", artist: "DIMITRI VEGAS & LIKE MIKE VS. UMMET OZCAN", streams: "121 000 000" },
-                { rank: 5, title: "TREMOR", artist: "DIMITRI VEGAS, MARTIN GARRIX, LIKE MIKE", streams: "168 000 000" },
-                { rank: 4, title: "COMPLICATED", artist: "DIMITRI VEGAS & LIKE MIKE FT. KIIARA", streams: "182 000 000" },
-                { rank: 3, title: "SAY MY NAME", artist: "DIMITRI VEGAS & LIKE MIKE, REGARD", streams: "201 000 000" },
-                { rank: 2, title: "INSTAGRAM", artist: "DIMITRI VEGAS & LIKE MIKE, GUETTA, DADDY YANKEE", streams: "310 000 000" },
-                { rank: 1, title: "THANK YOU (NOT SO BAD)", artist: "DIMITRI VEGAS & LIKE MIKE, TIËSTO, DIDO", streams: "743 000 000" }
-            ]
-        },
-        guetta: {
-            artistName: 'DAVID GUETTA',
-            defaultTitle: 'DAVID GUETTA • TOP 10 TRACKS',
-            tracks: [
-                { rank: 10, title: "LOVE TONIGHT (REMIX)", artist: "SHOUSE, DAVID GUETTA", streams: "520 000 000" },
-                { rank: 9, title: "BABY DON'T HURT ME", artist: "DAVID GUETTA, ANNE-MARIE, COI LERAY", streams: "640 000 000" },
-                { rank: 8, title: "PLAY HARD", artist: "DAVID GUETTA FT. NE-YO & AKON", streams: "780 000 000" },
-                { rank: 7, title: "MEMORIES", artist: "DAVID GUETTA FT. KID CUDI", streams: "910 000 000" },
-                { rank: 6, title: "WITHOUT YOU", artist: "DAVID GUETTA FT. USHER", streams: "950 000 000" },
-                { rank: 5, title: "HEY MAMA", artist: "DAVID GUETTA FT. NICKI MINAJ, BEBE REXHA", streams: "1 050 000 000" },
-                { rank: 4, title: "SAY MY NAME", artist: "DAVID GUETTA, BEBE REXHA, J BALVIN", streams: "1 100 000 000" },
-                { rank: 3, title: "TITANIUM", artist: "DAVID GUETTA FT. SIA", streams: "1 620 000 000" },
-                { rank: 2, title: "I'M GOOD (BLUE)", artist: "DAVID GUETTA & BEBE REXHA", streams: "1 750 000 000" },
-                { rank: 1, title: "I GOTTA FEELING", artist: "BLACK EYED PEAS & DAVID GUETTA", streams: "1 850 000 000" }
-            ]
-        },
-        avicii: {
-            artistName: 'AVICII',
-            defaultTitle: 'AVICII • TOP 10 TRACKS',
-            tracks: [
-                { rank: 10, title: "I COULD BE THE ONE", artist: "AVICII VS. NICKY ROMERO", streams: "420 000 000" },
-                { rank: 9, title: "ADDICTED TO YOU", artist: "AVICII", streams: "520 000 000" },
-                { rank: 8, title: "LONELY TOGETHER", artist: "AVICII FT. RITA ORA", streams: "750 000 000" },
-                { rank: 7, title: "WITHOUT YOU", artist: "AVICII FT. SANDRO CAVAZZA", streams: "820 000 000" },
-                { rank: 6, title: "SOS", artist: "AVICII FT. ALOE BLACC", streams: "890 000 000" },
-                { rank: 5, title: "LEVELS", artist: "AVICII", streams: "950 000 000" },
-                { rank: 4, title: "HEY BROTHER", artist: "AVICII", streams: "1 250 000 000" },
-                { rank: 3, title: "WAITING FOR LOVE", artist: "AVICII", streams: "1 380 000 000" },
-                { rank: 2, title: "THE NIGHTS", artist: "AVICII", streams: "1 800 000 000" },
-                { rank: 1, title: "WAKE ME UP", artist: "AVICII", streams: "2 520 000 000" }
-            ]
-        },
-        tiesto: {
-            artistName: 'TIËSTO',
-            defaultTitle: 'TIËSTO • TOP 10 TRACKS',
-            tracks: [
-                { rank: 10, title: "SECRETS", artist: "TIËSTO & KSHMR FT. VASSY", streams: "380 000 000" },
-                { rank: 9, title: "RED LIGHTS", artist: "TIËSTO", streams: "450 000 000" },
-                { rank: 8, title: "10:35", artist: "TIËSTO FT. TATE MCRAE", streams: "490 000 000" },
-                { rank: 7, title: "HOT IN IT", artist: "TIËSTO & CHARLI XCX", streams: "510 000 000" },
-                { rank: 6, title: "WASTED", artist: "TIËSTO FT. MATTHEW KOMA", streams: "530 000 000" },
-                { rank: 5, title: "GOD IS A DANCER", artist: "TIËSTO & MABEL", streams: "560 000 000" },
-                { rank: 4, title: "THANK YOU (NOT SO BAD)", artist: "TIËSTO, DIMITRI VEGAS & LIKE MIKE", streams: "743 000 000" },
-                { rank: 3, title: "THE BUSINESS", artist: "TIËSTO", streams: "1 250 000 000" },
-                { rank: 2, title: "DON'T BE SHY", artist: "TIËSTO & KAROL G", streams: "1 150 000 000" },
-                { rank: 1, title: "MOTH TO A FLAME", artist: "SWEDISH HOUSE MAFIA (TIËSTO REMIX)", streams: "900 000 000" }
-            ]
-        }
-    };
-
-    const handleLoadArtistPreset = async (presetKey: string) => {
-        const preset = TOP_10_ARTIST_PRESETS[presetKey];
-        if (!preset) return;
+    /**
+     * Analyse et trie automatiquement n'importe quelle liste copiée depuis Spotify, Kworb ou texte brut.
+     * Détecte les nombres d'écoutes / streams, trie par ordre décroissant (du #10 au #1 réel)
+     * et résout automatiquement les pochettes HD 1400x1400 et extraits audio officiels !
+     */
+    const handleImportAndSortRawTracks = async (rawText: string, defaultArtist: string = '') => {
+        const text = rawText.trim();
+        if (!text) return;
         setIsAutoFillingTop10(true);
-        if (preset.defaultTitle) {
-            setTop10Title(preset.defaultTitle);
-        }
-        const updatedTracks: Top10TrackItem[] = preset.tracks.map(pt => ({
-            rank: pt.rank,
-            title: pt.title,
-            artist: pt.artist,
-            streams: pt.streams,
-            cover: '',
-            audioUrl: '',
-            sourceUrl: '',
-            videoStartTime: 0,
-            audioStartTime: 0
-        }));
-        setTop10Tracks(updatedTracks);
-        top10TracksRef.current = updatedTracks;
-        try {
-            localStorage.setItem('dropsiders_top10_tracks_v7', JSON.stringify(updatedTracks));
-        } catch (_) {}
-        generateImage();
+        setShowRawTextImportModal(false);
 
-        // Résolution automatique en arrière-plan des pochettes Ultra-HD et extraits audio
-        for (const pt of preset.tracks) {
-            try {
-                const query = `${pt.artist} ${pt.title}`;
-                const res = await resolveMusicSnippet(query);
-                if (res) {
-                    updateTop10Track(pt.rank, {
-                        cover: res.coverUrl || '',
-                        audioUrl: res.audioUrl || '',
-                        sourceUrl: res.audioUrl || ''
-                    });
-                    if (res.coverUrl) {
-                        loadCorsSafeImage(res.coverUrl, (img) => {
-                            imageCacheRef.current[res.coverUrl!] = img;
-                            generateImage();
-                        });
+        try {
+            const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
+            interface ParsedItem {
+                rawTitle: string;
+                artist: string;
+                streamsNum: number;
+                streamsDisplay: string;
+            }
+            const parsedList: ParsedItem[] = [];
+
+            for (const line of lines) {
+                // Ignorer les en-têtes ou lignes de titre globales
+                if (/^(populaires|top songs|titre|morceau|streams|daily|écoutes)/i.test(line)) continue;
+
+                // 1. Chercher un nombre d'écoutes / streams (ex: 1826620962, 743,051,251, 530 000 000, 743M)
+                let streamsNum = 0;
+                let streamsDisplay = '';
+
+                // Format millions "743M" ou "1.8B"
+                const mMatch = line.match(/(\d+(?:[.,]\d+)?)\s*([MB])/i);
+                if (mMatch) {
+                    const val = parseFloat(mMatch[1].replace(',', '.'));
+                    const mult = mMatch[2].toUpperCase() === 'B' ? 1_000_000_000 : 1_000_000;
+                    streamsNum = Math.round(val * mult);
+                    streamsDisplay = `${mMatch[1]} ${mMatch[2].toUpperCase()} STREAMS`;
+                } else {
+                    // Chercher de grands nombres (> 10 000) séparés par des virgules, points ou espaces ou collés
+                    const numMatches = line.match(/\b(?:\d{1,3}(?:[ ,.]\d{3}){1,4}|\d{5,12})\b/g);
+                    if (numMatches && numMatches.length > 0) {
+                        for (const nm of numMatches) {
+                            const cleanNum = parseInt(nm.replace(/[\s,.]/g, ''), 10);
+                            if (cleanNum > streamsNum) {
+                                streamsNum = cleanNum;
+                                streamsDisplay = cleanNum.toLocaleString('fr-FR');
+                            }
+                        }
                     }
                 }
+
+                // 2. Extraire le titre du morceau
+                let cleanLine = line
+                    .replace(/\b\d+:\d{2}\b/g, '') // supprime les durées de piste
+                    .replace(/^\d+[\t.)\s-]+/, '') // supprime le rang en début de ligne
+                    .replace(/\b(?:\d{1,3}(?:[ ,.]\d{3}){1,4}|\d{5,12})\b/g, '') // supprime les streams
+                    .replace(/(\d+(?:[.,]\d+)?)\s*([MB])/gi, '') // supprime les 743M
+                    .replace(/\b(vidéo|audio|official|lyrics|remaster)\b/gi, '')
+                    .replace(/\s+/g, ' ')
+                    .trim();
+
+                // Séparer artiste et titre si "Artiste - Titre"
+                let art = defaultArtist;
+                let tit = cleanLine;
+                if (cleanLine.includes(' - ')) {
+                    const parts = cleanLine.split(' - ');
+                    if (parts.length >= 2) {
+                        art = parts[0].trim();
+                        tit = parts.slice(1).join(' - ').trim();
+                    }
+                }
+
+                if (tit && tit.length > 1) {
+                    parsedList.push({
+                        rawTitle: tit.toUpperCase(),
+                        artist: (art || defaultArtist).toUpperCase(),
+                        streamsNum,
+                        streamsDisplay
+                    });
+                }
+            }
+
+            if (parsedList.length === 0) {
+                alert("Aucun titre détecté. Copiez simplement les lignes depuis Spotify ou Kworb et collez-les.");
+                setIsAutoFillingTop10(false);
+                return;
+            }
+
+            // Trier automatiquement par nombre de streams décroissant (du plus gros hit au 10ème)
+            if (parsedList.some(p => p.streamsNum > 0)) {
+                parsedList.sort((a, b) => b.streamsNum - a.streamsNum);
+            }
+
+            // Conserver les 10 meilleurs
+            const top10 = parsedList.slice(0, 10);
+            const newTracks: Top10TrackItem[] = [];
+
+            // Assigner du rang 10 au rang 1 (#10 à l'index 0, #1 à l'index 9)
+            for (let i = 0; i < 10; i++) {
+                const rank = 10 - i;
+                const item = top10[9 - i] || top10[i] || { rawTitle: `TRACK #${rank}`, artist: defaultArtist, streamsDisplay: '' };
+                newTracks.push({
+                    rank,
+                    title: item.rawTitle,
+                    artist: item.artist || defaultArtist.toUpperCase(),
+                    streams: item.streamsDisplay,
+                    cover: '',
+                    audioUrl: '',
+                    sourceUrl: '',
+                    videoStartTime: 0,
+                    audioStartTime: 0
+                });
+            }
+
+            setTop10Tracks(newTracks);
+            top10TracksRef.current = newTracks;
+            try {
+                localStorage.setItem('dropsiders_top10_tracks_v7', JSON.stringify(newTracks));
             } catch (_) {}
+            generateImage();
+
+            // Résolution automatique en tâche de fond des pochettes HD et audio pour chacun des 10 morceaux
+            for (const tr of newTracks) {
+                if (!tr.title || tr.title.startsWith('TRACK #')) continue;
+                try {
+                    const query = `${tr.artist || defaultArtist} ${tr.title}`.trim();
+                    const res = await resolveMusicSnippet(query);
+                    if (res) {
+                        updateTop10Track(tr.rank, {
+                            cover: res.coverUrl || '',
+                            audioUrl: res.audioUrl || '',
+                            sourceUrl: res.audioUrl || ''
+                        });
+                        if (res.coverUrl) {
+                            loadCorsSafeImage(res.coverUrl, (img) => {
+                                imageCacheRef.current[res.coverUrl!] = img;
+                                generateImage();
+                            });
+                        }
+                    }
+                } catch (_) {}
+            }
+        } catch (err) {
+            console.warn("Erreur import texte Top 10 :", err);
+        } finally {
+            setIsAutoFillingTop10(false);
         }
-        setIsAutoFillingTop10(false);
     };
 
     const handleAutoFetchArtistTop10 = async (artistName: string) => {
@@ -19067,11 +19086,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     </div>
                 </div>
 
-                {/* AUTO-GÉNÉRATEUR TOP 10 PAR ARTISTE (PRESETS & RECHERCHE ITUNES) */}
+                {/* AUTO-GÉNÉRATEUR TOP 10 100% DYNAMIQUE */}
                 <div className="p-3.5 bg-gradient-to-br from-neon-cyan/15 via-black/40 to-purple-500/10 border border-neon-cyan/40 rounded-2xl shadow-xl space-y-3">
                     <div className="flex items-center justify-between">
                         <span className="text-[10px] font-black text-neon-cyan uppercase tracking-wider flex items-center gap-1.5">
-                            ⚡ Auto-Générateur Top 10 (1-Click)
+                            ⚡ Générateur Top 10 par Artiste
                         </span>
                         {isAutoFillingTop10 && (
                             <span className="px-2 py-0.5 bg-neon-cyan/20 text-neon-cyan text-[8px] font-black uppercase rounded-full animate-pulse border border-neon-cyan/40">
@@ -19080,69 +19099,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         )}
                     </div>
 
-                    {/* Presets EDM vérifiés avec Streams réels */}
+                    {/* Recherche 1-Clic pour n'importe quel artiste */}
                     <div className="space-y-1.5">
-                        <label className="text-[8px] font-black text-gray-300 uppercase tracking-wider">
-                            Top 10 EDM Vérifiés (Avec streams Spotify réels) :
-                        </label>
-                        <div className="grid grid-cols-2 gap-1.5">
-                            <button
-                                type="button"
-                                disabled={isAutoFillingTop10}
-                                onClick={() => handleLoadArtistPreset('garrix')}
-                                className="py-2 px-2.5 bg-black/60 hover:bg-neon-cyan/20 border border-white/10 hover:border-neon-cyan/60 rounded-xl text-left text-white transition-all disabled:opacity-40 group active:scale-95"
-                            >
-                                <div className="text-[9.5px] font-black group-hover:text-neon-cyan truncate">MARTIN GARRIX</div>
-                                <div className="text-[7.5px] text-gray-400 font-mono">#1 In the Name of Love (1.8B)</div>
-                            </button>
-
-                            <button
-                                type="button"
-                                disabled={isAutoFillingTop10}
-                                onClick={() => handleLoadArtistPreset('dvlm')}
-                                className="py-2 px-2.5 bg-black/60 hover:bg-neon-cyan/20 border border-white/10 hover:border-neon-cyan/60 rounded-xl text-left text-white transition-all disabled:opacity-40 group active:scale-95"
-                            >
-                                <div className="text-[9.5px] font-black group-hover:text-neon-cyan truncate">DIMITRI VEGAS & LM</div>
-                                <div className="text-[7.5px] text-gray-400 font-mono">#1 Thank You (743M)</div>
-                            </button>
-
-                            <button
-                                type="button"
-                                disabled={isAutoFillingTop10}
-                                onClick={() => handleLoadArtistPreset('guetta')}
-                                className="py-2 px-2.5 bg-black/60 hover:bg-neon-cyan/20 border border-white/10 hover:border-neon-cyan/60 rounded-xl text-left text-white transition-all disabled:opacity-40 group active:scale-95"
-                            >
-                                <div className="text-[9.5px] font-black group-hover:text-neon-cyan truncate">DAVID GUETTA</div>
-                                <div className="text-[7.5px] text-gray-400 font-mono">#1 I Gotta Feeling (1.85B)</div>
-                            </button>
-
-                            <button
-                                type="button"
-                                disabled={isAutoFillingTop10}
-                                onClick={() => handleLoadArtistPreset('avicii')}
-                                className="py-2 px-2.5 bg-black/60 hover:bg-neon-cyan/20 border border-white/10 hover:border-neon-cyan/60 rounded-xl text-left text-white transition-all disabled:opacity-40 group active:scale-95"
-                            >
-                                <div className="text-[9.5px] font-black group-hover:text-neon-cyan truncate">AVICII</div>
-                                <div className="text-[7.5px] text-gray-400 font-mono">#1 Wake Me Up (2.52B)</div>
-                            </button>
-                        </div>
-
-                        <button
-                            type="button"
-                            disabled={isAutoFillingTop10}
-                            onClick={() => handleLoadArtistPreset('tiesto')}
-                            className="w-full py-1.5 px-2 bg-black/60 hover:bg-neon-cyan/20 border border-white/10 hover:border-neon-cyan/60 rounded-xl text-left text-white transition-all disabled:opacity-40 group active:scale-95 flex items-center justify-between"
-                        >
-                            <span className="text-[9.5px] font-black group-hover:text-neon-cyan">TIËSTO</span>
-                            <span className="text-[7.5px] text-gray-400 font-mono">#1 Moth To A Flame (900M) / #3 The Business (1.25B)</span>
-                        </button>
-                    </div>
-
-                    {/* Ou Recherche automatique pour TOUT artiste mondial */}
-                    <div className="space-y-1.5 pt-2 border-t border-white/10">
                         <label className="text-[8px] font-black text-gray-300 uppercase tracking-wider flex items-center justify-between">
-                            <span>Ou générer pour n'importe quel artiste :</span>
-                            <span className="text-[7px] text-gray-400 font-mono">10 titres + pochettes HD</span>
+                            <span>Nom de l'Artiste / DJ :</span>
+                            <span className="text-[7.5px] text-gray-400 font-mono">10 titres + Covers HD 1400x1400 + Audio</span>
                         </label>
                         <div className="flex items-center gap-1.5">
                             <input
@@ -19152,18 +19113,66 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 onKeyDown={e => {
                                     if (e.key === 'Enter') handleAutoFetchArtistTop10(top10ArtistSearch);
                                 }}
-                                placeholder="Ex: Fred Again, Calvin Harris, Fisher, Hardwell..."
-                                className="flex-1 bg-black/60 border border-white/10 rounded-xl px-2.5 py-2 text-white text-[10px] font-bold focus:border-neon-cyan outline-none placeholder:text-gray-500"
+                                placeholder="Tapez n'importe quel artiste (ex: Martin Garrix, Dimitri Vegas...)"
+                                className="flex-1 bg-black/60 border border-white/10 rounded-xl px-2.5 py-2 text-white text-[10.5px] font-bold focus:border-neon-cyan outline-none placeholder:text-gray-500"
                             />
                             <button
                                 type="button"
                                 disabled={isAutoFillingTop10 || !top10ArtistSearch.trim()}
                                 onClick={() => handleAutoFetchArtistTop10(top10ArtistSearch)}
-                                className="px-3 py-2 bg-neon-cyan text-black font-black text-[9px] uppercase rounded-xl hover:bg-neon-cyan/80 transition-all disabled:opacity-40 shrink-0 shadow-md shadow-neon-cyan/20"
+                                className="px-3.5 py-2 bg-neon-cyan text-black font-black text-[9.5px] uppercase rounded-xl hover:bg-neon-cyan/80 transition-all disabled:opacity-40 shrink-0 shadow-md shadow-neon-cyan/20 active:scale-95"
                             >
-                                {isAutoFillingTop10 ? '⏳...' : '⚡ Générer Top 10'}
+                                {isAutoFillingTop10 ? '⏳...' : '⚡ Générer'}
                             </button>
                         </div>
+                    </div>
+
+                    {/* TRIEUR MAGIQUE SPOTIFY & KWORB (Résout le mauvais tri de Spotify !) */}
+                    <div className="pt-2 border-t border-white/10 space-y-2">
+                        <button
+                            type="button"
+                            onClick={() => setShowRawTextImportModal(!showRawTextImportModal)}
+                            className="w-full py-1.5 px-2.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-left text-gray-300 hover:text-white transition-all flex items-center justify-between group text-[8.5px] font-black uppercase tracking-wider"
+                        >
+                            <span className="flex items-center gap-1.5 text-neon-cyan">
+                                📋 Coller liste Spotify / Kworb (Trieur de streams auto)
+                            </span>
+                            <span className="text-gray-400 group-hover:text-white text-[10px]">
+                                {showRawTextImportModal ? '▲ Masquer' : '▼ Ouvrir'}
+                            </span>
+                        </button>
+
+                        {showRawTextImportModal && (
+                            <div className="p-2.5 bg-black/70 border border-neon-cyan/30 rounded-xl space-y-2 animate-fadeIn">
+                                <p className="text-[7.5px] text-gray-400 leading-tight">
+                                    💡 <strong className="text-white">Astuce Spotify mal rangé :</strong> Copiez simplement le tableau des titres depuis Spotify Desktop ou Kworb (avec les chiffres de streams) et collez-le ici. L'outil trie automatiquement du plus streamé au moins streamé, remplit les 10 positions (#10 ➔ #1), ajoute les streams et télécharge les pochettes HD !
+                                </p>
+                                <textarea
+                                    value={top10RawTextImport}
+                                    onChange={e => setTop10RawTextImport(e.target.value)}
+                                    rows={4}
+                                    placeholder={"Collez ici vos lignes copiées de Spotify ou Kworb...\nExemple:\nIn the Name of Love\t1826620962\t3:18\nScared to Be Lonely\t1553619964\t3:40\nSummer Days\t753363223\t2:43"}
+                                    className="w-full bg-black/80 border border-white/10 rounded-xl p-2 text-white text-[9.5px] font-mono focus:border-neon-cyan outline-none resize-none placeholder:text-gray-600"
+                                />
+                                <div className="flex items-center justify-between gap-2">
+                                    <button
+                                        type="button"
+                                        onClick={() => { setTop10RawTextImport(''); setShowRawTextImportModal(false); }}
+                                        className="text-[8px] text-gray-400 hover:text-white uppercase font-bold"
+                                    >
+                                        Annuler
+                                    </button>
+                                    <button
+                                        type="button"
+                                        disabled={isAutoFillingTop10 || !top10RawTextImport.trim()}
+                                        onClick={() => handleImportAndSortRawTracks(top10RawTextImport, top10ArtistSearch)}
+                                        className="py-1.5 px-3 bg-neon-cyan text-black text-[9px] font-black uppercase rounded-xl hover:bg-neon-cyan/80 transition-all disabled:opacity-40 shadow-md shadow-neon-cyan/20 active:scale-95"
+                                    >
+                                        {isAutoFillingTop10 ? '⏳ Analyse en cours...' : '🚀 Trier & Remplir le Top 10'}
+                                    </button>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </div>
 
