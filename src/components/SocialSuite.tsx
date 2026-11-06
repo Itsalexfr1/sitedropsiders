@@ -9182,8 +9182,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         let textArtistFontSize = isStory ? 94 : 70;
 
                         if (hasUploadedLogo && artistLogoObj) {
-                            const maxLogoW = isStory ? 600 : 450;
-                            const maxLogoH = isStory ? 170 : 130;
+                            const maxLogoW = isStory ? 760 : 540;
+                            const maxLogoH = isStory ? 245 : 175;
                             let lw = artistLogoObj.width;
                             let lh = artistLogoObj.height;
                             const ratio = Math.min(maxLogoW / lw, maxLogoH / lh);
@@ -9204,8 +9204,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         const pillHeight = 44;
 
                         // Espaces réels entre les boîtes (aucun chevauchement possible)
-                        const space1 = isStory ? 120 : 85; // Espace net entre le bas du titre et le haut du logo
-                        const space2 = isStory ? 110 : 80; // Espace net entre le bas du logo et le haut du pill
+                        const space1 = isStory ? 100 : 75; // Espace net entre le bas du titre et le haut du logo
+                        const space2 = isStory ? 95 : 70;  // Espace net entre le bas du logo et le haut du pill
 
                         const totalBlockH = titleTotalHeight + space1 + artistHeight + space2 + pillHeight;
                         const startTop = centerY - (totalBlockH / 2);
@@ -9575,8 +9575,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     const logoAreaCenterY = 355;
 
                     if (countdownHasLogo && countdownLogoObj) {
-                        const maxLogoW = 380;
-                        const maxLogoH = 75;
+                        const maxLogoW = 420;
+                        const maxLogoH = 80;
                         let lw = countdownLogoObj.width;
                         let lh = countdownLogoObj.height;
                         const ratio = Math.min(maxLogoW / lw, maxLogoH / lh);
