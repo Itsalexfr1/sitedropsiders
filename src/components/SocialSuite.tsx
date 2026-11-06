@@ -975,7 +975,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     });
 
     const [top10Badge, setTop10Badge] = useState<string>('TOP 10 TRACKS');
-    const [top10Title, setTop10Title] = useState<string>('ARTISTE • TOP 10 TRACKS');
+    const [top10Title, setTop10Title] = useState<string>('TOP 10 TRACKS');
     const [top10Subtitle, setTop10Subtitle] = useState<string>('FESTIVAL 2026');
     const [top10HasPromoOutro, setTop10HasPromoOutro] = useState<boolean>(true); // Outro Téléphone 3D à la fin
     const [top10TrackDuration, setTop10TrackDuration] = useState<number>(5.3); // 5.3s × 10 + 7s outro = 60s (1 min pile)
@@ -1306,8 +1306,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         const cleaned = artistName.trim();
         if (!cleaned) return;
         setIsAutoFillingTop10(true);
-        setTop10Title(`${cleaned.toUpperCase()} • TOP 10 TRACKS`);
-        setTop10IntroTitle(`${cleaned.toUpperCase()} • TOP 10 TRACKS`);
+        setTop10Title('TOP 10 TRACKS');
+        setTop10IntroArtist(cleaned);
 
         try {
             const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(cleaned)}&entity=song&limit=30`);
@@ -9536,17 +9536,15 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     // 1. Top-Left Badge Dropsiders (Effets News avec couleur bleu néon comme avant)
                     drawTopCapsuleBadge((top10BadgeRef.current || top10Badge || 'TOP 10 TRACKS').toUpperCase(), '#00f0ff', '0, 240, 255');
 
-                    // 2. Header Titre Principal (Artiste • Top 10 Tracks par défaut)
+                    // 2. Header Titre Principal (TOP 10 TRACKS par défaut, sans doublon artiste)
                     ctx.save();
                     ctx.textAlign = 'center';
                     ctx.textBaseline = 'middle';
 
-                    const countdownArtistName = (top10IntroArtistRef.current || top10IntroArtist || top10ArtistSearch || activeTrack.artist || 'ARTISTE').toUpperCase().trim();
-                    const defaultTracksTitle = `${countdownArtistName} • TOP 10 TRACKS`;
                     const rawTracksTitle = (top10TitleRef.current || top10Title || '').trim();
-                    const t10Title = (rawTracksTitle && rawTracksTitle !== 'TOP 10 DES TRACKS LES PLUS STREAMÉES' && rawTracksTitle !== 'TOP 10 DES TRACKS LES PLUS JOUÉES'
+                    const t10Title = (rawTracksTitle && rawTracksTitle !== 'TOP 10 DES TRACKS LES PLUS STREAMÉES' && rawTracksTitle !== 'TOP 10 DES TRACKS LES PLUS JOUÉES' && !rawTracksTitle.endsWith('• TOP 10 TRACKS') && rawTracksTitle !== 'ARTISTE • TOP 10 TRACKS'
                         ? rawTracksTitle
-                        : defaultTracksTitle).toUpperCase();
+                        : 'TOP 10 TRACKS').toUpperCase();
 
                     let t10FontSize = 34;
                     ctx.font = `900 ${t10FontSize}px "Montserrat", sans-serif`;
@@ -9583,6 +9581,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.restore();
 
                     // 2b. Logo Officiel de l'Artiste (ou nom stylé) au-dessus de la place
+                    const countdownArtistName = (top10IntroArtistRef.current || top10IntroArtist || top10ArtistSearch || activeTrack.artist || 'ARTISTE').toUpperCase().trim();
                     const countdownLogoObj = artistLogoRef.current;
                     const countdownHasLogo = Boolean(artistLogo && artistLogo.trim() !== '' && !artistLogo.includes('JOHN-SUMMIT-GIVEAWAY') && countdownLogoObj && (countdownLogoObj.naturalWidth > 0 || countdownLogoObj.complete));
                     const logoAreaCenterY = 355;
