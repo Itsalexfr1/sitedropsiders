@@ -1282,6 +1282,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 try { v.currentTime = targetTr.videoStartTime; } catch (_) { }
             }
         }
+        triggerSmoothAnimReplay();
         setTimeout(() => generateImage(), 30);
     };
 
@@ -3843,11 +3844,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             ? (Date.now() - animStartTimeRef.current) / 1000
                             : 99.0));
 
-                const getTextAnimTransform = (delay: number = 0) => {
+                const getTextAnimTransform = (delay: number = 0, customElapsed?: number) => {
                     if (textAnimation === 'NONE') {
                         return { alpha: 1, xOff: 0, yOff: 0, scale: 1 };
                     }
-                    const el = animElapsed - delay;
+                    const effectiveElapsed = customElapsed !== undefined ? customElapsed : animElapsed;
+                    const el = effectiveElapsed - delay;
                     let alpha = 1;
                     let xOff = 0;
                     let yOff = 0;
@@ -3920,9 +3922,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     return { alpha, xOff, yOff, scale };
                 };
 
-                const applyTextAnimCtx = (ctx: CanvasRenderingContext2D, delay: number, anchorX: number, anchorY: number) => {
+                const applyTextAnimCtx = (ctx: CanvasRenderingContext2D, delay: number, anchorX: number, anchorY: number, customElapsed?: number) => {
                     if (textAnimation === 'NONE') return;
-                    const anim = getTextAnimTransform(delay);
+                    const anim = getTextAnimTransform(delay, customElapsed);
                     ctx.globalAlpha *= Math.max(0, Math.min(1, anim.alpha));
                     ctx.translate(anchorX + anim.xOff, anchorY + anim.yOff);
                     if (anim.scale !== 1) {
@@ -8958,6 +8960,13 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     const activeTrack = currentTracks[currentTrackIndex] || currentTracks[0];
                     const activeRank = activeTrack.rank;
 
+                    // Temps d'animation propre à la track active (rejoue proprement à chaque changement de position ou test)
+                    const trackAnimTime = isVideoExport
+                        ? (animTime % durPerTrack)
+                        : (top10TestingRank === currentActiveRank
+                            ? (animTime % durPerTrack)
+                            : Math.max(0, (Date.now() - animStartTimeRef.current) / 1000));
+
                     // Thématique couleur du rang (Podium Or, Argent, Bronze ou Cyber Néon)
                     let rankColor = '#00f0ff';
                     let rankColorRgb = '0, 240, 255';
@@ -9331,30 +9340,48 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.fill();
                     ctx.restore();
 
-                    // 6. Informations Titre & Artiste (AUCUNE STAT PILL, AUCUN LABEL)
+                    // 6a. Nom de l'Artiste
                     ctx.save();
                     ctx.textAlign = 'center';
                     ctx.textBaseline = 'middle';
 
                     const hasArtist = Boolean(activeTrack.artist?.trim());
                     const artistStr = (activeTrack.artist || 'NOM DE L\'ARTISTE').toUpperCase();
-                    let artistFontSize = 40;
+                    let artistFontSize = 48;
                     ctx.font = `900 ${artistFontSize}px "Montserrat", sans-serif`;
                     if ('letterSpacing' in ctx) (ctx as any).letterSpacing = '2px';
                     let artistW = ctx.measureText(artistStr).width;
                     if (artistW > 920) {
-                        artistFontSize = Math.max(24, Math.floor(artistFontSize * (920 / artistW)));
+                        artistFontSize = Math.max(26, Math.floor(artistFontSize * (920 / artistW)));
                         ctx.font = `900 ${artistFontSize}px "Montserrat", sans-serif`;
                     }
-                    ctx.fillStyle = hasArtist ? '#ffffff' : 'rgba(255, 255, 255, 0.35)';
+
+                    if (!isStaticPngExport && textAnimation !== 'NONE') {
+                        applyTextAnimCtx(ctx, 0.04, canvas.width / 2, 1325, trackAnimTime);
+                    }
+
+                    let artistToDraw = artistStr;
+                    if (!isStaticPngExport && textAnimation === 'TYPEWRITER') {
+                        const typeEl = Math.max(0, trackAnimTime - 0.04);
+                        const visibleChars = Math.min(artistStr.length, Math.floor(typeEl * 34));
+                        artistToDraw = artistStr.slice(0, visibleChars);
+                    }
+
+                    ctx.fillStyle = hasArtist ? '#ffffff' : 'rgba(255, 255, 255, 0.45)';
                     ctx.shadowColor = hasArtist ? 'rgba(0, 0, 0, 0.95)' : 'transparent';
                     ctx.shadowBlur = hasArtist ? 18 : 0;
                     ctx.shadowOffsetY = 4;
-                    ctx.fillText(artistStr, canvas.width / 2, 1335);
+                    ctx.fillText(artistToDraw, canvas.width / 2, 1325);
+                    ctx.restore();
+
+                    // 6b. Titre du Morceau
+                    ctx.save();
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
 
                     const hasTitle = Boolean(activeTrack.title?.trim());
                     const titleStr = (activeTrack.title || 'TITRE DU MORCEAU').toUpperCase();
-                    let titleFontSize = 56;
+                    let titleFontSize = 58;
                     ctx.font = `900 ${titleFontSize}px "Montserrat", sans-serif`;
                     if ('letterSpacing' in ctx) (ctx as any).letterSpacing = '1px';
                     let titleW = ctx.measureText(titleStr).width;
@@ -9362,13 +9389,25 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         titleFontSize = Math.max(28, Math.floor(titleFontSize * (940 / titleW)));
                         ctx.font = `900 ${titleFontSize}px "Montserrat", sans-serif`;
                     }
+
+                    if (!isStaticPngExport && textAnimation !== 'NONE') {
+                        applyTextAnimCtx(ctx, 0.14, canvas.width / 2, 1415, trackAnimTime);
+                    }
+
+                    let titleToDraw = titleStr;
+                    if (!isStaticPngExport && textAnimation === 'TYPEWRITER') {
+                        const typeEl = Math.max(0, trackAnimTime - 0.14);
+                        const visibleChars = Math.min(titleStr.length, Math.floor(typeEl * 34));
+                        titleToDraw = titleStr.slice(0, visibleChars);
+                    }
+
                     ctx.fillStyle = hasTitle ? rankColor : `rgba(${rankColorRgb}, 0.35)`;
                     ctx.shadowColor = hasTitle ? `rgba(${rankColorRgb}, 0.75)` : 'transparent';
                     ctx.shadowBlur = hasTitle ? 24 : 0;
-                    ctx.fillText(titleStr, canvas.width / 2, 1425);
+                    ctx.fillText(titleToDraw, canvas.width / 2, 1415);
                     ctx.restore();
 
-                    // 6b. Badge Nombre de Streams (Sous le titre)
+                    // 6c. Badge Nombre de Streams (Sous le titre)
                     const activeStreams = activeTrack.streams?.trim();
                     if (activeStreams) {
                         ctx.save();
@@ -9377,18 +9416,22 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             ? rawStreams
                             : `${rawStreams} STREAMS`;
 
-                        ctx.font = '800 21px "Montserrat", sans-serif';
+                        ctx.font = '800 22px "Montserrat", sans-serif';
                         if ('letterSpacing' in ctx) (ctx as any).letterSpacing = '2px';
                         const sMetrics = ctx.measureText(streamStr);
-                        const pillW = Math.ceil(sMetrics.width + 48);
-                        const pillH = 36;
+                        const pillW = Math.ceil(sMetrics.width + 50);
+                        const pillH = 38;
                         const pillX = (canvas.width - pillW) / 2;
-                        const pillY = 1466;
+                        const pillY = 1485;
+
+                        if (!isStaticPngExport && textAnimation !== 'NONE') {
+                            applyTextAnimCtx(ctx, 0.24, canvas.width / 2, pillY + pillH / 2, trackAnimTime);
+                        }
 
                         // Fond capsule verre sombre
                         ctx.fillStyle = 'rgba(10, 14, 22, 0.85)';
                         ctx.beginPath();
-                        ctx.roundRect(pillX, pillY, pillW, pillH, 18);
+                        ctx.roundRect(pillX, pillY, pillW, pillH, 19);
                         ctx.fill();
 
                         ctx.strokeStyle = `rgba(${rankColorRgb}, 0.55)`;
@@ -9421,7 +9464,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     // 7. Visualiseur Waveform Audio Animé
                     ctx.save();
                     const waveBars = 32;
-                    const waveCenterY = activeStreams ? 1545 : 1530;
+                    const waveCenterY = activeStreams ? 1605 : 1530;
                     const waveMaxH = 70;
                     const waveTotalW = 600;
                     const waveBarW = 10;
@@ -10708,12 +10751,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         return () => cancelAnimationFrame(anim);
     }, [bgImage, bgVideo, customText, theme, showSwipe, showArticleLink, articleLinkText, showVoteLink, top5Items, currentPreviewIndex, activeTab, rotation, themeColor, isVideoRecording, transitionProgress, showText, planningDate, planningItems, agendaMonth, agendaBadgeText, agendaSlide, agendaCoverBadge, agendaCoverTitle, agendaCoverYear, agendaCoverGenres, agendaCoverCta, showAgendaCoverCta, artisteFestivalSlide, eventsSlide, editorialSlide, isEditorialAfficheActive, isEditorialTweetActive, showTitleOnSlide2, showMusicDate, editorialDate, showDividerDate, citationAuthor, citationMedia, extraEditorialSlides, musicTracks, top10Tracks, top10ActiveRank, top10Title, top10Subtitle, top10TrackDuration, top10TestingRank, calendarMonth, calendarEvents, isRetouchMode, retouchPath, isTransparent, showBottomLogo, artistLogo, festivalLogo, bgOffsetX, bgOffsetY, artistNameText, festivalNameText, isArtistLogoNegative, mapFestivalText, mapCityCountry, mapZoom, mapLatitude, mapLongitude, mapStyle, isMapLoading, mapPinColor, mapLabelText, showMapPin, showMapLabel, mapAnimMode, isMapAnimPlaying, mapScrubTime, mapAnimDuration, mapDestLatitude, mapDestLongitude, mapDestFestivalText, mapDestVenue, mapDestCity, mapDestCountry, mapDestPinColor, imgLayoutMode, quizColor1, quizColor2, showFrame, conseilsTitle, conseilsSubtext, isConseilsLargeTitle, concoursFestivalName, concoursFestivalHandle, concoursBottomColor, concoursLateralText, concoursLateralOpacity, concoursBadgeTextColor, concoursMode, concoursGTAHeadline, concoursGTATitle, concoursGTAPlatformText, concoursGTACondition1, concoursGTACondition2, concoursGTACondition3, concoursGTACondition4, afficheImage, afficheGlow, afficheBorderColor, afficheMode, afficheScale, afficheOffsetY, tweetImage, tweetScale, tweetOffsetY, tweetGlow, tweetHeadline, tweetBadge, tweetBorderColor, tweetTranslation, showTweetTranslation, tweetAnimMode, textAnimation, animReplayKey, bgAnimation, cdjPlayerRing, musicBgMotion, isCarouselPromoActive, promoCustomPhrase, promoCustomSubphrase, promoOutroStyle, isPromoAnimPlaying, promoCategory, showPromoHook, showPromoHeadline, showPromoLine1, showPromoLine2, djCutoutImage, djOriginalImage, djSilhouetteColor, djGlowIntensity, djShowQuestionMark, djAppearanceAnim, editorialSlideImages, editorialSlideCutouts, editorialSlideTitles, djSlideModes, agendaAffiches, highlightsSlideArtists, highlightsColorArtist, highlightsColorFestival, highlightsColorCity, highlightsColorCountry, highlightsColorDate, afficheImgZoom, afficheImgPanX, afficheImgPanY]);
 
-    // Rejouer l'animation de texte proprement depuis le début à chaque changement de slide ou de thème
+    // Rejouer l'animation de texte proprement depuis le début à chaque changement de slide, track ou de thème
     useEffect(() => {
         pendingAnimResetRef.current = true;
         animStartTimeRef.current = Date.now();
         setAnimReplayKey(k => k + 1);
-    }, [editorialSlide, agendaSlide, artisteFestivalSlide, eventsSlide, isCarouselPromoActive, isEditorialAfficheActive, isEditorialTweetActive, theme]);
+    }, [editorialSlide, agendaSlide, artisteFestivalSlide, eventsSlide, isCarouselPromoActive, isEditorialAfficheActive, isEditorialTweetActive, theme, top10ActiveRank, top10TestingRank]);
 
     // En mode REEL, ARTISTE FESTIVAL est verrouillé sur la Slide 2 (Spotlight) car la Slide 1 Cover fait doublon avec le thème REELS
     useEffect(() => {
