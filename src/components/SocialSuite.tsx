@@ -9127,37 +9127,6 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         // STYLE AGENDA COVER ("ON VA OÙ CE MOIS-CI ?") POUR L'INTRO TOP 10
                         // ══════════════════════════════════════════════════════════════════════
 
-                        // A. Tag Pill au-dessus du titre (comme "OCTOBRE • 2026")
-                        const tagText = 'TOP 10 • STREAMING';
-                        const tagY = centerY - (isStory ? 220 : 160);
-
-                        ctx.save();
-                        if (!isStaticPngExport && textAnimation !== 'NONE') {
-                            applyTextAnimCtx(ctx, 0.16, centerX, tagY, introAnimTime);
-                        }
-                        ctx.font = '900 italic 16px "Montserrat", sans-serif';
-                        if ('letterSpacing' in ctx) (ctx as any).letterSpacing = '3px';
-                        const tagW = ctx.measureText(tagText).width;
-                        const tagPillW = Math.max(180, Math.ceil(tagW + 40));
-                        const tagPillH = 38;
-
-                        ctx.shadowColor = 'rgba(0, 240, 255, 0.55)';
-                        ctx.shadowBlur = 15;
-                        ctx.fillStyle = 'rgba(15, 12, 18, 0.88)';
-                        ctx.strokeStyle = '#00f0ff';
-                        ctx.lineWidth = 2;
-                        ctx.beginPath();
-                        ctx.roundRect(centerX - tagPillW / 2, tagY - tagPillH / 2, tagPillW, tagPillH, tagPillH / 2);
-                        ctx.fill();
-                        ctx.stroke();
-
-                        ctx.shadowColor = 'transparent';
-                        ctx.fillStyle = '#00f0ff';
-                        ctx.textAlign = 'center';
-                        ctx.textBaseline = 'middle';
-                        ctx.fillText(tagText, centerX, tagY + 1);
-                        ctx.restore();
-
                         // B. GRAND HOOK PRINCIPAL GÉANT (Montserrat 900 Italic 104px à 118px comme dans AGENDA "ON VA OÙ CE MOIS-CI ?")
                         ctx.save();
                         ctx.textAlign = 'center';
@@ -9192,9 +9161,40 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         });
 
                         const titleLineHeight = titleFontSize * 1.15;
-                        const titleBlockHeight = titleLines.length * titleLineHeight;
-                        const titleStartY = centerY - 15 - ((titleLines.length - 1) * titleLineHeight) / 2;
+                        const titleStartY = centerY - (isStory ? 60 : 40) - ((titleLines.length - 1) * titleLineHeight) / 2;
 
+                        // A. Tag Pill au-dessus du titre (comme "OCTOBRE • 2026")
+                        const tagText = 'TOP 10 • STREAMING';
+                        const tagY = titleStartY - (isStory ? 110 : 80);
+
+                        ctx.save();
+                        if (!isStaticPngExport && textAnimation !== 'NONE') {
+                            applyTextAnimCtx(ctx, 0.16, centerX, tagY, introAnimTime);
+                        }
+                        ctx.font = '900 italic 16px "Montserrat", sans-serif';
+                        if ('letterSpacing' in ctx) (ctx as any).letterSpacing = '3px';
+                        const tagW = ctx.measureText(tagText).width;
+                        const tagPillW = Math.max(180, Math.ceil(tagW + 40));
+                        const tagPillH = 38;
+
+                        ctx.shadowColor = 'rgba(0, 240, 255, 0.55)';
+                        ctx.shadowBlur = 15;
+                        ctx.fillStyle = 'rgba(15, 12, 18, 0.88)';
+                        ctx.strokeStyle = '#00f0ff';
+                        ctx.lineWidth = 2;
+                        ctx.beginPath();
+                        ctx.roundRect(centerX - tagPillW / 2, tagY - tagPillH / 2, tagPillW, tagPillH, tagPillH / 2);
+                        ctx.fill();
+                        ctx.stroke();
+
+                        ctx.shadowColor = 'transparent';
+                        ctx.fillStyle = '#00f0ff';
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'middle';
+                        ctx.fillText(tagText, centerX, tagY + 1);
+                        ctx.restore();
+
+                        // Tracé des lignes du titre blanc (TOP 10 DES TRACKS / LES PLUS STREAMÉES)
                         titleLines.forEach((line, idx) => {
                             const lineY = titleStartY + idx * titleLineHeight;
                             ctx.save();
@@ -9222,79 +9222,49 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         });
                         ctx.restore();
 
-                        // C. SUBTITLE / GLASSMORPHISM PILL (EXACTEMENT COMME [ HARD TECHNO • RAWSTYLE • MULTI-GENRES ] DANS AGENDA)
+                        // C. NOM DE L'ARTISTE EN GROS AVEC LA COULEUR BLEU NÉON EN DESSOUS DE "LES PLUS STREAMÉES"
                         const effectiveArtistName = (top10IntroArtistRef.current || top10IntroArtist || top10ArtistSearch || 'ARTISTE').toUpperCase().trim();
-                        const artistSubtitle = effectiveArtistName ? `${effectiveArtistName} • TOP 10 OFFICIEL` : '10 TRACKS LES PLUS STREAMÉES';
 
-                        let subFontSize = isStory ? 24 : 18;
-                        ctx.font = `800 italic ${subFontSize}px "Montserrat", sans-serif`;
+                        let artistFontSize = isStory ? 94 : 70;
+                        ctx.font = `900 italic ${artistFontSize}px "Montserrat", sans-serif`;
                         if ('letterSpacing' in ctx) (ctx as any).letterSpacing = '2px';
-                        while (ctx.measureText(artistSubtitle).width > (canvas.width - 160) && subFontSize > 13) {
-                            subFontSize -= 1;
-                            ctx.font = `800 italic ${subFontSize}px "Montserrat", sans-serif`;
+                        while (ctx.measureText(effectiveArtistName).width > (canvas.width - 120) && artistFontSize > 36) {
+                            artistFontSize -= 2;
+                            ctx.font = `900 italic ${artistFontSize}px "Montserrat", sans-serif`;
                         }
 
-                        const subW = ctx.measureText(artistSubtitle).width;
-                        const subPillW = Math.min(canvas.width - 80, subW + 48);
-                        const subPillH = isStory ? 52 : 42;
-                        const subPillY = titleStartY + titleBlockHeight / 2 + (isStory ? 80 : 55);
+                        const artistY = titleStartY + (titleLines.length * titleLineHeight) + (isStory ? 18 : 12);
 
                         ctx.save();
                         if (!isStaticPngExport && textAnimation !== 'NONE') {
-                            applyTextAnimCtx(ctx, 0.46, centerX, subPillY, introAnimTime);
+                            applyTextAnimCtx(ctx, 0.28 + titleLines.length * 0.10, centerX, artistY, introAnimTime);
                         }
                         ctx.textAlign = 'center';
                         ctx.textBaseline = 'middle';
-                        ctx.shadowColor = 'rgba(0, 0, 0, 0.85)';
-                        ctx.shadowBlur = 18;
-                        ctx.fillStyle = 'rgba(18, 16, 24, 0.88)';
-                        ctx.strokeStyle = 'rgba(255, 255, 255, 0.22)';
-                        ctx.lineWidth = 1.5;
-                        ctx.beginPath();
-                        ctx.roundRect(centerX - subPillW / 2, subPillY - subPillH / 2, subPillW, subPillH, subPillH / 2);
-                        ctx.fill();
-                        ctx.stroke();
 
-                        ctx.shadowColor = 'transparent';
-                        ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
-                        ctx.fillText(artistSubtitle, centerX, subPillY + 1);
+                        // Deep 3D Shadow
+                        ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
+                        ctx.shadowBlur = 32;
+                        ctx.shadowOffsetX = 0;
+                        ctx.shadowOffsetY = 6;
+                        ctx.fillStyle = '#00f0ff';
+                        ctx.fillText(effectiveArtistName, centerX, artistY);
+
+                        // Intense Neon Blue / Cyan Glow
+                        ctx.shadowColor = 'rgba(0, 240, 255, 0.90)';
+                        ctx.shadowBlur = 26;
+                        ctx.shadowOffsetX = 0;
+                        ctx.shadowOffsetY = 0;
+                        ctx.fillStyle = '#00f0ff';
+                        ctx.fillText(effectiveArtistName, centerX, artistY);
+
                         ctx.restore();
 
-                        // D. LOGO OFFICIEL DE L'ARTISTE (PNG TRANSPARENT SI CHARGÉ)
-                        const artistLogoObj = artistLogoRef.current;
-                        const hasValidArtistLogo = Boolean(artistLogo && artistLogo.trim() !== '' && !artistLogo.includes('JOHN-SUMMIT-GIVEAWAY'));
-                        if (hasValidArtistLogo && artistLogoObj && (artistLogoObj.naturalWidth > 0 || artistLogoObj.complete)) {
-                            const logoAreaCenterY = subPillY + (isStory ? 140 : 100);
-                            const maxLogoW = isStory ? 620 : 460;
-                            const maxLogoH = isStory ? 180 : 130;
-                            let lw = artistLogoObj.width;
-                            let lh = artistLogoObj.height;
-                            const ratio = Math.min(maxLogoW / lw, maxLogoH / lh);
-                            lw = Math.round(lw * ratio);
-                            lh = Math.round(lh * ratio);
-                            const lx = (canvas.width - lw) / 2;
-                            const ly = logoAreaCenterY - (lh / 2);
-
-                            ctx.save();
-                            if (!isStaticPngExport && textAnimation !== 'NONE') {
-                                applyTextAnimCtx(ctx, 0.56, centerX, logoAreaCenterY, introAnimTime);
-                            }
-
-                            ctx.shadowColor = 'rgba(0, 240, 255, 0.8)';
-                            ctx.shadowBlur = 30;
-
-                            if (isArtistLogoNegative) {
-                                ctx.filter = 'brightness(0) invert(1)';
-                            }
-                            ctx.drawImage(artistLogoObj, lx, ly, lw, lh);
-                            ctx.restore();
-                        }
-
-                        // E. Pill cyber subtile "🔥 COUNTDOWN DU #10 AU #1"
-                        const pillY = isStory ? 1460 : 900;
+                        // D. Pill cyber subtile "🔥 COUNTDOWN DU #10 AU #1"
+                        const pillY = artistY + (isStory ? 160 : 110);
                         ctx.save();
                         if (!isStaticPngExport && textAnimation !== 'NONE') {
-                            applyTextAnimCtx(ctx, 0.66, centerX, pillY, introAnimTime);
+                            applyTextAnimCtx(ctx, 0.58, centerX, pillY, introAnimTime);
                         }
                         const pillLabel = '🔥 COUNTDOWN DU #10 AU #1';
                         ctx.font = '800 italic 20px "Montserrat", sans-serif';
