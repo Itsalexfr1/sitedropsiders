@@ -12597,12 +12597,13 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
             // Pré-charger toutes les pochettes des 10 tracks pour un rendu 100% instantané et sans micro-latence
             await Promise.all(currentTracks.map(t => {
-                if (!t.cover) return Promise.resolve();
-                const resolvedCover = resolveImageUrl(t.cover);
-                if (imageCacheRef.current[t.cover] || imageCacheRef.current[resolvedCover]) return Promise.resolve();
+                const coverUrl = t.cover;
+                if (!coverUrl) return Promise.resolve();
+                const resolvedCover = resolveImageUrl(coverUrl);
+                if (imageCacheRef.current[coverUrl] || imageCacheRef.current[resolvedCover]) return Promise.resolve();
                 return new Promise<void>(res => {
-                    loadCorsSafeImage(t.cover, (loadedImg) => {
-                        imageCacheRef.current[t.cover] = loadedImg;
+                    loadCorsSafeImage(coverUrl, (loadedImg) => {
+                        imageCacheRef.current[coverUrl] = loadedImg;
                         imageCacheRef.current[resolvedCover] = loadedImg;
                         res();
                     }, () => res());
