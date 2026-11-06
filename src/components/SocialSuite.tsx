@@ -12089,14 +12089,21 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     const audioSr = finalAudioBuffer.sampleRate;
                     const audioCh = Math.min(2, Math.max(1, finalAudioBuffer.numberOfChannels));
 
-                    const candidateAudioConfigs: Array<{ codec: string; muxerCodec: 'aac' | 'opus'; bitrate: number }> = [
+                    // IMPORTANT MOBILE : Les appareils mobiles (iOS QuickTime / Apple Photos / Safari / Instagram / TikTok)
+                    // N'ACCEPTENT QUE LE CODEC AAC (mp4a.40.2) dans les fichiers MP4.
+                    // Le codec Opus dans un conteneur MP4 est STRICTEMENT MUET sur iOS !
+                    // On ne tente donc QUE le codec AAC officiel. Si le navigateur ne le supporte pas
+                    // via AudioEncoder (ex: Chrome desktop), on bascule sur FFmpeg (Phase 3b) qui encode
+                    // en vrai AAC stéréo universel avec -c:v copy (ultra rapide, zéro recompression vidéo).
+                    const candidateAudioConfigs: Array<{ codec: string; muxerCodec: 'aac'; bitrate: number }> = [
                         { codec: 'mp4a.40.2', muxerCodec: 'aac', bitrate: 192_000 },
+                        { codec: 'mp4a.40.2', muxerCodec: 'aac', bitrate: 160_000 },
                         { codec: 'mp4a.40.2', muxerCodec: 'aac', bitrate: 128_000 },
-                        ...(audioSr === 48000 ? [{ codec: 'opus', muxerCodec: 'opus' as const, bitrate: 192_000 }] : []),
+                        { codec: 'mp4a.40.2', muxerCodec: 'aac', bitrate: 96_000 },
                     ];
 
                     let selectedAudioCfg: any = null;
-                    let selectedMuxerCodec: 'aac' | 'opus' = 'aac';
+                    let selectedMuxerCodec: 'aac' = 'aac';
                     for (const cand of candidateAudioConfigs) {
                         try {
                             const res = await AudioEncoderCls.isConfigSupported({
