@@ -9048,6 +9048,26 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     const currentTracks = (top10TracksRef.current && top10TracksRef.current.length === 10) ? top10TracksRef.current : top10Tracks;
                     const currentActiveRank = top10ActiveRankRef.current ?? top10ActiveRank;
 
+                    // Découpeur de titre pour mettre en bleu néon "TOP 10" et les mots "STREAM..." (ex: STREAMÉES)
+                    const parseTop10TitleSegments = (lineText: string): { text: string; isBlue: boolean }[] => {
+                        const regex = /(TOP\s*10|STREAM\w*)/gi;
+                        const segs: { text: string; isBlue: boolean }[] = [];
+                        let lastIndex = 0;
+                        let match: RegExpExecArray | null;
+
+                        while ((match = regex.exec(lineText)) !== null) {
+                            if (match.index > lastIndex) {
+                                segs.push({ text: lineText.slice(lastIndex, match.index), isBlue: false });
+                            }
+                            segs.push({ text: match[0], isBlue: true });
+                            lastIndex = regex.lastIndex;
+                        }
+                        if (lastIndex < lineText.length) {
+                            segs.push({ text: lineText.slice(lastIndex), isBlue: false });
+                        }
+                        return segs.length > 0 ? segs : [{ text: lineText, isBlue: false }];
+                    };
+
                     if (currentActiveRank === 0) {
                         // ══════════════════════════════════════════════════════════════════════
                         // SLIDE D'INTRO TOP 10 TRACKS (3.5s)
@@ -9206,34 +9226,67 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                         const titleLine0Y = titleCenterY - (((titleLines.length - 1) * titleLineHeight) / 2);
 
-                        // Tracé des lignes du titre blanc (TOP 10 DES TRACKS / LES PLUS STREAMÉES) avec effet d'ombre prononcé
+                        // Tracé des lignes du titre : "TOP 10" et "STREAMÉES" en bleu néon #00f0ff, le reste en blanc pur avec ombres 3D
                         titleLines.forEach((line, idx) => {
                             const lineY = titleLine0Y + idx * titleLineHeight;
+                            const segments = parseTop10TitleSegments(line);
+
                             ctx.save();
                             if (!isStaticPngExport && textAnimation !== 'NONE') {
                                 applyTextAnimCtx(ctx, 0.20 + idx * 0.10, centerX, lineY, introAnimTime);
                             }
 
-                            // 1. Ombre portée profonde diffuse
-                            ctx.shadowColor = 'rgba(0, 0, 0, 0.98)';
-                            ctx.shadowBlur = 24;
-                            ctx.shadowOffsetX = 0;
-                            ctx.shadowOffsetY = 8;
-                            ctx.fillStyle = '#ffffff';
-                            ctx.fillText(line, centerX, lineY);
+                            ctx.textAlign = 'left';
+                            ctx.textBaseline = 'middle';
 
-                            // 2. Ombre de contact nette vers le bas
-                            ctx.shadowColor = 'rgba(0, 0, 0, 0.92)';
-                            ctx.shadowBlur = 6;
-                            ctx.shadowOffsetX = 0;
-                            ctx.shadowOffsetY = 4;
-                            ctx.fillStyle = '#ffffff';
-                            ctx.fillText(line, centerX, lineY);
+                            const totalLineW = segments.reduce((sum, s) => sum + ctx.measureText(s.text).width, 0);
+                            let curX = centerX - (totalLineW / 2);
 
-                            // 3. Texte blanc pur au premier plan
-                            ctx.shadowColor = 'transparent';
-                            ctx.fillStyle = '#ffffff';
-                            ctx.fillText(line, centerX, lineY);
+                            segments.forEach(seg => {
+                                const segW = ctx.measureText(seg.text).width;
+                                const color = seg.isBlue ? '#00f0ff' : '#ffffff';
+
+                                // 1. Ombre portée profonde diffuse
+                                ctx.save();
+                                ctx.shadowColor = 'rgba(0, 0, 0, 0.98)';
+                                ctx.shadowBlur = 24;
+                                ctx.shadowOffsetX = 0;
+                                ctx.shadowOffsetY = 8;
+                                ctx.fillStyle = color;
+                                ctx.fillText(seg.text, curX, lineY);
+                                ctx.restore();
+
+                                // 2. Ombre de contact nette vers le bas
+                                ctx.save();
+                                ctx.shadowColor = 'rgba(0, 0, 0, 0.92)';
+                                ctx.shadowBlur = 6;
+                                ctx.shadowOffsetX = 0;
+                                ctx.shadowOffsetY = 4;
+                                ctx.fillStyle = color;
+                                ctx.fillText(seg.text, curX, lineY);
+                                ctx.restore();
+
+                                // 3. Lueur néon spéciale pour les mots en bleu ("TOP 10", "STREAMÉES")
+                                if (seg.isBlue) {
+                                    ctx.save();
+                                    ctx.shadowColor = 'rgba(0, 240, 255, 0.85)';
+                                    ctx.shadowBlur = 18;
+                                    ctx.shadowOffsetX = 0;
+                                    ctx.shadowOffsetY = 0;
+                                    ctx.fillStyle = '#00f0ff';
+                                    ctx.fillText(seg.text, curX, lineY);
+                                    ctx.restore();
+                                }
+
+                                // 4. Remplissage net au premier plan
+                                ctx.save();
+                                ctx.shadowColor = 'transparent';
+                                ctx.fillStyle = color;
+                                ctx.fillText(seg.text, curX, lineY);
+                                ctx.restore();
+
+                                curX += segW;
+                            });
 
                             ctx.restore();
                         });
@@ -9536,26 +9589,55 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         applyTextAnimCtx(ctx, 0.0, canvas.width / 2, 275, trackAnimTime);
                     }
 
-                    // 1. Ombre portée profonde diffuse
-                    ctx.shadowColor = 'rgba(0, 0, 0, 0.98)';
-                    ctx.shadowBlur = 18;
-                    ctx.shadowOffsetX = 0;
-                    ctx.shadowOffsetY = 6;
-                    ctx.fillStyle = '#ffffff';
-                    ctx.fillText(t10Title, canvas.width / 2, 275);
+                    ctx.textAlign = 'left';
+                    ctx.textBaseline = 'middle';
+                    const trackSegments = parseTop10TitleSegments(t10Title);
+                    const totalTrackW = trackSegments.reduce((sum, s) => sum + ctx.measureText(s.text).width, 0);
+                    let trackCurX = (canvas.width - totalTrackW) / 2;
 
-                    // 2. Ombre de contact nette vers le bas
-                    ctx.shadowColor = 'rgba(0, 0, 0, 0.92)';
-                    ctx.shadowBlur = 5;
-                    ctx.shadowOffsetX = 0;
-                    ctx.shadowOffsetY = 3;
-                    ctx.fillStyle = '#ffffff';
-                    ctx.fillText(t10Title, canvas.width / 2, 275);
+                    trackSegments.forEach(seg => {
+                        const segW = ctx.measureText(seg.text).width;
+                        const color = seg.isBlue ? '#00f0ff' : '#ffffff';
 
-                    // 3. Texte blanc net au premier plan
-                    ctx.shadowColor = 'transparent';
-                    ctx.fillStyle = '#ffffff';
-                    ctx.fillText(t10Title, canvas.width / 2, 275);
+                        // 1. Ombre portée profonde diffuse
+                        ctx.save();
+                        ctx.shadowColor = 'rgba(0, 0, 0, 0.98)';
+                        ctx.shadowBlur = 18;
+                        ctx.shadowOffsetX = 0;
+                        ctx.shadowOffsetY = 6;
+                        ctx.fillStyle = color;
+                        ctx.fillText(seg.text, trackCurX, 275);
+                        ctx.restore();
+
+                        // 2. Ombre de contact nette vers le bas
+                        ctx.save();
+                        ctx.shadowColor = 'rgba(0, 0, 0, 0.92)';
+                        ctx.shadowBlur = 5;
+                        ctx.shadowOffsetX = 0;
+                        ctx.shadowOffsetY = 3;
+                        ctx.fillStyle = color;
+                        ctx.fillText(seg.text, trackCurX, 275);
+                        ctx.restore();
+
+                        // 3. Lueur néon si bleu
+                        if (seg.isBlue) {
+                            ctx.save();
+                            ctx.shadowColor = 'rgba(0, 240, 255, 0.85)';
+                            ctx.shadowBlur = 16;
+                            ctx.fillStyle = '#00f0ff';
+                            ctx.fillText(seg.text, trackCurX, 275);
+                            ctx.restore();
+                        }
+
+                        // 4. Texte net au premier plan
+                        ctx.save();
+                        ctx.shadowColor = 'transparent';
+                        ctx.fillStyle = color;
+                        ctx.fillText(seg.text, trackCurX, 275);
+                        ctx.restore();
+
+                        trackCurX += segW;
+                    });
                     ctx.restore();
 
                     // 2b. Logo Officiel de l'Artiste (ou nom stylé) au-dessus de la place
