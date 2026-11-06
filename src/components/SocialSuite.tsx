@@ -1006,11 +1006,31 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     top10IntroTitleRef.current = top10IntroTitle;
     const top10IntroArtistRef = useRef<string>(top10IntroArtist);
     top10IntroArtistRef.current = top10IntroArtist;
+    const top10IntroTitleInputRef = useRef<HTMLInputElement | null>(null);
+    const top10TracksTitleInputRef = useRef<HTMLInputElement | null>(null);
 
     // Mots à mettre en bleu néon (#00F0FF) dans les titres
     const [top10ColoredWords, setTop10ColoredWords] = useState<string>('TOP 10, STREAMÉES, JOUÉES');
     const top10ColoredWordsRef = useRef<string>(top10ColoredWords);
     top10ColoredWordsRef.current = top10ColoredWords;
+
+    // Taille / Échelle du logo artiste Top 10 (en %, ex: 100% normal, 60% plus petit)
+    const [top10LogoScale, setTop10LogoScale] = useState<number>(() => {
+        try {
+            const saved = localStorage.getItem('dropsiders_top10_logo_scale_v1');
+            if (saved) return Number(saved);
+        } catch (_) {}
+        return 100;
+    });
+    const top10LogoScaleRef = useRef<number>(top10LogoScale);
+    top10LogoScaleRef.current = top10LogoScale;
+
+    const updateTop10LogoScale = (newScale: number) => {
+        setTop10LogoScale(newScale);
+        top10LogoScaleRef.current = newScale;
+        try { localStorage.setItem('dropsiders_top10_logo_scale_v1', String(newScale)); } catch (_) {}
+        generateImage();
+    };
 
     // Recherche automatique Web de logo artiste (PNG détouré)
     const [top10LogoSearchResults, setTop10LogoSearchResults] = useState<Array<{ title: string; url: string; previewUrl: string }>>([]);
@@ -9053,34 +9073,20 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     const currentTracks = (top10TracksRef.current && top10TracksRef.current.length === 10) ? top10TracksRef.current : top10Tracks;
                     const currentActiveRank = top10ActiveRankRef.current ?? top10ActiveRank;
 
-                    // Découpeur de titre pour mettre en bleu néon "TOP 10", "STREAMÉES", "JOUÉES", les mots choisis par l'utilisateur ou ceux entourés d'*astérisques*
+                    // Découpeur de titre pour illuminer en bleu néon #00F0FF les mots entourés d'*astérisques* (ou par défaut TOP 10 / STREAM...)
                     const parseTop10TitleSegments = (lineText: string): { text: string; isBlue: boolean }[] => {
-                        const customList = (top10ColoredWordsRef.current || top10ColoredWords || 'TOP 10, STREAMÉES, JOUÉES')
-                            .split(',')
-                            .map(s => s.trim().toUpperCase())
-                            .filter(Boolean);
+                        const hasAsterisks = lineText.includes('*');
+                        const regex = hasAsterisks
+                            ? /(\*([^*]+)\*)/gi
+                            : /(TOP\s*10|\bSTREAM\S*|\bJOU\S*)/gi;
 
-                        const escapedWords = customList
-                            .map(w => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
-                            .sort((a, b) => b.length - a.length);
-
-                        const patternParts: string[] = ['\\*([^*]+)\\*'];
-                        if (escapedWords.length > 0) {
-                            patternParts.push(`(?<=^|[^\\p{L}\\p{N}])(?:${escapedWords.join('|')})(?=$|[^\\p{L}\\p{N}])`);
-                        } else {
-                            patternParts.push('TOP\\s*10');
-                            patternParts.push('\\bSTREAM\\S*');
-                            patternParts.push('\\bJOU\\S*');
-                        }
-
-                        const regex = new RegExp(`(${patternParts.join('|')})`, 'gui');
                         const segs: { text: string; isBlue: boolean }[] = [];
                         let lastIndex = 0;
                         let match: RegExpExecArray | null;
 
                         while ((match = regex.exec(lineText)) !== null) {
                             if (match.index > lastIndex) {
-                                segs.push({ text: lineText.slice(lastIndex, match.index), isBlue: false });
+                                segs.push({ text: lineText.slice(lastIndex, match.index).replace(/\*/g, ''), isBlue: false });
                             }
                             let matchedText = match[0];
                             if (matchedText.startsWith('*') && matchedText.endsWith('*')) {
@@ -9090,9 +9096,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             lastIndex = regex.lastIndex;
                         }
                         if (lastIndex < lineText.length) {
-                            segs.push({ text: lineText.slice(lastIndex), isBlue: false });
+                            segs.push({ text: lineText.slice(lastIndex).replace(/\*/g, ''), isBlue: false });
                         }
-                        return segs.length > 0 ? segs : [{ text: lineText, isBlue: false }];
+                        return segs.length > 0 ? segs : [{ text: lineText.replace(/\*/g, ''), isBlue: false }];
                     };
 
                     if (currentActiveRank === 0) {
@@ -9238,8 +9244,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         let textArtistFontSize = isStory ? 94 : 70;
 
                         if (hasUploadedLogo && artistLogoObj) {
-                            const maxLogoW = isStory ? 840 : 580;
-                            const maxLogoH = isStory ? 280 : 190;
+                            const scale = (top10LogoScaleRef.current || top10LogoScale || 100) / 100;
+                            const maxLogoW = Math.round((isStory ? 840 : 580) * scale);
+                            const maxLogoH = Math.round((isStory ? 280 : 190) * scale);
                             let lw = artistLogoObj.width;
                             let lh = artistLogoObj.height;
                             const ratio = Math.min(maxLogoW / lw, maxLogoH / lh);
@@ -9247,6 +9254,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             logoH = Math.round(lh * ratio);
                         } else {
                             ctx.save();
+                            const scale = (top10LogoScaleRef.current || top10LogoScale || 100) / 100;
+                            let textArtistFontSize = Math.round((isStory ? 94 : 70) * scale);
                             ctx.font = `900 italic ${textArtistFontSize}px "Montserrat", sans-serif`;
                             if ('letterSpacing' in ctx) (ctx as any).letterSpacing = '2px';
                             while (ctx.measureText(effectiveArtistName).width > (canvas.width - 120) && textArtistFontSize > 36) {
@@ -9684,8 +9693,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     const logoAreaCenterY = 352;
 
                     if (countdownHasLogo && countdownLogoObj) {
-                        const maxLogoW = 760;
-                        const maxLogoH = 125;
+                        const scale = (top10LogoScaleRef.current || top10LogoScale || 100) / 100;
+                        const maxLogoW = Math.round(760 * scale);
+                        const maxLogoH = Math.round(125 * scale);
                         let lw = countdownLogoObj.width;
                         let lh = countdownLogoObj.height;
                         const ratio = Math.min(maxLogoW / lw, maxLogoH / lh);
@@ -9712,7 +9722,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         }
                         ctx.textAlign = 'center';
                         ctx.textBaseline = 'middle';
-                        let aFontSize = 44;
+                        const scale = (top10LogoScaleRef.current || top10LogoScale || 100) / 100;
+                        let aFontSize = Math.round(44 * scale);
                         ctx.font = `900 italic ${aFontSize}px "Montserrat", sans-serif`;
                         if ('letterSpacing' in ctx) (ctx as any).letterSpacing = '3px';
                         while (ctx.measureText(countdownArtistName).width > 820 && aFontSize > 22) {
@@ -11352,7 +11363,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             anim = requestAnimationFrame(loop);
         } else { generateImage(); }
         return () => cancelAnimationFrame(anim);
-    }, [bgImage, bgVideo, customText, theme, showSwipe, showArticleLink, articleLinkText, showVoteLink, top5Items, currentPreviewIndex, activeTab, rotation, themeColor, isVideoRecording, transitionProgress, showText, planningDate, planningItems, agendaMonth, agendaBadgeText, agendaSlide, agendaCoverBadge, agendaCoverTitle, agendaCoverYear, agendaCoverGenres, agendaCoverCta, showAgendaCoverCta, artisteFestivalSlide, eventsSlide, editorialSlide, isEditorialAfficheActive, isEditorialTweetActive, showTitleOnSlide2, showMusicDate, editorialDate, showDividerDate, citationAuthor, citationMedia, extraEditorialSlides, musicTracks, top10Tracks, top10ActiveRank, top10Title, top10IntroTitle, top10IntroArtist, top10ColoredWords, top10Subtitle, top10TrackDuration, top10TestingRank, calendarMonth, calendarEvents, isRetouchMode, retouchPath, isTransparent, showBottomLogo, artistLogo, festivalLogo, bgOffsetX, bgOffsetY, artistNameText, festivalNameText, isArtistLogoNegative, mapFestivalText, mapCityCountry, mapZoom, mapLatitude, mapLongitude, mapStyle, isMapLoading, mapPinColor, mapLabelText, showMapPin, showMapLabel, mapAnimMode, isMapAnimPlaying, mapScrubTime, mapAnimDuration, mapDestLatitude, mapDestLongitude, mapDestFestivalText, mapDestVenue, mapDestCity, mapDestCountry, mapDestPinColor, imgLayoutMode, quizColor1, quizColor2, showFrame, conseilsTitle, conseilsSubtext, isConseilsLargeTitle, concoursFestivalName, concoursFestivalHandle, concoursBottomColor, concoursLateralText, concoursLateralOpacity, concoursBadgeTextColor, concoursMode, concoursGTAHeadline, concoursGTATitle, concoursGTAPlatformText, concoursGTACondition1, concoursGTACondition2, concoursGTACondition3, concoursGTACondition4, afficheImage, afficheGlow, afficheBorderColor, afficheMode, afficheScale, afficheOffsetY, tweetImage, tweetScale, tweetOffsetY, tweetGlow, tweetHeadline, tweetBadge, tweetBorderColor, tweetTranslation, showTweetTranslation, tweetAnimMode, textAnimation, animReplayKey, bgAnimation, cdjPlayerRing, musicBgMotion, isCarouselPromoActive, promoCustomPhrase, promoCustomSubphrase, promoOutroStyle, isPromoAnimPlaying, promoCategory, showPromoHook, showPromoHeadline, showPromoLine1, showPromoLine2, djCutoutImage, djOriginalImage, djSilhouetteColor, djGlowIntensity, djShowQuestionMark, djAppearanceAnim, editorialSlideImages, editorialSlideCutouts, editorialSlideTitles, djSlideModes, agendaAffiches, highlightsSlideArtists, highlightsColorArtist, highlightsColorFestival, highlightsColorCity, highlightsColorCountry, highlightsColorDate, afficheImgZoom, afficheImgPanX, afficheImgPanY]);
+    }, [bgImage, bgVideo, customText, theme, showSwipe, showArticleLink, articleLinkText, showVoteLink, top5Items, currentPreviewIndex, activeTab, rotation, themeColor, isVideoRecording, transitionProgress, showText, planningDate, planningItems, agendaMonth, agendaBadgeText, agendaSlide, agendaCoverBadge, agendaCoverTitle, agendaCoverYear, agendaCoverGenres, agendaCoverCta, showAgendaCoverCta, artisteFestivalSlide, eventsSlide, editorialSlide, isEditorialAfficheActive, isEditorialTweetActive, showTitleOnSlide2, showMusicDate, editorialDate, showDividerDate, citationAuthor, citationMedia, extraEditorialSlides, musicTracks, top10Tracks, top10ActiveRank, top10Title, top10IntroTitle, top10IntroArtist, top10ColoredWords, top10LogoScale, top10Subtitle, top10TrackDuration, top10TestingRank, calendarMonth, calendarEvents, isRetouchMode, retouchPath, isTransparent, showBottomLogo, artistLogo, festivalLogo, bgOffsetX, bgOffsetY, artistNameText, festivalNameText, isArtistLogoNegative, mapFestivalText, mapCityCountry, mapZoom, mapLatitude, mapLongitude, mapStyle, isMapLoading, mapPinColor, mapLabelText, showMapPin, showMapLabel, mapAnimMode, isMapAnimPlaying, mapScrubTime, mapAnimDuration, mapDestLatitude, mapDestLongitude, mapDestFestivalText, mapDestVenue, mapDestCity, mapDestCountry, mapDestPinColor, imgLayoutMode, quizColor1, quizColor2, showFrame, conseilsTitle, conseilsSubtext, isConseilsLargeTitle, concoursFestivalName, concoursFestivalHandle, concoursBottomColor, concoursLateralText, concoursLateralOpacity, concoursBadgeTextColor, concoursMode, concoursGTAHeadline, concoursGTATitle, concoursGTAPlatformText, concoursGTACondition1, concoursGTACondition2, concoursGTACondition3, concoursGTACondition4, afficheImage, afficheGlow, afficheBorderColor, afficheMode, afficheScale, afficheOffsetY, tweetImage, tweetScale, tweetOffsetY, tweetGlow, tweetHeadline, tweetBadge, tweetBorderColor, tweetTranslation, showTweetTranslation, tweetAnimMode, textAnimation, animReplayKey, bgAnimation, cdjPlayerRing, musicBgMotion, isCarouselPromoActive, promoCustomPhrase, promoCustomSubphrase, promoOutroStyle, isPromoAnimPlaying, promoCategory, showPromoHook, showPromoHeadline, showPromoLine1, showPromoLine2, djCutoutImage, djOriginalImage, djSilhouetteColor, djGlowIntensity, djShowQuestionMark, djAppearanceAnim, editorialSlideImages, editorialSlideCutouts, editorialSlideTitles, djSlideModes, agendaAffiches, highlightsSlideArtists, highlightsColorArtist, highlightsColorFestival, highlightsColorCity, highlightsColorCountry, highlightsColorDate, afficheImgZoom, afficheImgPanX, afficheImgPanY]);
 
     // Rejouer l'animation de texte proprement depuis le début à chaque changement de slide, track ou de thème
     useEffect(() => {
@@ -19982,25 +19993,106 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     </div>
 
                     <div className="space-y-1">
-                        <div className="flex items-center justify-between">
-                            <label className="text-[8.5px] font-black text-gray-400 uppercase tracking-wider">
-                                Titre des Tracks (Slides #10 à #1)
-                            </label>
-                            <span className="text-[7.5px] text-neon-cyan font-bold">
-                                ✨ Mots en bleu : {top10ColoredWords || 'aucun'} (ou *mot*)
-                            </span>
-                        </div>
+                        <label className="text-[8.5px] font-black text-gray-400 uppercase tracking-wider">
+                            Titre des Tracks (Slides #10 à #1)
+                        </label>
                         <input
+                            ref={top10TracksTitleInputRef}
                             type="text"
                             value={top10Title}
                             onChange={e => {
                                 setTop10Title(e.target.value.toUpperCase());
+                                top10TitleRef.current = e.target.value.toUpperCase();
                                 generateImage();
                             }}
                             placeholder="ex: TOP 10 TRACKS"
                             className="w-full bg-white/5 border border-white/10 rounded-xl p-2.5 text-white font-black uppercase text-[11px] focus:border-neon-cyan/50 outline-none"
                         />
                     </div>
+
+                    {/* CHOIX DES MOTS EN BLEU NÉON POUR LES TRACKS */}
+                    {(() => {
+                        const currentTrackTitle = top10Title || '';
+                        const trackWords = currentTrackTitle ? currentTrackTitle.split(/\s+/).filter(Boolean) : [];
+                        if (trackWords.length === 0) return null;
+                        return (
+                            <div className="space-y-1.5 pt-1">
+                                <div className="flex items-center justify-between">
+                                    <span className="text-[9px] font-black text-gray-400 uppercase tracking-wider flex items-center gap-1.5">
+                                        <span
+                                            className="w-2 h-2 rounded-full inline-block animate-pulse bg-neon-cyan"
+                                            style={{ boxShadow: '0 0 8px #00f0ff' }}
+                                        />
+                                        Clique pour colorer un mot :
+                                    </span>
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            const el = top10TracksTitleInputRef.current;
+                                            if (!el) return;
+                                            const start = el.selectionStart;
+                                            const end = el.selectionEnd;
+                                            if (start == null || end == null || start === end) return;
+                                            const sel = currentTrackTitle.substring(start, end);
+                                            const rep = (sel.startsWith('*') && sel.endsWith('*') && sel.length >= 2) ? sel.slice(1, -1) : `*${sel.trim()}*`;
+                                            const updated = currentTrackTitle.substring(0, start) + rep + currentTrackTitle.substring(end);
+                                            setTop10Title(updated.toUpperCase());
+                                            top10TitleRef.current = updated.toUpperCase();
+                                            setTimeout(() => generateImage(), 30);
+                                        }}
+                                        className="text-[9px] font-bold text-gray-400 hover:text-white transition-colors underline flex items-center gap-1"
+                                        title="Sélectionne du texte dans le champ ci-dessus puis clique ici"
+                                    >
+                                        Colorer sélection
+                                    </button>
+                                </div>
+                                <div className="flex flex-wrap gap-1.5 p-2 bg-black/40 border border-white/10 rounded-xl max-h-28 overflow-y-auto">
+                                    {trackWords.map((word, idx) => {
+                                        const isHighlighted = word.includes('*') || (!currentTrackTitle.includes('*') && (word === 'TOP' || word === '10'));
+                                        const cleanWord = word.replace(/\*/g, '');
+                                        return (
+                                            <button
+                                                key={idx}
+                                                type="button"
+                                                onClick={() => {
+                                                    let baseTitle = currentTrackTitle;
+                                                    if (!baseTitle.includes('*')) {
+                                                        baseTitle = baseTitle.replace(/\b(TOP\s*10|TOP|10)\b/gi, '*$1*');
+                                                    }
+                                                    const parts = baseTitle.split(/(\s+)/);
+                                                    let curIdx = 0;
+                                                    const res = parts.map(p => {
+                                                        if (/^\s+$/.test(p) || !p) return p;
+                                                        if (curIdx === idx) {
+                                                            curIdx++;
+                                                            if (p.includes('*')) {
+                                                                return p.replace(/\*/g, '');
+                                                            } else {
+                                                                return `*${p}*`;
+                                                            }
+                                                        }
+                                                        curIdx++;
+                                                        return p;
+                                                    });
+                                                    const updated = res.join('');
+                                                    setTop10Title(updated.toUpperCase());
+                                                    top10TitleRef.current = updated.toUpperCase();
+                                                    setTimeout(() => generateImage(), 30);
+                                                }}
+                                                className={`px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all border ${isHighlighted
+                                                    ? 'bg-neon-cyan/25 border-neon-cyan text-neon-cyan shadow-[0_0_10px_rgba(0,240,255,0.4)]'
+                                                    : 'bg-white/5 border-white/10 text-gray-400 hover:text-white hover:bg-white/10 hover:border-white/20'
+                                                    }`}
+                                                title={isHighlighted ? "Cliquer pour repasser en blanc" : "Cliquer pour colorer en bleu néon"}
+                                            >
+                                                {cleanWord}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        );
+                    })()}
 
 
 
@@ -20140,6 +20232,52 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         setTimeout(() => generateImage(), 30);
                                     }}
                                     className="w-3.5 h-3.5 accent-neon-cyan cursor-pointer"
+                                />
+                            </div>
+                        )}
+
+                        {/* Option Taille / Échelle du Logo */}
+                        {artistLogo && (
+                            <div className="pt-2 space-y-1.5 border-t border-white/10">
+                                <div className="flex items-center justify-between text-[8.5px] font-black uppercase text-gray-300">
+                                    <span className="flex items-center gap-1.5 text-neon-cyan">
+                                        <span>🔍</span> Taille du Logo : <span className="font-mono text-white">{top10LogoScale}%</span>
+                                    </span>
+                                    <div className="flex items-center gap-1">
+                                        {[50, 70, 85, 100, 120].map((preset) => (
+                                            <button
+                                                key={preset}
+                                                type="button"
+                                                onClick={() => updateTop10LogoScale(preset)}
+                                                className={`px-1.5 py-0.5 rounded text-[7.5px] font-mono font-bold transition-all ${
+                                                    top10LogoScale === preset
+                                                        ? 'bg-neon-cyan text-black font-black shadow-[0_0_8px_rgba(0,240,255,0.5)]'
+                                                        : 'bg-white/5 hover:bg-white/15 text-gray-400 hover:text-white border border-white/10'
+                                                }`}
+                                            >
+                                                {preset}%
+                                            </button>
+                                        ))}
+                                        {top10LogoScale !== 100 && (
+                                            <button
+                                                type="button"
+                                                onClick={() => updateTop10LogoScale(100)}
+                                                className="text-[7.5px] text-gray-400 hover:text-white underline ml-1"
+                                                title="Réinitialiser à 100%"
+                                            >
+                                                ↺
+                                            </button>
+                                        )}
+                                    </div>
+                                </div>
+                                <input
+                                    type="range"
+                                    min="30"
+                                    max="160"
+                                    step="5"
+                                    value={top10LogoScale}
+                                    onChange={(e) => updateTop10LogoScale(Number(e.target.value))}
+                                    className="w-full accent-cyan-400 h-1.5 bg-white/10 rounded-lg cursor-pointer"
                                 />
                             </div>
                         )}
@@ -20289,10 +20427,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 Titre de l'Intro
                             </label>
                             <input
+                                ref={top10IntroTitleInputRef}
                                 type="text"
                                 value={top10IntroTitle}
                                 onChange={e => {
                                     setTop10IntroTitle(e.target.value.toUpperCase());
+                                    top10IntroTitleRef.current = e.target.value.toUpperCase();
                                     generateImage();
                                 }}
                                 placeholder="TOP 10 DES TRACKS LES PLUS STREAMÉES"
@@ -20300,60 +20440,89 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             />
                         </div>
 
-                        {/* Mots en Bleu Néon */}
-                        <div className="space-y-1.5 p-2.5 bg-black/60 border border-neon-cyan/30 rounded-xl">
-                            <div className="flex items-center justify-between">
-                                <label className="text-[8.5px] font-black text-neon-cyan uppercase tracking-wider flex items-center gap-1.5">
-                                    <span>✨</span> Mots en Bleu Néon (#00F0FF)
-                                </label>
-                                <span className="text-[7.5px] text-gray-400 font-medium">
-                                    (ou tapez <code className="text-neon-cyan font-bold">*mot*</code> dans le titre)
-                                </span>
-                            </div>
-                            <input
-                                type="text"
-                                value={top10ColoredWords}
-                                onChange={e => {
-                                    setTop10ColoredWords(e.target.value);
-                                    top10ColoredWordsRef.current = e.target.value;
-                                    generateImage();
-                                }}
-                                placeholder="ex: TOP 10, STREAMÉES, JOUÉES, FESTIVALS"
-                                className="w-full bg-black/80 border border-neon-cyan/40 rounded-xl p-2 text-white font-black uppercase text-[10px] focus:border-neon-cyan outline-none"
-                            />
-                            <div className="flex flex-wrap items-center gap-1 pt-1">
-                                <span className="text-[7.5px] text-gray-400 uppercase font-bold mr-1">Suggestions :</span>
-                                {['TOP 10', 'JOUÉES', 'STREAMÉES', 'POPULAIRES', 'FESTIVALS', 'CLUB'].map(word => {
-                                    const active = top10ColoredWords.toUpperCase().includes(word);
-                                    return (
+                        {/* CHOIX DES MOTS EN BLEU NÉON (EXACTEMENT COMME DANS LES AUTRES THÈMES) */}
+                        {(() => {
+                            const currentTitle = top10IntroTitle || '';
+                            const rawWords = currentTitle ? currentTitle.split(/\s+/).filter(Boolean) : [];
+                            if (rawWords.length === 0) return null;
+                            return (
+                                <div className="space-y-1.5 pt-1">
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-[9px] font-black text-gray-400 uppercase tracking-wider flex items-center gap-1.5">
+                                            <span
+                                                className="w-2 h-2 rounded-full inline-block animate-pulse bg-neon-cyan"
+                                                style={{ boxShadow: '0 0 8px #00f0ff' }}
+                                            />
+                                            Clique pour illuminer un mot en bleu néon :
+                                        </span>
                                         <button
-                                            key={word}
                                             type="button"
                                             onClick={() => {
-                                                const current = top10ColoredWords.split(',').map(s => s.trim()).filter(Boolean);
-                                                let updated: string[];
-                                                if (active) {
-                                                    updated = current.filter(w => w.toUpperCase() !== word);
-                                                } else {
-                                                    updated = [...current, word];
-                                                }
-                                                const newStr = updated.join(', ');
-                                                setTop10ColoredWords(newStr);
-                                                top10ColoredWordsRef.current = newStr;
-                                                generateImage();
+                                                const el = top10IntroTitleInputRef.current;
+                                                if (!el) return;
+                                                const start = el.selectionStart;
+                                                const end = el.selectionEnd;
+                                                if (start == null || end == null || start === end) return;
+                                                const sel = currentTitle.substring(start, end);
+                                                const rep = (sel.startsWith('*') && sel.endsWith('*') && sel.length >= 2) ? sel.slice(1, -1) : `*${sel.trim()}*`;
+                                                const updated = currentTitle.substring(0, start) + rep + currentTitle.substring(end);
+                                                setTop10IntroTitle(updated.toUpperCase());
+                                                top10IntroTitleRef.current = updated.toUpperCase();
+                                                setTimeout(() => generateImage(), 30);
                                             }}
-                                            className={`text-[8px] font-bold px-2 py-0.5 rounded-full border transition-all ${
-                                                active
-                                                    ? 'bg-neon-cyan/25 border-neon-cyan text-neon-cyan shadow-[0_0_8px_rgba(0,240,255,0.4)]'
-                                                    : 'bg-white/5 border-white/10 text-gray-400 hover:text-white hover:border-white/20'
-                                            }`}
+                                            className="text-[9px] font-bold text-gray-400 hover:text-white transition-colors underline flex items-center gap-1"
+                                            title="Sélectionne du texte dans le champ ci-dessus puis clique ici"
                                         >
-                                            {active ? '✓ ' : '+ '} {word}
+                                            Colorer sélection
                                         </button>
-                                    );
-                                })}
-                            </div>
-                        </div>
+                                    </div>
+                                    <div className="flex flex-wrap gap-1.5 p-2 bg-black/40 border border-white/10 rounded-xl max-h-28 overflow-y-auto">
+                                        {rawWords.map((word, idx) => {
+                                            const isHighlighted = word.includes('*') || (!currentTitle.includes('*') && (word === 'TOP' || word === '10' || word.startsWith('STREAM') || word.startsWith('JOU')));
+                                            const cleanWord = word.replace(/\*/g, '');
+                                            return (
+                                                <button
+                                                    key={idx}
+                                                    type="button"
+                                                    onClick={() => {
+                                                        let baseTitle = currentTitle;
+                                                        if (!baseTitle.includes('*')) {
+                                                            baseTitle = baseTitle.replace(/\b(TOP\s*10|TOP|10|STREAM\S*|JOU\S*)\b/gi, '*$1*');
+                                                        }
+                                                        const parts = baseTitle.split(/(\s+)/);
+                                                        let curIdx = 0;
+                                                        const res = parts.map(p => {
+                                                            if (/^\s+$/.test(p) || !p) return p;
+                                                            if (curIdx === idx) {
+                                                                curIdx++;
+                                                                if (p.includes('*')) {
+                                                                    return p.replace(/\*/g, '');
+                                                                } else {
+                                                                    return `*${p}*`;
+                                                                }
+                                                            }
+                                                            curIdx++;
+                                                            return p;
+                                                        });
+                                                        const updated = res.join('');
+                                                        setTop10IntroTitle(updated.toUpperCase());
+                                                        top10IntroTitleRef.current = updated.toUpperCase();
+                                                        setTimeout(() => generateImage(), 30);
+                                                    }}
+                                                    className={`px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all border ${isHighlighted
+                                                        ? 'bg-neon-cyan/25 border-neon-cyan text-neon-cyan shadow-[0_0_10px_rgba(0,240,255,0.4)]'
+                                                        : 'bg-white/5 border-white/10 text-gray-400 hover:text-white hover:bg-white/10 hover:border-white/20'
+                                                        }`}
+                                                    title={isHighlighted ? "Cliquer pour repasser en blanc" : "Cliquer pour illuminer en bleu néon"}
+                                                >
+                                                    {cleanWord}
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            );
+                        })()}
 
                         {/* Nom de l'Artiste */}
                         <div className="space-y-1">
@@ -20454,6 +20623,52 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     />
                                 </div>
                             )}
+
+                            {/* Option Taille / Échelle du Logo */}
+                            {artistLogo && (
+                                <div className="pt-2 space-y-1.5 border-t border-white/10">
+                                    <div className="flex items-center justify-between text-[8.5px] font-black uppercase text-gray-300">
+                                        <span className="flex items-center gap-1.5 text-neon-cyan">
+                                            <span>🔍</span> Taille du Logo : <span className="font-mono text-white">{top10LogoScale}%</span>
+                                        </span>
+                                        <div className="flex items-center gap-1">
+                                            {[50, 70, 85, 100, 120].map((preset) => (
+                                                <button
+                                                    key={preset}
+                                                    type="button"
+                                                    onClick={() => updateTop10LogoScale(preset)}
+                                                    className={`px-1.5 py-0.5 rounded text-[7.5px] font-mono font-bold transition-all ${
+                                                        top10LogoScale === preset
+                                                            ? 'bg-neon-cyan text-black font-black shadow-[0_0_8px_rgba(0,240,255,0.5)]'
+                                                            : 'bg-white/5 hover:bg-white/15 text-gray-400 hover:text-white border border-white/10'
+                                                    }`}
+                                                >
+                                                    {preset}%
+                                                </button>
+                                            ))}
+                                            {top10LogoScale !== 100 && (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => updateTop10LogoScale(100)}
+                                                    className="text-[7.5px] text-gray-400 hover:text-white underline ml-1"
+                                                    title="Réinitialiser à 100%"
+                                                >
+                                                    ↺
+                                                </button>
+                                            )}
+                                        </div>
+                                    </div>
+                                    <input
+                                        type="range"
+                                        min="30"
+                                        max="160"
+                                        step="5"
+                                        value={top10LogoScale}
+                                        onChange={(e) => updateTop10LogoScale(Number(e.target.value))}
+                                        className="w-full accent-cyan-400 h-1.5 bg-white/10 rounded-lg cursor-pointer"
+                                    />
+                                </div>
+                            )}
                         </div>
 
                         {/* Navigation vers le #10 */}
@@ -20498,6 +20713,50 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             <span className="text-[8px] font-black uppercase tracking-wider text-gray-400">
                                 Track {11 - activeTrack.rank} / 10
                             </span>
+                        </div>
+                    </div>
+
+                    {/* Mini réglette rapide Taille du Logo Artiste */}
+                    <div className="flex items-center justify-between px-3 py-1.5 bg-black/60 border border-neon-cyan/25 rounded-xl text-[8.5px]">
+                        <span className="font-black text-gray-300 flex items-center gap-1.5">
+                            <span className="text-neon-cyan">🎨</span> Taille Logo Artiste : <span className="text-neon-cyan font-mono">{top10LogoScale}%</span>
+                        </span>
+                        <div className="flex items-center gap-2">
+                            <input
+                                type="range"
+                                min="30"
+                                max="160"
+                                step="5"
+                                value={top10LogoScale}
+                                onChange={e => updateTop10LogoScale(Number(e.target.value))}
+                                className="w-24 sm:w-32 accent-cyan-400 h-1.5 bg-white/10 rounded cursor-pointer"
+                            />
+                            <div className="flex items-center gap-1">
+                                {[50, 70, 85, 100].map(p => (
+                                    <button
+                                        key={p}
+                                        type="button"
+                                        onClick={() => updateTop10LogoScale(p)}
+                                        className={`px-1.5 py-0.5 rounded text-[7.5px] font-mono transition-all ${
+                                            top10LogoScale === p
+                                                ? 'bg-neon-cyan text-black font-black'
+                                                : 'bg-white/5 hover:bg-white/15 text-gray-400 hover:text-white'
+                                        }`}
+                                    >
+                                        {p}%
+                                    </button>
+                                ))}
+                                {top10LogoScale !== 100 && (
+                                    <button
+                                        type="button"
+                                        onClick={() => updateTop10LogoScale(100)}
+                                        className="text-[7.5px] text-gray-400 hover:text-white underline ml-0.5"
+                                        title="Réinitialiser à 100%"
+                                    >
+                                        ↺
+                                    </button>
+                                )}
+                            </div>
                         </div>
                     </div>
 
