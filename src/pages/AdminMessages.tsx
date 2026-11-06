@@ -2821,20 +2821,20 @@ Alex (Dropsiders)`;
                                             </div>
                                             <div className="flex-1 overflow-y-auto custom-scrollbar max-w-full">
                                                 <div className="bg-[#111114] border border-white/10 rounded-xl shadow-2xl w-full overflow-hidden">
-                                                    {/* Top Header with Dropsiders Logo & Red Neon Glow */}
+                                                    {/* Top Header with Dropsiders Logo & Subtle Red Neon Glow */}
                                                     <div 
-                                                        className="py-10 px-4 border-b border-[#ff1241]/30 text-center relative overflow-hidden"
+                                                        className="py-12 px-4 border-b border-[#ff1241]/20 text-center relative overflow-hidden"
                                                         style={{ 
                                                             backgroundColor: '#12131a',
-                                                            backgroundImage: 'radial-gradient(circle at 50% 50%, rgba(255, 18, 65, 0.75) 0%, rgba(255, 18, 65, 0.35) 40%, rgba(255, 18, 65, 0.08) 65%, rgba(18, 19, 26, 0) 80%)' 
+                                                            backgroundImage: 'radial-gradient(ellipse at 50% 50%, rgba(255, 18, 65, 0.38) 0%, rgba(255, 18, 65, 0.18) 35%, rgba(255, 18, 65, 0.04) 65%, rgba(18, 19, 26, 0) 80%)' 
                                                         }}
                                                     >
-                                                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-36 bg-[#ff1241]/45 blur-3xl rounded-full pointer-events-none" />
+                                                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-40 bg-[#ff1241]/20 blur-3xl rounded-full pointer-events-none" />
                                                         <a href="https://dropsiders.fr" target="_blank" rel="noreferrer" className="inline-block relative z-10">
                                                             <img 
                                                                 src="https://dropsiders.fr/Logo.png" 
                                                                 alt="Dropsiders" 
-                                                                className="h-24 sm:h-28 w-auto max-w-[400px] mx-auto drop-shadow-[0_0_35px_rgba(255,18,65,0.95)] relative" 
+                                                                className="h-28 sm:h-36 w-auto max-w-[550px] mx-auto drop-shadow-[0_0_25px_rgba(255,18,65,0.6)] relative" 
                                                             />
                                                         </a>
                                                     </div>

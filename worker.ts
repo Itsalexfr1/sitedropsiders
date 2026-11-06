@@ -8259,20 +8259,20 @@ ${urls.map(u => `  <url>
                             <table border="0" cellpadding="0" cellspacing="0" width="100%" style="width:100% !important; min-width:100%; background-color:#111114; margin:0; padding:0; border-collapse:collapse;">
                                 <tr>
                                     <td align="center" style="background-color:#111114; padding:0; margin:0;">
-                                        <table border="0" cellpadding="0" cellspacing="0" width="100%" style="width:100%; max-width:960px; background-color:#111114; margin:0 auto; border-collapse:collapse;">
-                                            <!-- TOP HEADER WITH DROPSIDERS LOGO & NEON RED GLOW -->
+                                        <table border="0" cellpadding="0" cellspacing="0" width="100%" style="width:100%; max-width:1250px; background-color:#111114; margin:0 auto; border-collapse:collapse;">
+                                            <!-- TOP HEADER WITH DROPSIDERS LOGO & SUBTLE NEON RED GLOW -->
                                             <tr>
-                                                <td align="center" style="background-color:#12131a; background:radial-gradient(circle at 50% 50%, rgba(255,18,65,0.75) 0%, rgba(255,18,65,0.35) 40%, rgba(255,18,65,0.08) 65%, rgba(18,19,26,0) 80%), #12131a; padding:44px 20px 36px 20px; border-bottom:1px solid rgba(255,18,65,0.3); text-align:center;">
+                                                <td align="center" style="background-color:#12131a; background:radial-gradient(ellipse at 50% 50%, rgba(255,18,65,0.38) 0%, rgba(255,18,65,0.18) 35%, rgba(255,18,65,0.04) 65%, rgba(18,19,26,0) 80%), #12131a; padding:48px 24px 40px 24px; border-bottom:1px solid rgba(255,18,65,0.18); text-align:center;">
                                                     <a href="https://dropsiders.fr" target="_blank" style="text-decoration:none; display:inline-block;">
-                                                        <img src="https://dropsiders.fr/Logo.png" alt="Dropsiders" height="100" style="height:100px; width:auto; max-width:400px; display:block; margin:0 auto; filter:drop-shadow(0 0 30px rgba(255,18,65,0.95));" />
+                                                        <img src="https://dropsiders.fr/Logo.png" alt="Dropsiders" height="135" style="height:135px; width:auto; max-width:550px; display:block; margin:0 auto; filter:drop-shadow(0 0 25px rgba(255,18,65,0.6));" />
                                                     </a>
                                                 </td>
                                             </tr>
 
                                             <!-- MESSAGE BODY -->
                                             <tr>
-                                                <td style="padding:44px 36px; background-color:#111114; color:#ffffff;">
-                                                    <div style="color:#ffffff; font-size:16px; line-height:1.7; margin-bottom:44px; word-break:break-word;">
+                                                <td style="padding:48px 48px; background-color:#111114; color:#ffffff;">
+                                                    <div style="color:#ffffff; font-size:16px; line-height:1.75; margin-bottom:44px; word-break:break-word;">
                                                         ${linkify(message)}
                                                     </div>
                                                     
