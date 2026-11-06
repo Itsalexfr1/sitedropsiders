@@ -241,6 +241,87 @@ export async function searchItunesSnippet(query: string, platform: ResolvedMusic
 }
 
 /**
+ * Recherche une liste de morceaux par titre et/ou artiste sur Beatport et Apple Music
+ * Renvoie jusqu'à `limit` résultats complets (Titre, Artiste, Pochette HD, Audio).
+ */
+export async function searchMusicTracksList(query: string, limit: number = 6): Promise<ResolvedMusicData[]> {
+    const cleaned = cleanQuery(query);
+    if (!cleaned) return [];
+    const results: ResolvedMusicData[] = [];
+
+    // 1. Beatport Catalog v4
+    try {
+        const token = await getBeatportToken();
+        if (token) {
+            const res = await fetch(`https://api.beatport.com/v4/catalog/search/?q=${encodeURIComponent(cleaned)}&type=tracks&per_page=${limit}`, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    Accept: 'application/json'
+                }
+            });
+            if (res.ok) {
+                const data = await res.json();
+                if (Array.isArray(data.tracks)) {
+                    for (const track of data.tracks) {
+                        if (!track?.sample_url) continue;
+                        const rawImg = track.release?.image?.uri || '';
+                        const coverUrl = rawImg ? rawImg.replace('{w}x{h}', '1400x1400').replace(/500x500/i, '1400x1400') : undefined;
+                        const artists = track.artists?.map((a: any) => a.name).join(', ') || '';
+                        const mixSuffix = track.mix_name && !track.name?.toLowerCase().includes(track.mix_name.toLowerCase()) ? ` (${track.mix_name})` : '';
+                        results.push({
+                            audioUrl: track.sample_url,
+                            coverUrl,
+                            title: (track.name || '') + mixSuffix,
+                            artist: artists,
+                            album: track.release?.name,
+                            platform: 'beatport',
+                            duration: 120
+                        });
+                    }
+                }
+            }
+        }
+    } catch (err) {
+        console.warn("Erreur recherche liste Beatport :", err);
+    }
+
+    // 2. iTunes / Apple Music (si moins de résultats)
+    if (results.length < limit) {
+        try {
+            const url = `https://itunes.apple.com/search?term=${encodeURIComponent(cleaned)}&entity=song&limit=${limit}`;
+            const res = await fetch(url, { headers: { Accept: 'application/json' } });
+            if (res.ok) {
+                const data = await res.json();
+                if (Array.isArray(data.results)) {
+                    for (const track of data.results) {
+                        if (!track?.previewUrl) continue;
+                        const isDup = results.some(r => r.title?.toLowerCase() === track.trackName?.toLowerCase());
+                        if (isDup) continue;
+                        const coverUrl = track.artworkUrl100
+                            ? track.artworkUrl100.replace(/100x100bb\.(jpg|png)/i, '1000x1000bb.jpg')
+                            : undefined;
+                        results.push({
+                            audioUrl: track.previewUrl,
+                            coverUrl,
+                            title: track.trackName,
+                            artist: track.artistName,
+                            album: track.collectionName,
+                            platform: 'applemusic',
+                            duration: 30
+                        });
+                        if (results.length >= limit) break;
+                    }
+                }
+            }
+        } catch (err) {
+            console.warn("Erreur recherche liste iTunes :", err);
+        }
+    }
+
+    return results;
+}
+
+/**
  * Résout automatiquement un lien de streaming ou fichier audio en extrait audio exploitable
  */
 export async function resolveMusicSnippet(

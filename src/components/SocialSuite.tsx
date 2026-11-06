@@ -45,7 +45,7 @@ import { fixEncoding } from '../utils/standardizer';
 import { Downloader } from '../pages/Downloader';
 import { ImageUploadModal } from './ImageUploadModal';
 import { resolveImageUrl } from '../utils/image';
-import { resolveMusicSnippet } from '../utils/musicResolver';
+import { resolveMusicSnippet, searchMusicTracksList, type ResolvedMusicData } from '../utils/musicResolver';
 import { fixWebmDuration } from '../utils/fixWebm';
 import recapsData from '../data/recaps.json';
 import { renderPromoPhone3D } from './social/PromoPhone3DRenderer';
@@ -972,6 +972,52 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const [top10TestingRank, setTop10TestingRank] = useState<number | null>(null);
     const top10TestTimerRef = useRef<any>(null);
 
+    // Système de recherche universelle par Titre & Artiste (Beatport / Spotify / Apple Music)
+    const [top10SearchQuery, setTop10SearchQuery] = useState<string>('');
+    const [top10SearchResults, setTop10SearchResults] = useState<ResolvedMusicData[]>([]);
+    const [isTop10Searching, setIsTop10Searching] = useState<boolean>(false);
+
+    const handleTop10Search = async (rank: number, queryToSearch?: string) => {
+        const q = (queryToSearch ?? top10SearchQuery).trim();
+        if (!q) return;
+        setIsTop10Searching(true);
+        setTop10SearchResults([]);
+        try {
+            const results = await searchMusicTracksList(q, 6);
+            setTop10SearchResults(results);
+        } catch (e) {
+            console.warn("Erreur recherche Top 10 :", e);
+        } finally {
+            setIsTop10Searching(false);
+        }
+    };
+
+    const handleSelectTop10SearchResult = (rank: number, item: ResolvedMusicData) => {
+        const patch: Partial<Top10TrackItem> = {
+            artist: (item.artist || '').toUpperCase(),
+            title: (item.title || '').toUpperCase(),
+            cover: item.coverUrl || '',
+            audioUrl: item.audioUrl || '',
+            sourceUrl: item.audioUrl || '',
+            audioStartTime: 0,
+            videoStartTime: 0
+        };
+
+        if (item.coverUrl) {
+            loadCorsSafeImage(item.coverUrl, (img) => {
+                imageCacheRef.current[item.coverUrl!] = img;
+                generateImage();
+            });
+        }
+
+        if (item.audioUrl) {
+            getPreloadedAudioBlobUrl(item.audioUrl).catch(() => null);
+        }
+
+        updateTop10Track(rank, patch);
+        setTop10SearchResults([]);
+    };
+
     const updateTop10Track = (rank: number, patch: Partial<Top10TrackItem>) => {
         setTop10Tracks(prev => {
             const next = prev.map(t => Number(t.rank) === Number(rank) ? { ...t, ...patch } : t);
@@ -1005,6 +1051,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         }
         if (top10TestTimerRef.current) clearTimeout(top10TestTimerRef.current);
         setTop10ActiveRank(numRank);
+        setTop10SearchResults([]);
+        setTop10SearchQuery('');
         const targetTr = currentTracks.find(t => Number(t.rank) === numRank);
         if (targetTr?.videoUrl) {
             const v = getOrCreateTop10Video(numRank, targetTr.videoUrl);
@@ -18889,6 +18937,98 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         </div>
                     </div>
 
+                    {/* 🔍 RECHERCHE UNIVERSELLE PAR TITRE & ARTISTE */}
+                    <div className="p-3 bg-neon-cyan/10 border border-neon-cyan/30 rounded-xl space-y-2">
+                        <div className="flex items-center justify-between">
+                            <label className="text-[9px] font-black text-neon-cyan uppercase tracking-wider flex items-center gap-1.5">
+                                <Search className="w-3.5 h-3.5 text-neon-cyan" /> Rechercher Titre & Artiste
+                            </label>
+                            <span className="text-[7.5px] text-gray-400 font-mono">
+                                Beatport • Spotify • Apple
+                            </span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                            <div className="relative flex-1">
+                                <input
+                                    type="text"
+                                    value={top10SearchQuery}
+                                    onChange={e => setTop10SearchQuery(e.target.value)}
+                                    onKeyDown={e => {
+                                        if (e.key === 'Enter') handleTop10Search(activeTrack.rank, top10SearchQuery);
+                                    }}
+                                    placeholder="Ex: Martin Garrix Byte ou Fisher Losing It..."
+                                    className="w-full bg-black/60 border border-white/10 rounded-xl px-2.5 py-2 text-white text-[10.5px] font-bold focus:border-neon-cyan outline-none placeholder-gray-500"
+                                />
+                                {top10SearchQuery && (
+                                    <button
+                                        type="button"
+                                        onClick={() => { setTop10SearchQuery(''); setTop10SearchResults([]); }}
+                                        className="absolute right-2 top-2 text-gray-400 hover:text-white text-[11px]"
+                                    >
+                                        ✕
+                                    </button>
+                                )}
+                            </div>
+                            <button
+                                type="button"
+                                onClick={() => handleTop10Search(activeTrack.rank, top10SearchQuery)}
+                                disabled={isTop10Searching || !top10SearchQuery.trim()}
+                                className="px-3.5 py-2 bg-neon-cyan text-black font-black text-[9.5px] uppercase rounded-xl hover:bg-neon-cyan/80 transition-all flex items-center gap-1 disabled:opacity-40 shrink-0 active:scale-95 shadow-md shadow-neon-cyan/20"
+                            >
+                                {isTop10Searching ? '⏳...' : '🔍 Trouver'}
+                            </button>
+                        </div>
+
+                        {/* Résultats de recherche déroulants */}
+                        {top10SearchResults.length > 0 && (
+                            <div className="mt-2 space-y-1.5 max-h-56 overflow-y-auto pr-1">
+                                <div className="flex items-center justify-between">
+                                    <p className="text-[7.5px] font-black text-gray-400 uppercase tracking-wider">
+                                        Résultats trouvés ({top10SearchResults.length}) :
+                                    </p>
+                                    <button
+                                        type="button"
+                                        onClick={() => setTop10SearchResults([])}
+                                        className="text-[7.5px] text-gray-400 hover:text-white uppercase font-bold"
+                                    >
+                                        Fermer
+                                    </button>
+                                </div>
+                                {top10SearchResults.map((res, idx) => (
+                                    <div
+                                        key={idx}
+                                        onClick={() => handleSelectTop10SearchResult(activeTrack.rank, res)}
+                                        className="p-2 bg-white/5 hover:bg-neon-cyan/20 border border-white/10 hover:border-neon-cyan/60 rounded-xl cursor-pointer transition-all flex items-center gap-2.5 group active:scale-98"
+                                    >
+                                        <div className="w-9 h-9 rounded-lg overflow-hidden bg-black/60 shrink-0 border border-white/10">
+                                            {res.coverUrl ? (
+                                                <img src={res.coverUrl} alt="Cover" className="w-full h-full object-cover" />
+                                            ) : (
+                                                <div className="w-full h-full flex items-center justify-center text-xs">💿</div>
+                                            )}
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <p className="text-[10px] font-black text-white group-hover:text-neon-cyan truncate uppercase">
+                                                {res.title}
+                                            </p>
+                                            <p className="text-[8.5px] text-gray-400 truncate uppercase">
+                                                {res.artist}
+                                            </p>
+                                        </div>
+                                        <div className="shrink-0 flex items-center gap-1.5">
+                                            <span className={`text-[7px] font-black uppercase px-1.5 py-0.5 rounded ${res.platform === 'beatport' ? 'bg-[#00ff66]/20 text-[#00ff66] border border-[#00ff66]/40' : 'bg-pink-500/20 text-pink-300 border border-pink-500/40'}`}>
+                                                {res.platform}
+                                            </span>
+                                            <span className="text-[8.5px] text-neon-cyan font-black group-hover:translate-x-0.5 transition-transform">
+                                                ➔
+                                            </span>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+
                     {/* Artiste */}
                     <div className="space-y-1">
                         <label className="text-[8.5px] font-black text-white uppercase tracking-wider flex items-center justify-between">
@@ -18908,7 +19048,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     <div className="space-y-1">
                         <label className="text-[8.5px] font-black text-white uppercase tracking-wider flex items-center justify-between">
                             <span>Titre du Morceau</span>
-                            <span className="text-[7.5px] text-gray-500 font-normal">Rempli auto via lien</span>
+                            <span className="text-[7.5px] text-gray-500 font-normal">Rempli auto via lien ou recherche</span>
                         </label>
                         <input
                             type="text"
@@ -18918,6 +19058,22 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             className="w-full bg-white/5 border border-white/10 rounded-xl p-2.5 text-white font-black uppercase text-[11px] tracking-wider focus:border-neon-cyan/50 outline-none"
                         />
                     </div>
+
+                    {/* Bouton de recherche automatique si Titre ou Artiste déjà saisi */}
+                    {(activeTrack.artist || activeTrack.title) && (
+                        <button
+                            type="button"
+                            onClick={() => {
+                                const q = `${activeTrack.artist || ''} ${activeTrack.title || ''}`.trim();
+                                setTop10SearchQuery(q);
+                                handleTop10Search(activeTrack.rank, q);
+                            }}
+                            className="w-full py-1.5 px-2 bg-neon-cyan/10 hover:bg-neon-cyan/20 border border-neon-cyan/30 hover:border-neon-cyan/50 rounded-xl text-[8.5px] font-bold text-neon-cyan uppercase flex items-center justify-center gap-1.5 transition-all"
+                        >
+                            <Search className="w-3 h-3 text-neon-cyan" />
+                            <span>Auto-compléter la pochette & le son pour « {activeTrack.artist || ''} {activeTrack.title || ''} »</span>
+                        </button>
+                    )}
 
                     {/* Pochette Carrée 1:1 (Cover) */}
                     <div className="space-y-1.5 pt-1 border-t border-white/5">
