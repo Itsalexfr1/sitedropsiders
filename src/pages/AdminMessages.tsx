@@ -63,6 +63,10 @@ interface ContactMessage {
     replied: boolean;
     archived?: boolean;
     recipient?: string;
+    phone?: string;
+    budget?: string;
+    projectType?: string;
+    source?: string;
     attachments?: { name: string; url?: string; size: number }[];
 }
 
@@ -189,8 +193,9 @@ export function AdminMessages() {
         return messages.filter(m => m.archived);
     }, [messages]);
 
-    const [selectedSent, setSelectedSent] = useState<{ id: string; to: string; subject: string; body: string; date: string; signer: string; attachments?: { name: string; url?: string; size: number }[] } | null>(null);
+    const [selectedSent, setSelectedSent] = useState<{ id: string; to: string; from?: string; subject: string; body: string; date: string; signer: string; attachments?: { name: string; url?: string; size: number }[] } | null>(null);
     const [selectedArchived, setSelectedArchived] = useState<ContactMessage | null>(null);
+    const activeMsg = selected || selectedArchived;
 
     // Mobile composer view tab ('editor' or 'preview')
     const [mobileComposeTab, setMobileComposeTab] = useState<'editor' | 'preview'>('editor');
@@ -207,6 +212,7 @@ export function AdminMessages() {
     const [senderChoice, setSenderChoice] = useState<'official' | 'personal'>('official');
     const [mailSubject, setMailSubject] = useState('');
     const [signatureName, setSignatureName] = useState('');
+    const [viewHtmlOriginal, setViewHtmlOriginal] = useState(false);
 
     const [selectedEditorFilter, setSelectedEditorFilter] = useState<string>('all');
 
@@ -275,6 +281,10 @@ export function AdminMessages() {
             setSenderEmail('contact@dropsiders.fr');
         }
     }, [senderChoice, currentSignerInfo.crewEmail]);
+
+    useEffect(() => {
+        setViewHtmlOriginal(false);
+    }, [selected?.id, selectedArchived?.id, selectedSent?.id]);
 
 
     useEffect(() => {
@@ -746,6 +756,96 @@ export function AdminMessages() {
             setReplyError(e.message);
             setReplyStatus('error');
         }
+    };
+
+    const handleOpenReply = () => {
+        setIsNewMail(false);
+        const activeMsg = selected || selectedArchived;
+        if (activeMsg && activeMsg.recipient) {
+            const prefix = activeMsg.recipient.split('@')[0].toLowerCase().replace(/[^a-z0-9]/g, '');
+            const matched = editors.find((e: any) => 
+                (e.username && e.username.toLowerCase() === prefix) ||
+                (e.pseudo && e.pseudo.toLowerCase() === prefix) ||
+                (e.name && e.name.toLowerCase() === prefix) ||
+                (e.email && e.email.toLowerCase().includes(prefix))
+            );
+            if (matched) {
+                setSignatureName(matched.username);
+            } else if (prefix === 'alex' || prefix === 'partenariat' || prefix === 'contact' || isAlex) {
+                setSignatureName('Alex');
+            } else {
+                setSignatureName(currentEditor ? currentEditor.username : 'Alex');
+            }
+        } else {
+            setSignatureName(currentEditor ? currentEditor.username : 'Alex');
+        }
+        const sig = `\n\n\n`;
+        setReplyBody(sig);
+        setAttachments([]);
+        setReplyModal(true);
+        setTimeout(() => {
+            const textarea = document.querySelector('textarea');
+            if (textarea) {
+                textarea.focus();
+                textarea.setSelectionRange(0, 0);
+            }
+        }, 100);
+    };
+
+    const getRecipientInfo = (recipientStr?: string) => {
+        if (!recipientStr) {
+            return {
+                displayName: 'ÉQUIPE DROPSIDERS',
+                email: 'contact@dropsiders.fr',
+                badge: '✉️ NOUVEAU MESSAGE SITE'
+            };
+        }
+        const cleanRecip = recipientStr.trim().toLowerCase();
+        const prefix = cleanRecip.split('@')[0].replace(/[^a-z0-9]/g, '');
+
+        const matched = editors.find((e: any) => 
+            (e.username && e.username.toLowerCase() === prefix) ||
+            (e.pseudo && e.pseudo.toLowerCase() === prefix) ||
+            (e.name && e.name.toLowerCase() === prefix) ||
+            (e.email && e.email.toLowerCase().includes(prefix))
+        );
+
+        let displayName = 'ÉQUIPE DROPSIDERS';
+        let crewEmail = cleanRecip.includes('@') ? cleanRecip : `${cleanRecip}@crew.dropsiders.fr`;
+        const isCrew = cleanRecip.includes('@crew.dropsiders.fr') || cleanRecip.includes('crew');
+
+        if (prefix === 'alex' || prefix === 'partenariat') {
+            displayName = 'ALEXANDRE';
+            crewEmail = 'alex@dropsiders.fr';
+        } else if (matched) {
+            displayName = ((matched as any).pseudo || (matched as any).username || (matched as any).name || prefix).toUpperCase();
+            if (!cleanRecip.includes('@')) {
+                crewEmail = `${((matched as any).username || prefix).toLowerCase()}@crew.dropsiders.fr`;
+            }
+        } else if (prefix === 'guillaume') {
+            displayName = 'GUILLAUME';
+        } else if (prefix === 'tanguy') {
+            displayName = 'TANGUY';
+        } else if (prefix === 'julien') {
+            displayName = 'JULIEN';
+        } else if (prefix === 'tiffany') {
+            displayName = 'TIFFANY';
+        } else if (prefix === 'maori') {
+            displayName = 'MAORI';
+        } else if (prefix === 'justin') {
+            displayName = 'JUSTIN';
+        } else if (prefix === 'contact' || prefix === 'info') {
+            displayName = 'ÉQUIPE DROPSIDERS';
+            crewEmail = 'contact@dropsiders.fr';
+        } else {
+            displayName = prefix.toUpperCase();
+        }
+
+        const badge = isCrew 
+            ? '⚡ MESSAGE CREW ENTRANT'
+            : (displayName !== 'ÉQUIPE DROPSIDERS' ? `📬 MESSAGE POUR ${displayName}` : '✉️ NOUVEAU MESSAGE SITE');
+
+        return { displayName, email: crewEmail, badge };
     };
 
     const getPressReleaseTemplate = (lang: 'FR' | 'EN', name: string) => {
@@ -1732,41 +1832,7 @@ Alex (Dropsiders)`;
                                 <div className="flex items-center gap-2 flex-wrap w-full lg:w-auto shrink-0">
                                     {(selected || selectedArchived) && (
                                         <button
-                                            onClick={() => {
-                                                setIsNewMail(false);
-                                                setSenderEmail('info@dropsiders.fr');
-                                                const activeMsg = selected || selectedArchived;
-                                                if (activeMsg && activeMsg.recipient) {
-                                                    const prefix = activeMsg.recipient.split('@')[0].toLowerCase();
-                                                    const matched = editors.find(e => 
-                                                        (e.username && e.username.toLowerCase() === prefix) ||
-                                                        (e.username && e.username.toLowerCase().startsWith(prefix)) ||
-                                                        (e.name && e.name.toLowerCase() === prefix) ||
-                                                        (e.email && e.email.toLowerCase().includes(prefix))
-                                                    );
-                                                    if (matched) {
-                                                        setSignatureName(matched.username);
-                                                    } else if (prefix === 'alex' || prefix === 'partenariat' || prefix === 'contact' || isAlex) {
-                                                        setSignatureName('Alex');
-                                                    } else {
-                                                        setSignatureName(currentEditor ? currentEditor.username : 'Alex');
-                                                    }
-                                                } else {
-                                                    setSignatureName(currentEditor ? currentEditor.username : 'Alex');
-                                                }
-                                                const sig = `\n\n\n`;
-                                                setReplyBody(sig);
-                                                setAttachments([]);
-                                                setReplyModal(true);
-                                                // Set cursor at beginning
-                                                setTimeout(() => {
-                                                    const textarea = document.querySelector('textarea');
-                                                    if (textarea) {
-                                                        textarea.focus();
-                                                        textarea.setSelectionRange(0, 0);
-                                                    }
-                                                }, 100);
-                                            }}
+                                            onClick={handleOpenReply}
                                             className="flex-1 sm:flex-none justify-center flex items-center gap-1.5 px-4 py-2 bg-neon-cyan/10 border border-neon-cyan/30 text-neon-cyan rounded-xl hover:bg-neon-cyan/20 transition-all text-[11px] font-black uppercase active:scale-95"
                                         >
                                             <Reply className="w-4 h-4 shrink-0" />
@@ -1856,24 +1922,193 @@ Alex (Dropsiders)`;
                             )}
 
                             {/* Message Body */}
-                            <div className="rounded-2xl p-4 sm:p-6 max-w-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}>
-                                {(selected || selectedArchived)?.html ? (
-                                    <div 
-                                        className="email-html-content leading-relaxed text-sm text-gray-200 overflow-x-auto max-w-full break-words"
-                                        dangerouslySetInnerHTML={{ 
-                                            __html: (selected || selectedArchived)!.html! 
-                                        }}
-                                    />
-                                ) : (
-                                    <div 
-                                        className="leading-relaxed text-sm break-words whitespace-pre-wrap max-w-full"
-                                        style={{ color: 'rgba(255,255,255,0.75)', wordBreak: 'break-word', overflowWrap: 'anywhere' }}
-                                        dangerouslySetInnerHTML={{ 
-                                            __html: linkify((selected || selectedArchived)?.message || selectedSent?.body || '') 
-                                        }}
-                                    />
-                                )}
-                            </div>
+                            {activeMsg && (
+                                <div className="space-y-3">
+                                    {activeMsg.html && (
+                                        <div className="flex items-center justify-end">
+                                            <button
+                                                onClick={() => setViewHtmlOriginal(prev => !prev)}
+                                                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider bg-white/5 hover:bg-white/10 border border-white/10 text-gray-300 transition-all shadow-sm"
+                                            >
+                                                {viewHtmlOriginal ? (
+                                                    <>
+                                                        <Eye className="w-3.5 h-3.5 text-neon-red" />
+                                                        <span>Afficher Carte Dropsiders</span>
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <FileText className="w-3.5 h-3.5 text-neon-cyan" />
+                                                        <span>Voir le HTML original</span>
+                                                    </>
+                                                )}
+                                            </button>
+                                        </div>
+                                    )}
+
+                                    {viewHtmlOriginal && activeMsg.html ? (
+                                        <div className="rounded-2xl p-4 sm:p-6 max-w-full overflow-hidden bg-white/[0.03] border border-white/[0.07]">
+                                            <div 
+                                                className="email-html-content leading-relaxed text-sm text-gray-200 overflow-x-auto max-w-full break-words"
+                                                dangerouslySetInnerHTML={{ __html: activeMsg.html }}
+                                            />
+                                        </div>
+                                    ) : (
+                                        (() => {
+                                            const recipInfo = getRecipientInfo(activeMsg.recipient);
+                                            return (
+                                                <div className="max-w-[620px] mx-auto w-full bg-[#12131c] border border-[#ff1241]/35 rounded-2xl overflow-hidden shadow-[0_15px_50px_rgba(0,0,0,0.7),0_0_40px_rgba(255,18,65,0.15)] my-2">
+                                                    {/* Top Neon Header */}
+                                                    <div className="p-6 sm:p-7 text-center bg-gradient-to-b from-[#ff1241]/18 via-[#12131c] to-[#12131c] border-b border-[#ff1241]/20">
+                                                        <img 
+                                                            src="https://dropsiders.fr/Logo.png" 
+                                                            alt="Dropsiders" 
+                                                            className="h-9 sm:h-10 w-auto mx-auto mb-3 drop-shadow-[0_0_20px_rgba(255,18,65,0.85)]" 
+                                                        />
+                                                        <div className="inline-block px-3.5 py-1 rounded-full bg-[#ff1241]/14 border border-[#ff1241]/40 text-[#ff3b5c] text-[10px] font-black uppercase tracking-[1.5px] mb-2.5">
+                                                            {recipInfo.badge}
+                                                        </div>
+                                                        <h3 className="text-lg sm:text-xl font-black text-white uppercase tracking-wider leading-snug">
+                                                            Nouveau mail pour <span className="text-[#ff3b5c]">{recipInfo.displayName}</span>
+                                                        </h3>
+                                                    </div>
+
+                                                    {/* Content Body */}
+                                                    <div className="p-5 sm:p-6 space-y-4">
+                                                        {/* Info Cards Grid */}
+                                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                                            <div className="bg-[#181a26] border border-white/[0.07] rounded-xl p-3.5">
+                                                                <div className="text-[10px] text-gray-400 font-extrabold uppercase tracking-wider mb-1">Expéditeur</div>
+                                                                <div className="text-[13px] font-bold text-white break-words">{activeMsg.name}</div>
+                                                                <div className="text-[11px] text-gray-400 mt-0.5 break-all font-mono">{activeMsg.email}</div>
+                                                                {activeMsg.phone && (
+                                                                    <div className="text-[11px] text-neon-cyan mt-1 font-mono font-bold">📞 {activeMsg.phone}</div>
+                                                                )}
+                                                            </div>
+
+                                                            <div className="bg-[#181a26] border border-white/[0.07] rounded-xl p-3.5">
+                                                                <div className="text-[10px] text-gray-400 font-extrabold uppercase tracking-wider mb-1">Boîte Reçue</div>
+                                                                <div className="text-[13px] font-bold text-white break-words">{recipInfo.displayName}</div>
+                                                                <div className="text-[11.5px] text-[#00ffd5] font-extrabold font-mono break-all mt-0.5">{recipInfo.email}</div>
+                                                            </div>
+                                                        </div>
+
+                                                        {/* Extra details (budget, projectType) */}
+                                                        {(activeMsg.budget || activeMsg.projectType) && (
+                                                            <div className="bg-[#181a26] border border-white/[0.07] rounded-xl p-3.5 flex flex-wrap gap-4 items-center">
+                                                                {activeMsg.projectType && (
+                                                                    <div>
+                                                                        <div className="text-[9px] text-gray-400 font-extrabold uppercase tracking-wider mb-0.5">Type de projet</div>
+                                                                        <span className="text-xs font-bold text-neon-purple uppercase">{activeMsg.projectType}</span>
+                                                                    </div>
+                                                                )}
+                                                                {activeMsg.budget && (
+                                                                    <div>
+                                                                        <div className="text-[9px] text-gray-400 font-extrabold uppercase tracking-wider mb-0.5">Budget estimé</div>
+                                                                        <span className="text-xs font-bold text-neon-green">{activeMsg.budget}</span>
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        )}
+
+                                                        {/* Subject Card */}
+                                                        <div className="bg-[#181a26] border border-white/[0.07] rounded-xl p-3.5">
+                                                            <div className="text-[10px] text-gray-400 font-extrabold uppercase tracking-wider mb-1">Objet du message</div>
+                                                            <div className="text-sm font-bold text-white">{activeMsg.subject || '(Sans objet)'}</div>
+                                                        </div>
+
+                                                        {/* Message Preview Card */}
+                                                        <div className="bg-[#0b0c12] border border-[#ff1241]/25 border-l-4 border-l-[#ff1241] rounded-xl p-4 sm:p-5">
+                                                            <div className="text-[10px] text-[#ff3b5c] font-black uppercase tracking-wider mb-2.5 flex items-center gap-1.5">
+                                                                <span>💬</span> Message reçu :
+                                                            </div>
+                                                            <div 
+                                                                className="text-[13.5px] leading-relaxed text-gray-200 whitespace-pre-wrap break-words"
+                                                                dangerouslySetInnerHTML={{ __html: linkify(activeMsg.message) }}
+                                                            />
+                                                        </div>
+
+                                                        {/* Call to Action Button */}
+                                                        <div className="pt-2">
+                                                            <button
+                                                                onClick={handleOpenReply}
+                                                                className="w-full py-3.5 px-4 rounded-xl font-black text-xs sm:text-sm uppercase tracking-wider text-white bg-gradient-to-r from-[#ff1241] via-[#e6002f] to-[#ff3b14] hover:shadow-[0_10px_30px_rgba(255,18,65,0.45)] transition-all active:scale-[0.99] border border-white/20 flex items-center justify-center gap-2 text-center"
+                                                            >
+                                                                <Reply className="w-4 h-4 shrink-0" />
+                                                                <span>👉 Répondre directement à {activeMsg.name}</span>
+                                                            </button>
+                                                            <p className="text-[10px] text-gray-500 text-center mt-2 font-medium">
+                                                                Réponds avec ta signature officielle Dropsiders et le choix de ton adresse
+                                                            </p>
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Footer */}
+                                                    <div className="bg-[#0c0d14] border-t border-white/[0.05] py-3 px-4 text-center">
+                                                        <span className="text-[11px] text-gray-500 font-medium">
+                                                            Système Dropsiders Crew Hub · Notification certifiée
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })()
+                                    )}
+                                </div>
+                            )}
+
+                            {selectedSent && (
+                                <div className="max-w-[620px] mx-auto w-full bg-[#12131c] border border-neon-cyan/35 rounded-2xl overflow-hidden shadow-[0_15px_50px_rgba(0,0,0,0.7),0_0_40px_rgba(0,255,255,0.12)] my-2">
+                                    <div className="p-6 sm:p-7 text-center bg-gradient-to-b from-neon-cyan/15 via-[#12131c] to-[#12131c] border-b border-neon-cyan/20">
+                                        <img 
+                                            src="https://dropsiders.fr/Logo.png" 
+                                            alt="Dropsiders" 
+                                            className="h-9 sm:h-10 w-auto mx-auto mb-3 drop-shadow-[0_0_20px_rgba(0,255,255,0.6)]" 
+                                        />
+                                        <div className="inline-block px-3.5 py-1 rounded-full bg-neon-cyan/15 border border-neon-cyan/40 text-neon-cyan text-[10px] font-black uppercase tracking-[1.5px] mb-2.5">
+                                            📤 Message Envoyé
+                                        </div>
+                                        <h3 className="text-lg sm:text-xl font-black text-white uppercase tracking-wider leading-snug">
+                                            Envoyé par <span className="text-neon-cyan">{selectedSent.signer || 'Dropsiders'}</span>
+                                        </h3>
+                                    </div>
+
+                                    <div className="p-5 sm:p-6 space-y-4">
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                            <div className="bg-[#181a26] border border-white/[0.07] rounded-xl p-3.5">
+                                                <div className="text-[10px] text-gray-400 font-extrabold uppercase tracking-wider mb-1">Expéditeur</div>
+                                                <div className="text-[13px] font-bold text-white break-words">{selectedSent.signer || 'Dropsiders'}</div>
+                                                <div className="text-[11px] text-neon-orange mt-0.5 break-all font-mono">{selectedSent.from || 'contact@dropsiders.fr'}</div>
+                                            </div>
+
+                                            <div className="bg-[#181a26] border border-white/[0.07] rounded-xl p-3.5">
+                                                <div className="text-[10px] text-gray-400 font-extrabold uppercase tracking-wider mb-1">Destinataire</div>
+                                                <div className="text-[13px] font-bold text-white break-words">{selectedSent.to}</div>
+                                                <div className="text-[11.5px] text-[#00ffd5] font-extrabold font-mono break-all mt-0.5">{selectedSent.to}</div>
+                                            </div>
+                                        </div>
+
+                                        <div className="bg-[#181a26] border border-white/[0.07] rounded-xl p-3.5">
+                                            <div className="text-[10px] text-gray-400 font-extrabold uppercase tracking-wider mb-1">Objet du message</div>
+                                            <div className="text-sm font-bold text-white">{selectedSent.subject}</div>
+                                        </div>
+
+                                        <div className="bg-[#0b0c12] border border-neon-cyan/25 border-l-4 border-l-neon-cyan rounded-xl p-4 sm:p-5">
+                                            <div className="text-[10px] text-neon-cyan font-black uppercase tracking-wider mb-2.5 flex items-center gap-1.5">
+                                                <span>💬</span> Message envoyé :
+                                            </div>
+                                            <div 
+                                                className="text-[13.5px] leading-relaxed text-gray-200 whitespace-pre-wrap break-words"
+                                                dangerouslySetInnerHTML={{ __html: linkify(selectedSent.body) }}
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div className="bg-[#0c0d14] border-t border-white/[0.05] py-3 px-4 text-center">
+                                        <span className="text-[11px] text-gray-500 font-medium">
+                                            Archivé dans les messages envoyés · Dropsiders
+                                        </span>
+                                    </div>
+                                </div>
+                            )}
 
                             {/* Attachments */}
                             {((selected || selectedArchived || selectedSent)?.attachments?.length || 0) > 0 && (
