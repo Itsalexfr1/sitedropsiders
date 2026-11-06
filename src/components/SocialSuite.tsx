@@ -8910,8 +8910,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.fillRect(0, canvas.height - 420, canvas.width, 420);
                     ctx.restore();
 
-                    // 1. Top-Left Badge Dropsiders (Style Officiel News néon rouge)
-                    drawTopCapsuleBadge((top10BadgeRef.current || top10Badge || 'TOP 10 TRACKS').toUpperCase(), '#ff0033', '255, 0, 51');
+                    // 1. Top-Left Badge Dropsiders (Effets News avec couleur bleu néon comme avant)
+                    drawTopCapsuleBadge((top10BadgeRef.current || top10Badge || 'TOP 10 TRACKS').toUpperCase(), '#00f0ff', '0, 240, 255');
 
                     // 2. Header Titre Principal (Aéré et descendu pour ne pas coller au logo)
                     ctx.save();
@@ -18769,7 +18769,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             <label className="text-[8.5px] font-black text-gray-400 uppercase tracking-wider">
                                 Badge Capsule Haut Gauche
                             </label>
-                            <span className="text-[7.5px] font-bold text-neon-red uppercase">Style News</span>
+                            <span className="text-[7.5px] font-bold text-neon-cyan uppercase">Effet Cyber</span>
                         </div>
                         <input
                             type="text"
@@ -18779,7 +18779,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 generateImage();
                             }}
                             placeholder="TOP 10 TRACKS"
-                            className="w-full bg-white/5 border border-white/10 rounded-xl p-2.5 text-white font-black uppercase text-[11px] focus:border-neon-red/50 outline-none"
+                            className="w-full bg-white/5 border border-white/10 rounded-xl p-2.5 text-white font-black uppercase text-[11px] focus:border-neon-cyan/50 outline-none"
                         />
                     </div>
 
