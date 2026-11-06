@@ -2822,12 +2822,12 @@ Alex (Dropsiders)`;
                                             <div className="flex-1 overflow-y-auto custom-scrollbar pr-1 max-w-full">
                                                 <div className="bg-[#111] border border-white/10 rounded-2xl shadow-2xl max-w-full overflow-hidden">
                                                     {/* Top Header with Dropsiders Logo */}
-                                                    <div className="bg-gradient-to-b from-[#181924] to-[#111111] py-5 px-4 border-b border-white/10 text-center">
+                                                    <div className="bg-gradient-to-b from-[#181924] to-[#111111] py-6 px-4 border-b border-white/10 text-center">
                                                         <a href="https://dropsiders.fr" target="_blank" rel="noreferrer" className="inline-block">
                                                             <img 
                                                                 src="https://dropsiders.fr/Logo.png" 
                                                                 alt="Dropsiders" 
-                                                                className="h-8 sm:h-9 w-auto mx-auto drop-shadow-[0_0_16px_rgba(255,18,65,0.7)]" 
+                                                                className="h-12 sm:h-14 w-auto max-w-[240px] mx-auto drop-shadow-[0_0_20px_rgba(255,18,65,0.8)]" 
                                                             />
                                                         </a>
                                                     </div>
