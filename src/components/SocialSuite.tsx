@@ -9157,11 +9157,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         ctx.fillStyle = auraGrad;
                         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-                        // 3. Particules montantes festival (optimisé 60fps sans lag)
-                        ctx.save();
-                        ctx.shadowColor = '#00f0ff';
-                        ctx.shadowBlur = 6;
-                        for (let p = 0; p < 24; p++) {
+                        // 3. Particules montantes festival
+                        for (let p = 0; p < 36; p++) {
                             const seedX = ((p * 137.5) % 1) * canvas.width;
                             const speed = 32 + ((p * 31.7) % 45);
                             const swaySpeed = 0.9 + ((p * 19.3) % 1.4);
@@ -9170,13 +9167,16 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             const totalH = canvas.height + 140;
                             const rawY = (canvas.height + 70) - ((introAnimTime * speed + p * 89.3) % totalH);
                             const pX = seedX + Math.sin(introAnimTime * swaySpeed + p * 1.8) * swayAmp;
-                            ctx.globalAlpha = p % 2 === 0 ? 0.75 : 0.45;
-                            ctx.fillStyle = p % 2 === 0 ? '#00f0ff' : '#ffffff';
+                            ctx.save();
+                            ctx.globalAlpha = 0.65;
                             ctx.beginPath();
                             ctx.arc(pX, rawY, pSize, 0, Math.PI * 2);
+                            ctx.fillStyle = p % 2 === 0 ? '#00f0ff' : '#ffffff';
+                            ctx.shadowColor = '#00f0ff';
+                            ctx.shadowBlur = 8;
                             ctx.fill();
+                            ctx.restore();
                         }
-                        ctx.restore();
 
                         // 4. Badge en haut à gauche
                         drawTopCapsuleBadge((top10BadgeRef.current || top10Badge || 'TOP 10 TRACKS').toUpperCase(), '#00f0ff', '0, 240, 255');
@@ -9224,12 +9224,13 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         ctx.font = `900 italic ${titleFontSize}px "Montserrat", sans-serif`;
                         if ('letterSpacing' in ctx) (ctx as any).letterSpacing = '1px';
 
-                        const maxTitleW = Math.max(...titleLines.map(l => ctx.measureText(l.replace(/\*/g, '')).width), 1);
-                        const maxAllowedTitleW = canvas.width - 120;
-                        if (maxTitleW > maxAllowedTitleW) {
-                            titleFontSize = Math.max(36, Math.floor(titleFontSize * (maxAllowedTitleW / maxTitleW)));
-                            ctx.font = `900 italic ${titleFontSize}px "Montserrat", sans-serif`;
-                        }
+                        titleLines.forEach(l => {
+                            const cleanL = l.replace(/\*/g, '');
+                            while (ctx.measureText(cleanL).width > (canvas.width - 120) && titleFontSize > 36) {
+                                titleFontSize -= 2;
+                                ctx.font = `900 italic ${titleFontSize}px "Montserrat", sans-serif`;
+                            }
+                        });
 
                         const titleLineHeight = titleFontSize * 1.15;
 
@@ -9252,15 +9253,16 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             logoW = Math.round(lw * ratio);
                             logoH = Math.round(lh * ratio);
                         } else {
+                            ctx.save();
                             const scale = (top10LogoScaleRef.current || top10LogoScale || 100) / 100;
-                            textArtistFontSize = Math.round((isStory ? 94 : 70) * scale);
+                            let textArtistFontSize = Math.round((isStory ? 94 : 70) * scale);
                             ctx.font = `900 italic ${textArtistFontSize}px "Montserrat", sans-serif`;
                             if ('letterSpacing' in ctx) (ctx as any).letterSpacing = '2px';
-                            const aW = ctx.measureText(effectiveArtistName).width;
-                            const maxAllowedAW = canvas.width - 120;
-                            if (aW > maxAllowedAW) {
-                                textArtistFontSize = Math.max(36, Math.floor(textArtistFontSize * (maxAllowedAW / aW)));
+                            while (ctx.measureText(effectiveArtistName).width > (canvas.width - 120) && textArtistFontSize > 36) {
+                                textArtistFontSize -= 2;
+                                ctx.font = `900 italic ${textArtistFontSize}px "Montserrat", sans-serif`;
                             }
+                            ctx.restore();
                         }
 
                         // HAUTEURS D'ANCRAGE STRICTEMENT CONSTANTES (Garantit que le logo, le titre et le pill sont TOUJOURS à la même hauteur exacte quel que soit l'artiste)
@@ -9290,29 +9292,44 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 const segW = ctx.measureText(seg.text).width;
                                 const color = seg.isBlue ? '#00f0ff' : '#ffffff';
 
-                                // 1. Ombre portée 3D nette
+                                // 1. Ombre portée profonde diffuse
                                 ctx.save();
-                                ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
-                                ctx.shadowBlur = 14;
+                                ctx.shadowColor = 'rgba(0, 0, 0, 0.98)';
+                                ctx.shadowBlur = 24;
                                 ctx.shadowOffsetX = 0;
-                                ctx.shadowOffsetY = 6;
+                                ctx.shadowOffsetY = 8;
                                 ctx.fillStyle = color;
                                 ctx.fillText(seg.text, curX, lineY);
                                 ctx.restore();
 
-                                // 2. Lueur néon spéciale pour les mots en bleu ("TOP 10", "STREAMÉES")
+                                // 2. Ombre de contact nette vers le bas
+                                ctx.save();
+                                ctx.shadowColor = 'rgba(0, 0, 0, 0.92)';
+                                ctx.shadowBlur = 6;
+                                ctx.shadowOffsetX = 0;
+                                ctx.shadowOffsetY = 4;
+                                ctx.fillStyle = color;
+                                ctx.fillText(seg.text, curX, lineY);
+                                ctx.restore();
+
+                                // 3. Lueur néon spéciale pour les mots en bleu ("TOP 10", "STREAMÉES")
                                 if (seg.isBlue) {
                                     ctx.save();
                                     ctx.shadowColor = 'rgba(0, 240, 255, 0.85)';
-                                    ctx.shadowBlur = 16;
+                                    ctx.shadowBlur = 18;
+                                    ctx.shadowOffsetX = 0;
+                                    ctx.shadowOffsetY = 0;
                                     ctx.fillStyle = '#00f0ff';
                                     ctx.fillText(seg.text, curX, lineY);
                                     ctx.restore();
                                 }
 
-                                // 3. Texte net au premier plan
+                                // 4. Remplissage net au premier plan
+                                ctx.save();
+                                ctx.shadowColor = 'transparent';
                                 ctx.fillStyle = color;
                                 ctx.fillText(seg.text, curX, lineY);
+                                ctx.restore();
 
                                 curX += segW;
                             });
@@ -9332,7 +9349,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             }
 
                             ctx.shadowColor = 'rgba(0, 240, 255, 0.85)';
-                            ctx.shadowBlur = 24;
+                            ctx.shadowBlur = 30;
 
                             if (isArtistLogoNegative) {
                                 ctx.filter = 'brightness(0) invert(1)';
@@ -9350,25 +9367,19 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             ctx.font = `900 italic ${textArtistFontSize}px "Montserrat", sans-serif`;
                             if ('letterSpacing' in ctx) (ctx as any).letterSpacing = '2px';
 
-                            // 1. Ombre 3D
-                            ctx.save();
+                            // Deep 3D Shadow
                             ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
-                            ctx.shadowBlur = 18;
+                            ctx.shadowBlur = 32;
                             ctx.shadowOffsetX = 0;
                             ctx.shadowOffsetY = 6;
                             ctx.fillStyle = '#00f0ff';
                             ctx.fillText(effectiveArtistName, centerX, artistCenterY);
-                            ctx.restore();
 
-                            // 2. Lueur néon
-                            ctx.save();
-                            ctx.shadowColor = 'rgba(0, 240, 255, 0.85)';
-                            ctx.shadowBlur = 20;
-                            ctx.fillStyle = '#00f0ff';
-                            ctx.fillText(effectiveArtistName, centerX, artistCenterY);
-                            ctx.restore();
-
-                            // 3. Texte net premier plan
+                            // Intense Neon Blue / Cyan Glow
+                            ctx.shadowColor = 'rgba(0, 240, 255, 0.90)';
+                            ctx.shadowBlur = 26;
+                            ctx.shadowOffsetX = 0;
+                            ctx.shadowOffsetY = 0;
                             ctx.fillStyle = '#00f0ff';
                             ctx.fillText(effectiveArtistName, centerX, artistCenterY);
 
@@ -9545,11 +9556,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.fillStyle = auraGrad;
                     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-                    // C) Particules & Poussières Magiques Festival (Fairy Dust Tomorrowland - Optimisé 60fps)
-                    const particleCount = 28;
-                    ctx.save();
-                    ctx.shadowColor = `rgba(${rankColorRgb}, 0.85)`;
-                    ctx.shadowBlur = 8;
+                    // C) Particules & Poussières Magiques Festival (Fairy Dust Tomorrowland)
+                    const particleCount = 45;
                     for (let p = 0; p < particleCount; p++) {
                         const seedX = ((p * 137.5) % 1) * canvas.width;
                         const speed = 32 + ((p * 31.7) % 48); // Vitesse d'ascension lente
@@ -9573,15 +9581,18 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         const finalAlpha = pAlpha * sparkle * (pSize > 3.8 ? 0.40 : 0.75);
 
                         if (finalAlpha > 0.02) {
+                            ctx.save();
                             ctx.globalAlpha = finalAlpha;
                             ctx.beginPath();
                             ctx.arc(pX, pY, pSize, 0, Math.PI * 2);
                             const isGold = (p % 3 === 0);
                             ctx.fillStyle = isGold ? '#ffe680' : rankColor;
+                            ctx.shadowColor = isGold ? 'rgba(255, 215, 0, 0.85)' : `rgba(${rankColorRgb}, 0.85)`;
+                            ctx.shadowBlur = pSize * 3;
                             ctx.fill();
+                            ctx.restore();
                         }
                     }
-                    ctx.restore();
 
                     // D) Vignette sombre cinématique haut et bas pour contraste des textes
                     const topVig = ctx.createLinearGradient(0, 0, 0, 320);
@@ -9634,17 +9645,27 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         const segW = ctx.measureText(seg.text).width;
                         const color = seg.isBlue ? '#00f0ff' : '#ffffff';
 
-                        // 1. Ombre portée 3D
+                        // 1. Ombre portée profonde diffuse
                         ctx.save();
-                        ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
-                        ctx.shadowBlur = 12;
+                        ctx.shadowColor = 'rgba(0, 0, 0, 0.98)';
+                        ctx.shadowBlur = 18;
                         ctx.shadowOffsetX = 0;
-                        ctx.shadowOffsetY = 5;
+                        ctx.shadowOffsetY = 6;
                         ctx.fillStyle = color;
                         ctx.fillText(seg.text, trackCurX, 260);
                         ctx.restore();
 
-                        // 2. Lueur néon si bleu
+                        // 2. Ombre de contact nette vers le bas
+                        ctx.save();
+                        ctx.shadowColor = 'rgba(0, 0, 0, 0.92)';
+                        ctx.shadowBlur = 5;
+                        ctx.shadowOffsetX = 0;
+                        ctx.shadowOffsetY = 3;
+                        ctx.fillStyle = color;
+                        ctx.fillText(seg.text, trackCurX, 260);
+                        ctx.restore();
+
+                        // 3. Lueur néon si bleu
                         if (seg.isBlue) {
                             ctx.save();
                             ctx.shadowColor = 'rgba(0, 240, 255, 0.85)';
@@ -9654,9 +9675,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             ctx.restore();
                         }
 
-                        // 3. Texte net au premier plan
+                        // 4. Texte net au premier plan
+                        ctx.save();
+                        ctx.shadowColor = 'transparent';
                         ctx.fillStyle = color;
                         ctx.fillText(seg.text, trackCurX, 260);
+                        ctx.restore();
 
                         trackCurX += segW;
                     });
@@ -9702,9 +9726,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         let aFontSize = Math.round(44 * scale);
                         ctx.font = `900 italic ${aFontSize}px "Montserrat", sans-serif`;
                         if ('letterSpacing' in ctx) (ctx as any).letterSpacing = '3px';
-                        const aW = ctx.measureText(countdownArtistName).width;
-                        if (aW > 820) {
-                            aFontSize = Math.max(22, Math.floor(aFontSize * (820 / aW)));
+                        while (ctx.measureText(countdownArtistName).width > 820 && aFontSize > 22) {
+                            aFontSize -= 2;
                             ctx.font = `900 italic ${aFontSize}px "Montserrat", sans-serif`;
                         }
                         ctx.fillStyle = '#00f0ff';
