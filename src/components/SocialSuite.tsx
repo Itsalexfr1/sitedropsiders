@@ -9170,7 +9170,6 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         });
 
                         const titleLineHeight = titleFontSize * 1.15;
-                        const titleTotalHeight = (titleLines.length - 1) * titleLineHeight + titleFontSize;
 
                         // C. LOGO OFFICIEL UPLOADÉ OU NOM DE L'ARTISTE EN GROS EN BLEU NÉON
                         const effectiveArtistName = (top10IntroArtistRef.current || top10IntroArtist || top10ArtistSearch || 'ARTISTE').toUpperCase().trim();
@@ -9183,7 +9182,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                         if (hasUploadedLogo && artistLogoObj) {
                             const maxLogoW = isStory ? 760 : 540;
-                            const maxLogoH = isStory ? 245 : 175;
+                            const maxLogoH = isStory ? 240 : 170;
                             let lw = artistLogoObj.width;
                             let lh = artistLogoObj.height;
                             const ratio = Math.min(maxLogoW / lw, maxLogoH / lh);
@@ -9200,21 +9199,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             ctx.restore();
                         }
 
-                        const artistHeight = (hasUploadedLogo && artistLogoObj) ? logoH : textArtistFontSize;
-                        const pillHeight = 44;
+                        // HAUTEURS D'ANCRAGE STRICTEMENT CONSTANTES (Garantit que le logo, le titre et le pill sont TOUJOURS à la même hauteur exacte quel que soit l'artiste)
+                        const titleCenterY = isStory ? 730 : 410;
+                        const artistCenterY = isStory ? 1040 : 585;
+                        const pillY = isStory ? 1270 : 715;
 
-                        // Espaces réels entre les boîtes (aucun chevauchement possible)
-                        const space1 = isStory ? 100 : 75; // Espace net entre le bas du titre et le haut du logo
-                        const space2 = isStory ? 95 : 70;  // Espace net entre le bas du logo et le haut du pill
-
-                        const totalBlockH = titleTotalHeight + space1 + artistHeight + space2 + pillHeight;
-                        const startTop = centerY - (totalBlockH / 2);
-
-                        const titleLine0Y = startTop + (titleFontSize / 2);
-                        const artistTopY = startTop + titleTotalHeight + space1;
-                        const artistCenterY = artistTopY + (artistHeight / 2);
-                        const pillTopY = artistTopY + artistHeight + space2;
-                        const pillY = pillTopY + (pillHeight / 2);
+                        const titleLine0Y = titleCenterY - (((titleLines.length - 1) * titleLineHeight) / 2);
 
                         // Tracé des lignes du titre blanc (TOP 10 DES TRACKS / LES PLUS STREAMÉES) avec effet d'ombre prononcé
                         titleLines.forEach((line, idx) => {
@@ -9250,9 +9240,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         ctx.restore();
 
                         if (hasUploadedLogo && artistLogoObj) {
-                            // ➔ LE LOGO UPLOADÉ PREND LE DESSUS ABSOLU SUR L'ÉCRITURE DU NOM
+                            // ➔ LE LOGO UPLOADÉ EST ANCRÉ AU CENTRE EXACT (artistCenterY)
                             const lx = (canvas.width - logoW) / 2;
-                            const ly = artistTopY;
+                            const ly = artistCenterY - (logoH / 2);
 
                             ctx.save();
                             if (!isStaticPngExport && textAnimation !== 'NONE') {
@@ -9268,7 +9258,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             ctx.drawImage(artistLogoObj, lx, ly, logoW, logoH);
                             ctx.restore();
                         } else {
-                            // ➔ PAS DE LOGO : NOM DE L'ARTISTE EN GROS EN BLEU NÉON
+                            // ➔ PAS DE LOGO : NOM DE L'ARTISTE ANCRÉ AU CENTRE EXACT (artistCenterY)
                             ctx.save();
                             if (!isStaticPngExport && textAnimation !== 'NONE') {
                                 applyTextAnimCtx(ctx, 0.20 + titleLines.length * 0.10, centerX, artistCenterY, introAnimTime);
@@ -9307,9 +9297,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         if ('letterSpacing' in ctx) (ctx as any).letterSpacing = '2px';
                         const pTextW = ctx.measureText(pillLabel).width;
                         const pW = pTextW + 48;
-                        const pH = pillHeight;
+                        const pH = 44;
                         const pX = (canvas.width - pW) / 2;
-                        const pTopY = pillTopY;
+                        const pTopY = pillY - pH / 2;
 
                         ctx.fillStyle = 'rgba(10, 14, 22, 0.85)';
                         ctx.strokeStyle = 'rgba(0, 240, 255, 0.5)';
