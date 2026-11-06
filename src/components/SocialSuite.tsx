@@ -8939,27 +8939,22 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     const currentTracks = (top10TracksRef.current && top10TracksRef.current.length === 10) ? top10TracksRef.current : top10Tracks;
                     const currentActiveRank = top10ActiveRankRef.current ?? top10ActiveRank;
 
-                    // Déterminer la track active
-                    let currentTrackIndex = 0;
+                    // Déterminer la track active (directement reliée au rang actif, en export vidéo comme en aperçu)
+                    const trIdx = currentTracks.findIndex(t => Number(t.rank) === Number(currentActiveRank));
+                    const currentTrackIndex = trIdx >= 0 ? trIdx : 0;
+                    const activeTrack = currentTracks[currentTrackIndex] || currentTracks[0];
+                    const activeRank = activeTrack.rank;
+
                     let trackProgress = 0;
                     let animTime = 0;
 
                     if (isVideoExport) {
                         animTime = deterministicAnimTimeRef.current;
-                        const countdownStep = Math.min(9, Math.max(0, Math.floor(animTime / durPerTrack)));
-                        const targetRank = 10 - countdownStep;
-                        const trIdx = currentTracks.findIndex(t => Number(t.rank) === Number(targetRank));
-                        currentTrackIndex = trIdx >= 0 ? trIdx : countdownStep;
                         trackProgress = (animTime % durPerTrack) / durPerTrack;
                     } else {
-                        const trIdx = currentTracks.findIndex(t => Number(t.rank) === Number(currentActiveRank));
-                        currentTrackIndex = trIdx >= 0 ? trIdx : 0;
                         animTime = (Date.now() - animStartTimeRef.current) / 1000;
                         trackProgress = (top10TestingRank === currentActiveRank) ? ((animTime % durPerTrack) / durPerTrack) : 0.5;
                     }
-
-                    const activeTrack = currentTracks[currentTrackIndex] || currentTracks[0];
-                    const activeRank = activeTrack.rank;
 
                     // Temps d'animation propre à la track active (rejoue proprement à chaque changement de position ou test)
                     const trackAnimTime = isVideoExport
@@ -12596,8 +12591,24 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         } else if (theme === 'TOP 10 TRACKS') {
             const singleTrackDur = 5.3; // 10 tracks × 5.3s = 53s
             const singleTrackMs = 5300;
+            const originalRank = top10ActiveRankRef.current ?? top10ActiveRank;
             let prevVideo: HTMLVideoElement | null = null;
             const currentTracks = (top10TracksRef.current && top10TracksRef.current.length === 10) ? top10TracksRef.current : top10Tracks;
+
+            // Pré-charger toutes les pochettes des 10 tracks pour un rendu 100% instantané et sans micro-latence
+            await Promise.all(currentTracks.map(t => {
+                if (!t.cover) return Promise.resolve();
+                const resolvedCover = resolveImageUrl(t.cover);
+                if (imageCacheRef.current[t.cover] || imageCacheRef.current[resolvedCover]) return Promise.resolve();
+                return new Promise<void>(res => {
+                    loadCorsSafeImage(t.cover, (loadedImg) => {
+                        imageCacheRef.current[t.cover] = loadedImg;
+                        imageCacheRef.current[resolvedCover] = loadedImg;
+                        res();
+                    }, () => res());
+                });
+            }));
+
             for (let i = 0; i < 10; i++) {
                 const rank = 10 - i;
                 setTop10ActiveRank(rank);
@@ -12628,6 +12639,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             promoOutroOverrideRef.current = true;
             animStartTimeRef.current = Date.now();
             await renderDuration(7000, 0);
+
+            // Restaurer le rang original dans l'éditeur
+            top10ActiveRankRef.current = originalRank;
+            setTop10ActiveRank(originalRank);
         } else {
             if (theme === 'MUSIQUE' && musicAudioEl) {
                 let singleAudioUrl = '';
