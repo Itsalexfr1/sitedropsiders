@@ -975,7 +975,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     });
 
     const [top10Badge, setTop10Badge] = useState<string>('TOP 10 TRACKS');
-    const [top10Title, setTop10Title] = useState<string>('TOP 10 DES TRACKS LES PLUS JOUÉES');
+    const [top10Title, setTop10Title] = useState<string>('TOP 10 DES TRACKS LES PLUS STREAMÉES');
     const [top10Subtitle, setTop10Subtitle] = useState<string>('FESTIVAL 2026');
     const [top10HasPromoOutro, setTop10HasPromoOutro] = useState<boolean>(true); // Outro Téléphone 3D à la fin
     const [top10TrackDuration, setTop10TrackDuration] = useState<number>(5.3); // 5.3s × 10 + 7s outro = 60s (1 min pile)
@@ -1307,6 +1307,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         if (!cleaned) return;
         setIsAutoFillingTop10(true);
         setTop10Title(`${cleaned.toUpperCase()} • TOP 10 TRACKS`);
+        setTop10IntroTitle(`${cleaned.toUpperCase()} • TOP 10 TRACKS`);
 
         try {
             const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(cleaned)}&entity=song&limit=30`);
@@ -9530,58 +9531,114 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     // 1. Top-Left Badge Dropsiders (Effets News avec couleur bleu néon comme avant)
                     drawTopCapsuleBadge((top10BadgeRef.current || top10Badge || 'TOP 10 TRACKS').toUpperCase(), '#00f0ff', '0, 240, 255');
 
-                    // 2. Header Titre Principal (Aéré, agrandi et descendu pour équilibrer le Reel)
+                    // 2. Header Titre Principal (Identique à l'intro et synchronisé)
                     ctx.save();
                     ctx.textAlign = 'center';
                     ctx.textBaseline = 'middle';
 
-                    const t10Title = (top10TitleRef.current || top10Title || 'TOP 10 DES TRACKS LES PLUS JOUÉES').toUpperCase();
-                    let t10FontSize = 36;
+                    const t10Title = (top10IntroTitleRef.current || top10IntroTitle || top10TitleRef.current || top10Title || 'TOP 10 DES TRACKS LES PLUS STREAMÉES').toUpperCase();
+                    let t10FontSize = 34;
                     ctx.font = `900 ${t10FontSize}px "Montserrat", sans-serif`;
                     if ('letterSpacing' in ctx) (ctx as any).letterSpacing = '3px';
                     let t10W = ctx.measureText(t10Title).width;
                     if (t10W > 920) {
-                        t10FontSize = Math.max(24, Math.floor(t10FontSize * (920 / t10W)));
+                        t10FontSize = Math.max(22, Math.floor(t10FontSize * (920 / t10W)));
                         ctx.font = `900 ${t10FontSize}px "Montserrat", sans-serif`;
                     }
+                    if (!isStaticPngExport && textAnimation !== 'NONE') {
+                        applyTextAnimCtx(ctx, 0.0, canvas.width / 2, 275, trackAnimTime);
+                    }
                     ctx.fillStyle = '#ffffff';
-                    ctx.shadowColor = 'rgba(0,0,0,0.9)';
-                    ctx.shadowBlur = 12;
-                    ctx.fillText(t10Title, canvas.width / 2, 350);
+                    ctx.shadowColor = 'rgba(0,0,0,0.95)';
+                    ctx.shadowBlur = 14;
+                    ctx.fillText(t10Title, canvas.width / 2, 275);
                     ctx.restore();
 
-                    // 3. Rank Badge au-dessus de la vidéo (Agrandie et descendue)
-                    ctx.save();
-                    const badgeW = 340;
-                    const badgeH = 76;
-                    const badgeX = (canvas.width - badgeW) / 2;
-                    const badgeY = 440;
+                    // 2b. Logo Officiel de l'Artiste (ou nom stylé) au-dessus de la place
+                    const countdownArtistName = (top10IntroArtistRef.current || top10IntroArtist || top10ArtistSearch || activeTrack.artist || 'ARTISTE').toUpperCase().trim();
+                    const countdownLogoObj = artistLogoRef.current;
+                    const countdownHasLogo = Boolean(artistLogo && artistLogo.trim() !== '' && !artistLogo.includes('JOHN-SUMMIT-GIVEAWAY') && countdownLogoObj && (countdownLogoObj.naturalWidth > 0 || countdownLogoObj.complete));
+                    const logoAreaCenterY = 355;
 
-                    ctx.fillStyle = 'rgba(10, 12, 18, 0.85)';
+                    if (countdownHasLogo && countdownLogoObj) {
+                        const maxLogoW = 380;
+                        const maxLogoH = 75;
+                        let lw = countdownLogoObj.width;
+                        let lh = countdownLogoObj.height;
+                        const ratio = Math.min(maxLogoW / lw, maxLogoH / lh);
+                        lw = Math.round(lw * ratio);
+                        lh = Math.round(lh * ratio);
+                        const lx = (canvas.width - lw) / 2;
+                        const ly = logoAreaCenterY - (lh / 2);
+
+                        ctx.save();
+                        if (!isStaticPngExport && textAnimation !== 'NONE') {
+                            applyTextAnimCtx(ctx, 0.04, canvas.width / 2, logoAreaCenterY, trackAnimTime);
+                        }
+                        ctx.shadowColor = 'rgba(0, 240, 255, 0.85)';
+                        ctx.shadowBlur = 20;
+                        if (isArtistLogoNegative) {
+                            ctx.filter = 'brightness(0) invert(1)';
+                        }
+                        ctx.drawImage(countdownLogoObj, lx, ly, lw, lh);
+                        ctx.restore();
+                    } else {
+                        ctx.save();
+                        if (!isStaticPngExport && textAnimation !== 'NONE') {
+                            applyTextAnimCtx(ctx, 0.04, canvas.width / 2, logoAreaCenterY, trackAnimTime);
+                        }
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'middle';
+                        let aFontSize = 32;
+                        ctx.font = `900 italic ${aFontSize}px "Montserrat", sans-serif`;
+                        if ('letterSpacing' in ctx) (ctx as any).letterSpacing = '3px';
+                        while (ctx.measureText(countdownArtistName).width > 700 && aFontSize > 20) {
+                            aFontSize -= 2;
+                            ctx.font = `900 italic ${aFontSize}px "Montserrat", sans-serif`;
+                        }
+                        ctx.fillStyle = '#00f0ff';
+                        ctx.shadowColor = 'rgba(0, 240, 255, 0.9)';
+                        ctx.shadowBlur = 18;
+                        ctx.fillText(countdownArtistName, canvas.width / 2, logoAreaCenterY);
+                        ctx.restore();
+                    }
+
+                    // 3. Rank Badge au-dessus de la vidéo ("la place", descendue et stylée)
+                    ctx.save();
+                    const badgeW = 320;
+                    const badgeH = 70;
+                    const badgeX = (canvas.width - badgeW) / 2;
+                    const badgeY = 435;
+
+                    if (!isStaticPngExport && textAnimation !== 'NONE') {
+                        applyTextAnimCtx(ctx, 0.08, canvas.width / 2, badgeY + badgeH / 2, trackAnimTime);
+                    }
+
+                    ctx.fillStyle = 'rgba(10, 12, 18, 0.88)';
                     ctx.beginPath();
-                    ctx.roundRect(badgeX, badgeY, badgeW, badgeH, 38);
+                    ctx.roundRect(badgeX, badgeY, badgeW, badgeH, 35);
                     ctx.fill();
 
                     ctx.strokeStyle = rankColor;
                     ctx.lineWidth = 2.5;
-                    ctx.shadowColor = `rgba(${rankColorRgb}, 0.6)`;
+                    ctx.shadowColor = `rgba(${rankColorRgb}, 0.65)`;
                     ctx.shadowBlur = 18;
                     ctx.stroke();
 
-                    ctx.font = `900 ${isPodium ? 30 : 34}px "Montserrat", sans-serif`;
+                    ctx.font = `900 ${isPodium ? 28 : 32}px "Montserrat", sans-serif`;
                     ctx.fillStyle = rankColor;
                     ctx.textAlign = 'center';
                     ctx.textBaseline = 'middle';
-                    ctx.shadowColor = `rgba(${rankColorRgb}, 0.7)`;
+                    ctx.shadowColor = `rgba(${rankColorRgb}, 0.75)`;
                     ctx.shadowBlur = 12;
                     ctx.fillText(rankTitle, canvas.width / 2, badgeY + badgeH / 2);
                     ctx.restore();
 
                     // 4. Cadre Pochette Carrée 1:1 au Centre (Descendu avec espace généreux)
-                    const cardSize = 660;
-                    const cardX = Math.round((canvas.width - cardSize) / 2); // 210px
-                    const cardY = 560;
-                    const cardR = 28;
+                    const cardSize = 640;
+                    const cardX = Math.round((canvas.width - cardSize) / 2); // 220px
+                    const cardY = 545;
+                    const cardR = 26;
 
                     // A) Halo d'ambiance vibrant derrière la pochette
                     ctx.save();
@@ -9779,7 +9836,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     }
 
                     if (!isStaticPngExport && textAnimation !== 'NONE') {
-                        applyTextAnimCtx(ctx, 0.04, canvas.width / 2, 1325, trackAnimTime);
+                        applyTextAnimCtx(ctx, 0.04, canvas.width / 2, 1280, trackAnimTime);
                     }
 
                     let artistToDraw = artistStr;
@@ -9793,7 +9850,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.shadowColor = hasArtist ? 'rgba(0, 0, 0, 0.95)' : 'transparent';
                     ctx.shadowBlur = hasArtist ? 18 : 0;
                     ctx.shadowOffsetY = 4;
-                    ctx.fillText(artistToDraw, canvas.width / 2, 1325);
+                    ctx.fillText(artistToDraw, canvas.width / 2, 1280);
                     ctx.restore();
 
                     // 6b. Titre du Morceau
@@ -9803,7 +9860,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                     const hasTitle = Boolean(activeTrack.title?.trim());
                     const titleStr = (activeTrack.title || 'TITRE DU MORCEAU').toUpperCase();
-                    let titleFontSize = 58;
+                    let titleFontSize = 56;
                     ctx.font = `900 ${titleFontSize}px "Montserrat", sans-serif`;
                     if ('letterSpacing' in ctx) (ctx as any).letterSpacing = '1px';
                     let titleW = ctx.measureText(titleStr).width;
@@ -9813,7 +9870,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     }
 
                     if (!isStaticPngExport && textAnimation !== 'NONE') {
-                        applyTextAnimCtx(ctx, 0.14, canvas.width / 2, 1415, trackAnimTime);
+                        applyTextAnimCtx(ctx, 0.14, canvas.width / 2, 1360, trackAnimTime);
                     }
 
                     let titleToDraw = titleStr;
@@ -9826,7 +9883,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.fillStyle = hasTitle ? rankColor : `rgba(${rankColorRgb}, 0.35)`;
                     ctx.shadowColor = hasTitle ? `rgba(${rankColorRgb}, 0.75)` : 'transparent';
                     ctx.shadowBlur = hasTitle ? 24 : 0;
-                    ctx.fillText(titleToDraw, canvas.width / 2, 1415);
+                    ctx.fillText(titleToDraw, canvas.width / 2, 1360);
                     ctx.restore();
 
                     // 6c. Badge Nombre de Streams (Sous le titre)
@@ -9844,7 +9901,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         const pillW = Math.ceil(sMetrics.width + 50);
                         const pillH = 38;
                         const pillX = (canvas.width - pillW) / 2;
-                        const pillY = 1485;
+                        const pillY = 1430;
 
                         if (!isStaticPngExport && textAnimation !== 'NONE') {
                             applyTextAnimCtx(ctx, 0.24, canvas.width / 2, pillY + pillH / 2, trackAnimTime);
@@ -9886,7 +9943,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     // 7. Visualiseur Waveform Audio Animé
                     ctx.save();
                     const waveBars = 32;
-                    const waveCenterY = activeStreams ? 1605 : 1530;
+                    const waveCenterY = activeStreams ? 1545 : 1485;
                     const waveMaxH = 70;
                     const waveTotalW = 600;
                     const waveBarW = 10;
@@ -11172,7 +11229,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             anim = requestAnimationFrame(loop);
         } else { generateImage(); }
         return () => cancelAnimationFrame(anim);
-    }, [bgImage, bgVideo, customText, theme, showSwipe, showArticleLink, articleLinkText, showVoteLink, top5Items, currentPreviewIndex, activeTab, rotation, themeColor, isVideoRecording, transitionProgress, showText, planningDate, planningItems, agendaMonth, agendaBadgeText, agendaSlide, agendaCoverBadge, agendaCoverTitle, agendaCoverYear, agendaCoverGenres, agendaCoverCta, showAgendaCoverCta, artisteFestivalSlide, eventsSlide, editorialSlide, isEditorialAfficheActive, isEditorialTweetActive, showTitleOnSlide2, showMusicDate, editorialDate, showDividerDate, citationAuthor, citationMedia, extraEditorialSlides, musicTracks, top10Tracks, top10ActiveRank, top10Title, top10Subtitle, top10TrackDuration, top10TestingRank, calendarMonth, calendarEvents, isRetouchMode, retouchPath, isTransparent, showBottomLogo, artistLogo, festivalLogo, bgOffsetX, bgOffsetY, artistNameText, festivalNameText, isArtistLogoNegative, mapFestivalText, mapCityCountry, mapZoom, mapLatitude, mapLongitude, mapStyle, isMapLoading, mapPinColor, mapLabelText, showMapPin, showMapLabel, mapAnimMode, isMapAnimPlaying, mapScrubTime, mapAnimDuration, mapDestLatitude, mapDestLongitude, mapDestFestivalText, mapDestVenue, mapDestCity, mapDestCountry, mapDestPinColor, imgLayoutMode, quizColor1, quizColor2, showFrame, conseilsTitle, conseilsSubtext, isConseilsLargeTitle, concoursFestivalName, concoursFestivalHandle, concoursBottomColor, concoursLateralText, concoursLateralOpacity, concoursBadgeTextColor, concoursMode, concoursGTAHeadline, concoursGTATitle, concoursGTAPlatformText, concoursGTACondition1, concoursGTACondition2, concoursGTACondition3, concoursGTACondition4, afficheImage, afficheGlow, afficheBorderColor, afficheMode, afficheScale, afficheOffsetY, tweetImage, tweetScale, tweetOffsetY, tweetGlow, tweetHeadline, tweetBadge, tweetBorderColor, tweetTranslation, showTweetTranslation, tweetAnimMode, textAnimation, animReplayKey, bgAnimation, cdjPlayerRing, musicBgMotion, isCarouselPromoActive, promoCustomPhrase, promoCustomSubphrase, promoOutroStyle, isPromoAnimPlaying, promoCategory, showPromoHook, showPromoHeadline, showPromoLine1, showPromoLine2, djCutoutImage, djOriginalImage, djSilhouetteColor, djGlowIntensity, djShowQuestionMark, djAppearanceAnim, editorialSlideImages, editorialSlideCutouts, editorialSlideTitles, djSlideModes, agendaAffiches, highlightsSlideArtists, highlightsColorArtist, highlightsColorFestival, highlightsColorCity, highlightsColorCountry, highlightsColorDate, afficheImgZoom, afficheImgPanX, afficheImgPanY]);
+    }, [bgImage, bgVideo, customText, theme, showSwipe, showArticleLink, articleLinkText, showVoteLink, top5Items, currentPreviewIndex, activeTab, rotation, themeColor, isVideoRecording, transitionProgress, showText, planningDate, planningItems, agendaMonth, agendaBadgeText, agendaSlide, agendaCoverBadge, agendaCoverTitle, agendaCoverYear, agendaCoverGenres, agendaCoverCta, showAgendaCoverCta, artisteFestivalSlide, eventsSlide, editorialSlide, isEditorialAfficheActive, isEditorialTweetActive, showTitleOnSlide2, showMusicDate, editorialDate, showDividerDate, citationAuthor, citationMedia, extraEditorialSlides, musicTracks, top10Tracks, top10ActiveRank, top10Title, top10IntroTitle, top10IntroArtist, top10Subtitle, top10TrackDuration, top10TestingRank, calendarMonth, calendarEvents, isRetouchMode, retouchPath, isTransparent, showBottomLogo, artistLogo, festivalLogo, bgOffsetX, bgOffsetY, artistNameText, festivalNameText, isArtistLogoNegative, mapFestivalText, mapCityCountry, mapZoom, mapLatitude, mapLongitude, mapStyle, isMapLoading, mapPinColor, mapLabelText, showMapPin, showMapLabel, mapAnimMode, isMapAnimPlaying, mapScrubTime, mapAnimDuration, mapDestLatitude, mapDestLongitude, mapDestFestivalText, mapDestVenue, mapDestCity, mapDestCountry, mapDestPinColor, imgLayoutMode, quizColor1, quizColor2, showFrame, conseilsTitle, conseilsSubtext, isConseilsLargeTitle, concoursFestivalName, concoursFestivalHandle, concoursBottomColor, concoursLateralText, concoursLateralOpacity, concoursBadgeTextColor, concoursMode, concoursGTAHeadline, concoursGTATitle, concoursGTAPlatformText, concoursGTACondition1, concoursGTACondition2, concoursGTACondition3, concoursGTACondition4, afficheImage, afficheGlow, afficheBorderColor, afficheMode, afficheScale, afficheOffsetY, tweetImage, tweetScale, tweetOffsetY, tweetGlow, tweetHeadline, tweetBadge, tweetBorderColor, tweetTranslation, showTweetTranslation, tweetAnimMode, textAnimation, animReplayKey, bgAnimation, cdjPlayerRing, musicBgMotion, isCarouselPromoActive, promoCustomPhrase, promoCustomSubphrase, promoOutroStyle, isPromoAnimPlaying, promoCategory, showPromoHook, showPromoHeadline, showPromoLine1, showPromoLine2, djCutoutImage, djOriginalImage, djSilhouetteColor, djGlowIntensity, djShowQuestionMark, djAppearanceAnim, editorialSlideImages, editorialSlideCutouts, editorialSlideTitles, djSlideModes, agendaAffiches, highlightsSlideArtists, highlightsColorArtist, highlightsColorFestival, highlightsColorCity, highlightsColorCountry, highlightsColorDate, afficheImgZoom, afficheImgPanX, afficheImgPanY]);
 
     // Rejouer l'animation de texte proprement depuis le début à chaque changement de slide, track ou de thème
     useEffect(() => {
@@ -19809,10 +19866,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             type="text"
                             value={top10Title}
                             onChange={e => {
-                                setTop10Title(e.target.value.toUpperCase());
+                                const val = e.target.value.toUpperCase();
+                                setTop10Title(val);
+                                setTop10IntroTitle(val);
                                 generateImage();
                             }}
-                            placeholder="TOP 10 DES TRACKS LES PLUS JOUÉES"
+                            placeholder="TOP 10 DES TRACKS LES PLUS STREAMÉES"
                             className="w-full bg-white/5 border border-white/10 rounded-xl p-2.5 text-white font-black uppercase text-[11px] focus:border-neon-cyan/50 outline-none"
                         />
                     </div>
@@ -20107,7 +20166,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 type="text"
                                 value={top10IntroTitle}
                                 onChange={e => {
-                                    setTop10IntroTitle(e.target.value.toUpperCase());
+                                    const val = e.target.value.toUpperCase();
+                                    setTop10IntroTitle(val);
+                                    setTop10Title(val);
                                     generateImage();
                                 }}
                                 placeholder="TOP 10 DES TRACKS LES PLUS STREAMÉES"
