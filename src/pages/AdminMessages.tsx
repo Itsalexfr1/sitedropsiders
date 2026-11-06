@@ -2807,26 +2807,27 @@ Alex (Dropsiders)`;
                                                 autoCorrect="on"
                                                 autoComplete="on"
                                                 placeholder="Rédigez votre message..."
-                                                className="w-full h-[200px] md:h-[350px] bg-black/40 border border-white/10 rounded-2xl p-3 md:p-4 text-white text-sm resize-none focus:outline-none focus:border-neon-cyan transition-all custom-scrollbar"
+                                                className="w-full h-[250px] md:h-[450px] bg-black/40 border border-white/10 rounded-2xl p-3 md:p-4 text-white text-sm resize-none focus:outline-none focus:border-neon-cyan transition-all custom-scrollbar"
                                             />
                                         </div>
 
                                         {/* Preview Side */}
-                                        <div className={`flex-1 bg-black/60 border border-white/10 rounded-2xl p-4 sm:p-6 overflow-hidden ${mobileComposeTab === 'preview' ? 'block' : 'hidden md:block'}`}>
-                                            <div className="flex items-center justify-between mb-4">
+                                        <div className={`flex-1 bg-black/60 border border-white/10 rounded-2xl p-4 sm:p-5 flex flex-col md:h-[480px] max-w-full min-w-0 ${mobileComposeTab === 'preview' ? 'block' : 'hidden md:flex'}`}>
+                                            <div className="flex items-center justify-between mb-3 shrink-0">
                                                 <div className="text-[10px] text-gray-500 font-black uppercase tracking-[0.2em] flex items-center gap-1.5">
                                                     <Eye className="w-3.5 h-3.5 text-neon-cyan" /> Aperçu de l'email
                                                 </div>
                                                 <span className="text-[8px] font-bold text-gray-400 uppercase tracking-widest bg-white/5 border border-white/10 px-2 py-0.5 rounded-full">Format Réception</span>
                                             </div>
-                                            <div className="bg-[#111] border border-white/5 rounded-2xl overflow-hidden shadow-2xl scale-[0.92] sm:scale-[0.85] origin-top max-w-full">
-                                                <div className="p-4 sm:p-6">
-                                                    <div 
-                                                        className="text-white/80 text-[11px] leading-relaxed min-h-[100px] whitespace-pre-wrap break-words"
-                                                        style={{ whiteSpace: 'pre-wrap' }}
-                                                    >
-                                                        {replyBody || '[Votre message apparaîtra ici]'}
-                                                    </div>
+                                            <div className="flex-1 overflow-y-auto custom-scrollbar pr-1 max-w-full">
+                                                <div className="bg-[#111] border border-white/5 rounded-2xl shadow-2xl max-w-full overflow-hidden">
+                                                    <div className="p-4 sm:p-5">
+                                                        <div 
+                                                            className="text-white/90 text-xs leading-relaxed min-h-[100px] whitespace-pre-wrap break-words"
+                                                            style={{ whiteSpace: 'pre-wrap' }}
+                                                        >
+                                                            {replyBody || '[Votre message apparaîtra ici]'}
+                                                        </div>
                                                     {/* Signature preview - rendered exactly as the email will look */}
                                                     <div className="mt-6 overflow-x-auto max-w-full custom-scrollbar">
                                                         <div style={{ backgroundColor: '#0d0e12', border: '1px solid #23262f', borderRadius: '8px', padding: '6px 8px', maxWidth: '300px', fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" }}>
@@ -2897,6 +2898,7 @@ Alex (Dropsiders)`;
                                             </div>
                                         </div>
                                     </div>
+                                </div>
                                     
                                     {/* Attachment Section */}
                                     <div className="space-y-3 bg-[#161618] border border-white/10 p-3.5 sm:p-4 rounded-2xl">
