@@ -8913,30 +8913,36 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     // 1. Top-Left Badge Dropsiders (Effets News avec couleur bleu néon comme avant)
                     drawTopCapsuleBadge((top10BadgeRef.current || top10Badge || 'TOP 10 TRACKS').toUpperCase(), '#00f0ff', '0, 240, 255');
 
-                    // 2. Header Titre Principal (Aéré et descendu pour ne pas coller au logo)
+                    // 2. Header Titre Principal (Aéré, agrandi et descendu pour équilibrer le Reel)
                     ctx.save();
                     ctx.textAlign = 'center';
                     ctx.textBaseline = 'middle';
 
                     const t10Title = (top10TitleRef.current || top10Title || 'TOP 10 DES TRACKS LES PLUS JOUÉES').toUpperCase();
-                    ctx.font = '900 28px "Montserrat", sans-serif';
+                    let t10FontSize = 36;
+                    ctx.font = `900 ${t10FontSize}px "Montserrat", sans-serif`;
                     if ('letterSpacing' in ctx) (ctx as any).letterSpacing = '3px';
+                    let t10W = ctx.measureText(t10Title).width;
+                    if (t10W > 920) {
+                        t10FontSize = Math.max(24, Math.floor(t10FontSize * (920 / t10W)));
+                        ctx.font = `900 ${t10FontSize}px "Montserrat", sans-serif`;
+                    }
                     ctx.fillStyle = '#ffffff';
                     ctx.shadowColor = 'rgba(0,0,0,0.9)';
                     ctx.shadowBlur = 12;
-                    ctx.fillText(t10Title, canvas.width / 2, 285);
+                    ctx.fillText(t10Title, canvas.width / 2, 350);
                     ctx.restore();
 
-                    // 3. Rank Badge au-dessus de la vidéo
+                    // 3. Rank Badge au-dessus de la vidéo (Agrandie et descendue)
                     ctx.save();
-                    const badgeW = 280;
-                    const badgeH = 64;
+                    const badgeW = 340;
+                    const badgeH = 76;
                     const badgeX = (canvas.width - badgeW) / 2;
-                    const badgeY = 370;
+                    const badgeY = 440;
 
                     ctx.fillStyle = 'rgba(10, 12, 18, 0.85)';
                     ctx.beginPath();
-                    ctx.roundRect(badgeX, badgeY, badgeW, badgeH, 32);
+                    ctx.roundRect(badgeX, badgeY, badgeW, badgeH, 38);
                     ctx.fill();
 
                     ctx.strokeStyle = rankColor;
@@ -8945,7 +8951,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.shadowBlur = 18;
                     ctx.stroke();
 
-                    ctx.font = `900 ${isPodium ? 24 : 28}px "Montserrat", sans-serif`;
+                    ctx.font = `900 ${isPodium ? 30 : 34}px "Montserrat", sans-serif`;
                     ctx.fillStyle = rankColor;
                     ctx.textAlign = 'center';
                     ctx.textBaseline = 'middle';
@@ -8957,7 +8963,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     // 4. Cadre Pochette Carrée 1:1 au Centre (Descendu avec espace généreux)
                     const cardSize = 660;
                     const cardX = Math.round((canvas.width - cardSize) / 2); // 210px
-                    const cardY = 475;
+                    const cardY = 560;
                     const cardR = 28;
 
                     // A) Halo d'ambiance vibrant derrière la pochette
@@ -9119,40 +9125,40 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                     const hasArtist = Boolean(activeTrack.artist?.trim());
                     const artistStr = (activeTrack.artist || 'NOM DE L\'ARTISTE').toUpperCase();
-                    let artistFontSize = 36;
+                    let artistFontSize = 40;
                     ctx.font = `900 ${artistFontSize}px "Montserrat", sans-serif`;
                     if ('letterSpacing' in ctx) (ctx as any).letterSpacing = '2px';
                     let artistW = ctx.measureText(artistStr).width;
                     if (artistW > 920) {
-                        artistFontSize = Math.max(22, Math.floor(artistFontSize * (920 / artistW)));
+                        artistFontSize = Math.max(24, Math.floor(artistFontSize * (920 / artistW)));
                         ctx.font = `900 ${artistFontSize}px "Montserrat", sans-serif`;
                     }
                     ctx.fillStyle = hasArtist ? '#ffffff' : 'rgba(255, 255, 255, 0.35)';
                     ctx.shadowColor = hasArtist ? 'rgba(0, 0, 0, 0.95)' : 'transparent';
                     ctx.shadowBlur = hasArtist ? 18 : 0;
                     ctx.shadowOffsetY = 4;
-                    ctx.fillText(artistStr, canvas.width / 2, 1225);
+                    ctx.fillText(artistStr, canvas.width / 2, 1335);
 
                     const hasTitle = Boolean(activeTrack.title?.trim());
                     const titleStr = (activeTrack.title || 'TITRE DU MORCEAU').toUpperCase();
-                    let titleFontSize = 52;
+                    let titleFontSize = 56;
                     ctx.font = `900 ${titleFontSize}px "Montserrat", sans-serif`;
                     if ('letterSpacing' in ctx) (ctx as any).letterSpacing = '1px';
                     let titleW = ctx.measureText(titleStr).width;
                     if (titleW > 940) {
-                        titleFontSize = Math.max(26, Math.floor(titleFontSize * (940 / titleW)));
+                        titleFontSize = Math.max(28, Math.floor(titleFontSize * (940 / titleW)));
                         ctx.font = `900 ${titleFontSize}px "Montserrat", sans-serif`;
                     }
                     ctx.fillStyle = hasTitle ? rankColor : `rgba(${rankColorRgb}, 0.35)`;
                     ctx.shadowColor = hasTitle ? `rgba(${rankColorRgb}, 0.75)` : 'transparent';
                     ctx.shadowBlur = hasTitle ? 24 : 0;
-                    ctx.fillText(titleStr, canvas.width / 2, 1300);
+                    ctx.fillText(titleStr, canvas.width / 2, 1425);
                     ctx.restore();
 
                     // 7. Visualiseur Waveform Audio Animé
                     ctx.save();
                     const waveBars = 32;
-                    const waveCenterY = 1395;
+                    const waveCenterY = 1530;
                     const waveMaxH = 70;
                     const waveTotalW = 600;
                     const waveBarW = 10;
