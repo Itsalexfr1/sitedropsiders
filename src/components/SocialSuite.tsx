@@ -445,10 +445,18 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         stage: 'encoding' | 'zipping';
     } | null>(null);
     const cancelZipExportRef = useRef<boolean>(false);
+    const cancelVideoExportRef = useRef<boolean>(false);
     const [isTransparent, setIsTransparent] = useState(true);
     const [showBottomLogo, setShowBottomLogo] = useState(false);
     const [artistLogo, setArtistLogo] = useState<string>(''); // NEW
     const artistLogoRef = useRef<HTMLImageElement | null>(null); // NEW
+
+    useEffect(() => {
+        if (artistLogo && (artistLogo.includes('JOHN-SUMMIT-GIVEAWAY') || artistLogo.includes('bosecreative'))) {
+            setArtistLogo('');
+            artistLogoRef.current = null;
+        }
+    }, [artistLogo]);
     const [festivalLogo, setFestivalLogo] = useState<string>(''); // NEW
     const festivalLogoRef = useRef<HTMLImageElement | null>(null); // NEW
     const [bgOffsetX, setBgOffsetX] = useState<number>(0);
@@ -1122,8 +1130,18 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         setIsTestingIntro(true);
         triggerSmoothAnimReplay();
         generateImage();
+
+        // Jouer le son de la track #10 pour l'intro
+        const currentTracks = (top10TracksRef.current && top10TracksRef.current.length === 10) ? top10TracksRef.current : top10Tracks;
+        const tr10 = currentTracks.find(t => Number(t.rank) === 10);
+        const aUrl = tr10?.audioUrl || (tr10?.videoUrl && tr10.videoUrl.match(/\.(mp3|m4a|aac|wav|ogg)/i) ? tr10.videoUrl : '');
+        if (aUrl) {
+            playAudioPreviewFrom(aUrl, tr10?.audioStartTime || tr10?.videoStartTime || 0);
+        }
+
         setTimeout(() => {
             setIsTestingIntro(false);
+            stopPreviewPlayer();
         }, 3500);
     };
 
@@ -1250,7 +1268,6 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             if (defaultArtist) {
                 setTop10IntroArtist(defaultArtist);
                 top10IntroArtistRef.current = defaultArtist;
-                searchArtistLogos(defaultArtist, true);
             }
             try {
                 localStorage.setItem('dropsiders_top10_tracks_v7', JSON.stringify(newTracks));
@@ -1333,7 +1350,6 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     top10TracksRef.current = newTracks;
                     setTop10IntroArtist(cleaned);
                     top10IntroArtistRef.current = cleaned;
-                    searchArtistLogos(cleaned, true);
                     try {
                         localStorage.setItem('dropsiders_top10_tracks_v7', JSON.stringify(newTracks));
                     } catch (_) {}
@@ -9246,7 +9262,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                         // D. LOGO OFFICIEL DE L'ARTISTE (PNG TRANSPARENT SI CHARGÉ)
                         const artistLogoObj = artistLogoRef.current;
-                        if (artistLogoObj && (artistLogoObj.naturalWidth > 0 || artistLogoObj.complete)) {
+                        const hasValidArtistLogo = Boolean(artistLogo && artistLogo.trim() !== '' && !artistLogo.includes('JOHN-SUMMIT-GIVEAWAY'));
+                        if (hasValidArtistLogo && artistLogoObj && (artistLogoObj.naturalWidth > 0 || artistLogoObj.complete)) {
                             const logoAreaCenterY = subPillY + (isStory ? 140 : 100);
                             const maxLogoW = isStory ? 620 : 460;
                             const maxLogoH = isStory ? 180 : 130;
@@ -11332,6 +11349,33 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         e.target.value = '';
     };
 
+    const handleCancelVideoRecording = () => {
+        cancelVideoExportRef.current = true;
+        isVideoRecordingRef.current = false;
+        setIsVideoRecording(false);
+        setIsConverting(false);
+        setRecordingProgress(0);
+        setRecordingTimeLeft(0);
+        isExportRenderingRef.current = false;
+        stopPreviewPlayer();
+        if (bgVideo) {
+            try {
+                bgVideo.muted = isVideoAudioMuted;
+                bgVideo.loop = true;
+                bgVideo.play().catch(() => {});
+            } catch (_) {}
+        }
+        promoOutroOverrideRef.current = false;
+        editorialAfficheOverrideRef.current = false;
+        editorialTweetOverrideRef.current = false;
+        agendaSlideOverrideRef.current = null;
+        editorialSlideOverrideRef.current = null;
+        transitionProgressRef.current = null;
+        transitionTargetRef.current = null;
+        setTransitionProgress(0);
+        setTimeout(() => generateImage(), 60);
+    };
+
     const startVideoRecording = async (
         combinedMode: 'NONE' | 'PLANNING' | 'EDITORIAL' | 'PROMO_ONLY' | 'TIKTOK' = 'NONE',
         options?: { returnBlob?: boolean; formatTab?: TabType }
@@ -11688,6 +11732,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 const segmentStartTime = performance.now();
 
                 for (let f = 0; f < numFrames; f++) {
+                    if (cancelVideoExportRef.current) throw new Error('EXPORT_CANCELLED');
                     // Cadence fluide en temps réel alignée sur le décodage matériel de la vidéo de fond
                     if (hasPlayingBgVideo) {
                         const targetMs = f * frameInterval;
@@ -11802,6 +11847,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 const transitionStartTime = performance.now();
 
                 for (let f = 0; f < numFrames; f++) {
+                    if (cancelVideoExportRef.current) throw new Error('EXPORT_CANCELLED');
                     if (hasPlayingBgVideo) {
                         const targetMs = f * frameInterval;
                         const now = performance.now() - transitionStartTime;
@@ -12004,6 +12050,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             promoOutroOverrideRef.current = false;
         }
         transitionProgressRef.current = 0;
+        cancelVideoExportRef.current = false;
 
         setIsVideoRecording(true);
         recordingStartTimeRef.current = Date.now();
@@ -12199,6 +12246,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
 
         const finalizeRecording = async (): Promise<Blob | null> => {
+            if (cancelVideoExportRef.current) {
+                if (finalizePromiseResolve) finalizePromiseResolve(null);
+                return null;
+            }
             // Fin d'enregistrement : sync DOM refs et state React pour la phase FFmpeg
             stopMusicSegment();
             setRecordingProgress(100);
@@ -12385,11 +12436,18 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         const tr = currentTracks.find(t => Number(t.rank) === Number(rank));
                         const aUrl = tr?.audioUrl || (tr?.videoUrl && tr.videoUrl.match(/\.(mp3|m4a|aac|wav|ogg)/i) ? tr.videoUrl : '');
                         if (aUrl) {
-                            // Pour le track N° 1 (à 53s), laisser son morceau continuer sous l'outro promo téléphone 3D (+7.0s = 11.95s)
-                            const trackDuration = rank === 1 ? (singleDur + 7.0) : singleDur;
+                            // Le son du #10 démarre dès le début de l'intro (0s) et continue sur sa slide (3.5s + 4.95s = 8.45s)
+                            // Le track #1 continue sous l'outro téléphone 3D (+7.0s = 11.95s)
+                            const isRank10 = (rank === 10);
+                            const isRank1 = (rank === 1);
+                            const startOffset = isRank10 ? 0 : (introDuration + (i * singleDur));
+                            const trackDuration = isRank10
+                                ? (introDuration + singleDur)
+                                : (isRank1 ? (singleDur + 7.0) : singleDur);
+
                             audioSegments.push({
                                 url: aUrl,
-                                startOffset: introDuration + (i * singleDur),
+                                startOffset: startOffset,
                                 sourceOffset: tr?.audioStartTime || tr?.videoStartTime || 0,
                                 duration: trackDuration
                             });
@@ -25395,13 +25453,23 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         <h3 className="text-2xl font-black text-white italic uppercase mb-3">
                             {isConverting ? "OPTIMISATION MOV..." : "ENREGISTREMENT..."}
                         </h3>
-                        <p className="text-[10px] text-gray-500 font-black uppercase tracking-[0.3em] max-w-[280px] leading-relaxed">
+                        <p className="text-[10px] text-gray-500 font-black uppercase tracking-[0.3em] max-w-[280px] leading-relaxed mb-6">
                             {isConverting
                                 ? "Conversion en format MOV (H.264) compatible iPhone. Merci de patienter."
                                 : isTransparent && !(bgImage || bgVideo)
                                     ? `Capture avec transparence activée. Finalisation...`
                                     : <><span ref={recordingTimeLeft2Ref}>0s restantes</span>. Ne pas quitter.</>}
                         </p>
+
+                        {/* Bouton Annuler l'enregistrement */}
+                        <button
+                            type="button"
+                            onClick={handleCancelVideoRecording}
+                            className="px-6 py-2.5 rounded-xl bg-white/10 hover:bg-red-500/25 text-gray-300 hover:text-red-400 border border-white/15 hover:border-red-500/40 text-[10px] font-black uppercase tracking-wider transition-all active:scale-95 shadow-lg flex items-center gap-2 group cursor-pointer"
+                        >
+                            <span className="text-red-400 group-hover:scale-110 transition-transform font-bold">✕</span>
+                            <span>Annuler l'enregistrement</span>
+                        </button>
                     </motion.div>
                 )}
             </AnimatePresence>
