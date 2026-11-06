@@ -73,6 +73,7 @@ const safeFetchToBlobURL = async (url: string, mimeType: string): Promise<string
 };
 // @ts-ignore
 import { Muxer, ArrayBufferTarget } from 'mp4-muxer';
+import JSZip from 'jszip';
 
 const FESTIVAL_TIMEZONES = [
     { group: "🌍 Europe (Aucun décalage)", options: [{ label: "🇫🇷 Heure Française", offset: 0 }] },
@@ -436,6 +437,14 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const [planningTimezoneOffset, setPlanningTimezoneOffset] = useState<number>(0);
     const [isConverting, setIsConverting] = useState(false);
     const [conversionProgress, setConversionProgress] = useState(0);
+    const [isExportingZip, setIsExportingZip] = useState(false);
+    const [zipExportProgress, setZipExportProgress] = useState<{
+        current: number;
+        total: number;
+        title: string;
+        stage: 'encoding' | 'zipping';
+    } | null>(null);
+    const cancelZipExportRef = useRef<boolean>(false);
     const [isTransparent, setIsTransparent] = useState(true);
     const [showBottomLogo, setShowBottomLogo] = useState(false);
     const [artistLogo, setArtistLogo] = useState<string>(''); // NEW
@@ -10892,9 +10901,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         e.target.value = '';
     };
 
-    const startVideoRecording = async (combinedMode: 'NONE' | 'PLANNING' | 'EDITORIAL' | 'PROMO_ONLY' | 'TIKTOK' = 'NONE') => {
+    const startVideoRecording = async (
+        combinedMode: 'NONE' | 'PLANNING' | 'EDITORIAL' | 'PROMO_ONLY' | 'TIKTOK' = 'NONE',
+        options?: { returnBlob?: boolean; formatTab?: TabType }
+    ): Promise<Blob | null> => {
         const canvas = canvasRef.current;
-        if (!canvas) return;
+        if (!canvas) return null;
 
         // ── 0. DÉVERROUILLAGE AUDIO SYNCHRONE IMMÉDIAT (iOS Safari / Mobile) ─────
         // Sur Safari iOS, AudioContext.resume() et video.play() DOIVENT être déclenchés
@@ -10971,11 +10983,17 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         const fps = exportFps || 30; // 30 FPS fluide par défaut (standard Instagram/Reels) ou 60 FPS Studio
         const frameInterval = 1000 / fps;
         const frameDurationUs = Math.round(1_000_000 / fps); // durée d'un frame en microsecondes
+        const effectiveTab = options?.formatTab || activeTab;
         const targetWidth = 1080;
-        const targetHeight = (activeTab === 'REEL' || combinedMode === 'TIKTOK') ? 1920 : 1350;
+        const targetHeight = (effectiveTab === 'REEL' || combinedMode === 'TIKTOK') ? 1920 : 1350;
         if (canvas.width !== targetWidth) canvas.width = targetWidth;
         if (canvas.height !== targetHeight) canvas.height = targetHeight;
         const bitrate = isMobile ? 10000000 : (fps === 60 ? 16000000 : 12000000);
+
+        let finalizePromiseResolve: ((blob: Blob | null) => void) | null = null;
+        const finalizePromise = new Promise<Blob | null>((resolve) => {
+            finalizePromiseResolve = resolve;
+        });
 
         // Micro-task yield non bridé par Chrome en onglet arrière-plan (anti-lag multitâche/stream)
         const nextTick = () => new Promise<void>(resolve => {
@@ -11194,7 +11212,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         } else if (theme === 'TOP 10 TRACKS') {
             totalDuration = 60000; // Strictement 1 min pile (60s) : 10 tracks × 5.3s (53s) + 7s Outro Téléphone 3D
         } else {
-            const isReelWithPromo = (activeTab === 'REEL' && combinedMode === 'NONE' && theme !== 'PROMO');
+            const isReelWithPromo = (effectiveTab === 'REEL' && combinedMode === 'NONE' && theme !== 'PROMO' && theme !== 'MUSIQUE');
             if (theme === 'MUSIQUE') {
                 totalDuration = 30000;
             } else if (isReelWithPromo) {
@@ -11257,7 +11275,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                     isExportRenderingRef.current = true;
                     try {
-                        await generateImage();
+                        await generateImage(effectiveTab);
                     } finally {
                         isExportRenderingRef.current = false;
                     }
@@ -11297,7 +11315,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             updateProgressUI();
                             isExportRenderingRef.current = true;
                             try {
-                                await generateImage();
+                                await generateImage(effectiveTab);
                             } catch (e) {
                                 console.warn("generateImage render error", e);
                             } finally {
@@ -11376,7 +11394,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                     // Render de la slide entrante dans le canvas principal
                     isExportRenderingRef.current = true;
-                    try { await generateImage(); } finally { isExportRenderingRef.current = false; }
+                    try { await generateImage(effectiveTab); } finally { isExportRenderingRef.current = false; }
 
                     // Composite : slide sortante fondu vers slide entrante
                     if (ctx && outCtx && inSnapCtx) {
@@ -11602,7 +11620,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     setIsCarouselPromoActive(prevWasCarouselPromoActive);
                     setIsEditorialAfficheActive(prevWasEditorialAfficheActive);
                 }
-                return;
+                return null;
             }
             combinedStream = canvasStream;
         }
@@ -11749,7 +11767,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         }
 
 
-        const finalizeRecording = async () => {
+        const finalizeRecording = async (): Promise<Blob | null> => {
             // Fin d'enregistrement : sync DOM refs et state React pour la phase FFmpeg
             stopMusicSegment();
             setRecordingProgress(100);
@@ -11776,14 +11794,16 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     setErrorMessage(`Erreur d'encodage vidéo : ${e?.message || 'Erreur codec'}`);
                     isVideoRecordingRef.current = false;
                     setIsVideoRecording(false);
-                    return;
+                    if (finalizePromiseResolve) finalizePromiseResolve(null);
+                    return null;
                 }
             } else {
                 if (chunks.length === 0) {
                     setErrorMessage("Erreur de capture vidéo : aucune donnée reçue. Recharge la page et réessaie.");
                     isVideoRecordingRef.current = false;
                     setIsVideoRecording(false);
-                    return;
+                    if (finalizePromiseResolve) finalizePromiseResolve(null);
+                    return null;
                 }
                 videoBlob = new Blob(chunks, { type: mimeType });
             }
@@ -11823,6 +11843,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 isVideoRecordingRef.current = false;
                 setIsVideoRecording(false);
                 setRecordingProgress(0);
+                if (options?.returnBlob) {
+                    if (finalizePromiseResolve) finalizePromiseResolve(videoBlob);
+                    return videoBlob;
+                }
                 const url = URL.createObjectURL(videoBlob);
                 setReadyVideoBlob(videoBlob);
                 setReadyVideoUrl(url);
@@ -11832,11 +11856,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 a.href = url;
                 a.download = combinedMode === 'TIKTOK'
                     ? `dropsiders-tiktok-${theme.toLowerCase().replace(/\s+/g, '-')}-${Date.now()}.mp4`
-                    : `dropsiders-${exportThemeName}-${activeTab.toLowerCase()}-${Date.now()}.mp4`;
+                    : `dropsiders-${exportThemeName}-${effectiveTab.toLowerCase()}-${Date.now()}.mp4`;
                 document.body.appendChild(a);
                 a.click();
                 document.body.removeChild(a);
-                return;
+                if (finalizePromiseResolve) finalizePromiseResolve(videoBlob);
+                return videoBlob;
             }
 
             // Sur mobile natif sans WebCodecs : modal de prévisualisation directe WebM UNIQUEMENT s'il n'y a STRICTEMENT aucun son
@@ -11849,10 +11874,15 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 isVideoRecordingRef.current = false;
                 setIsVideoRecording(false);
                 setRecordingProgress(0);
+                if (options?.returnBlob) {
+                    if (finalizePromiseResolve) finalizePromiseResolve(fixedBlob);
+                    return fixedBlob;
+                }
                 setReadyVideoBlob(fixedBlob);
                 setReadyVideoUrl(url);
                 setActivePanel(null);
-                return;
+                if (finalizePromiseResolve) finalizePromiseResolve(fixedBlob);
+                return fixedBlob;
             }
 
 
@@ -11903,11 +11933,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         // Strictement aucun son pour la slide promo dans MUSIQUE
                     } else {
                         // Mode slide unique MUSIQUE (30s)
-                        const currentTrIdx = Math.max(0, editorialSlide - 2);
-                        const audioUrl = editorialSlide === 1
+                        const effectiveSlide = editorialSlideOverrideRef.current !== null ? editorialSlideOverrideRef.current : editorialSlide;
+                        const currentTrIdx = Math.max(0, effectiveSlide - 2);
+                        const audioUrl = effectiveSlide === 1
                             ? (musicIntroAudio || musicTracks[0]?.audio || '')
                             : (musicTracks[currentTrIdx]?.audio || musicIntroAudio || '');
-                        const srcOffset = editorialSlide === 1
+                        const srcOffset = effectiveSlide === 1
                             ? (musicIntroAudio ? (musicIntroAudioStartTime || 0) : (musicTracks[0]?.audioStartTime || 0))
                             : (musicTracks[currentTrIdx]?.audioStartTime || 0);
                         if (audioUrl) audioSegments.push({ url: audioUrl, startOffset: 0, sourceOffset: srcOffset, duration: 30 });
@@ -12156,6 +12187,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                         setConversionProgress(100);
                         setIsConverting(false);
+                        if (options?.returnBlob) {
+                            if (finalizePromiseResolve) finalizePromiseResolve(nativeMp4Blob);
+                            return nativeMp4Blob;
+                        }
                         setReadyVideoBlob(nativeMp4Blob);
                         setReadyVideoUrl(url);
                         setActivePanel(null);
@@ -12165,12 +12200,13 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         a.href = url;
                         a.download = combinedMode === 'TIKTOK'
                             ? `dropsiders-tiktok-${theme.toLowerCase().replace(/\s+/g, '-')}-${Date.now()}.mp4`
-                            : `dropsiders-${exportThemeName}-${activeTab.toLowerCase()}-${Date.now()}.mp4`;
+                            : `dropsiders-${exportThemeName}-${effectiveTab.toLowerCase()}-${Date.now()}.mp4`;
                         document.body.appendChild(a);
                         a.click();
                         document.body.removeChild(a);
                         console.log(`[Export] ✅ MP4 + Audio (${selectedMuxerCodec.toUpperCase()}) muxé nativement via WebCodecs sans FFmpeg !`);
-                        return;
+                        if (finalizePromiseResolve) finalizePromiseResolve(nativeMp4Blob);
+                        return nativeMp4Blob;
                     }
                 } catch (nativeMuxErr) {
                     console.warn('[Export] Muxage audio WebCodecs natif indisponible, repli FFmpeg :', nativeMuxErr);
@@ -12184,6 +12220,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 if (!hasAudioSource && videoBlob.type.includes('mp4')) {
                     isVideoRecordingRef.current = false;
                     setIsVideoRecording(false);
+                    if (options?.returnBlob) {
+                        if (finalizePromiseResolve) finalizePromiseResolve(videoBlob);
+                        return videoBlob;
+                    }
                     const url = URL.createObjectURL(videoBlob);
                     setReadyVideoBlob(videoBlob);
                     setReadyVideoUrl(url);
@@ -12194,7 +12234,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     document.body.appendChild(a);
                     a.click();
                     document.body.removeChild(a);
-                    return;
+                    if (finalizePromiseResolve) finalizePromiseResolve(videoBlob);
+                    return videoBlob;
                 }
 
                 isVideoRecordingRef.current = false;
@@ -12312,6 +12353,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     const url = URL.createObjectURL(mp4Blob);
 
                     setIsConverting(false);
+                    if (options?.returnBlob) {
+                        if (finalizePromiseResolve) finalizePromiseResolve(mp4Blob);
+                        return mp4Blob;
+                    }
                     setReadyVideoBlob(mp4Blob);
                     setReadyVideoUrl(url);
                     setActivePanel(null);
@@ -12321,10 +12366,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     a.href = url;
                     a.download = combinedMode === 'TIKTOK'
                         ? `dropsiders-tiktok-${theme.toLowerCase().replace(/\s+/g, '-')}-${Date.now()}.mp4`
-                        : `dropsiders-${exportThemeName}-${activeTab.toLowerCase()}-${Date.now()}.mp4`;
+                        : `dropsiders-${exportThemeName}-${effectiveTab.toLowerCase()}-${Date.now()}.mp4`;
                     document.body.appendChild(a);
                     a.click();
                     document.body.removeChild(a);
+                    if (finalizePromiseResolve) finalizePromiseResolve(mp4Blob);
+                    return mp4Blob;
                 } finally {
                     ffmpeg.off('log', onFFmpegLog);
                     ffmpeg.off('progress', onFFmpegProgress);
@@ -12339,6 +12386,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 console.error("FFmpeg Error:", err);
                 setIsConverting(false);
                 setErrorMessage("Erreur intégration audio : " + (err instanceof Error ? err.message : String(err)));
+                if (options?.returnBlob) {
+                    if (finalizePromiseResolve) finalizePromiseResolve(videoBlob);
+                    return videoBlob;
+                }
                 const ext = videoBlob.type.includes('mp4') ? 'mp4' : 'webm';
                 const url = URL.createObjectURL(videoBlob);
                 setReadyVideoBlob(videoBlob);
@@ -12349,10 +12400,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 a.href = url;
                 a.download = combinedMode === 'TIKTOK'
                     ? `dropsiders-tiktok-${theme.toLowerCase().replace(/\s+/g, '-')}-${Date.now()}.${ext}`
-                    : `dropsiders-${exportThemeName}-${activeTab.toLowerCase()}-${Date.now()}.${ext}`;
+                    : `dropsiders-${exportThemeName}-${effectiveTab.toLowerCase()}-${Date.now()}.${ext}`;
                 document.body.appendChild(a);
                 a.click();
                 document.body.removeChild(a);
+                if (finalizePromiseResolve) finalizePromiseResolve(videoBlob);
+                return videoBlob;
             }
         };
 
@@ -12583,14 +12636,15 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             top10ActiveRankRef.current = originalRank;
             setTop10ActiveRank(originalRank);
         } else {
+            const effectiveSlide = editorialSlideOverrideRef.current !== null ? editorialSlideOverrideRef.current : editorialSlide;
             if (theme === 'MUSIQUE' && musicAudioEl) {
                 let singleAudioUrl = '';
                 let singleAudioStartTime = 0;
-                if (editorialSlide === 1) {
+                if (effectiveSlide === 1) {
                     singleAudioUrl = musicIntroAudio || '';
                     singleAudioStartTime = musicIntroAudioStartTime || 0;
-                } else if (editorialSlide >= 2) {
-                    const trIdx = editorialSlide - 2;
+                } else if (effectiveSlide >= 2) {
+                    const trIdx = effectiveSlide - 2;
                     singleAudioUrl = musicTracks[trIdx]?.audio || '';
                     singleAudioStartTime = musicTracks[trIdx]?.audioStartTime || 0;
                 }
@@ -12599,7 +12653,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 }
             }
 
-            const isReelWithPromo = (activeTab === 'REEL' && combinedMode === 'NONE' && theme !== 'PROMO');
+            const isReelWithPromo = (effectiveTab === 'REEL' && combinedMode === 'NONE' && theme !== 'PROMO' && theme !== 'MUSIQUE');
             if (isReelWithPromo) {
                 const contentDur = (bgVideo && !isNaN(bgVideo.duration) && bgVideo.duration > 0)
                     ? bgVideo.duration * 1000
@@ -12638,10 +12692,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         }
         stopMusicSegment();
 
+        let finalExportBlob: Blob | null = null;
         if (!useWebCodecs && recorder && recorder.state !== 'inactive') {
             recorder.stop();
+            finalExportBlob = await finalizePromise;
         } else if (useWebCodecs) {
-            await finalizeRecording();
+            finalExportBlob = await finalizeRecording();
         }
 
         // Nettoyage des états promo et overrides UNIQUEMENT après l'arrêt total de l'enregistrement
@@ -12665,6 +12721,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             setIsEditorialAfficheActive(prevWasEditorialAfficheActive);
             setIsEditorialTweetActive(prevWasEditorialTweetActive);
         }
+        return finalExportBlob;
     };
 
     const exportSpecialTikTokVideo = async () => {
@@ -12736,6 +12793,164 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             return;
         }
         startVideoRecording('NONE');
+    };
+
+    const exportMusiqueZip = async (targetFormat?: TabType) => {
+        if (!canvasRef.current || isExportingZip || isVideoRecording) return;
+        setIsExportingZip(true);
+        cancelZipExportRef.current = false;
+        const formatToUse: TabType = targetFormat || activeTab || 'PUBLICATION';
+        const isStory = formatToUse === 'REEL';
+
+        // Sauvegarder l'état actuel pour le restaurer à la fin
+        const prevEditorialSlide = editorialSlide;
+        const prevPromoActive = isCarouselPromoActive;
+
+        try {
+            const zip = new JSZip();
+
+            // Construire la liste de toutes les slides du pack MUSIQUE
+            type ZipSlideItem = {
+                type: 'ANNONCE' | 'TRACK' | 'PROMO';
+                slideNum: number;
+                trackIdx?: number;
+                title: string;
+                filename: string;
+            };
+
+            const slidesToProcess: ZipSlideItem[] = [];
+
+            // 1. Slide 1 : Annonce
+            const cleanTheme = theme.toLowerCase().replace(/\s+/g, '-');
+            const formatSuffix = isStory ? 'story' : 'post';
+            slidesToProcess.push({
+                type: 'ANNONCE',
+                slideNum: 1,
+                title: 'Slide 1 • Annonce Sortie',
+                filename: `01-${cleanTheme}-annonce-${formatSuffix}.mp4`
+            });
+
+            // 2. Fiches Morceaux (Slides 2 à N)
+            musicTracks.forEach((tr, idx) => {
+                const trackNum = idx + 1;
+                const slideNum = idx + 2;
+                const cleanArtist = (tr.artist || '').trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+                const cleanTitle = (tr.title || `track-${trackNum}`).trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+                const namePart = [cleanArtist, cleanTitle].filter(Boolean).join('-') || `track-${trackNum}`;
+                slidesToProcess.push({
+                    type: 'TRACK',
+                    slideNum,
+                    trackIdx: idx,
+                    title: `Track ${trackNum} • ${tr.artist ? tr.artist + ' - ' : ''}${tr.title || 'Sans titre'}`,
+                    filename: `${String(slideNum).padStart(2, '0')}-${cleanTheme}-track-${String(trackNum).padStart(2, '0')}-${namePart}-${formatSuffix}.mp4`
+                });
+            });
+
+            // 3. Outro Promo Dropsiders
+            const promoSlideNum = musicTracks.length + 2;
+            slidesToProcess.push({
+                type: 'PROMO',
+                slideNum: promoSlideNum,
+                title: 'Slide Promo • Outro Dropsiders',
+                filename: `${String(promoSlideNum).padStart(2, '0')}-${cleanTheme}-outro-promo-${formatSuffix}.mp4`
+            });
+
+            const totalSlides = slidesToProcess.length;
+
+            // Préchargement de toutes les pochettes en mémoire pour fluidité optimale
+            for (const tr of musicTracks) {
+                const cUrl = tr.cover;
+                if (!cUrl) continue;
+                if (!musicCoverImgsRef.current[cUrl] && !imageCacheRef.current[cUrl]) {
+                    try {
+                        await new Promise<void>((res) => {
+                            const img = new Image();
+                            img.crossOrigin = 'anonymous';
+                            img.onload = () => {
+                                musicCoverImgsRef.current[cUrl] = img;
+                                imageCacheRef.current[cUrl] = img;
+                                res();
+                            };
+                            img.onerror = () => res();
+                            img.src = resolveImageUrl(cUrl);
+                        });
+                    } catch (_) { }
+                }
+            }
+
+            for (let i = 0; i < totalSlides; i++) {
+                if (cancelZipExportRef.current) {
+                    console.log('[Export ZIP] Annulé par l’utilisateur.');
+                    break;
+                }
+
+                const item = slidesToProcess[i];
+                setZipExportProgress({
+                    current: i + 1,
+                    total: totalSlides,
+                    title: item.title,
+                    stage: 'encoding'
+                });
+
+                let blob: Blob | null = null;
+                if (item.type === 'PROMO') {
+                    promoOutroOverrideRef.current = true;
+                    setIsCarouselPromoActive(true);
+                    editorialSlideOverrideRef.current = null;
+                    await new Promise(r => setTimeout(r, 120));
+                    blob = await startVideoRecording('PROMO_ONLY', { returnBlob: true, formatTab: formatToUse });
+                } else {
+                    promoOutroOverrideRef.current = false;
+                    setIsCarouselPromoActive(false);
+                    editorialSlideOverrideRef.current = item.slideNum;
+                    setEditorialSlide(item.slideNum);
+                    await new Promise(r => setTimeout(r, 120));
+                    blob = await startVideoRecording('NONE', { returnBlob: true, formatTab: formatToUse });
+                }
+
+                if (blob) {
+                    zip.file(item.filename, blob);
+                }
+
+                // Pause de récupération GPU & GC mémoire entre 2 vidéos
+                await new Promise(r => setTimeout(r, 250));
+            }
+
+            if (!cancelZipExportRef.current) {
+                setZipExportProgress({
+                    current: totalSlides,
+                    total: totalSlides,
+                    title: 'Compression de l’archive ZIP...',
+                    stage: 'zipping'
+                });
+
+                const zipBlob = await zip.generateAsync({
+                    type: 'blob',
+                    compression: 'DEFLATE',
+                    compressionOptions: { level: 6 }
+                });
+
+                const zipUrl = URL.createObjectURL(zipBlob);
+                const a = document.createElement('a');
+                a.href = zipUrl;
+                a.download = `dropsiders-musique-pack-${formatSuffix}-${Date.now()}.zip`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                setTimeout(() => URL.revokeObjectURL(zipUrl), 30000);
+            }
+        } catch (err: any) {
+            console.error('Erreur exportMusiqueZip:', err);
+            setErrorMessage("Erreur lors de l'exportation du pack ZIP : " + (err?.message || String(err)));
+        } finally {
+            editorialSlideOverrideRef.current = null;
+            promoOutroOverrideRef.current = false;
+            setIsExportingZip(false);
+            setZipExportProgress(null);
+            setIsCarouselPromoActive(prevPromoActive);
+            setEditorialSlide(prevEditorialSlide);
+            setTimeout(() => generateImage(), 150);
+        }
     };
 
     const addVisualToList = () => {
@@ -20775,6 +20990,35 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 </button>
                             </div>
                         </div>
+
+                        {/* Pack complet ZIP MP4 pour MUSIQUE */}
+                        {theme === 'MUSIQUE' && (
+                            <div className="space-y-1.5 pt-2 border-t border-[#00ff66]/20">
+                                <span className="text-[8px] font-black text-[#00ff66] uppercase tracking-wider block">
+                                    📦 Pack Complet (Toutes les pistes en ZIP .mp4)
+                                </span>
+                                <div className="grid grid-cols-2 gap-2">
+                                    <button
+                                        type="button"
+                                        onClick={() => exportMusiqueZip('PUBLICATION')}
+                                        disabled={isDownloading || isVideoRecording || isExportingZip}
+                                        className="py-2.5 px-3 bg-[#00ff66]/15 hover:bg-[#00ff66]/25 border border-[#00ff66]/40 hover:border-[#00ff66] text-[#00ff66] rounded-xl text-[8.5px] font-black uppercase flex items-center justify-center gap-1.5 transition-all shadow-sm active:scale-95 disabled:opacity-40"
+                                    >
+                                        <span>📦</span>
+                                        <span>ZIP POST (4:5)</span>
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => exportMusiqueZip('REEL')}
+                                        disabled={isDownloading || isVideoRecording || isExportingZip}
+                                        className="py-2.5 px-3 bg-neon-purple/15 hover:bg-neon-purple/25 border border-neon-purple/40 hover:border-neon-purple text-white rounded-xl text-[8.5px] font-black uppercase flex items-center justify-center gap-1.5 transition-all shadow-sm active:scale-95 disabled:opacity-40"
+                                    >
+                                        <span>📦</span>
+                                        <span>ZIP STORY (9:16)</span>
+                                    </button>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 )}
             </div>
@@ -21097,6 +21341,23 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             title="Slide de fin d'outro promo Dropsiders"
                         >
                             <span className="text-xs">🔥</span> Slide PROMO
+                        </button>
+                    </div>
+
+                    {/* BOUTON D'EXPORTATION DU PACK COMPLET EN ZIP MP4 */}
+                    <div className="pt-1.5">
+                        <button
+                            type="button"
+                            onClick={() => exportMusiqueZip(activeTab || 'PUBLICATION')}
+                            disabled={isExportingZip || isVideoRecording}
+                            className="w-full py-2.5 px-3 rounded-xl bg-gradient-to-r from-[#00ff66]/20 via-[#00ff66]/30 to-[#00ff66]/20 hover:from-[#00ff66]/30 hover:to-[#00ff66]/40 text-[#00ff66] hover:text-white border border-[#00ff66]/50 shadow-[0_0_15px_rgba(0,255,102,0.2)] text-[10px] font-black uppercase tracking-wider flex items-center justify-center gap-2 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed group"
+                            title="Exporte toutes les slides (annonce + morceaux + promo) en vidéos MP4 empaquetées dans un fichier .ZIP"
+                        >
+                            <span className="text-sm group-hover:scale-110 transition-transform">📦</span>
+                            <span>{isExportingZip ? 'Génération du ZIP...' : 'Exporter tout en ZIP (.mp4)'}</span>
+                            <span className="text-[8px] bg-black/50 px-1.5 py-0.5 rounded text-white/90 font-mono">
+                                {totalSlides + 1} MP4
+                            </span>
                         </button>
                     </div>
                 </div>
@@ -24352,6 +24613,65 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     ? `Capture avec transparence activée. Finalisation...`
                                     : <><span ref={recordingTimeLeft2Ref}>0s restantes</span>. Ne pas quitter.</>}
                         </p>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            {/* Global ZIP MP4 Export Progress Overlay */}
+            <AnimatePresence mode="wait">
+                {isExportingZip && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-[650] bg-black/92 backdrop-blur-2xl flex flex-col items-center justify-center p-8 text-center"
+                    >
+                        <div className="relative w-48 h-48 mb-8 flex items-center justify-center">
+                            <svg className="w-full h-full transform -rotate-90">
+                                <circle cx="96" cy="96" r="84" stroke="rgba(255,255,255,0.06)" strokeWidth="8" fill="transparent" />
+                                <circle
+                                    cx="96"
+                                    cy="96"
+                                    r="84"
+                                    stroke="#00ff66"
+                                    strokeWidth="8"
+                                    fill="transparent"
+                                    strokeDasharray="527.8"
+                                    strokeDashoffset={zipExportProgress ? 527.8 - (527.8 * (zipExportProgress.current / zipExportProgress.total)) : 527.8}
+                                    strokeLinecap="round"
+                                    className="transition-all duration-300 shadow-[0_0_20px_rgba(0,255,102,0.6)]"
+                                />
+                            </svg>
+                            <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                                <span className="text-3xl font-black text-[#00ff66] font-mono tracking-tighter">
+                                    {zipExportProgress ? `${zipExportProgress.current}/${zipExportProgress.total}` : '0/0'}
+                                </span>
+                                <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest mt-1">
+                                    {zipExportProgress?.stage === 'zipping' ? 'COMPRESSION' : 'FICHIER MP4'}
+                                </span>
+                            </div>
+                        </div>
+
+                        <h3 className="text-2xl font-black text-white italic uppercase mb-2">
+                            {zipExportProgress?.stage === 'zipping' ? 'CRÉATION DU ZIP...' : 'EXPORT PACK MP4...'}
+                        </h3>
+                        <p className="text-xs font-bold text-[#00ff66] uppercase tracking-wider mb-2">
+                            {zipExportProgress?.title || 'Initialisation...'}
+                        </p>
+                        <p className="text-[10px] text-gray-500 font-black uppercase tracking-[0.25em] max-w-[320px] leading-relaxed mb-6">
+                            Chaque slide est exportée en vidéo MP4 synchronisée avec son audio et le CDJ jog ring. Ne pas quitter cette page.
+                        </p>
+
+                        <button
+                            type="button"
+                            onClick={() => {
+                                cancelZipExportRef.current = true;
+                                setIsExportingZip(false);
+                            }}
+                            className="px-5 py-2.5 rounded-xl bg-white/10 hover:bg-red-500/20 text-gray-300 hover:text-red-400 border border-white/10 hover:border-red-500/30 text-[10px] font-black uppercase tracking-wider transition-all active:scale-95 shadow-md"
+                        >
+                            ✕ Annuler l'export
+                        </button>
                     </motion.div>
                 )}
             </AnimatePresence>
