@@ -8901,6 +8901,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.fillRect(0, canvas.height - 420, canvas.width, 420);
                     ctx.restore();
 
+                    // 1. Top-Left Badge Dropsiders
+                    drawTopCapsuleBadge('TOP 10 TRACKS', rankColor, rankColorRgb);
+
                     // 2. Header Titre Principal (Aéré et descendu pour ne pas coller au logo)
                     ctx.save();
                     ctx.textAlign = 'center';
