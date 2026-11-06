@@ -9268,27 +9268,72 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.fillStyle = glossGrad;
                     ctx.fillRect(cardX, cardY, cardSize, cardSize * 0.35);
 
-                    // Glare sweep diagonal animé (balayage argenté)
+                    // Glare sweep diagonal cinématique haute précision (balayage fluide 45° de coin à coin)
                     const sweepTime = isVideoExport ? animTime : (Date.now() - animStartTimeRef.current) / 1000;
-                    const sweepCycle = 3.0;
-                    const sweepT = sweepTime % sweepCycle;
-                    if (sweepT < 1.4) {
-                        const progress = sweepT / 1.4;
-                        const sweepX = cardX - 100 + (cardSize + 200) * progress;
-                        const beamW = 70;
-                        const slant = cardSize * 0.4;
-                        const glareGrad = ctx.createLinearGradient(sweepX - beamW, cardY, sweepX + beamW, cardY + cardSize);
-                        glareGrad.addColorStop(0, 'rgba(255, 255, 255, 0)');
-                        glareGrad.addColorStop(0.5, 'rgba(255, 255, 255, 0.4)');
-                        glareGrad.addColorStop(1, 'rgba(255, 255, 255, 0)');
-                        ctx.fillStyle = glareGrad;
-                        ctx.beginPath();
-                        ctx.moveTo(sweepX - beamW, cardY);
-                        ctx.lineTo(sweepX + beamW, cardY);
-                        ctx.lineTo(sweepX + beamW - slant, cardY + cardSize);
-                        ctx.lineTo(sweepX - beamW - slant, cardY + cardSize);
-                        ctx.closePath();
-                        ctx.fill();
+                    const sweepCycle = 3.2; // Cycle toutes les 3.2s
+                    const sweepDuration = 1.25; // 1.25s de glisse ultra-fluide
+                    const sweepDelay = 0.25; // Déclenchement 0.25s après l'apparition du track
+                    const cycleT = (sweepTime + sweepCycle - sweepDelay) % sweepCycle;
+                    if (cycleT < sweepDuration) {
+                        const rawP = cycleT / sweepDuration;
+                        // Smoothstep easing pour une accélération douce et une décélération soyeuse
+                        const easeP = rawP * rawP * (3 - 2 * rawP);
+
+                        const cX = cardX + cardSize / 2;
+                        const cY = cardY + cardSize / 2;
+                        const diag = cardSize * Math.SQRT2; // ~933px
+
+                        // Balayage complet : démarre 100% hors champ au coin haut-gauche et sort 100% hors champ au coin bas-droit
+                        const beamSpan = diag + 260;
+                        const curX = -diag / 2 - 130 + beamSpan * easeP;
+
+                        ctx.save();
+                        ctx.translate(cX, cY);
+                        ctx.rotate(Math.PI / 4); // 45° exact : l'axe X est la diagonale coin haut-gauche -> coin bas-droit
+                        ctx.globalCompositeOperation = 'screen'; // Incrustation spéculaire naturelle sans aplat opaque
+
+                        // 1. Halo lumineux diffus (halo spéculaire ambiant large)
+                        const haloW = 160;
+                        const haloGrad = ctx.createLinearGradient(curX - haloW / 2, 0, curX + haloW / 2, 0);
+                        haloGrad.addColorStop(0, 'rgba(255, 255, 255, 0)');
+                        haloGrad.addColorStop(0.25, `rgba(${rankColorRgb}, 0.12)`);
+                        haloGrad.addColorStop(0.5, 'rgba(255, 255, 255, 0.40)');
+                        haloGrad.addColorStop(0.75, `rgba(${rankColorRgb}, 0.12)`);
+                        haloGrad.addColorStop(1, 'rgba(255, 255, 255, 0)');
+                        ctx.fillStyle = haloGrad;
+                        ctx.fillRect(curX - haloW / 2, -diag, haloW, diag * 2);
+
+                        // 2. Faisceau principal intense (brillance verre chromé argenté)
+                        const coreW = 34;
+                        const coreGrad = ctx.createLinearGradient(curX - coreW / 2, 0, curX + coreW / 2, 0);
+                        coreGrad.addColorStop(0, 'rgba(255, 255, 255, 0)');
+                        coreGrad.addColorStop(0.25, 'rgba(255, 255, 255, 0.50)');
+                        coreGrad.addColorStop(0.5, 'rgba(255, 255, 255, 0.95)');
+                        coreGrad.addColorStop(0.75, 'rgba(255, 255, 255, 0.50)');
+                        coreGrad.addColorStop(1, 'rgba(255, 255, 255, 0)');
+                        ctx.fillStyle = coreGrad;
+                        ctx.fillRect(curX - coreW / 2, -diag, coreW, diag * 2);
+
+                        // 3. Arête laser centrale hyper-nette
+                        const bladeW = 6;
+                        const bladeGrad = ctx.createLinearGradient(curX - bladeW / 2, 0, curX + bladeW / 2, 0);
+                        bladeGrad.addColorStop(0, 'rgba(255, 255, 255, 0)');
+                        bladeGrad.addColorStop(0.5, '#ffffff');
+                        bladeGrad.addColorStop(1, 'rgba(255, 255, 255, 0)');
+                        ctx.fillStyle = bladeGrad;
+                        ctx.fillRect(curX - bladeW / 2, -diag, bladeW, diag * 2);
+
+                        // 4. Reflet suiveur fin (double réflexion de vitre de protection / vinyle)
+                        const trailOffset = -34;
+                        const trailW = 10;
+                        const trailGrad = ctx.createLinearGradient(curX + trailOffset - trailW / 2, 0, curX + trailOffset + trailW / 2, 0);
+                        trailGrad.addColorStop(0, 'rgba(255, 255, 255, 0)');
+                        trailGrad.addColorStop(0.5, 'rgba(255, 255, 255, 0.32)');
+                        trailGrad.addColorStop(1, 'rgba(255, 255, 255, 0)');
+                        ctx.fillStyle = trailGrad;
+                        ctx.fillRect(curX + trailOffset - trailW / 2, -diag, trailW, diag * 2);
+
+                        ctx.restore();
                     }
 
                     ctx.restore();
