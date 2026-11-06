@@ -9201,7 +9201,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         ctx.fillText(tagText, centerX, tagY + 1);
                         ctx.restore();
 
-                        // Tracé des lignes du titre blanc (TOP 10 DES TRACKS / LES PLUS STREAMÉES)
+                        // Tracé des lignes du titre blanc (TOP 10 DES TRACKS / LES PLUS STREAMÉES) avec effet d'ombre prononcé
                         titleLines.forEach((line, idx) => {
                             const lineY = titleStartY + idx * titleLineHeight;
                             ctx.save();
@@ -9209,19 +9209,24 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 applyTextAnimCtx(ctx, 0.28 + idx * 0.10, centerX, lineY, introAnimTime);
                             }
 
-                            // Deep 3D Shadow
-                            ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
-                            ctx.shadowBlur = 30;
+                            // 1. Ombre portée profonde diffuse
+                            ctx.shadowColor = 'rgba(0, 0, 0, 0.98)';
+                            ctx.shadowBlur = 24;
                             ctx.shadowOffsetX = 0;
-                            ctx.shadowOffsetY = 6;
+                            ctx.shadowOffsetY = 8;
                             ctx.fillStyle = '#ffffff';
                             ctx.fillText(line, centerX, lineY);
 
-                            // Subtle Neon Glow Overlay (Cyan Dropsiders)
-                            ctx.shadowColor = 'rgba(0, 240, 255, 0.45)';
-                            ctx.shadowBlur = 18;
+                            // 2. Ombre de contact nette vers le bas
+                            ctx.shadowColor = 'rgba(0, 0, 0, 0.92)';
+                            ctx.shadowBlur = 6;
                             ctx.shadowOffsetX = 0;
-                            ctx.shadowOffsetY = 0;
+                            ctx.shadowOffsetY = 4;
+                            ctx.fillStyle = '#ffffff';
+                            ctx.fillText(line, centerX, lineY);
+
+                            // 3. Texte blanc pur au premier plan
+                            ctx.shadowColor = 'transparent';
                             ctx.fillStyle = '#ffffff';
                             ctx.fillText(line, centerX, lineY);
 
@@ -9548,9 +9553,26 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     if (!isStaticPngExport && textAnimation !== 'NONE') {
                         applyTextAnimCtx(ctx, 0.0, canvas.width / 2, 275, trackAnimTime);
                     }
+
+                    // 1. Ombre portée profonde diffuse
+                    ctx.shadowColor = 'rgba(0, 0, 0, 0.98)';
+                    ctx.shadowBlur = 18;
+                    ctx.shadowOffsetX = 0;
+                    ctx.shadowOffsetY = 6;
                     ctx.fillStyle = '#ffffff';
-                    ctx.shadowColor = 'rgba(0,0,0,0.95)';
-                    ctx.shadowBlur = 14;
+                    ctx.fillText(t10Title, canvas.width / 2, 275);
+
+                    // 2. Ombre de contact nette vers le bas
+                    ctx.shadowColor = 'rgba(0, 0, 0, 0.92)';
+                    ctx.shadowBlur = 5;
+                    ctx.shadowOffsetX = 0;
+                    ctx.shadowOffsetY = 3;
+                    ctx.fillStyle = '#ffffff';
+                    ctx.fillText(t10Title, canvas.width / 2, 275);
+
+                    // 3. Texte blanc net au premier plan
+                    ctx.shadowColor = 'transparent';
+                    ctx.fillStyle = '#ffffff';
                     ctx.fillText(t10Title, canvas.width / 2, 275);
                     ctx.restore();
 
