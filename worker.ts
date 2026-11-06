@@ -1066,41 +1066,82 @@ export default {
                 const logos: Array<{ title: string; url: string; previewUrl: string }> = [];
                 const seenUrls = new Set<string>();
 
-                // 1. Wikimedia Commons API search
-                const commonsUrl = `https://commons.wikimedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(artistQuery + ' logo')}&srnamespace=6&format=json&origin=*`;
-                const cRes = await fetch(commonsUrl, { headers: { 'User-Agent': 'Dropsiders/2.0 (contact@dropsiders.fr)' } });
-                if (cRes.ok) {
-                    const cData: any = await cRes.json();
-                    const items = cData?.query?.search || [];
-                    const candidateTitles = items
-                        .map((it: any) => it.title)
-                        .filter((t: string) => /\.(png|svg)$/i.test(t) && !/commons-logo/i.test(t))
-                        .slice(0, 10);
+                // 1. DuckDuckGo Image Search (Transparent PNG / SVG Web Logos)
+                try {
+                    const ddgQuery = `${artistQuery} logo transparent png`;
+                    const ddgPageRes = await fetch(`https://duckduckgo.com/?q=${encodeURIComponent(ddgQuery)}&iar=images`, {
+                        headers: {
+                            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+                            'Accept-Language': 'en-US,en;q=0.9'
+                        }
+                    });
+                    if (ddgPageRes.ok) {
+                        const pageHtml = await ddgPageRes.text();
+                        const vqd = pageHtml.match(/vqd=([0-9-]+)/)?.[1];
+                        if (vqd) {
+                            const apiRes = await fetch(`https://duckduckgo.com/i.js?l=us-en&o=json&q=${encodeURIComponent(ddgQuery)}&vqd=${vqd}&f=,,,type:transparent,`, {
+                                headers: {
+                                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36'
+                                }
+                            });
+                            if (apiRes.ok) {
+                                const apiData: any = await apiRes.json();
+                                const ddgResults = apiData?.results || [];
+                                for (const r of ddgResults) {
+                                    if (r.image && !seenUrls.has(r.image)) {
+                                        seenUrls.add(r.image);
+                                        logos.push({
+                                            title: r.title || `${artistQuery} Logo`,
+                                            url: r.image,
+                                            previewUrl: r.thumbnail || r.image
+                                        });
+                                        if (logos.length >= 10) break;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                } catch (ddgErr) {
+                    console.warn('DDG logo search error:', ddgErr);
+                }
 
-                    if (candidateTitles.length > 0) {
-                        const infoUrl = `https://commons.wikimedia.org/w/api.php?action=query&titles=${encodeURIComponent(candidateTitles.join('|'))}&prop=imageinfo&iiprop=url|mime&iiurlwidth=500&format=json&origin=*`;
-                        const infoRes = await fetch(infoUrl, { headers: { 'User-Agent': 'Dropsiders/2.0 (contact@dropsiders.fr)' } });
-                        if (infoRes.ok) {
-                            const infoData: any = await infoRes.json();
-                            const pages = infoData?.query?.pages || {};
-                            for (const pid of Object.keys(pages)) {
-                                const p = pages[pid];
-                                const imgInfo = p?.imageinfo?.[0];
-                                const fileUrl = imgInfo?.url;
-                                if (fileUrl && !seenUrls.has(fileUrl)) {
-                                    seenUrls.add(fileUrl);
-                                    logos.push({
-                                        title: p.title.replace('File:', '').replace(/\.(png|svg)$/i, ''),
-                                        url: fileUrl,
-                                        previewUrl: imgInfo.thumburl || fileUrl
-                                    });
+                // 2. Wikimedia Commons API search (si moins de 5 logos trouvés)
+                if (logos.length < 5) {
+                    const commonsUrl = `https://commons.wikimedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(artistQuery + ' logo')}&srnamespace=6&format=json&origin=*`;
+                    const cRes = await fetch(commonsUrl, { headers: { 'User-Agent': 'Dropsiders/2.0 (contact@dropsiders.fr)' } });
+                    if (cRes.ok) {
+                        const cData: any = await cRes.json();
+                        const items = cData?.query?.search || [];
+                        const candidateTitles = items
+                            .map((it: any) => it.title)
+                            .filter((t: string) => /\.(png|svg)$/i.test(t) && !/commons-logo/i.test(t))
+                            .slice(0, 8);
+
+                        if (candidateTitles.length > 0) {
+                            const infoUrl = `https://commons.wikimedia.org/w/api.php?action=query&titles=${encodeURIComponent(candidateTitles.join('|'))}&prop=imageinfo&iiprop=url|mime&iiurlwidth=500&format=json&origin=*`;
+                            const infoRes = await fetch(infoUrl, { headers: { 'User-Agent': 'Dropsiders/2.0 (contact@dropsiders.fr)' } });
+                            if (infoRes.ok) {
+                                const infoData: any = await infoRes.json();
+                                const pages = infoData?.query?.pages || {};
+                                for (const pid of Object.keys(pages)) {
+                                    const p = pages[pid];
+                                    const imgInfo = p?.imageinfo?.[0];
+                                    const fileUrl = imgInfo?.url;
+                                    if (fileUrl && !seenUrls.has(fileUrl)) {
+                                        seenUrls.add(fileUrl);
+                                        logos.push({
+                                            title: p.title.replace('File:', '').replace(/\.(png|svg)$/i, ''),
+                                            url: fileUrl,
+                                            previewUrl: imgInfo.thumburl || fileUrl
+                                        });
+                                    }
                                 }
                             }
                         }
                     }
                 }
 
-                // 2. Wikipedia Artist Page Images fallback
+                // 3. Wikipedia Artist Page Images fallback
                 if (logos.length < 3) {
                     const wikiUrl = `https://en.wikipedia.org/w/api.php?action=query&titles=${encodeURIComponent(artistQuery)}&prop=images&format=json`;
                     const wRes = await fetch(wikiUrl, { headers: { 'User-Agent': 'Dropsiders/2.0 (contact@dropsiders.fr)' } });

@@ -1006,22 +1006,27 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const [top10LogoSearchQuery, setTop10LogoSearchQuery] = useState<string>('');
     const [isTestingIntro, setIsTestingIntro] = useState<boolean>(false);
 
-    const searchArtistLogos = async (artistQuery: string) => {
+    const searchArtistLogos = async (artistQuery: string, autoSelectFirst: boolean = false) => {
         const query = (artistQuery || top10IntroArtist || top10ArtistSearch || '').trim();
         if (!query) return;
         setIsSearchingTop10Logo(true);
         setTop10LogoSearchResults([]);
-        setShowTop10LogoModal(true);
+        if (!autoSelectFirst) {
+            setShowTop10LogoModal(true);
+        }
         setTop10LogoSearchQuery(query);
 
         try {
-            // 1. Appel du backend Cloudflare Worker
+            // 1. Appel du backend Cloudflare Worker (DuckDuckGo + Wikimedia)
             const res = await fetch(`/api/search/artist-logo?q=${encodeURIComponent(query)}`);
             if (res.ok) {
                 const data: any = await res.json();
                 if (Array.isArray(data.logos) && data.logos.length > 0) {
                     setTop10LogoSearchResults(data.logos);
                     setIsSearchingTop10Logo(false);
+                    if (autoSelectFirst && data.logos[0]?.url) {
+                        handleSelectArtistLogo(data.logos[0].url);
+                    }
                     return;
                 }
             }
@@ -1062,6 +1067,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         if (found.length > 0) {
                             setTop10LogoSearchResults(found);
                             setIsSearchingTop10Logo(false);
+                            if (autoSelectFirst && found[0]?.url) {
+                                handleSelectArtistLogo(found[0].url);
+                            }
                             return;
                         }
                     }
@@ -1076,16 +1084,32 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
     const handleSelectArtistLogo = (logoUrl: string) => {
         if (!logoUrl) return;
-        setArtistLogo(logoUrl);
+        const safeUrl = (logoUrl.startsWith('data:') || logoUrl.startsWith('blob:') || logoUrl.startsWith('/api/proxy-image'))
+            ? logoUrl
+            : `/api/proxy-image?url=${encodeURIComponent(logoUrl)}`;
+
+        setArtistLogo(safeUrl);
         const img = new Image();
         img.crossOrigin = 'anonymous';
-        img.src = logoUrl;
+        img.src = safeUrl;
         img.onload = () => {
             artistLogoRef.current = img;
             setShowTop10LogoModal(false);
             generateImage();
         };
-        if (img.complete) {
+        img.onerror = () => {
+            // Fallback direct url si proxy
+            const fallbackImg = new Image();
+            fallbackImg.crossOrigin = 'anonymous';
+            fallbackImg.src = logoUrl;
+            fallbackImg.onload = () => {
+                artistLogoRef.current = fallbackImg;
+                setArtistLogo(logoUrl);
+                setShowTop10LogoModal(false);
+                generateImage();
+            };
+        };
+        if (img.complete && img.naturalWidth > 0) {
             artistLogoRef.current = img;
             setShowTop10LogoModal(false);
             generateImage();
@@ -1223,6 +1247,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
             setTop10Tracks(newTracks);
             top10TracksRef.current = newTracks;
+            if (defaultArtist) {
+                setTop10IntroArtist(defaultArtist);
+                top10IntroArtistRef.current = defaultArtist;
+                searchArtistLogos(defaultArtist, true);
+            }
             try {
                 localStorage.setItem('dropsiders_top10_tracks_v7', JSON.stringify(newTracks));
             } catch (_) {}
@@ -1302,6 +1331,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     }
                     setTop10Tracks(newTracks);
                     top10TracksRef.current = newTracks;
+                    setTop10IntroArtist(cleaned);
+                    top10IntroArtistRef.current = cleaned;
+                    searchArtistLogos(cleaned, true);
                     try {
                         localStorage.setItem('dropsiders_top10_tracks_v7', JSON.stringify(newTracks));
                     } catch (_) {}
@@ -9071,46 +9103,153 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         // 4. Badge en haut à gauche
                         drawTopCapsuleBadge((top10BadgeRef.current || top10Badge || 'TOP 10 TRACKS').toUpperCase(), '#00f0ff', '0, 240, 255');
 
-                        // 5. TITRE CENTRAL : "TOP 10 DES TRACKS LES PLUS STREAMÉES"
-                        // Découpé harmonieusement et animé avec l'effet de texte choisi
-                        const rawIntroTitle = (top10IntroTitleRef.current || top10IntroTitle || 'TOP 10 DES TRACKS LES PLUS STREAMÉES').toUpperCase();
+                        const isStory = canvas.height > 1500;
+                        const centerX = canvas.width / 2;
+                        const centerY = isStory ? 960 : 540;
+
+                        // ══════════════════════════════════════════════════════════════════════
+                        // STYLE AGENDA COVER ("ON VA OÙ CE MOIS-CI ?") POUR L'INTRO TOP 10
+                        // ══════════════════════════════════════════════════════════════════════
+
+                        // A. Tag Pill au-dessus du titre (comme "OCTOBRE • 2026")
+                        const tagText = 'TOP 10 • STREAMING';
+                        const tagY = centerY - (isStory ? 220 : 160);
+
+                        ctx.save();
+                        if (!isStaticPngExport && textAnimation !== 'NONE') {
+                            applyTextAnimCtx(ctx, 0.16, centerX, tagY, introAnimTime);
+                        }
+                        ctx.font = '900 italic 16px "Montserrat", sans-serif';
+                        if ('letterSpacing' in ctx) (ctx as any).letterSpacing = '3px';
+                        const tagW = ctx.measureText(tagText).width;
+                        const tagPillW = Math.max(180, Math.ceil(tagW + 40));
+                        const tagPillH = 38;
+
+                        ctx.shadowColor = 'rgba(0, 240, 255, 0.55)';
+                        ctx.shadowBlur = 15;
+                        ctx.fillStyle = 'rgba(15, 12, 18, 0.88)';
+                        ctx.strokeStyle = '#00f0ff';
+                        ctx.lineWidth = 2;
+                        ctx.beginPath();
+                        ctx.roundRect(centerX - tagPillW / 2, tagY - tagPillH / 2, tagPillW, tagPillH, tagPillH / 2);
+                        ctx.fill();
+                        ctx.stroke();
+
+                        ctx.shadowColor = 'transparent';
+                        ctx.fillStyle = '#00f0ff';
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'middle';
+                        ctx.fillText(tagText, centerX, tagY + 1);
+                        ctx.restore();
+
+                        // B. GRAND HOOK PRINCIPAL GÉANT (Montserrat 900 Italic 104px à 118px comme dans AGENDA "ON VA OÙ CE MOIS-CI ?")
+                        ctx.save();
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'middle';
+                        const rawIntroTitle = (top10IntroTitleRef.current || top10IntroTitle || 'TOP 10 DES TRACKS LES PLUS STREAMÉES').toUpperCase().trim();
+
                         let titleLines: string[] = [];
-                        if (rawIntroTitle.includes('LES PLUS STREAMÉES')) {
+                        if (rawIntroTitle.includes('\n')) {
+                            titleLines = rawIntroTitle.split('\n').map(l => l.trim()).filter(Boolean);
+                        } else if (rawIntroTitle.includes('LES PLUS STREAMÉES')) {
                             titleLines = ['TOP 10 DES TRACKS', 'LES PLUS STREAMÉES'];
+                        } else if (rawIntroTitle.length > 18 && rawIntroTitle.includes(' ')) {
+                            const words = rawIntroTitle.split(' ');
+                            const mid = Math.ceil(words.length / 2);
+                            titleLines = [words.slice(0, mid).join(' '), words.slice(mid).join(' ')];
                         } else {
                             titleLines = [rawIntroTitle];
                         }
 
-                        const titleCenterY = isReel ? 700 : 520;
-                        const titleLineH = 68;
-                        const startTitleY = titleCenterY - ((titleLines.length - 1) * titleLineH) / 2;
+                        let titleFontSize = isStory
+                            ? (titleLines.length > 2 ? 82 : (titleLines.length === 2 ? 104 : 118))
+                            : (titleLines.length > 2 ? 60 : (titleLines.length === 2 ? 78 : 90));
 
-                        titleLines.forEach((tLine, idx) => {
-                            const curY = startTitleY + idx * titleLineH;
-                            ctx.save();
-                            if (!isStaticPngExport && textAnimation !== 'NONE') {
-                                applyTextAnimCtx(ctx, 0.08 + idx * 0.10, canvas.width / 2, curY, introAnimTime);
+                        ctx.font = `900 italic ${titleFontSize}px "Montserrat", sans-serif`;
+                        if ('letterSpacing' in ctx) (ctx as any).letterSpacing = '1px';
+
+                        titleLines.forEach(l => {
+                            while (ctx.measureText(l).width > (canvas.width - 120) && titleFontSize > 36) {
+                                titleFontSize -= 2;
+                                ctx.font = `900 italic ${titleFontSize}px "Montserrat", sans-serif`;
                             }
-                            ctx.textAlign = 'center';
-                            ctx.textBaseline = 'middle';
-                            ctx.font = '900 italic 54px "Montserrat", sans-serif';
-                            if ('letterSpacing' in ctx) (ctx as any).letterSpacing = '3px';
-                            ctx.fillStyle = '#ffffff';
-                            ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
-                            ctx.shadowBlur = 18;
-                            ctx.shadowOffsetY = 4;
-                            ctx.fillText(tLine, canvas.width / 2, curY);
-                            ctx.restore();
                         });
 
-                        // 6. LOGO OFFICIEL DE L'ARTISTE (OU NOM EN TYPOGRAPHIE GÉANTE)
-                        const effectiveArtistName = (top10IntroArtistRef.current || top10IntroArtist || top10ArtistSearch || 'ARTISTE').toUpperCase();
-                        const artistLogoObj = artistLogoRef.current;
-                        const logoAreaCenterY = isReel ? 1040 : 820;
+                        const titleLineHeight = titleFontSize * 1.15;
+                        const titleBlockHeight = titleLines.length * titleLineHeight;
+                        const titleStartY = centerY - 15 - ((titleLines.length - 1) * titleLineHeight) / 2;
 
+                        titleLines.forEach((line, idx) => {
+                            const lineY = titleStartY + idx * titleLineHeight;
+                            ctx.save();
+                            if (!isStaticPngExport && textAnimation !== 'NONE') {
+                                applyTextAnimCtx(ctx, 0.28 + idx * 0.10, centerX, lineY, introAnimTime);
+                            }
+
+                            // Deep 3D Shadow
+                            ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
+                            ctx.shadowBlur = 30;
+                            ctx.shadowOffsetX = 0;
+                            ctx.shadowOffsetY = 6;
+                            ctx.fillStyle = '#ffffff';
+                            ctx.fillText(line, centerX, lineY);
+
+                            // Subtle Neon Glow Overlay (Cyan Dropsiders)
+                            ctx.shadowColor = 'rgba(0, 240, 255, 0.45)';
+                            ctx.shadowBlur = 18;
+                            ctx.shadowOffsetX = 0;
+                            ctx.shadowOffsetY = 0;
+                            ctx.fillStyle = '#ffffff';
+                            ctx.fillText(line, centerX, lineY);
+
+                            ctx.restore();
+                        });
+                        ctx.restore();
+
+                        // C. SUBTITLE / GLASSMORPHISM PILL (EXACTEMENT COMME [ HARD TECHNO • RAWSTYLE • MULTI-GENRES ] DANS AGENDA)
+                        const effectiveArtistName = (top10IntroArtistRef.current || top10IntroArtist || top10ArtistSearch || 'ARTISTE').toUpperCase().trim();
+                        const artistSubtitle = effectiveArtistName ? `${effectiveArtistName} • TOP 10 OFFICIEL` : '10 TRACKS LES PLUS STREAMÉES';
+
+                        let subFontSize = isStory ? 24 : 18;
+                        ctx.font = `800 italic ${subFontSize}px "Montserrat", sans-serif`;
+                        if ('letterSpacing' in ctx) (ctx as any).letterSpacing = '2px';
+                        while (ctx.measureText(artistSubtitle).width > (canvas.width - 160) && subFontSize > 13) {
+                            subFontSize -= 1;
+                            ctx.font = `800 italic ${subFontSize}px "Montserrat", sans-serif`;
+                        }
+
+                        const subW = ctx.measureText(artistSubtitle).width;
+                        const subPillW = Math.min(canvas.width - 80, subW + 48);
+                        const subPillH = isStory ? 52 : 42;
+                        const subPillY = titleStartY + titleBlockHeight / 2 + (isStory ? 80 : 55);
+
+                        ctx.save();
+                        if (!isStaticPngExport && textAnimation !== 'NONE') {
+                            applyTextAnimCtx(ctx, 0.46, centerX, subPillY, introAnimTime);
+                        }
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'middle';
+                        ctx.shadowColor = 'rgba(0, 0, 0, 0.85)';
+                        ctx.shadowBlur = 18;
+                        ctx.fillStyle = 'rgba(18, 16, 24, 0.88)';
+                        ctx.strokeStyle = 'rgba(255, 255, 255, 0.22)';
+                        ctx.lineWidth = 1.5;
+                        ctx.beginPath();
+                        ctx.roundRect(centerX - subPillW / 2, subPillY - subPillH / 2, subPillW, subPillH, subPillH / 2);
+                        ctx.fill();
+                        ctx.stroke();
+
+                        ctx.shadowColor = 'transparent';
+                        ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
+                        ctx.fillText(artistSubtitle, centerX, subPillY + 1);
+                        ctx.restore();
+
+                        // D. LOGO OFFICIEL DE L'ARTISTE (PNG TRANSPARENT SI CHARGÉ)
+                        const artistLogoObj = artistLogoRef.current;
                         if (artistLogoObj && (artistLogoObj.naturalWidth > 0 || artistLogoObj.complete)) {
-                            const maxLogoW = 540;
-                            const maxLogoH = 220;
+                            const logoAreaCenterY = subPillY + (isStory ? 140 : 100);
+                            const maxLogoW = isStory ? 620 : 460;
+                            const maxLogoH = isStory ? 180 : 130;
                             let lw = artistLogoObj.width;
                             let lh = artistLogoObj.height;
                             const ratio = Math.min(maxLogoW / lw, maxLogoH / lh);
@@ -9121,47 +9260,24 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                             ctx.save();
                             if (!isStaticPngExport && textAnimation !== 'NONE') {
-                                applyTextAnimCtx(ctx, 0.24, canvas.width / 2, logoAreaCenterY, introAnimTime);
+                                applyTextAnimCtx(ctx, 0.56, centerX, logoAreaCenterY, introAnimTime);
                             }
 
-                            ctx.shadowColor = 'rgba(0, 240, 255, 0.75)';
-                            ctx.shadowBlur = 32;
+                            ctx.shadowColor = 'rgba(0, 240, 255, 0.8)';
+                            ctx.shadowBlur = 30;
 
                             if (isArtistLogoNegative) {
                                 ctx.filter = 'brightness(0) invert(1)';
                             }
                             ctx.drawImage(artistLogoObj, lx, ly, lw, lh);
                             ctx.restore();
-                        } else {
-                            ctx.save();
-                            if (!isStaticPngExport && textAnimation !== 'NONE') {
-                                applyTextAnimCtx(ctx, 0.24, canvas.width / 2, logoAreaCenterY, introAnimTime);
-                            }
-                            ctx.textAlign = 'center';
-                            ctx.textBaseline = 'middle';
-                            let aFontSize = 66;
-                            ctx.font = `900 italic ${aFontSize}px "Montserrat", sans-serif`;
-                            if ('letterSpacing' in ctx) (ctx as any).letterSpacing = '2px';
-                            while (ctx.measureText(effectiveArtistName).width > 900 && aFontSize > 32) {
-                                aFontSize -= 2;
-                                ctx.font = `900 italic ${aFontSize}px "Montserrat", sans-serif`;
-                            }
-                            const aGrad = ctx.createLinearGradient(canvas.width / 2 - 300, 0, canvas.width / 2 + 300, 0);
-                            aGrad.addColorStop(0, '#00f0ff');
-                            aGrad.addColorStop(0.5, '#ffffff');
-                            aGrad.addColorStop(1, '#00f0ff');
-                            ctx.fillStyle = aGrad;
-                            ctx.shadowColor = 'rgba(0, 240, 255, 0.85)';
-                            ctx.shadowBlur = 24;
-                            ctx.fillText(effectiveArtistName, canvas.width / 2, logoAreaCenterY);
-                            ctx.restore();
                         }
 
-                        // 7. Pill cyber subtile "🔥 COUNTDOWN DU #10 AU #1"
-                        const pillY = isReel ? 1240 : 980;
+                        // E. Pill cyber subtile "🔥 COUNTDOWN DU #10 AU #1"
+                        const pillY = isStory ? 1460 : 900;
                         ctx.save();
                         if (!isStaticPngExport && textAnimation !== 'NONE') {
-                            applyTextAnimCtx(ctx, 0.36, canvas.width / 2, pillY, introAnimTime);
+                            applyTextAnimCtx(ctx, 0.66, centerX, pillY, introAnimTime);
                         }
                         const pillLabel = '🔥 COUNTDOWN DU #10 AU #1';
                         ctx.font = '800 italic 20px "Montserrat", sans-serif';
@@ -19644,7 +19760,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             </span>
                         </div>
                         <p className="text-[8px] text-gray-300 font-mono">
-                            10 tracks × 5.3s (53s) + 7s Outro Téléphone 3D = 60s pile.
+                            Intro (3.5s) + 10 tracks × 4.95s (49.5s) + 7s Outro Téléphone 3D = 60s pile.
                         </p>
                     </div>
                 </div>
@@ -19688,6 +19804,90 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 {isAutoFillingTop10 ? '⏳...' : '⚡ Générer'}
                             </button>
                         </div>
+                    </div>
+
+                    {/* 🎨 LOGO OFFICIEL DE L'ARTISTE (RECHERCHE WEB & UPLOAD INTÉGRÉS ICI) */}
+                    <div className="p-3 bg-black/60 border border-neon-cyan/35 rounded-xl space-y-2.5">
+                        <div className="flex items-center justify-between">
+                            <span className="text-[9px] font-black text-white uppercase tracking-wider flex items-center gap-1.5">
+                                <span className="text-neon-cyan">🎨</span> Logo Transparent de l'Artiste
+                            </span>
+                            {artistLogo && (
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setArtistLogo('');
+                                        artistLogoRef.current = null;
+                                        generateImage();
+                                    }}
+                                    className="text-[8px] text-red-400 hover:text-red-300 font-bold uppercase transition-colors"
+                                >
+                                    ✕ Retirer
+                                </button>
+                            )}
+                        </div>
+
+                        {/* Aperçu */}
+                        {artistLogo ? (
+                            <div className="p-2.5 bg-black/80 border border-neon-cyan/40 rounded-xl flex items-center justify-center min-h-[64px] relative">
+                                <img
+                                    src={artistLogo}
+                                    alt="Logo Artiste"
+                                    className="max-h-16 max-w-[220px] object-contain transition-all"
+                                    style={{ filter: isArtistLogoNegative ? 'brightness(0) invert(1) drop-shadow(0 0 10px rgba(0,240,255,0.7))' : 'drop-shadow(0 0 6px rgba(255,255,255,0.4))' }}
+                                />
+                            </div>
+                        ) : (
+                            <div className="p-2 bg-white/5 border border-dashed border-white/10 rounded-lg text-center">
+                                <span className="text-[8px] text-gray-400">
+                                    Aucun logo chargé • Chargé auto ou recherche 1-clic ci-dessous :
+                                </span>
+                            </div>
+                        )}
+
+                        {/* Boutons d'action pour le logo */}
+                        <div className="grid grid-cols-2 gap-2">
+                            <button
+                                type="button"
+                                disabled={isSearchingTop10Logo}
+                                onClick={() => searchArtistLogos(top10IntroArtist || top10ArtistSearch)}
+                                className="py-2 px-2 bg-gradient-to-r from-neon-cyan to-blue-600 hover:brightness-110 text-black text-[9px] font-black uppercase rounded-lg flex items-center justify-center gap-1.5 shadow-md shadow-neon-cyan/20 active:scale-95 disabled:opacity-40"
+                            >
+                                <Search className="w-3.5 h-3.5 shrink-0" />
+                                <span>{isSearchingTop10Logo ? '⏳ Recherche...' : '🔍 Chercher Logo Web'}</span>
+                            </button>
+
+                            <label className="py-2 px-2 bg-white/10 hover:bg-white/15 border border-white/20 rounded-lg text-[9px] font-black uppercase text-white flex items-center justify-center gap-1.5 cursor-pointer active:scale-95 text-center">
+                                <Upload className="w-3.5 h-3.5 text-neon-cyan shrink-0" />
+                                <span>📁 Uploader PNG</span>
+                                <input
+                                    type="file"
+                                    accept="image/*"
+                                    className="hidden"
+                                    onChange={handleArtistLogoChange}
+                                />
+                            </label>
+                        </div>
+
+                        {/* Option Rendre Blanc Pur / Négatif */}
+                        {artistLogo && (
+                            <div className="flex items-center justify-between pt-1 border-t border-white/10">
+                                <label htmlFor="gen-logo-neg" className="text-[8px] font-bold text-gray-300 uppercase cursor-pointer flex items-center gap-1.5">
+                                    <span>✨ Rendre Blanc Pur & Néon</span>
+                                    <span className="text-[7px] text-gray-500 font-normal">(Recommandé vidéo)</span>
+                                </label>
+                                <input
+                                    type="checkbox"
+                                    id="gen-logo-neg"
+                                    checked={isArtistLogoNegative}
+                                    onChange={e => {
+                                        setIsArtistLogoNegative(e.target.checked);
+                                        setTimeout(() => generateImage(), 30);
+                                    }}
+                                    className="w-3.5 h-3.5 accent-neon-cyan cursor-pointer"
+                                />
+                            </div>
+                        )}
                     </div>
 
                     {/* TRIEUR MAGIQUE SPOTIFY & KWORB (Résout le mauvais tri de Spotify !) */}
