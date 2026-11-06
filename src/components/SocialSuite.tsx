@@ -9170,7 +9170,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         });
 
                         const titleLineHeight = titleFontSize * 1.15;
-                        const titleBlockH = (titleLines.length - 1) * titleLineHeight;
+                        const titleTotalHeight = (titleLines.length - 1) * titleLineHeight + titleFontSize;
 
                         // C. LOGO OFFICIEL UPLOADÉ OU NOM DE L'ARTISTE EN GROS EN BLEU NÉON
                         const effectiveArtistName = (top10IntroArtistRef.current || top10IntroArtist || top10ArtistSearch || 'ARTISTE').toUpperCase().trim();
@@ -9182,8 +9182,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         let textArtistFontSize = isStory ? 94 : 70;
 
                         if (hasUploadedLogo && artistLogoObj) {
-                            const maxLogoW = isStory ? 650 : 480;
-                            const maxLogoH = isStory ? 190 : 140;
+                            const maxLogoW = isStory ? 600 : 450;
+                            const maxLogoH = isStory ? 170 : 130;
                             let lw = artistLogoObj.width;
                             let lh = artistLogoObj.height;
                             const ratio = Math.min(maxLogoW / lw, maxLogoH / lh);
@@ -9200,17 +9200,25 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             ctx.restore();
                         }
 
-                        // Recentrage vertical parfait de la composition complète autour de centerY
-                        const gap1 = isStory ? 100 : 75;
-                        const gap2 = isStory ? 100 : 75;
-                        const totalContentSpan = titleBlockH + gap1 + gap2;
-                        const titleStartY = centerY - (totalContentSpan / 2);
-                        const artistCenterY = titleStartY + titleBlockH + gap1;
-                        const pillY = artistCenterY + gap2;
+                        const artistHeight = (hasUploadedLogo && artistLogoObj) ? logoH : textArtistFontSize;
+                        const pillHeight = 44;
+
+                        // Espaces réels entre les boîtes (aucun chevauchement possible)
+                        const space1 = isStory ? 120 : 85; // Espace net entre le bas du titre et le haut du logo
+                        const space2 = isStory ? 110 : 80; // Espace net entre le bas du logo et le haut du pill
+
+                        const totalBlockH = titleTotalHeight + space1 + artistHeight + space2 + pillHeight;
+                        const startTop = centerY - (totalBlockH / 2);
+
+                        const titleLine0Y = startTop + (titleFontSize / 2);
+                        const artistTopY = startTop + titleTotalHeight + space1;
+                        const artistCenterY = artistTopY + (artistHeight / 2);
+                        const pillTopY = artistTopY + artistHeight + space2;
+                        const pillY = pillTopY + (pillHeight / 2);
 
                         // Tracé des lignes du titre blanc (TOP 10 DES TRACKS / LES PLUS STREAMÉES) avec effet d'ombre prononcé
                         titleLines.forEach((line, idx) => {
-                            const lineY = titleStartY + idx * titleLineHeight;
+                            const lineY = titleLine0Y + idx * titleLineHeight;
                             ctx.save();
                             if (!isStaticPngExport && textAnimation !== 'NONE') {
                                 applyTextAnimCtx(ctx, 0.20 + idx * 0.10, centerX, lineY, introAnimTime);
@@ -9244,7 +9252,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         if (hasUploadedLogo && artistLogoObj) {
                             // ➔ LE LOGO UPLOADÉ PREND LE DESSUS ABSOLU SUR L'ÉCRITURE DU NOM
                             const lx = (canvas.width - logoW) / 2;
-                            const ly = artistCenterY - (logoH / 2);
+                            const ly = artistTopY;
 
                             ctx.save();
                             if (!isStaticPngExport && textAnimation !== 'NONE') {
@@ -9299,9 +9307,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         if ('letterSpacing' in ctx) (ctx as any).letterSpacing = '2px';
                         const pTextW = ctx.measureText(pillLabel).width;
                         const pW = pTextW + 48;
-                        const pH = 44;
+                        const pH = pillHeight;
                         const pX = (canvas.width - pW) / 2;
-                        const pTopY = pillY - pH / 2;
+                        const pTopY = pillTopY;
 
                         ctx.fillStyle = 'rgba(10, 14, 22, 0.85)';
                         ctx.strokeStyle = 'rgba(0, 240, 255, 0.5)';
