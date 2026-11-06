@@ -19754,23 +19754,27 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     <button
                         type="button"
                         onClick={() => selectTop10Track(0)}
-                        className={`w-full py-2 px-3 rounded-xl border text-[10px] font-black uppercase transition-all flex items-center justify-between active:scale-[0.99] ${Number(top10ActiveRank) === 0
-                            ? 'bg-gradient-to-r from-neon-cyan/25 via-blue-600/30 to-indigo-600/25 border-neon-cyan text-white shadow-[0_0_15px_rgba(0,240,255,0.4)]'
-                            : 'bg-white/5 border-white/10 text-gray-300 hover:bg-white/10 hover:border-white/20'}`}
+                        className={`w-full py-2.5 px-3 rounded-xl border text-[10px] font-black uppercase transition-all flex items-center justify-between active:scale-[0.99] ${Number(top10ActiveRank) === 0
+                            ? 'bg-gradient-to-r from-neon-cyan/30 via-blue-600/40 to-indigo-600/30 border-neon-cyan text-white shadow-[0_0_20px_rgba(0,240,255,0.5)] ring-1 ring-neon-cyan'
+                            : 'bg-gradient-to-r from-cyan-950/40 via-blue-950/20 to-purple-950/30 border-cyan-500/30 hover:border-neon-cyan/70 text-cyan-200 hover:text-white hover:bg-cyan-900/30 shadow-[0_0_10px_rgba(0,240,255,0.15)]'}`}
                     >
                         <span className="flex items-center gap-2">
-                            <span>🎬</span>
-                            <span>Slide 1 : INTRO (3.5s)</span>
-                            <span className="text-[7.5px] text-gray-400 font-normal">Titre + Logo Artiste</span>
+                            <span className="text-[14px]">🎬</span>
+                            <span className="tracking-wide">Slide 1 : INTRO (3.5s)</span>
+                            <span className="text-[8px] px-1.5 py-0.5 rounded bg-black/40 text-cyan-300 font-mono border border-cyan-500/20">Titre + Logo Artiste</span>
                         </span>
                         <div className="flex items-center gap-1.5">
-                            {artistLogo && (
-                                <span className="px-1.5 py-0.5 rounded bg-neon-cyan/20 border border-neon-cyan/40 text-neon-cyan text-[7.5px] font-bold font-mono">
-                                    Logo OK
+                            {artistLogo ? (
+                                <span className="px-1.5 py-0.5 rounded bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 text-[7.5px] font-bold font-mono">
+                                    ✓ Logo Prêt
+                                </span>
+                            ) : (
+                                <span className="px-1.5 py-0.5 rounded bg-amber-500/20 border border-amber-500/40 text-amber-300 text-[7.5px] font-bold font-mono">
+                                    Logo optionnel
                                 </span>
                             )}
-                            <span className={`text-[8.5px] ${Number(top10ActiveRank) === 0 ? 'text-neon-cyan' : 'text-gray-400'}`}>
-                                {Number(top10ActiveRank) === 0 ? '▶ Active' : 'Éditer →'}
+                            <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded ${Number(top10ActiveRank) === 0 ? 'bg-neon-cyan text-black font-mono shadow-[0_0_8px_rgba(0,240,255,0.6)]' : 'bg-white/10 text-cyan-300'}`}>
+                                {Number(top10ActiveRank) === 0 ? '● Active' : 'Éditer ➔'}
                             </span>
                         </div>
                     </button>
@@ -19962,7 +19966,15 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 {activeTrack.rank === 1 ? '👑 POSITION #1' : activeTrack.rank === 2 ? '🥈 POSITION #2' : activeTrack.rank === 3 ? '🥉 POSITION #3' : `POSITION #${activeTrack.rank}`}
                             </span>
                         </div>
-                        <div className="flex items-center gap-2.5">
+                        <div className="flex items-center gap-2">
+                            <button
+                                type="button"
+                                onClick={() => selectTop10Track(0)}
+                                className="px-2 py-0.5 bg-cyan-950/50 hover:bg-neon-cyan/20 text-cyan-300 hover:text-white border border-cyan-500/30 hover:border-neon-cyan rounded-md text-[8px] font-black uppercase transition-all flex items-center gap-1"
+                                title="Aller à la configuration de l'Intro"
+                            >
+                                <span>🎬</span> Éditer l'Intro (3.5s)
+                            </button>
                             <button
                                 type="button"
                                 onClick={() => {
