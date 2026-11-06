@@ -2820,7 +2820,18 @@ Alex (Dropsiders)`;
                                                 <span className="text-[8px] font-bold text-gray-400 uppercase tracking-widest bg-white/5 border border-white/10 px-2 py-0.5 rounded-full">Format Réception</span>
                                             </div>
                                             <div className="flex-1 overflow-y-auto custom-scrollbar pr-1 max-w-full">
-                                                <div className="bg-[#111] border border-white/5 rounded-2xl shadow-2xl max-w-full overflow-hidden">
+                                                <div className="bg-[#111] border border-white/10 rounded-2xl shadow-2xl max-w-full overflow-hidden">
+                                                    {/* Top Header with Dropsiders Logo */}
+                                                    <div className="bg-gradient-to-b from-[#181924] to-[#111111] py-5 px-4 border-b border-white/10 text-center">
+                                                        <a href="https://dropsiders.fr" target="_blank" rel="noreferrer" className="inline-block">
+                                                            <img 
+                                                                src="https://dropsiders.fr/Logo.png" 
+                                                                alt="Dropsiders" 
+                                                                className="h-8 sm:h-9 w-auto mx-auto drop-shadow-[0_0_16px_rgba(255,18,65,0.7)]" 
+                                                            />
+                                                        </a>
+                                                    </div>
+
                                                     <div className="p-4 sm:p-5">
                                                         <div 
                                                             className="text-white/90 text-xs leading-relaxed min-h-[100px] whitespace-pre-wrap break-words"
@@ -2894,6 +2905,13 @@ Alex (Dropsiders)`;
                                                             </table>
                                                         </div>
                                                     </div>
+                                                </div>
+
+                                                {/* Sub-footer */}
+                                                <div className="bg-black/90 py-3 px-4 text-center border-t border-white/10">
+                                                    <p className="text-[8px] font-bold tracking-widest text-gray-500 uppercase">
+                                                        {accreditationLang === 'EN' ? 'DROPSIDERS · COMPREHENSIVE FESTIVAL COVERAGE' : "DROPSIDERS · TOUTE L'ACTU DES FESTIVALS"}
+                                                    </p>
                                                 </div>
                                             </div>
                                         </div>

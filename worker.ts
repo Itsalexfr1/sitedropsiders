@@ -8257,8 +8257,15 @@ ${urls.map(u => `  <url>
                     htmlContent: `
                         <div style="font-family:'Helvetica Neue',Helvetica,Arial,sans-serif; color:#ffffff; background:#000000; padding:30px 5px; text-align:center;">
                             <div style="width:100%; max-width:600px; margin:0 auto; background:#111111; border:1px solid #333333; border-radius:24px; overflow:hidden; text-align:left; box-shadow: 0 0 30px rgba(255,0,51,0.1);">
-                                <div style="padding:40px 15px;">
-                                    <div style="color:#ffffff; font-size:16px; line-height:1.6; margin-bottom:40px; padding:0 10px;">
+                                <!-- TOP HEADER WITH DROPSIDERS LOGO -->
+                                <div style="background: linear-gradient(180deg, #181924 0%, #111111 100%); padding: 26px 20px 20px 20px; border-bottom: 1px solid rgba(255,255,255,0.08); text-align: center;">
+                                    <a href="https://dropsiders.fr" target="_blank" style="text-decoration: none; display: inline-block;">
+                                        <img src="https://dropsiders.fr/Logo.png" alt="Dropsiders" height="38" style="height: 38px; width: auto; display: block; margin: 0 auto; filter: drop-shadow(0 0 16px rgba(255,18,65,0.7));" />
+                                    </a>
+                                </div>
+
+                                <div style="padding:40px 20px;">
+                                    <div style="color:#ffffff; font-size:16px; line-height:1.6; margin-bottom:40px; padding:0 5px;">
                                         ${linkify(message)}
                                     </div>
                                     
