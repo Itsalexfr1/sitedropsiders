@@ -8255,17 +8255,17 @@ ${urls.map(u => `  <url>
                     ...(bccRecipients.length > 0 ? { bcc: bccRecipients } : {}),
                     subject: subject,
                     htmlContent: `
-                        <div style="font-family:'Helvetica Neue',Helvetica,Arial,sans-serif; color:#ffffff; background:#000000; padding:30px 5px; text-align:center;">
-                            <div style="width:100%; max-width:600px; margin:0 auto; background:#111111; border:1px solid #333333; border-radius:24px; overflow:hidden; text-align:left; box-shadow: 0 0 30px rgba(255,0,51,0.1);">
+                        <div style="font-family:'Helvetica Neue',Helvetica,Arial,sans-serif; color:#ffffff; background:#111111; margin:0; padding:15px 0; width:100%; text-align:center;">
+                            <div style="width:100%; max-width:780px; margin:0 auto; background:#111111; border:1px solid #24252e; border-radius:18px; overflow:hidden; text-align:left; box-shadow: 0 0 35px rgba(255,18,65,0.15);">
                                 <!-- TOP HEADER WITH DROPSIDERS LOGO -->
-                                <div style="background: linear-gradient(180deg, #181924 0%, #111111 100%); padding: 30px 20px 24px 20px; border-bottom: 1px solid rgba(255,255,255,0.08); text-align: center;">
+                                <div style="background: linear-gradient(180deg, #181924 0%, #111111 100%); padding: 36px 20px 30px 20px; border-bottom: 1px solid rgba(255,255,255,0.08); text-align: center;">
                                     <a href="https://dropsiders.fr" target="_blank" style="text-decoration: none; display: inline-block;">
-                                        <img src="https://dropsiders.fr/Logo.png" alt="Dropsiders" height="58" style="height: 58px; width: auto; max-width: 240px; display: block; margin: 0 auto; filter: drop-shadow(0 0 20px rgba(255,18,65,0.8));" />
+                                        <img src="https://dropsiders.fr/Logo.png" alt="Dropsiders" height="85" style="height: 85px; width: auto; max-width: 320px; display: block; margin: 0 auto; filter: drop-shadow(0 0 24px rgba(255,18,65,0.85));" />
                                     </a>
                                 </div>
 
-                                <div style="padding:40px 20px;">
-                                    <div style="color:#ffffff; font-size:16px; line-height:1.6; margin-bottom:40px; padding:0 5px;">
+                                <div style="padding:40px 32px;">
+                                    <div style="color:#ffffff; font-size:16px; line-height:1.65; margin-bottom:40px; word-break:break-word;">
                                         ${linkify(message)}
                                     </div>
                                     
@@ -8344,8 +8344,8 @@ ${urls.map(u => `  <url>
                                         </table>
                                     </div>
                                 </div>
-                                <div style="background:#000000; padding:18px; text-align:center; border-top:1px solid #222;">
-                                    <p style="color:#333; font-size:8px; margin:0; font-weight:bold; letter-spacing:1px; text-transform:uppercase;">
+                                <div style="background:#0c0d12; padding:18px 24px; text-align:center; border-top:1px solid #222;">
+                                    <p style="color:#666666; font-size:8.5px; margin:0; font-weight:bold; letter-spacing:1px; text-transform:uppercase;">
                                         ${lang === 'EN' ? 'DROPSIDERS · COMPREHENSIVE FESTIVAL COVERAGE' : "DROPSIDERS · TOUTE L'ACTU DES FESTIVALS"}
                                     </p>
                                 </div>

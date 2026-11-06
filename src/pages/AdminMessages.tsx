@@ -2812,7 +2812,7 @@ Alex (Dropsiders)`;
                                         </div>
 
                                         {/* Preview Side */}
-                                        <div className={`flex-1 bg-black/60 border border-white/10 rounded-2xl p-4 sm:p-5 flex flex-col md:h-[480px] max-w-full min-w-0 ${mobileComposeTab === 'preview' ? 'block' : 'hidden md:flex'}`}>
+                                        <div className={`flex-1 bg-[#111111] border border-white/10 rounded-2xl p-3 sm:p-4 flex flex-col md:h-[480px] max-w-full min-w-0 ${mobileComposeTab === 'preview' ? 'block' : 'hidden md:flex'}`}>
                                             <div className="flex items-center justify-between mb-3 shrink-0">
                                                 <div className="text-[10px] text-gray-500 font-black uppercase tracking-[0.2em] flex items-center gap-1.5">
                                                     <Eye className="w-3.5 h-3.5 text-neon-cyan" /> Aperçu de l'email
@@ -2822,12 +2822,12 @@ Alex (Dropsiders)`;
                                             <div className="flex-1 overflow-y-auto custom-scrollbar pr-1 max-w-full">
                                                 <div className="bg-[#111] border border-white/10 rounded-2xl shadow-2xl max-w-full overflow-hidden">
                                                     {/* Top Header with Dropsiders Logo */}
-                                                    <div className="bg-gradient-to-b from-[#181924] to-[#111111] py-6 px-4 border-b border-white/10 text-center">
+                                                    <div className="bg-gradient-to-b from-[#181924] to-[#111111] py-7 px-4 border-b border-white/10 text-center">
                                                         <a href="https://dropsiders.fr" target="_blank" rel="noreferrer" className="inline-block">
                                                             <img 
                                                                 src="https://dropsiders.fr/Logo.png" 
                                                                 alt="Dropsiders" 
-                                                                className="h-12 sm:h-14 w-auto max-w-[240px] mx-auto drop-shadow-[0_0_20px_rgba(255,18,65,0.8)]" 
+                                                                className="h-16 sm:h-20 w-auto max-w-[320px] mx-auto drop-shadow-[0_0_24px_rgba(255,18,65,0.85)]" 
                                                             />
                                                         </a>
                                                     </div>
