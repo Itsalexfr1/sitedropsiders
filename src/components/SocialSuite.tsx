@@ -3199,6 +3199,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             setArtistLogo(url);
             generateImage();
         };
+        if (imgObj.complete && imgObj.naturalWidth > 0) {
+            artistLogoRef.current = imgObj;
+            setArtistLogo(url);
+            generateImage();
+        }
+        try { e.target.value = ''; } catch (_) {}
     };
 
     const handleFestivalLogoChange = (e: any) => {
@@ -9222,46 +9228,82 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         });
                         ctx.restore();
 
-                        // C. NOM DE L'ARTISTE EN GROS AVEC LA COULEUR BLEU NÉON EN DESSOUS DE "LES PLUS STREAMÉES"
+                        // C. LOGO OFFICIEL UPLOADÉ OU NOM DE L'ARTISTE EN GROS EN BLEU NÉON
                         const effectiveArtistName = (top10IntroArtistRef.current || top10IntroArtist || top10ArtistSearch || 'ARTISTE').toUpperCase().trim();
+                        const artistLogoObj = artistLogoRef.current;
+                        const hasUploadedLogo = Boolean(artistLogo && artistLogo.trim() !== '' && !artistLogo.includes('JOHN-SUMMIT-GIVEAWAY') && artistLogoObj && (artistLogoObj.naturalWidth > 0 || artistLogoObj.complete));
 
-                        let artistFontSize = isStory ? 94 : 70;
-                        ctx.font = `900 italic ${artistFontSize}px "Montserrat", sans-serif`;
-                        if ('letterSpacing' in ctx) (ctx as any).letterSpacing = '2px';
-                        while (ctx.measureText(effectiveArtistName).width > (canvas.width - 120) && artistFontSize > 36) {
-                            artistFontSize -= 2;
+                        let pillY = 0;
+
+                        if (hasUploadedLogo && artistLogoObj) {
+                            // ➔ LE LOGO UPLOADÉ PREND LE DESSUS ABSOLU SUR L'ÉCRITURE DU NOM
+                            const logoAreaCenterY = titleStartY + (titleLines.length * titleLineHeight) + (isStory ? 80 : 55);
+                            const maxLogoW = isStory ? 650 : 480;
+                            const maxLogoH = isStory ? 190 : 140;
+                            let lw = artistLogoObj.width;
+                            let lh = artistLogoObj.height;
+                            const ratio = Math.min(maxLogoW / lw, maxLogoH / lh);
+                            lw = Math.round(lw * ratio);
+                            lh = Math.round(lh * ratio);
+                            const lx = (canvas.width - lw) / 2;
+                            const ly = logoAreaCenterY - (lh / 2);
+
+                            ctx.save();
+                            if (!isStaticPngExport && textAnimation !== 'NONE') {
+                                applyTextAnimCtx(ctx, 0.28 + titleLines.length * 0.10, centerX, logoAreaCenterY, introAnimTime);
+                            }
+
+                            ctx.shadowColor = 'rgba(0, 240, 255, 0.85)';
+                            ctx.shadowBlur = 30;
+
+                            if (isArtistLogoNegative) {
+                                ctx.filter = 'brightness(0) invert(1)';
+                            }
+                            ctx.drawImage(artistLogoObj, lx, ly, lw, lh);
+                            ctx.restore();
+
+                            pillY = logoAreaCenterY + (lh / 2) + (isStory ? 60 : 45);
+                        } else {
+                            // ➔ PAS DE LOGO : NOM DE L'ARTISTE EN GROS EN BLEU NÉON
+                            let artistFontSize = isStory ? 94 : 70;
                             ctx.font = `900 italic ${artistFontSize}px "Montserrat", sans-serif`;
+                            if ('letterSpacing' in ctx) (ctx as any).letterSpacing = '2px';
+                            while (ctx.measureText(effectiveArtistName).width > (canvas.width - 120) && artistFontSize > 36) {
+                                artistFontSize -= 2;
+                                ctx.font = `900 italic ${artistFontSize}px "Montserrat", sans-serif`;
+                            }
+
+                            const artistY = titleStartY + (titleLines.length * titleLineHeight) + (isStory ? 18 : 12);
+
+                            ctx.save();
+                            if (!isStaticPngExport && textAnimation !== 'NONE') {
+                                applyTextAnimCtx(ctx, 0.28 + titleLines.length * 0.10, centerX, artistY, introAnimTime);
+                            }
+                            ctx.textAlign = 'center';
+                            ctx.textBaseline = 'middle';
+
+                            // Deep 3D Shadow
+                            ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
+                            ctx.shadowBlur = 32;
+                            ctx.shadowOffsetX = 0;
+                            ctx.shadowOffsetY = 6;
+                            ctx.fillStyle = '#00f0ff';
+                            ctx.fillText(effectiveArtistName, centerX, artistY);
+
+                            // Intense Neon Blue / Cyan Glow
+                            ctx.shadowColor = 'rgba(0, 240, 255, 0.90)';
+                            ctx.shadowBlur = 26;
+                            ctx.shadowOffsetX = 0;
+                            ctx.shadowOffsetY = 0;
+                            ctx.fillStyle = '#00f0ff';
+                            ctx.fillText(effectiveArtistName, centerX, artistY);
+
+                            ctx.restore();
+
+                            pillY = artistY + (isStory ? 160 : 110);
                         }
-
-                        const artistY = titleStartY + (titleLines.length * titleLineHeight) + (isStory ? 18 : 12);
-
-                        ctx.save();
-                        if (!isStaticPngExport && textAnimation !== 'NONE') {
-                            applyTextAnimCtx(ctx, 0.28 + titleLines.length * 0.10, centerX, artistY, introAnimTime);
-                        }
-                        ctx.textAlign = 'center';
-                        ctx.textBaseline = 'middle';
-
-                        // Deep 3D Shadow
-                        ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
-                        ctx.shadowBlur = 32;
-                        ctx.shadowOffsetX = 0;
-                        ctx.shadowOffsetY = 6;
-                        ctx.fillStyle = '#00f0ff';
-                        ctx.fillText(effectiveArtistName, centerX, artistY);
-
-                        // Intense Neon Blue / Cyan Glow
-                        ctx.shadowColor = 'rgba(0, 240, 255, 0.90)';
-                        ctx.shadowBlur = 26;
-                        ctx.shadowOffsetX = 0;
-                        ctx.shadowOffsetY = 0;
-                        ctx.fillStyle = '#00f0ff';
-                        ctx.fillText(effectiveArtistName, centerX, artistY);
-
-                        ctx.restore();
 
                         // D. Pill cyber subtile "🔥 COUNTDOWN DU #10 AU #1"
-                        const pillY = artistY + (isStory ? 160 : 110);
                         ctx.save();
                         if (!isStaticPngExport && textAnimation !== 'NONE') {
                             applyTextAnimCtx(ctx, 0.58, centerX, pillY, introAnimTime);
