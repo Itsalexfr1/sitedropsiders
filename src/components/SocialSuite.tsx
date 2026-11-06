@@ -11400,7 +11400,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                     // Sur iOS WebKit, createMediaElementSource(video) détourne le son des haut-parleurs et produit une piste 100% muette !
                     // Sur iOS, on laisse bgVideo jouer normalement et Phase 2b/3 extrait et muxe la vraie piste audio stéréo AAC dans le MP4.
-                    if (!isIOSWebKit) {
+                    // En TOP 10 TRACKS et MUSIQUE, la vidéo de fond est STRICTEMENT visuelle (b-roll muet) : le son vient uniquement des morceaux.
+                    if (!isIOSWebKit && theme !== 'TOP 10 TRACKS' && theme !== 'MUSIQUE') {
                         try {
                             const AudioCtxClass = (window as any).AudioContext || (window as any).webkitAudioContext;
                             if (AudioCtxClass) {
@@ -11564,7 +11565,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             // Détection de présence de son dans le projet
             const currentTracksForAudio = (top10TracksRef.current && top10TracksRef.current.length === 10) ? top10TracksRef.current : top10Tracks;
             const hasAnyTop10Audio = theme === 'TOP 10 TRACKS' && currentTracksForAudio.some(t => Boolean(t.audioUrl || t.videoUrl));
-            const hasAnyAudioSource = Boolean(bgVideoBlob || hasAnyMusicAudio || hasAnyTop10Audio || (bgVideo && (bgVideo.currentSrc || bgVideo.src)));
+            // En TOP 10 TRACKS, la vidéo d'arrière-plan bgVideo est 100% muette : on ne prend JAMAIS son son
+            const hasAnyAudioSource = theme === 'TOP 10 TRACKS'
+                ? hasAnyTop10Audio
+                : Boolean(bgVideoBlob || hasAnyMusicAudio || (bgVideo && (bgVideo.currentSrc || bgVideo.src)));
 
             // FAST-PATH MP4 : si STRICTEMENT AUCUN SON dans le projet (vidéo muette), téléchargement direct immédiat
             if (!hasAnyAudioSource && videoBlob.type.includes('mp4')) {
@@ -11716,8 +11720,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 console.warn('Rendu audio offline échoué (fallback vidéo seule) :', audioRenderErr);
             }
 
-            // ── PHASE 2b : EXTRACTION AUDIO DEPUIS bgVideo (si pas de thème MUSIQUE) ────
-            if (!offlineWavBlob && bgVideoBlob && !(theme === 'MUSIQUE' && (isCarouselPromoActive || combinedMode === 'PROMO_ONLY'))) {
+            // ── PHASE 2b : EXTRACTION AUDIO DEPUIS bgVideo (si pas de thème MUSIQUE ni TOP 10 TRACKS) ────
+            if (!offlineWavBlob && bgVideoBlob && theme !== 'TOP 10 TRACKS' && !(theme === 'MUSIQUE' && (isCarouselPromoActive || combinedMode === 'PROMO_ONLY'))) {
                 console.log('[Audio] Extraction haute-fidélité de la piste audio de bgVideo via Web Audio API...');
                 try {
                     const extractedBuf = await extractAudioBufferFromBlob(bgVideoBlob, totalDuration);
