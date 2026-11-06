@@ -8255,101 +8255,116 @@ ${urls.map(u => `  <url>
                     ...(bccRecipients.length > 0 ? { bcc: bccRecipients } : {}),
                     subject: subject,
                     htmlContent: `
-                        <div style="font-family:'Helvetica Neue',Helvetica,Arial,sans-serif; color:#ffffff; background:#111111; margin:0; padding:15px 0; width:100%; text-align:center;">
-                            <div style="width:100%; max-width:780px; margin:0 auto; background:#111111; border:1px solid #24252e; border-radius:18px; overflow:hidden; text-align:left; box-shadow: 0 0 35px rgba(255,18,65,0.15);">
-                                <!-- TOP HEADER WITH DROPSIDERS LOGO -->
-                                <div style="background: linear-gradient(180deg, #181924 0%, #111111 100%); padding: 36px 20px 30px 20px; border-bottom: 1px solid rgba(255,255,255,0.08); text-align: center;">
-                                    <a href="https://dropsiders.fr" target="_blank" style="text-decoration: none; display: inline-block;">
-                                        <img src="https://dropsiders.fr/Logo.png" alt="Dropsiders" height="85" style="height: 85px; width: auto; max-width: 320px; display: block; margin: 0 auto; filter: drop-shadow(0 0 24px rgba(255,18,65,0.85));" />
-                                    </a>
-                                </div>
-
-                                <div style="padding:40px 32px;">
-                                    <div style="color:#ffffff; font-size:16px; line-height:1.65; margin-bottom:40px; word-break:break-word;">
-                                        ${linkify(message)}
-                                    </div>
-                                    
-                                    <!-- SIGNATURE BLOCK : ULTRA STYLE DROPSIDERS -->
-                                    <div style="margin-top:30px; padding-top:16px; border-top:1px solid #222222; text-align:left;">
-                                        <table cellpadding="0" cellspacing="0" border="0" style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif; font-size:8.5px; line-height:1.35; color:#ffffff; max-width:300px; width:100%; background-color:#0d0e12; border:1px solid #23262f; border-radius:8px; padding:6px 8px;">
+                        <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif; color:#ffffff; background-color:#111114; margin:0; padding:0; width:100% !important; min-width:100%;">
+                            <table border="0" cellpadding="0" cellspacing="0" width="100%" style="width:100% !important; min-width:100%; background-color:#111114; margin:0; padding:0; border-collapse:collapse;">
+                                <tr>
+                                    <td align="center" style="background-color:#111114; padding:0; margin:0;">
+                                        <table border="0" cellpadding="0" cellspacing="0" width="100%" style="width:100%; max-width:960px; background-color:#111114; margin:0 auto; border-collapse:collapse;">
+                                            <!-- TOP HEADER WITH DROPSIDERS LOGO & NEON RED GLOW -->
                                             <tr>
-                                                <td style="padding-bottom:4px;">
-                                                    <table cellpadding="0" cellspacing="0" border="0" style="width:100%;">
-                                                        <tr>
-                                                            <td valign="top" style="padding-right:6px; width:32px;">
-                                                                <img src="${effectiveAvatar}" alt="${effectiveSignerName}" width="26" height="26" style="display:block; width:26px; height:26px; border-radius:50%; object-fit:cover; border:1px solid #ff3b14;" />
-                                                            </td>
-                                                            <td valign="top">
-                                                                <table cellpadding="0" cellspacing="0" border="0">
-                                                                    <tr>
-                                                                        <td>
-                                                                            <div style="font-size:11px; font-weight:900; color:#ffffff; text-transform:uppercase; letter-spacing:0.3px; line-height:1.15;">
-                                                                                ${effectiveSignerName}
-                                                                            </div>
-                                                                            <div style="font-size:8.5px; font-weight:800; color:#ff3b14; text-transform:uppercase; letter-spacing:0.2px; margin-top:1px;">
-                                                                                ${effectiveSignerRole}
-                                                                            </div>
-                                                                            <div style="margin-top:2px;">
-                                                                                <span style="display:inline-block; background-color:#080d16; border:1px solid rgba(59,130,246,0.4); color:#ffffff; font-size:6px; font-weight:800; padding:1px 4px; border-radius:9999px; text-transform:uppercase; letter-spacing:0.2px;">
-                                                                                    🛡️ MÉDIAS &amp; PRESSE ACCRÉDITÉE
-                                                                                </span>
-                                                                            </div>
-                                                                        </td>
-                                                                    </tr>
-                                                                    <tr>
-                                                                        <td style="padding-top:3px; font-size:8.5px; line-height:1.35;">
-                                                                            <div>
-                                                                                <span style="color:#ffffff; margin-right:4px;">✉</span>
-                                                                                <a href="mailto:${replyToEmail}" style="color:#00f0ff; text-decoration:none; font-weight:600;">${replyToEmail}</a>
-                                                                            </div>
-                                                                            <div style="margin-top:1px;">
-                                                                                <span style="color:#ff3b14; margin-right:4px;">📞</span>
-                                                                                <span style="color:#ffffff; font-weight:600;">+33 7 62 05 45 89</span>
-                                                                            </div>
-                                                                            <div style="margin-top:1px;">
-                                                                                <span style="color:#00f0ff; margin-right:4px;">🌐</span>
-                                                                                <a href="https://dropsiders.fr" target="_blank" style="color:#ff3b14; text-decoration:none; font-weight:700;">dropsiders.fr</a>
-                                                                            </div>
-                                                                        </td>
-                                                                    </tr>
-                                                                    <tr>
-                                                                        <td style="padding-top:4px; font-size:8px; font-weight:700;">
-                                                                            <a href="https://instagram.com/dropsiders.fr" target="_blank" style="color:#ff3b14; text-decoration:none; margin-right:6px; display:inline-block;">Instagram &rarr;</a>
-                                                                            <a href="https://www.tiktok.com/@dropsiders.fr" target="_blank" style="color:#ff3b14; text-decoration:none; margin-right:6px; display:inline-block;">TikTok &rarr;</a>
-                                                                            <a href="https://open.spotify.com/user/dropsiders" target="_blank" style="color:#ff3b14; text-decoration:none; display:inline-block;">Spotify &rarr;</a>
-                                                                        </td>
-                                                                    </tr>
-                                                                </table>
-                                                            </td>
-                                                            <td valign="top" align="right" style="padding-left:5px; width:48px;">
-                                                                <a href="https://dropsiders.fr" target="_blank" style="text-decoration:none; display:inline-block; text-align:center;">
-                                                                    <img src="https://dropsiders.fr/logo_presentation.png" alt="DROPSIDERS.FR" width="40" style="display:block; width:40px; height:auto;" />
-                                                                    <div style="font-size:5px; font-weight:800; color:#ffffff; text-align:center; letter-spacing:0.3px; margin-top:1px; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">WWW.DROPSIDERS.FR</div>
-                                                                </a>
-                                                            </td>
-                                                        </tr>
-                                                    </table>
+                                                <td align="center" style="background-color:#12131a; background:radial-gradient(circle at 50% 50%, rgba(255,18,65,0.75) 0%, rgba(255,18,65,0.35) 40%, rgba(255,18,65,0.08) 65%, rgba(18,19,26,0) 80%), #12131a; padding:44px 20px 36px 20px; border-bottom:1px solid rgba(255,18,65,0.3); text-align:center;">
+                                                    <a href="https://dropsiders.fr" target="_blank" style="text-decoration:none; display:inline-block;">
+                                                        <img src="https://dropsiders.fr/Logo.png" alt="Dropsiders" height="100" style="height:100px; width:auto; max-width:400px; display:block; margin:0 auto; filter:drop-shadow(0 0 30px rgba(255,18,65,0.95));" />
+                                                    </a>
                                                 </td>
                                             </tr>
+
+                                            <!-- MESSAGE BODY -->
                                             <tr>
-                                                <td style="border-top:1px solid rgba(255,255,255,0.12); padding-top:4px;">
-                                                    <div style="font-size:6.5px; font-weight:800; color:#d1d5db; text-transform:uppercase; letter-spacing:0.2px;">
-                                                        DROPSIDERS - LE MÉDIA 100% MUSIQUES ÉLECTRONIQUES, FESTIVALS &amp; CULTURE CLUBBING
+                                                <td style="padding:44px 36px; background-color:#111114; color:#ffffff;">
+                                                    <div style="color:#ffffff; font-size:16px; line-height:1.7; margin-bottom:44px; word-break:break-word;">
+                                                        ${linkify(message)}
                                                     </div>
-                                                    <div style="font-size:6px; color:#6b7280; margin-top:1px; line-height:1.2;">
-                                                        Ce message et les pièces jointes sont confidentiels et destinés exclusivement au destinataire. Si vous avez reçu ce message par erreur, merci de le supprimer immédiatement.
+                                                    
+                                                    <!-- SIGNATURE BLOCK : ULTRA STYLE DROPSIDERS -->
+                                                    <div style="margin-top:30px; padding-top:16px; border-top:1px solid #222222; text-align:left;">
+                                                        <table cellpadding="0" cellspacing="0" border="0" style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif; font-size:8.5px; line-height:1.35; color:#ffffff; max-width:300px; width:100%; background-color:#0d0e12; border:1px solid #23262f; border-radius:8px; padding:6px 8px;">
+                                                            <tr>
+                                                                <td style="padding-bottom:4px;">
+                                                                    <table cellpadding="0" cellspacing="0" border="0" style="width:100%;">
+                                                                        <tr>
+                                                                            <td valign="top" style="padding-right:6px; width:32px;">
+                                                                                <img src="${effectiveAvatar}" alt="${effectiveSignerName}" width="26" height="26" style="display:block; width:26px; height:26px; border-radius:50%; object-fit:cover; border:1px solid #ff3b14;" />
+                                                                            </td>
+                                                                            <td valign="top">
+                                                                                <table cellpadding="0" cellspacing="0" border="0">
+                                                                                    <tr>
+                                                                                        <td>
+                                                                                            <div style="font-size:11px; font-weight:900; color:#ffffff; text-transform:uppercase; letter-spacing:0.3px; line-height:1.15;">
+                                                                                                ${effectiveSignerName}
+                                                                                            </div>
+                                                                                            <div style="font-size:8.5px; font-weight:800; color:#ff3b14; text-transform:uppercase; letter-spacing:0.2px; margin-top:1px;">
+                                                                                                ${effectiveSignerRole}
+                                                                                            </div>
+                                                                                            <div style="margin-top:2px;">
+                                                                                                <span style="display:inline-block; background-color:#080d16; border:1px solid rgba(59,130,246,0.4); color:#ffffff; font-size:6px; font-weight:800; padding:1px 4px; border-radius:9999px; text-transform:uppercase; letter-spacing:0.2px;">
+                                                                                                    🛡️ MÉDIAS &amp; PRESSE ACCRÉDITÉE
+                                                                                                </span>
+                                                                                            </div>
+                                                                                        </td>
+                                                                                    </tr>
+                                                                                    <tr>
+                                                                                        <td style="padding-top:3px; font-size:8.5px; line-height:1.35;">
+                                                                                            <div>
+                                                                                                <span style="color:#ffffff; margin-right:4px;">✉</span>
+                                                                                                <a href="mailto:${replyToEmail}" style="color:#00f0ff; text-decoration:none; font-weight:600;">${replyToEmail}</a>
+                                                                                            </div>
+                                                                                            <div style="margin-top:1px;">
+                                                                                                <span style="color:#ff3b14; margin-right:4px;">📞</span>
+                                                                                                <span style="color:#ffffff; font-weight:600;">+33 7 62 05 45 89</span>
+                                                                                            </div>
+                                                                                            <div style="margin-top:1px;">
+                                                                                                <span style="color:#00f0ff; margin-right:4px;">🌐</span>
+                                                                                                <a href="https://dropsiders.fr" target="_blank" style="color:#ff3b14; text-decoration:none; font-weight:700;">dropsiders.fr</a>
+                                                                                            </div>
+                                                                                        </td>
+                                                                                    </tr>
+                                                                                    <tr>
+                                                                                        <td style="padding-top:4px; font-size:8px; font-weight:700;">
+                                                                                            <a href="https://instagram.com/dropsiders.fr" target="_blank" style="color:#ff3b14; text-decoration:none; margin-right:6px; display:inline-block;">Instagram &rarr;</a>
+                                                                                            <a href="https://www.tiktok.com/@dropsiders.fr" target="_blank" style="color:#ff3b14; text-decoration:none; margin-right:6px; display:inline-block;">TikTok &rarr;</a>
+                                                                                            <a href="https://open.spotify.com/user/dropsiders" target="_blank" style="color:#ff3b14; text-decoration:none; display:inline-block;">Spotify &rarr;</a>
+                                                                                        </td>
+                                                                                    </tr>
+                                                                                </table>
+                                                                            </td>
+                                                                            <td valign="top" align="right" style="padding-left:5px; width:48px;">
+                                                                                <a href="https://dropsiders.fr" target="_blank" style="text-decoration:none; display:inline-block; text-align:center;">
+                                                                                    <img src="https://dropsiders.fr/logo_presentation.png" alt="DROPSIDERS.FR" width="40" style="display:block; width:40px; height:auto;" />
+                                                                                    <div style="font-size:5px; font-weight:800; color:#ffffff; text-align:center; letter-spacing:0.3px; margin-top:1px; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">WWW.DROPSIDERS.FR</div>
+                                                                                </a>
+                                                                            </td>
+                                                                        </tr>
+                                                                    </table>
+                                                                </td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td style="border-top:1px solid rgba(255,255,255,0.12); padding-top:4px;">
+                                                                    <div style="font-size:6.5px; font-weight:800; color:#d1d5db; text-transform:uppercase; letter-spacing:0.2px;">
+                                                                        DROPSIDERS - LE MÉDIA 100% MUSIQUES ÉLECTRONIQUES, FESTIVALS &amp; CULTURE CLUBBING
+                                                                    </div>
+                                                                    <div style="font-size:6px; color:#6b7280; margin-top:1px; line-height:1.2;">
+                                                                        Ce message et les pièces jointes sont confidentiels et destinés exclusivement au destinataire. Si vous avez reçu ce message par erreur, merci de le supprimer immédiatement.
+                                                                    </div>
+                                                                </td>
+                                                            </tr>
+                                                        </table>
                                                     </div>
+                                                </td>
+                                            </tr>
+
+                                            <!-- FOOTER -->
+                                            <tr>
+                                                <td align="center" style="background-color:#0c0d12; padding:20px 24px; border-top:1px solid rgba(255,255,255,0.08);">
+                                                    <p style="color:#666666; font-size:9px; margin:0; font-weight:bold; letter-spacing:1px; text-transform:uppercase;">
+                                                        ${lang === 'EN' ? 'DROPSIDERS · COMPREHENSIVE FESTIVAL COVERAGE' : "DROPSIDERS · TOUTE L'ACTU DES FESTIVALS"}
+                                                    </p>
                                                 </td>
                                             </tr>
                                         </table>
-                                    </div>
-                                </div>
-                                <div style="background:#0c0d12; padding:18px 24px; text-align:center; border-top:1px solid #222;">
-                                    <p style="color:#666666; font-size:8.5px; margin:0; font-weight:bold; letter-spacing:1px; text-transform:uppercase;">
-                                        ${lang === 'EN' ? 'DROPSIDERS · COMPREHENSIVE FESTIVAL COVERAGE' : "DROPSIDERS · TOUTE L'ACTU DES FESTIVALS"}
-                                    </p>
-                                </div>
-                            </div>
+                                    </td>
+                                </tr>
+                            </table>
                         </div>
                     `,
                     replyTo: {
