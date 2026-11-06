@@ -9048,9 +9048,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     const currentTracks = (top10TracksRef.current && top10TracksRef.current.length === 10) ? top10TracksRef.current : top10Tracks;
                     const currentActiveRank = top10ActiveRankRef.current ?? top10ActiveRank;
 
-                    // Découpeur de titre pour mettre en bleu néon "TOP 10" et les mots "STREAM..." (ex: STREAMÉES)
+                    // Découpeur de titre pour mettre en bleu néon "TOP 10" et les mots "STREAM..." (ex: STREAMÉES entier avec accents)
                     const parseTop10TitleSegments = (lineText: string): { text: string; isBlue: boolean }[] => {
-                        const regex = /(TOP\s*10|STREAM\w*)/gi;
+                        const regex = /(TOP\s*10|\bSTREAM\S*)/gi;
                         const segs: { text: string; isBlue: boolean }[] = [];
                         let lastIndex = 0;
                         let match: RegExpExecArray | null;
