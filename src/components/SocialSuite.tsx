@@ -991,6 +991,118 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const [top10TestingRank, setTop10TestingRank] = useState<number | null>(null);
     const top10TestTimerRef = useRef<any>(null);
 
+    // ─── SLIDE D'INTRO TOP 10 TRACKS (3.5s) ───
+    const [top10IntroTitle, setTop10IntroTitle] = useState<string>('TOP 10 DES TRACKS LES PLUS STREAMÉES');
+    const [top10IntroArtist, setTop10IntroArtist] = useState<string>('');
+    const top10IntroTitleRef = useRef<string>(top10IntroTitle);
+    top10IntroTitleRef.current = top10IntroTitle;
+    const top10IntroArtistRef = useRef<string>(top10IntroArtist);
+    top10IntroArtistRef.current = top10IntroArtist;
+
+    // Recherche automatique Web de logo artiste (PNG détouré)
+    const [top10LogoSearchResults, setTop10LogoSearchResults] = useState<Array<{ title: string; url: string; previewUrl: string }>>([]);
+    const [isSearchingTop10Logo, setIsSearchingTop10Logo] = useState<boolean>(false);
+    const [showTop10LogoModal, setShowTop10LogoModal] = useState<boolean>(false);
+    const [top10LogoSearchQuery, setTop10LogoSearchQuery] = useState<string>('');
+    const [isTestingIntro, setIsTestingIntro] = useState<boolean>(false);
+
+    const searchArtistLogos = async (artistQuery: string) => {
+        const query = (artistQuery || top10IntroArtist || top10ArtistSearch || '').trim();
+        if (!query) return;
+        setIsSearchingTop10Logo(true);
+        setTop10LogoSearchResults([]);
+        setShowTop10LogoModal(true);
+        setTop10LogoSearchQuery(query);
+
+        try {
+            // 1. Appel du backend Cloudflare Worker
+            const res = await fetch(`/api/search/artist-logo?q=${encodeURIComponent(query)}`);
+            if (res.ok) {
+                const data: any = await res.json();
+                if (Array.isArray(data.logos) && data.logos.length > 0) {
+                    setTop10LogoSearchResults(data.logos);
+                    setIsSearchingTop10Logo(false);
+                    return;
+                }
+            }
+        } catch (e) {
+            console.warn('Worker logo search fallback to direct wikimedia...', e);
+        }
+
+        // 2. Fallback direct Wikimedia Commons si offline ou local
+        try {
+            const commonsUrl = `https://commons.wikimedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(query + ' logo')}&srnamespace=6&format=json&origin=*`;
+            const cRes = await fetch(commonsUrl);
+            if (cRes.ok) {
+                const cData: any = await cRes.json();
+                const items = cData?.query?.search || [];
+                const candidateTitles = items
+                    .map((it: any) => it.title)
+                    .filter((t: string) => /\.(png|svg)$/i.test(t) && !/commons-logo/i.test(t))
+                    .slice(0, 10);
+
+                if (candidateTitles.length > 0) {
+                    const infoUrl = `https://commons.wikimedia.org/w/api.php?action=query&titles=${encodeURIComponent(candidateTitles.join('|'))}&prop=imageinfo&iiprop=url|mime&iiurlwidth=400&format=json&origin=*`;
+                    const infoRes = await fetch(infoUrl);
+                    if (infoRes.ok) {
+                        const infoData: any = await infoRes.json();
+                        const pages = infoData?.query?.pages || {};
+                        const found: Array<{ title: string; url: string; previewUrl: string }> = [];
+                        for (const pid of Object.keys(pages)) {
+                            const p = pages[pid];
+                            const imgInfo = p?.imageinfo?.[0];
+                            if (imgInfo?.url) {
+                                found.push({
+                                    title: p.title.replace('File:', '').replace(/\.(png|svg)$/i, ''),
+                                    url: imgInfo.url,
+                                    previewUrl: imgInfo.thumburl || imgInfo.url
+                                });
+                            }
+                        }
+                        if (found.length > 0) {
+                            setTop10LogoSearchResults(found);
+                            setIsSearchingTop10Logo(false);
+                            return;
+                        }
+                    }
+                }
+            }
+        } catch (err) {
+            console.error('Error fetching logos from commons:', err);
+        }
+
+        setIsSearchingTop10Logo(false);
+    };
+
+    const handleSelectArtistLogo = (logoUrl: string) => {
+        if (!logoUrl) return;
+        setArtistLogo(logoUrl);
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.src = logoUrl;
+        img.onload = () => {
+            artistLogoRef.current = img;
+            setShowTop10LogoModal(false);
+            generateImage();
+        };
+        if (img.complete) {
+            artistLogoRef.current = img;
+            setShowTop10LogoModal(false);
+            generateImage();
+        }
+    };
+
+    const handleTestIntroAnim = () => {
+        setTop10ActiveRank(0);
+        top10ActiveRankRef.current = 0;
+        setIsTestingIntro(true);
+        triggerSmoothAnimReplay();
+        generateImage();
+        setTimeout(() => {
+            setIsTestingIntro(false);
+        }, 3500);
+    };
+
     const [isAutoFillingTop10, setIsAutoFillingTop10] = useState<boolean>(false);
     const [top10ArtistSearch, setTop10ArtistSearch] = useState<string>('');
     const [top10RawTextImport, setTop10RawTextImport] = useState<string>('');
@@ -8875,15 +8987,217 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 } else if (theme === 'TOP 10 TRACKS') {
                     const isReel = effectiveTab === 'REEL';
                     const isVideoExport = isVideoRecordingRef.current;
-                    const durPerTrack = top10TrackDurationRef.current || top10TrackDuration || 3.5;
+                    const durPerTrack = top10TrackDurationRef.current || top10TrackDuration || 4.95;
                     const currentTracks = (top10TracksRef.current && top10TracksRef.current.length === 10) ? top10TracksRef.current : top10Tracks;
                     const currentActiveRank = top10ActiveRankRef.current ?? top10ActiveRank;
 
-                    // Déterminer la track active (directement reliée au rang actif, en export vidéo comme en aperçu)
-                    const trIdx = currentTracks.findIndex(t => Number(t.rank) === Number(currentActiveRank));
-                    const currentTrackIndex = trIdx >= 0 ? trIdx : 0;
-                    const activeTrack = currentTracks[currentTrackIndex] || currentTracks[0];
-                    const activeRank = activeTrack.rank;
+                    if (currentActiveRank === 0) {
+                        // ══════════════════════════════════════════════════════════════════════
+                        // SLIDE D'INTRO TOP 10 TRACKS (3.5s)
+                        // ══════════════════════════════════════════════════════════════════════
+                        const introDur = 3.5;
+                        const introAnimTime = isVideoExport
+                            ? (deterministicAnimTimeRef.current % introDur)
+                            : Math.max(0, (Date.now() - animStartTimeRef.current) / 1000);
+
+                        // 1. Fond sombre cinématique avec la vidéo ou image
+                        ctx.save();
+                        ctx.fillStyle = '#020306';
+                        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                        if (bgVideo && (bgVideo.videoWidth > 0 || bgVideo.readyState >= 2)) {
+                            ctx.save();
+                            const vScale = Math.max(canvas.width / bgVideo.videoWidth, canvas.height / bgVideo.videoHeight);
+                            const vw = bgVideo.videoWidth * vScale;
+                            const vh = bgVideo.videoHeight * vScale;
+                            const vx = ((canvas.width - vw) / 2) + bgOffsetX;
+                            const vy = ((canvas.height - vh) / 2) + bgOffsetY;
+                            ctx.drawImage(bgVideo, vx, vy, vw, vh);
+
+                            const bgDarkOverlay = ctx.createLinearGradient(0, 0, 0, canvas.height);
+                            bgDarkOverlay.addColorStop(0, 'rgba(2, 3, 6, 0.65)');
+                            bgDarkOverlay.addColorStop(0.45, 'rgba(2, 3, 6, 0.75)');
+                            bgDarkOverlay.addColorStop(1, 'rgba(2, 3, 6, 0.95)');
+                            ctx.fillStyle = bgDarkOverlay;
+                            ctx.fillRect(0, 0, canvas.width, canvas.height);
+                            ctx.restore();
+                        } else if (bgImage) {
+                            const bgSource = imageCacheRef.current[bgImage] || imageCacheRef.current[resolveImageUrl(bgImage)];
+                            if (bgSource && (bgSource.naturalWidth > 0 || bgSource.complete)) {
+                                ctx.save();
+                                const scale = Math.max(canvas.width / bgSource.width, canvas.height / bgSource.height);
+                                const iw = bgSource.width * scale;
+                                const ih = bgSource.height * scale;
+                                ctx.drawImage(bgSource, (canvas.width - iw) / 2, (canvas.height - ih) / 2, iw, ih);
+                                ctx.fillStyle = 'rgba(2, 3, 6, 0.82)';
+                                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                                ctx.restore();
+                            }
+                        }
+
+                        // 2. Aura néon centrale élégante & respirante
+                        const auraBreath = 1.0 + Math.sin(introAnimTime * 2.2) * 0.12;
+                        const auraGrad = ctx.createRadialGradient(
+                            canvas.width / 2, 880, 80 * auraBreath,
+                            canvas.width / 2, 880, 680 * auraBreath
+                        );
+                        auraGrad.addColorStop(0, 'rgba(0, 240, 255, 0.25)');
+                        auraGrad.addColorStop(0.45, 'rgba(0, 240, 255, 0.06)');
+                        auraGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+                        ctx.fillStyle = auraGrad;
+                        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                        // 3. Particules montantes festival
+                        for (let p = 0; p < 36; p++) {
+                            const seedX = ((p * 137.5) % 1) * canvas.width;
+                            const speed = 32 + ((p * 31.7) % 45);
+                            const swaySpeed = 0.9 + ((p * 19.3) % 1.4);
+                            const swayAmp = 15 + ((p * 27.1) % 25);
+                            const pSize = 1.5 + ((p * 37.3) % 3.5);
+                            const totalH = canvas.height + 140;
+                            const rawY = (canvas.height + 70) - ((introAnimTime * speed + p * 89.3) % totalH);
+                            const pX = seedX + Math.sin(introAnimTime * swaySpeed + p * 1.8) * swayAmp;
+                            ctx.save();
+                            ctx.globalAlpha = 0.65;
+                            ctx.beginPath();
+                            ctx.arc(pX, rawY, pSize, 0, Math.PI * 2);
+                            ctx.fillStyle = p % 2 === 0 ? '#00f0ff' : '#ffffff';
+                            ctx.shadowColor = '#00f0ff';
+                            ctx.shadowBlur = 8;
+                            ctx.fill();
+                            ctx.restore();
+                        }
+
+                        // 4. Badge en haut à gauche
+                        drawTopCapsuleBadge((top10BadgeRef.current || top10Badge || 'TOP 10 TRACKS').toUpperCase(), '#00f0ff', '0, 240, 255');
+
+                        // 5. TITRE CENTRAL : "TOP 10 DES TRACKS LES PLUS STREAMÉES"
+                        // Découpé harmonieusement et animé avec l'effet de texte choisi
+                        const rawIntroTitle = (top10IntroTitleRef.current || top10IntroTitle || 'TOP 10 DES TRACKS LES PLUS STREAMÉES').toUpperCase();
+                        let titleLines: string[] = [];
+                        if (rawIntroTitle.includes('LES PLUS STREAMÉES')) {
+                            titleLines = ['TOP 10 DES TRACKS', 'LES PLUS STREAMÉES'];
+                        } else {
+                            titleLines = [rawIntroTitle];
+                        }
+
+                        const titleCenterY = isReel ? 700 : 520;
+                        const titleLineH = 68;
+                        const startTitleY = titleCenterY - ((titleLines.length - 1) * titleLineH) / 2;
+
+                        titleLines.forEach((tLine, idx) => {
+                            const curY = startTitleY + idx * titleLineH;
+                            ctx.save();
+                            if (!isStaticPngExport && textAnimation !== 'NONE') {
+                                applyTextAnimCtx(ctx, 0.08 + idx * 0.10, canvas.width / 2, curY, introAnimTime);
+                            }
+                            ctx.textAlign = 'center';
+                            ctx.textBaseline = 'middle';
+                            ctx.font = '900 italic 54px "Montserrat", sans-serif';
+                            if ('letterSpacing' in ctx) (ctx as any).letterSpacing = '3px';
+                            ctx.fillStyle = '#ffffff';
+                            ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
+                            ctx.shadowBlur = 18;
+                            ctx.shadowOffsetY = 4;
+                            ctx.fillText(tLine, canvas.width / 2, curY);
+                            ctx.restore();
+                        });
+
+                        // 6. LOGO OFFICIEL DE L'ARTISTE (OU NOM EN TYPOGRAPHIE GÉANTE)
+                        const effectiveArtistName = (top10IntroArtistRef.current || top10IntroArtist || top10ArtistSearch || 'ARTISTE').toUpperCase();
+                        const artistLogoObj = artistLogoRef.current;
+                        const logoAreaCenterY = isReel ? 1040 : 820;
+
+                        if (artistLogoObj && (artistLogoObj.naturalWidth > 0 || artistLogoObj.complete)) {
+                            const maxLogoW = 540;
+                            const maxLogoH = 220;
+                            let lw = artistLogoObj.width;
+                            let lh = artistLogoObj.height;
+                            const ratio = Math.min(maxLogoW / lw, maxLogoH / lh);
+                            lw = Math.round(lw * ratio);
+                            lh = Math.round(lh * ratio);
+                            const lx = (canvas.width - lw) / 2;
+                            const ly = logoAreaCenterY - (lh / 2);
+
+                            ctx.save();
+                            if (!isStaticPngExport && textAnimation !== 'NONE') {
+                                applyTextAnimCtx(ctx, 0.24, canvas.width / 2, logoAreaCenterY, introAnimTime);
+                            }
+
+                            ctx.shadowColor = 'rgba(0, 240, 255, 0.75)';
+                            ctx.shadowBlur = 32;
+
+                            if (isArtistLogoNegative) {
+                                ctx.filter = 'brightness(0) invert(1)';
+                            }
+                            ctx.drawImage(artistLogoObj, lx, ly, lw, lh);
+                            ctx.restore();
+                        } else {
+                            ctx.save();
+                            if (!isStaticPngExport && textAnimation !== 'NONE') {
+                                applyTextAnimCtx(ctx, 0.24, canvas.width / 2, logoAreaCenterY, introAnimTime);
+                            }
+                            ctx.textAlign = 'center';
+                            ctx.textBaseline = 'middle';
+                            let aFontSize = 66;
+                            ctx.font = `900 italic ${aFontSize}px "Montserrat", sans-serif`;
+                            if ('letterSpacing' in ctx) (ctx as any).letterSpacing = '2px';
+                            while (ctx.measureText(effectiveArtistName).width > 900 && aFontSize > 32) {
+                                aFontSize -= 2;
+                                ctx.font = `900 italic ${aFontSize}px "Montserrat", sans-serif`;
+                            }
+                            const aGrad = ctx.createLinearGradient(canvas.width / 2 - 300, 0, canvas.width / 2 + 300, 0);
+                            aGrad.addColorStop(0, '#00f0ff');
+                            aGrad.addColorStop(0.5, '#ffffff');
+                            aGrad.addColorStop(1, '#00f0ff');
+                            ctx.fillStyle = aGrad;
+                            ctx.shadowColor = 'rgba(0, 240, 255, 0.85)';
+                            ctx.shadowBlur = 24;
+                            ctx.fillText(effectiveArtistName, canvas.width / 2, logoAreaCenterY);
+                            ctx.restore();
+                        }
+
+                        // 7. Pill cyber subtile "🔥 COUNTDOWN DU #10 AU #1"
+                        const pillY = isReel ? 1240 : 980;
+                        ctx.save();
+                        if (!isStaticPngExport && textAnimation !== 'NONE') {
+                            applyTextAnimCtx(ctx, 0.36, canvas.width / 2, pillY, introAnimTime);
+                        }
+                        const pillLabel = '🔥 COUNTDOWN DU #10 AU #1';
+                        ctx.font = '800 italic 20px "Montserrat", sans-serif';
+                        if ('letterSpacing' in ctx) (ctx as any).letterSpacing = '2px';
+                        const pTextW = ctx.measureText(pillLabel).width;
+                        const pW = pTextW + 48;
+                        const pH = 44;
+                        const pX = (canvas.width - pW) / 2;
+                        const pTopY = pillY - pH / 2;
+
+                        ctx.fillStyle = 'rgba(10, 14, 22, 0.85)';
+                        ctx.strokeStyle = 'rgba(0, 240, 255, 0.5)';
+                        ctx.lineWidth = 1.5;
+                        ctx.beginPath();
+                        ctx.roundRect(pX, pTopY, pW, pH, pH / 2);
+                        ctx.fill();
+                        ctx.stroke();
+
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'middle';
+                        ctx.fillStyle = '#00f0ff';
+                        ctx.shadowColor = 'rgba(0, 240, 255, 0.6)';
+                        ctx.shadowBlur = 8;
+                        ctx.fillText(pillLabel, canvas.width / 2, pillY);
+                        ctx.restore();
+
+                        ctx.restore();
+                    } else {
+                        // ══════════════════════════════════════════════════════════════════════
+                        // COUNTDOWN TRACKS ACTIVES (#10 ➔ #1)
+                        // ══════════════════════════════════════════════════════════════════════
+                        // Déterminer la track active (directement reliée au rang actif, en export vidéo comme en aperçu)
+                        const trIdx = currentTracks.findIndex(t => Number(t.rank) === Number(currentActiveRank));
+                        const currentTrackIndex = trIdx >= 0 ? trIdx : 0;
+                        const activeTrack = currentTracks[currentTrackIndex] || currentTracks[0];
+                        const activeRank = activeTrack.rank;
 
                     let trackProgress = 0;
                     let animTime = 0;
@@ -9454,6 +9768,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         ctx.fill();
                     }
                     ctx.restore();
+                    }
                 } else if (theme === 'HIGHLIGHTS') {
                     const isReel = effectiveTab === 'REEL';
                     const centerX = canvas.width / 2;
@@ -11946,18 +12261,19 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 }
 
                 if (theme === 'TOP 10 TRACKS') {
-                    const singleDur = 5.3; // 10 tracks x 5.3s = 53s audio
+                    const introDuration = 3.5; // 3.5s intro
+                    const singleDur = 4.95; // 10 tracks x 4.95s = 49.5s
                     const currentTracks = (top10TracksRef.current && top10TracksRef.current.length === 10) ? top10TracksRef.current : top10Tracks;
                     for (let i = 0; i < 10; i++) {
                         const rank = 10 - i;
                         const tr = currentTracks.find(t => Number(t.rank) === Number(rank));
                         const aUrl = tr?.audioUrl || (tr?.videoUrl && tr.videoUrl.match(/\.(mp3|m4a|aac|wav|ogg)/i) ? tr.videoUrl : '');
                         if (aUrl) {
-                            // Pour le track N° 1 (à 53s), laisser son morceau continuer sous l'outro promo téléphone 3D (+7.0s = 12.3s jusqu'à la fin 60s)
+                            // Pour le track N° 1 (à 53s), laisser son morceau continuer sous l'outro promo téléphone 3D (+7.0s = 11.95s)
                             const trackDuration = rank === 1 ? (singleDur + 7.0) : singleDur;
                             audioSegments.push({
                                 url: aUrl,
-                                startOffset: i * singleDur,
+                                startOffset: introDuration + (i * singleDur),
                                 sourceOffset: tr?.audioStartTime || tr?.videoStartTime || 0,
                                 duration: trackDuration
                             });
@@ -12580,8 +12896,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 }
             }
         } else if (theme === 'TOP 10 TRACKS') {
-            const singleTrackDur = 5.3; // 10 tracks × 5.3s = 53s
-            const singleTrackMs = 5300;
+            const introDurMs = 3500; // 3.5s d'Intro
+            const singleTrackMs = 4950; // 10 tracks × 4.95s = 49.5s
             const originalRank = top10ActiveRankRef.current ?? top10ActiveRank;
             let prevVideo: HTMLVideoElement | null = null;
             const currentTracks = (top10TracksRef.current && top10TracksRef.current.length === 10) ? top10TracksRef.current : top10Tracks;
@@ -12601,6 +12917,13 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 });
             }));
 
+            // 0. SLIDE D'INTRO (3.5s) : TITRE + LOGO ARTISTE + DROPSIDERS
+            setTop10ActiveRank(0);
+            top10ActiveRankRef.current = 0;
+            animStartTimeRef.current = Date.now();
+            await renderDuration(introDurMs, 0);
+
+            // 1. DÉROULEMENT DU COUNTDOWN (#10 ➔ #1) : 49.5s
             for (let i = 0; i < 10; i++) {
                 const rank = 10 - i;
                 setTop10ActiveRank(rank);
@@ -12627,7 +12950,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 try { prevVideo.pause(); prevVideo.muted = true; } catch (_) { }
             }
 
-            // OUTRO TÉLÉPHONE 3D AUTOMATIQUE (7.0s) : TOTAL 1 MINUTE PILE (60S)
+            // 2. OUTRO TÉLÉPHONE 3D AUTOMATIQUE (7.0s) : TOTAL 1 MINUTE PILE (3.5s + 49.5s + 7s = 60.0s)
             promoOutroOverrideRef.current = true;
             animStartTimeRef.current = Date.now();
             await renderDuration(7000, 0);
@@ -19416,18 +19739,43 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     </div>
                 </div>
 
-                {/* 2. SÉLECTEUR DE TRACKS (#10 ➔ #1) */}
+                {/* 2. SÉLECTEUR DE TRACKS & INTRO (#10 ➔ #1) */}
                 <div className="p-3.5 bg-black/40 border border-white/10 rounded-2xl shadow-lg space-y-2">
                     <div className="flex items-center justify-between">
                         <label className="text-[9px] font-black text-white uppercase tracking-wider">
-                            Choisir la Track à éditer
+                            Choisir la Slide à éditer
                         </label>
                         <span className="text-[8px] text-gray-400">
-                            Ordre : #10 ➔ #1
+                            Intro (3.5s) ➔ Tracks #10 à #1
                         </span>
                     </div>
 
-                    <div className="grid grid-cols-5 gap-1.5">
+                    {/* Bouton Slide 1 : INTRO (3.5s) */}
+                    <button
+                        type="button"
+                        onClick={() => selectTop10Track(0)}
+                        className={`w-full py-2 px-3 rounded-xl border text-[10px] font-black uppercase transition-all flex items-center justify-between active:scale-[0.99] ${Number(top10ActiveRank) === 0
+                            ? 'bg-gradient-to-r from-neon-cyan/25 via-blue-600/30 to-indigo-600/25 border-neon-cyan text-white shadow-[0_0_15px_rgba(0,240,255,0.4)]'
+                            : 'bg-white/5 border-white/10 text-gray-300 hover:bg-white/10 hover:border-white/20'}`}
+                    >
+                        <span className="flex items-center gap-2">
+                            <span>🎬</span>
+                            <span>Slide 1 : INTRO (3.5s)</span>
+                            <span className="text-[7.5px] text-gray-400 font-normal">Titre + Logo Artiste</span>
+                        </span>
+                        <div className="flex items-center gap-1.5">
+                            {artistLogo && (
+                                <span className="px-1.5 py-0.5 rounded bg-neon-cyan/20 border border-neon-cyan/40 text-neon-cyan text-[7.5px] font-bold font-mono">
+                                    Logo OK
+                                </span>
+                            )}
+                            <span className={`text-[8.5px] ${Number(top10ActiveRank) === 0 ? 'text-neon-cyan' : 'text-gray-400'}`}>
+                                {Number(top10ActiveRank) === 0 ? '▶ Active' : 'Éditer →'}
+                            </span>
+                        </div>
+                    </button>
+
+                    <div className="grid grid-cols-5 gap-1.5 pt-1">
                         {top10Tracks.map(t => {
                             const isCur = Number(t.rank) === Number(top10ActiveRank);
                             const hasMedia = Boolean(t.sourceUrl || t.audioUrl || t.videoUrl || t.cover || t.title);
@@ -19459,8 +19807,155 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     </div>
                 </div>
 
-                {/* 3. FORMULAIRE DE LA TRACK ACTIVE */}
-                <div className={`p-4 bg-black/50 border rounded-2xl shadow-xl space-y-3.5 transition-all ${podiumBorder}`}>
+                {/* 3. ÉDITION INTRO OU TRACK ACTIVE */}
+                {Number(top10ActiveRank) === 0 ? (
+                    <div className="p-4 bg-gradient-to-br from-neon-cyan/15 via-black/60 to-blue-900/20 border border-neon-cyan/40 rounded-2xl shadow-xl space-y-4">
+                        <div className="flex items-center justify-between pb-2 border-b border-white/10">
+                            <span className="text-[12px] font-black text-neon-cyan uppercase tracking-wider flex items-center gap-1.5">
+                                🎬 Configuration Slide Intro (3.5s)
+                            </span>
+                            <button
+                                type="button"
+                                onClick={handleTestIntroAnim}
+                                className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase transition-all flex items-center gap-1.5 shadow-md ${isTestingIntro ? 'bg-neon-cyan text-black animate-pulse' : 'bg-neon-cyan/20 hover:bg-neon-cyan text-neon-cyan hover:text-black border border-neon-cyan/50'}`}
+                            >
+                                <Play className="w-3.5 h-3.5" />
+                                {isTestingIntro ? 'Lecture 3.5s...' : '▶ Tester l\'intro (3.5s)'}
+                            </button>
+                        </div>
+
+                        {/* Titre Intro */}
+                        <div className="space-y-1">
+                            <label className="text-[8.5px] font-black text-gray-300 uppercase tracking-wider">
+                                Titre de l'Intro
+                            </label>
+                            <input
+                                type="text"
+                                value={top10IntroTitle}
+                                onChange={e => {
+                                    setTop10IntroTitle(e.target.value.toUpperCase());
+                                    generateImage();
+                                }}
+                                placeholder="TOP 10 DES TRACKS LES PLUS STREAMÉES"
+                                className="w-full bg-black/60 border border-white/10 rounded-xl p-2.5 text-white font-black uppercase text-[11px] focus:border-neon-cyan outline-none"
+                            />
+                        </div>
+
+                        {/* Nom de l'Artiste */}
+                        <div className="space-y-1">
+                            <label className="text-[8.5px] font-black text-gray-300 uppercase tracking-wider">
+                                Nom de l'Artiste
+                            </label>
+                            <input
+                                type="text"
+                                value={top10IntroArtist}
+                                onChange={e => {
+                                    setTop10IntroArtist(e.target.value);
+                                    generateImage();
+                                }}
+                                placeholder={top10ArtistSearch || "Nom de l'artiste (ex: Martin Garrix, David Guetta...)"}
+                                className="w-full bg-black/60 border border-white/10 rounded-xl p-2.5 text-white font-black text-[11px] focus:border-neon-cyan outline-none"
+                            />
+                        </div>
+
+                        {/* LOGO DE L'ARTISTE (MÉLANGE IDÉE 1 ET 2) */}
+                        <div className="p-3 bg-black/70 border border-white/10 rounded-xl space-y-3">
+                            <div className="flex items-center justify-between">
+                                <span className="text-[9.5px] font-black text-white uppercase tracking-wider flex items-center gap-1.5">
+                                    <span>🎨</span> Logo Officiel de l'Artiste (PNG Transparent)
+                                </span>
+                                {artistLogo && (
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setArtistLogo('');
+                                            artistLogoRef.current = null;
+                                            generateImage();
+                                        }}
+                                        className="text-[8px] text-red-400 hover:text-red-300 font-bold uppercase transition-colors"
+                                    >
+                                        ✕ Supprimer Logo
+                                    </button>
+                                )}
+                            </div>
+
+                            {/* Aperçu du logo ou placeholder */}
+                            {artistLogo ? (
+                                <div className="p-3 bg-black/80 border border-neon-cyan/40 rounded-xl flex items-center justify-center relative group min-h-[90px]">
+                                    <img
+                                        src={artistLogo}
+                                        alt="Artist Logo"
+                                        className="max-h-20 max-w-[260px] object-contain transition-all"
+                                        style={{ filter: isArtistLogoNegative ? 'brightness(0) invert(1) drop-shadow(0 0 12px rgba(0,240,255,0.7))' : 'drop-shadow(0 0 8px rgba(255,255,255,0.4))' }}
+                                    />
+                                </div>
+                            ) : (
+                                <div className="p-3 bg-black/40 border border-dashed border-white/15 rounded-xl text-center space-y-1">
+                                    <p className="text-[8.5px] text-gray-400">
+                                        Aucun logo chargé. Si aucun logo n'est mis, le nom de l'artiste s'affichera en grand texte stylisé.
+                                    </p>
+                                </div>
+                            )}
+
+                            {/* Actions : Upload ou Recherche 1-Clic */}
+                            <div className="grid grid-cols-2 gap-2">
+                                <label className="py-2.5 px-3 bg-white/5 hover:bg-white/10 border border-white/15 rounded-xl text-[9px] font-black uppercase text-white flex items-center justify-center gap-2 cursor-pointer transition-all active:scale-95 text-center">
+                                    <Upload className="w-3.5 h-3.5 text-neon-cyan shrink-0" />
+                                    <span>📁 Uploader PNG</span>
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        className="hidden"
+                                        onChange={handleArtistLogoChange}
+                                    />
+                                </label>
+
+                                <button
+                                    type="button"
+                                    disabled={isSearchingTop10Logo}
+                                    onClick={() => searchArtistLogos(top10IntroArtist || top10ArtistSearch)}
+                                    className="py-2.5 px-3 bg-gradient-to-r from-neon-cyan to-blue-600 hover:brightness-110 text-black text-[9px] font-black uppercase rounded-xl flex items-center justify-center gap-2 transition-all active:scale-95 shadow-md shadow-neon-cyan/20 disabled:opacity-40"
+                                >
+                                    <Search className="w-3.5 h-3.5 shrink-0" />
+                                    <span>{isSearchingTop10Logo ? '⏳ Recherche...' : '🔍 Chercher Logo Web'}</span>
+                                </button>
+                            </div>
+
+                            {/* Option Forcer Blanc Pur (Négatif) */}
+                            {artistLogo && (
+                                <div className="flex items-center justify-between pt-1 border-t border-white/10">
+                                    <label htmlFor="top10-logo-neg" className="text-[8px] font-bold text-gray-300 uppercase cursor-pointer flex items-center gap-1.5">
+                                        <span>✨ Rendre Blanc Pur &amp; Néon</span>
+                                        <span className="text-[7px] text-gray-500 font-normal">(Recommandé sur fond vidéo)</span>
+                                    </label>
+                                    <input
+                                        type="checkbox"
+                                        id="top10-logo-neg"
+                                        checked={isArtistLogoNegative}
+                                        onChange={e => {
+                                            setIsArtistLogoNegative(e.target.checked);
+                                            setTimeout(() => generateImage(), 30);
+                                        }}
+                                        className="w-3.5 h-3.5 accent-neon-cyan cursor-pointer"
+                                    />
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Navigation vers le #10 */}
+                        <div className="pt-2 flex justify-end border-t border-white/10">
+                            <button
+                                type="button"
+                                onClick={() => selectTop10Track(10)}
+                                className="py-2 px-3.5 bg-neon-cyan text-black rounded-xl text-[9px] font-black uppercase font-mono transition-all hover:bg-neon-cyan/80 active:scale-95 shadow-md shadow-neon-cyan/20"
+                            >
+                                Passer à la Track #10 →
+                            </button>
+                        </div>
+                    </div>
+                ) : (
+                    /* 3. FORMULAIRE DE LA TRACK ACTIVE */
+                    <div className={`p-4 bg-black/50 border rounded-2xl shadow-xl space-y-3.5 transition-all ${podiumBorder}`}>
                     <div className="flex items-center justify-between pb-1 border-b border-white/10">
                         <div className="flex items-center gap-2">
                             <span className={`text-[14px] font-black font-mono ${podiumColor}`}>
@@ -19895,8 +20390,90 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         )}
                     </div>
                 </div>
+                )}
 
-                {/* 4. BOUTON EXPORT VIDÉO REEL 9:16 (1 MIN PILE / 60S) */}
+                {/* 4. MODALE RECHERCHE DE LOGO WEB */}
+                {showTop10LogoModal && (
+                    <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-200">
+                        <div className="w-full max-w-lg bg-[#0e1017] border border-neon-cyan/40 rounded-2xl p-5 shadow-[0_0_50px_rgba(0,240,255,0.25)] space-y-4">
+                            <div className="flex items-center justify-between pb-2 border-b border-white/10">
+                                <div className="flex items-center gap-2">
+                                    <Search className="w-4 h-4 text-neon-cyan" />
+                                    <span className="text-[12px] font-black text-white uppercase tracking-wider">
+                                        Logos PNG trouvés pour : <span className="text-neon-cyan">{top10LogoSearchQuery}</span>
+                                    </span>
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={() => setShowTop10LogoModal(false)}
+                                    className="p-1.5 text-gray-400 hover:text-white rounded-lg hover:bg-white/10 transition-colors"
+                                >
+                                    <X className="w-4 h-4" />
+                                </button>
+                            </div>
+
+                            {/* Input de recherche pour affiner */}
+                            <div className="flex items-center gap-2">
+                                <input
+                                    type="text"
+                                    value={top10LogoSearchQuery}
+                                    onChange={e => setTop10LogoSearchQuery(e.target.value)}
+                                    onKeyDown={e => {
+                                        if (e.key === 'Enter') searchArtistLogos(top10LogoSearchQuery);
+                                    }}
+                                    placeholder="Nom de l'artiste (ex: Martin Garrix, David Guetta...)"
+                                    className="flex-1 bg-black/70 border border-white/15 rounded-xl px-3 py-2 text-white text-[11px] focus:border-neon-cyan outline-none"
+                                />
+                                <button
+                                    type="button"
+                                    disabled={isSearchingTop10Logo || !top10LogoSearchQuery.trim()}
+                                    onClick={() => searchArtistLogos(top10LogoSearchQuery)}
+                                    className="px-4 py-2 bg-neon-cyan text-black font-black text-[10px] uppercase rounded-xl hover:bg-neon-cyan/80 transition-all disabled:opacity-40"
+                                >
+                                    {isSearchingTop10Logo ? '⏳...' : 'Chercher'}
+                                </button>
+                            </div>
+
+                            {/* Grille des résultats */}
+                            {isSearchingTop10Logo ? (
+                                <div className="py-12 text-center space-y-2">
+                                    <div className="w-7 h-7 border-2 border-neon-cyan border-t-transparent rounded-full animate-spin mx-auto" />
+                                    <p className="text-[10px] text-gray-400 font-mono">Recherche des logos officiels transparents sur le web...</p>
+                                </div>
+                            ) : top10LogoSearchResults.length > 0 ? (
+                                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 max-h-[320px] overflow-y-auto custom-scrollbar p-1">
+                                    {top10LogoSearchResults.map((logo, idx) => (
+                                        <button
+                                            key={idx}
+                                            type="button"
+                                            onClick={() => handleSelectArtistLogo(logo.url)}
+                                            className="p-3 bg-black/60 hover:bg-neon-cyan/15 border border-white/10 hover:border-neon-cyan rounded-xl flex flex-col items-center justify-between gap-2 transition-all group aspect-[4/3]"
+                                            title={logo.title}
+                                        >
+                                            <div className="flex-1 flex items-center justify-center w-full min-h-0">
+                                                <img
+                                                    src={logo.previewUrl || logo.url}
+                                                    alt={logo.title}
+                                                    className="max-h-16 max-w-full object-contain filter drop-shadow-[0_0_6px_rgba(255,255,255,0.4)] group-hover:scale-105 transition-transform"
+                                                />
+                                            </div>
+                                            <span className="text-[8px] text-gray-400 group-hover:text-white font-mono truncate max-w-full">
+                                                {logo.title}
+                                            </span>
+                                        </button>
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="py-10 text-center space-y-2">
+                                    <p className="text-[10px] text-gray-400 font-mono">Aucun logo trouvé automatiquement.</p>
+                                    <p className="text-[8px] text-gray-500">Essayez un autre nom ou utilisez le bouton "📁 Uploader PNG".</p>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                )}
+
+                {/* 5. BOUTON EXPORT VIDÉO REEL 9:16 (1 MIN PILE / 60S) */}
                 <button
                     type="button"
                     onClick={() => startVideoRecording('NONE')}
@@ -19905,7 +20482,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     <Sparkles className="w-4 h-4" /> 🎬 EXPORTER VIDÉO TOP 10 (9:16 - 1 MIN / 60S)
                 </button>
                 <p className="text-[7.5px] text-center text-gray-500 font-mono">
-                    Enchaîne les 10 tracks (#10 ➔ #1) puis l'outro interactive Téléphone 3D (60s pile)
+                    Enchaîne l'Intro (3.5s) + les 10 tracks (#10 ➔ #1) puis l'outro interactive Téléphone 3D (60s pile)
                 </p>
             </div>
         );

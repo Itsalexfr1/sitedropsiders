@@ -1055,6 +1055,99 @@ export default {
             }
         }
 
+        // ─── Search Artist Logos (Transparent PNG / SVG Logos) ─────────────────────
+        if (path === '/api/search/artist-logo') {
+            const artistQuery = (url.searchParams.get('q') || '').trim();
+            if (!artistQuery) {
+                return new Response(JSON.stringify({ logos: [] }), { headers: { ...headers, 'Content-Type': 'application/json' } });
+            }
+
+            try {
+                const logos: Array<{ title: string; url: string; previewUrl: string }> = [];
+                const seenUrls = new Set<string>();
+
+                // 1. Wikimedia Commons API search
+                const commonsUrl = `https://commons.wikimedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(artistQuery + ' logo')}&srnamespace=6&format=json&origin=*`;
+                const cRes = await fetch(commonsUrl, { headers: { 'User-Agent': 'Dropsiders/2.0 (contact@dropsiders.fr)' } });
+                if (cRes.ok) {
+                    const cData: any = await cRes.json();
+                    const items = cData?.query?.search || [];
+                    const candidateTitles = items
+                        .map((it: any) => it.title)
+                        .filter((t: string) => /\.(png|svg)$/i.test(t) && !/commons-logo/i.test(t))
+                        .slice(0, 10);
+
+                    if (candidateTitles.length > 0) {
+                        const infoUrl = `https://commons.wikimedia.org/w/api.php?action=query&titles=${encodeURIComponent(candidateTitles.join('|'))}&prop=imageinfo&iiprop=url|mime&iiurlwidth=500&format=json&origin=*`;
+                        const infoRes = await fetch(infoUrl, { headers: { 'User-Agent': 'Dropsiders/2.0 (contact@dropsiders.fr)' } });
+                        if (infoRes.ok) {
+                            const infoData: any = await infoRes.json();
+                            const pages = infoData?.query?.pages || {};
+                            for (const pid of Object.keys(pages)) {
+                                const p = pages[pid];
+                                const imgInfo = p?.imageinfo?.[0];
+                                const fileUrl = imgInfo?.url;
+                                if (fileUrl && !seenUrls.has(fileUrl)) {
+                                    seenUrls.add(fileUrl);
+                                    logos.push({
+                                        title: p.title.replace('File:', '').replace(/\.(png|svg)$/i, ''),
+                                        url: fileUrl,
+                                        previewUrl: imgInfo.thumburl || fileUrl
+                                    });
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // 2. Wikipedia Artist Page Images fallback
+                if (logos.length < 3) {
+                    const wikiUrl = `https://en.wikipedia.org/w/api.php?action=query&titles=${encodeURIComponent(artistQuery)}&prop=images&format=json`;
+                    const wRes = await fetch(wikiUrl, { headers: { 'User-Agent': 'Dropsiders/2.0 (contact@dropsiders.fr)' } });
+                    if (wRes.ok) {
+                        const wData: any = await wRes.json();
+                        const pages = wData?.query?.pages || {};
+                        const pKey = Object.keys(pages)[0];
+                        const images = pages[pKey]?.images || [];
+                        const wikiLogoTitles = images
+                            .map((it: any) => it.title)
+                            .filter((t: string) => /logo/i.test(t) && /\.(png|svg)$/i.test(t) && !/commons-logo/i.test(t))
+                            .slice(0, 5);
+
+                        if (wikiLogoTitles.length > 0) {
+                            const infoUrl = `https://en.wikipedia.org/w/api.php?action=query&titles=${encodeURIComponent(wikiLogoTitles.join('|'))}&prop=imageinfo&iiprop=url&iiurlwidth=500&format=json`;
+                            const infoRes = await fetch(infoUrl, { headers: { 'User-Agent': 'Dropsiders/2.0 (contact@dropsiders.fr)' } });
+                            if (infoRes.ok) {
+                                const infoData: any = await infoRes.json();
+                                const ipages = infoData?.query?.pages || {};
+                                for (const ipid of Object.keys(ipages)) {
+                                    const p = ipages[ipid];
+                                    const imgInfo = p?.imageinfo?.[0];
+                                    const fileUrl = imgInfo?.url;
+                                    if (fileUrl && !seenUrls.has(fileUrl)) {
+                                        seenUrls.add(fileUrl);
+                                        logos.push({
+                                            title: p.title.replace('File:', '').replace(/\.(png|svg)$/i, ''),
+                                            url: fileUrl,
+                                            previewUrl: imgInfo.thumburl || fileUrl
+                                        });
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                return new Response(JSON.stringify({ logos }), {
+                    headers: { ...headers, 'Content-Type': 'application/json' }
+                });
+            } catch (err: any) {
+                return new Response(JSON.stringify({ logos: [], error: err.message }), {
+                    headers: { ...headers, 'Content-Type': 'application/json' }
+                });
+            }
+        }
+
 
 
         // ─── Radio Presence API (comptage auditeurs multi-appareils + mobile) ──────
