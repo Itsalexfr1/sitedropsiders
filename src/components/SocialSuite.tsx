@@ -350,6 +350,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     useEffect(() => {
         setArticleLinkText(getAutoArticleLinkText(theme));
     }, [theme]);
+
+    useEffect(() => {
+        if (activeTab === 'PUBLICATION' && theme === 'TOP 10 TRACKS') {
+            setTheme('NEWS');
+        }
+    }, [activeTab, theme]);
     const [showVoteLink, setShowVoteLink] = useState(false);
     const [customText, setCustomText] = useState(title || '');
     const [bgImage, setBgImage] = useState<string>(() => resolveImageUrl(imageUrl));
@@ -950,6 +956,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         return DEFAULT_TOP_10_TRACKS;
     });
 
+    const [top10Badge, setTop10Badge] = useState<string>('TOP 10 TRACKS');
     const [top10Title, setTop10Title] = useState<string>('TOP 10 DES TRACKS LES PLUS JOUÉES');
     const [top10Subtitle, setTop10Subtitle] = useState<string>('FESTIVAL 2026');
     const [top10HasPromoOutro, setTop10HasPromoOutro] = useState<boolean>(true); // Outro Téléphone 3D à la fin
@@ -959,6 +966,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     top10TracksRef.current = top10Tracks;
     const top10ActiveRankRef = useRef<number>(top10ActiveRank);
     top10ActiveRankRef.current = top10ActiveRank;
+    const top10BadgeRef = useRef<string>(top10Badge);
+    top10BadgeRef.current = top10Badge;
     const top10TitleRef = useRef<string>(top10Title);
     top10TitleRef.current = top10Title;
     const top10SubtitleRef = useRef<string>(top10Subtitle);
@@ -4216,7 +4225,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     const isMp4Export = isVideoRecordingRef.current;
                     // L'effet animé (balayage glare lumineux, onde radar, pulsations) est strictement réservé à l'export MP4
                     // (et prévisualisation active d'un Reel en mode vidéo). Dans tous les exports PNG, le badge reste 100% net, propre et statique.
-                    const hasBadgeEffect = !isPngExport && (isMp4Export || (effectiveTab === 'REEL' && (bgVideo || textAnimation !== 'NONE' || bgAnimation !== 'NONE')));
+                    const hasBadgeEffect = !isPngExport && (isMp4Export || (effectiveTab === 'REEL' && (bgVideo || textAnimation !== 'NONE' || bgAnimation !== 'NONE' || theme === 'TOP 10 TRACKS')));
 
                     if (hasBadgeEffect) {
                         // Temps déterministe pour animation fluide continue sans à-coup
@@ -8901,8 +8910,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.fillRect(0, canvas.height - 420, canvas.width, 420);
                     ctx.restore();
 
-                    // 1. Top-Left Badge Dropsiders
-                    drawTopCapsuleBadge('TOP 10 TRACKS', rankColor, rankColorRgb);
+                    // 1. Top-Left Badge Dropsiders (Style Officiel News néon rouge)
+                    drawTopCapsuleBadge((top10BadgeRef.current || top10Badge || 'TOP 10 TRACKS').toUpperCase(), '#ff0033', '255, 0, 51');
 
                     // 2. Header Titre Principal (Aéré et descendu pour ne pas coller au logo)
                     ctx.save();
@@ -13393,7 +13402,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             { id: 'CITATION', label: 'CITATION', category: 'EDITO', action: () => handleSetTheme('CITATION'), active: theme === 'CITATION', style: 'bg-neon-red/20 border-neon-red text-neon-red shadow-[0_0_12px_rgba(255,18,65,0.35)]' },
             { id: 'LIVESTREAM', label: 'DIRECT', category: 'EDITO', action: () => handleSetTheme('LIVESTREAM'), active: theme === 'LIVESTREAM', style: 'bg-pink-500/20 border-pink-500 text-pink-500 shadow-[0_0_12px_rgba(236,72,153,0.35)]' },
             // 🎵 Musique
-            { id: 'TOP 10 TRACKS', label: 'TOP 10 TRACKS', category: 'MUSIC', action: () => { if (activeTab !== 'REEL') setActiveTab('REEL'); handleSetTheme('TOP 10 TRACKS'); }, active: theme === 'TOP 10 TRACKS', style: 'bg-gradient-to-r from-neon-red/30 to-amber-500/20 border-neon-red text-white shadow-[0_0_15px_rgba(255,0,51,0.4)]' },
+            ...(activeTab === 'REEL'
+                ? [
+                    { id: 'TOP 10 TRACKS', label: 'TOP 10 TRACKS', category: 'MUSIC', action: () => handleSetTheme('TOP 10 TRACKS'), active: theme === 'TOP 10 TRACKS', style: 'bg-gradient-to-r from-neon-red/30 to-amber-500/20 border-neon-red text-white shadow-[0_0_15px_rgba(255,0,51,0.4)]' }
+                ]
+                : []),
             { id: 'MUSIQUE', label: 'MUSIQUE', category: 'MUSIC', action: () => handleSetTheme('MUSIQUE'), active: theme === 'MUSIQUE', style: 'bg-neon-green/20 border-neon-green text-neon-green shadow-[0_0_12px_rgba(0,255,102,0.35)]' },
             { id: 'HIGHLIGHTS', label: 'HIGHLIGHTS', category: 'MUSIC', action: () => handleSetTheme('HIGHLIGHTS'), active: theme === 'HIGHLIGHTS', style: 'bg-white/20 border-white text-white shadow-[0_0_12px_rgba(255,255,255,0.35)]' },
             ...(activeTab === 'REEL'
@@ -18752,6 +18765,25 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     </div>
 
                     <div className="space-y-1">
+                        <div className="flex items-center justify-between">
+                            <label className="text-[8.5px] font-black text-gray-400 uppercase tracking-wider">
+                                Badge Capsule Haut Gauche
+                            </label>
+                            <span className="text-[7.5px] font-bold text-neon-red uppercase">Style News</span>
+                        </div>
+                        <input
+                            type="text"
+                            value={top10Badge}
+                            onChange={e => {
+                                setTop10Badge(e.target.value.toUpperCase());
+                                generateImage();
+                            }}
+                            placeholder="TOP 10 TRACKS"
+                            className="w-full bg-white/5 border border-white/10 rounded-xl p-2.5 text-white font-black uppercase text-[11px] focus:border-neon-red/50 outline-none"
+                        />
+                    </div>
+
+                    <div className="space-y-1">
                         <label className="text-[8.5px] font-black text-gray-400 uppercase tracking-wider">
                             Titre Principal
                         </label>
@@ -21860,7 +21892,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         {/* Tab selector */}
                         <div className="flex gap-1.5 p-1 bg-white/5 rounded-xl border border-white/10">
                             <button onClick={() => setActiveTab('REEL')} className={`flex-1 py-2 rounded-lg text-[9px] font-black uppercase flex items-center justify-center gap-2 transition-all ${activeTab === 'REEL' ? 'bg-white text-black' : 'text-gray-400 hover:text-white'}`}><Smartphone className="w-3.5 h-3.5" /> STORY / REEL</button>
-                            <button onClick={() => { setActiveTab('PUBLICATION'); if (theme === 'REELS' || theme === 'CONSEILS') handleSetTheme('NEWS'); }} className={`flex-1 py-2 rounded-lg text-[9px] font-black uppercase flex items-center justify-center gap-2 transition-all ${activeTab === 'PUBLICATION' ? 'bg-white text-black' : 'text-gray-400 hover:text-white'}`}><ImageIcon className="w-3.5 h-3.5" /> POST</button>
+                            <button onClick={() => { setActiveTab('PUBLICATION'); if (theme === 'REELS' || theme === 'CONSEILS' || theme === 'TRACKLIST' || theme === 'MAP' || theme === 'TOP 10 TRACKS') handleSetTheme('NEWS'); }} className={`flex-1 py-2 rounded-lg text-[9px] font-black uppercase flex items-center justify-center gap-2 transition-all ${activeTab === 'PUBLICATION' ? 'bg-white text-black' : 'text-gray-400 hover:text-white'}`}><ImageIcon className="w-3.5 h-3.5" /> POST</button>
                         </div>
 
                         {/* LES 3 ONGLETS DU WORKFLOW UNIVERSEL */}
@@ -21938,7 +21970,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                             { id: 'LIVESTREAM', label: 'DIRECT', category: 'EDITO', action: () => handleSetTheme('LIVESTREAM'), active: theme === 'LIVESTREAM', style: 'bg-pink-500/20 border-pink-500 text-pink-500 shadow-[0_0_12px_rgba(236,72,153,0.35)]' },
 
                                             // 🎵 Musique
-                                            { id: 'TOP 10 TRACKS', label: 'TOP 10 TRACKS', category: 'MUSIC', action: () => handleSetTheme('TOP 10 TRACKS'), active: theme === 'TOP 10 TRACKS', style: 'bg-gradient-to-r from-neon-red/30 to-amber-500/20 border-neon-red text-white shadow-[0_0_15px_rgba(255,0,51,0.4)]' },
+                                            ...(activeTab === 'REEL' ? [{ id: 'TOP 10 TRACKS', label: 'TOP 10 TRACKS', category: 'MUSIC', action: () => handleSetTheme('TOP 10 TRACKS'), active: theme === 'TOP 10 TRACKS', style: 'bg-gradient-to-r from-neon-red/30 to-amber-500/20 border-neon-red text-white shadow-[0_0_15px_rgba(255,0,51,0.4)]' }] : []),
                                             { id: 'MUSIQUE', label: 'MUSIQUE', category: 'MUSIC', action: () => handleSetTheme('MUSIQUE'), active: theme === 'MUSIQUE', style: 'bg-neon-green/20 border-neon-green text-neon-green shadow-[0_0_12px_rgba(0,255,102,0.35)]' },
                                             { id: 'HIGHLIGHTS', label: 'HIGHLIGHTS', category: 'MUSIC', action: () => handleSetTheme('HIGHLIGHTS'), active: theme === 'HIGHLIGHTS', style: 'bg-white/20 border-white text-white shadow-[0_0_12px_rgba(255,255,255,0.35)]' },
                                             ...(activeTab === 'REEL'
@@ -22978,7 +23010,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                                 <span className="text-[11px] font-black text-white uppercase">Réel</span>
                                                 <span className="text-[9px] text-gray-500">1080 × 1920</span>
                                             </button>
-                                            <button onClick={() => { unlockMobileAudioSession(); setActiveTab('PUBLICATION'); if (theme === 'REELS' || theme === 'CONSEILS' || theme === 'TRACKLIST' || theme === 'MAP') handleSetTheme('NEWS'); setShowFormatModal(false); }}
+                                            <button onClick={() => { unlockMobileAudioSession(); setActiveTab('PUBLICATION'); if (theme === 'REELS' || theme === 'CONSEILS' || theme === 'TRACKLIST' || theme === 'MAP' || theme === 'TOP 10 TRACKS') handleSetTheme('NEWS'); setShowFormatModal(false); }}
                                                 className="group flex flex-col items-center gap-3 p-6 rounded-3xl border-2 border-white/10 bg-white/5 hover:border-white/30 transition-all">
                                                 <div className="w-16 h-16 rounded-xl border-2 border-white/30 flex items-center justify-center group-hover:border-neon-cyan/60 transition-all" style={{ background: 'linear-gradient(180deg,#1a1a1a,#0a0a0a)' }}>
                                                     <ImageIcon className="w-6 h-6 text-gray-400 group-hover:text-neon-cyan transition-colors" />
@@ -23560,7 +23592,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                                 <div className="text-left"><p className={`text-[11px] font-black uppercase ${activeTab === 'REEL' ? 'text-white' : 'text-gray-400'}`}>Réel</p><p className="text-[9px] text-gray-600">1080×1920</p></div>
                                                 {activeTab === 'REEL' && <Check className="w-4 h-4 text-neon-red ml-auto" />}
                                             </button>
-                                            <button onClick={() => { unlockMobileAudioSession(); setActiveTab('PUBLICATION'); if (theme === 'REELS' || theme === 'CONSEILS' || theme === 'TRACKLIST' || theme === 'MAP') handleSetTheme('NEWS'); setActivePanel(null); }}
+                                            <button onClick={() => { unlockMobileAudioSession(); setActiveTab('PUBLICATION'); if (theme === 'REELS' || theme === 'CONSEILS' || theme === 'TRACKLIST' || theme === 'MAP' || theme === 'TOP 10 TRACKS') handleSetTheme('NEWS'); setActivePanel(null); }}
                                                 className={`flex items-center gap-3 p-4 rounded-2xl border-2 transition-all ${activeTab === 'PUBLICATION' ? 'border-neon-cyan/60 bg-neon-cyan/10' : 'border-white/10 bg-white/5 hover:border-white/20'}`}>
                                                 <ImageIcon className={`w-5 h-5 ${activeTab === 'PUBLICATION' ? 'text-neon-cyan' : 'text-gray-400'}`} />
                                                 <div className="text-left"><p className={`text-[11px] font-black uppercase ${activeTab === 'PUBLICATION' ? 'text-white' : 'text-gray-400'}`}>Publication</p><p className="text-[9px] text-gray-600">1080×1350</p></div>
