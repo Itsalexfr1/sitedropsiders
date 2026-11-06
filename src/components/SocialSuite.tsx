@@ -7623,14 +7623,26 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     // 2. Top Capsule Badge MUSIQUE (vert néon #39ff14)
                     drawTopCapsuleBadge('MUSIQUE', '#39ff14', '57, 255, 20');
 
-                    // 3. Dimensions et proportions de la pochette carrée 1:1
+                    // 3. Animation de lévitation douce classe de la pochette (gauche-droite et haut-bas)
+                    const coverAnimTime = isVideoRecordingRef.current
+                        ? deterministicAnimTimeRef.current
+                        : (animStartTimeRef.current ? (Date.now() - animStartTimeRef.current) / 1000 : 0);
+                    const isCoverFloating = !isStaticPngExport && !isDownloading;
+                    // Lévitation orbitale douce et fluide (Lissajous harmonieux sans à-coups)
+                    const floatAmpX = isStory ? 14 : 9;
+                    const floatAmpY = isStory ? 16 : 10;
+                    const floatX = isCoverFloating ? Math.sin(coverAnimTime * 1.5) * floatAmpX : 0;
+                    const floatY = isCoverFloating ? Math.cos(coverAnimTime * 1.15) * floatAmpY : 0;
+
+                    // Dimensions et proportions de la pochette carrée 1:1
                     const baseCardSize = isStory ? 780 : 510;
                     const scale = (afficheScale || 100) / 100;
                     const cardW = Math.round(baseCardSize * scale);
                     const cardH = cardW; // Format 1:1
-                    const cardX = Math.round((canvas.width - cardW) / 2);
+                    const baseCardX = Math.round((canvas.width - cardW) / 2);
                     const baseCardY = isStory ? 340 : 235;
-                    const cardY = Math.round(baseCardY + (afficheOffsetY || 0));
+                    const cardX = Math.round(baseCardX + floatX);
+                    const cardY = Math.round(baseCardY + (afficheOffsetY || 0) + floatY);
                     const rad = isStory ? 34 : 26;
 
                     // 4. Ombre portée 3D et halo ambiant néon vert
@@ -7649,14 +7661,14 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
                     ctx.shadowBlur = 60;
                     ctx.shadowOffsetX = 0;
-                    ctx.shadowOffsetY = 24;
+                    ctx.shadowOffsetY = 24 + floatY * 0.3;
                     ctx.beginPath();
                     ctx.roundRect(cardX, cardY, cardW, cardH, rad);
                     ctx.fillStyle = '#080a08';
                     ctx.fill();
                     ctx.restore();
 
-                    // 5. Rendu de l'image de la pochette ou vinyle stylisé Dropsiders
+                    // 5. Rendu de l'image de la pochette ou vinyle stylisé Dropsiders (propre, zéro trait blanc)
                     ctx.save();
                     ctx.beginPath();
                     ctx.roundRect(cardX, cardY, cardW, cardH, rad);
@@ -7714,87 +7726,6 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         ctx.font = '600 14px "Montserrat", sans-serif';
                         ctx.fillStyle = 'rgba(255, 255, 255, 0.45)';
                         ctx.fillText("Format carré 1:1 • Importer dans le panneau", cCenterX, cardY + cardH * 0.84);
-                    }
-
-                    // Reflet gloss sur le haut de la pochette
-                    const glossGrad = ctx.createLinearGradient(cardX, cardY, cardX, cardY + cardH * 0.38);
-                    glossGrad.addColorStop(0, 'rgba(255, 255, 255, 0.12)');
-                    glossGrad.addColorStop(1, 'rgba(255, 255, 255, 0)');
-                    ctx.fillStyle = glossGrad;
-                    ctx.fillRect(cardX, cardY, cardW, cardH * 0.38);
-
-                    // Option A : Ligne blanche argentée qui fait toute la cover (Cyber Glare Sweep diagonal)
-                    const coverAnimTime = isVideoRecordingRef.current
-                        ? deterministicAnimTimeRef.current
-                        : (animStartTimeRef.current ? (Date.now() - animStartTimeRef.current) / 1000 : 0);
-
-                    const isCoverAnim = isVideoRecordingRef.current
-                        ? true
-                        : ((bgVideo && !isDownloading) || textAnimation !== 'NONE' || activeTab === 'REEL' || !!activeAudioPreviewSrc || theme === 'MUSIQUE');
-
-                    // Cycle de balayage toutes les 2.8 secondes (balayage dynamique de 1.45s + pause)
-                    const glareCycle = 2.8;
-                    const glareT = (coverAnimTime % glareCycle);
-
-                    if (isCoverAnim) {
-                        if (glareT < 1.45) {
-                            const sweepProgress = glareT / 1.45;
-                            const easeProgress = sweepProgress < 0.5
-                                ? 2 * sweepProgress * sweepProgress
-                                : 1 - Math.pow(-2 * sweepProgress + 2, 2) / 2;
-
-                            const beamW = Math.round(cardW * 0.32);
-                            const slantOffset = cardH * 0.42;
-                            const totalDistance = cardW + slantOffset + (beamW * 2);
-                            const currentCenterX = cardX - beamW + (easeProgress * totalDistance);
-
-                            ctx.save();
-                            const glareGrad = ctx.createLinearGradient(
-                                currentCenterX - beamW, cardY,
-                                currentCenterX + beamW, cardY + cardH
-                            );
-                            glareGrad.addColorStop(0, 'rgba(255, 255, 255, 0)');
-                            glareGrad.addColorStop(0.25, 'rgba(0, 255, 102, 0.08)');
-                            glareGrad.addColorStop(0.44, 'rgba(255, 255, 255, 0.32)');
-                            glareGrad.addColorStop(0.50, 'rgba(255, 255, 255, 0.65)'); // Ligne blanche argentée intense
-                            glareGrad.addColorStop(0.56, 'rgba(255, 255, 255, 0.32)');
-                            glareGrad.addColorStop(0.75, 'rgba(0, 255, 102, 0.08)');
-                            glareGrad.addColorStop(1, 'rgba(255, 255, 255, 0)');
-
-                            ctx.fillStyle = glareGrad;
-                            ctx.beginPath();
-                            ctx.moveTo(currentCenterX - beamW, cardY);
-                            ctx.lineTo(currentCenterX + beamW, cardY);
-                            ctx.lineTo(currentCenterX + beamW - slantOffset, cardY + cardH);
-                            ctx.lineTo(currentCenterX - beamW - slantOffset, cardY + cardH);
-                            ctx.closePath();
-                            ctx.fill();
-                            ctx.restore();
-                        }
-                    } else {
-                        // Rendu statique (export image PNG) : liseré de reflet argenté discret
-                        const fixedX = cardX + cardW * 0.36;
-                        const beamW = Math.round(cardW * 0.22);
-                        const slantOffset = cardH * 0.42;
-                        ctx.save();
-                        const statGrad = ctx.createLinearGradient(
-                            fixedX - beamW, cardY,
-                            fixedX + beamW, cardY + cardH
-                        );
-                        statGrad.addColorStop(0, 'rgba(255, 255, 255, 0)');
-                        statGrad.addColorStop(0.46, 'rgba(255, 255, 255, 0.18)');
-                        statGrad.addColorStop(0.50, 'rgba(255, 255, 255, 0.38)');
-                        statGrad.addColorStop(0.54, 'rgba(255, 255, 255, 0.18)');
-                        statGrad.addColorStop(1, 'rgba(255, 255, 255, 0)');
-                        ctx.fillStyle = statGrad;
-                        ctx.beginPath();
-                        ctx.moveTo(fixedX - beamW, cardY);
-                        ctx.lineTo(fixedX + beamW, cardY);
-                        ctx.lineTo(fixedX + beamW - slantOffset, cardY + cardH);
-                        ctx.lineTo(fixedX - beamW - slantOffset, cardY + cardH);
-                        ctx.closePath();
-                        ctx.fill();
-                        ctx.restore();
                     }
 
                     ctx.restore();
@@ -7883,7 +7814,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     const centerX = canvas.width / 2;
 
                     // A) Track Number Pill (ex: "TRACK 01")
-                    const pillY = isStory ? 1180 : 790;
+                    const pillY = isStory ? 1190 : 800;
                     const trackNumText = `TRACK ${String(trackIdx + 1).padStart(2, '0')}`;
                     ctx.save();
                     if (!isStaticPngExport && textAnimation !== 'NONE') {
@@ -7907,8 +7838,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.fillText(trackNumText, centerX, pillY);
                     ctx.restore();
 
-                    // B) TITRE DU MORCEAU (Gros, blanc avec highlights + animations d'entrée fluides)
-                    const titleY = isStory ? 1275 : 850;
+                    // B) TITRE DU MORCEAU (Aéré avec espace respirable sous le numéro de track)
+                    const titleY = isStory ? 1300 : 880;
                     const titleText = currentTrack.title?.trim() || `TITRE DU MORCEAU`;
                     ctx.save();
                     let titleFontSize = isStory ? 52 : 38;
@@ -7953,14 +7884,14 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     }
                     ctx.restore();
 
-                    // C) ARTISTE (En vert néon gras italique)
-                    const artistY = isStory ? 1370 : 910;
+                    // C) ARTISTE (Agrandie & valorisée : vert néon gras italique bien visible)
+                    const artistY = isStory ? 1405 : 955;
                     const artistText = currentTrack.artist?.trim() || 'NOM DE L\'ARTISTE';
                     const artistUpper = artistText.toUpperCase();
                     ctx.save();
-                    let artistFontSize = isStory ? 36 : 26;
+                    let artistFontSize = isStory ? 48 : 36;
                     ctx.font = `800 italic ${artistFontSize}px "Montserrat", sans-serif`;
-                    while (ctx.measureText(artistUpper).width > contentWidth && artistFontSize > 18) {
+                    while (ctx.measureText(artistUpper).width > contentWidth && artistFontSize > 20) {
                         artistFontSize -= 2;
                         ctx.font = `800 italic ${artistFontSize}px "Montserrat", sans-serif`;
                     }
@@ -7986,7 +7917,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     // D) LABEL DISCOGRAPHIQUE (Badge capsule élégant si renseigné)
                     const labelRaw = currentTrack.label?.trim();
                     if (labelRaw) {
-                        const labelY = isStory ? 1465 : 970;
+                        const labelY = isStory ? 1505 : 1025;
                         const labelDisplay = `LABEL : ${labelRaw.toUpperCase()}`;
                         ctx.save();
                         if (!isStaticPngExport && textAnimation !== 'NONE') {
