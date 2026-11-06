@@ -975,7 +975,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     });
 
     const [top10Badge, setTop10Badge] = useState<string>('TOP 10 TRACKS');
-    const [top10Title, setTop10Title] = useState<string>('TOP 10 DES TRACKS LES PLUS STREAMÉES');
+    const [top10Title, setTop10Title] = useState<string>('ARTISTE • TOP 10 TRACKS');
     const [top10Subtitle, setTop10Subtitle] = useState<string>('FESTIVAL 2026');
     const [top10HasPromoOutro, setTop10HasPromoOutro] = useState<boolean>(true); // Outro Téléphone 3D à la fin
     const [top10TrackDuration, setTop10TrackDuration] = useState<number>(5.3); // 5.3s × 10 + 7s outro = 60s (1 min pile)
@@ -9536,12 +9536,18 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     // 1. Top-Left Badge Dropsiders (Effets News avec couleur bleu néon comme avant)
                     drawTopCapsuleBadge((top10BadgeRef.current || top10Badge || 'TOP 10 TRACKS').toUpperCase(), '#00f0ff', '0, 240, 255');
 
-                    // 2. Header Titre Principal (Identique à l'intro et synchronisé)
+                    // 2. Header Titre Principal (Artiste • Top 10 Tracks par défaut)
                     ctx.save();
                     ctx.textAlign = 'center';
                     ctx.textBaseline = 'middle';
 
-                    const t10Title = (top10IntroTitleRef.current || top10IntroTitle || top10TitleRef.current || top10Title || 'TOP 10 DES TRACKS LES PLUS STREAMÉES').toUpperCase();
+                    const countdownArtistName = (top10IntroArtistRef.current || top10IntroArtist || top10ArtistSearch || activeTrack.artist || 'ARTISTE').toUpperCase().trim();
+                    const defaultTracksTitle = `${countdownArtistName} • TOP 10 TRACKS`;
+                    const rawTracksTitle = (top10TitleRef.current || top10Title || '').trim();
+                    const t10Title = (rawTracksTitle && rawTracksTitle !== 'TOP 10 DES TRACKS LES PLUS STREAMÉES' && rawTracksTitle !== 'TOP 10 DES TRACKS LES PLUS JOUÉES'
+                        ? rawTracksTitle
+                        : defaultTracksTitle).toUpperCase();
+
                     let t10FontSize = 34;
                     ctx.font = `900 ${t10FontSize}px "Montserrat", sans-serif`;
                     if ('letterSpacing' in ctx) (ctx as any).letterSpacing = '3px';
@@ -9577,7 +9583,6 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.restore();
 
                     // 2b. Logo Officiel de l'Artiste (ou nom stylé) au-dessus de la place
-                    const countdownArtistName = (top10IntroArtistRef.current || top10IntroArtist || top10ArtistSearch || activeTrack.artist || 'ARTISTE').toUpperCase().trim();
                     const countdownLogoObj = artistLogoRef.current;
                     const countdownHasLogo = Boolean(artistLogo && artistLogo.trim() !== '' && !artistLogo.includes('JOHN-SUMMIT-GIVEAWAY') && countdownLogoObj && (countdownLogoObj.naturalWidth > 0 || countdownLogoObj.complete));
                     const logoAreaCenterY = 355;
@@ -19882,18 +19887,16 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                     <div className="space-y-1">
                         <label className="text-[8.5px] font-black text-gray-400 uppercase tracking-wider">
-                            Titre Principal
+                            Titre des Tracks (Slides #10 à #1)
                         </label>
                         <input
                             type="text"
                             value={top10Title}
                             onChange={e => {
-                                const val = e.target.value.toUpperCase();
-                                setTop10Title(val);
-                                setTop10IntroTitle(val);
+                                setTop10Title(e.target.value.toUpperCase());
                                 generateImage();
                             }}
-                            placeholder="TOP 10 DES TRACKS LES PLUS STREAMÉES"
+                            placeholder="ex: ARTISTE • TOP 10 TRACKS"
                             className="w-full bg-white/5 border border-white/10 rounded-xl p-2.5 text-white font-black uppercase text-[11px] focus:border-neon-cyan/50 outline-none"
                         />
                     </div>
@@ -20188,9 +20191,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 type="text"
                                 value={top10IntroTitle}
                                 onChange={e => {
-                                    const val = e.target.value.toUpperCase();
-                                    setTop10IntroTitle(val);
-                                    setTop10Title(val);
+                                    setTop10IntroTitle(e.target.value.toUpperCase());
                                     generateImage();
                                 }}
                                 placeholder="TOP 10 DES TRACKS LES PLUS STREAMÉES"
