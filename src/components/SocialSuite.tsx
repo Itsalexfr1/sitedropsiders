@@ -9201,8 +9201,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         let textArtistFontSize = isStory ? 94 : 70;
 
                         if (hasUploadedLogo && artistLogoObj) {
-                            const maxLogoW = isStory ? 760 : 540;
-                            const maxLogoH = isStory ? 240 : 170;
+                            const maxLogoW = isStory ? 840 : 580;
+                            const maxLogoH = isStory ? 280 : 190;
                             let lw = artistLogoObj.width;
                             let lh = artistLogoObj.height;
                             const ratio = Math.min(maxLogoW / lw, maxLogoH / lh);
@@ -9586,7 +9586,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         ctx.font = `900 ${t10FontSize}px "Montserrat", sans-serif`;
                     }
                     if (!isStaticPngExport && textAnimation !== 'NONE') {
-                        applyTextAnimCtx(ctx, 0.0, canvas.width / 2, 275, trackAnimTime);
+                        applyTextAnimCtx(ctx, 0.0, canvas.width / 2, 260, trackAnimTime);
                     }
 
                     ctx.textAlign = 'left';
@@ -9606,7 +9606,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         ctx.shadowOffsetX = 0;
                         ctx.shadowOffsetY = 6;
                         ctx.fillStyle = color;
-                        ctx.fillText(seg.text, trackCurX, 275);
+                        ctx.fillText(seg.text, trackCurX, 260);
                         ctx.restore();
 
                         // 2. Ombre de contact nette vers le bas
@@ -9616,7 +9616,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         ctx.shadowOffsetX = 0;
                         ctx.shadowOffsetY = 3;
                         ctx.fillStyle = color;
-                        ctx.fillText(seg.text, trackCurX, 275);
+                        ctx.fillText(seg.text, trackCurX, 260);
                         ctx.restore();
 
                         // 3. Lueur néon si bleu
@@ -9625,7 +9625,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             ctx.shadowColor = 'rgba(0, 240, 255, 0.85)';
                             ctx.shadowBlur = 16;
                             ctx.fillStyle = '#00f0ff';
-                            ctx.fillText(seg.text, trackCurX, 275);
+                            ctx.fillText(seg.text, trackCurX, 260);
                             ctx.restore();
                         }
 
@@ -9633,7 +9633,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         ctx.save();
                         ctx.shadowColor = 'transparent';
                         ctx.fillStyle = color;
-                        ctx.fillText(seg.text, trackCurX, 275);
+                        ctx.fillText(seg.text, trackCurX, 260);
                         ctx.restore();
 
                         trackCurX += segW;
@@ -9644,11 +9644,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     const countdownArtistName = (top10IntroArtistRef.current || top10IntroArtist || top10ArtistSearch || activeTrack.artist || 'ARTISTE').toUpperCase().trim();
                     const countdownLogoObj = artistLogoRef.current;
                     const countdownHasLogo = Boolean(artistLogo && artistLogo.trim() !== '' && !artistLogo.includes('JOHN-SUMMIT-GIVEAWAY') && countdownLogoObj && (countdownLogoObj.naturalWidth > 0 || countdownLogoObj.complete));
-                    const logoAreaCenterY = 358;
+                    const logoAreaCenterY = 352;
 
                     if (countdownHasLogo && countdownLogoObj) {
-                        const maxLogoW = 580;
-                        const maxLogoH = 98;
+                        const maxLogoW = 760;
+                        const maxLogoH = 125;
                         let lw = countdownLogoObj.width;
                         let lh = countdownLogoObj.height;
                         const ratio = Math.min(maxLogoW / lw, maxLogoH / lh);
@@ -9675,10 +9675,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         }
                         ctx.textAlign = 'center';
                         ctx.textBaseline = 'middle';
-                        let aFontSize = 38;
+                        let aFontSize = 44;
                         ctx.font = `900 italic ${aFontSize}px "Montserrat", sans-serif`;
                         if ('letterSpacing' in ctx) (ctx as any).letterSpacing = '3px';
-                        while (ctx.measureText(countdownArtistName).width > 750 && aFontSize > 22) {
+                        while (ctx.measureText(countdownArtistName).width > 820 && aFontSize > 22) {
                             aFontSize -= 2;
                             ctx.font = `900 italic ${aFontSize}px "Montserrat", sans-serif`;
                         }
@@ -9694,7 +9694,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     const badgeW = 320;
                     const badgeH = 70;
                     const badgeX = (canvas.width - badgeW) / 2;
-                    const badgeY = 435;
+                    const badgeY = 440;
 
                     if (!isStaticPngExport && textAnimation !== 'NONE') {
                         applyTextAnimCtx(ctx, 0.08, canvas.width / 2, badgeY + badgeH / 2, trackAnimTime);
