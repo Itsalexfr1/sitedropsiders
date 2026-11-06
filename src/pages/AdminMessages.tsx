@@ -2063,11 +2063,8 @@ Alex (Dropsiders)`;
                                             alt="Dropsiders" 
                                             className="h-9 sm:h-10 w-auto mx-auto mb-3 drop-shadow-[0_0_20px_rgba(0,255,255,0.6)]" 
                                         />
-                                        <div className="inline-block px-3.5 py-1 rounded-full bg-neon-cyan/15 border border-neon-cyan/40 text-neon-cyan text-[10px] font-black uppercase tracking-[1.5px] mb-2.5">
-                                            📤 Message Envoyé
-                                        </div>
                                         <h3 className="text-lg sm:text-xl font-black text-white uppercase tracking-wider leading-snug">
-                                            Envoyé par <span className="text-neon-cyan">{selectedSent.signer || 'Dropsiders'}</span>
+                                            Message envoyé par <span className="text-neon-cyan">{selectedSent.signer || 'Dropsiders'}</span>
                                         </h3>
                                     </div>
 

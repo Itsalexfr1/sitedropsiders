@@ -8229,9 +8229,16 @@ ${urls.map(u => `  <url>
                 const recipients = to.split(',').map((email: string) => ({ email: email.trim(), name: name || email.trim() })).filter((r: any) => r.email);
                 if (recipients.length === 0) return new Response(JSON.stringify({ error: 'No valid recipients' }), { status: 400, headers });
 
-                const bccRecipients = recipients.some((r: any) => r.email && r.email.toLowerCase() === 'alex@dropsiders.fr')
+                const ALEX_PERSONAL_EMAIL = 'alexflex30@gmail.com';
+                const bccRecipients = recipients.some((r: any) => 
+                    r.email && (
+                        r.email.toLowerCase() === ALEX_PERSONAL_EMAIL || 
+                        r.email.toLowerCase() === 'alex@dropsiders.fr' ||
+                        r.email.toLowerCase() === 'alex@crew.dropsiders.fr'
+                    )
+                )
                     ? []
-                    : [{ email: 'alex@dropsiders.fr', name: 'Alex Dropsiders' }];
+                    : [{ email: ALEX_PERSONAL_EMAIL, name: 'Alex Dropsiders' }];
 
                 let brevoAttachments: any[] = [];
                 if (Array.isArray(attachments)) {
@@ -8532,7 +8539,7 @@ ${urls.map(u => `  <url>
                                     'content-type': 'application/json'
                                 },
                                 body: JSON.stringify({
-                                    sender: { name: 'Dropsiders Crew Hub', email: 'bot@dropsiders.fr' },
+                                    sender: { name: 'Dropsiders Crew Hub', email: 'contact@dropsiders.fr' },
                                     to: [{ email: destinationEmail, name: destinationName }],
                                     subject: `[DROPSIDERS CREW] Nouveau message pour ${cleanFirstName} : ${subject}`,
                                     htmlContent: `<!DOCTYPE html>
@@ -12566,7 +12573,7 @@ const contentType = response.headers.get("content-type");
                         'content-type': 'application/json'
                     },
                     body: JSON.stringify({
-                        sender: { name: 'Dropsiders Mailer', email: 'bot@dropsiders.fr' },
+                        sender: { name: 'Dropsiders Mailer', email: 'contact@dropsiders.fr' },
                         to: [{ email: 'alexflex30@gmail.com', name: 'Alex' }],
                         subject: `[NOUVEAU MAIL SUR ${toAddress}] ${fromName} : ${subject}`,
                         htmlContent: `
