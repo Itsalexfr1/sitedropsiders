@@ -979,7 +979,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const [top10Subtitle, setTop10Subtitle] = useState<string>('FESTIVAL 2026');
     const [top10HasPromoOutro, setTop10HasPromoOutro] = useState<boolean>(true); // Outro Téléphone 3D à la fin
     const [top10TrackDuration, setTop10TrackDuration] = useState<number>(5.3); // 5.3s × 10 + 7s outro = 60s (1 min pile)
-    const [top10ActiveRank, setTop10ActiveRank] = useState<number>(10);
+    const [top10ActiveRank, setTop10ActiveRank] = useState<number>(0); // 0 = Slide 1: INTRO par défaut
     const top10TracksRef = useRef<Top10TrackItem[]>(top10Tracks);
     top10TracksRef.current = top10Tracks;
     const top10ActiveRankRef = useRef<number>(top10ActiveRank);
@@ -1308,6 +1308,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         setIsAutoFillingTop10(true);
         setTop10Title('TOP 10 TRACKS');
         setTop10IntroArtist(cleaned);
+        setTop10ActiveRank(0);
+        top10ActiveRankRef.current = 0;
 
         try {
             const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(cleaned)}&entity=song&limit=30`);
@@ -9168,45 +9170,50 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         });
 
                         const titleLineHeight = titleFontSize * 1.15;
-                        const titleStartY = centerY - (isStory ? 60 : 40) - ((titleLines.length - 1) * titleLineHeight) / 2;
+                        const titleBlockH = (titleLines.length - 1) * titleLineHeight;
 
-                        // A. Tag Pill au-dessus du titre (comme "OCTOBRE • 2026")
-                        const tagText = 'TOP 10 • STREAMING';
-                        const tagY = titleStartY - (isStory ? 110 : 80);
+                        // C. LOGO OFFICIEL UPLOADÉ OU NOM DE L'ARTISTE EN GROS EN BLEU NÉON
+                        const effectiveArtistName = (top10IntroArtistRef.current || top10IntroArtist || top10ArtistSearch || 'ARTISTE').toUpperCase().trim();
+                        const artistLogoObj = artistLogoRef.current;
+                        const hasUploadedLogo = Boolean(artistLogo && artistLogo.trim() !== '' && !artistLogo.includes('JOHN-SUMMIT-GIVEAWAY') && artistLogoObj && (artistLogoObj.naturalWidth > 0 || artistLogoObj.complete));
 
-                        ctx.save();
-                        if (!isStaticPngExport && textAnimation !== 'NONE') {
-                            applyTextAnimCtx(ctx, 0.16, centerX, tagY, introAnimTime);
+                        let logoW = 0;
+                        let logoH = 0;
+                        let textArtistFontSize = isStory ? 94 : 70;
+
+                        if (hasUploadedLogo && artistLogoObj) {
+                            const maxLogoW = isStory ? 650 : 480;
+                            const maxLogoH = isStory ? 190 : 140;
+                            let lw = artistLogoObj.width;
+                            let lh = artistLogoObj.height;
+                            const ratio = Math.min(maxLogoW / lw, maxLogoH / lh);
+                            logoW = Math.round(lw * ratio);
+                            logoH = Math.round(lh * ratio);
+                        } else {
+                            ctx.save();
+                            ctx.font = `900 italic ${textArtistFontSize}px "Montserrat", sans-serif`;
+                            if ('letterSpacing' in ctx) (ctx as any).letterSpacing = '2px';
+                            while (ctx.measureText(effectiveArtistName).width > (canvas.width - 120) && textArtistFontSize > 36) {
+                                textArtistFontSize -= 2;
+                                ctx.font = `900 italic ${textArtistFontSize}px "Montserrat", sans-serif`;
+                            }
+                            ctx.restore();
                         }
-                        ctx.font = '900 italic 16px "Montserrat", sans-serif';
-                        if ('letterSpacing' in ctx) (ctx as any).letterSpacing = '3px';
-                        const tagW = ctx.measureText(tagText).width;
-                        const tagPillW = Math.max(180, Math.ceil(tagW + 40));
-                        const tagPillH = 38;
 
-                        ctx.shadowColor = 'rgba(0, 240, 255, 0.55)';
-                        ctx.shadowBlur = 15;
-                        ctx.fillStyle = 'rgba(15, 12, 18, 0.88)';
-                        ctx.strokeStyle = '#00f0ff';
-                        ctx.lineWidth = 2;
-                        ctx.beginPath();
-                        ctx.roundRect(centerX - tagPillW / 2, tagY - tagPillH / 2, tagPillW, tagPillH, tagPillH / 2);
-                        ctx.fill();
-                        ctx.stroke();
-
-                        ctx.shadowColor = 'transparent';
-                        ctx.fillStyle = '#00f0ff';
-                        ctx.textAlign = 'center';
-                        ctx.textBaseline = 'middle';
-                        ctx.fillText(tagText, centerX, tagY + 1);
-                        ctx.restore();
+                        // Recentrage vertical parfait de la composition complète autour de centerY
+                        const gap1 = isStory ? 100 : 75;
+                        const gap2 = isStory ? 100 : 75;
+                        const totalContentSpan = titleBlockH + gap1 + gap2;
+                        const titleStartY = centerY - (totalContentSpan / 2);
+                        const artistCenterY = titleStartY + titleBlockH + gap1;
+                        const pillY = artistCenterY + gap2;
 
                         // Tracé des lignes du titre blanc (TOP 10 DES TRACKS / LES PLUS STREAMÉES) avec effet d'ombre prononcé
                         titleLines.forEach((line, idx) => {
                             const lineY = titleStartY + idx * titleLineHeight;
                             ctx.save();
                             if (!isStaticPngExport && textAnimation !== 'NONE') {
-                                applyTextAnimCtx(ctx, 0.28 + idx * 0.10, centerX, lineY, introAnimTime);
+                                applyTextAnimCtx(ctx, 0.20 + idx * 0.10, centerX, lineY, introAnimTime);
                             }
 
                             // 1. Ombre portée profonde diffuse
@@ -9234,29 +9241,14 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         });
                         ctx.restore();
 
-                        // C. LOGO OFFICIEL UPLOADÉ OU NOM DE L'ARTISTE EN GROS EN BLEU NÉON
-                        const effectiveArtistName = (top10IntroArtistRef.current || top10IntroArtist || top10ArtistSearch || 'ARTISTE').toUpperCase().trim();
-                        const artistLogoObj = artistLogoRef.current;
-                        const hasUploadedLogo = Boolean(artistLogo && artistLogo.trim() !== '' && !artistLogo.includes('JOHN-SUMMIT-GIVEAWAY') && artistLogoObj && (artistLogoObj.naturalWidth > 0 || artistLogoObj.complete));
-
-                        let pillY = 0;
-
                         if (hasUploadedLogo && artistLogoObj) {
                             // ➔ LE LOGO UPLOADÉ PREND LE DESSUS ABSOLU SUR L'ÉCRITURE DU NOM
-                            const logoAreaCenterY = titleStartY + (titleLines.length * titleLineHeight) + (isStory ? 80 : 55);
-                            const maxLogoW = isStory ? 650 : 480;
-                            const maxLogoH = isStory ? 190 : 140;
-                            let lw = artistLogoObj.width;
-                            let lh = artistLogoObj.height;
-                            const ratio = Math.min(maxLogoW / lw, maxLogoH / lh);
-                            lw = Math.round(lw * ratio);
-                            lh = Math.round(lh * ratio);
-                            const lx = (canvas.width - lw) / 2;
-                            const ly = logoAreaCenterY - (lh / 2);
+                            const lx = (canvas.width - logoW) / 2;
+                            const ly = artistCenterY - (logoH / 2);
 
                             ctx.save();
                             if (!isStaticPngExport && textAnimation !== 'NONE') {
-                                applyTextAnimCtx(ctx, 0.28 + titleLines.length * 0.10, centerX, logoAreaCenterY, introAnimTime);
+                                applyTextAnimCtx(ctx, 0.20 + titleLines.length * 0.10, centerX, artistCenterY, introAnimTime);
                             }
 
                             ctx.shadowColor = 'rgba(0, 240, 255, 0.85)';
@@ -9265,28 +9257,18 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             if (isArtistLogoNegative) {
                                 ctx.filter = 'brightness(0) invert(1)';
                             }
-                            ctx.drawImage(artistLogoObj, lx, ly, lw, lh);
+                            ctx.drawImage(artistLogoObj, lx, ly, logoW, logoH);
                             ctx.restore();
-
-                            pillY = logoAreaCenterY + (lh / 2) + (isStory ? 60 : 45);
                         } else {
                             // ➔ PAS DE LOGO : NOM DE L'ARTISTE EN GROS EN BLEU NÉON
-                            let artistFontSize = isStory ? 94 : 70;
-                            ctx.font = `900 italic ${artistFontSize}px "Montserrat", sans-serif`;
-                            if ('letterSpacing' in ctx) (ctx as any).letterSpacing = '2px';
-                            while (ctx.measureText(effectiveArtistName).width > (canvas.width - 120) && artistFontSize > 36) {
-                                artistFontSize -= 2;
-                                ctx.font = `900 italic ${artistFontSize}px "Montserrat", sans-serif`;
-                            }
-
-                            const artistY = titleStartY + (titleLines.length * titleLineHeight) + (isStory ? 18 : 12);
-
                             ctx.save();
                             if (!isStaticPngExport && textAnimation !== 'NONE') {
-                                applyTextAnimCtx(ctx, 0.28 + titleLines.length * 0.10, centerX, artistY, introAnimTime);
+                                applyTextAnimCtx(ctx, 0.20 + titleLines.length * 0.10, centerX, artistCenterY, introAnimTime);
                             }
                             ctx.textAlign = 'center';
                             ctx.textBaseline = 'middle';
+                            ctx.font = `900 italic ${textArtistFontSize}px "Montserrat", sans-serif`;
+                            if ('letterSpacing' in ctx) (ctx as any).letterSpacing = '2px';
 
                             // Deep 3D Shadow
                             ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
@@ -9294,7 +9276,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             ctx.shadowOffsetX = 0;
                             ctx.shadowOffsetY = 6;
                             ctx.fillStyle = '#00f0ff';
-                            ctx.fillText(effectiveArtistName, centerX, artistY);
+                            ctx.fillText(effectiveArtistName, centerX, artistCenterY);
 
                             // Intense Neon Blue / Cyan Glow
                             ctx.shadowColor = 'rgba(0, 240, 255, 0.90)';
@@ -9302,17 +9284,15 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             ctx.shadowOffsetX = 0;
                             ctx.shadowOffsetY = 0;
                             ctx.fillStyle = '#00f0ff';
-                            ctx.fillText(effectiveArtistName, centerX, artistY);
+                            ctx.fillText(effectiveArtistName, centerX, artistCenterY);
 
                             ctx.restore();
-
-                            pillY = artistY + (isStory ? 160 : 110);
                         }
 
                         // D. Pill cyber subtile "🔥 COUNTDOWN DU #10 AU #1"
                         ctx.save();
                         if (!isStaticPngExport && textAnimation !== 'NONE') {
-                            applyTextAnimCtx(ctx, 0.58, centerX, pillY, introAnimTime);
+                            applyTextAnimCtx(ctx, 0.45, centerX, pillY, introAnimTime);
                         }
                         const pillLabel = '🔥 COUNTDOWN DU #10 AU #1';
                         ctx.font = '800 italic 20px "Montserrat", sans-serif';
