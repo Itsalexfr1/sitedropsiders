@@ -8743,19 +8743,19 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     let isPodium = false;
 
                     if (activeRank === 1) {
-                        rankColor = '#ffd700'; // Gold Champion
+                        rankColor = '#ffd700'; // Gold
                         rankColorRgb = '255, 215, 0';
-                        rankTitle = '👑 CHAMPION N° 1';
+                        rankTitle = '👑 N° 1';
                         isPodium = true;
                     } else if (activeRank === 2) {
                         rankColor = '#e0e0e0'; // Silver
                         rankColorRgb = '224, 224, 224';
-                        rankTitle = '🥈 PODIUM N° 2';
+                        rankTitle = '🥈 N° 2';
                         isPodium = true;
                     } else if (activeRank === 3) {
                         rankColor = '#cd7f32'; // Bronze
                         rankColorRgb = '205, 127, 50';
-                        rankTitle = '🥉 PODIUM N° 3';
+                        rankTitle = '🥉 N° 3';
                         isPodium = true;
                     }
 
@@ -8901,10 +8901,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.fillRect(0, canvas.height - 420, canvas.width, 420);
                     ctx.restore();
 
-                    // 2. Top-Left Badge Dropsiders
-                    drawTopCapsuleBadge('TOP 10 COUNTDOWN', rankColor, rankColorRgb);
-
-                    // 3. Header Titre + Sous-Titre
+                    // 2. Header Titre Principal (Aéré et descendu pour ne pas coller au logo)
                     ctx.save();
                     ctx.textAlign = 'center';
                     ctx.textBaseline = 'middle';
@@ -8915,23 +8912,15 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.fillStyle = '#ffffff';
                     ctx.shadowColor = 'rgba(0,0,0,0.9)';
                     ctx.shadowBlur = 12;
-                    ctx.fillText(t10Title, canvas.width / 2, 230);
-
-                    const t10Subtitle = (top10SubtitleRef.current || top10Subtitle || 'FESTIVAL 2026').toUpperCase();
-                    ctx.font = '800 18px "Montserrat", sans-serif';
-                    if ('letterSpacing' in ctx) (ctx as any).letterSpacing = '4px';
-                    ctx.fillStyle = rankColor;
-                    ctx.shadowColor = `rgba(${rankColorRgb}, 0.7)`;
-                    ctx.shadowBlur = 15;
-                    ctx.fillText(t10Subtitle, canvas.width / 2, 275);
+                    ctx.fillText(t10Title, canvas.width / 2, 285);
                     ctx.restore();
 
-                    // 4. Rank Badge au-dessus de la vidéo
+                    // 3. Rank Badge au-dessus de la vidéo
                     ctx.save();
                     const badgeW = 280;
                     const badgeH = 64;
                     const badgeX = (canvas.width - badgeW) / 2;
-                    const badgeY = 340;
+                    const badgeY = 370;
 
                     ctx.fillStyle = 'rgba(10, 12, 18, 0.85)';
                     ctx.beginPath();
@@ -8953,10 +8942,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.fillText(rankTitle, canvas.width / 2, badgeY + badgeH / 2);
                     ctx.restore();
 
-                    // 5. Cadre Pochette Carrée 1:1 au Centre
+                    // 4. Cadre Pochette Carrée 1:1 au Centre (Descendu avec espace généreux)
                     const cardSize = 660;
                     const cardX = Math.round((canvas.width - cardSize) / 2); // 210px
-                    const cardY = 410;
+                    const cardY = 475;
                     const cardR = 28;
 
                     // A) Halo d'ambiance vibrant derrière la pochette
@@ -9130,7 +9119,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.shadowColor = hasArtist ? 'rgba(0, 0, 0, 0.95)' : 'transparent';
                     ctx.shadowBlur = hasArtist ? 18 : 0;
                     ctx.shadowOffsetY = 4;
-                    ctx.fillText(artistStr, canvas.width / 2, 1145);
+                    ctx.fillText(artistStr, canvas.width / 2, 1225);
 
                     const hasTitle = Boolean(activeTrack.title?.trim());
                     const titleStr = (activeTrack.title || 'TITRE DU MORCEAU').toUpperCase();
@@ -9145,13 +9134,13 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.fillStyle = hasTitle ? rankColor : `rgba(${rankColorRgb}, 0.35)`;
                     ctx.shadowColor = hasTitle ? `rgba(${rankColorRgb}, 0.75)` : 'transparent';
                     ctx.shadowBlur = hasTitle ? 24 : 0;
-                    ctx.fillText(titleStr, canvas.width / 2, 1215);
+                    ctx.fillText(titleStr, canvas.width / 2, 1300);
                     ctx.restore();
 
                     // 7. Visualiseur Waveform Audio Animé
                     ctx.save();
                     const waveBars = 32;
-                    const waveCenterY = 1310;
+                    const waveCenterY = 1395;
                     const waveMaxH = 70;
                     const waveTotalW = 600;
                     const waveBarW = 10;
@@ -11723,11 +11712,13 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         const tr = currentTracks.find(t => Number(t.rank) === Number(rank));
                         const aUrl = tr?.audioUrl || (tr?.videoUrl && tr.videoUrl.match(/\.(mp3|m4a|aac|wav|ogg)/i) ? tr.videoUrl : '');
                         if (aUrl) {
+                            // Pour le track N° 1 (à 53s), laisser son morceau continuer sous l'outro promo téléphone 3D (+7.0s = 12.3s jusqu'à la fin 60s)
+                            const trackDuration = rank === 1 ? (singleDur + 7.0) : singleDur;
                             audioSegments.push({
                                 url: aUrl,
                                 startOffset: i * singleDur,
                                 sourceOffset: tr?.audioStartTime || tr?.videoStartTime || 0,
-                                duration: singleDur
+                                duration: trackDuration
                             });
                         }
                     }
@@ -11746,15 +11737,19 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         validSegCount++;
                         const src = offCtx.createBufferSource();
                         src.buffer = buf;
-                        // Gain micro-fondu anti-clic (identique à startBufferSegment)
                         const gain = offCtx.createGain();
                         const t0 = seg.startOffset;
-                        gain.gain.setValueAtTime(0, t0);
-                        gain.gain.linearRampToValueAtTime(1, t0 + 0.04);
-                        src.connect(gain);
-                        gain.connect(offCtx.destination);
                         const offset = Math.min(Math.max(0, seg.sourceOffset), Math.max(0, buf.duration - 0.05));
                         const segDur = seg.duration ? Math.min(seg.duration, Math.max(0, totalSec - t0)) : (totalSec - t0);
+                        const tEnd = t0 + segDur;
+
+                        gain.gain.setValueAtTime(0, t0);
+                        gain.gain.linearRampToValueAtTime(1, t0 + 0.04);
+                        gain.gain.setValueAtTime(1, Math.max(t0 + 0.05, tEnd - 0.08));
+                        gain.gain.linearRampToValueAtTime(0, tEnd);
+
+                        src.connect(gain);
+                        gain.connect(offCtx.destination);
                         src.start(t0, offset, segDur);
                     }
 
@@ -18837,21 +18832,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         />
                     </div>
 
-                    <div className="space-y-1">
-                        <label className="text-[8.5px] font-black text-gray-400 uppercase tracking-wider">
-                            Sous-Titre / Événement
-                        </label>
-                        <input
-                            type="text"
-                            value={top10Subtitle}
-                            onChange={e => {
-                                setTop10Subtitle(e.target.value.toUpperCase());
-                                generateImage();
-                            }}
-                            placeholder="FESTIVAL 2026"
-                            className="w-full bg-white/5 border border-white/10 rounded-xl p-2.5 text-white font-bold uppercase text-[11px] focus:border-neon-cyan/50 outline-none"
-                        />
-                    </div>
+
 
                     {/* Durée strictement fixe à 1 minute pile (60s) */}
                     <div className="p-3 bg-neon-cyan/10 border border-neon-cyan/30 rounded-xl space-y-1">
@@ -18917,7 +18898,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     <div className="flex items-center justify-between pb-1 border-b border-white/10">
                         <div className="flex items-center gap-2">
                             <span className={`text-[14px] font-black font-mono ${podiumColor}`}>
-                                {activeTrack.rank === 1 ? '👑 N° 1 CHAMPION' : activeTrack.rank === 2 ? '🥈 N° 2 PODIUM' : activeTrack.rank === 3 ? '🥉 N° 3 PODIUM' : `POSITION #${activeTrack.rank}`}
+                                {activeTrack.rank === 1 ? '👑 POSITION #1' : activeTrack.rank === 2 ? '🥈 POSITION #2' : activeTrack.rank === 3 ? '🥉 POSITION #3' : `POSITION #${activeTrack.rank}`}
                             </span>
                         </div>
                         <div className="flex items-center gap-2.5">
