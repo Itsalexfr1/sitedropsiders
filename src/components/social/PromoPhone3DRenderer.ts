@@ -49,6 +49,7 @@ export interface PromoPhone3DOptions {
     imageCache: Record<string, HTMLImageElement>;
     socialProfiles?: PromoSocialProfiles;
     previewNetwork?: 'INSTAGRAM' | 'TIKTOK' | 'YOUTUBE';
+    cycleDuration?: number;
 }
 
 // Couleurs dégradé officiel Stories Instagram
@@ -1246,10 +1247,10 @@ export function renderPromoPhone3D(opts: PromoPhone3DOptions) {
 
     renderStatusBar(ctx, screenX, screenY, screenW, s);
 
-    // Cycle 10s
-    const cycleTotal = 10.0;
+    // Cycle adapté (7.0s pour Outro Reel / Top 10, ou 10.0s pour Promo Post)
+    const cycleTotal = opts.cycleDuration || (isReel ? 7.0 : 10.0);
     const slotDuration = cycleTotal / 3;
-    const transDuration = 0.52;
+    const transDuration = Math.min(0.50, slotDuration * 0.22);
 
     let rawIdx = 0;
     let transitionProgress = 0;

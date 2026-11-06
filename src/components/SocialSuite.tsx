@@ -4954,8 +4954,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             ctx,
                             canvas,
                             isReel,
-                            tAnim: isStaticPreview ? 10.0 : animElapsed,
+                            tAnim: isStaticPreview ? 0 : animElapsed,
                             isStaticPreview,
+                            cycleDuration: isReel ? 7.0 : 10.0,
                             activeColor,
                             effectiveHeadline,
                             effectiveSubphrase,
@@ -12590,7 +12591,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     }
                 }
                 prevVideo = currentV;
-                await renderDuration(singleTrackMs, i * singleTrackDur);
+                await renderDuration(singleTrackMs, 0);
             }
             if (prevVideo) {
                 try { prevVideo.pause(); prevVideo.muted = true; } catch (_) { }
@@ -12599,7 +12600,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             // OUTRO TÉLÉPHONE 3D AUTOMATIQUE (7.0s) : TOTAL 1 MINUTE PILE (60S)
             promoOutroOverrideRef.current = true;
             animStartTimeRef.current = Date.now();
-            await renderDuration(7000, 53.0);
+            await renderDuration(7000, 0);
         } else {
             if (theme === 'MUSIQUE' && musicAudioEl) {
                 let singleAudioUrl = '';
