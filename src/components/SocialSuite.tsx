@@ -1007,6 +1007,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const top10IntroArtistRef = useRef<string>(top10IntroArtist);
     top10IntroArtistRef.current = top10IntroArtist;
 
+    // Mots à mettre en bleu néon (#00F0FF) dans les titres
+    const [top10ColoredWords, setTop10ColoredWords] = useState<string>('TOP 10, STREAMÉES, JOUÉES');
+    const top10ColoredWordsRef = useRef<string>(top10ColoredWords);
+    top10ColoredWordsRef.current = top10ColoredWords;
+
     // Recherche automatique Web de logo artiste (PNG détouré)
     const [top10LogoSearchResults, setTop10LogoSearchResults] = useState<Array<{ title: string; url: string; previewUrl: string }>>([]);
     const [isSearchingTop10Logo, setIsSearchingTop10Logo] = useState<boolean>(false);
@@ -9048,9 +9053,27 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     const currentTracks = (top10TracksRef.current && top10TracksRef.current.length === 10) ? top10TracksRef.current : top10Tracks;
                     const currentActiveRank = top10ActiveRankRef.current ?? top10ActiveRank;
 
-                    // Découpeur de titre pour mettre en bleu néon "TOP 10" et les mots "STREAM..." (ex: STREAMÉES entier avec accents)
+                    // Découpeur de titre pour mettre en bleu néon "TOP 10", "STREAMÉES", "JOUÉES", les mots choisis par l'utilisateur ou ceux entourés d'*astérisques*
                     const parseTop10TitleSegments = (lineText: string): { text: string; isBlue: boolean }[] => {
-                        const regex = /(TOP\s*10|\bSTREAM\S*)/gi;
+                        const customList = (top10ColoredWordsRef.current || top10ColoredWords || 'TOP 10, STREAMÉES, JOUÉES')
+                            .split(',')
+                            .map(s => s.trim().toUpperCase())
+                            .filter(Boolean);
+
+                        const escapedWords = customList
+                            .map(w => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
+                            .sort((a, b) => b.length - a.length);
+
+                        const patternParts: string[] = ['\\*([^*]+)\\*'];
+                        if (escapedWords.length > 0) {
+                            patternParts.push(`(?<=^|[^\\p{L}\\p{N}])(?:${escapedWords.join('|')})(?=$|[^\\p{L}\\p{N}])`);
+                        } else {
+                            patternParts.push('TOP\\s*10');
+                            patternParts.push('\\bSTREAM\\S*');
+                            patternParts.push('\\bJOU\\S*');
+                        }
+
+                        const regex = new RegExp(`(${patternParts.join('|')})`, 'gui');
                         const segs: { text: string; isBlue: boolean }[] = [];
                         let lastIndex = 0;
                         let match: RegExpExecArray | null;
@@ -9059,7 +9082,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             if (match.index > lastIndex) {
                                 segs.push({ text: lineText.slice(lastIndex, match.index), isBlue: false });
                             }
-                            segs.push({ text: match[0], isBlue: true });
+                            let matchedText = match[0];
+                            if (matchedText.startsWith('*') && matchedText.endsWith('*')) {
+                                matchedText = matchedText.slice(1, -1);
+                            }
+                            segs.push({ text: matchedText, isBlue: true });
                             lastIndex = regex.lastIndex;
                         }
                         if (lastIndex < lineText.length) {
@@ -9165,8 +9192,17 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         let titleLines: string[] = [];
                         if (rawIntroTitle.includes('\n')) {
                             titleLines = rawIntroTitle.split('\n').map(l => l.trim()).filter(Boolean);
-                        } else if (rawIntroTitle.includes('LES PLUS STREAMÉES')) {
-                            titleLines = ['TOP 10 DES TRACKS', 'LES PLUS STREAMÉES'];
+                        } else if (rawIntroTitle.includes('LES PLUS')) {
+                            const idx = rawIntroTitle.indexOf('LES PLUS');
+                            const part1 = rawIntroTitle.slice(0, idx).trim();
+                            const part2 = rawIntroTitle.slice(idx).trim();
+                            if (part1 && part2) {
+                                titleLines = [part1, part2];
+                            } else {
+                                const words = rawIntroTitle.split(' ');
+                                const mid = Math.ceil(words.length / 2);
+                                titleLines = [words.slice(0, mid).join(' '), words.slice(mid).join(' ')];
+                            }
                         } else if (rawIntroTitle.length > 18 && rawIntroTitle.includes(' ')) {
                             const words = rawIntroTitle.split(' ');
                             const mid = Math.ceil(words.length / 2);
@@ -9183,7 +9219,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         if ('letterSpacing' in ctx) (ctx as any).letterSpacing = '1px';
 
                         titleLines.forEach(l => {
-                            while (ctx.measureText(l).width > (canvas.width - 120) && titleFontSize > 36) {
+                            const cleanL = l.replace(/\*/g, '');
+                            while (ctx.measureText(cleanL).width > (canvas.width - 120) && titleFontSize > 36) {
                                 titleFontSize -= 2;
                                 ctx.font = `900 italic ${titleFontSize}px "Montserrat", sans-serif`;
                             }
@@ -9580,7 +9617,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     let t10FontSize = 34;
                     ctx.font = `900 ${t10FontSize}px "Montserrat", sans-serif`;
                     if ('letterSpacing' in ctx) (ctx as any).letterSpacing = '3px';
-                    let t10W = ctx.measureText(t10Title).width;
+                    let t10W = ctx.measureText(t10Title.replace(/\*/g, '')).width;
                     if (t10W > 920) {
                         t10FontSize = Math.max(22, Math.floor(t10FontSize * (920 / t10W)));
                         ctx.font = `900 ${t10FontSize}px "Montserrat", sans-serif`;
@@ -11315,7 +11352,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             anim = requestAnimationFrame(loop);
         } else { generateImage(); }
         return () => cancelAnimationFrame(anim);
-    }, [bgImage, bgVideo, customText, theme, showSwipe, showArticleLink, articleLinkText, showVoteLink, top5Items, currentPreviewIndex, activeTab, rotation, themeColor, isVideoRecording, transitionProgress, showText, planningDate, planningItems, agendaMonth, agendaBadgeText, agendaSlide, agendaCoverBadge, agendaCoverTitle, agendaCoverYear, agendaCoverGenres, agendaCoverCta, showAgendaCoverCta, artisteFestivalSlide, eventsSlide, editorialSlide, isEditorialAfficheActive, isEditorialTweetActive, showTitleOnSlide2, showMusicDate, editorialDate, showDividerDate, citationAuthor, citationMedia, extraEditorialSlides, musicTracks, top10Tracks, top10ActiveRank, top10Title, top10IntroTitle, top10IntroArtist, top10Subtitle, top10TrackDuration, top10TestingRank, calendarMonth, calendarEvents, isRetouchMode, retouchPath, isTransparent, showBottomLogo, artistLogo, festivalLogo, bgOffsetX, bgOffsetY, artistNameText, festivalNameText, isArtistLogoNegative, mapFestivalText, mapCityCountry, mapZoom, mapLatitude, mapLongitude, mapStyle, isMapLoading, mapPinColor, mapLabelText, showMapPin, showMapLabel, mapAnimMode, isMapAnimPlaying, mapScrubTime, mapAnimDuration, mapDestLatitude, mapDestLongitude, mapDestFestivalText, mapDestVenue, mapDestCity, mapDestCountry, mapDestPinColor, imgLayoutMode, quizColor1, quizColor2, showFrame, conseilsTitle, conseilsSubtext, isConseilsLargeTitle, concoursFestivalName, concoursFestivalHandle, concoursBottomColor, concoursLateralText, concoursLateralOpacity, concoursBadgeTextColor, concoursMode, concoursGTAHeadline, concoursGTATitle, concoursGTAPlatformText, concoursGTACondition1, concoursGTACondition2, concoursGTACondition3, concoursGTACondition4, afficheImage, afficheGlow, afficheBorderColor, afficheMode, afficheScale, afficheOffsetY, tweetImage, tweetScale, tweetOffsetY, tweetGlow, tweetHeadline, tweetBadge, tweetBorderColor, tweetTranslation, showTweetTranslation, tweetAnimMode, textAnimation, animReplayKey, bgAnimation, cdjPlayerRing, musicBgMotion, isCarouselPromoActive, promoCustomPhrase, promoCustomSubphrase, promoOutroStyle, isPromoAnimPlaying, promoCategory, showPromoHook, showPromoHeadline, showPromoLine1, showPromoLine2, djCutoutImage, djOriginalImage, djSilhouetteColor, djGlowIntensity, djShowQuestionMark, djAppearanceAnim, editorialSlideImages, editorialSlideCutouts, editorialSlideTitles, djSlideModes, agendaAffiches, highlightsSlideArtists, highlightsColorArtist, highlightsColorFestival, highlightsColorCity, highlightsColorCountry, highlightsColorDate, afficheImgZoom, afficheImgPanX, afficheImgPanY]);
+    }, [bgImage, bgVideo, customText, theme, showSwipe, showArticleLink, articleLinkText, showVoteLink, top5Items, currentPreviewIndex, activeTab, rotation, themeColor, isVideoRecording, transitionProgress, showText, planningDate, planningItems, agendaMonth, agendaBadgeText, agendaSlide, agendaCoverBadge, agendaCoverTitle, agendaCoverYear, agendaCoverGenres, agendaCoverCta, showAgendaCoverCta, artisteFestivalSlide, eventsSlide, editorialSlide, isEditorialAfficheActive, isEditorialTweetActive, showTitleOnSlide2, showMusicDate, editorialDate, showDividerDate, citationAuthor, citationMedia, extraEditorialSlides, musicTracks, top10Tracks, top10ActiveRank, top10Title, top10IntroTitle, top10IntroArtist, top10ColoredWords, top10Subtitle, top10TrackDuration, top10TestingRank, calendarMonth, calendarEvents, isRetouchMode, retouchPath, isTransparent, showBottomLogo, artistLogo, festivalLogo, bgOffsetX, bgOffsetY, artistNameText, festivalNameText, isArtistLogoNegative, mapFestivalText, mapCityCountry, mapZoom, mapLatitude, mapLongitude, mapStyle, isMapLoading, mapPinColor, mapLabelText, showMapPin, showMapLabel, mapAnimMode, isMapAnimPlaying, mapScrubTime, mapAnimDuration, mapDestLatitude, mapDestLongitude, mapDestFestivalText, mapDestVenue, mapDestCity, mapDestCountry, mapDestPinColor, imgLayoutMode, quizColor1, quizColor2, showFrame, conseilsTitle, conseilsSubtext, isConseilsLargeTitle, concoursFestivalName, concoursFestivalHandle, concoursBottomColor, concoursLateralText, concoursLateralOpacity, concoursBadgeTextColor, concoursMode, concoursGTAHeadline, concoursGTATitle, concoursGTAPlatformText, concoursGTACondition1, concoursGTACondition2, concoursGTACondition3, concoursGTACondition4, afficheImage, afficheGlow, afficheBorderColor, afficheMode, afficheScale, afficheOffsetY, tweetImage, tweetScale, tweetOffsetY, tweetGlow, tweetHeadline, tweetBadge, tweetBorderColor, tweetTranslation, showTweetTranslation, tweetAnimMode, textAnimation, animReplayKey, bgAnimation, cdjPlayerRing, musicBgMotion, isCarouselPromoActive, promoCustomPhrase, promoCustomSubphrase, promoOutroStyle, isPromoAnimPlaying, promoCategory, showPromoHook, showPromoHeadline, showPromoLine1, showPromoLine2, djCutoutImage, djOriginalImage, djSilhouetteColor, djGlowIntensity, djShowQuestionMark, djAppearanceAnim, editorialSlideImages, editorialSlideCutouts, editorialSlideTitles, djSlideModes, agendaAffiches, highlightsSlideArtists, highlightsColorArtist, highlightsColorFestival, highlightsColorCity, highlightsColorCountry, highlightsColorDate, afficheImgZoom, afficheImgPanX, afficheImgPanY]);
 
     // Rejouer l'animation de texte proprement depuis le début à chaque changement de slide, track ou de thème
     useEffect(() => {
@@ -19945,9 +19982,14 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     </div>
 
                     <div className="space-y-1">
-                        <label className="text-[8.5px] font-black text-gray-400 uppercase tracking-wider">
-                            Titre des Tracks (Slides #10 à #1)
-                        </label>
+                        <div className="flex items-center justify-between">
+                            <label className="text-[8.5px] font-black text-gray-400 uppercase tracking-wider">
+                                Titre des Tracks (Slides #10 à #1)
+                            </label>
+                            <span className="text-[7.5px] text-neon-cyan font-bold">
+                                ✨ Mots en bleu : {top10ColoredWords || 'aucun'} (ou *mot*)
+                            </span>
+                        </div>
                         <input
                             type="text"
                             value={top10Title}
@@ -19955,7 +19997,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 setTop10Title(e.target.value.toUpperCase());
                                 generateImage();
                             }}
-                            placeholder="ex: ARTISTE • TOP 10 TRACKS"
+                            placeholder="ex: TOP 10 TRACKS"
                             className="w-full bg-white/5 border border-white/10 rounded-xl p-2.5 text-white font-black uppercase text-[11px] focus:border-neon-cyan/50 outline-none"
                         />
                     </div>
@@ -20256,6 +20298,61 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 placeholder="TOP 10 DES TRACKS LES PLUS STREAMÉES"
                                 className="w-full bg-black/60 border border-white/10 rounded-xl p-2.5 text-white font-black uppercase text-[11px] focus:border-neon-cyan outline-none"
                             />
+                        </div>
+
+                        {/* Mots en Bleu Néon */}
+                        <div className="space-y-1.5 p-2.5 bg-black/60 border border-neon-cyan/30 rounded-xl">
+                            <div className="flex items-center justify-between">
+                                <label className="text-[8.5px] font-black text-neon-cyan uppercase tracking-wider flex items-center gap-1.5">
+                                    <span>✨</span> Mots en Bleu Néon (#00F0FF)
+                                </label>
+                                <span className="text-[7.5px] text-gray-400 font-medium">
+                                    (ou tapez <code className="text-neon-cyan font-bold">*mot*</code> dans le titre)
+                                </span>
+                            </div>
+                            <input
+                                type="text"
+                                value={top10ColoredWords}
+                                onChange={e => {
+                                    setTop10ColoredWords(e.target.value);
+                                    top10ColoredWordsRef.current = e.target.value;
+                                    generateImage();
+                                }}
+                                placeholder="ex: TOP 10, STREAMÉES, JOUÉES, FESTIVALS"
+                                className="w-full bg-black/80 border border-neon-cyan/40 rounded-xl p-2 text-white font-black uppercase text-[10px] focus:border-neon-cyan outline-none"
+                            />
+                            <div className="flex flex-wrap items-center gap-1 pt-1">
+                                <span className="text-[7.5px] text-gray-400 uppercase font-bold mr-1">Suggestions :</span>
+                                {['TOP 10', 'JOUÉES', 'STREAMÉES', 'POPULAIRES', 'FESTIVALS', 'CLUB'].map(word => {
+                                    const active = top10ColoredWords.toUpperCase().includes(word);
+                                    return (
+                                        <button
+                                            key={word}
+                                            type="button"
+                                            onClick={() => {
+                                                const current = top10ColoredWords.split(',').map(s => s.trim()).filter(Boolean);
+                                                let updated: string[];
+                                                if (active) {
+                                                    updated = current.filter(w => w.toUpperCase() !== word);
+                                                } else {
+                                                    updated = [...current, word];
+                                                }
+                                                const newStr = updated.join(', ');
+                                                setTop10ColoredWords(newStr);
+                                                top10ColoredWordsRef.current = newStr;
+                                                generateImage();
+                                            }}
+                                            className={`text-[8px] font-bold px-2 py-0.5 rounded-full border transition-all ${
+                                                active
+                                                    ? 'bg-neon-cyan/25 border-neon-cyan text-neon-cyan shadow-[0_0_8px_rgba(0,240,255,0.4)]'
+                                                    : 'bg-white/5 border-white/10 text-gray-400 hover:text-white hover:border-white/20'
+                                            }`}
+                                        >
+                                            {active ? '✓ ' : '+ '} {word}
+                                        </button>
+                                    );
+                                })}
+                            </div>
                         </div>
 
                         {/* Nom de l'Artiste */}
