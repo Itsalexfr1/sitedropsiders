@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Mail, Trash2, Reply, Send, X, User, Clock, Calendar, MessageSquare, CheckCircle, CheckCircle2, Check, AlertCircle, ShieldAlert, Inbox, Plus, Archive, FileText, Video, Paperclip, ExternalLink, File as FileIcon, Eye, Ban, ShieldCheck, Camera } from 'lucide-react';
 import { getAuthHeaders, isSuperAdmin, apiFetch, hasPermission } from '../utils/auth';
+import teamData from '../data/team.json';
 
 const EDITOR_COLORS = ['#FF1241', '#00FFFF', '#BF00FF', '#39FF14', '#FFF01F', '#FF5E00', '#E91E63', '#2196F3', '#FF9800', '#4CAF50'];
 
@@ -203,6 +204,7 @@ export function AdminMessages() {
     const [isNewMail, setIsNewMail] = useState(false);
     const [destinationEmails, setDestinationEmails] = useState(['']);
     const [senderEmail, setSenderEmail] = useState('contact@dropsiders.fr');
+    const [senderChoice, setSenderChoice] = useState<'official' | 'personal'>('official');
     const [mailSubject, setMailSubject] = useState('');
     const [signatureName, setSignatureName] = useState('');
 
@@ -215,6 +217,64 @@ export function AdminMessages() {
             (e.email && e.email.toLowerCase() === adminUser.toLowerCase())
         );
     }, [editors, adminUser]);
+
+    const currentSignerInfo = useMemo(() => {
+        const defaultAlex = {
+            name: 'Alex',
+            displayName: 'ALEXANDRE',
+            role: 'FONDATEUR & RÉDACTEUR',
+            crewEmail: 'alex@dropsiders.fr',
+            avatar: 'https://www.dropsiders.fr/uploads/migrated/dropsiders/wcyxatveeurgu5s1fi3s.jpg'
+        };
+        if (!signatureName) return defaultAlex;
+
+        const clean = signatureName.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]/g, '');
+
+        const matchedTeam = (teamData as any[]).find((t: any) => {
+            const tClean = (t.name || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]/g, '');
+            return tClean.includes(clean) || clean.includes(tClean);
+        });
+
+        const matchedEditor = editors.find((e: any) => {
+            const uClean = (e.username || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]/g, '');
+            const pClean = (e.pseudo || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]/g, '');
+            const nClean = (e.name || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]/g, '');
+            return uClean === clean || pClean === clean || nClean === clean;
+        });
+
+        let crewEmail = '';
+        if (matchedEditor && (matchedEditor as any).dropsiders_email) {
+            crewEmail = (matchedEditor as any).dropsiders_email.toLowerCase().replace('@dropsiders.fr', '@crew.dropsiders.fr');
+        } else if (clean === 'alex') {
+            crewEmail = 'alex@dropsiders.fr';
+        } else {
+            crewEmail = `${clean}@crew.dropsiders.fr`;
+        }
+
+        let avatar = matchedTeam?.image || (matchedEditor as any)?.avatar || defaultAlex.avatar;
+        if (avatar && avatar.startsWith('/')) {
+            avatar = `https://www.dropsiders.fr${avatar}`;
+        }
+
+        let role = matchedTeam?.role || (matchedEditor as any)?.role || (clean === 'alex' ? 'FONDATEUR & RÉDACTEUR' : 'RÉDACTEUR MÉDIA');
+        if (clean === 'alex') role = 'FONDATEUR & RÉDACTEUR';
+
+        return {
+            name: signatureName,
+            displayName: clean === 'alex' ? 'ALEXANDRE' : signatureName.toUpperCase(),
+            role: role.toUpperCase(),
+            crewEmail: crewEmail,
+            avatar: avatar
+        };
+    }, [signatureName, editors]);
+
+    useEffect(() => {
+        if (senderChoice === 'personal') {
+            setSenderEmail(currentSignerInfo.crewEmail);
+        } else {
+            setSenderEmail('contact@dropsiders.fr');
+        }
+    }, [senderChoice, currentSignerInfo.crewEmail]);
 
 
     useEffect(() => {
@@ -621,12 +681,15 @@ export function AdminMessages() {
                 body: JSON.stringify({
                     to: to,
                     from: senderEmail,
+                    replyTo: senderEmail,
+                    senderChoice: senderChoice,
                     name: isNewMail ? 'Partenaire' : selected?.name,
                     subject: isNewMail ? mailSubject : `Re: ${selected?.subject}`,
                     message: replyBody,
                     lang: accreditationLang,
-                    signerName: signatureName || 'ALEX',
-                    signerRole: (signatureName && signatureName.toLowerCase() === 'alex') ? 'FONDATEUR & RÉDACTEUR' : 'RÉDACTEUR MÉDIA',
+                    signerName: currentSignerInfo.displayName,
+                    signerRole: currentSignerInfo.role,
+                    signerAvatar: currentSignerInfo.avatar,
                     attachments: attachments.map(a => ({
                         name: a.name,
                         type: a.type,
@@ -642,6 +705,7 @@ export function AdminMessages() {
                 const sent = {
                     id: Date.now().toString(),
                     to: to,
+                    from: senderEmail,
                     subject: isNewMail ? mailSubject : `Re: ${selected?.subject}`,
                     body: replyBody,
                     date: new Date().toISOString(),
@@ -1964,11 +2028,64 @@ Alex (Dropsiders)`;
                                                 </div>
                                             </div>
                                         )}
-                                        <div className="flex flex-col sm:flex-row sm:items-center gap-1.5 sm:gap-3">
-                                            <span className="text-[10px] font-black uppercase text-gray-400 sm:w-24 shrink-0">Expéditeur :</span>
-                                            <div className="bg-black/50 border border-white/10 rounded-lg px-3 py-2 text-sm text-neon-cyan font-bold w-full sm:flex-1 flex items-center justify-between">
-                                                <span>contact@dropsiders.fr</span>
-                                                <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest bg-white/5 border border-white/10 px-2 py-0.5 rounded-full">Boîte Officielle</span>
+                                        <div className="flex flex-col sm:flex-row sm:items-start gap-1.5 sm:gap-3">
+                                            <div className="sm:w-24 shrink-0 pt-1">
+                                                <span className="text-[10px] font-black uppercase text-gray-400 block">Expéditeur :</span>
+                                                <span className="text-[8px] text-gray-500 font-bold uppercase block">& Réponse</span>
+                                            </div>
+                                            <div className="w-full sm:flex-1 space-y-1.5">
+                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                                    {/* Option 1 : Boîte Officielle */}
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setSenderChoice('official')}
+                                                        className={`p-2.5 rounded-xl border text-left transition-all flex items-center justify-between gap-2.5 ${senderChoice === 'official'
+                                                            ? 'bg-neon-cyan/15 border-neon-cyan text-white shadow-[0_0_15px_rgba(0,255,213,0.25)]'
+                                                            : 'bg-black/50 border-white/10 text-gray-400 hover:text-white hover:border-white/20'
+                                                            }`}
+                                                    >
+                                                        <div className="min-w-0 flex items-center gap-2">
+                                                            <span className="text-base shrink-0">📬</span>
+                                                            <div className="min-w-0">
+                                                                <span className="text-xs font-mono font-bold block truncate text-neon-cyan">contact@dropsiders.fr</span>
+                                                                <span className="text-[8px] uppercase tracking-wider text-gray-400 font-bold block">Boîte Officielle Générale</span>
+                                                            </div>
+                                                        </div>
+                                                        {senderChoice === 'official' && (
+                                                            <span className="w-2.5 h-2.5 rounded-full bg-neon-cyan shrink-0 shadow-[0_0_8px_#00ffd5]" />
+                                                        )}
+                                                    </button>
+
+                                                    {/* Option 2 : Adresse Personnelle de l'éditeur */}
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setSenderChoice('personal')}
+                                                        className={`p-2.5 rounded-xl border text-left transition-all flex items-center justify-between gap-2.5 ${senderChoice === 'personal'
+                                                            ? 'bg-neon-orange/15 border-neon-orange text-white shadow-[0_0_15px_rgba(255,102,0,0.25)]'
+                                                            : 'bg-black/50 border-white/10 text-gray-400 hover:text-white hover:border-white/20'
+                                                            }`}
+                                                    >
+                                                        <div className="min-w-0 flex items-center gap-2">
+                                                            <span className="text-base shrink-0">👤</span>
+                                                            <div className="min-w-0">
+                                                                <span className="text-xs font-mono font-bold block truncate text-neon-orange">
+                                                                    {currentSignerInfo.crewEmail}
+                                                                </span>
+                                                                <span className="text-[8px] uppercase tracking-wider text-gray-400 font-bold block">
+                                                                    Boîte Directe ({signatureName || 'Éditeur'})
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                        {senderChoice === 'personal' && (
+                                                            <span className="w-2.5 h-2.5 rounded-full bg-neon-orange shrink-0 shadow-[0_0_8px_#ff6600]" />
+                                                        )}
+                                                    </button>
+                                                </div>
+                                                <p className="text-[8.5px] text-gray-500 font-medium px-0.5">
+                                                    {senderChoice === 'personal'
+                                                        ? `💡 Le destinataire répondra directement sur ${currentSignerInfo.crewEmail} (transféré sur ta boîte et dans ton filtre).`
+                                                        : "💡 Le destinataire répondra sur la boîte générale contact@dropsiders.fr."}
+                                                </p>
                                             </div>
                                         </div>
                                         {isNewMail && (
@@ -2486,17 +2603,17 @@ Alex (Dropsiders)`;
                                                                     <tr>
                                                                         <td style={{ verticalAlign: 'top', width: '32px', paddingRight: '6px' }}>
                                                                             <img
-                                                                                src="https://www.dropsiders.fr/uploads/migrated/dropsiders/wcyxatveeurgu5s1fi3s.jpg"
-                                                                                alt={signatureName || 'Alexandre'}
+                                                                                src={currentSignerInfo.avatar}
+                                                                                alt={currentSignerInfo.displayName}
                                                                                 style={{ width: '26px', height: '26px', borderRadius: '50%', objectFit: 'cover', border: '1px solid #ff3b14', display: 'block' }}
                                                                             />
                                                                         </td>
                                                                         <td style={{ verticalAlign: 'top' }}>
                                                                             <div style={{ fontSize: '11px', fontWeight: 900, color: '#ffffff', textTransform: 'uppercase', letterSpacing: '0.3px', lineHeight: 1.15 }}>
-                                                                                {(signatureName && signatureName.toLowerCase() === 'alex') ? 'ALEXANDRE' : (signatureName ? signatureName.toUpperCase() : 'ALEXANDRE')}
+                                                                                {currentSignerInfo.displayName}
                                                                             </div>
                                                                             <div style={{ fontSize: '8.5px', fontWeight: 800, color: '#ff3b14', textTransform: 'uppercase', letterSpacing: '0.2px', marginTop: '1px' }}>
-                                                                                {(signatureName && signatureName.toLowerCase() === 'alex') ? 'FONDATEUR & RÉDACTEUR' : 'RÉDACTEUR MÉDIA'}
+                                                                                {currentSignerInfo.role}
                                                                             </div>
                                                                             <div style={{ marginTop: '2px' }}>
                                                                                 <span style={{ display: 'inline-block', backgroundColor: '#080d16', border: '1px solid rgba(59, 130, 246, 0.4)', color: '#ffffff', fontSize: '6px', fontWeight: 800, padding: '1px 4px', borderRadius: '9999px', textTransform: 'uppercase', letterSpacing: '0.2px' }}>

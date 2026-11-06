@@ -8214,8 +8214,17 @@ ${urls.map(u => `  <url>
                     }).replace(/\n/g, '<br>');
                 };
 
-                // Official verified sender & recipient: contact@dropsiders.fr
+                // Official verified sender: contact@dropsiders.fr (ensures SPF/DKIM delivery)
                 const senderEmail = 'contact@dropsiders.fr';
+
+                const rawReplyTo = (body.replyTo || body.from || '').trim().toLowerCase();
+                const isPersonalReply = Boolean(rawReplyTo && rawReplyTo !== 'contact@dropsiders.fr' && rawReplyTo.includes('@'));
+                const replyToEmail = isPersonalReply ? rawReplyTo : 'contact@dropsiders.fr';
+                const effectiveSignerName = body.signerName ? ((body.signerName.toLowerCase() === 'alex' || body.signerName.toLowerCase() === 'alexandre') ? 'ALEXANDRE' : body.signerName.toUpperCase()) : 'ALEXANDRE';
+                const replyToName = isPersonalReply ? `${effectiveSignerName} (Dropsiders)` : 'Dropsiders';
+                const senderDisplayName = isPersonalReply ? `${effectiveSignerName} · Dropsiders` : 'Dropsiders';
+                const effectiveAvatar = body.signerAvatar || 'https://www.dropsiders.fr/uploads/migrated/dropsiders/wcyxatveeurgu5s1fi3s.jpg';
+                const effectiveSignerRole = body.signerRole || (effectiveSignerName === 'ALEXANDRE' ? 'FONDATEUR & RÉDACTEUR' : 'RÉDACTEUR MÉDIA');
 
                 const recipients = to.split(',').map((email: string) => ({ email: email.trim(), name: name || email.trim() })).filter((r: any) => r.email);
                 if (recipients.length === 0) return new Response(JSON.stringify({ error: 'No valid recipients' }), { status: 400, headers });
@@ -8234,7 +8243,7 @@ ${urls.map(u => `  <url>
                 }
 
                 const payload: any = {
-                    sender: { name: 'Dropsiders', email: 'contact@dropsiders.fr' },
+                    sender: { name: senderDisplayName, email: 'contact@dropsiders.fr' },
                     to: recipients,
                     ...(bccRecipients.length > 0 ? { bcc: bccRecipients } : {}),
                     subject: subject,
@@ -8254,17 +8263,17 @@ ${urls.map(u => `  <url>
                                                     <table cellpadding="0" cellspacing="0" border="0" style="width:100%;">
                                                         <tr>
                                                             <td valign="top" style="padding-right:6px; width:32px;">
-                                                                <img src="https://www.dropsiders.fr/uploads/migrated/dropsiders/wcyxatveeurgu5s1fi3s.jpg" alt="${body.signerName || 'ALEXANDRE'}" width="26" height="26" style="display:block; width:26px; height:26px; border-radius:50%; object-fit:cover; border:1px solid #ff3b14;" />
+                                                                <img src="${effectiveAvatar}" alt="${effectiveSignerName}" width="26" height="26" style="display:block; width:26px; height:26px; border-radius:50%; object-fit:cover; border:1px solid #ff3b14;" />
                                                             </td>
                                                             <td valign="top">
                                                                 <table cellpadding="0" cellspacing="0" border="0">
                                                                     <tr>
                                                                         <td>
                                                                             <div style="font-size:11px; font-weight:900; color:#ffffff; text-transform:uppercase; letter-spacing:0.3px; line-height:1.15;">
-                                                                                ${body.signerName ? ((body.signerName.toLowerCase() === 'alex' || body.signerName.toLowerCase() === 'alexandre') ? 'ALEXANDRE' : body.signerName.toUpperCase()) : 'ALEXANDRE'}
+                                                                                ${effectiveSignerName}
                                                                             </div>
                                                                             <div style="font-size:8.5px; font-weight:800; color:#ff3b14; text-transform:uppercase; letter-spacing:0.2px; margin-top:1px;">
-                                                                                ${body.signerRole || 'FONDATEUR & RÉDACTEUR'}
+                                                                                ${effectiveSignerRole}
                                                                             </div>
                                                                             <div style="margin-top:2px;">
                                                                                 <span style="display:inline-block; background-color:#080d16; border:1px solid rgba(59,130,246,0.4); color:#ffffff; font-size:6px; font-weight:800; padding:1px 4px; border-radius:9999px; text-transform:uppercase; letter-spacing:0.2px;">
@@ -8277,7 +8286,7 @@ ${urls.map(u => `  <url>
                                                                         <td style="padding-top:3px; font-size:8.5px; line-height:1.35;">
                                                                             <div>
                                                                                 <span style="color:#ffffff; margin-right:4px;">✉</span>
-                                                                                <a href="mailto:contact@dropsiders.fr" style="color:#00f0ff; text-decoration:none; font-weight:600;">contact@dropsiders.fr</a>
+                                                                                <a href="mailto:${replyToEmail}" style="color:#00f0ff; text-decoration:none; font-weight:600;">${replyToEmail}</a>
                                                                             </div>
                                                                             <div style="margin-top:1px;">
                                                                                 <span style="color:#ff3b14; margin-right:4px;">📞</span>
@@ -8330,8 +8339,8 @@ ${urls.map(u => `  <url>
                         </div>
                     `,
                     replyTo: {
-                        email: 'contact@dropsiders.fr',
-                        name: 'Dropsiders'
+                        email: replyToEmail,
+                        name: replyToName
                     },
                     ...(brevoAttachments.length > 0 ? { attachment: brevoAttachments } : {})
                 };
