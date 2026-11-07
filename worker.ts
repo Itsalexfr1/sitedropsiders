@@ -1018,6 +1018,166 @@ export default {
             }
         }
 
+        // ─── Beatport Top 100 Genre / Global Resolver ───
+        if (path === '/api/beatport/top-genre') {
+            const rawGenre = (url.searchParams.get('genre') || '').toLowerCase().trim();
+            const normalized = rawGenre.replace(/[-_]+/g, ' ').replace(/\s+/g, ' ');
+            
+            const BEATPORT_GENRES_MAP: Record<string, { id: number; slug: string; name: string }> = {
+                'indie-dance': { id: 37, slug: 'indie-dance', name: 'Indie Dance' },
+                'indie dance': { id: 37, slug: 'indie-dance', name: 'Indie Dance' },
+                'house': { id: 5, slug: 'house', name: 'House' },
+                'tech-house': { id: 11, slug: 'tech-house', name: 'Tech House' },
+                'tech house': { id: 11, slug: 'tech-house', name: 'Tech House' },
+                'deep-house': { id: 12, slug: 'deep-house', name: 'Deep House' },
+                'deep house': { id: 12, slug: 'deep-house', name: 'Deep House' },
+                'afro-house': { id: 89, slug: 'afro-house', name: 'Afro House' },
+                'afro house': { id: 89, slug: 'afro-house', name: 'Afro House' },
+                'melodic-house-techno': { id: 90, slug: 'melodic-house-techno', name: 'Melodic House & Techno' },
+                'melodic techno': { id: 90, slug: 'melodic-house-techno', name: 'Melodic House & Techno' },
+                'melodic house': { id: 90, slug: 'melodic-house-techno', name: 'Melodic House & Techno' },
+                'hard-techno': { id: 2, slug: 'hard-techno', name: 'Hard Techno' },
+                'hard techno': { id: 2, slug: 'hard-techno', name: 'Hard Techno' },
+                'techno': { id: 6, slug: 'techno-peak-time-driving', name: 'Techno (Peak Time / Driving)' },
+                'peak time techno': { id: 6, slug: 'techno-peak-time-driving', name: 'Techno (Peak Time / Driving)' },
+                'raw techno': { id: 92, slug: 'techno-raw-deep-hypnotic', name: 'Techno (Raw / Deep / Hypnotic)' },
+                'progressive-house': { id: 15, slug: 'progressive-house', name: 'Progressive House' },
+                'progressive house': { id: 15, slug: 'progressive-house', name: 'Progressive House' },
+                'prog house': { id: 15, slug: 'progressive-house', name: 'Progressive House' },
+                'trance': { id: 7, slug: 'trance-main-floor', name: 'Trance (Main Floor)' },
+                'psy-trance': { id: 13, slug: 'psy-trance', name: 'Psy-Trance' },
+                'psy trance': { id: 13, slug: 'psy-trance', name: 'Psy-Trance' },
+                'drum-bass': { id: 1, slug: 'drum-bass', name: 'Drum & Bass' },
+                'drum and bass': { id: 1, slug: 'drum-bass', name: 'Drum & Bass' },
+                'dnb': { id: 1, slug: 'drum-bass', name: 'Drum & Bass' },
+                'minimal-deep-tech': { id: 14, slug: 'minimal-deep-tech', name: 'Minimal / Deep Tech' },
+                'minimal': { id: 14, slug: 'minimal-deep-tech', name: 'Minimal / Deep Tech' },
+                'nu-disco': { id: 50, slug: 'nu-disco-disco', name: 'Nu Disco / Disco' },
+                'disco': { id: 50, slug: 'nu-disco-disco', name: 'Nu Disco / Disco' },
+                'bass-house': { id: 91, slug: 'bass-house', name: 'Bass House' },
+                'bass house': { id: 91, slug: 'bass-house', name: 'Bass House' },
+                'mainstage': { id: 96, slug: 'mainstage', name: 'Mainstage' },
+                'edm': { id: 96, slug: 'mainstage', name: 'Mainstage' },
+                'uk-garage': { id: 86, slug: 'uk-garage-bassline', name: 'UK Garage / Bassline' },
+                'uk garage': { id: 86, slug: 'uk-garage-bassline', name: 'UK Garage / Bassline' },
+                'bassline': { id: 86, slug: 'uk-garage-bassline', name: 'UK Garage / Bassline' },
+                'amapiano': { id: 98, slug: 'amapiano', name: 'Amapiano' },
+                'hardstyle': { id: 8, slug: 'hard-dance-hardcore-neo-rave', name: 'Hard Dance / Hardcore / Neo Rave' },
+                'hard dance': { id: 8, slug: 'hard-dance-hardcore-neo-rave', name: 'Hard Dance / Hardcore / Neo Rave' },
+                'electro': { id: 94, slug: 'electro-classic-detroit-modern', name: 'Electro' },
+                'dubstep': { id: 18, slug: 'dubstep', name: 'Dubstep' },
+                'funky-house': { id: 81, slug: 'funky-house', name: 'Funky House' },
+                'funky house': { id: 81, slug: 'funky-house', name: 'Funky House' },
+                'jackin-house': { id: 97, slug: 'jackin-house', name: 'Jackin House' },
+                'jackin house': { id: 97, slug: 'jackin-house', name: 'Jackin House' }
+            };
+
+            const genreMeta = BEATPORT_GENRES_MAP[normalized] ||
+                BEATPORT_GENRES_MAP[rawGenre] ||
+                Object.values(BEATPORT_GENRES_MAP).find(g => normalized.includes(g.slug) || g.name.toLowerCase().includes(normalized));
+
+            let targetUrl = 'https://www.beatport.com/top-100';
+            if (genreMeta) {
+                targetUrl = `https://www.beatport.com/genre/${genreMeta.slug}/${genreMeta.id}/top-100`;
+            }
+
+            try {
+                const bpRes = await fetch(targetUrl, {
+                    headers: {
+                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+                        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+                        'Accept-Language': 'fr-FR,fr;q=0.9,en-US;q=0.8,en;q=0.7'
+                    }
+                });
+
+                if (bpRes.ok) {
+                    const html = await bpRes.text();
+                    const startTag = '<script id="__NEXT_DATA__" type="application/json">';
+                    const start = html.indexOf(startTag);
+                    if (start !== -1) {
+                        const end = html.indexOf('</script>', start);
+                        const nextData = JSON.parse(html.substring(start + startTag.length, end));
+                        const queries = nextData.props?.pageProps?.dehydratedState?.queries || [];
+                        for (const q of queries) {
+                            const results = q.state?.data?.results;
+                            if (Array.isArray(results) && results.length >= 10) {
+                                const top10 = results.slice(0, 10).map((t: any, idx: number) => {
+                                    const cUrl = t.release?.image?.uri || t.image?.uri || '';
+                                    return {
+                                        rank: idx + 1,
+                                        title: t.mix_name && t.mix_name !== 'Original Mix' ? `${t.name} (${t.mix_name})` : (t.name || ''),
+                                        artist: Array.isArray(t.artists) ? t.artists.map((a: any) => a.name).join(', ') : (t.artist || ''),
+                                        cover: cUrl,
+                                        audioUrl: t.sample_url || '',
+                                        sourceUrl: t.sample_url || '',
+                                        genre: t.genre?.name || genreMeta?.name || rawGenre
+                                    };
+                                });
+                                return new Response(JSON.stringify({ success: true, source: 'beatport-top-100', tracks: top10 }), {
+                                    headers: { ...headers, 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=1800' }
+                                });
+                            }
+                        }
+                    }
+                }
+            } catch (e: any) {
+                console.warn('Erreur résolution Beatport HTML top 100:', e);
+            }
+
+            // Fallback 1: Deezer API
+            try {
+                const dzRes = await fetch(`https://api.deezer.com/search?q=${encodeURIComponent(rawGenre)}&order=RANKING&limit=25`);
+                if (dzRes.ok) {
+                    const dzData: any = await dzRes.json();
+                    if (Array.isArray(dzData.data) && dzData.data.length >= 10) {
+                        const top10 = dzData.data.slice(0, 10).map((t: any, idx: number) => ({
+                            rank: idx + 1,
+                            title: t.title || '',
+                            artist: t.artist?.name || '',
+                            cover: t.album?.cover_xl || t.album?.cover_big || t.album?.cover || '',
+                            audioUrl: t.preview || '',
+                            sourceUrl: t.preview || '',
+                            genre: rawGenre
+                        }));
+                        return new Response(JSON.stringify({ success: true, source: 'deezer', tracks: top10 }), {
+                            headers: { ...headers, 'Content-Type': 'application/json' }
+                        });
+                    }
+                }
+            } catch (e: any) {
+                console.warn('Erreur fallback Deezer:', e);
+            }
+
+            // Fallback 2: Apple Music / iTunes API
+            try {
+                const itRes = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(rawGenre + ' electronic')}&entity=song&limit=25`);
+                if (itRes.ok) {
+                    const itData: any = await itRes.json();
+                    if (Array.isArray(itData.results) && itData.results.length >= 10) {
+                        const top10 = itData.results.slice(0, 10).map((t: any, idx: number) => ({
+                            rank: idx + 1,
+                            title: t.trackName || '',
+                            artist: t.artistName || '',
+                            cover: t.artworkUrl100 ? t.artworkUrl100.replace('100x100bb', '1400x1400bb') : '',
+                            audioUrl: t.previewUrl || '',
+                            sourceUrl: t.previewUrl || '',
+                            genre: rawGenre
+                        }));
+                        return new Response(JSON.stringify({ success: true, source: 'applemusic', tracks: top10 }), {
+                            headers: { ...headers, 'Content-Type': 'application/json' }
+                        });
+                    }
+                }
+            } catch (e: any) {
+                console.warn('Erreur fallback Apple Music:', e);
+            }
+
+            return new Response(JSON.stringify({ success: false, error: 'Impossible de résoudre le Top 10' }), {
+                status: 404,
+                headers: { ...headers, 'Content-Type': 'application/json' }
+            });
+        }
+
         // ─── SoundCloud Playlist Auto-Resolver (100% Automatique sans copier-coller) ───
         if (path === '/api/soundcloud/resolve-playlist') {
             let targetUrl = url.searchParams.get('url');
