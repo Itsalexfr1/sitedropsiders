@@ -20975,22 +20975,98 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                     {top10GenMode === 'style' ? (
                         /* ─── OPTION 1 : RECHERCHE PAR GENRE (OR FESTIVAL) ─── */
-                        <div className="space-y-2.5 p-3 bg-black/60 border border-[#ffb800]/35 rounded-xl shadow-lg">
-                            <label className="text-[8.5px] font-black text-[#ffb800] uppercase tracking-wider flex items-center gap-1.5">
-                                <span>⚡ Style / Genre Électronique :</span>
-                            </label>
+                        <div className="space-y-3 p-3.5 bg-black/70 border border-[#ffb800]/40 rounded-xl shadow-lg">
+                            <div className="flex items-center justify-between">
+                                <label className="text-[8.5px] font-black text-[#ffb800] uppercase tracking-wider flex items-center gap-1.5">
+                                    <span>⚡ Style / Genre Électronique :</span>
+                                </label>
+                                <span className="text-[8px] font-bold text-amber-300/80 bg-[#ffb800]/15 px-2 py-0.5 rounded-full border border-[#ffb800]/30">
+                                    38 styles officiels
+                                </span>
+                            </div>
 
-                            <div className="space-y-2">
-                                <input
-                                    type="text"
-                                    value={top10StyleSearch}
-                                    onChange={e => setTop10StyleSearch(e.target.value)}
-                                    onKeyDown={e => {
-                                        if (e.key === 'Enter') handleAutoFetchStyleTop10(top10StyleSearch);
-                                    }}
-                                    placeholder="ex: Afro House, Techno, Indie Dance, Nu Disco, Hard Techno..."
-                                    className="w-full bg-black/80 border border-[#ffb800]/35 focus:border-[#ffb800] rounded-xl px-3 py-2.5 text-white text-[10.5px] font-bold outline-none placeholder:text-gray-500 shadow-inner"
-                                />
+                            <div className="space-y-2.5">
+                                {/* LISTE DÉROULANTE OFFICIELLE DES 38 STYLES BEATPORT */}
+                                <div className="space-y-1">
+                                    <span className="text-[7.5px] font-bold text-gray-400 uppercase tracking-wide">
+                                        ▼ Sélectionner dans la liste déroulante :
+                                    </span>
+                                    <select
+                                        value={BEATPORT_GENRES.some(g => g.name.toLowerCase() === top10StyleSearch.toLowerCase()) ? BEATPORT_GENRES.find(g => g.name.toLowerCase() === top10StyleSearch.toLowerCase())?.name : ''}
+                                        onChange={e => {
+                                            const val = e.target.value;
+                                            if (val) {
+                                                setTop10StyleSearch(val);
+                                                handleAutoFetchStyleTop10(val);
+                                            }
+                                        }}
+                                        className="w-full bg-[#141419] border-2 border-[#ffb800]/60 focus:border-[#ffb800] rounded-xl px-3 py-2.5 text-[#ffb800] font-black text-[11px] outline-none cursor-pointer shadow-md transition-all hover:border-[#ffb800]"
+                                    >
+                                        <option value="" disabled className="bg-black text-gray-400">
+                                            -- Choisir un style dans la liste (38 styles) --
+                                        </option>
+                                        {BEATPORT_GENRES.map(g => (
+                                            <option key={g.id} value={g.name} className="bg-neutral-900 text-white font-semibold py-1">
+                                                {g.name}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+
+                                {/* CHIPS RACCOURCIS 1-CLIC */}
+                                <div className="space-y-1">
+                                    <span className="text-[7.5px] font-bold text-gray-400 uppercase tracking-wide">
+                                        ⚡ Raccourcis rapides :
+                                    </span>
+                                    <div className="flex flex-wrap gap-1">
+                                        {[
+                                            { label: '🥁 Drum & Bass', query: 'Drum & Bass' },
+                                            { label: '🔥 Hard Dance', query: 'Hard Dance / Hardcore / Neo Rave' },
+                                            { label: '⚡ Hard Techno', query: 'Hard Techno' },
+                                            { label: '🪩 Tech House', query: 'Tech House' },
+                                            { label: '✨ Melodic Techno', query: 'Melodic House & Techno' },
+                                            { label: '🌴 Afro House', query: 'Afro House' },
+                                            { label: '🌀 Psy-Trance', query: 'Psy-Trance' },
+                                            { label: '🚗 UK Garage', query: 'UK Garage / Bassline' }
+                                        ].map(chip => (
+                                            <button
+                                                key={chip.label}
+                                                type="button"
+                                                onClick={() => {
+                                                    setTop10StyleSearch(chip.query);
+                                                    handleAutoFetchStyleTop10(chip.query);
+                                                }}
+                                                className="text-[8px] font-bold px-2 py-1 rounded-lg bg-black/80 border border-[#ffb800]/30 text-amber-200 hover:border-[#ffb800] hover:bg-[#ffb800]/20 transition-all active:scale-95"
+                                            >
+                                                {chip.label}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                {/* RECHERCHE LIBRE PAR TEXTE */}
+                                <div className="space-y-1">
+                                    <span className="text-[7.5px] font-bold text-gray-400 uppercase tracking-wide">
+                                        ✍️ Ou taper une recherche personnalisée :
+                                    </span>
+                                    <input
+                                        type="text"
+                                        list="beatport-genres-datalist"
+                                        value={top10StyleSearch}
+                                        onChange={e => setTop10StyleSearch(e.target.value)}
+                                        onKeyDown={e => {
+                                            if (e.key === 'Enter') handleAutoFetchStyleTop10(top10StyleSearch);
+                                        }}
+                                        placeholder="ex: Drum & Bass, Hard Dance, Techno, DNB..."
+                                        className="w-full bg-black/80 border border-[#ffb800]/35 focus:border-[#ffb800] rounded-xl px-3 py-2 text-white text-[10.5px] font-bold outline-none placeholder:text-gray-500 shadow-inner"
+                                    />
+                                    <datalist id="beatport-genres-datalist">
+                                        {BEATPORT_GENRES.map(g => (
+                                            <option key={g.id} value={g.name} />
+                                        ))}
+                                    </datalist>
+                                </div>
+
                                 <button
                                     type="button"
                                     disabled={isAutoFillingTop10 || !top10StyleSearch.trim()}
