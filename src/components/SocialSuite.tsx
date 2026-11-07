@@ -3936,7 +3936,15 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         };
     };
 
-    const activeColor = themeColor || baseThemeData[theme];
+    const top10DynamicTheme = (top10GenModeRef.current || top10GenMode) === 'label'
+        ? { label: 'TOP 10 TRACKS', grad: '184, 98, 33', color: '#B86221' }
+        : (top10GenModeRef.current || top10GenMode) === 'style'
+        ? { label: 'TOP 10 TRACKS', grad: '255, 184, 0', color: '#FFB800' }
+        : { label: 'TOP 10 TRACKS', grad: '0, 240, 255', color: '#00f0ff' };
+
+    const activeColor = theme === 'TOP 10 TRACKS'
+        ? (themeColor || top10DynamicTheme)
+        : (themeColor || baseThemeData[theme]);
 
     // Rotation Animation
     useEffect(() => {
@@ -4579,9 +4587,17 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     : (theme === 'PROMO' ? (promoCategory as ThemeType || 'NEWS') : theme)) as ThemeType;
                 const effectiveBaseThemeData = baseThemeData[sourceThemeKey] || baseThemeData['NEWS'];
                 const promoThemeData = themeColor || effectiveBaseThemeData;
+                const top10DynamicTheme = (top10GenModeRef.current || top10GenMode) === 'label'
+                    ? { label: 'TOP 10 TRACKS', grad: '184, 98, 33', color: '#B86221' }
+                    : (top10GenModeRef.current || top10GenMode) === 'style'
+                    ? { label: 'TOP 10 TRACKS', grad: '255, 184, 0', color: '#FFB800' }
+                    : { label: 'TOP 10 TRACKS', grad: '0, 240, 255', color: '#00f0ff' };
+
                 const activeColor = isPromoTheme
                     ? promoThemeData
-                    : (themeColor || baseThemeData[theme] || baseThemeData['NEWS']);
+                    : (theme === 'TOP 10 TRACKS'
+                        ? (themeColor || top10DynamicTheme)
+                        : (themeColor || baseThemeData[theme] || baseThemeData['NEWS']));
                 let img: HTMLImageElement | null = null;
                 const targetHeight = effectiveTab === 'REEL' ? 1920 : 1350;
                 if (canvas.width !== 1080) canvas.width = 1080;
@@ -5580,10 +5596,22 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     const centerX = posX + w / 2;
                     const centerY = posY + logoH / 2;
 
-                    const effectiveThemeHex = (typeof activeColor === 'string' ? activeColor : activeColor?.color)
-                        || (typeof themeColor === 'string' ? themeColor : themeColor?.color)
-                        || baseThemeData[theme]?.color
-                        || '#00f0ff';
+                    const isTop10Theme = theme === 'TOP 10 TRACKS';
+                    const top10CurrentMode = top10GenModeRef.current || top10GenMode;
+                    const top10EffectiveHex = top10CurrentMode === 'label'
+                        ? '#B86221'
+                        : top10CurrentMode === 'style'
+                        ? '#FFB800'
+                        : '#00f0ff';
+
+                    const effectiveThemeHex = isTop10Theme
+                        ? ((typeof activeColor === 'string' ? activeColor : activeColor?.color)
+                            || (typeof themeColor === 'string' ? themeColor : themeColor?.color)
+                            || top10EffectiveHex)
+                        : ((typeof activeColor === 'string' ? activeColor : activeColor?.color)
+                            || (typeof themeColor === 'string' ? themeColor : themeColor?.color)
+                            || baseThemeData[theme]?.color
+                            || '#00f0ff');
 
                     let rgb = '0, 240, 255';
                     if (typeof effectiveThemeHex === 'string') {
@@ -5612,21 +5640,21 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         ctx.scale(scaleX, 1.0);
                     }
 
-                    // 1. Ombre portée de contact propre et nette
+                    // 1. Ombre portée de contact propre et discrète
                     ctx.save();
-                    ctx.shadowColor = 'rgba(0, 0, 0, 0.75)';
-                    ctx.shadowBlur = 10;
+                    ctx.shadowColor = 'rgba(0, 0, 0, 0.65)';
+                    ctx.shadowBlur = 6;
                     ctx.shadowOffsetX = 0;
-                    ctx.shadowOffsetY = 4;
+                    ctx.shadowOffsetY = 2.5;
 
                     // 2. Tranche 3D métallique chiseled (Titane sombre net, ZÉRO flou de tranches multiples)
                     // Première passe : acier sombre profond
                     ctx.save();
                     ctx.translate(bevelX, bevelY);
                     if ('filter' in ctx) {
-                        ctx.filter = 'brightness(0) invert(0.22)';
+                        ctx.filter = 'brightness(0) invert(0.20)';
                     }
-                    ctx.globalAlpha = 0.88;
+                    ctx.globalAlpha = 0.80;
                     ctx.drawImage(logo, -w / 2, -logoH / 2, w, logoH);
                     ctx.restore();
 
@@ -5634,9 +5662,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.save();
                     ctx.translate(bevelX * 0.5, bevelY * 0.5);
                     if ('filter' in ctx) {
-                        ctx.filter = 'brightness(0) invert(0.58)';
+                        ctx.filter = 'brightness(0) invert(0.55)';
                     }
-                    ctx.globalAlpha = 0.72;
+                    ctx.globalAlpha = 0.60;
                     ctx.drawImage(logo, -w / 2, -logoH / 2, w, logoH);
                     ctx.restore();
 
@@ -5650,13 +5678,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                     // 4. Nacrage soyeux couleur thème incrusté sur les lettres (source-atop)
                     // - Balayage synchrone fluide avec l'oscillation (phase)
-                    // - Largeur généreuse pour un dégradé doux et luxueux
-                    // - Opacité équilibrée (max 0.42) : la couleur du thème rayonne tout en gardant les lettres blanches et lisibles
+                    // - Lueur douce et raffinée (max 0.20) : éclat diamant avec un reflet luxueux sans saturer
                     // - Zéro ligne blanche parasite au milieu
                     try {
                         ctx.globalCompositeOperation = 'source-atop';
-                        const shiftX = isStatic ? 0 : (phase * (w * 0.52));
-                        const gradW = w * 0.72;
+                        const shiftX = isStatic ? 0 : (phase * (w * 0.46));
+                        const gradW = w * 0.68;
                         const nacreGrad = ctx.createLinearGradient(
                             shiftX - gradW,
                             -logoH * 0.35,
@@ -5664,9 +5691,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             logoH * 0.35
                         );
                         nacreGrad.addColorStop(0, `rgba(${rgb}, 0)`);
-                        nacreGrad.addColorStop(0.22, `rgba(${rgb}, 0.12)`);
-                        nacreGrad.addColorStop(0.50, `rgba(${rgb}, 0.42)`);
-                        nacreGrad.addColorStop(0.78, `rgba(${rgb}, 0.12)`);
+                        nacreGrad.addColorStop(0.25, `rgba(${rgb}, 0.05)`);
+                        nacreGrad.addColorStop(0.50, `rgba(${rgb}, 0.20)`);
+                        nacreGrad.addColorStop(0.75, `rgba(${rgb}, 0.05)`);
                         nacreGrad.addColorStop(1, `rgba(${rgb}, 0)`);
                         ctx.fillStyle = nacreGrad;
                         ctx.fillRect(-w / 2, -logoH / 2, w, logoH);
@@ -21104,15 +21131,20 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
     const top10TracksEditor = (() => {
         const activeTrack = top10Tracks.find(t => Number(t.rank) === Number(top10ActiveRank)) || top10Tracks[0];
-        const podiumColor = activeTrack.rank === 1 ? 'text-amber-400' : activeTrack.rank === 2 ? 'text-gray-300' : activeTrack.rank === 3 ? 'text-amber-600' : 'text-neon-cyan';
-        const podiumBorder = activeTrack.rank === 1 ? 'border-amber-400/60 shadow-[0_0_15px_rgba(255,215,0,0.3)]' : activeTrack.rank === 2 ? 'border-gray-300/60' : activeTrack.rank === 3 ? 'border-amber-600/60' : 'border-neon-cyan/40';
+        const isStyleMode = top10GenMode === 'style';
+        const isLabelMode = top10GenMode === 'label';
+        const top10CurrentAccentHex = isLabelMode ? '#B86221' : (isStyleMode ? '#FFB800' : '#00f0ff');
+        const top10CurrentAccentRgb = isLabelMode ? '184, 98, 33' : (isStyleMode ? '255, 184, 0' : '0, 240, 255');
+        const top10ColorLabel = isStyleMode ? 'en or festival' : (isLabelMode ? 'en bronze cuivré' : 'en bleu néon');
+        const podiumColor = activeTrack.rank === 1 ? 'text-amber-400' : activeTrack.rank === 2 ? 'text-gray-300' : activeTrack.rank === 3 ? 'text-amber-600' : '';
+        const podiumBorder = activeTrack.rank === 1 ? 'border-amber-400/60 shadow-[0_0_15px_rgba(255,215,0,0.3)]' : activeTrack.rank === 2 ? 'border-gray-300/60' : activeTrack.rank === 3 ? 'border-amber-600/60' : '';
 
         return (
             <div className="space-y-4">
                 {/* 1. PARAMÈTRES GLOBAUX DU TOP 10 */}
                 <div className="p-3.5 bg-black/40 border border-white/10 rounded-2xl shadow-lg space-y-3">
                     <div className="flex items-center justify-between">
-                        <span className="text-[10px] font-black text-neon-cyan uppercase tracking-wider flex items-center gap-1.5">
+                        <span className="text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5" style={{ color: top10CurrentAccentHex }}>
                             🔥 Configuration Générale Top 10
                         </span>
                         <div className="flex items-center gap-2">
@@ -21129,7 +21161,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             >
                                 ✕ TOUT EFFACER (VIDER LE TOP 10)
                             </button>
-                            <span className="text-[9px] font-bold text-neon-cyan font-mono">
+                            <span className="text-[9px] font-bold font-mono" style={{ color: top10CurrentAccentHex }}>
                                 1 min pile (60s)
                             </span>
                         </div>
@@ -21140,7 +21172,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             <label className="text-[8.5px] font-black text-gray-400 uppercase tracking-wider">
                                 Badge Capsule Haut Gauche
                             </label>
-                            <span className="text-[7.5px] font-bold text-neon-cyan uppercase">Effet Cyber</span>
+                            <span className="text-[7.5px] font-bold uppercase" style={{ color: top10CurrentAccentHex }}>Effet Cyber</span>
                         </div>
                         <input
                             type="text"
@@ -21150,7 +21182,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 generateImage();
                             }}
                             placeholder="TOP 10 TRACKS"
-                            className="w-full bg-white/5 border border-white/10 rounded-xl p-2.5 text-white font-black uppercase text-[11px] focus:border-neon-cyan/50 outline-none"
+                            className="w-full bg-white/5 border border-white/10 rounded-xl p-2.5 text-white font-black uppercase text-[11px] outline-none"
+                            style={{ borderColor: undefined }}
                         />
                     </div>
 
@@ -21168,11 +21201,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 generateImage();
                             }}
                             placeholder="ex: TOP 10 TRACKS"
-                            className="w-full bg-white/5 border border-white/10 rounded-xl p-2.5 text-white font-black uppercase text-[11px] focus:border-neon-cyan/50 outline-none"
+                            className="w-full bg-white/5 border border-white/10 rounded-xl p-2.5 text-white font-black uppercase text-[11px] outline-none"
                         />
                     </div>
 
-                    {/* CHOIX DES MOTS EN BLEU NÉON POUR LES TRACKS */}
+                    {/* CHOIX DES MOTS EN COULEUR ACCENT POUR LES TRACKS */}
                     {(() => {
                         const currentTrackTitle = top10Title || '';
                         const trackWords = currentTrackTitle ? currentTrackTitle.split(/\s+/).filter(Boolean) : [];
@@ -21182,10 +21215,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 <div className="flex items-center justify-between">
                                     <span className="text-[9px] font-black text-gray-400 uppercase tracking-wider flex items-center gap-1.5">
                                         <span
-                                            className="w-2 h-2 rounded-full inline-block animate-pulse bg-neon-cyan"
-                                            style={{ boxShadow: '0 0 8px #00f0ff' }}
+                                            className="w-2 h-2 rounded-full inline-block animate-pulse"
+                                            style={{ backgroundColor: top10CurrentAccentHex, boxShadow: `0 0 8px ${top10CurrentAccentHex}` }}
                                         />
-                                        Clique pour colorer un mot :
+                                        Clique pour illuminer un mot {top10ColorLabel} :
                                     </span>
                                     <button
                                         type="button"
@@ -21242,10 +21275,16 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                                     setTimeout(() => generateImage(), 30);
                                                 }}
                                                 className={`px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all border ${isHighlighted
-                                                    ? 'bg-neon-cyan/25 border-neon-cyan text-neon-cyan shadow-[0_0_10px_rgba(0,240,255,0.4)]'
+                                                    ? 'shadow-md'
                                                     : 'bg-white/5 border-white/10 text-gray-400 hover:text-white hover:bg-white/10 hover:border-white/20'
                                                     }`}
-                                                title={isHighlighted ? "Cliquer pour repasser en blanc" : "Cliquer pour colorer en bleu néon"}
+                                                style={isHighlighted ? {
+                                                    backgroundColor: `rgba(${top10CurrentAccentRgb}, 0.25)`,
+                                                    borderColor: top10CurrentAccentHex,
+                                                    color: top10CurrentAccentHex,
+                                                    boxShadow: `0 0 10px rgba(${top10CurrentAccentRgb}, 0.45)`,
+                                                } : {}}
+                                                title={isHighlighted ? "Cliquer pour repasser en blanc" : `Cliquer pour illuminer ${top10ColorLabel}`}
                                             >
                                                 {cleanWord}
                                             </button>
@@ -21256,15 +21295,25 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         );
                     })()}
 
-
-
                     {/* Durée strictement fixe à 1 minute pile (60s) */}
-                    <div className="p-3 bg-neon-cyan/10 border border-neon-cyan/30 rounded-xl space-y-1">
+                    <div 
+                        className="p-3 rounded-xl space-y-1 border"
+                        style={{
+                            backgroundColor: `rgba(${top10CurrentAccentRgb}, 0.08)`,
+                            borderColor: `rgba(${top10CurrentAccentRgb}, 0.30)`,
+                        }}
+                    >
                         <div className="flex items-center justify-between">
-                            <span className="text-[9px] font-black text-neon-cyan uppercase tracking-wider flex items-center gap-1.5">
+                            <span className="text-[9px] font-black uppercase tracking-wider flex items-center gap-1.5" style={{ color: top10CurrentAccentHex }}>
                                 ⏱️ Durée Totale : 1 Minute 30 Pile (90s)
                             </span>
-                            <span className="px-1.5 py-0.5 bg-neon-cyan/20 text-neon-cyan text-[7.5px] font-black uppercase rounded">
+                            <span 
+                                className="px-1.5 py-0.5 text-[7.5px] font-black uppercase rounded"
+                                style={{
+                                    backgroundColor: `rgba(${top10CurrentAccentRgb}, 0.20)`,
+                                    color: top10CurrentAccentHex,
+                                }}
+                            >
                                 Verrouillé 90s
                             </span>
                         </div>
@@ -21275,13 +21324,23 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 </div>
 
                 {/* AUTO-GÉNÉRATEUR TOP 10 100% DYNAMIQUE */}
-                <div className="p-3.5 bg-gradient-to-br from-neon-cyan/15 via-black/40 to-purple-500/10 border border-neon-cyan/40 rounded-2xl shadow-xl space-y-3">
+                <div 
+                    className="p-3.5 bg-gradient-to-br from-black/80 via-black/40 to-black/80 rounded-2xl shadow-xl space-y-3 border"
+                    style={{ borderColor: `rgba(${top10CurrentAccentRgb}, 0.40)` }}
+                >
                     <div className="flex items-center justify-between">
-                        <span className="text-[10px] font-black text-neon-cyan uppercase tracking-wider flex items-center gap-1.5">
+                        <span className="text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5" style={{ color: top10CurrentAccentHex }}>
                             ⚡ Auto-Générateur Top 10
                         </span>
                         {isAutoFillingTop10 && (
-                            <span className="px-2 py-0.5 bg-neon-cyan/20 text-neon-cyan text-[8px] font-black uppercase rounded-full animate-pulse border border-neon-cyan/40">
+                            <span 
+                                className="px-2 py-0.5 text-[8px] font-black uppercase rounded-full animate-pulse border"
+                                style={{
+                                    backgroundColor: `rgba(${top10CurrentAccentRgb}, 0.20)`,
+                                    color: top10CurrentAccentHex,
+                                    borderColor: `rgba(${top10CurrentAccentRgb}, 0.40)`,
+                                }}
+                            >
                                 ⏳ Génération en cours...
                             </span>
                         )}
@@ -21757,13 +21816,20 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         type="button"
                         onClick={() => selectTop10Track(0)}
                         className={`w-full py-2.5 px-3 rounded-xl border text-[10px] font-black uppercase transition-all flex items-center justify-between active:scale-[0.99] ${Number(top10ActiveRank) === 0
-                            ? 'bg-gradient-to-r from-neon-cyan/30 via-blue-600/40 to-indigo-600/30 border-neon-cyan text-white shadow-[0_0_20px_rgba(0,240,255,0.5)] ring-1 ring-neon-cyan'
-                            : 'bg-gradient-to-r from-cyan-950/40 via-blue-950/20 to-purple-950/30 border-cyan-500/30 hover:border-neon-cyan/70 text-cyan-200 hover:text-white hover:bg-cyan-900/30 shadow-[0_0_10px_rgba(0,240,255,0.15)]'}`}
+                            ? 'text-white'
+                            : 'bg-white/5 border-white/10 text-gray-300 hover:text-white hover:bg-white/10'}`}
+                        style={Number(top10ActiveRank) === 0 ? {
+                            backgroundColor: `rgba(${top10CurrentAccentRgb}, 0.22)`,
+                            borderColor: top10CurrentAccentHex,
+                            boxShadow: `0 0 18px rgba(${top10CurrentAccentRgb}, 0.45)`,
+                        } : {}}
                     >
                         <span className="flex items-center gap-2">
                             <span className="text-[14px]">🎬</span>
                             <span className="tracking-wide">Slide 1 : INTRO (3.5s)</span>
-                            <span className="text-[8px] px-1.5 py-0.5 rounded bg-black/40 text-cyan-300 font-mono border border-cyan-500/20">Titre + Logo Artiste</span>
+                            <span className="text-[8px] px-1.5 py-0.5 rounded bg-black/40 font-mono border" style={{ color: top10CurrentAccentHex, borderColor: `rgba(${top10CurrentAccentRgb}, 0.35)` }}>
+                                Titre + Logo {top10GenMode === 'label' ? 'Label' : top10GenMode === 'style' ? 'Genre' : 'Artiste'}
+                            </span>
                         </span>
                         <div className="flex items-center gap-1.5">
                             {artistLogo ? (
@@ -21775,7 +21841,17 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     Logo optionnel
                                 </span>
                             )}
-                            <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded ${Number(top10ActiveRank) === 0 ? 'bg-neon-cyan text-black font-mono shadow-[0_0_8px_rgba(0,240,255,0.6)]' : 'bg-white/10 text-cyan-300'}`}>
+                            <span 
+                                className="text-[9px] font-black uppercase px-2 py-0.5 rounded font-mono"
+                                style={Number(top10ActiveRank) === 0 ? {
+                                    backgroundColor: top10CurrentAccentHex,
+                                    color: '#000000',
+                                    boxShadow: `0 0 8px ${top10CurrentAccentHex}`,
+                                } : {
+                                    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                                    color: '#ffffff',
+                                }}
+                            >
                                 {Number(top10ActiveRank) === 0 ? '● Active' : 'Éditer ➔'}
                             </span>
                         </div>
@@ -21787,11 +21863,21 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             const hasMedia = Boolean(t.sourceUrl || t.audioUrl || t.videoUrl || t.cover || t.title);
 
                             let pillStyle = 'bg-white/5 border-white/10 text-gray-300 hover:bg-white/10';
+                            let dynamicPillInlineStyle: React.CSSProperties = {};
+
                             if (isCur) {
                                 if (t.rank === 1) pillStyle = 'bg-amber-400/25 border-amber-400 text-amber-300 shadow-[0_0_12px_rgba(255,215,0,0.4)]';
                                 else if (t.rank === 2) pillStyle = 'bg-gray-300/25 border-gray-200 text-white shadow-[0_0_10px_rgba(255,255,255,0.3)]';
                                 else if (t.rank === 3) pillStyle = 'bg-amber-600/25 border-amber-500 text-amber-200 shadow-[0_0_10px_rgba(205,127,50,0.3)]';
-                                else pillStyle = 'bg-neon-cyan/20 border-neon-cyan text-neon-cyan shadow-[0_0_10px_rgba(0,240,255,0.35)]';
+                                else {
+                                    pillStyle = '';
+                                    dynamicPillInlineStyle = {
+                                        backgroundColor: `rgba(${top10CurrentAccentRgb}, 0.22)`,
+                                        borderColor: top10CurrentAccentHex,
+                                        color: top10CurrentAccentHex,
+                                        boxShadow: `0 0 10px rgba(${top10CurrentAccentRgb}, 0.40)`,
+                                    };
+                                }
                             } else if (hasMedia) {
                                 pillStyle = 'bg-white/10 border-emerald-500/50 text-emerald-300 shadow-[0_0_8px_rgba(16,185,129,0.2)]';
                             }
@@ -21801,6 +21887,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     key={t.rank}
                                     type="button"
                                     onClick={() => selectTop10Track(t.rank)}
+                                    style={dynamicPillInlineStyle}
                                     className={`py-2 px-1 rounded-xl border text-[11px] font-black transition-all flex flex-col items-center justify-center gap-0.5 active:scale-95 ${pillStyle}`}
                                 >
                                     <span>{t.rank === 1 ? '👑 #1' : `#${t.rank}`}</span>
@@ -21815,15 +21902,28 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                 {/* 3. ÉDITION INTRO OU TRACK ACTIVE */}
                 {Number(top10ActiveRank) === 0 ? (
-                    <div className="p-4 bg-gradient-to-br from-neon-cyan/15 via-black/60 to-blue-900/20 border border-neon-cyan/40 rounded-2xl shadow-xl space-y-4">
+                    <div 
+                        className="p-4 bg-gradient-to-br from-black/80 via-black/60 to-black/80 rounded-2xl shadow-xl space-y-4 border"
+                        style={{ borderColor: `rgba(${top10CurrentAccentRgb}, 0.40)` }}
+                    >
                         <div className="flex items-center justify-between pb-2 border-b border-white/10">
-                            <span className="text-[12px] font-black text-neon-cyan uppercase tracking-wider flex items-center gap-1.5">
+                            <span className="text-[12px] font-black uppercase tracking-wider flex items-center gap-1.5" style={{ color: top10CurrentAccentHex }}>
                                 🎬 Configuration Slide Intro (3.5s)
                             </span>
                             <button
                                 type="button"
                                 onClick={handleTestIntroAnim}
-                                className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase transition-all flex items-center gap-1.5 shadow-md ${isTestingIntro ? 'bg-neon-cyan text-black animate-pulse' : 'bg-neon-cyan/20 hover:bg-neon-cyan text-neon-cyan hover:text-black border border-neon-cyan/50'}`}
+                                className="px-3 py-1.5 rounded-xl text-[9px] font-black uppercase transition-all flex items-center gap-1.5 shadow-md border"
+                                style={isTestingIntro ? {
+                                    backgroundColor: top10CurrentAccentHex,
+                                    color: '#000000',
+                                    borderColor: top10CurrentAccentHex,
+                                    boxShadow: `0 0 14px ${top10CurrentAccentHex}`,
+                                } : {
+                                    backgroundColor: `rgba(${top10CurrentAccentRgb}, 0.18)`,
+                                    color: top10CurrentAccentHex,
+                                    borderColor: `rgba(${top10CurrentAccentRgb}, 0.45)`,
+                                }}
                             >
                                 <Play className="w-3.5 h-3.5" />
                                 {isTestingIntro ? 'Lecture 3.5s...' : '▶ Tester l\'intro (3.5s)'}
@@ -21845,26 +21945,29 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     generateImage();
                                 }}
                                 placeholder="TOP 10 DES TRACKS LES PLUS TÉLÉCHARGÉES SUR BEATPORT"
-                                className="w-full bg-black/60 border border-white/10 rounded-xl p-2.5 text-white font-black uppercase text-[11px] focus:border-neon-cyan outline-none"
+                                className="w-full bg-black/60 border border-white/10 rounded-xl p-2.5 text-white font-black uppercase text-[11px] outline-none"
                             />
                         </div>
 
-                        {/* CHOIX DES MOTS EN COULEUR NÉON / OR FESTIVAL */}
+                        {/* CHOIX DES MOTS EN COULEUR ACCENT DYNAMIQUE */}
                         {(() => {
                             const currentTitle = top10IntroTitle || '';
                             const rawWords = currentTitle ? currentTitle.split(/\s+/).filter(Boolean) : [];
                             if (rawWords.length === 0) return null;
                             const isStyleMode = top10GenMode === 'style';
-                            const accentHex = isStyleMode ? '#FFB800' : '#00F0FF';
+                            const isLabelMode = top10GenMode === 'label';
+                            const accentHex = isLabelMode ? '#B86221' : (isStyleMode ? '#FFB800' : '#00F0FF');
+                            const accentRgb = isLabelMode ? '184, 98, 33' : (isStyleMode ? '255, 184, 0' : '0, 240, 255');
+                            const modeName = isStyleMode ? 'en or festival' : (isLabelMode ? 'en bronze cuivré' : 'en bleu néon');
                             return (
                                 <div className="space-y-1.5 pt-1">
                                     <div className="flex items-center justify-between">
                                         <span className="text-[9px] font-black text-gray-400 uppercase tracking-wider flex items-center gap-1.5">
                                             <span
-                                                className={`w-2 h-2 rounded-full inline-block animate-pulse ${isStyleMode ? 'bg-[#FFB800]' : 'bg-neon-cyan'}`}
-                                                style={{ boxShadow: `0 0 8px ${accentHex}` }}
+                                                className="w-2 h-2 rounded-full inline-block animate-pulse"
+                                                style={{ backgroundColor: accentHex, boxShadow: `0 0 8px ${accentHex}` }}
                                             />
-                                            Clique pour illuminer un mot {top10GenMode === 'style' ? 'en or festival' : (top10GenMode === 'label' ? 'en marron' : 'en bleu néon')} :
+                                            Clique pour illuminer un mot {modeName} :
                                         </span>
                                         <button
                                             type="button"
@@ -21921,10 +22024,16 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                                         setTimeout(() => generateImage(), 30);
                                                     }}
                                                     className={`px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all border ${isHighlighted
-                                                        ? (isStyleMode ? 'bg-[#FFB800]/25 border-[#FFB800] text-[#FFB800] shadow-[0_0_10px_rgba(255,184,0,0.4)]' : 'bg-neon-cyan/25 border-neon-cyan text-neon-cyan shadow-[0_0_10px_rgba(0,240,255,0.4)]')
+                                                        ? 'shadow-md'
                                                         : 'bg-white/5 border-white/10 text-gray-400 hover:text-white hover:bg-white/10 hover:border-white/20'
                                                         }`}
-                                                    title={isHighlighted ? "Cliquer pour repasser en blanc" : `Cliquer pour illuminer ${isStyleMode ? 'en or festival' : 'en bleu néon'}`}
+                                                    style={isHighlighted ? {
+                                                        backgroundColor: `rgba(${accentRgb}, 0.25)`,
+                                                        borderColor: accentHex,
+                                                        color: accentHex,
+                                                        boxShadow: `0 0 10px rgba(${accentRgb}, 0.45)`,
+                                                    } : {}}
+                                                    title={isHighlighted ? "Cliquer pour repasser en blanc" : `Cliquer pour illuminer ${modeName}`}
                                                 >
                                                     {cleanWord}
                                                 </button>
@@ -22127,7 +22236,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             <button
                                 type="button"
                                 onClick={() => selectTop10Track(10)}
-                                className="py-2 px-3.5 bg-neon-cyan text-black rounded-xl text-[9px] font-black uppercase font-mono transition-all hover:bg-neon-cyan/80 active:scale-95 shadow-md shadow-neon-cyan/20"
+                                className="py-2 px-3.5 rounded-xl text-[9px] font-black uppercase font-mono transition-all active:scale-95 shadow-md"
+                                style={{
+                                    backgroundColor: top10CurrentAccentHex,
+                                    color: '#000000',
+                                    boxShadow: `0 0 10px ${top10CurrentAccentHex}`,
+                                }}
                             >
                                 Passer à la Track #10 →
                             </button>
@@ -22135,10 +22249,16 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     </div>
                 ) : (
                     /* 3. FORMULAIRE DE LA TRACK ACTIVE */
-                    <div className={`p-4 bg-black/50 border rounded-2xl shadow-xl space-y-3.5 transition-all ${podiumBorder}`}>
+                    <div 
+                        className={`p-4 bg-black/50 border rounded-2xl shadow-xl space-y-3.5 transition-all ${podiumBorder}`}
+                        style={!podiumBorder ? { borderColor: `rgba(${top10CurrentAccentRgb}, 0.35)` } : {}}
+                    >
                     <div className="flex items-center justify-between pb-1 border-b border-white/10">
                         <div className="flex items-center gap-2">
-                            <span className={`text-[14px] font-black font-mono ${podiumColor}`}>
+                            <span 
+                                className={`text-[14px] font-black font-mono ${podiumColor}`}
+                                style={!podiumColor ? { color: top10CurrentAccentHex } : {}}
+                            >
                                 {activeTrack.rank === 1 ? '👑 POSITION #1' : activeTrack.rank === 2 ? '🥈 POSITION #2' : activeTrack.rank === 3 ? '🥉 POSITION #3' : `POSITION #${activeTrack.rank}`}
                             </span>
                         </div>
