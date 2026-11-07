@@ -48,6 +48,7 @@ import { resolveImageUrl } from '../utils/image';
 import { resolveMusicSnippet, searchMusicTracksList, getBeatportToken, type ResolvedMusicData } from '../utils/musicResolver';
 import { fixWebmDuration } from '../utils/fixWebm';
 import recapsData from '../data/recaps.json';
+import { BEATPORT_GENRES, resolveBeatportGenre } from '../data/beatportGenres';
 import { renderPromoPhone3D } from './social/PromoPhone3DRenderer';
 import { translateToFrench } from '../utils/translate';
 // @ts-ignore
@@ -1179,8 +1180,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const top10StyleColorRef = useRef<string>('#FFB800');
     top10StyleColorRef.current = top10StyleColor;
     const [top10ArtistSearch, setTop10ArtistSearch] = useState<string>('');
-    const [top10LabelSearch, setTop10LabelSearch] = useState<string>('Afterlife');
-    const top10LabelSearchRef = useRef<string>('Afterlife');
+    const [top10LabelSearch, setTop10LabelSearch] = useState<string>('');
+    const top10LabelSearchRef = useRef<string>('');
     top10LabelSearchRef.current = top10LabelSearch;
     const [top10StyleSearch, setTop10StyleSearch] = useState<string>('');
     const [top10RawTextImport, setTop10RawTextImport] = useState<string>('');
@@ -21020,7 +21021,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     onKeyDown={e => {
                                         if (e.key === 'Enter') handleAutoFetchLabelTop10(top10LabelSearch);
                                     }}
-                                    placeholder="ex: Afterlife, Drumcode, Spinnin' Records, Defected, Toolroom, Armada..."
+                                    placeholder="ex: Label, Drumcode, Spinnin' Records, Defected, Toolroom, Armada..."
                                     className="w-full bg-black/80 border border-[#B86221]/40 focus:border-[#B86221] rounded-xl px-3 py-2.5 text-white text-[10.5px] font-bold outline-none placeholder:text-gray-500 shadow-inner"
                                 />
                                 <button
@@ -21495,7 +21496,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     setTop10IntroArtist(e.target.value);
                                     generateImage();
                                 }}
-                                placeholder={top10GenMode === 'style' ? (top10StyleSearch || "ex: Techno, Hard Techno, House...") : top10GenMode === 'label' ? ((top10LabelSearchRef.current || top10LabelSearch) || "ex: Experts Only, Afterlife, Defected...") : (top10ArtistSearch || "ex: Martin Garrix, David Guetta...")}
+                                placeholder={top10GenMode === 'style' ? (top10StyleSearch || "ex: Techno, Hard Techno, House...") : top10GenMode === 'label' ? ((top10LabelSearchRef.current || top10LabelSearch) || "ex: Experts Only, Defected, Drumcode...") : (top10ArtistSearch || "ex: Martin Garrix, David Guetta...")}
                                 className="w-full bg-black/60 border border-white/10 rounded-xl p-2.5 text-white font-black text-[11px] focus:border-neon-cyan outline-none"
                             />
                         </div>

@@ -128,49 +128,79 @@ export default defineConfig({
             try {
               const reqUrl = new URL(req.url, 'http://localhost:5173');
               const rawGenre = (reqUrl.searchParams.get('genre') || '').toLowerCase().trim();
-              const normalized = rawGenre.replace(/[-_]+/g, ' ').replace(/\s+/g, ' ');
-              
-              const BEATPORT_GENRES_MAP: Record<string, { id: number; slug: string; name: string }> = {
-                'indie dance': { id: 37, slug: 'indie-dance', name: 'Indie Dance' },
-                'house': { id: 5, slug: 'house', name: 'House' },
-                'tech house': { id: 11, slug: 'tech-house', name: 'Tech House' },
-                'deep house': { id: 12, slug: 'deep-house', name: 'Deep House' },
-                'afro house': { id: 89, slug: 'afro-house', name: 'Afro House' },
-                'melodic house techno': { id: 90, slug: 'melodic-house-techno', name: 'Melodic House & Techno' },
-                'melodic techno': { id: 90, slug: 'melodic-house-techno', name: 'Melodic House & Techno' },
-                'melodic house': { id: 90, slug: 'melodic-house-techno', name: 'Melodic House & Techno' },
-                'hard techno': { id: 2, slug: 'hard-techno', name: 'Hard Techno' },
-                'techno': { id: 6, slug: 'techno-peak-time-driving', name: 'Techno (Peak Time / Driving)' },
-                'peak time techno': { id: 6, slug: 'techno-peak-time-driving', name: 'Techno (Peak Time / Driving)' },
-                'raw techno': { id: 92, slug: 'techno-raw-deep-hypnotic', name: 'Techno (Raw / Deep / Hypnotic)' },
-                'progressive house': { id: 15, slug: 'progressive-house', name: 'Progressive House' },
-                'prog house': { id: 15, slug: 'progressive-house', name: 'Progressive House' },
-                'trance': { id: 7, slug: 'trance-main-floor', name: 'Trance (Main Floor)' },
-                'psy trance': { id: 13, slug: 'psy-trance', name: 'Psy-Trance' },
-                'drum bass': { id: 1, slug: 'drum-bass', name: 'Drum & Bass' },
-                'drum and bass': { id: 1, slug: 'drum-bass', name: 'Drum & Bass' },
-                'dnb': { id: 1, slug: 'drum-bass', name: 'Drum & Bass' },
-                'minimal deep tech': { id: 14, slug: 'minimal-deep-tech', name: 'Minimal / Deep Tech' },
-                'minimal': { id: 14, slug: 'minimal-deep-tech', name: 'Minimal / Deep Tech' },
-                'nu disco': { id: 50, slug: 'nu-disco-disco', name: 'Nu Disco / Disco' },
-                'disco': { id: 50, slug: 'nu-disco-disco', name: 'Nu Disco / Disco' },
-                'bass house': { id: 91, slug: 'bass-house', name: 'Bass House' },
-                'mainstage': { id: 96, slug: 'mainstage', name: 'Mainstage' },
-                'edm': { id: 96, slug: 'mainstage', name: 'Mainstage' },
-                'uk garage': { id: 86, slug: 'uk-garage-bassline', name: 'UK Garage / Bassline' },
-                'bassline': { id: 86, slug: 'uk-garage-bassline', name: 'UK Garage / Bassline' },
-                'amapiano': { id: 98, slug: 'amapiano', name: 'Amapiano' },
-                'hardstyle': { id: 8, slug: 'hard-dance-hardcore-neo-rave', name: 'Hard Dance / Hardcore / Neo Rave' },
-                'hard dance': { id: 8, slug: 'hard-dance-hardcore-neo-rave', name: 'Hard Dance / Hardcore / Neo Rave' },
-                'electro': { id: 94, slug: 'electro-classic-detroit-modern', name: 'Electro' },
-                'dubstep': { id: 18, slug: 'dubstep', name: 'Dubstep' },
-                'funky house': { id: 81, slug: 'funky-house', name: 'Funky House' },
-                'jackin house': { id: 97, slug: 'jackin-house', name: 'Jackin House' }
-              };
+                            
+              const BEATPORT_GENRES: Array<{ id: number; slug: string; name: string; aliases: string[] }> = [
+                { id: 95, slug: "140-deep-dubstep-grime", name: "140 / Deep Dubstep / Grime", aliases: ["140", "deep dubstep", "grime", "140 deep dubstep grime"] },
+                { id: 89, slug: "afro-house", name: "Afro House", aliases: ["afro", "afro house"] },
+                { id: 98, slug: "amapiano", name: "Amapiano", aliases: ["amapiano", "piano"] },
+                { id: 100, slug: "ambient-experimental", name: "Ambient / Experimental", aliases: ["ambient", "experimental", "ambient experimental"] },
+                { id: 85, slug: "bass-club", name: "Bass / Club", aliases: ["bass club", "club", "bass / club"] },
+                { id: 91, slug: "bass-house", name: "Bass House", aliases: ["bass house"] },
+                { id: 101, slug: "brazilian-funk", name: "Brazilian Funk", aliases: ["funk", "baile funk", "brazilian funk"] },
+                { id: 9, slug: "breaks-breakbeat-uk-bass", name: "Breaks / Breakbeat / UK Bass", aliases: ["breaks", "breakbeat", "uk bass", "breaks breakbeat uk bass"] },
+                { id: 39, slug: "dance-pop", name: "Dance / Pop", aliases: ["dance", "dance pop", "pop", "dance / pop"] },
+                { id: 12, slug: "deep-house", name: "Deep House", aliases: ["deep house"] },
+                { id: 16, slug: "dj-tools-acapellas", name: "DJ Tools / Acapellas", aliases: ["dj tools", "acapellas", "acapella", "tools", "dj tools acapellas"] },
+                { id: 63, slug: "downtempo", name: "Downtempo", aliases: ["chillout", "down tempo", "downtempo"] },
+                { id: 1, slug: "drum-bass", name: "Drum & Bass", aliases: ["drum & bass", "drum and bass", "drum n bass", "dnb", "drum bass", "drum-bass", "drum'n'bass"] },
+                { id: 18, slug: "dubstep", name: "Dubstep", aliases: ["dubstep"] },
+                { id: 94, slug: "electro-classic-detroit-modern", name: "Electro (Classic / Detroit / Modern)", aliases: ["electro", "electro classic", "detroit electro", "electro classic detroit modern"] },
+                { id: 3, slug: "electronica", name: "Electronica", aliases: ["electronica"] },
+                { id: 81, slug: "funky-house", name: "Funky House", aliases: ["funky house", "funky"] },
+                { id: 8, slug: "hard-dance-hardcore-neo-rave", name: "Hard Dance / Hardcore / Neo Rave", aliases: ["hard dance", "hardcore", "neo rave", "hardstyle", "hard dance / hardcore / neo rave", "neorave", "hard dance hardcore neo rave", "hard dance neo rave"] },
+                { id: 2, slug: "hard-techno", name: "Hard Techno", aliases: ["hard techno", "hardtechno", "schranz", "industrial techno"] },
+                { id: 5, slug: "house", name: "House", aliases: ["house"] },
+                { id: 37, slug: "indie-dance", name: "Indie Dance", aliases: ["indie dance", "indie"] },
+                { id: 112, slug: "indie-tech", name: "Indie Tech", aliases: ["indie tech"] },
+                { id: 97, slug: "jackin-house", name: "Jackin House", aliases: ["jackin house", "jackin"] },
+                { id: 111, slug: "latin-electronic", name: "Latin Electronic", aliases: ["latin electronic", "latin"] },
+                { id: 96, slug: "mainstage", name: "Mainstage", aliases: ["mainstage", "edm", "big room", "festival"] },
+                { id: 90, slug: "melodic-house-techno", name: "Melodic House & Techno", aliases: ["melodic house & techno", "melodic techno", "melodic house", "melodic", "melodic house techno"] },
+                { id: 14, slug: "minimal-deep-tech", name: "Minimal / Deep Tech", aliases: ["minimal / deep tech", "minimal", "deep tech", "minimal tech", "minimal deep tech"] },
+                { id: 50, slug: "nu-disco-disco", name: "Nu Disco / Disco", aliases: ["nu disco / disco", "nu disco", "disco", "nudisco", "nu disco disco"] },
+                { id: 93, slug: "organic-house", name: "Organic House", aliases: ["organic house", "downtempo house"] },
+                { id: 15, slug: "progressive-house", name: "Progressive House", aliases: ["progressive house", "prog house", "progressive"] },
+                { id: 13, slug: "psy-trance", name: "Psy-Trance", aliases: ["psy-trance", "psy trance", "psytrance", "goa"] },
+                { id: 11, slug: "tech-house", name: "Tech House", aliases: ["tech house"] },
+                { id: 6, slug: "techno-peak-time-driving", name: "Techno (Peak Time / Driving)", aliases: ["techno", "peak time techno", "driving techno", "techno peak time driving", "techno (peak time / driving)", "peak time"] },
+                { id: 92, slug: "techno-raw-deep-hypnotic", name: "Techno (Raw / Deep / Hypnotic)", aliases: ["raw techno", "deep techno", "hypnotic techno", "techno raw deep hypnotic", "techno (raw / deep / hypnotic)"] },
+                { id: 7, slug: "trance-main-floor", name: "Trance (Main Floor)", aliases: ["trance", "main floor trance", "uplifting trance", "trance main floor", "trance (main floor)"] },
+                { id: 99, slug: "trance-raw-deep-hypnotic", name: "Trance (Raw / Deep / Hypnotic)", aliases: ["raw trance", "deep trance", "hypnotic trance", "trance raw deep hypnotic", "trance (raw / deep / hypnotic)"] },
+                { id: 38, slug: "trap-future-bass", name: "Trap / Future Bass", aliases: ["trap / future bass", "trap", "future bass", "trap future bass"] },
+                { id: 86, slug: "uk-garage-bassline", name: "UK Garage / Bassline", aliases: ["uk garage / bassline", "uk garage", "bassline", "ukg", "garage", "uk garage bassline"] }
+              ];
 
-              const genreMeta = BEATPORT_GENRES_MAP[normalized] ||
-                Object.entries(BEATPORT_GENRES_MAP).find(([k]) => normalized.includes(k) || k.includes(normalized))?.[1] ||
-                { id: 5, slug: 'house', name: 'House' };
+              const cleanQ = (rawGenre || '')
+                .toLowerCase()
+                .replace(/&/g, ' and ')
+                .replace(/\b[nN]\b/g, ' and ')
+                .replace(/['"/\\+-_]/g, ' ')
+                .replace(/\s+/g, ' ')
+                .trim();
+
+              let genreMeta = BEATPORT_GENRES.find(g => g.slug === rawGenre || g.slug === cleanQ.replace(/\s+/g, '-')) ||
+                BEATPORT_GENRES.find(g => g.name.toLowerCase().replace(/['"/\\+-_&]/g, ' ').replace(/\s+/g, ' ').trim() === cleanQ) ||
+                BEATPORT_GENRES.find(g => g.aliases.some(a => a.toLowerCase().replace(/['"/\\+-_&]/g, ' ').replace(/\s+/g, ' ').trim() === cleanQ));
+
+              if (!genreMeta) {
+                const candidates: Array<{ genre: typeof BEATPORT_GENRES[0]; score: number }> = [];
+                for (const g of BEATPORT_GENRES) {
+                  for (const a of [g.name, ...g.aliases]) {
+                    const ca = a.toLowerCase().replace(/['"/\\+-_&]/g, ' ').replace(/\s+/g, ' ').trim();
+                    if (cleanQ.includes(ca) || ca.includes(cleanQ)) {
+                      candidates.push({ genre: g, score: Math.min(ca.length, cleanQ.length) });
+                    }
+                  }
+                }
+                if (candidates.length > 0) {
+                  candidates.sort((a, b) => b.score - a.score);
+                  genreMeta = candidates[0].genre;
+                }
+              }
+
+              if (!genreMeta) {
+                genreMeta = BEATPORT_GENRES.find(g => g.slug === 'house')!;
+              }
 
               const bpUrl = `https://www.beatport.com/genre/${genreMeta.slug}/${genreMeta.id}/top-100`;
               
