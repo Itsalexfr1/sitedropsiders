@@ -449,6 +449,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const [isTransparent, setIsTransparent] = useState(true);
     const [showBottomLogo, setShowBottomLogo] = useState(false);
     const [artistLogo, setArtistLogo] = useState<string>(''); // NEW
+    const [artistLogoOriginal, setArtistLogoOriginal] = useState<string>('');
     const artistLogoRef = useRef<HTMLImageElement | null>(null); // NEW
 
     useEffect(() => {
@@ -3751,6 +3752,107 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             generateImage();
         }
         try { e.target.value = ''; } catch (_) {}
+    };
+
+    const handleRestoreOriginalLogo = () => {
+        if (!artistLogoOriginal) return;
+        setArtistLogo(artistLogoOriginal);
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.src = artistLogoOriginal;
+        img.onload = () => {
+            artistLogoRef.current = img;
+            generateImage();
+        };
+        setArtistLogoOriginal('');
+    };
+
+    const handleRemoveLogoBackground = async (mode: 'BLACK' | 'WHITE') => {
+        const currentSrc = artistLogo;
+        if (!currentSrc) return;
+
+        if (!artistLogoOriginal) {
+            setArtistLogoOriginal(currentSrc);
+        }
+
+        const processElement = (sourceImg: CanvasImageSource, width: number, height: number) => {
+            const oc = document.createElement('canvas');
+            oc.width = width;
+            oc.height = height;
+            const octx = oc.getContext('2d', { willReadFrequently: true });
+            if (!octx) return;
+            octx.drawImage(sourceImg, 0, 0, width, height);
+            const imgData = octx.getImageData(0, 0, width, height);
+            const d = imgData.data;
+
+            for (let i = 0; i < d.length; i += 4) {
+                const r = d[i];
+                const g = d[i + 1];
+                const b = d[i + 2];
+                const a = d[i + 3];
+                if (a === 0) continue;
+
+                if (mode === 'BLACK') {
+                    const maxVal = Math.max(r, g, b);
+                    if (maxVal < 42) {
+                        d[i + 3] = 0;
+                    } else if (maxVal < 95) {
+                        const factor = (maxVal - 42) / (95 - 42);
+                        d[i + 3] = Math.round(a * factor);
+                    }
+                } else if (mode === 'WHITE') {
+                    const minVal = Math.min(r, g, b);
+                    if (minVal > 222) {
+                        d[i + 3] = 0;
+                    } else if (minVal > 170) {
+                        const factor = (222 - minVal) / (222 - 170);
+                        d[i + 3] = Math.round(a * factor);
+                    }
+                }
+            }
+
+            octx.putImageData(imgData, 0, 0);
+            const newUrl = oc.toDataURL('image/png');
+            setArtistLogo(newUrl);
+
+            const cleanImg = new Image();
+            cleanImg.crossOrigin = 'anonymous';
+            cleanImg.src = newUrl;
+            cleanImg.onload = () => {
+                artistLogoRef.current = cleanImg;
+                generateImage();
+            };
+        };
+
+        const existingImg = artistLogoRef.current;
+        if (existingImg && (existingImg.naturalWidth > 0 || existingImg.complete)) {
+            try {
+                processElement(existingImg, existingImg.naturalWidth || existingImg.width, existingImg.naturalHeight || existingImg.height);
+                return;
+            } catch (err) {
+                console.warn('Canvas direct tainted, fallback via proxy...', err);
+            }
+        }
+
+        try {
+            const fetchUrl = currentSrc.startsWith('data:') || currentSrc.startsWith('blob:')
+                ? currentSrc
+                : `/api/proxy-image?url=${encodeURIComponent(currentSrc)}`;
+            const res = await fetch(fetchUrl);
+            const blob = await res.blob();
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                const tempImg = new Image();
+                tempImg.crossOrigin = 'anonymous';
+                tempImg.src = reader.result as string;
+                tempImg.onload = () => {
+                    processElement(tempImg, tempImg.naturalWidth, tempImg.naturalHeight);
+                };
+            };
+            reader.readAsDataURL(blob);
+        } catch (e) {
+            console.error('Erreur lors du détourage du logo:', e);
+        }
     };
 
     const handleFestivalLogoChange = (e: any) => {
@@ -9855,7 +9957,16 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         const titleLineHeight = titleFontSize * 1.15;
 
                         // C. LOGO OFFICIEL UPLOADÉ OU NOM DE L'ARTISTE EN GROS EN BLEU NÉON
-                        const effectiveArtistName = (top10IntroArtistRef.current || top10IntroArtist || top10ArtistSearch || 'ARTISTE').toUpperCase().trim();
+                        const defaultIntroSubtitle = isStyleMode
+                            ? (top10StyleSearch || 'GENRE').toUpperCase().trim()
+                            : isLabelMode
+                                ? ((top10LabelSearchRef.current || top10LabelSearch) || 'LABEL').toUpperCase().trim()
+                                : (top10ArtistSearch || 'ARTISTE').toUpperCase().trim();
+                        const effectiveArtistName = (
+                            top10IntroArtistRef.current ||
+                            top10IntroArtist ||
+                            defaultIntroSubtitle
+                        ).toUpperCase().trim();
                         const artistLogoObj = artistLogoRef.current;
                         const hasUploadedLogo = Boolean(artistLogo && artistLogo.trim() !== '' && !artistLogo.includes('JOHN-SUMMIT-GIVEAWAY') && artistLogoObj && (artistLogoObj.naturalWidth > 0 || artistLogoObj.complete));
 
@@ -21040,6 +21151,46 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 />
                             </div>
                         )}
+                        {/* 🪄 DÉTOURAGE FOND NOIR / BLANC (1-CLIC) */}
+                        {artistLogo && (
+                            <div className="pt-2 pb-1 border-t border-white/10 space-y-1.5">
+                                <div className="flex items-center justify-between text-[8px] font-black uppercase text-gray-300">
+                                    <span className="flex items-center gap-1 text-white">
+                                        <span>🪄</span> Détourage Fond (1-Clic) :
+                                    </span>
+                                    {artistLogoOriginal && (
+                                        <button
+                                            type="button"
+                                            onClick={handleRestoreOriginalLogo}
+                                            className="text-[7.5px] text-amber-400 hover:text-amber-300 font-bold uppercase transition-colors"
+                                        >
+                                            ↺ Fond Original
+                                        </button>
+                                    )}
+                                </div>
+                                <div className="grid grid-cols-2 gap-1.5">
+                                    <button
+                                        type="button"
+                                        onClick={() => handleRemoveLogoBackground('BLACK')}
+                                        className="py-1.5 px-2 bg-black/80 hover:bg-black border border-white/20 hover:border-neon-cyan/60 rounded-lg text-[8px] font-black uppercase text-white transition-all flex items-center justify-center gap-1 shadow-sm active:scale-95"
+                                        title="Supprime le fond noir autour du logo"
+                                    >
+                                        <span>⬛</span>
+                                        <span>Retirer Fond Noir</span>
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => handleRemoveLogoBackground('WHITE')}
+                                        className="py-1.5 px-2 bg-white/10 hover:bg-white/20 border border-white/20 hover:border-neon-cyan/60 rounded-lg text-[8px] font-black uppercase text-white transition-all flex items-center justify-center gap-1 shadow-sm active:scale-95"
+                                        title="Supprime le fond blanc autour du logo"
+                                    >
+                                        <span>⬜</span>
+                                        <span>Retirer Fond Blanc</span>
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+
 
                         {/* Option Taille / Échelle du Logo */}
                         {artistLogo && (
@@ -21344,7 +21495,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     setTop10IntroArtist(e.target.value);
                                     generateImage();
                                 }}
-                                placeholder={top10ArtistSearch || "Nom de l'artiste (ex: Martin Garrix, David Guetta...)"}
+                                placeholder={top10GenMode === 'style' ? (top10StyleSearch || "ex: Techno, Hard Techno, House...") : top10GenMode === 'label' ? ((top10LabelSearchRef.current || top10LabelSearch) || "ex: Experts Only, Afterlife, Defected...") : (top10ArtistSearch || "ex: Martin Garrix, David Guetta...")}
                                 className="w-full bg-black/60 border border-white/10 rounded-xl p-2.5 text-white font-black text-[11px] focus:border-neon-cyan outline-none"
                             />
                         </div>
@@ -21431,6 +21582,46 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     />
                                 </div>
                             )}
+                        {/* 🪄 DÉTOURAGE FOND NOIR / BLANC (1-CLIC) */}
+                        {artistLogo && (
+                            <div className="pt-2 pb-1 border-t border-white/10 space-y-1.5">
+                                <div className="flex items-center justify-between text-[8px] font-black uppercase text-gray-300">
+                                    <span className="flex items-center gap-1 text-white">
+                                        <span>🪄</span> Détourage Fond (1-Clic) :
+                                    </span>
+                                    {artistLogoOriginal && (
+                                        <button
+                                            type="button"
+                                            onClick={handleRestoreOriginalLogo}
+                                            className="text-[7.5px] text-amber-400 hover:text-amber-300 font-bold uppercase transition-colors"
+                                        >
+                                            ↺ Fond Original
+                                        </button>
+                                    )}
+                                </div>
+                                <div className="grid grid-cols-2 gap-1.5">
+                                    <button
+                                        type="button"
+                                        onClick={() => handleRemoveLogoBackground('BLACK')}
+                                        className="py-1.5 px-2 bg-black/80 hover:bg-black border border-white/20 hover:border-neon-cyan/60 rounded-lg text-[8px] font-black uppercase text-white transition-all flex items-center justify-center gap-1 shadow-sm active:scale-95"
+                                        title="Supprime le fond noir autour du logo"
+                                    >
+                                        <span>⬛</span>
+                                        <span>Retirer Fond Noir</span>
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => handleRemoveLogoBackground('WHITE')}
+                                        className="py-1.5 px-2 bg-white/10 hover:bg-white/20 border border-white/20 hover:border-neon-cyan/60 rounded-lg text-[8px] font-black uppercase text-white transition-all flex items-center justify-center gap-1 shadow-sm active:scale-95"
+                                        title="Supprime le fond blanc autour du logo"
+                                    >
+                                        <span>⬜</span>
+                                        <span>Retirer Fond Blanc</span>
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+
 
                             {/* Option Taille / Échelle du Logo */}
                             {artistLogo && (
