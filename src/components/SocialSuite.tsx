@@ -12213,6 +12213,20 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         return () => { document.head.removeChild(link); };
     }, []);
 
+    const ensureVideoMountedInDOM = (vid: HTMLVideoElement) => {
+        if (typeof document === 'undefined') return;
+        let hiddenMount = document.getElementById('ds-hidden-video-mount');
+        if (!hiddenMount) {
+            hiddenMount = document.createElement('div');
+            hiddenMount.id = 'ds-hidden-video-mount';
+            hiddenMount.style.cssText = 'position:fixed;top:-9999px;left:-9999px;width:1px;height:1px;opacity:0;pointer-events:none;overflow:hidden;z-index:-1;';
+            document.body.appendChild(hiddenMount);
+        }
+        if (!hiddenMount.contains(vid)) {
+            hiddenMount.appendChild(vid);
+        }
+    };
+
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
@@ -12235,16 +12249,31 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         const isVideo = file.type.startsWith('video/') || /\.(mp4|mov|webm|m4v|3gp|mkv|avi)$/i.test(file.name);
         if (isVideo) {
             bgVideoBlobRef.current = file;
+            unlockMobileAudioSession();
             const video = document.createElement('video');
             video.crossOrigin = "anonymous";
             video.src = url;
             video.loop = true;
             video.playsInline = true; // Indispensable pour Safari / Chrome mobile
-            video.muted = true; // Autoplay sécurisé pour éviter le blocage audio sur mobile
+            video.volume = 1;
             video.currentTime = 0;
+            
+            // Requis par Safari iOS : le composant vidéo doit être dans le DOM pour router le son vers les haut-parleurs
+            ensureVideoMountedInDOM(video);
+
+            // On tente d'activer le son immédiatement car l'upload est un geste utilisateur direct
+            video.muted = false;
+
             const onLoaded = () => {
                 video.currentTime = 0;
-                video.play().catch(e => console.warn("Auto-preview play failed", e));
+                video.play().then(() => {
+                    setIsVideoAudioMuted(false);
+                }).catch(() => {
+                    // Fallback si la politique autoplay mobile bloque le son non muté au premier essai
+                    video.muted = true;
+                    setIsVideoAudioMuted(true);
+                    video.play().catch(() => {});
+                });
                 if (video.duration && !isNaN(video.duration) && video.duration > 0) {
                     setEditorialSlide1Duration(Math.round(video.duration));
                 }
@@ -12254,9 +12283,14 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             if (video.duration && !isNaN(video.duration) && video.duration > 0) {
                 setEditorialSlide1Duration(Math.round(video.duration));
             }
-            video.play().catch(e => console.warn("Auto-preview play failed", e));
+            video.play().then(() => {
+                setIsVideoAudioMuted(false);
+            }).catch(() => {
+                video.muted = true;
+                setIsVideoAudioMuted(true);
+                video.play().catch(() => {});
+            });
             setBgVideo(video);
-            setIsVideoAudioMuted(true);
             setBgImage('');
             if (theme !== 'JEU_DJ') {
                 setEditorialSlideImages(prev => {
@@ -13083,10 +13117,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
                     );
 
-                    // Sur iOS WebKit, createMediaElementSource(video) détourne le son des haut-parleurs et produit une piste 100% muette !
-                    // Sur iOS, on laisse bgVideo jouer normalement et Phase 2b/3 extrait et muxe la vraie piste audio stéréo AAC dans le MP4.
                     // En TOP 10 TRACKS et MUSIQUE, la vidéo de fond est STRICTEMENT visuelle (b-roll muet) : le son vient uniquement des morceaux.
-                    if (!isIOSWebKit && theme !== 'TOP 10 TRACKS' && theme !== 'MUSIQUE') {
+                    if (theme !== 'TOP 10 TRACKS' && theme !== 'MUSIQUE') {
                         try {
                             const AudioCtxClass = (window as any).AudioContext || (window as any).webkitAudioContext;
                             if (AudioCtxClass) {
@@ -13159,7 +13191,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     /iPad|iPhone|iPod/i.test(navigator.userAgent) ||
                     (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
                 );
-                bgVideo.muted = isIOSWebKit ? isVideoAudioMuted : (useWebCodecs ? true : false);
+                // Pendant l'export, la vidéo doit impérativement avoir le son actif pour que la piste audio soit capturée
+                bgVideo.muted = false;
                 bgVideo.volume = 1;
                 try {
                     await bgVideo.play();
@@ -24543,7 +24576,13 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     video.muted = true;
                                     video.currentTime = 0;
                                     video.onloadeddata = () => {
-                                        video.play().catch(e => console.warn("Downloader video play failed", e));
+                                        ensureVideoMountedInDOM(video);
+                                        video.muted = false;
+                                        video.play().then(() => setIsVideoAudioMuted(false)).catch(() => {
+                                            video.muted = true;
+                                            setIsVideoAudioMuted(true);
+                                            video.play().catch(() => {});
+                                        });
                                         setBgVideo(video);
                                         setIsVideoAudioMuted(true);
                                         setBgImage('');
@@ -26453,6 +26492,33 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 >
                                     <span>⏱️</span> {editorialSlide1Duration}s / {editorialPromoDuration}s
                                 </button>
+                                {bgVideo && (
+                                    <button
+                                        type="button"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            unlockMobileAudioSession();
+                                            ensureVideoMountedInDOM(bgVideo);
+                                            if (bgVideo.muted) {
+                                                bgVideo.muted = false;
+                                                bgVideo.play().catch(() => {});
+                                                setIsVideoAudioMuted(false);
+                                            } else {
+                                                bgVideo.muted = true;
+                                                setIsVideoAudioMuted(true);
+                                            }
+                                        }}
+                                        className={`px-2.5 py-1 rounded-xl text-[8px] font-black transition-all shrink-0 flex items-center gap-1 active:scale-95 shadow-sm border ${
+                                            !isVideoAudioMuted
+                                                ? 'bg-[#00ff66]/20 border-[#00ff66]/50 text-[#00ff66]'
+                                                : 'bg-red-500/20 border-red-500/50 text-red-400'
+                                        }`}
+                                        title={!isVideoAudioMuted ? 'Couper le son' : 'Activer le son de la vidéo'}
+                                    >
+                                        {!isVideoAudioMuted ? <Volume2 className="w-3 h-3" /> : <VolumeX className="w-3 h-3" />}
+                                        <span>{!isVideoAudioMuted ? 'Son ON' : 'Activer le Son'}</span>
+                                    </button>
+                                )}
                                 {slideTransitionQuickBar}
                             </div>
                         )}
@@ -27138,8 +27204,13 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             video.loop = true;
                             video.playsInline = true;
                             video.currentTime = 0;
-                            video.play().catch(e => console.warn("Auto-preview play failed", e));
-                            setIsVideoAudioMuted(true);
+                            ensureVideoMountedInDOM(video);
+                            video.muted = false;
+                            video.play().then(() => setIsVideoAudioMuted(false)).catch(() => {
+                                video.muted = true;
+                                setIsVideoAudioMuted(true);
+                                video.play().catch(() => {});
+                            });
                             fetch(finalUrl)
                                 .then(r => r.ok ? r.blob() : null)
                                 .then(b => { if (b) bgVideoBlobRef.current = b; })
