@@ -1178,6 +1178,208 @@ export default {
             });
         }
 
+        // ─── Beatport Artist Official Top 10 Resolver ───
+        if (path === '/api/beatport/top-artist') {
+            const artistQuery = (url.searchParams.get('artist') || '').trim();
+            if (!artistQuery) {
+                return new Response(JSON.stringify({ success: false, error: 'Artiste manquant' }), {
+                    status: 400,
+                    headers: { ...headers, 'Content-Type': 'application/json' }
+                });
+            }
+
+            // 1. Get Beatport Token
+            let token: string | null = null;
+            try {
+                const tokenRes = await fetch("https://account.beatport.com/o/token/", {
+                    method: "POST",
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: new URLSearchParams({
+                        client_id: "2tiTbKxmQFwnbFjMONU4k7njMRZmV3ZMwRBndiZs",
+                        client_secret: "RDUJyAk4zFEGtQ8rsTmylDSfxmALRNBn3D1BsRr7MKi3oa1TL9Mq9QxqUPK7loiumXolEWbJcWa4IGAhtwnTz1cSXClGJ1tkkNCNWwRwjxIKTZJKOJxbwaNt0Rm3WG0v",
+                        grant_type: "client_credentials"
+                    })
+                });
+                if (tokenRes.ok) {
+                    const tData: any = await tokenRes.json();
+                    token = tData.access_token || null;
+                }
+            } catch (_) {}
+
+            // 2. Search artist ID & slug
+            let artistId: number | null = null;
+            let artistSlug = '';
+            let officialArtistName = artistQuery;
+
+            if (token) {
+                try {
+                    const searchRes = await fetch(`https://api.beatport.com/v4/catalog/search/?q=${encodeURIComponent(artistQuery)}&type=artists&per_page=10`, {
+                        headers: { Authorization: `Bearer ${token}` }
+                    });
+                    if (searchRes.ok) {
+                        const sData: any = await searchRes.json();
+                        const artists = sData.artists || sData.results || [];
+                        if (artists.length > 0) {
+                            const cleanInput = artistQuery.toLowerCase();
+                            const matched = artists.find((a: any) => (a.name || '').toLowerCase() === cleanInput) ||
+                                            artists.find((a: any) => (a.name || '').toLowerCase().includes(cleanInput) || cleanInput.includes((a.name || '').toLowerCase())) ||
+                                            artists[0];
+                            if (matched) {
+                                artistId = matched.id;
+                                artistSlug = matched.slug || '';
+                                officialArtistName = matched.name || artistQuery;
+                            }
+                        }
+                    }
+                } catch (_) {}
+            }
+
+            // 3. If artist found, fetch artist Top 10 from Beatport HTML (__NEXT_DATA__)
+            if (artistSlug && artistId) {
+                try {
+                    const bpUrl = `https://www.beatport.com/artist/${artistSlug}/${artistId}`;
+                    const bpRes = await fetch(bpUrl, {
+                        headers: {
+                            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36',
+                            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'
+                        }
+                    });
+                    if (bpRes.ok) {
+                        const html = await bpRes.text();
+                        const startTag = '<script id="__NEXT_DATA__" type="application/json">';
+                        const start = html.indexOf(startTag);
+                        if (start !== -1) {
+                            const end = html.indexOf('</script>', start);
+                            const nextData = JSON.parse(html.slice(start + startTag.length, end));
+                            const queries = nextData.props?.pageProps?.dehydratedState?.queries || [];
+                            for (const q of queries) {
+                                const keyStr = JSON.stringify(q.queryKey || []);
+                                if (keyStr.includes('top-10-tracks') || keyStr.includes('top-tracks')) {
+                                    const results = q.state?.data?.results;
+                                    if (Array.isArray(results) && results.length >= 5) {
+                                        const top10 = results.slice(0, 10).map((t: any, idx: number) => {
+                                            const rawImg = t.release?.image?.uri || t.image?.uri || '';
+                                            const cUrl = rawImg ? rawImg.replace('{w}x{h}', '1400x1400').replace(/500x500/i, '1400x1400') : '';
+                                            return {
+                                                rank: idx + 1,
+                                                title: t.mix_name && t.mix_name !== 'Original Mix' ? `${t.name} (${t.mix_name})` : (t.name || ''),
+                                                artist: Array.isArray(t.artists) ? t.artists.map((a: any) => a.name).join(', ') : (t.artist || officialArtistName),
+                                                cover: cUrl,
+                                                audioUrl: t.sample_url || '',
+                                                sourceUrl: t.sample_url || '',
+                                                genre: t.genre?.name || ''
+                                            };
+                                        });
+                                        return new Response(JSON.stringify({ success: true, source: 'beatport-top-10', tracks: top10, artist: officialArtistName }), {
+                                            headers: { ...headers, 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=1800' }
+                                        });
+                                    }
+                                }
+                            }
+                        }
+                    }
+                } catch (e: any) {
+                    console.warn('Erreur HTML artist Beatport:', e);
+                }
+
+                // 4. Try Catalog v4 tracks/?order_by=-sales
+                if (token && artistId) {
+                    try {
+                        const trRes = await fetch(`https://api.beatport.com/v4/catalog/artists/${artistId}/tracks/?order_by=-sales&per_page=10`, {
+                            headers: { Authorization: `Bearer ${token}` }
+                        });
+                        if (trRes.ok) {
+                            const trData: any = await trRes.json();
+                            const results = trData.results || [];
+                            if (results.length >= 5) {
+                                const top10 = results.slice(0, 10).map((t: any, idx: number) => {
+                                    const rawImg = t.release?.image?.uri || t.image?.uri || '';
+                                    const cUrl = rawImg ? rawImg.replace('{w}x{h}', '1400x1400').replace(/500x500/i, '1400x1400') : '';
+                                    return {
+                                        rank: idx + 1,
+                                        title: t.mix_name && t.mix_name !== 'Original Mix' ? `${t.name} (${t.mix_name})` : (t.name || ''),
+                                        artist: Array.isArray(t.artists) ? t.artists.map((a: any) => a.name).join(', ') : (t.artist || officialArtistName),
+                                        cover: cUrl,
+                                        audioUrl: t.sample_url || '',
+                                        sourceUrl: t.sample_url || '',
+                                        genre: t.genre?.name || ''
+                                    };
+                                });
+                                return new Response(JSON.stringify({ success: true, source: 'beatport-sales', tracks: top10, artist: officialArtistName }), {
+                                    headers: { ...headers, 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=1800' }
+                                });
+                            }
+                        }
+                    } catch (_) {}
+                }
+            }
+
+            // Fallback 1: Deezer artist top
+            try {
+                const dzSearch = await fetch(`https://api.deezer.com/search/artist?q=${encodeURIComponent(artistQuery)}&limit=1`);
+                if (dzSearch.ok) {
+                    const dzData: any = await dzSearch.json();
+                    const dzArtist = dzData.data?.[0];
+                    if (dzArtist && dzArtist.id) {
+                        const dzTopRes = await fetch(`https://api.deezer.com/artist/${dzArtist.id}/top?limit=10`);
+                        if (dzTopRes.ok) {
+                            const dzTop: any = await dzTopRes.json();
+                            if (Array.isArray(dzTop.data) && dzTop.data.length >= 5) {
+                                const top10 = dzTop.data.slice(0, 10).map((t: any, idx: number) => ({
+                                    rank: idx + 1,
+                                    title: t.title || '',
+                                    artist: t.artist?.name || officialArtistName,
+                                    cover: t.album?.cover_xl || t.album?.cover_big || t.album?.cover || '',
+                                    audioUrl: t.preview || '',
+                                    sourceUrl: t.preview || '',
+                                    genre: ''
+                                }));
+                                return new Response(JSON.stringify({ success: true, source: 'deezer-artist', tracks: top10, artist: dzArtist.name }), {
+                                    headers: { ...headers, 'Content-Type': 'application/json' }
+                                });
+                            }
+                        }
+                    }
+                }
+            } catch (_) {}
+
+            // Fallback 2: Apple Music
+            try {
+                const itRes = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(artistQuery)}&entity=song&limit=30`);
+                if (itRes.ok) {
+                    const itData: any = await itRes.json();
+                    if (Array.isArray(itData.results) && itData.results.length >= 5) {
+                        const seen = new Set<string>();
+                        const unique: any[] = [];
+                        for (const s of itData.results) {
+                            const core = (s.trackName || '').toLowerCase().replace(/\s*\(.*?\)/g, '').replace(/\s*\[.*?\]/g, '').trim();
+                            if (core && !seen.has(core)) {
+                                seen.add(core);
+                                unique.push(s);
+                            }
+                        }
+                        const top10 = unique.slice(0, 10).map((t: any, idx: number) => ({
+                            rank: idx + 1,
+                            title: t.trackName || '',
+                            artist: t.artistName || officialArtistName,
+                            cover: t.artworkUrl100 ? t.artworkUrl100.replace('100x100bb', '1400x1400bb') : '',
+                            audioUrl: t.previewUrl || '',
+                            sourceUrl: t.previewUrl || '',
+                            genre: ''
+                        }));
+                        return new Response(JSON.stringify({ success: true, source: 'applemusic-artist', tracks: top10, artist: officialArtistName }), {
+                            headers: { ...headers, 'Content-Type': 'application/json' }
+                        });
+                    }
+                }
+            } catch (_) {}
+
+            return new Response(JSON.stringify({ success: false, error: 'Impossible de résoudre le Top 10 Artiste' }), {
+                status: 404,
+                headers: { ...headers, 'Content-Type': 'application/json' }
+            });
+        }
+
         // ─── SoundCloud Playlist Auto-Resolver (100% Automatique sans copier-coller) ───
         if (path === '/api/soundcloud/resolve-playlist') {
             let targetUrl = url.searchParams.get('url');

@@ -195,6 +195,89 @@ export default defineConfig({
             }
           }
 
+          if (req.url && req.url.startsWith('/api/beatport/top-artist')) {
+            try {
+              const reqUrl = new URL(req.url, 'http://localhost:5173');
+              const artistQuery = (reqUrl.searchParams.get('artist') || '').trim();
+              if (artistQuery) {
+                // Get token
+                let token = '';
+                try {
+                  const tokenRes = await fetch("https://account.beatport.com/o/token/", {
+                    method: "POST",
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: new URLSearchParams({
+                      client_id: "2tiTbKxmQFwnbFjMONU4k7njMRZmV3ZMwRBndiZs",
+                      client_secret: "RDUJyAk4zFEGtQ8rsTmylDSfxmALRNBn3D1BsRr7MKi3oa1TL9Mq9QxqUPK7loiumXolEWbJcWa4IGAhtwnTz1cSXClGJ1tkkNCNWwRwjxIKTZJKOJxbwaNt0Rm3WG0v",
+                      grant_type: "client_credentials"
+                    })
+                  });
+                  if (tokenRes.ok) {
+                    const tData: any = await tokenRes.json();
+                    token = tData.access_token || '';
+                  }
+                } catch (_) {}
+
+                if (token) {
+                  const searchRes = await fetch(`https://api.beatport.com/v4/catalog/search/?q=${encodeURIComponent(artistQuery)}&type=artists&per_page=10`, {
+                    headers: { Authorization: `Bearer ${token}` }
+                  });
+                  if (searchRes.ok) {
+                    const sData: any = await searchRes.json();
+                    const artists = sData.artists || sData.results || [];
+                    if (artists.length > 0) {
+                      const cleanInput = artistQuery.toLowerCase();
+                      const matched = artists.find((a: any) => (a.name || '').toLowerCase() === cleanInput) ||
+                                      artists.find((a: any) => (a.name || '').toLowerCase().includes(cleanInput) || cleanInput.includes((a.name || '').toLowerCase())) ||
+                                      artists[0];
+                      if (matched && matched.slug && matched.id) {
+                        const bpUrl = `https://www.beatport.com/artist/${matched.slug}/${matched.id}`;
+                        const { execSync } = await import('node:child_process');
+                        const html = execSync(`curl.exe -s -L "${bpUrl}" -H "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36"`).toString();
+                        const startTag = '<script id="__NEXT_DATA__" type="application/json">';
+                        const start = html.indexOf(startTag);
+                        if (start !== -1) {
+                          const end = html.indexOf('</script>', start);
+                          const nextData = JSON.parse(html.slice(start + startTag.length, end));
+                          const queries = nextData.props?.pageProps?.dehydratedState?.queries || [];
+                          for (const q of queries) {
+                            const keyStr = JSON.stringify(q.queryKey || []);
+                            if (keyStr.includes('top-10-tracks') || keyStr.includes('top-tracks')) {
+                              const results = q.state?.data?.results;
+                              if (Array.isArray(results) && results.length >= 5) {
+                                const top10 = results.slice(0, 10).map((t: any, idx: number) => {
+                                  const rawImg = t.release?.image?.uri || t.image?.uri || '';
+                                  const cUrl = rawImg ? rawImg.replace('{w}x{h}', '1400x1400').replace(/500x500/i, '1400x1400') : '';
+                                  return {
+                                    rank: idx + 1,
+                                    title: t.mix_name && t.mix_name !== 'Original Mix' ? `${t.name} (${t.mix_name})` : (t.name || ''),
+                                    artist: Array.isArray(t.artists) ? t.artists.map((a: any) => a.name).join(', ') : (t.artist || matched.name),
+                                    cover: cUrl,
+                                    audioUrl: t.sample_url || '',
+                                    sourceUrl: t.sample_url || '',
+                                    genre: t.genre?.name || ''
+                                  };
+                                });
+                                res.writeHead(200, {
+                                  'Access-Control-Allow-Origin': '*',
+                                  'Content-Type': 'application/json'
+                                });
+                                res.end(JSON.stringify({ success: true, source: 'beatport-artist-top-10', tracks: top10, artist: matched.name }));
+                                return;
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            } catch (e: any) {
+              console.warn('Vite dev top-artist error:', e.message);
+            }
+          }
+
           if (req.url && (req.url.startsWith('/api/proxy-media') || req.url.startsWith('/api/proxy-image'))) {
             try {
               const reqUrl = new URL(req.url, 'http://localhost:5173');

@@ -1352,96 +1352,190 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         let resolvedFromBeatport = false;
 
         try {
-            // 1. PRIORITÉ ABSOLUE BEATPORT CATALOG v4 POUR LES ARTISTES (100% Dance & Club, pochettes HD 1400x1400, extraits 120s)
+            // 1. PRIORITÉ ABSOLUE : ENDPOINT OFFICIEL BEATPORT TOP 10 ARTISTE (Classement officiel des ventes & téléchargements)
             try {
-                const token = await getBeatportToken();
-                if (token) {
-                    const bpRes = await fetch(`https://api.beatport.com/v4/catalog/search/?q=${encodeURIComponent(cleaned)}&type=tracks&per_page=50`, {
-                        headers: {
-                            Authorization: `Bearer ${token}`,
-                            Accept: 'application/json'
-                        }
-                    });
-
-                    if (bpRes.ok) {
-                        const bpData = await bpRes.json();
-                        let rawTracks = Array.isArray(bpData.tracks) ? bpData.tracks : (bpData.results || []);
-
-                        if (rawTracks && rawTracks.length >= 3) {
-                            const cleanedLower = cleaned.toLowerCase();
-                            const artistTracks = rawTracks.filter((t: any) => {
-                                const arts = Array.isArray(t.artists) ? t.artists.map((a: any) => (a.name || '').toLowerCase()) : [];
-                                const rmx = Array.isArray(t.remixers) ? t.remixers.map((r: any) => (r.name || '').toLowerCase()) : [];
-                                return arts.some((a: string) => a.includes(cleanedLower) || cleanedLower.includes(a)) ||
-                                       rmx.some((r: string) => r.includes(cleanedLower));
+                const bpArtRes = await fetch(`/api/beatport/top-artist?artist=${encodeURIComponent(cleaned)}`);
+                if (bpArtRes.ok) {
+                    const bpArtData: any = await bpArtRes.json();
+                    if (bpArtData.success && Array.isArray(bpArtData.tracks) && bpArtData.tracks.length >= 5) {
+                        const tracksSlice = bpArtData.tracks.slice(0, 10);
+                        const count = tracksSlice.length;
+                        const mapped: Top10TrackItem[] = [];
+                        for (let i = 0; i < count; i++) {
+                            const rank = count - i;
+                            const t = tracksSlice[count - 1 - i]; // Inversion pour countdown 10 -> 1
+                            const cUrl = t.cover || '';
+                            mapped.push({
+                                rank: rank,
+                                title: (t.title || `TRACK #${rank}`).toUpperCase(),
+                                artist: (t.artist || cleaned).toUpperCase(),
+                                cover: cUrl,
+                                audioUrl: t.audioUrl || '',
+                                sourceUrl: t.sourceUrl || t.audioUrl || '',
+                                videoStartTime: 0,
+                                audioStartTime: 0,
+                                streams: ''
                             });
-
-                            const pool = (artistTracks.length >= 5) ? artistTracks : rawTracks;
-                            const seenTitles = new Set<string>();
-                            const uniqueTracks: any[] = [];
-
-                            for (const tr of pool) {
-                                const core = (tr.name || tr.title || '').toLowerCase()
-                                    .replace(/\s*\(.*?\)/g, '')
-                                    .replace(/\s*\[.*?\]/g, '')
-                                    .trim();
-                                if (!seenTitles.has(core) && uniqueTracks.length < 10) {
-                                    seenTitles.add(core);
-                                    uniqueTracks.push(tr);
-                                }
-                            }
-
-                            if (uniqueTracks.length >= 5) {
-                                const newTracks: Top10TrackItem[] = [];
-                                for (let i = 0; i < 10; i++) {
-                                    const rank = 10 - i;
-                                    const tr = uniqueTracks[9 - i] || uniqueTracks[i] || uniqueTracks[0];
-                                    const cUrl = tr.release?.image?.uri || tr.image?.uri || '';
-                                    const artistStr = Array.isArray(tr.artists)
-                                        ? tr.artists.map((a: any) => a.name).join(', ')
-                                        : (tr.artist || cleaned);
-
-                                    const fullTitle = tr.mix_name && tr.mix_name !== 'Original Mix'
-                                        ? `${tr.name} (${tr.mix_name})`
-                                        : (tr.name || tr.title || `TRACK #${rank}`);
-
-                                    newTracks.push({
-                                        rank: rank,
-                                        title: fullTitle.toUpperCase(),
-                                        artist: (artistStr || cleaned).toUpperCase(),
-                                        cover: cUrl,
-                                        audioUrl: tr.sample_url || '',
-                                        sourceUrl: tr.sample_url || '',
-                                        videoStartTime: 0,
-                                        audioStartTime: 0,
-                                        streams: ''
-                                    });
-
-                                    if (cUrl) {
-                                        loadCorsSafeImage(cUrl, (img) => {
-                                            imageCacheRef.current[cUrl] = img;
-                                            generateImage();
-                                        });
-                                    }
-                                }
-
-                                setTop10Tracks(newTracks);
-                                top10TracksRef.current = newTracks;
-                                setTop10IntroArtist(cleaned);
-                                top10IntroArtistRef.current = cleaned;
-                                try {
-                                    localStorage.setItem('dropsiders_top10_tracks_v7', JSON.stringify(newTracks));
-                                } catch (_) {}
-                                generateImage();
-                                resolvedFromBeatport = true;
+                            if (cUrl) {
+                                loadCorsSafeImage(cUrl, (img) => {
+                                    imageCacheRef.current[cUrl] = img;
+                                    generateImage();
+                                });
                             }
                         }
+                        setTop10Tracks(mapped);
+                        top10TracksRef.current = mapped;
+                        setTop10IntroArtist(bpArtData.artist || cleaned);
+                        top10IntroArtistRef.current = bpArtData.artist || cleaned;
+                        try {
+                            localStorage.setItem('dropsiders_top10_tracks_v7', JSON.stringify(mapped));
+                        } catch (_) {}
+                        generateImage();
+                        resolvedFromBeatport = true;
                     }
                 }
             } catch (e) {
-                console.warn("Échec résolution Beatport artiste, bascule iTunes :", e);
+                console.warn("Échec résolution Beatport top-artist :", e);
             }
 
+            // 2. FALLBACK 1 : RECHERCHE DIRECTE BEATPORT CATALOG v4
+            if (!resolvedFromBeatport) {
+                try {
+                    const token = await getBeatportToken();
+                    if (token) {
+                        const bpRes = await fetch(`https://api.beatport.com/v4/catalog/search/?q=${encodeURIComponent(cleaned)}&type=tracks&per_page=50`, {
+                            headers: {
+                                Authorization: `Bearer ${token}`,
+                                Accept: 'application/json'
+                            }
+                        });
+
+                        if (bpRes.ok) {
+                            const bpData = await bpRes.json();
+                            let rawTracks = Array.isArray(bpData.tracks) ? bpData.tracks : (bpData.results || []);
+
+                            if (rawTracks && rawTracks.length >= 3) {
+                                const cleanedLower = cleaned.toLowerCase();
+                                const artistTracks = rawTracks.filter((t: any) => {
+                                    const arts = Array.isArray(t.artists) ? t.artists.map((a: any) => (a.name || '').toLowerCase()) : [];
+                                    const rmx = Array.isArray(t.remixers) ? t.remixers.map((r: any) => (r.name || '').toLowerCase()) : [];
+                                    return arts.some((a: string) => a.includes(cleanedLower) || cleanedLower.includes(a)) ||
+                                           rmx.some((r: string) => r.includes(cleanedLower));
+                                });
+
+                                const pool = (artistTracks.length >= 5) ? artistTracks : rawTracks;
+                                const seenTitles = new Set<string>();
+                                const uniqueTracks: any[] = [];
+
+                                for (const tr of pool) {
+                                    const core = (tr.name || tr.title || '').toLowerCase()
+                                        .replace(/\s*\(.*?\)/g, '')
+                                        .replace(/\s*\[.*?\]/g, '')
+                                        .trim();
+                                    if (!seenTitles.has(core) && uniqueTracks.length < 10) {
+                                        seenTitles.add(core);
+                                        uniqueTracks.push(tr);
+                                    }
+                                }
+
+                                if (uniqueTracks.length >= 5) {
+                                    const newTracks: Top10TrackItem[] = [];
+                                    for (let i = 0; i < 10; i++) {
+                                        const rank = 10 - i;
+                                        const tr = uniqueTracks[9 - i] || uniqueTracks[i] || uniqueTracks[0];
+                                        const cUrl = tr.release?.image?.uri || tr.image?.uri || '';
+                                        const artistStr = Array.isArray(tr.artists)
+                                            ? tr.artists.map((a: any) => a.name).join(', ')
+                                            : (tr.artist || cleaned);
+
+                                        const fullTitle = tr.mix_name && tr.mix_name !== 'Original Mix'
+                                            ? `${tr.name} (${tr.mix_name})`
+                                            : (tr.name || tr.title || `TRACK #${rank}`);
+
+                                        newTracks.push({
+                                            rank: rank,
+                                            title: fullTitle.toUpperCase(),
+                                            artist: (artistStr || cleaned).toUpperCase(),
+                                            cover: cUrl,
+                                            audioUrl: tr.sample_url || '',
+                                            sourceUrl: tr.sample_url || '',
+                                            videoStartTime: 0,
+                                            audioStartTime: 0,
+                                            streams: ''
+                                        });
+
+                                        if (cUrl) {
+                                            loadCorsSafeImage(cUrl, (img) => {
+                                                imageCacheRef.current[cUrl] = img;
+                                                generateImage();
+                                            });
+                                        }
+                                    }
+
+                                    setTop10Tracks(newTracks);
+                                    top10TracksRef.current = newTracks;
+                                    setTop10IntroArtist(cleaned);
+                                    top10IntroArtistRef.current = cleaned;
+                                    try {
+                                        localStorage.setItem('dropsiders_top10_tracks_v7', JSON.stringify(newTracks));
+                                    } catch (_) {}
+                                    generateImage();
+                                    resolvedFromBeatport = true;
+                                }
+                            }
+                        }
+                    }
+                } catch (e) {
+                    console.warn("Échec résolution Beatport artiste v4, bascule iTunes :", e);
+                }
+            }
+
+            // 3. FALLBACK 2 : DEEZER TOP TRACKS ARTISTE
+            if (!resolvedFromBeatport) {
+                try {
+                    const dzRes = await fetch(`https://api.deezer.com/search?q=${encodeURIComponent(cleaned)}&order=RANKING&limit=25`);
+                    if (dzRes.ok) {
+                        const dzData = await dzRes.json();
+                        if (Array.isArray(dzData.data) && dzData.data.length >= 5) {
+                            const count = Math.min(10, dzData.data.length);
+                            const mapped: Top10TrackItem[] = [];
+                            for (let i = 0; i < count; i++) {
+                                const rank = count - i;
+                                const song = dzData.data[count - 1 - i];
+                                const cUrl = song.album?.cover_xl || song.album?.cover_big || song.album?.cover || '';
+                                mapped.push({
+                                    rank: rank,
+                                    title: (song.title || `TRACK #${rank}`).toUpperCase(),
+                                    artist: (song.artist?.name || cleaned).toUpperCase(),
+                                    cover: cUrl,
+                                    audioUrl: song.preview || '',
+                                    sourceUrl: song.preview || '',
+                                    videoStartTime: 0,
+                                    audioStartTime: 0,
+                                    streams: ''
+                                });
+                                if (cUrl) {
+                                    loadCorsSafeImage(cUrl, (img) => {
+                                        imageCacheRef.current[cUrl] = img;
+                                        generateImage();
+                                    });
+                                }
+                            }
+                            setTop10Tracks(mapped);
+                            top10TracksRef.current = mapped;
+                            setTop10IntroArtist(cleaned);
+                            top10IntroArtistRef.current = cleaned;
+                            try {
+                                localStorage.setItem('dropsiders_top10_tracks_v7', JSON.stringify(mapped));
+                            } catch (_) {}
+                            generateImage();
+                            resolvedFromBeatport = true;
+                        }
+                    }
+                } catch (_) {}
+            }
+
+            // 4. FALLBACK 3 : APPLE MUSIC / ITUNES API
             if (!resolvedFromBeatport) {
                 try {
                     const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(cleaned)}&entity=song&limit=30`);
@@ -10048,8 +10142,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     const t10Title = isDefaultOrIntroTitle ? 'TOP 10 TRACKS' : rawTracksTitle.toUpperCase();
 
                     // En mode style, le titre est centré verticalement et légèrement plus grand (sans doublon de style en dessous)
-                    const t10TitleY = isStyleMode ? 295 : 260;
-                    let t10FontSize = isStyleMode ? 42 : 34;
+                    const t10TitleY = isStyleMode ? 260 : 260;
+                    let t10FontSize = isStyleMode ? 46 : 34;
                     ctx.font = `900 ${t10FontSize}px "Montserrat", sans-serif`;
                     if ('letterSpacing' in ctx) (ctx as any).letterSpacing = '3px';
                     let t10W = ctx.measureText(t10Title.replace(/\*/g, '')).width;
@@ -10400,7 +10494,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     }
 
                     if (!isStaticPngExport && textAnimation !== 'NONE') {
-                        applyTextAnimCtx(ctx, 0.04, canvas.width / 2, 1280, trackAnimTime);
+                        applyTextAnimCtx(ctx, 0.04, canvas.width / 2, isStyleMode ? 1245 : 1280, trackAnimTime);
                     }
 
                     let artistToDraw = artistStr;
@@ -10414,7 +10508,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.shadowColor = hasArtist ? 'rgba(0, 0, 0, 0.95)' : 'transparent';
                     ctx.shadowBlur = hasArtist ? 18 : 0;
                     ctx.shadowOffsetY = 4;
-                    ctx.fillText(artistToDraw, canvas.width / 2, 1280);
+                    ctx.fillText(artistToDraw, canvas.width / 2, isStyleMode ? 1245 : 1280);
                     ctx.restore();
 
                     // 6b. Titre du Morceau
@@ -10434,7 +10528,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     }
 
                     if (!isStaticPngExport && textAnimation !== 'NONE') {
-                        applyTextAnimCtx(ctx, 0.14, canvas.width / 2, 1360, trackAnimTime);
+                        applyTextAnimCtx(ctx, 0.14, canvas.width / 2, isStyleMode ? 1330 : 1360, trackAnimTime);
                     }
 
                     let titleToDraw = titleStr;
@@ -10447,7 +10541,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.fillStyle = hasTitle ? rankColor : `rgba(${rankColorRgb}, 0.35)`;
                     ctx.shadowColor = hasTitle ? `rgba(${rankColorRgb}, 0.75)` : 'transparent';
                     ctx.shadowBlur = hasTitle ? 24 : 0;
-                    ctx.fillText(titleToDraw, canvas.width / 2, 1360);
+                    ctx.fillText(titleToDraw, canvas.width / 2, isStyleMode ? 1330 : 1360);
                     ctx.restore();
 
                     // 6c. Badge Nombre de Streams (Sous le titre)
@@ -10465,7 +10559,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         const pillW = Math.ceil(sMetrics.width + 50);
                         const pillH = 38;
                         const pillX = (canvas.width - pillW) / 2;
-                        const pillY = 1430;
+                        const pillY = isStyleMode ? 1400 : 1430;
 
                         if (!isStaticPngExport && textAnimation !== 'NONE') {
                             applyTextAnimCtx(ctx, 0.24, canvas.width / 2, pillY + pillH / 2, trackAnimTime);
@@ -10507,7 +10601,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     // 7. Visualiseur Waveform Audio Animé (rendu groupé 60fps)
                     ctx.save();
                     const waveBars = 32;
-                    const waveCenterY = activeStreams ? 1545 : 1485;
+                    const waveCenterY = activeStreams ? (isStyleMode ? 1515 : 1545) : (isStyleMode ? 1455 : 1485);
                     const waveMaxH = 70;
                     const waveTotalW = 600;
                     const waveBarW = 10;
