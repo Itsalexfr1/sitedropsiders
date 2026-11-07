@@ -9796,9 +9796,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         // ══════════════════════════════════════════════════════════════════════
                         // SLIDE D'INTRO TOP 10 TRACKS (3.5s)
                         // ══════════════════════════════════════════════════════════════════════
-                        const introDur = 3.5;
+                        // (intro de 5s à l'export : l'animation du texte joue une seule fois)
                         const introAnimTime = isVideoExport
-                            ? (deterministicAnimTimeRef.current % introDur)
+                            ? Math.max(0, deterministicAnimTimeRef.current) // pas de "% 3.5" : l'intro dure 5s, le modulo relançait l'anim du texte à 3.5s
                             : Math.max(0, (Date.now() - animStartTimeRef.current) / 1000);
 
                         // 1. Fond sombre cinématique avec la vidéo ou image
