@@ -5686,33 +5686,58 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                     ctx.restore(); // Restaure l'ombre portée
 
-                    // 3. Face avant : Blanc pur 100% éclatant
-                    ctx.save();
-                    if ('filter' in ctx) ctx.filter = 'none';
-                    ctx.globalAlpha = 1.0;
-                    ctx.drawImage(logo, -w / 2, -logoH / 2, w, logoH);
+                    // 3. Face avant avec nacrage couleur thème parfaitement détouré (zéro cadre rouge, zéro fuite)
+                    // Utilisation d'un canvas hors-champ transparent : le dégradé est masqué STRICTEMENT sur les pixels du logo
+                    let offCanvas = offCanvasRef.current;
+                    if (!offCanvas) {
+                        offCanvas = document.createElement('canvas');
+                        offCanvasRef.current = offCanvas;
+                    }
+                    const iW = Math.max(1, Math.ceil(w));
+                    const iH = Math.max(1, Math.ceil(logoH));
+                    if (offCanvas.width !== iW || offCanvas.height !== iH) {
+                        offCanvas.width = iW;
+                        offCanvas.height = iH;
+                    }
+                    const offCtx = offCanvas.getContext('2d');
+                    if (offCtx) {
+                        offCtx.clearRect(0, 0, iW, iH);
+                        // A. Rendu du logo blanc pur sur fond 100% transparent
+                        offCtx.globalCompositeOperation = 'source-over';
+                        offCtx.drawImage(logo, 0, 0, iW, iH);
 
-                    // 4. Balayage nacré couleur thème ample de gauche à droite
-                    // Glisse d'un bout à l'autre sur toute la longueur des lettres
-                    try {
-                        ctx.globalCompositeOperation = 'source-atop';
-                        const shiftX = isStatic ? 0 : (phase * (w * 0.82));
-                        const gradW = w * 0.48;
-                        const nacreGrad = ctx.createLinearGradient(
+                        // B. Application du nacrage couleur thème UNIQUEMENT sur les pixels opaques du logo (source-atop isolé)
+                        offCtx.globalCompositeOperation = 'source-atop';
+                        const shiftX = isStatic ? (iW * 0.5) : (iW * 0.5 + phase * (iW * 0.52));
+                        const gradW = iW * 0.42;
+                        const nacreGrad = offCtx.createLinearGradient(
                             shiftX - gradW,
                             0,
                             shiftX + gradW,
                             0
                         );
+                        // Lueur douce et raffinée (max 0.22) : éclat soyeux sans jamais aveugler
                         nacreGrad.addColorStop(0, `rgba(${rgb}, 0)`);
-                        nacreGrad.addColorStop(0.20, `rgba(${rgb}, 0.10)`);
-                        nacreGrad.addColorStop(0.50, `rgba(${rgb}, 0.60)`);
-                        nacreGrad.addColorStop(0.80, `rgba(${rgb}, 0.10)`);
+                        nacreGrad.addColorStop(0.25, `rgba(${rgb}, 0.04)`);
+                        nacreGrad.addColorStop(0.50, `rgba(${rgb}, 0.22)`);
+                        nacreGrad.addColorStop(0.75, `rgba(${rgb}, 0.04)`);
                         nacreGrad.addColorStop(1, `rgba(${rgb}, 0)`);
-                        ctx.fillStyle = nacreGrad;
-                        ctx.fillRect(-w / 2, -logoH / 2, w, logoH);
-                    } catch (_) { }
-                    ctx.restore(); // Restaure la face avant et le compositeOperation
+                        offCtx.fillStyle = nacreGrad;
+                        offCtx.fillRect(0, 0, iW, iH);
+                        offCtx.globalCompositeOperation = 'source-over';
+                    }
+
+                    // 4. Dessin de la face avant sur le canvas principal avec source-over natif
+                    // Aucune interaction avec le fond de l'image : aucun rectangle ni cadre résiduel possible !
+                    ctx.save();
+                    if ('filter' in ctx) ctx.filter = 'none';
+                    ctx.globalAlpha = 1.0;
+                    if (offCanvas) {
+                        ctx.drawImage(offCanvas, -w / 2, -logoH / 2, w, logoH);
+                    } else {
+                        ctx.drawImage(logo, -w / 2, -logoH / 2, w, logoH);
+                    }
+                    ctx.restore();
 
                     ctx.restore(); // Restaure le repère général
                 };
