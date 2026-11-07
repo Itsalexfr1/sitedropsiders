@@ -45,7 +45,7 @@ import { fixEncoding } from '../utils/standardizer';
 import { Downloader } from '../pages/Downloader';
 import { ImageUploadModal } from './ImageUploadModal';
 import { resolveImageUrl } from '../utils/image';
-import { resolveMusicSnippet, searchMusicTracksList, type ResolvedMusicData } from '../utils/musicResolver';
+import { resolveMusicSnippet, searchMusicTracksList, getBeatportToken, type ResolvedMusicData } from '../utils/musicResolver';
 import { fixWebmDuration } from '../utils/fixWebm';
 import recapsData from '../data/recaps.json';
 import { renderPromoPhone3D } from './social/PromoPhone3DRenderer';
@@ -1607,38 +1607,6 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 { rank: 10, query: 'Fatboy Slim Praise You', title: 'PRAISE YOU', artist: 'FATBOY SLIM', streams: '340M+' },
             ]
         },
-        'house': {
-            label: 'House',
-            icon: '🏠',
-            tracks: [
-                { rank: 1, query: 'Daft Punk One More Time', title: 'ONE MORE TIME', artist: 'DAFT PUNK', streams: '1.4B+' },
-                { rank: 2, query: 'Robin S Show Me Love Stonebridge', title: 'SHOW ME LOVE', artist: 'ROBIN S.', streams: '750M+' },
-                { rank: 3, query: 'Modjo Lady Hear Me Tonight', title: 'LADY (HEAR ME TONIGHT)', artist: 'MODJO', streams: '580M+' },
-                { rank: 4, query: 'Duke Dumont Ocean Drive', title: 'OCEAN DRIVE', artist: 'DUKE DUMONT', streams: '820M+' },
-                { rank: 5, query: 'Disclosure Sam Smith Latch', title: 'LATCH', artist: 'DISCLOSURE & SAM SMITH', streams: '980M+' },
-                { rank: 6, query: 'Crystal Waters Gypsy Woman', title: 'GYPSY WOMAN', artist: 'CRYSTAL WATERS', streams: '450M+' },
-                { rank: 7, query: 'Peggy Gou Nanana', title: '(IT GOES LIKE) NANANA', artist: 'PEGGY GOU', streams: '540M+' },
-                { rank: 8, query: 'Bob Sinclar World Hold On', title: 'WORLD, HOLD ON', artist: 'BOB SINCLAR', streams: '380M+' },
-                { rank: 9, query: 'Armand Van Helden You Dont Know Me', title: "YOU DON'T KNOW ME", artist: 'ARMAND VAN HELDEN', streams: '260M+' },
-                { rank: 10, query: 'Fisher Losing It', title: 'LOSING IT', artist: 'FISHER', streams: '620M+' },
-            ]
-        },
-        'house music': {
-            label: 'House Music',
-            icon: '🏠',
-            tracks: [
-                { rank: 1, query: 'Daft Punk One More Time', title: 'ONE MORE TIME', artist: 'DAFT PUNK', streams: '1.4B+' },
-                { rank: 2, query: 'Robin S Show Me Love Stonebridge', title: 'SHOW ME LOVE', artist: 'ROBIN S.', streams: '750M+' },
-                { rank: 3, query: 'Modjo Lady Hear Me Tonight', title: 'LADY (HEAR ME TONIGHT)', artist: 'MODJO', streams: '580M+' },
-                { rank: 4, query: 'Duke Dumont Ocean Drive', title: 'OCEAN DRIVE', artist: 'DUKE DUMONT', streams: '820M+' },
-                { rank: 5, query: 'Disclosure Sam Smith Latch', title: 'LATCH', artist: 'DISCLOSURE & SAM SMITH', streams: '980M+' },
-                { rank: 6, query: 'Crystal Waters Gypsy Woman', title: 'GYPSY WOMAN', artist: 'CRYSTAL WATERS', streams: '450M+' },
-                { rank: 7, query: 'Peggy Gou Nanana', title: '(IT GOES LIKE) NANANA', artist: 'PEGGY GOU', streams: '540M+' },
-                { rank: 8, query: 'Bob Sinclar World Hold On', title: 'WORLD, HOLD ON', artist: 'BOB SINCLAR', streams: '380M+' },
-                { rank: 9, query: 'Armand Van Helden You Dont Know Me', title: "YOU DON'T KNOW ME", artist: 'ARMAND VAN HELDEN', streams: '260M+' },
-                { rank: 10, query: 'Fisher Losing It', title: 'LOSING IT', artist: 'FISHER', streams: '620M+' },
-            ]
-        },
         'deep house': {
             label: 'Deep House',
             icon: '🌊',
@@ -1800,58 +1768,162 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 } catch (_) {}
                 generateImage();
             } else {
-                // Recherche dynamique libre pour n'importe quel autre genre/style musical
-                // Nettoyage anti-spam pour éliminer les faux artistes du type "house music dj", "chillout lounge", etc.
-                const spamBlacklist = ['chillout', 'sleep', 'relax', 'lounge', 'workout', 'running', 'buddha', 'erotic', 'meditation', 'bar music', 'cafe', 'dj tools', 'sound effects', 'tribute', 'karaoke', 'instrumental version', 'ringtone'];
-                const query = `${cleaned} electronic`;
-                const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(query)}&entity=song&limit=50`);
-                if (res.ok) {
-                    const data = await res.json();
-                    if (data.results && data.results.length > 0) {
-                        const seenTitles = new Set<string>();
-                        const uniqueSongs: any[] = [];
-                        for (const s of data.results) {
-                            const artistLower = (s.artistName || '').toLowerCase();
-                            const trackLower = (s.trackName || '').toLowerCase();
-                            const isSpam = spamBlacklist.some(sp => artistLower.includes(sp) || trackLower.includes(sp));
-                            if (isSpam) continue;
-
-                            const core = (s.trackName || '').toLowerCase().replace(/\s*\(.*?\)/g, '').replace(/\s*\[.*?\]/g, '').trim();
-                            if (!seenTitles.has(core) && uniqueSongs.length < 10) {
-                                seenTitles.add(core);
-                                uniqueSongs.push(s);
-                            }
-                        }
-
-                        const newTracks: Top10TrackItem[] = [];
-                        for (let i = 0; i < 10; i++) {
-                            const rank = 10 - i;
-                            const song = uniqueSongs[9 - i] || uniqueSongs[i] || uniqueSongs[0];
-                            const cUrl = song?.artworkUrl100 ? song.artworkUrl100.replace('100x100bb', '1400x1400bb') : '';
-                            newTracks.push({
-                                rank: rank,
-                                title: (song?.trackName || `TRACK #${rank}`).toUpperCase(),
-                                artist: (song?.artistName || cleaned).toUpperCase(),
-                                cover: cUrl,
-                                audioUrl: song?.previewUrl || '',
-                                sourceUrl: song?.previewUrl || '',
-                                videoStartTime: 0,
-                                audioStartTime: 0,
-                                streams: ''
-                            });
-                            if (cUrl) {
-                                loadCorsSafeImage(cUrl, (img) => {
-                                    imageCacheRef.current[cUrl] = img;
-                                    generateImage();
-                                });
-                            }
-                        }
-                        setTop10Tracks(newTracks);
-                        top10TracksRef.current = newTracks;
+                // ➔ RECHERCHE DIRECTE BEATPORT CATALOG v4 EN PRIORITÉ ABSOLUE (100% Musique Électronique, Audio Drop 120s & Covers HD 1400x1400)
+                let resolvedFromBeatport = false;
+                try {
+                    const bpToken = await getBeatportToken();
+                    if (bpToken) {
+                        let bpTracks: any[] = [];
+                        // 1. Chercher si un genre officiel Beatport correspond
                         try {
-                            localStorage.setItem('dropsiders_top10_tracks_v7', JSON.stringify(newTracks));
+                            const genresRes = await fetch('https://api.beatport.com/v4/catalog/genres/?per_page=100', {
+                                headers: { Authorization: `Bearer ${bpToken}` }
+                            });
+                            if (genresRes.ok) {
+                                const gData = await genresRes.json();
+                                const matchedG = (gData.results || []).find((g: any) =>
+                                    g.slug === normalizedKey.replace(/\s+/g, '-') ||
+                                    g.name.toLowerCase() === normalizedKey
+                                );
+                                if (matchedG) {
+                                    const trRes = await fetch(`https://api.beatport.com/v4/catalog/tracks/?genre_id=${matchedG.id}&per_page=35`, {
+                                        headers: { Authorization: `Bearer ${bpToken}` }
+                                    });
+                                    if (trRes.ok) {
+                                        const trData = await trRes.json();
+                                        bpTracks = trData.results || [];
+                                    }
+                                }
+                            }
                         } catch (_) {}
-                        generateImage();
+
+                        // 2. Si pas de genre direct ou pas assez de résultats, recherche par mot-clé sur Beatport
+                        if (bpTracks.length < 10) {
+                            try {
+                                const sRes = await fetch(`https://api.beatport.com/v4/catalog/search/?q=${encodeURIComponent(cleaned)}&type=tracks&per_page=35`, {
+                                    headers: { Authorization: `Bearer ${bpToken}` }
+                                });
+                                if (sRes.ok) {
+                                    const sData = await sRes.json();
+                                    const found = sData.tracks || [];
+                                    for (const st of found) {
+                                        if (!bpTracks.some(t => t.id === st.id)) {
+                                            bpTracks.push(st);
+                                        }
+                                    }
+                                }
+                            } catch (_) {}
+                        }
+
+                        // 3. Déduplication par titre principal pour éviter les doublons de remixes
+                        const seenBp = new Set<string>();
+                        const uniqueBpTracks: any[] = [];
+                        for (const t of bpTracks) {
+                            const core = (t.name || '').toLowerCase().replace(/\s*\(.*?\)/g, '').replace(/\s*\[.*?\]/g, '').trim();
+                            if (core && !seenBp.has(core)) {
+                                seenBp.add(core);
+                                uniqueBpTracks.push(t);
+                            }
+                        }
+
+                        if (uniqueBpTracks.length >= 6) {
+                            const newTracks: Top10TrackItem[] = [];
+                            const count = Math.min(10, uniqueBpTracks.length);
+                            for (let i = 0; i < count; i++) {
+                                const rank = count - i;
+                                const t = uniqueBpTracks[i];
+                                const rawImg = t.release?.image?.uri || '';
+                                const cUrl = rawImg
+                                    ? rawImg.replace('{w}x{h}', '1400x1400').replace(/500x500/i, '1400x1400')
+                                    : '';
+                                const artists = t.artists?.map((a: any) => a.name).join(', ') || cleaned.toUpperCase();
+                                const mixSuffix = t.mix_name && !t.name?.toLowerCase().includes(t.mix_name.toLowerCase()) ? ` (${t.mix_name})` : '';
+
+                                newTracks.push({
+                                    rank,
+                                    title: ((t.name || `TRACK #${rank}`) + mixSuffix).toUpperCase(),
+                                    artist: artists.toUpperCase(),
+                                    cover: cUrl,
+                                    audioUrl: t.sample_url || '',
+                                    sourceUrl: t.sample_url || '',
+                                    videoStartTime: 0,
+                                    audioStartTime: 0,
+                                    streams: ''
+                                });
+
+                                if (cUrl) {
+                                    loadCorsSafeImage(cUrl, (img) => {
+                                        imageCacheRef.current[cUrl] = img;
+                                        generateImage();
+                                    });
+                                }
+                            }
+                            setTop10Tracks(newTracks);
+                            top10TracksRef.current = newTracks;
+                            try {
+                                localStorage.setItem('dropsiders_top10_tracks_v7', JSON.stringify(newTracks));
+                            } catch (_) {}
+                            generateImage();
+                            resolvedFromBeatport = true;
+                        }
+                    }
+                } catch (e) {
+                    console.warn("Échec résolution Beatport, repli iTunes :", e);
+                }
+
+                if (!resolvedFromBeatport) {
+                    // Repli de sécurité iTunes avec filtre anti-spam
+                    const spamBlacklist = ['chillout', 'sleep', 'relax', 'lounge', 'workout', 'running', 'buddha', 'erotic', 'meditation', 'bar music', 'cafe', 'dj tools', 'sound effects', 'tribute', 'karaoke', 'instrumental version', 'ringtone'];
+                    const query = `${cleaned} electronic`;
+                    const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(query)}&entity=song&limit=50`);
+                    if (res.ok) {
+                        const data = await res.json();
+                        if (data.results && data.results.length > 0) {
+                            const seenTitles = new Set<string>();
+                            const uniqueSongs: any[] = [];
+                            for (const s of data.results) {
+                                const artistLower = (s.artistName || '').toLowerCase();
+                                const trackLower = (s.trackName || '').toLowerCase();
+                                const isSpam = spamBlacklist.some(sp => artistLower.includes(sp) || trackLower.includes(sp));
+                                if (isSpam) continue;
+
+                                const core = (s.trackName || '').toLowerCase().replace(/\s*\(.*?\)/g, '').replace(/\s*\[.*?\]/g, '').trim();
+                                if (!seenTitles.has(core) && uniqueSongs.length < 10) {
+                                    seenTitles.add(core);
+                                    uniqueSongs.push(s);
+                                }
+                            }
+
+                            const newTracks: Top10TrackItem[] = [];
+                            for (let i = 0; i < 10; i++) {
+                                const rank = 10 - i;
+                                const song = uniqueSongs[9 - i] || uniqueSongs[i] || uniqueSongs[0];
+                                const cUrl = song?.artworkUrl100 ? song.artworkUrl100.replace('100x100bb', '1400x1400bb') : '';
+                                newTracks.push({
+                                    rank: rank,
+                                    title: (song?.trackName || `TRACK #${rank}`).toUpperCase(),
+                                    artist: (song?.artistName || cleaned).toUpperCase(),
+                                    cover: cUrl,
+                                    audioUrl: song?.previewUrl || '',
+                                    sourceUrl: song?.previewUrl || '',
+                                    videoStartTime: 0,
+                                    audioStartTime: 0,
+                                    streams: ''
+                                });
+                                if (cUrl) {
+                                    loadCorsSafeImage(cUrl, (img) => {
+                                        imageCacheRef.current[cUrl] = img;
+                                        generateImage();
+                                    });
+                                }
+                            }
+                            setTop10Tracks(newTracks);
+                            top10TracksRef.current = newTracks;
+                            try {
+                                localStorage.setItem('dropsiders_top10_tracks_v7', JSON.stringify(newTracks));
+                            } catch (_) {}
+                            generateImage();
+                        }
                     }
                 }
             }
