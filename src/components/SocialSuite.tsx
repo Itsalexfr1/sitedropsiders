@@ -385,7 +385,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const [autoSyncAgendaMonth, setAutoSyncAgendaMonth] = useState(true);
     // InShot-style: active bottom panel and format modal
     const [activePanel, setActivePanel] = useState<string | null>(null);
-    const [showFormatModal, setShowFormatModal] = useState(true);
+    const [showFormatModal, setShowFormatModal] = useState(false);
     const [readyVideoBlob, setReadyVideoBlob] = useState<Blob | null>(null);
     const [readyVideoUrl, setReadyVideoUrl] = useState<string>('');
     const [recordingProgress, setRecordingProgress] = useState(0);
@@ -2143,6 +2143,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const canvasFilterBlurSupportedRef = useRef<boolean | null>(null);
     const videoBlurCanvasARef = useRef<HTMLCanvasElement | null>(null);
     const videoBlurCanvasBRef = useRef<HTMLCanvasElement | null>(null);
+    const whiteLogoCacheRef = useRef<Map<string, HTMLCanvasElement>>(new Map());
     const [activeAudioPreviewSrc, setActiveAudioPreviewSrc] = useState<string | null>(null);
     const [cdjPlayerRing, setCdjPlayerRing] = useState<boolean>(true); // Bague de progression 30s style Player CDJ Pioneer
     const [musicBgMotion, setMusicBgMotion] = useState<boolean>(true); // Mouvement organique doux en arrière-plan
@@ -2423,6 +2424,46 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         } else {
             ctx.drawImage(video, dx, dy, dw, dh);
         }
+    };
+
+    /** Dessine un logo en blanc pur (#ffffff) en conservant l'alpha exact et l'ombre portée (remplace ctx.filter brightness(0) invert(1) sur iOS WebKit) */
+    const drawWhiteLogoCrossBrowser = (
+        ctx: CanvasRenderingContext2D,
+        img: HTMLImageElement,
+        dx: number,
+        dy: number,
+        dw: number,
+        dh: number
+    ) => {
+        if (supportsCanvasFilterBlur()) {
+            ctx.save();
+            ctx.filter = 'brightness(0) invert(1)';
+            ctx.drawImage(img, dx, dy, dw, dh);
+            ctx.restore();
+            return;
+        }
+        const w = Math.max(1, Math.round(dw));
+        const h = Math.max(1, Math.round(dh));
+        const key = `${img.src || 'logo'}_${w}x${h}_white`;
+        let whiteCanvas = whiteLogoCacheRef.current.get(key);
+        if (!whiteCanvas) {
+            const off = document.createElement('canvas');
+            off.width = w;
+            off.height = h;
+            const offCtx = off.getContext('2d');
+            if (offCtx) {
+                offCtx.imageSmoothingEnabled = true;
+                offCtx.imageSmoothingQuality = 'high';
+                offCtx.drawImage(img, 0, 0, w, h);
+                offCtx.globalCompositeOperation = 'source-in';
+                offCtx.fillStyle = '#ffffff';
+                offCtx.fillRect(0, 0, w, h);
+            }
+            if (whiteLogoCacheRef.current.size > 24) whiteLogoCacheRef.current.clear();
+            whiteLogoCacheRef.current.set(key, off);
+            whiteCanvas = off;
+        }
+        ctx.drawImage(whiteCanvas, dx, dy, dw, dh);
     };
 
     /** Charge une image avec support CORS + repli automatique vers /api/proxy-media (Beatport, Spotify, etc. sur iOS) */
@@ -2873,6 +2914,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     };
 
     const handleTop10TestClip = async (rank: number) => {
+        unlockMobileAudioSession();
         const currentTracks = (top10TracksRef.current && top10TracksRef.current.length === 10) ? top10TracksRef.current : top10Tracks;
         const tr = currentTracks.find(t => Number(t.rank) === Number(rank));
         if (!tr) return;
@@ -5013,10 +5055,26 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     ctx.globalAlpha = silAlpha;
                                     ctx.shadowColor = djSilhouetteColor;
                                     ctx.shadowBlur = silGlowBlur;
-                                    // Assombrissement mystère pour donner l'effet silhouette
-                                    ctx.filter = 'brightness(0.14) contrast(1.4)';
-                                    ctx.drawImage(activeSilhouetteImg, x, y, iw, ih);
-                                    ctx.filter = 'none';
+                                    // Assombrissement mystère pour donner l'effet silhouette (compatible PC + iOS WebKit)
+                                    if (supportsCanvasFilterBlur()) {
+                                        ctx.filter = 'brightness(0.14) contrast(1.4)';
+                                        ctx.drawImage(activeSilhouetteImg, x, y, iw, ih);
+                                        ctx.filter = 'none';
+                                    } else {
+                                        const darkOff = document.createElement('canvas');
+                                        darkOff.width = Math.max(1, Math.round(iw));
+                                        darkOff.height = Math.max(1, Math.round(ih));
+                                        const dCtx = darkOff.getContext('2d');
+                                        if (dCtx) {
+                                            dCtx.drawImage(activeSilhouetteImg, 0, 0, darkOff.width, darkOff.height);
+                                            dCtx.globalCompositeOperation = 'source-atop';
+                                            dCtx.fillStyle = 'rgba(0, 0, 0, 0.86)';
+                                            dCtx.fillRect(0, 0, darkOff.width, darkOff.height);
+                                            ctx.drawImage(darkOff, x, y, iw, ih);
+                                        } else {
+                                            ctx.drawImage(activeSilhouetteImg, x, y, iw, ih);
+                                        }
+                                    }
 
                                     ctx.strokeStyle = djSilhouetteColor;
                                     ctx.lineWidth = 3.5;
@@ -6574,7 +6632,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                     ctx.font = '900 110px "Montserrat", sans-serif';
                     ctx.letterSpacing = "12px";
-                    ctx.fillText('LIVESTREAM', centerX + 6, takeoverY); // offset for letterSpacing centering
+                    ctx.fillText('LIVESTREAM', ('letterSpacing' in ctx) ? centerX + 6 : centerX, takeoverY); // offset for letterSpacing centering
                     ctx.restore();
 
                     // 4. DECORATIVE LINE (Always visible)
@@ -7610,9 +7668,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         ctx.save();
                         applyTextAnimCtx(ctx, 0.10, 80 + lw / 2, 150 + lh / 2);
                         if (isArtistLogoNegative) {
-                            ctx.filter = 'brightness(0) invert(1)'; // Effet négatif (blanc)
+                            drawWhiteLogoCrossBrowser(ctx, logo, 80, 150, lw, lh);
+                        } else {
+                            ctx.drawImage(logo, 80, 150, lw, lh); // Remonté de 200 à 150
                         }
-                        ctx.drawImage(logo, 80, 150, lw, lh); // Remonté de 200 à 150
                         ctx.restore();
                     } else if (artistNameText) {
                         ctx.save();
@@ -10095,9 +10154,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             ctx.shadowBlur = 30;
 
                             if (isArtistLogoNegative) {
-                                ctx.filter = 'brightness(0) invert(1)';
+                                drawWhiteLogoCrossBrowser(ctx, artistLogoObj, lx, ly, logoW, logoH);
+                            } else {
+                                ctx.drawImage(artistLogoObj, lx, ly, logoW, logoH);
                             }
-                            ctx.drawImage(artistLogoObj, lx, ly, logoW, logoH);
                             ctx.restore();
                         } else {
                             // ➔ PAS DE LOGO : NOM DE L'ARTISTE / STYLE ANCRÉ AU CENTRE EXACT (artistCenterY)
@@ -10174,16 +10234,16 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     let animTime = 0;
 
                     if (isVideoExport) {
-                        animTime = deterministicAnimTimeRef.current;
-                        trackProgress = (animTime % durPerTrack) / durPerTrack;
+                        animTime = Math.min(durPerTrack - 0.001, Math.max(0, deterministicAnimTimeRef.current));
+                        trackProgress = animTime / durPerTrack;
                     } else {
                         animTime = (Date.now() - animStartTimeRef.current) / 1000;
                         trackProgress = (top10TestingRank === currentActiveRank) ? ((animTime % durPerTrack) / durPerTrack) : 0.5;
                     }
 
-                    // Temps d'animation propre à la track active (rejoue proprement à chaque changement de position ou test)
+                    // Temps d'animation propre à la track active (sans modulo en export pour éviter tout flash en fin de piste)
                     const trackAnimTime = isVideoExport
-                        ? (animTime % durPerTrack)
+                        ? animTime
                         : (top10TestingRank === currentActiveRank
                             ? (animTime % durPerTrack)
                             : Math.max(0, (Date.now() - animStartTimeRef.current) / 1000));
@@ -10486,9 +10546,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             ctx.shadowColor = `rgba(${top10AccentRgb}, 0.85)`;
                             ctx.shadowBlur = 20;
                             if (isArtistLogoNegative) {
-                                ctx.filter = 'brightness(0) invert(1)';
+                                drawWhiteLogoCrossBrowser(ctx, countdownLogoObj, lx, ly, lw, lh);
+                            } else {
+                                ctx.drawImage(countdownLogoObj, lx, ly, lw, lh);
                             }
-                            ctx.drawImage(countdownLogoObj, lx, ly, lw, lh);
                             ctx.restore();
                         } else {
                             ctx.save();
@@ -12141,7 +12202,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             anim = requestAnimationFrame(loop);
         } else { generateImage(); }
         return () => cancelAnimationFrame(anim);
-    }, [bgImage, bgVideo, customText, theme, showSwipe, showArticleLink, articleLinkText, showVoteLink, top5Items, currentPreviewIndex, activeTab, rotation, themeColor, isVideoRecording, transitionProgress, showText, planningDate, planningItems, agendaMonth, agendaBadgeText, agendaSlide, agendaCoverBadge, agendaCoverTitle, agendaCoverYear, agendaCoverGenres, agendaCoverCta, showAgendaCoverCta, artisteFestivalSlide, eventsSlide, editorialSlide, isEditorialAfficheActive, isEditorialTweetActive, showTitleOnSlide2, showMusicDate, editorialDate, showDividerDate, citationAuthor, citationMedia, extraEditorialSlides, musicTracks, top10Tracks, top10ActiveRank, top10Title, top10IntroTitle, top10IntroArtist, top10ColoredWords, top10LogoScale, top10Subtitle, top10TrackDuration, top10TestingRank, calendarMonth, calendarEvents, isRetouchMode, retouchPath, isTransparent, showBottomLogo, artistLogo, festivalLogo, bgOffsetX, bgOffsetY, artistNameText, festivalNameText, isArtistLogoNegative, mapFestivalText, mapCityCountry, mapZoom, mapLatitude, mapLongitude, mapStyle, isMapLoading, mapPinColor, mapLabelText, showMapPin, showMapLabel, mapAnimMode, isMapAnimPlaying, mapScrubTime, mapAnimDuration, mapDestLatitude, mapDestLongitude, mapDestFestivalText, mapDestVenue, mapDestCity, mapDestCountry, mapDestPinColor, imgLayoutMode, quizColor1, quizColor2, showFrame, conseilsTitle, conseilsSubtext, isConseilsLargeTitle, concoursFestivalName, concoursFestivalHandle, concoursBottomColor, concoursLateralText, concoursLateralOpacity, concoursBadgeTextColor, concoursMode, concoursGTAHeadline, concoursGTATitle, concoursGTAPlatformText, concoursGTACondition1, concoursGTACondition2, concoursGTACondition3, concoursGTACondition4, afficheImage, afficheGlow, afficheBorderColor, afficheMode, afficheScale, afficheOffsetY, tweetImage, tweetScale, tweetOffsetY, tweetGlow, tweetHeadline, tweetBadge, tweetBorderColor, tweetTranslation, showTweetTranslation, tweetAnimMode, textAnimation, animReplayKey, bgAnimation, cdjPlayerRing, musicBgMotion, isCarouselPromoActive, promoCustomPhrase, promoCustomSubphrase, promoOutroStyle, isPromoAnimPlaying, promoCategory, showPromoHook, showPromoHeadline, showPromoLine1, showPromoLine2, djCutoutImage, djOriginalImage, djSilhouetteColor, djGlowIntensity, djShowQuestionMark, djAppearanceAnim, editorialSlideImages, editorialSlideCutouts, editorialSlideTitles, djSlideModes, agendaAffiches, highlightsSlideArtists, highlightsColorArtist, highlightsColorFestival, highlightsColorCity, highlightsColorCountry, highlightsColorDate, afficheImgZoom, afficheImgPanX, afficheImgPanY]);
+    }, [bgImage, bgVideo, customText, theme, showSwipe, showArticleLink, articleLinkText, showVoteLink, top5Items, currentPreviewIndex, activeTab, rotation, themeColor, isVideoRecording, transitionProgress, showText, planningDate, planningItems, agendaMonth, agendaBadgeText, agendaSlide, agendaCoverBadge, agendaCoverTitle, agendaCoverYear, agendaCoverGenres, agendaCoverCta, showAgendaCoverCta, artisteFestivalSlide, eventsSlide, editorialSlide, isEditorialAfficheActive, isEditorialTweetActive, showTitleOnSlide2, showMusicDate, editorialDate, showDividerDate, citationAuthor, citationMedia, extraEditorialSlides, musicTracks, top10Tracks, top10ActiveRank, top10Title, top10IntroTitle, top10IntroArtist, top10ColoredWords, top10LogoScale, top10Subtitle, top10TrackDuration, top10TestingRank, top10GenMode, top10Badge, top10LabelSearch, top10StyleSearch, top10ArtistSearch, calendarMonth, calendarEvents, isRetouchMode, retouchPath, isTransparent, showBottomLogo, artistLogo, festivalLogo, bgOffsetX, bgOffsetY, artistNameText, festivalNameText, isArtistLogoNegative, mapFestivalText, mapCityCountry, mapZoom, mapLatitude, mapLongitude, mapStyle, isMapLoading, mapPinColor, mapLabelText, showMapPin, showMapLabel, mapAnimMode, isMapAnimPlaying, mapScrubTime, mapAnimDuration, mapDestLatitude, mapDestLongitude, mapDestFestivalText, mapDestVenue, mapDestCity, mapDestCountry, mapDestPinColor, imgLayoutMode, quizColor1, quizColor2, showFrame, conseilsTitle, conseilsSubtext, isConseilsLargeTitle, concoursFestivalName, concoursFestivalHandle, concoursBottomColor, concoursLateralText, concoursLateralOpacity, concoursBadgeTextColor, concoursMode, concoursGTAHeadline, concoursGTATitle, concoursGTAPlatformText, concoursGTACondition1, concoursGTACondition2, concoursGTACondition3, concoursGTACondition4, afficheImage, afficheGlow, afficheBorderColor, afficheMode, afficheScale, afficheOffsetY, tweetImage, tweetScale, tweetOffsetY, tweetGlow, tweetHeadline, tweetBadge, tweetBorderColor, tweetTranslation, showTweetTranslation, tweetAnimMode, textAnimation, animReplayKey, bgAnimation, cdjPlayerRing, musicBgMotion, isCarouselPromoActive, promoCustomPhrase, promoCustomSubphrase, promoOutroStyle, isPromoAnimPlaying, promoCategory, showPromoHook, showPromoHeadline, showPromoLine1, showPromoLine2, djCutoutImage, djOriginalImage, djSilhouetteColor, djGlowIntensity, djShowQuestionMark, djAppearanceAnim, editorialSlideImages, editorialSlideCutouts, editorialSlideTitles, djSlideModes, agendaAffiches, highlightsSlideArtists, highlightsColorArtist, highlightsColorFestival, highlightsColorCity, highlightsColorCountry, highlightsColorDate, afficheImgZoom, afficheImgPanX, afficheImgPanY]);
 
     // Rejouer l'animation de texte proprement depuis le début à chaque changement de slide, track ou de thème
     useEffect(() => {
@@ -12739,7 +12800,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         }
 
         // Mise à jour visuelle du progress basée sur le temps réel (DOM direct = zéro re-render React)
-        const startTime = Date.now();
+        let startTime = Date.now();
         const updateProgressUI = () => {
             const elapsed = Date.now() - startTime;
             const progress = Math.min((elapsed / totalDuration) * 100, 99);
@@ -12989,7 +13050,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 // Snapshot de la slide entrante à t=0 (comme sur PC) pour que l'animation d'entrée démarre proprement après la transition
                 deterministicAnimTimeRef.current = 0;
                 isExportRenderingRef.current = true;
-                try { await generateImage(); } finally { isExportRenderingRef.current = false; }
+                try { await generateImage(effectiveTab); } finally { isExportRenderingRef.current = false; }
                 const incomingCanvas = document.createElement('canvas');
                 incomingCanvas.width = canvas.width;
                 incomingCanvas.height = canvas.height;
@@ -13048,7 +13109,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 });
                 deterministicAnimTimeRef.current = 0;
                 isExportRenderingRef.current = true;
-                try { await generateImage(); } catch { } finally { isExportRenderingRef.current = false; }
+                try { await generateImage(effectiveTab); } catch { } finally { isExportRenderingRef.current = false; }
                 return durationMs / 1000;
             }
         };
@@ -14052,6 +14113,35 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             }
         };
 
+        // Préparation initiale de la première frame AVANT recorder.start() (évite tout décalage audio/vidéo sur mobile)
+        const savedTop10OriginalRank = top10ActiveRankRef.current ?? top10ActiveRank;
+        if (theme === 'TOP 10 TRACKS' && combinedMode !== 'PROMO_ONLY') {
+            const preloadTracks = (top10TracksRef.current && top10TracksRef.current.length === 10) ? top10TracksRef.current : top10Tracks;
+            await Promise.all(preloadTracks.map(t => {
+                const coverUrl = t.cover;
+                if (!coverUrl) return Promise.resolve();
+                const resolvedCover = resolveImageUrl(coverUrl);
+                if (imageCacheRef.current[coverUrl] || imageCacheRef.current[resolvedCover]) return Promise.resolve();
+                return new Promise<void>(res => {
+                    loadCorsSafeImage(coverUrl, (loadedImg) => {
+                        imageCacheRef.current[coverUrl] = loadedImg;
+                        imageCacheRef.current[resolvedCover] = loadedImg;
+                        res();
+                    }, () => res());
+                });
+            }));
+            setTop10ActiveRank(0);
+            top10ActiveRankRef.current = 0;
+            deterministicAnimTimeRef.current = 0;
+            isExportRenderingRef.current = true;
+            try { await generateImage(effectiveTab); } catch { } finally { isExportRenderingRef.current = false; }
+        }
+
+        // Réinitialisation des horloges pile au démarrage réel de la capture (après tous les décodages audio)
+        startTime = Date.now();
+        recordingStartTimeRef.current = Date.now();
+        animStartTimeRef.current = Date.now();
+
         // Démarrage du MediaRecorder uniquement en mode fallback
         let progressInterval: any = null;
         if (!useWebCodecs && recorder) {
@@ -14150,7 +14240,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             transitionProgressRef.current = 0;
 
             // 3. Affichage du visuel promo final pendant promoDuration avec continuité (zéro relance de texte)
-            await renderDuration(promoDuration, promoOffsetSec);
+            await renderDuration(promoDuration, 0);
 
         } else if (combinedMode === 'PLANNING' || (combinedMode === 'TIKTOK' && theme === 'PLANNING')) {
             const transitionDuration = currentTransitionDuration;
@@ -14176,7 +14266,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             transitionProgressRef.current = 0;
 
             // 3. Slide 2 (Lineup / Événements)
-            await renderDuration(slideDuration, currentOffset);
+            await renderDuration(slideDuration, 0);
 
             // 4. Slides Affiches (Slide 3..N)
             for (let aIdx = 0; aIdx < agendaAffiches.length; aIdx++) {
@@ -14186,7 +14276,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     animStartTimeRef.current = Date.now();
                 });
                 transitionProgressRef.current = 0;
-                await renderDuration(slideDuration, currentOffset);
+                await renderDuration(slideDuration, 0);
             }
 
             // 5. Transition vers le visuel PROMO outro à la fin du Reel (composite fluide)
@@ -14196,8 +14286,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             });
             transitionProgressRef.current = 0;
 
-            // 6. Affichage du visuel promo final pendant promoDuration avec continuité (zéro relance de texte)
-            await renderDuration(promoDuration, promoOffsetSec);
+            // 6. Affichage du visuel promo final pendant promoDuration dès t=0
+            await renderDuration(promoDuration, 0);
 
         } else if (theme.startsWith('TOP 5')) {
             for (let i = 0; i < 5; i++) {
@@ -14229,7 +14319,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         } else if (theme === 'TOP 10 TRACKS') {
             const introDurMs = 5000; // 5.0s d'Intro
             const singleTrackMs = 7800; // 10 tracks × 7.8s = 78.0s
-            const originalRank = top10ActiveRankRef.current ?? top10ActiveRank;
+            const originalRank = savedTop10OriginalRank;
             let prevVideo: HTMLVideoElement | null = null;
             const currentTracks = (top10TracksRef.current && top10TracksRef.current.length === 10) ? top10TracksRef.current : top10Tracks;
 
@@ -14326,7 +14416,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 transitionProgressRef.current = 0;
 
                 // 3. Rendu de la slide Promo Dropsiders en outro
-                await renderDuration(promoDur, promoOffsetSec);
+                await renderDuration(promoDur, 0);
             } else {
                 await renderDuration(totalDuration);
             }
@@ -20512,7 +20602,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     </div>
                     <button
                         type="button"
-                        onClick={() => setSidebarStep('visual')}
+                        onClick={() => { setSidebarStep('visual'); setActivePanel('fond'); }}
                         className="px-3 py-1.5 bg-[#ff3700] hover:bg-[#ff4400] text-white font-black text-[9px] uppercase rounded-xl transition-all flex items-center gap-1 shadow-sm active:scale-95 flex-shrink-0"
                     >
                         <Sparkles className="w-3 h-3" />
@@ -20541,7 +20631,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     </div>
                     <button
                         type="button"
-                        onClick={() => setSidebarStep('visual')}
+                        onClick={() => { setSidebarStep('visual'); setActivePanel('fond'); }}
                         className="px-3 py-1.5 bg-neon-cyan hover:bg-neon-cyan/80 text-black font-black text-[9px] uppercase rounded-xl transition-all flex items-center gap-1 shadow-sm active:scale-95 flex-shrink-0"
                     >
                         <Sparkles className="w-3 h-3 text-black" />
@@ -23882,7 +23972,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         </div>
                         <button
                             type="button"
-                            onClick={() => setSidebarStep('visual')}
+                            onClick={() => { setSidebarStep('visual'); setActivePanel('fond'); }}
                             className="px-3 py-1.5 bg-[#ff3700] hover:bg-[#ff4400] text-white font-black text-[9px] uppercase rounded-xl transition-all flex items-center gap-1 shadow-sm active:scale-95 flex-shrink-0"
                         >
                             <Sparkles className="w-3 h-3" />
@@ -25214,7 +25304,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             </button>
                             <button
                                 type="button"
-                                onClick={() => setSidebarStep('visual')}
+                                onClick={() => { setSidebarStep('visual'); setActivePanel('fond'); }}
                                 className={`py-2 px-1 rounded-xl text-[9px] font-black uppercase flex flex-col items-center justify-center gap-0.5 transition-all ${sidebarStep === 'visual'
                                     ? 'bg-gradient-to-r from-neon-cyan to-blue-500 text-black shadow-[0_0_15px_rgba(0,255,255,0.4)] scale-[1.02]'
                                     : 'text-gray-400 hover:text-white hover:bg-white/5'
@@ -25507,7 +25597,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 <div className="pt-3 border-t border-white/10 flex gap-2">
                                     <button
                                         type="button"
-                                        onClick={() => setSidebarStep('visual')}
+                                        onClick={() => { setSidebarStep('visual'); setActivePanel('fond'); }}
                                         className="flex-1 py-3 bg-neon-cyan text-black rounded-xl text-[9.5px] font-black uppercase flex items-center justify-center gap-1.5 shadow-[0_0_15px_rgba(0,255,255,0.3)] hover:brightness-110 active:scale-98 transition-all"
                                     >
                                         <span>Suivant : 2. Visuel & Fond</span>
@@ -25780,7 +25870,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 <div className="pt-2">
                                     <button
                                         type="button"
-                                        onClick={() => setSidebarStep('visual')}
+                                        onClick={() => { setSidebarStep('visual'); setActivePanel('fond'); }}
                                         className="w-full py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-[9px] font-bold text-gray-400 hover:text-white uppercase transition-all flex items-center justify-center gap-1.5"
                                     >
                                         <span>⬅️</span>
@@ -26147,6 +26237,28 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 {slideTransitionQuickBar}
                             </div>
                         )}
+                        {theme === 'TOP 10 TRACKS' && (
+                            <div className="mb-3 flex items-center gap-1 bg-black/80 backdrop-blur-md px-3 py-1.5 rounded-2xl border border-neon-cyan/30 shadow-2xl z-20 flex-wrap justify-center max-w-[95%]">
+                                <span className="text-[9px] font-black text-neon-cyan uppercase tracking-wider mr-1">Top 10 :</span>
+                                <button
+                                    type="button"
+                                    onClick={() => selectTop10Track(0)}
+                                    className={`px-2.5 py-1 rounded-xl text-[9px] font-black uppercase transition-all ${Number(top10ActiveRank) === 0 ? 'bg-neon-cyan text-black shadow-[0_0_12px_rgba(0,240,255,0.6)]' : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'}`}
+                                >
+                                    🎬 Intro
+                                </button>
+                                {[10, 9, 8, 7, 6, 5, 4, 3, 2, 1].map(r => (
+                                    <button
+                                        key={r}
+                                        type="button"
+                                        onClick={() => selectTop10Track(r)}
+                                        className={`px-2 py-1 rounded-xl text-[9px] font-black uppercase transition-all ${Number(top10ActiveRank) === r ? 'bg-neon-cyan text-black shadow-[0_0_12px_rgba(0,240,255,0.6)]' : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'}`}
+                                    >
+                                        #{r}
+                                    </button>
+                                ))}
+                            </div>
+                        )}
                         <div className={`relative ${activeTab === 'REEL' ? 'w-full max-w-[320px] xl:max-w-[360px] 2xl:max-w-[400px] max-h-[82vh]' : 'w-full max-w-[450px]'} transition-all duration-300 flex items-center justify-center`} style={{ aspectRatio: activeTab === 'REEL' ? '9/16' : '4/5' }}>
                             {/* Halo lumineux ambiant discret autour du mockup */}
                             <div className="absolute -inset-4 bg-gradient-to-r from-neon-cyan/15 via-purple-500/10 to-pink-500/15 rounded-[40px] blur-2xl opacity-60 pointer-events-none" />
@@ -26261,6 +26373,38 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     );
                                 })()}
 
+                                {theme === 'TOP 10 TRACKS' && Number(top10ActiveRank) >= 1 && (() => {
+                                    const activeTr = top10Tracks.find(t => Number(t.rank) === Number(top10ActiveRank));
+                                    if (!activeTr || (!activeTr.audioUrl && !activeTr.videoUrl && !activeTr.sourceUrl)) return null;
+                                    const isTesting = Number(top10TestingRank) === Number(top10ActiveRank);
+                                    return (
+                                        <button
+                                            type="button"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleTop10TestClip(Number(top10ActiveRank));
+                                            }}
+                                            className={`absolute ${bgVideo ? 'top-12' : 'top-3.5'} right-3.5 z-40 px-3 py-1.5 rounded-full flex items-center gap-1.5 text-[9px] font-black uppercase backdrop-blur-md shadow-2xl transition-all active:scale-95 border ${isTesting
+                                                ? 'bg-neon-cyan/25 border-neon-cyan/70 text-neon-cyan shadow-[0_0_15px_rgba(0,240,255,0.45)]'
+                                                : 'bg-black/75 border-neon-cyan/40 text-neon-cyan hover:bg-black/90'
+                                                }`}
+                                            title={isTesting ? "Couper l'extrait audio" : `Écouter l'extrait #${top10ActiveRank}`}
+                                        >
+                                            {isTesting ? (
+                                                <>
+                                                    <Volume2 className="w-3.5 h-3.5 animate-pulse text-neon-cyan" />
+                                                    <span>Son #{top10ActiveRank} ON</span>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <Music className="w-3.5 h-3.5 text-neon-cyan" />
+                                                    <span>Écouter #{top10ActiveRank}</span>
+                                                </>
+                                            )}
+                                        </button>
+                                    );
+                                })()}
+
                                 <AnimatePresence>
                                     {/* The global overlay at the end of the file handles desktop and mobile now */}
                                 </AnimatePresence>
@@ -26270,27 +26414,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 </div>
             ) : (
                 /* ══════════════════════════════════════════════════════════
-                    MOBILE LAYOUT — InShot style: full-screen + bottom bar
+                    MOBILE LAYOUT — 100% Parité & Cohérence avec la version PC
+                    (En-tête Format + Barre Slides + Aperçu cadré sans chevauchement + 3 Étapes : 1. Texte / 2. Visuel / 3. Export)
                 ══════════════════════════════════════════════════════════ */
-                <motion.div
-                    drag="y"
-                    dragControls={dragControls}
-                    dragListener={false}
-                    dragConstraints={{ top: 0, bottom: 300 }}
-                    dragElastic={{ top: 0.1, bottom: 0.8 }}
-                    onDragEnd={(_, info) => {
-                        if (info.offset.y > 150) {
-                            if (activePanel) {
-                                if (activePanel === 'texte' && (textAnimation !== 'NONE' || bgAnimation !== 'NONE')) {
-                                    triggerSmoothAnimReplay();
-                                }
-                                setActivePanel(null);
-                            }
-                        }
-                    }}
-                    className="relative w-full h-full bg-black flex flex-col overflow-hidden">
+                <div className="relative w-full h-[100dvh] bg-[#08080c] flex flex-col overflow-hidden select-none">
 
-                    {/* Format selection modal (mobile only) */}
+                    {/* Format selection modal (optionnelle si déclenchée explicitement) */}
                     <AnimatePresence>
                         {showFormatModal && (
                             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
@@ -26308,31 +26437,287 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         <div className="grid grid-cols-2 gap-4">
                                             <button onClick={() => { unlockMobileAudioSession(); setActiveTab('REEL'); setShowFormatModal(false); }}
                                                 className="group flex flex-col items-center gap-3 p-6 rounded-3xl border-2 border-white/10 bg-white/5 hover:border-white/30 transition-all">
-                                                <div className="w-12 h-20 rounded-xl border-2 border-white/30 flex items-center justify-center group-hover:border-neon-red/60 transition-all" style={{ background: 'linear-gradient(180deg,#1a1a1a,#0a0a0a)' }}>
-                                                    <Smartphone className="w-5 h-5 text-gray-400 group-hover:text-neon-red transition-colors" />
-                                                </div>
-                                                <span className="text-[11px] font-black text-white uppercase">Réel</span>
+                                                <Smartphone className="w-6 h-6 text-neon-red" />
+                                                <span className="text-[11px] font-black text-white uppercase">Story / Reel</span>
                                                 <span className="text-[9px] text-gray-500">1080 × 1920</span>
                                             </button>
                                             <button onClick={() => { unlockMobileAudioSession(); setActiveTab('PUBLICATION'); if (theme === 'REELS' || theme === 'CONSEILS' || theme === 'TRACKLIST' || theme === 'MAP' || theme === 'TOP 10 TRACKS') handleSetTheme('NEWS'); setShowFormatModal(false); }}
                                                 className="group flex flex-col items-center gap-3 p-6 rounded-3xl border-2 border-white/10 bg-white/5 hover:border-white/30 transition-all">
-                                                <div className="w-16 h-16 rounded-xl border-2 border-white/30 flex items-center justify-center group-hover:border-neon-cyan/60 transition-all" style={{ background: 'linear-gradient(180deg,#1a1a1a,#0a0a0a)' }}>
-                                                    <ImageIcon className="w-6 h-6 text-gray-400 group-hover:text-neon-cyan transition-colors" />
-                                                </div>
-                                                <span className="text-[11px] font-black text-white uppercase">Publication</span>
+                                                <ImageIcon className="w-6 h-6 text-neon-cyan" />
+                                                <span className="text-[11px] font-black text-white uppercase">Post</span>
                                                 <span className="text-[9px] text-gray-500">1080 × 1350</span>
                                             </button>
                                         </div>
-                                        <button onClick={() => { unlockMobileAudioSession(); setShowFormatModal(false); }} className="mt-6 w-full py-3 text-[10px] font-black text-gray-500 uppercase tracking-widest hover:text-white transition-colors">Continuer sans changer</button>
+                                        <button onClick={() => { unlockMobileAudioSession(); setShowFormatModal(false); }} className="mt-6 w-full py-3 text-[10px] font-black text-gray-500 uppercase tracking-widest hover:text-white transition-colors">Continuer</button>
                                     </div>
                                 </motion.div>
                             </motion.div>
                         )}
                     </AnimatePresence>
 
-                    {/* Full-screen canvas — click to close any open panel */}
+                    {/* 1. EN-TÊTE FIXE COMPACT (Identique au PC : Titre + Switcher STORY/REEL | POST + SITE + Fermer) */}
+                    <div className="shrink-0 flex items-center justify-between gap-2 px-3 py-2 bg-[#0a0a0e] border-b border-white/10 z-30">
+                        <div className="flex items-center gap-2 min-w-0">
+                            <span className="text-sm font-black text-white italic tracking-tighter whitespace-nowrap">STUDIO</span>
+                            <div className="flex items-center gap-1 p-0.5 bg-white/5 rounded-xl border border-white/10">
+                                <button
+                                    type="button"
+                                    onClick={() => { unlockMobileAudioSession(); setActiveTab('REEL'); }}
+                                    className={`px-2.5 py-1 rounded-lg text-[8.5px] font-black uppercase flex items-center gap-1 transition-all ${activeTab === 'REEL' ? 'bg-white text-black shadow-sm' : 'text-gray-400 hover:text-white'}`}
+                                >
+                                    <Smartphone className="w-3 h-3" />
+                                    <span>Reel</span>
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => { unlockMobileAudioSession(); setActiveTab('PUBLICATION'); if (theme === 'REELS' || theme === 'CONSEILS' || theme === 'TRACKLIST' || theme === 'MAP' || theme === 'TOP 10 TRACKS') handleSetTheme('NEWS'); }}
+                                    className={`px-2.5 py-1 rounded-lg text-[8.5px] font-black uppercase flex items-center gap-1 transition-all ${activeTab === 'PUBLICATION' ? 'bg-white text-black shadow-sm' : 'text-gray-400 hover:text-white'}`}
+                                >
+                                    <ImageIcon className="w-3 h-3" />
+                                    <span>Post</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div className="flex items-center gap-1.5 shrink-0">
+                            <button
+                                type="button"
+                                onClick={() => window.location.href = '/'}
+                                className="px-2.5 py-1.5 bg-white/5 hover:bg-white/10 rounded-xl text-gray-300 hover:text-neon-cyan transition-all flex items-center gap-1 border border-white/10"
+                                title="Retour au site"
+                            >
+                                <Home className="w-3.5 h-3.5" />
+                                <span className="text-[8.5px] font-black uppercase">Site</span>
+                            </button>
+                            <button
+                                type="button"
+                                onClick={onClose}
+                                className="p-1.5 bg-white/5 hover:bg-neon-red/20 rounded-xl text-gray-300 hover:text-neon-red transition-all border border-white/10"
+                                title="Quitter"
+                            >
+                                <X className="w-4 h-4" />
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* 2. BARRE DE SLIDES / CARROUSEL DÉDIÉE SOUS L'EN-TÊTE (100% identique au PC, aucun chevauchement sur le visuel) */}
+                    {theme === 'TOP 10 TRACKS' && (
+                        <div className="shrink-0 flex items-center gap-1 px-3 py-1.5 bg-black/80 border-b border-neon-cyan/20 overflow-x-auto scrollbar-none z-20">
+                            <button
+                                type="button"
+                                onClick={() => selectTop10Track(0)}
+                                className={`px-2.5 py-1 rounded-xl text-[8.5px] font-black uppercase transition-all shrink-0 ${Number(top10ActiveRank) === 0 ? 'bg-neon-cyan text-black shadow-[0_0_10px_rgba(0,240,255,0.5)]' : 'bg-white/5 text-gray-400'}`}
+                            >
+                                🎬 Intro
+                            </button>
+                            {[10, 9, 8, 7, 6, 5, 4, 3, 2, 1].map(r => (
+                                <button
+                                    key={r}
+                                    type="button"
+                                    onClick={() => selectTop10Track(r)}
+                                    className={`px-2 py-1 rounded-xl text-[8.5px] font-black uppercase transition-all shrink-0 ${Number(top10ActiveRank) === r ? 'bg-neon-cyan text-black shadow-[0_0_10px_rgba(0,240,255,0.5)]' : 'bg-white/5 text-gray-400'}`}
+                                >
+                                    #{r}
+                                </button>
+                            ))}
+                        </div>
+                    )}
+                    {theme === 'ARTISTE FESTIVAL' && activeTab !== 'REEL' && (
+                        <div className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 bg-black/80 border-b border-white/10 overflow-x-auto scrollbar-none z-20">
+                            <button type="button" onClick={() => { setIsCarouselPromoActive(false); setArtisteFestivalSlide(1); }}
+                                className={`px-2.5 py-1 rounded-xl text-[8px] font-black uppercase transition-all shrink-0 ${!isCarouselPromoActive && artisteFestivalSlide === 1 ? 'bg-neon-red text-white shadow-md' : 'bg-white/5 text-gray-400'}`}>
+                                🎪 Slide 1 (Cover)
+                            </button>
+                            <button type="button" onClick={() => { setIsCarouselPromoActive(false); setArtisteFestivalSlide(2); }}
+                                className={`px-2.5 py-1 rounded-xl text-[8px] font-black uppercase transition-all shrink-0 ${!isCarouselPromoActive && artisteFestivalSlide === 2 ? 'bg-neon-red text-white shadow-md' : 'bg-white/5 text-gray-400'}`}>
+                                ⭐ Slide 2 (Spotlight)
+                            </button>
+                            <button type="button" onClick={() => { setIsCarouselPromoActive(true); setTimeout(() => generateImage(), 50); }}
+                                className={`px-2.5 py-1 rounded-xl text-[8px] font-black uppercase transition-all shrink-0 ${isCarouselPromoActive ? 'bg-neon-red text-white shadow-md' : 'bg-white/5 text-gray-400'}`}>
+                                🔥 PROMO
+                            </button>
+                            {slideTransitionQuickBar}
+                        </div>
+                    )}
+                    {(theme === 'EVENTS' || theme === 'AFFICHE') && (
+                        <div className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 bg-black/80 border-b border-white/10 overflow-x-auto scrollbar-none z-20">
+                            <button type="button" onClick={() => { setIsCarouselPromoActive(false); setEventsSlide(1); if (theme === 'AFFICHE') handleSetTheme('EVENTS'); }}
+                                className={`px-2.5 py-1 rounded-xl text-[8px] font-black uppercase transition-all shrink-0 ${!isCarouselPromoActive && eventsSlide === 1 && theme !== 'AFFICHE' ? 'bg-[#ff3700] text-white shadow-md' : 'bg-white/5 text-gray-400'}`}>
+                                📢 Slide 1 (Post)
+                            </button>
+                            <button type="button" onClick={() => { setIsCarouselPromoActive(false); setEventsSlide(2); }}
+                                className={`px-2.5 py-1 rounded-xl text-[8px] font-black uppercase transition-all shrink-0 ${!isCarouselPromoActive && (eventsSlide === 2 || theme === 'AFFICHE') ? 'bg-[#ff3700] text-white shadow-md' : 'bg-white/5 text-gray-400'}`}>
+                                🎨 Slide 2 (Affiche)
+                            </button>
+                            <button type="button" onClick={() => { setIsCarouselPromoActive(true); setTimeout(() => generateImage(), 50); }}
+                                className={`px-2.5 py-1 rounded-xl text-[8px] font-black uppercase transition-all shrink-0 ${isCarouselPromoActive ? 'bg-neon-red text-white shadow-md' : 'bg-white/5 text-gray-400'}`}>
+                                🔥 PROMO
+                            </button>
+                            {slideTransitionQuickBar}
+                        </div>
+                    )}
+                    {theme === 'MUSIQUE' && (
+                        <div className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 bg-black/80 border-b border-[#00ff66]/25 overflow-x-auto scrollbar-none z-20">
+                            <button type="button" onClick={() => { setIsCarouselPromoActive(false); setEditorialSlide(1); }}
+                                className={`px-2.5 py-1 rounded-xl text-[8px] font-black uppercase transition-all shrink-0 ${!isCarouselPromoActive && editorialSlide === 1 ? 'bg-[#00ff66] text-black shadow-md' : 'bg-white/5 text-gray-400'}`}>
+                                🎵 Slide 1 (Annonce)
+                            </button>
+                            {musicTracks.map((_, tIdx) => {
+                                const sNum = tIdx + 2;
+                                return (
+                                    <button key={sNum} type="button" onClick={() => { setIsCarouselPromoActive(false); setEditorialSlide(sNum); }}
+                                        className={`px-2.5 py-1 rounded-xl text-[8px] font-black uppercase transition-all shrink-0 ${!isCarouselPromoActive && editorialSlide === sNum ? 'bg-[#00ff66] text-black shadow-md' : 'bg-white/5 text-gray-400'}`}>
+                                        💿 S{sNum} (Track {tIdx + 1})
+                                    </button>
+                                );
+                            })}
+                            {musicTracks.length < MAX_MUSIC_TRACKS && (
+                                <button type="button" onClick={() => addMusicTrack()}
+                                    className="px-2 py-1 rounded-xl text-[8px] font-black uppercase transition-all shrink-0 bg-[#00ff66]/15 text-[#00ff66] border border-[#00ff66]/30">
+                                    ➕ Track
+                                </button>
+                            )}
+                            <button type="button" onClick={() => { setIsCarouselPromoActive(true); setTimeout(() => generateImage(), 50); }}
+                                className={`px-2.5 py-1 rounded-xl text-[8px] font-black uppercase transition-all shrink-0 ${isCarouselPromoActive ? 'bg-neon-red text-white shadow-md' : 'bg-white/5 text-gray-400'}`}>
+                                🔥 PROMO
+                            </button>
+                            {slideTransitionQuickBar}
+                        </div>
+                    )}
+                    {theme === 'PLANNING' && (
+                        <div className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 bg-black/80 border-b border-[#ff3700]/25 overflow-x-auto scrollbar-none z-20">
+                            <button type="button" onClick={() => { setIsCarouselPromoActive(false); setAgendaSlide(1); }}
+                                className={`px-2.5 py-1 rounded-xl text-[8px] font-black uppercase transition-all shrink-0 ${!isCarouselPromoActive && agendaSlide === 1 ? 'bg-[#ff3700] text-black shadow-md' : 'bg-white/5 text-gray-400'}`}>
+                                📌 Slide 1 (Cover)
+                            </button>
+                            <button type="button" onClick={() => { setIsCarouselPromoActive(false); setAgendaSlide(2); }}
+                                className={`px-2.5 py-1 rounded-xl text-[8px] font-black uppercase transition-all shrink-0 ${!isCarouselPromoActive && agendaSlide === 2 ? 'bg-[#ff3700] text-black shadow-md' : 'bg-white/5 text-gray-400'}`}>
+                                📋 Slide 2 (Événements)
+                            </button>
+                            {agendaAffiches.map((aff, idx) => {
+                                const sNum = idx + 3;
+                                const isSelected = !isCarouselPromoActive && agendaSlide === sNum;
+                                return (
+                                    <div key={aff.id} className="flex items-center shrink-0 rounded-xl overflow-hidden bg-white/5 border border-white/10">
+                                        <button type="button" onClick={() => { setIsCarouselPromoActive(false); setAgendaSlide(sNum); }}
+                                            className={`px-2.5 py-1 text-[8px] font-black uppercase transition-all ${isSelected ? 'bg-[#ff3700] text-black shadow-md' : 'text-gray-400'}`}>
+                                            🖼️ S{sNum} (Affiche {idx + 1})
+                                        </button>
+                                        <button type="button" onClick={() => removeAgendaAffiche(idx)}
+                                            className="px-1.5 py-1 text-[8px] font-black text-red-400 hover:bg-red-500/20 border-l border-white/10"
+                                            title={`Supprimer l'Affiche ${idx + 1}`}>
+                                            ✕
+                                        </button>
+                                    </div>
+                                );
+                            })}
+                            {agendaAffiches.length < 18 && (
+                                <button type="button" onClick={() => addAgendaAffiche()}
+                                    className="px-2 py-1 rounded-xl text-[8px] font-black uppercase transition-all shrink-0 bg-[#ff3700]/20 text-[#ff3700] border border-[#ff3700]/30">
+                                    ➕ Affiche
+                                </button>
+                            )}
+                            <button type="button" onClick={() => { setIsCarouselPromoActive(true); setTimeout(() => generateImage(), 50); }}
+                                className={`px-2.5 py-1 rounded-xl text-[8px] font-black uppercase transition-all shrink-0 ${isCarouselPromoActive ? 'bg-neon-red text-white shadow-md' : 'bg-white/5 text-gray-400'}`}>
+                                🔥 PROMO
+                            </button>
+                            {slideTransitionQuickBar}
+                        </div>
+                    )}
+                    {['NEWS', 'FOCUS', 'RECAP', 'INTERVIEW', 'LIVESTREAM', 'CONSEILS', 'REELS', 'CONCOURS', 'TOP 100 DROPSIDERS', 'JEU', 'JEU_FESTIVAL', 'JEU_DJ', 'HIGHLIGHTS'].includes(theme) && (
+                        <div className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 bg-black/80 border-b border-white/10 overflow-x-auto scrollbar-none z-20">
+                            <button type="button" onClick={() => { setIsCarouselPromoActive(false); setIsEditorialAfficheActive(false); setIsEditorialTweetActive(false); setEditorialSlide(1); }}
+                                className={`px-2.5 py-1 rounded-xl text-[8px] font-black uppercase transition-all shrink-0 ${!isCarouselPromoActive && !isEditorialAfficheActive && !isEditorialTweetActive && editorialSlide === 1 ? 'bg-white text-black shadow-md' : 'bg-white/5 text-gray-400'}`}>
+                                {theme === 'JEU_DJ' ? '👤 Slide 1 (Silhouette)' : '📌 Slide 1 (Cover)'}
+                            </button>
+                            {(!skipEditorialSlide2 || theme === 'JEU_DJ') && (
+                                <div className="flex items-center shrink-0 rounded-xl overflow-hidden border border-white/10 bg-white/5">
+                                    <button type="button" onClick={() => { setIsCarouselPromoActive(false); setIsEditorialAfficheActive(false); setIsEditorialTweetActive(false); setEditorialSlide(2); }}
+                                        className={`px-2 py-1 text-[8px] font-black uppercase transition-all ${!isCarouselPromoActive && !isEditorialAfficheActive && !isEditorialTweetActive && editorialSlide === 2 ? 'bg-white text-black shadow-md' : 'text-gray-300'}`}>
+                                        {theme === 'JEU_DJ' ? '🌈 Slide 2 (Révélation)' : '📖 Slide 2'}
+                                    </button>
+                                    {theme !== 'JEU_DJ' && (
+                                        <button type="button" onClick={() => {
+                                            setSkipEditorialSlide2(true);
+                                            if (editorialSlide === 2) setEditorialSlide(1);
+                                            setTimeout(() => generateImage(), 50);
+                                        }} className="px-1.5 py-1 text-[8px] font-black text-gray-400 hover:text-red-400 border-l border-white/10">
+                                            ✕
+                                        </button>
+                                    )}
+                                </div>
+                            )}
+                            {extraEditorialSlides.map((_, idx) => {
+                                const sNum = idx + 3;
+                                const isSelected = !isCarouselPromoActive && !isEditorialAfficheActive && !isEditorialTweetActive && editorialSlide === sNum;
+                                return (
+                                    <div key={sNum} className="flex items-center shrink-0 rounded-xl overflow-hidden bg-white/5 border border-white/10">
+                                        <button type="button" onClick={() => { setIsCarouselPromoActive(false); setIsEditorialAfficheActive(false); setIsEditorialTweetActive(false); setEditorialSlide(sNum); }}
+                                            className={`px-2.5 py-1 text-[8px] font-black uppercase transition-all ${isSelected ? 'bg-white text-black shadow-md' : 'text-gray-400'}`}>
+                                            📄 Slide {sNum}
+                                        </button>
+                                        <button type="button" onClick={() => removeEditorialSlide(sNum)}
+                                            className="px-1.5 py-1 text-[8px] font-black text-red-400 hover:bg-red-500/20 border-l border-white/10">
+                                            ✕
+                                        </button>
+                                    </div>
+                                );
+                            })}
+                            {((skipEditorialSlide2 && theme !== 'JEU_DJ') || extraEditorialSlides.length < 18) && (
+                                <button type="button" onClick={() => {
+                                    if (skipEditorialSlide2 && theme !== 'JEU_DJ') {
+                                        setSkipEditorialSlide2(false);
+                                        setIsCarouselPromoActive(false);
+                                        setIsEditorialAfficheActive(false);
+                                        setIsEditorialTweetActive(false);
+                                        setEditorialSlide(2);
+                                        setTimeout(() => generateImage(), 50);
+                                    } else {
+                                        addEditorialSlide();
+                                    }
+                                }} className="px-2 py-1 rounded-xl text-[8px] font-black uppercase transition-all shrink-0 bg-neon-cyan/20 text-neon-cyan border border-neon-cyan/30">
+                                    ➕ Slide
+                                </button>
+                            )}
+                            {theme !== 'HIGHLIGHTS' && (
+                                <button type="button" onClick={() => {
+                                    setIsCarouselPromoActive(false);
+                                    setIsEditorialTweetActive(false);
+                                    setIsEditorialAfficheActive(true);
+                                    setTimeout(() => generateImage(), 50);
+                                }} className={`px-2.5 py-1 rounded-xl text-[8px] font-black uppercase transition-all shrink-0 ${!isCarouselPromoActive && isEditorialAfficheActive ? 'bg-[#ff3700] text-white shadow-md' : 'bg-[#ff3700]/10 border border-[#ff3700]/30 text-[#ff3700]'}`}>
+                                    🖼️ Affiche
+                                </button>
+                            )}
+                            {theme !== 'HIGHLIGHTS' && (
+                                <button type="button" onClick={() => {
+                                    setIsCarouselPromoActive(false);
+                                    setIsEditorialAfficheActive(false);
+                                    setIsEditorialTweetActive(true);
+                                    setTimeout(() => generateImage(), 50);
+                                }} className={`px-2.5 py-1 rounded-xl text-[8px] font-black uppercase transition-all shrink-0 ${!isCarouselPromoActive && isEditorialTweetActive ? 'bg-neon-cyan text-black shadow-md' : 'bg-neon-cyan/10 border border-neon-cyan/30 text-neon-cyan'}`}>
+                                    🐦 Tweet
+                                </button>
+                            )}
+                            <button type="button" onClick={() => {
+                                setIsCarouselPromoActive(true);
+                                setIsEditorialAfficheActive(false);
+                                setIsEditorialTweetActive(false);
+                                setTimeout(() => generateImage(), 50);
+                            }} className={`px-2.5 py-1 rounded-xl text-[8px] font-black uppercase transition-all shrink-0 ${isCarouselPromoActive ? 'bg-neon-red text-white shadow-md' : 'bg-white/5 text-gray-400'}`}>
+                                🔥 PROMO
+                            </button>
+                            <button type="button" onClick={() => { setActivePanel('export'); setSidebarStep('export'); setVideoOptionsOpen(true); }}
+                                className="px-2.5 py-1 rounded-xl text-[8px] font-black transition-all shrink-0 bg-amber-500/15 border border-amber-500/30 text-amber-300 flex items-center gap-1">
+                                <span>⏱️</span> {editorialSlide1Duration}s / {editorialPromoDuration}s
+                            </button>
+                            {slideTransitionQuickBar}
+                        </div>
+                    )}
+
+                    {/* 3. ZONE D'APERÇU DU CANVAS CADRÉE (Zéro bouton qui cache le haut ou le bas du visuel, identique au PC) */}
                     <div
-                        className="absolute inset-0 flex items-center justify-center bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-neutral-900/80 via-[#08080c] to-black"
+                        className="flex-1 min-h-0 relative flex items-center justify-center p-2.5 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-neutral-900/70 via-[#08080c] to-black overflow-hidden"
                         onClick={() => {
                             if (activePanel) {
                                 if (activePanel === 'texte' && (textAnimation !== 'NONE' || bgAnimation !== 'NONE')) {
@@ -26342,338 +26727,66 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             }
                         }}
                     >
-                        {theme === 'ARTISTE FESTIVAL' && activeTab !== 'REEL' && (
-                            <div className="absolute top-16 left-1/2 -translate-x-1/2 z-30 flex items-center gap-1.5 bg-black/85 backdrop-blur-md px-2.5 py-1 rounded-2xl border border-white/10 shadow-2xl max-w-[95vw] overflow-x-auto scrollbar-none">
-                                <button
-                                    type="button"
-                                    onClick={(e) => { e.stopPropagation(); setIsCarouselPromoActive(false); setArtisteFestivalSlide(1); }}
-                                    className={`px-2.5 py-1 rounded-xl text-[8px] font-black uppercase transition-all shrink-0 ${!isCarouselPromoActive && artisteFestivalSlide === 1 ? 'bg-neon-red text-white shadow-md' : 'text-gray-400'
-                                        }`}
-                                >
-                                    Slide 1 (Cover)
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={(e) => { e.stopPropagation(); setIsCarouselPromoActive(false); setArtisteFestivalSlide(2); }}
-                                    className={`px-2.5 py-1 rounded-xl text-[8px] font-black uppercase transition-all shrink-0 ${!isCarouselPromoActive && artisteFestivalSlide === 2 ? 'bg-neon-red text-white shadow-md' : 'text-gray-400'
-                                        }`}
-                                >
-                                    Slide 2 (Spotlight)
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        setIsCarouselPromoActive(true);
-                                        setTimeout(() => generateImage(), 50);
+                        <div
+                            className="relative h-full max-h-full max-w-full flex items-center justify-center"
+                            style={{ aspectRatio: activeTab === 'REEL' ? '9/16' : '4/5' }}
+                        >
+                            <div className="w-full h-full bg-[#111] rounded-[22px] overflow-hidden border border-white/15 shadow-2xl relative z-10 flex items-center justify-center">
+                                <canvas
+                                    ref={canvasRef}
+                                    className={`w-full h-full object-contain ${isRetouchMode ? 'cursor-crosshair' : 'cursor-default'}`}
+                                    onTouchStart={(e) => {
+                                        if (!isRetouchMode) return;
+                                        setIsDrawing(true);
+                                        const rect = e.currentTarget.getBoundingClientRect();
+                                        const touch = e.touches[0];
+                                        const x = (touch.clientX - rect.left) * (e.currentTarget.width / rect.width);
+                                        const y = (touch.clientY - rect.top) * (e.currentTarget.height / rect.height);
+                                        setRetouchPath([{ x, y }]);
                                     }}
-                                    className={`px-2.5 py-1 rounded-xl text-[8px] font-black uppercase transition-all shrink-0 ${isCarouselPromoActive
-                                        ? 'bg-neon-red text-white shadow-md'
-                                        : 'text-gray-400'
-                                        }`}
-                                >
-                                    🔥 PROMO
-                                </button>
-                                {slideTransitionQuickBar}
-                            </div>
-                        )}
-                        {(theme === 'EVENTS' || theme === 'AFFICHE') && (
-                            <div className="absolute top-16 left-1/2 -translate-x-1/2 z-30 flex items-center gap-1.5 bg-black/85 backdrop-blur-md px-2.5 py-1 rounded-2xl border border-white/10 shadow-2xl max-w-[95vw] overflow-x-auto scrollbar-none">
-                                <button
-                                    type="button"
-                                    onClick={(e) => { e.stopPropagation(); setIsCarouselPromoActive(false); setEventsSlide(1); if (theme === 'AFFICHE') handleSetTheme('EVENTS'); }}
-                                    className={`px-2.5 py-1 rounded-xl text-[8px] font-black uppercase transition-all shrink-0 ${!isCarouselPromoActive && eventsSlide === 1 && theme !== 'AFFICHE' ? 'bg-[#ff3700] text-white shadow-md' : 'text-gray-400'
-                                        }`}
-                                >
-                                    Slide 1 (Post)
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={(e) => { e.stopPropagation(); setIsCarouselPromoActive(false); setEventsSlide(2); }}
-                                    className={`px-2.5 py-1 rounded-xl text-[8px] font-black uppercase transition-all shrink-0 ${!isCarouselPromoActive && (eventsSlide === 2 || theme === 'AFFICHE') ? 'bg-[#ff3700] text-white shadow-md' : 'text-gray-400'
-                                        }`}
-                                >
-                                    Slide 2 (Affiche)
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        setIsCarouselPromoActive(true);
-                                        setTimeout(() => generateImage(), 50);
+                                    onTouchMove={(e) => {
+                                        if (!isDrawing || !isRetouchMode) return;
+                                        const rect = e.currentTarget.getBoundingClientRect();
+                                        const touch = e.touches[0];
+                                        const x = (touch.clientX - rect.left) * (e.currentTarget.width / rect.width);
+                                        const y = (touch.clientY - rect.top) * (e.currentTarget.height / rect.height);
+                                        setRetouchPath(prev => [...prev, { x, y }]);
                                     }}
-                                    className={`px-2.5 py-1 rounded-xl text-[8px] font-black uppercase transition-all shrink-0 ${isCarouselPromoActive
-                                        ? 'bg-neon-red text-white shadow-md'
-                                        : 'text-gray-400'
-                                        }`}
-                                >
-                                    🔥 PROMO
-                                </button>
-                                {slideTransitionQuickBar}
-                            </div>
-                        )}
-                        {theme === 'MUSIQUE' && (
-                            <div className="absolute top-16 left-1/2 -translate-x-1/2 z-30 flex items-center gap-1.5 bg-black/85 backdrop-blur-md px-2.5 py-1 rounded-2xl border border-[#00ff66]/30 shadow-2xl max-w-[95vw] overflow-x-auto scrollbar-none">
-                                <button
-                                    type="button"
-                                    onClick={(e) => { e.stopPropagation(); setIsCarouselPromoActive(false); setEditorialSlide(1); }}
-                                    className={`px-2.5 py-1 rounded-xl text-[8px] font-black uppercase transition-all shrink-0 ${!isCarouselPromoActive && editorialSlide === 1 ? 'bg-[#00ff66] text-black shadow-md' : 'text-gray-400'
-                                        }`}
-                                >
-                                    Slide 1 (Annonce)
-                                </button>
-                                {musicTracks.map((_, tIdx) => {
-                                    const sNum = tIdx + 2;
-                                    return (
-                                        <button
-                                            key={sNum}
-                                            type="button"
-                                            onClick={(e) => { e.stopPropagation(); setIsCarouselPromoActive(false); setEditorialSlide(sNum); }}
-                                            className={`px-2.5 py-1 rounded-xl text-[8px] font-black uppercase transition-all shrink-0 ${!isCarouselPromoActive && editorialSlide === sNum ? 'bg-[#00ff66] text-black shadow-md' : 'text-gray-400'
-                                                }`}
-                                        >
-                                            S{sNum} (Track {tIdx + 1})
-                                        </button>
-                                    );
-                                })}
-                                {musicTracks.length < MAX_MUSIC_TRACKS && (
-                                    <button
-                                        type="button"
-                                        onClick={(e) => { e.stopPropagation(); addMusicTrack(); }}
-                                        className="px-2 py-1 rounded-xl text-[8px] font-black uppercase transition-all shrink-0 bg-[#00ff66]/15 text-[#00ff66] border border-[#00ff66]/30"
-                                    >
-                                        ➕ Track
-                                    </button>
-                                )}
-                                <button
-                                    type="button"
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        setIsCarouselPromoActive(true);
-                                        setTimeout(() => generateImage(), 50);
+                                    onTouchEnd={() => setIsDrawing(false)}
+                                    onMouseDown={(e) => {
+                                        if (!isRetouchMode) return;
+                                        setIsDrawing(true);
+                                        const rect = e.currentTarget.getBoundingClientRect();
+                                        const x = (e.clientX - rect.left) * (e.currentTarget.width / rect.width);
+                                        const y = (e.clientY - rect.top) * (e.currentTarget.height / rect.height);
+                                        setRetouchPath([{ x, y }]);
                                     }}
-                                    className={`px-2.5 py-1 rounded-xl text-[8px] font-black uppercase transition-all shrink-0 ${isCarouselPromoActive
-                                        ? 'bg-neon-red text-white shadow-md'
-                                        : 'text-gray-400'
-                                        }`}
-                                >
-                                    🔥 PROMO
-                                </button>
-                                {slideTransitionQuickBar}
-                            </div>
-                        )}
-                        {theme === 'PLANNING' && (
-                            <div className="absolute top-16 left-1/2 -translate-x-1/2 z-30 flex items-center gap-1.5 bg-black/85 backdrop-blur-md px-2.5 py-1 rounded-2xl border border-[#ff3700]/30 shadow-2xl max-w-[95vw] overflow-x-auto scrollbar-none">
-                                <button
-                                    type="button"
-                                    onClick={(e) => { e.stopPropagation(); setIsCarouselPromoActive(false); setAgendaSlide(1); }}
-                                    className={`px-2.5 py-1 rounded-xl text-[8px] font-black uppercase transition-all shrink-0 ${!isCarouselPromoActive && agendaSlide === 1 ? 'bg-[#ff3700] text-black shadow-md' : 'text-gray-400'
-                                        }`}
-                                >
-                                    Slide 1 (Cover)
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={(e) => { e.stopPropagation(); setIsCarouselPromoActive(false); setAgendaSlide(2); }}
-                                    className={`px-2.5 py-1 rounded-xl text-[8px] font-black uppercase transition-all shrink-0 ${!isCarouselPromoActive && agendaSlide === 2 ? 'bg-[#ff3700] text-black shadow-md' : 'text-gray-400'
-                                        }`}
-                                >
-                                    Slide 2 (Dates)
-                                </button>
-                                {agendaAffiches.map((aff, idx) => {
-                                    const sNum = idx + 3;
-                                    const isSelected = !isCarouselPromoActive && agendaSlide === sNum;
-                                    return (
-                                        <div key={aff.id} className="flex items-center shrink-0 rounded-xl overflow-hidden bg-white/5 border border-white/10">
-                                            <button
-                                                type="button"
-                                                onClick={(e) => { e.stopPropagation(); setIsCarouselPromoActive(false); setAgendaSlide(sNum); }}
-                                                className={`px-2.5 py-1 text-[8px] font-black uppercase transition-all ${isSelected ? 'bg-[#ff3700] text-black shadow-md' : 'text-gray-400'
-                                                    }`}
-                                            >
-                                                S{sNum} (Affiche {idx + 1})
-                                            </button>
-                                            <button
-                                                type="button"
-                                                onClick={(e) => { e.stopPropagation(); removeAgendaAffiche(idx); }}
-                                                className="px-1.5 py-1 text-[8px] font-black text-red-400 hover:bg-red-500/20 border-l border-white/10"
-                                                title={`Supprimer l'Affiche ${idx + 1}`}
-                                            >
-                                                ✕
-                                            </button>
-                                        </div>
-                                    );
-                                })}
-                                {agendaAffiches.length < 18 && (
-                                    <button
-                                        type="button"
-                                        onClick={(e) => { e.stopPropagation(); addAgendaAffiche(); }}
-                                        className="px-2 py-1 rounded-xl text-[8px] font-black uppercase transition-all shrink-0 bg-[#ff3700]/20 text-[#ff3700] border border-[#ff3700]/30"
-                                        title="Ajouter une affiche (20 slides max)"
-                                    >
-                                        ➕ Affiche
-                                    </button>
-                                )}
-                                <button
-                                    type="button"
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        setIsCarouselPromoActive(true);
-                                        setTimeout(() => generateImage(), 50);
+                                    onMouseMove={(e) => {
+                                        if (!isDrawing || !isRetouchMode) return;
+                                        const rect = e.currentTarget.getBoundingClientRect();
+                                        const x = (e.clientX - rect.left) * (e.currentTarget.width / rect.width);
+                                        const y = (e.clientY - rect.top) * (e.currentTarget.height / rect.height);
+                                        setRetouchPath(prev => [...prev, { x, y }]);
                                     }}
-                                    className={`px-2.5 py-1 rounded-xl text-[8px] font-black uppercase transition-all shrink-0 ${isCarouselPromoActive
-                                        ? 'bg-neon-red text-white shadow-md'
-                                        : 'text-gray-400'
-                                        }`}
-                                >
-                                    🔥 PROMO
-                                </button>
-                                {slideTransitionQuickBar}
-                            </div>
-                        )}
-                        {['NEWS', 'FOCUS', 'RECAP', 'INTERVIEW', 'LIVESTREAM', 'CONSEILS', 'REELS', 'CONCOURS', 'TOP 100 DROPSIDERS', 'JEU', 'JEU_FESTIVAL', 'JEU_DJ', 'HIGHLIGHTS'].includes(theme) && (
-                            <div className="absolute top-16 left-1/2 -translate-x-1/2 z-30 flex items-center gap-1.5 bg-black/85 backdrop-blur-md px-2.5 py-1 rounded-2xl border border-white/10 shadow-2xl max-w-[95vw] overflow-x-auto scrollbar-none">
-                                <button
-                                    type="button"
-                                    onClick={(e) => { e.stopPropagation(); setIsCarouselPromoActive(false); setIsEditorialAfficheActive(false); setIsEditorialTweetActive(false); setEditorialSlide(1); }}
-                                    className={`px-2.5 py-1 rounded-xl text-[8px] font-black uppercase transition-all shrink-0 ${!isCarouselPromoActive && !isEditorialAfficheActive && !isEditorialTweetActive && editorialSlide === 1 ? 'bg-white text-black shadow-md' : 'text-gray-400'
-                                        }`}
-                                >
-                                    {theme === 'JEU_DJ' ? 'Slide 1 (Silhouette)' : 'Slide 1 (Cover)'}
-                                </button>
-                                {(!skipEditorialSlide2 || theme === 'JEU_DJ') && (
-                                    <div className="flex items-center shrink-0 rounded-xl overflow-hidden border border-white/10 bg-white/5">
-                                        <button
-                                            type="button"
-                                            onClick={(e) => { e.stopPropagation(); setIsCarouselPromoActive(false); setIsEditorialAfficheActive(false); setIsEditorialTweetActive(false); setEditorialSlide(2); }}
-                                            className={`px-2 py-1 text-[8px] font-black uppercase transition-all ${!isCarouselPromoActive && !isEditorialAfficheActive && !isEditorialTweetActive && editorialSlide === 2 ? 'bg-white text-black shadow-md' : 'text-gray-300 hover:text-white'
-                                                }`}
-                                        >
-                                            {theme === 'JEU_DJ' ? 'Slide 2 (Révélation)' : 'Slide 2'}
-                                        </button>
-                                        {theme !== 'JEU_DJ' && (
-                                            <button
-                                                type="button"
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    setSkipEditorialSlide2(true);
-                                                    if (editorialSlide === 2) setEditorialSlide(1);
-                                                    setTimeout(() => generateImage(), 50);
-                                                }}
-                                                className="px-1.5 py-1 text-[8px] font-black text-gray-400 hover:text-red-400 border-l border-white/10"
-                                                title="Masquer Slide 2"
-                                            >
-                                                ✕
-                                            </button>
-                                        )}
-                                    </div>
-                                )}
-                                {extraEditorialSlides.map((_, idx) => {
-                                    const sNum = idx + 3;
-                                    const isSelected = !isCarouselPromoActive && !isEditorialAfficheActive && !isEditorialTweetActive && editorialSlide === sNum;
-                                    return (
-                                        <div key={sNum} className="flex items-center shrink-0 rounded-xl overflow-hidden bg-white/5 border border-white/10">
-                                            <button
-                                                type="button"
-                                                onClick={(e) => { e.stopPropagation(); setIsCarouselPromoActive(false); setIsEditorialAfficheActive(false); setIsEditorialTweetActive(false); setEditorialSlide(sNum); }}
-                                                className={`px-2.5 py-1 text-[8px] font-black uppercase transition-all ${isSelected ? 'bg-white text-black shadow-md' : 'text-gray-400'
-                                                    }`}
-                                            >
-                                                Slide {sNum}
-                                            </button>
-                                            <button
-                                                type="button"
-                                                onClick={(e) => { e.stopPropagation(); removeEditorialSlide(sNum); }}
-                                                className="px-1.5 py-1 text-[8px] font-black text-red-400 hover:bg-red-500/20 border-l border-white/10"
-                                                title={`Supprimer la Slide ${sNum}`}
-                                            >
-                                                ✕
-                                            </button>
-                                        </div>
-                                    );
-                                })}
-                                {((skipEditorialSlide2 && theme !== 'JEU_DJ') || extraEditorialSlides.length < 18) && (
+                                    onMouseUp={() => setIsDrawing(false)}
+                                />
+
+                                {/* Contrôles flottants discrets en haut du mockup (comme sur PC, sans doublon) */}
+                                {!activePanel && (textAnimation !== 'NONE' || bgAnimation !== 'NONE') && (
                                     <button
                                         type="button"
                                         onClick={(e) => {
                                             e.stopPropagation();
-                                            if (skipEditorialSlide2 && theme !== 'JEU_DJ') {
-                                                setSkipEditorialSlide2(false);
-                                                setIsCarouselPromoActive(false);
-                                                setIsEditorialAfficheActive(false);
-                                                setIsEditorialTweetActive(false);
-                                                setEditorialSlide(2);
-                                                setTimeout(() => generateImage(), 50);
-                                            } else {
-                                                addEditorialSlide();
-                                            }
+                                            triggerSmoothAnimReplay();
                                         }}
-                                        className="px-2 py-1 rounded-xl text-[8px] font-black uppercase transition-all shrink-0 bg-neon-cyan/20 text-neon-cyan border border-neon-cyan/30"
-                                        title="Ajouter une slide (20 max)"
+                                        className="absolute top-2.5 left-2.5 z-40 px-2.5 py-1 rounded-full flex items-center gap-1 text-[8px] font-black uppercase backdrop-blur-md shadow-xl active:scale-95 bg-black/75 border border-neon-cyan/40 text-neon-cyan"
+                                        title="Rejouer l'animation d'entrée"
                                     >
-                                        ➕ Slide
+                                        <RotateCcw className="w-3 h-3" />
+                                        <span>Rejouer</span>
                                     </button>
                                 )}
-                                {theme !== 'HIGHLIGHTS' && (
-                                    <button
-                                        type="button"
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            setIsCarouselPromoActive(false);
-                                            setIsEditorialTweetActive(false);
-                                            setIsEditorialAfficheActive(true);
-                                            setTimeout(() => generateImage(), 50);
-                                        }}
-                                        className={`px-2.5 py-1 rounded-xl text-[8px] font-black uppercase transition-all shrink-0 ${!isCarouselPromoActive && isEditorialAfficheActive ? 'bg-[#ff3700] text-white shadow-md' : 'text-[#ff3700]'
-                                            }`}
-                                    >
-                                        🖼️ Affiche
-                                    </button>
-                                )}
-                                {theme !== 'HIGHLIGHTS' && (
-                                    <button
-                                        type="button"
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            setIsCarouselPromoActive(false);
-                                            setIsEditorialAfficheActive(false);
-                                            setIsEditorialTweetActive(true);
-                                            setTimeout(() => generateImage(), 50);
-                                        }}
-                                        className={`px-2.5 py-1 rounded-xl text-[8px] font-black uppercase transition-all shrink-0 ${!isCarouselPromoActive && isEditorialTweetActive ? 'bg-neon-cyan text-black shadow-md' : 'text-neon-cyan'
-                                            }`}
-                                    >
-                                        🐦 Tweet
-                                    </button>
-                                )}
-                                <button
-                                    type="button"
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        setIsCarouselPromoActive(true);
-                                        setIsEditorialAfficheActive(false);
-                                        setIsEditorialTweetActive(false);
-                                        setTimeout(() => generateImage(), 50);
-                                    }}
-                                    className={`px-2.5 py-1 rounded-xl text-[8px] font-black uppercase transition-all shrink-0 ${isCarouselPromoActive
-                                        ? 'bg-neon-red text-white shadow-md'
-                                        : 'text-gray-400'
-                                        }`}
-                                >
-                                    🔥 PROMO
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        setActivePanel('export');
-                                        setVideoOptionsOpen(true);
-                                    }}
-                                    className="px-2.5 py-1 rounded-xl text-[8px] font-black transition-all shrink-0 bg-amber-500/15 border border-amber-500/30 text-amber-300 hover:bg-amber-500/25 flex items-center gap-1 active:scale-95 shadow-sm"
-                                    title="Modifier la durée des slides et de la promo"
-                                >
-                                    <span>⏱️</span> {editorialSlide1Duration}s / {editorialPromoDuration}s
-                                </button>
+
                                 {bgVideo && (
                                     <button
                                         type="button"
@@ -26683,93 +26796,6 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                             ensureVideoMountedInDOM(bgVideo);
                                             if (bgVideo.muted) {
                                                 bgVideo.muted = false;
-                                                bgVideo.play().catch(() => {});
-                                                setIsVideoAudioMuted(false);
-                                            } else {
-                                                bgVideo.muted = true;
-                                                setIsVideoAudioMuted(true);
-                                            }
-                                        }}
-                                        className={`px-2.5 py-1 rounded-xl text-[8px] font-black transition-all shrink-0 flex items-center gap-1 active:scale-95 shadow-sm border ${
-                                            !isVideoAudioMuted
-                                                ? 'bg-[#00ff66]/20 border-[#00ff66]/50 text-[#00ff66]'
-                                                : 'bg-red-500/20 border-red-500/50 text-red-400'
-                                        }`}
-                                        title={!isVideoAudioMuted ? 'Couper le son' : 'Activer le son de la vidéo'}
-                                    >
-                                        {!isVideoAudioMuted ? <Volume2 className="w-3 h-3" /> : <VolumeX className="w-3 h-3" />}
-                                        <span>{!isVideoAudioMuted ? 'Son ON' : 'Activer le Son'}</span>
-                                    </button>
-                                )}
-                                {slideTransitionQuickBar}
-                            </div>
-                        )}
-                        <canvas
-                            ref={canvasRef}
-                            className={`w-full h-full object-contain ${isRetouchMode ? 'cursor-crosshair' : 'cursor-default'}`}
-                            onTouchStart={(e) => {
-                                if (!isRetouchMode) return;
-                                setIsDrawing(true);
-                                const rect = e.currentTarget.getBoundingClientRect();
-                                const touch = e.touches[0];
-                                const x = (touch.clientX - rect.left) * (e.currentTarget.width / rect.width);
-                                const y = (touch.clientY - rect.top) * (e.currentTarget.height / rect.height);
-                                setRetouchPath([{ x, y }]);
-                            }}
-                            onTouchMove={(e) => {
-                                if (!isDrawing || !isRetouchMode) return;
-                                const rect = e.currentTarget.getBoundingClientRect();
-                                const touch = e.touches[0];
-                                const x = (touch.clientX - rect.left) * (e.currentTarget.width / rect.width);
-                                const y = (touch.clientY - rect.top) * (e.currentTarget.height / rect.height);
-                                setRetouchPath(prev => [...prev, { x, y }]);
-                            }}
-                            onTouchEnd={() => setIsDrawing(false)}
-                            onMouseDown={(e) => {
-                                if (!isRetouchMode) return;
-                                setIsDrawing(true);
-                                const rect = e.currentTarget.getBoundingClientRect();
-                                const x = (e.clientX - rect.left) * (e.currentTarget.width / rect.width);
-                                const y = (e.clientY - rect.top) * (e.currentTarget.height / rect.height);
-                                setRetouchPath([{ x, y }]);
-                            }}
-                            onMouseMove={(e) => {
-                                if (!isDrawing || !isRetouchMode) return;
-                                const rect = e.currentTarget.getBoundingClientRect();
-                                const x = (e.clientX - rect.left) * (e.currentTarget.width / rect.width);
-                                const y = (e.clientY - rect.top) * (e.currentTarget.height / rect.height);
-                                setRetouchPath(prev => [...prev, { x, y }]);
-                            }}
-                            onMouseUp={() => setIsDrawing(false)}
-                        />
-                        {/* Contrôles flottants rapides Mobile (Son Vidéo, Extrait Audio Track, Rejouer Animation) */}
-                        <div className={`absolute ${isMultiSlideTheme ? 'top-[104px]' : 'top-16'} inset-x-3 z-30 flex items-center justify-between gap-2 pointer-events-none`}>
-                            <div className="flex items-center gap-1.5 pointer-events-auto">
-                                {!activePanel && (textAnimation !== 'NONE' || bgAnimation !== 'NONE') && (
-                                    <button
-                                        type="button"
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            triggerSmoothAnimReplay();
-                                        }}
-                                        className="px-3 py-1.5 rounded-full flex items-center gap-1.5 text-[8.5px] font-black uppercase backdrop-blur-md shadow-2xl transition-all active:scale-95 bg-black/80 border border-neon-cyan/40 text-neon-cyan"
-                                        title="Rejouer l'animation d'entrée"
-                                    >
-                                        <RotateCcw className="w-3 h-3" />
-                                        <span>Rejouer Anim</span>
-                                    </button>
-                                )}
-                            </div>
-                            <div className="flex items-center gap-1.5 pointer-events-auto ml-auto">
-                                {bgVideo && (
-                                    <button
-                                        type="button"
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            unlockMobileAudioSession();
-                                            if (!bgVideo) return;
-                                            if (bgVideo.muted) {
-                                                bgVideo.muted = false;
                                                 bgVideo.play().catch(err => console.warn("Unmute mobile failed", err));
                                                 setIsVideoAudioMuted(false);
                                             } else {
@@ -26777,25 +26803,25 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                                 setIsVideoAudioMuted(true);
                                             }
                                         }}
-                                        className={`px-3.5 py-1.5 rounded-full flex items-center gap-1.5 text-[9px] font-black uppercase backdrop-blur-md shadow-2xl transition-all active:scale-95 border ${!isVideoAudioMuted
-                                            ? 'bg-[#00ff66]/20 border-[#00ff66]/60 text-[#00ff66] shadow-[0_0_15px_rgba(0,255,102,0.4)]'
-                                            : 'bg-black/80 border-white/20 text-white hover:bg-black hover:border-white/40'
+                                        className={`absolute top-2.5 right-2.5 z-40 px-2.5 py-1 rounded-full flex items-center gap-1 text-[8.5px] font-black uppercase backdrop-blur-md shadow-xl active:scale-95 border ${!isVideoAudioMuted
+                                            ? 'bg-[#00ff66]/20 border-[#00ff66]/60 text-[#00ff66] shadow-[0_0_12px_rgba(0,255,102,0.35)]'
+                                            : 'bg-black/80 border-white/25 text-white'
                                             }`}
-                                        title={isVideoAudioMuted ? "Activer le son de la vidéo" : "Couper le son de la vidéo"}
                                     >
                                         {!isVideoAudioMuted ? (
                                             <>
-                                                <Volume2 className="w-3.5 h-3.5 animate-pulse text-[#00ff66]" />
-                                                <span>Son Actif</span>
+                                                <Volume2 className="w-3 h-3 animate-pulse text-[#00ff66]" />
+                                                <span>Son ON</span>
                                             </>
                                         ) : (
                                             <>
-                                                <VolumeX className="w-3.5 h-3.5 text-red-400" />
-                                                <span>Son Coupé • Activer</span>
+                                                <VolumeX className="w-3 h-3 text-red-400" />
+                                                <span>Activer Son</span>
                                             </>
                                         )}
                                     </button>
                                 )}
+
                                 {theme === 'MUSIQUE' && !isCarouselPromoActive && (() => {
                                     const currentMusicAudio = editorialSlide === 1
                                         ? (musicIntroAudio || musicTracks[0]?.audio || '')
@@ -26810,23 +26836,54 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                             type="button"
                                             onClick={(e) => {
                                                 e.stopPropagation();
+                                                unlockMobileAudioSession();
                                                 playAudioPreviewFrom(currentMusicAudio, currentMusicStart);
                                             }}
-                                            className={`px-3.5 py-1.5 rounded-full flex items-center gap-1.5 text-[9px] font-black uppercase backdrop-blur-md shadow-2xl transition-all active:scale-95 border ${isTrackPlaying
-                                                ? 'bg-[#00ff66]/25 border-[#00ff66]/70 text-[#00ff66] shadow-[0_0_15px_rgba(0,255,102,0.45)]'
-                                                : 'bg-black/85 border-[#00ff66]/45 text-[#00ff66]'
+                                            className={`absolute ${bgVideo ? 'top-10' : 'top-2.5'} right-2.5 z-40 px-2.5 py-1 rounded-full flex items-center gap-1 text-[8.5px] font-black uppercase backdrop-blur-md shadow-xl active:scale-95 border ${isTrackPlaying
+                                                ? 'bg-[#00ff66]/25 border-[#00ff66]/70 text-[#00ff66]'
+                                                : 'bg-black/80 border-[#00ff66]/45 text-[#00ff66]'
                                                 }`}
-                                            title={isTrackPlaying ? "Couper l'extrait audio" : "Écouter l'extrait audio du morceau"}
                                         >
                                             {isTrackPlaying ? (
                                                 <>
-                                                    <Volume2 className="w-3.5 h-3.5 animate-pulse text-[#00ff66]" />
-                                                    <span>Son Track ON</span>
+                                                    <Volume2 className="w-3 h-3 animate-pulse text-[#00ff66]" />
+                                                    <span>Track ON</span>
                                                 </>
                                             ) : (
                                                 <>
-                                                    <Music className="w-3.5 h-3.5 text-[#00ff66]" />
-                                                    <span>Écouter Extrait</span>
+                                                    <Music className="w-3 h-3 text-[#00ff66]" />
+                                                    <span>Écouter</span>
+                                                </>
+                                            )}
+                                        </button>
+                                    );
+                                })()}
+
+                                {theme === 'TOP 10 TRACKS' && Number(top10ActiveRank) >= 1 && (() => {
+                                    const activeTr = top10Tracks.find(t => Number(t.rank) === Number(top10ActiveRank));
+                                    if (!activeTr || (!activeTr.audioUrl && !activeTr.videoUrl && !activeTr.sourceUrl)) return null;
+                                    const isTesting = Number(top10TestingRank) === Number(top10ActiveRank);
+                                    return (
+                                        <button
+                                            type="button"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleTop10TestClip(Number(top10ActiveRank));
+                                            }}
+                                            className={`absolute ${bgVideo ? 'top-10' : 'top-2.5'} right-2.5 z-40 px-2.5 py-1 rounded-full flex items-center gap-1 text-[8.5px] font-black uppercase backdrop-blur-md shadow-xl active:scale-95 border ${isTesting
+                                                ? 'bg-neon-cyan/25 border-neon-cyan/70 text-neon-cyan'
+                                                : 'bg-black/80 border-neon-cyan/45 text-neon-cyan'
+                                                }`}
+                                        >
+                                            {isTesting ? (
+                                                <>
+                                                    <Volume2 className="w-3 h-3 animate-pulse text-neon-cyan" />
+                                                    <span>#{top10ActiveRank} ON</span>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <Music className="w-3 h-3 text-neon-cyan" />
+                                                    <span>Écouter #{top10ActiveRank}</span>
                                                 </>
                                             )}
                                         </button>
@@ -26834,352 +26891,414 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 })()}
                             </div>
                         </div>
-
-                        <AnimatePresence>
-                            {isVideoRecording && (
-                                <motion.div
-                                    initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                                    className="absolute inset-0 bg-black/80 backdrop-blur-md flex flex-col items-center justify-center p-8 text-center z-50"
-                                >
-                                    <div className="w-full max-w-xs space-y-6">
-                                        <div className="relative w-32 h-32 mx-auto">
-                                            <svg className="w-full h-full -rotate-90">
-                                                <circle cx="64" cy="64" r="58" stroke="currentColor" strokeWidth="8" fill="transparent" className="text-white/10" />
-                                                <motion.circle
-                                                    cx="64" cy="64" r="58" stroke="currentColor" strokeWidth="8" fill="transparent"
-                                                    className="text-neon-red"
-                                                    strokeDasharray={364.4}
-                                                    ref={recordingCircleRef}
-                                                    style={{ strokeDashoffset: 364.4 }}
-                                                />
-                                            </svg>
-                                            <div className="absolute inset-0 flex flex-col items-center justify-center">
-                                                <span ref={recordingTimeRef} className="text-2xl font-black italic text-white">{recordingTimeLeft}S</span>
-                                                <span className="text-[8px] font-black text-white/50 uppercase tracking-widest">Restant</span>
-                                            </div>
-                                        </div>
-                                        <div className="space-y-2">
-                                            <h2 className="text-xl font-black text-white uppercase italic tracking-tighter">Capture Vidéo</h2>
-                                            <p className="text-[10px] text-white/40 font-bold uppercase tracking-widest leading-relaxed">Génération du rendu en cours<br />Ne fermez pas votre navigateur</p>
-                                        </div>
-                                    </div>
-                                </motion.div>
-                            )}
-                        </AnimatePresence>
                     </div>
 
-                    {/* Swipe Indicator (top handle) + Drag listener hook */}
-                    <div
-                        onPointerDown={(e) => dragControls.start(e)}
-                        className="absolute top-0 inset-x-0 h-16 flex justify-center z-[60] cursor-grab active:cursor-grabbing">
-                        <div className="w-12 h-1.5 rounded-full bg-white/20 shadow-lg mt-3" />
-                    </div>
-
-                    {/* Top bar (Header) */}
-                    <div className="absolute top-0 inset-x-0 flex items-center justify-between px-4 pt-5 pb-3 z-20 pointer-events-none" style={{ background: 'linear-gradient(180deg,rgba(0,0,0,0.8) 0%,transparent 100%)' }}>
-                        <button
-                            onClick={() => {
-                                if (activePanel) {
-                                    if (activePanel === 'texte' && (textAnimation !== 'NONE' || bgAnimation !== 'NONE')) {
-                                        triggerSmoothAnimReplay();
-                                    }
-                                    setActivePanel(null);
-                                }
-                            }}
-                            className={`p-2.5 rounded-2xl text-white/70 hover:text-white hover:bg-white/10 transition-all active:scale-95 pointer-events-auto ${!activePanel ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
-                        >
-                            <X className="w-5 h-5" />
-                        </button>
-                        <span className="text-[11px] font-black text-white/50 uppercase tracking-[0.2em] italic">SOCIAL STUDIO</span>
-                        <button onClick={onClose} className="p-2.5 rounded-2xl text-white/70 hover:text-white hover:bg-white/10 transition-all active:scale-95 pointer-events-auto"><Home className="w-5 h-5" /></button>
-                    </div>
-
-                    {/* Contextual panels (slide up) */}
+                    {/* 4. TIROIR D'ÉDITION CONTEXTUEL (Exactement les 3 mêmes étapes que sur PC : 1. Texte & Thème / 2. Visuel & Fond / 3. Options & Export) */}
                     <AnimatePresence>
-                        {activePanel && activePanel !== 'export' && (
-                            <motion.div key={activePanel}
-                                initial={{ y: '100%', opacity: 0 }} animate={{ y: 0, opacity: (isSlidingPosition || isPreviewingTextAnim) ? 0.12 : 1 }} exit={{ y: '100%', opacity: 0 }}
-                                transition={{ type: 'spring', damping: 26, stiffness: 300 }}
-                                className="absolute inset-x-0 bottom-[130px] z-30 rounded-t-[28px] transition-opacity duration-200"
+                        {activePanel && (
+                            <motion.div
+                                key={activePanel}
+                                drag="y"
+                                dragControls={dragControls}
+                                dragListener={false}
+                                dragConstraints={{ top: 0, bottom: 260 }}
+                                dragElastic={{ top: 0.05, bottom: 0.7 }}
+                                onDragEnd={(_, info) => {
+                                    if (info.offset.y > 100) {
+                                        if (activePanel === 'texte' && (textAnimation !== 'NONE' || bgAnimation !== 'NONE')) {
+                                            triggerSmoothAnimReplay();
+                                        }
+                                        setActivePanel(null);
+                                    }
+                                }}
+                                initial={{ y: '100%', opacity: 0 }}
+                                animate={{ y: 0, opacity: (isSlidingPosition || isPreviewingTextAnim) ? 0.12 : 1 }}
+                                exit={{ y: '100%', opacity: 0 }}
+                                transition={{ type: 'spring', damping: 28, stiffness: 320 }}
+                                className="absolute inset-x-0 bottom-[62px] z-30 rounded-t-[26px] shadow-[0_-20px_50px_rgba(0,0,0,0.85)] flex flex-col"
                                 style={{
-                                    background: `rgba(12, 12, 12, ${menuOpacity / 100})`,
-                                    backdropFilter: 'blur(10px)',
-                                    WebkitBackdropFilter: 'blur(10px)',
-                                    borderTop: '1px solid rgba(255,255,255,0.12)',
-                                    maxHeight: '60vh',
-                                    overflowY: 'auto',
+                                    background: `rgba(12, 12, 16, ${Math.max(0.94, menuOpacity / 100)})`,
+                                    backdropFilter: 'blur(16px)',
+                                    WebkitBackdropFilter: 'blur(16px)',
+                                    borderTop: '1px solid rgba(255,255,255,0.14)',
+                                    maxHeight: '64dvh',
                                     opacity: (isSlidingPosition || isPreviewingTextAnim) ? 0.12 : 1,
                                     pointerEvents: isPreviewingTextAnim ? 'none' : 'auto'
-                                }}>
-                                <div className="flex justify-center pt-3 pb-2"><div className="w-8 h-1 rounded-full bg-white/20" /></div>
+                                }}
+                            >
+                                {/* Poignée de glissement + Barre de fermeture du tiroir */}
+                                <div
+                                    onPointerDown={(e) => dragControls.start(e)}
+                                    className="shrink-0 flex items-center justify-between px-5 pt-2.5 pb-2 border-b border-white/10 cursor-grab active:cursor-grabbing"
+                                >
+                                    <span className="text-[10px] font-black uppercase tracking-widest text-white flex items-center gap-1.5">
+                                        {activePanel === 'texte' && <><Palette className="w-3.5 h-3.5 text-neon-red" /> 1. Thème & Texte</>}
+                                        {activePanel === 'fond' && <><ImageIcon className="w-3.5 h-3.5 text-neon-cyan" /> 2. Visuel & Fond</>}
+                                        {activePanel === 'export' && <><Film className="w-3.5 h-3.5 text-emerald-400" /> 3. Options & Export</>}
+                                    </span>
+                                    <div className="w-9 h-1 rounded-full bg-white/25" />
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            if (activePanel === 'texte' && (textAnimation !== 'NONE' || bgAnimation !== 'NONE')) {
+                                                triggerSmoothAnimReplay();
+                                            }
+                                            setActivePanel(null);
+                                        }}
+                                        className="px-2.5 py-1 rounded-lg bg-white/10 hover:bg-white/20 text-[9px] font-black uppercase text-white flex items-center gap-1"
+                                    >
+                                        <span>Voir Aperçu</span>
+                                        <ChevronDown className="w-3 h-3" />
+                                    </button>
+                                </div>
 
-                                {activePanel === 'format' && (
-                                    <div className="px-6 pb-8">
-                                        <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-4">Format</p>
-                                        <div className="grid grid-cols-2 gap-3">
-                                            <button onClick={() => { unlockMobileAudioSession(); setActiveTab('REEL'); setActivePanel(null); }}
-                                                className={`flex items-center gap-3 p-4 rounded-2xl border-2 transition-all ${activeTab === 'REEL' ? 'border-neon-red/60 bg-neon-red/10' : 'border-white/10 bg-white/5 hover:border-white/20'}`}>
-                                                <Smartphone className={`w-5 h-5 ${activeTab === 'REEL' ? 'text-neon-red' : 'text-gray-400'}`} />
-                                                <div className="text-left"><p className={`text-[11px] font-black uppercase ${activeTab === 'REEL' ? 'text-white' : 'text-gray-400'}`}>Réel</p><p className="text-[9px] text-gray-600">1080×1920</p></div>
-                                                {activeTab === 'REEL' && <Check className="w-4 h-4 text-neon-red ml-auto" />}
-                                            </button>
-                                            <button onClick={() => { unlockMobileAudioSession(); setActiveTab('PUBLICATION'); if (theme === 'REELS' || theme === 'CONSEILS' || theme === 'TRACKLIST' || theme === 'MAP' || theme === 'TOP 10 TRACKS') handleSetTheme('NEWS'); setActivePanel(null); }}
-                                                className={`flex items-center gap-3 p-4 rounded-2xl border-2 transition-all ${activeTab === 'PUBLICATION' ? 'border-neon-cyan/60 bg-neon-cyan/10' : 'border-white/10 bg-white/5 hover:border-white/20'}`}>
-                                                <ImageIcon className={`w-5 h-5 ${activeTab === 'PUBLICATION' ? 'text-neon-cyan' : 'text-gray-400'}`} />
-                                                <div className="text-left"><p className={`text-[11px] font-black uppercase ${activeTab === 'PUBLICATION' ? 'text-white' : 'text-gray-400'}`}>Publication</p><p className="text-[9px] text-gray-600">1080×1350</p></div>
-                                                {activeTab === 'PUBLICATION' && <Check className="w-4 h-4 text-neon-cyan ml-auto" />}
-                                            </button>
-                                        </div>
-                                    </div>
-                                )}
+                                <div className="overflow-y-auto px-4 pt-3 pb-6 space-y-4 custom-scrollbar">
+                                    {/* ÉTAPE 1 : THÈME & TEXTE (100% identique à l'étape 1 PC) */}
+                                    {activePanel === 'texte' && (
+                                        <div className="space-y-4">
+                                            <div className="space-y-2">
+                                                {themeButtons}
+                                                {devinetteSwitcher}
+                                                {styleMusicButtons}
+                                            </div>
 
-                                {activePanel === 'theme' && (
-                                    <div className="px-6 pb-8 space-y-4">
-                                        <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Thème visuel</p>
-                                        {themeButtons}
-                                        {devinetteSwitcher}
-                                        {styleMusicButtons && <div className="mt-4">{styleMusicButtons}</div>}
-                                    </div>
-                                )}
-
-                                {activePanel === 'texte' && (
-                                    <div className="px-6 pb-8 space-y-4">
-                                        <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Contenu</p>
-                                        {(isCarouselPromoActive && isMultiSlideTheme) ? promoEditor : theme === 'CALENDRIER' ? (
-                                            <div className="space-y-3">
-                                                <input value={calendarMonth} onChange={e => setCalendarMonth(e.target.value)} placeholder="MARS 2025" className="w-full bg-white/10 border border-neon-orange/40 rounded-xl p-3 text-white font-black italic uppercase text-xs" />
-                                                {calendarEvents.map((evt, i) => (
-                                                    <div key={i} className="flex gap-2 items-center">
-                                                        <input value={evt.date} onChange={e => { const n = [...calendarEvents]; n[i].date = e.target.value; setCalendarEvents(n); }} placeholder="JJ" className="w-14 bg-neon-orange/20 border border-neon-orange/40 rounded-lg p-2 text-neon-orange font-black uppercase text-xs text-center" />
-                                                        <input value={evt.label} onChange={e => { const n = [...calendarEvents]; n[i].label = e.target.value; setCalendarEvents(n); }} placeholder="ÉVÉNEMENT" className="flex-1 bg-white/10 border border-white/20 rounded-lg p-2 text-white font-black italic uppercase text-xs" />
-                                                        <button onClick={() => setCalendarEvents(calendarEvents.filter((_, idx) => idx !== i))} className="p-2 text-red-500 hover:bg-red-500/10 rounded-lg"><span className="text-xs">✕</span></button>
+                                            <div className="space-y-3 pt-3 border-t border-white/10">
+                                                {(isCarouselPromoActive && isMultiSlideTheme) ? (
+                                                    <><span className="text-[10px] font-black text-neon-red uppercase">🔥 Outro Carrousel : Question & Phrase Promo</span>{promoEditor}</>
+                                                ) : theme === 'MAP' ? (
+                                                    <><span className="text-[10px] font-black text-neon-cyan uppercase">Carte & Localisation</span>{mapEditor}</>
+                                                ) : theme === 'CALENDRIER' ? (
+                                                    <div className="space-y-3">
+                                                        <span className="text-[10px] font-black text-gray-400 uppercase">Calendrier des événements</span>
+                                                        <input value={calendarMonth} onChange={e => setCalendarMonth(e.target.value)} placeholder="MARS 2025" className="w-full bg-white/10 border border-neon-orange/40 rounded-xl p-3 text-white font-black italic uppercase text-xs" />
+                                                        {calendarEvents.map((evt, i) => (
+                                                            <div key={i} className="flex gap-2 items-center">
+                                                                <input value={evt.date} onChange={e => { const n = [...calendarEvents]; n[i].date = e.target.value; setCalendarEvents(n); }} placeholder="JJ" className="w-14 bg-neon-orange/20 border border-neon-orange/40 rounded-lg p-2 text-neon-orange font-black uppercase text-xs text-center" />
+                                                                <input value={evt.label} onChange={e => { const n = [...calendarEvents]; n[i].label = e.target.value; setCalendarEvents(n); }} placeholder="NOM DE L'ÉVÉNEMENT" className="flex-1 bg-white/10 border border-white/20 rounded-lg p-2 text-white font-black italic uppercase text-xs" />
+                                                                <button onClick={() => setCalendarEvents(calendarEvents.filter((_, idx) => idx !== i))} className="p-2 text-red-500 hover:bg-red-500/10 rounded-lg"><span className="text-xs">✕</span></button>
+                                                            </div>
+                                                        ))}
+                                                        <button onClick={() => setCalendarEvents([...calendarEvents, { date: '??', label: 'NOUVEL ÉVÉNEMENT' }])} className="w-full py-3 bg-neon-orange/10 border border-dashed border-neon-orange/30 rounded-xl text-[9px] font-black uppercase text-neon-orange hover:bg-neon-orange/20 transition-all">+ Ajouter un événement</button>
                                                     </div>
-                                                ))}
-                                                <button onClick={() => setCalendarEvents([...calendarEvents, { date: '??', label: 'NOUVEL ÉVÉNEMENT' }])} className="w-full py-3 bg-neon-orange/10 border border-dashed border-neon-orange/30 rounded-xl text-[9px] font-black uppercase text-neon-orange hover:bg-neon-orange/20 transition-all">+ Ajouter</button>
-                                            </div>
-                                        ) : theme === 'PLANNING' ? planningEditor : theme.startsWith('TOP 5') ? top5Editor : theme === 'TRACKLIST' ? tracklistEditor : theme === 'SPOTLIGHT' ? spotlightEditor : theme === 'ARTISTE FESTIVAL' ? artisteFestivalEditor : (theme === 'EVENTS' || theme === 'AFFICHE') ? eventsEditor : theme === 'MUSIQUE' ? musiqueEditor : theme === 'TOP 100 DROPSIDERS' ? top100Editor : theme === 'TOP 10 TRACKS' ? top10TracksEditor : theme === 'HIGHLIGHTS' ? highlightsEditor : ['NEWS', 'FOCUS', 'RECAP', 'INTERVIEW', 'REELS', 'CONSEILS', 'CONCOURS', 'JEU', 'JEU_FESTIVAL', 'JEU_DJ'].includes(theme) ? conseilsEditor : theme === 'CITATION' ? citationEditor : theme === 'MAP' ? mapEditor : theme === 'PROMO' ? promoEditor : textEditor}
-                                        {/* Option Date dans la barre blanche */}
-                                        {!((isCarouselPromoActive && isMultiSlideTheme) || theme === 'PROMO') && editorialDateControl}
-
-                                        {/* Animation du texte & transitions de slide en dessous du cadre texte */}
-                                        {theme !== 'MAP' && !((isCarouselPromoActive && isMultiSlideTheme) || theme === 'PROMO') && textAnimationControl}
-                                        {theme !== 'MAP' && isMultiSlideTheme && !((isCarouselPromoActive && isMultiSlideTheme) || theme === 'PROMO') && slideTransitionControl}
-                                    </div>
-                                )}
-
-                                {activePanel === 'fond' && (
-                                    <div className="px-6 pb-8">
-                                        <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-4">Visuel & Fond</p>
-                                        {isEditorialTweetActive ? (
-                                            <div className="space-y-3">
-                                                {tweetEditor}
-                                                <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*,video/*" />
-                                            </div>
-                                        ) : (isEditorialAfficheActive || theme === 'AFFICHE' || (theme === 'EVENTS' && ((eventsSlide === 2 && eventNormalSlidesCount === 0) || isEditorialAfficheActive)) || (theme === 'PLANNING' && agendaSlide >= 3)) ? (
-                                            <div className="space-y-3">
-                                                {afficheEditor}
-                                                <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*,video/*" />
-                                            </div>
-                                        ) : (
-                                            <div className="space-y-3">
-                                                {/* Cover pour MUSIQUE (Slide 1 Annonce ou Slide 2+ Morceaux) — placé en haut comme sur PC */}
-                                                {theme === 'MUSIQUE' && (editorialSlide === 1 ? musicSlide1VisualEditor : musicCoverEditor)}
-
-                                                {/* Logos & Position pour SPOTLIGHT & ARTISTE FESTIVAL (Slide 2) */}
-                                                {(theme === 'SPOTLIGHT' || (theme === 'ARTISTE FESTIVAL' && artisteFestivalSlide === 2)) && spotlightVisualEditor}
-
-                                                <div className="flex items-center justify-between pt-1">
-                                                    <span className="text-[10px] font-black text-neon-cyan uppercase tracking-widest">
-                                                        {theme === 'MUSIQUE' && editorialSlide >= 2 ? 'Fond & Ambiance Arrière-Plan' : theme === 'JEU_DJ' ? 'Fond Arrière-Plan Scène / Club' : 'Fond & Médias'}
-                                                    </span>
-                                                    <span className="text-[8px] text-gray-400 uppercase font-bold">Image, Vidéo ou Cloud</span>
-                                                </div>
-
-                                                <div className="grid grid-cols-2 gap-2">
-                                                    <button onClick={() => fileInputRef.current?.click()} className="py-3.5 border border-dashed border-white/20 rounded-2xl flex items-center justify-center gap-2 text-gray-200 text-[9.5px] font-black uppercase hover:border-white/30 hover:text-white transition-all bg-white/5 group">
-                                                        <Upload className="w-4 h-4 text-neon-red group-hover:scale-110 transition-transform" />
-                                                        <span>Mon Appareil</span>
-                                                    </button>
-                                                    <button onClick={() => { setActivePanel(null); setR2TargetType('background'); setIsR2ModalOpen(true); }} className="py-3.5 border border-white/10 rounded-2xl flex items-center justify-center gap-2 text-gray-300 text-[9.5px] font-black uppercase hover:border-white/30 hover:text-white transition-all bg-white/5 group">
-                                                        <ImageIcon className="w-4 h-4 text-neon-cyan group-hover:scale-110 transition-transform" />
-                                                        <span>Cloud R2</span>
-                                                    </button>
-                                                </div>
-                                                <button onClick={() => { setActivePanel(null); setIsDownloaderOpen(true); }} className="w-full py-3.5 border border-dashed border-white/10 rounded-2xl flex items-center justify-center gap-2 text-gray-400 text-[9.5px] font-black uppercase hover:border-white/30 hover:text-white transition-all bg-white/5 group">
-                                                    <LinkIcon className="w-4 h-4 group-hover:text-neon-cyan transition-colors" />Télécharger Vidéo/Photo (URL)
-                                                </button>
-                                                <button onClick={() => { setActivePanel(null); setIsRecapPickerOpen(true); }} className="w-full py-3.5 bg-[#c026d3]/10 border border-[#c026d3]/30 rounded-2xl flex items-center justify-center gap-2 text-[#c026d3] text-[9.5px] font-black uppercase hover:bg-[#c026d3]/20 transition-all group">
-                                                    <PlusCircle className="w-4 h-4" />Importer un RÉCAP ÉCRIT
-                                                </button>
-
-                                                {bgVideo && (
-                                                    <div className="p-3 bg-white/5 border border-white/10 rounded-2xl space-y-2">
-                                                        <div className="flex items-center justify-between text-[9px] font-black uppercase text-gray-300">
-                                                            <span className="flex items-center gap-1.5">🎬 Piste Vidéo</span>
-                                                            <span className={!isVideoAudioMuted ? 'text-[#00ff66]' : 'text-gray-400'}>{!isVideoAudioMuted ? 'Son Actif' : 'Muet'}</span>
-                                                        </div>
-                                                        <div className="grid grid-cols-3 gap-2">
-                                                            <button
-                                                                type="button"
-                                                                onClick={() => {
-                                                                    unlockMobileAudioSession();
-                                                                    if (bgVideo.muted) {
-                                                                        bgVideo.muted = false;
-                                                                        bgVideo.play().catch(() => { });
-                                                                        setIsVideoAudioMuted(false);
-                                                                    } else {
-                                                                        bgVideo.muted = true;
-                                                                        setIsVideoAudioMuted(true);
-                                                                    }
-                                                                }}
-                                                                className={`py-2 px-2 rounded-xl border text-[8.5px] font-black uppercase flex items-center justify-center gap-1 transition-all active:scale-95 ${!isVideoAudioMuted
-                                                                    ? 'bg-[#00ff66]/15 border-[#00ff66]/40 text-[#00ff66]'
-                                                                    : 'bg-white/5 border-white/10 text-gray-300 hover:text-white'
-                                                                    }`}
-                                                            >
-                                                                {!isVideoAudioMuted ? <Volume2 className="w-3.5 h-3.5" /> : <VolumeX className="w-3.5 h-3.5" />}
-                                                                <span>{!isVideoAudioMuted ? 'Son ON' : 'Son OFF'}</span>
-                                                            </button>
-                                                            <button
-                                                                type="button"
-                                                                onClick={() => {
-                                                                    bgVideo.currentTime = 0;
-                                                                    bgVideo.play().catch(() => { });
-                                                                }}
-                                                                className="py-2 px-2 rounded-xl bg-neon-cyan/10 border border-neon-cyan/30 text-neon-cyan text-[8.5px] font-black uppercase flex items-center justify-center gap-1 hover:bg-neon-cyan/20 transition-all active:scale-95"
-                                                            >
-                                                                <RotateCcw className="w-3.5 h-3.5" />
-                                                                <span>0:00</span>
-                                                            </button>
-                                                            <button
-                                                                type="button"
-                                                                onClick={() => {
-                                                                    unlockMobileAudioSession();
-                                                                    if (bgVideo.paused) bgVideo.play().catch(() => { });
-                                                                    else bgVideo.pause();
-                                                                }}
-                                                                className="py-2 px-2 rounded-xl bg-white/5 border border-white/10 text-gray-300 text-[8.5px] font-black uppercase flex items-center justify-center gap-1 hover:bg-white/10 transition-all active:scale-95"
-                                                            >
-                                                                <Video className="w-3.5 h-3.5" />
-                                                                <span>Play/Pause</span>
-                                                            </button>
-                                                        </div>
-                                                    </div>
+                                                ) : theme === 'PLANNING' ? (
+                                                    <><span className="text-[10px] font-black text-[#ff3700] uppercase tracking-wider">📅 Agenda des Soirées & Festivals</span>{planningEditor}</>
+                                                ) : theme.startsWith('TOP 5') ? (
+                                                    <><span className="text-[10px] font-black text-gray-400 uppercase">Éléments du Top 5</span>{top5Editor}</>
+                                                ) : theme === 'TRACKLIST' ? (
+                                                    <><span className="text-[10px] font-black text-gray-400 uppercase">Détails Tracklist</span>{tracklistEditor}</>
+                                                ) : theme === 'SPOTLIGHT' ? (
+                                                    <><span className="text-[10px] font-black text-gray-400 uppercase">Infos & Textes Spotlight</span>{spotlightEditor}</>
+                                                ) : theme === 'ARTISTE FESTIVAL' ? (
+                                                    <><span className="text-[10px] font-black text-neon-red uppercase">Artiste Festival (Carrousel)</span>{artisteFestivalEditor}</>
+                                                ) : (theme === 'EVENTS' || theme === 'AFFICHE') ? (
+                                                    <><span className="text-[10px] font-black text-[#ff3700] uppercase">Événements & Affiche (Carrousel)</span>{eventsEditor}</>
+                                                ) : theme === 'MUSIQUE' ? (
+                                                    <><span className="text-[10px] font-black text-[#00ff66] uppercase">Musique & Morceaux (Carrousel)</span>{musiqueEditor}</>
+                                                ) : theme === 'TOP 100 DROPSIDERS' ? (
+                                                    <><span className="text-[10px] font-black text-neon-red uppercase">🏆 Révélation Top 100 Dropsiders</span>{top100Editor}</>
+                                                ) : theme === 'TOP 10 TRACKS' ? (
+                                                    <><span className="text-[10px] font-black text-neon-cyan uppercase">🔥 Top 10 Countdown Tracks (#10 ➔ #1)</span>{top10TracksEditor}</>
+                                                ) : theme === 'HIGHLIGHTS' ? (
+                                                    <><span className="text-[10px] font-black text-white uppercase">Infos Highlights (Slide {editorialSlide})</span>{highlightsEditor}</>
+                                                ) : ['NEWS', 'FOCUS', 'RECAP', 'INTERVIEW', 'REELS', 'CONSEILS', 'CONCOURS', 'JEU', 'JEU_FESTIVAL', 'JEU_DJ'].includes(theme) ? (
+                                                    <><span className="text-[10px] font-black text-neon-cyan uppercase">Contenu Titre & Sous-titre ({theme === 'JEU' ? 'DEVINE LE CLIP' : theme === 'JEU_FESTIVAL' ? 'DEVINE LE FESTIVAL' : theme === 'JEU_DJ' ? 'DEVINE LE DJ' : theme})</span>{conseilsEditor}</>
+                                                ) : theme === 'CITATION' ? (
+                                                    <><span className="text-[10px] font-black text-neon-red uppercase">Citation & Auteur</span>{citationEditor}</>
+                                                ) : theme === 'PROMO' ? (
+                                                    <><span className="text-[10px] font-black text-neon-red uppercase">Question & Outro Réseaux</span>{promoEditor}</>
+                                                ) : (
+                                                    <><span className="text-[10px] font-black text-gray-400 uppercase">Contenu Texte</span>{textEditor}</>
                                                 )}
 
-                                                {bgPositionControls}
-                                                <button onClick={() => setShowText(!showText)} className={`w-full py-3.5 border rounded-2xl flex items-center justify-center gap-2 text-[9.5px] font-black uppercase transition-all ${!showText ? 'bg-yellow-500/20 border-yellow-500 text-yellow-500' : 'bg-white/5 border-white/10 text-gray-400 hover:text-white hover:border-white/30'}`}>
-                                                    <Eraser className="w-4 h-4" /> Masquer le texte : {!showText ? 'ACTIF' : 'OFF'}
-                                                </button>
-                                                <button onClick={() => setIsRetouchMode(!isRetouchMode)} className={`w-full py-3.5 border rounded-2xl flex items-center justify-center gap-2 text-[9.5px] font-black uppercase transition-all ${isRetouchMode ? 'bg-neon-cyan/20 border-neon-cyan text-neon-cyan shadow-[0_0_20px_rgba(0,255,255,0.2)]' : 'bg-white/5 border-white/10 text-gray-400 hover:text-white hover:border-white/30'}`}>
-                                                    <Wand2 className="w-4 h-4" /> Nettoyage Photo (IA Local)
-                                                </button>
-                                                {isRetouchMode && (
-                                                    <div className="bg-white/5 border border-white/10 rounded-2xl p-4 space-y-3">
-                                                        <div className="flex justify-between items-center text-[9px] uppercase font-black text-gray-500">
-                                                            <span>Taille pinceau</span>
-                                                            <span className="text-neon-cyan">{brushSize}px</span>
-                                                        </div>
-                                                        <input type="range" min="10" max="100" value={brushSize} onChange={e => setBrushSize(parseInt(e.target.value))} className="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-neon-cyan" />
-                                                        <div className="flex gap-2 pt-2">
-                                                            <button onClick={() => setRetouchPath([])} className="flex-1 py-3 bg-white/5 border border-white/10 rounded-xl text-[9px] font-black uppercase text-gray-400 hover:text-white transition-all flex items-center justify-center gap-1.5"><RotateCcw className="w-3.5 h-3.5" /> Réinitialiser</button>
-                                                            <button onClick={applyMagicErase} className="flex-[2] py-3 bg-neon-cyan text-black rounded-xl text-[9px] font-black uppercase shadow-[0_0_15px_rgba(0,255,255,0.4)] hover:scale-[1.02] transition-all flex items-center justify-center gap-1.5"><Sparkles className="w-3.5 h-3.5" /> Appliquer</button>
-                                                        </div>
-                                                    </div>
-                                                )}
-                                                {/* Module Dédié Devine le DJ (Artiste & Silhouette Mystère) placé sous le Fond Scène / Club */}
-                                                {theme === 'JEU_DJ' && djSilhouetteEditor}
-                                                {slideVisualEditor}
-                                                {theme !== 'MAP' && bgAnimationControl}
-                                                <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*,video/*" />
+                                                {!((isCarouselPromoActive && isMultiSlideTheme) || theme === 'PROMO') && editorialDateControl}
+                                                {theme !== 'MAP' && !((isCarouselPromoActive && isMultiSlideTheme) || theme === 'PROMO') && textAnimationControl}
+                                                {theme !== 'MAP' && isMultiSlideTheme && !((isCarouselPromoActive && isMultiSlideTheme) || theme === 'PROMO') && slideTransitionControl}
                                             </div>
-                                        )}
-                                    </div>
-                                )}
-                            </motion.div>
-                        )}
-                    </AnimatePresence>
 
-                    {/* Export panel logic remains, progress overlay moved to global */}
-                    <AnimatePresence>
-                        {activePanel === 'export' && (
-                            <motion.div key="export"
-                                initial={{ y: '100%', opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: '100%', opacity: 0 }}
-                                transition={{ type: 'spring', damping: 26, stiffness: 300 }}
-                                className="absolute inset-x-0 bottom-[130px] z-30 rounded-t-[28px]"
-                                style={{ background: 'linear-gradient(180deg,#161616 0%,#0d0d0d 100%)', borderTop: '1px solid rgba(255,255,255,0.08)', maxHeight: '65vh', overflowY: 'auto' }}>
-                                <div className="flex justify-center pt-3 pb-2"><div className="w-8 h-1 rounded-full bg-white/20" /></div>
-                                <div className="px-6 pb-8 space-y-4">
-                                    <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Exporter</p>
-                                    {visualsList.length > 0 && (
-                                        <div className="space-y-2">
-                                            <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Vos Captures ({visualsList.length})</span>
-                                            <div className="grid grid-cols-3 gap-2">
-                                                {visualsList.map((vis, idx) => (
-                                                    <div key={idx} className="group relative aspect-[9/12] rounded-xl overflow-hidden border border-white/10 bg-black shadow-lg">
-                                                        <img src={vis} alt={`Visual ${idx}`} className="w-full h-full object-cover" />
-                                                        <div className="absolute inset-x-1 bottom-1 flex items-center justify-center gap-1">
-                                                            <button onClick={() => {
-                                                                const a = document.createElement('a'); a.href = vis;
-                                                                a.download = `dropsiders-capture-${idx}.png`; a.click();
-                                                            }} className="p-1.5 bg-white/90 text-black rounded-lg">
-                                                                <Download className="w-3 h-3" />
-                                                            </button>
-                                                            <button onClick={() => setVisualsList(prev => prev.filter((_, i) => i !== idx))}
-                                                                className="p-1.5 bg-red-500/90 text-white rounded-lg">
-                                                                <X className="w-3 h-3" />
-                                                            </button>
-                                                        </div>
-                                                    </div>
-                                                ))}
+                                            <div className="pt-3 border-t border-white/10 flex gap-2">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => { setSidebarStep('visual'); setActivePanel('fond'); }}
+                                                    className="flex-1 py-3 bg-neon-cyan text-black rounded-xl text-[9.5px] font-black uppercase flex items-center justify-center gap-1.5 shadow-[0_0_15px_rgba(0,255,255,0.3)] active:scale-98 transition-all"
+                                                >
+                                                    <span>Suivant : 2. Visuel & Fond</span>
+                                                    <span>➡️</span>
+                                                </button>
                                             </div>
                                         </div>
                                     )}
-                                    {quickCarouselDownloadBar}
-                                    {exportButtons}
+
+                                    {/* ÉTAPE 2 : VISUEL & FOND (100% identique à l'étape 2 PC) */}
+                                    {activePanel === 'fond' && (
+                                        <div className="space-y-4">
+                                            {isEditorialTweetActive ? (
+                                                <div className="space-y-3">
+                                                    {tweetEditor}
+                                                    <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*,video/*" />
+                                                </div>
+                                            ) : (isEditorialAfficheActive || theme === 'AFFICHE' || (theme === 'EVENTS' && ((eventsSlide === 2 && eventNormalSlidesCount === 0) || isEditorialAfficheActive)) || (theme === 'PLANNING' && agendaSlide >= 3)) ? (
+                                                <div className="space-y-3">
+                                                    {afficheEditor}
+                                                    <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*,video/*" />
+                                                </div>
+                                            ) : (
+                                                <div className="space-y-3">
+                                                    {theme === 'MUSIQUE' && (editorialSlide === 1 ? musicSlide1VisualEditor : musicCoverEditor)}
+                                                    {(theme === 'SPOTLIGHT' || (theme === 'ARTISTE FESTIVAL' && artisteFestivalSlide === 2)) && spotlightVisualEditor}
+
+                                                    <div className="flex items-center justify-between pt-1">
+                                                        <span className="text-[10px] font-black text-neon-cyan uppercase tracking-widest">
+                                                            {theme === 'MUSIQUE' && editorialSlide >= 2 ? 'Fond & Ambiance Arrière-Plan' : theme === 'JEU_DJ' ? 'Fond Arrière-Plan Scène / Club' : 'Fond & Médias'}
+                                                        </span>
+                                                        <span className="text-[8px] text-gray-400 uppercase font-bold">Image, Vidéo ou Cloud</span>
+                                                    </div>
+
+                                                    <div className="grid grid-cols-2 gap-2">
+                                                        <button type="button" onClick={() => fileInputRef.current?.click()} className="py-3 border border-dashed border-white/20 rounded-xl flex items-center justify-center gap-2 text-gray-200 text-[9px] font-black uppercase bg-white/5">
+                                                            <Upload className="w-4 h-4 text-neon-red" />
+                                                            <span>Mon Appareil</span>
+                                                        </button>
+                                                        <button type="button" onClick={() => { setActivePanel(null); setR2TargetType('background'); setIsR2ModalOpen(true); }} className="py-3 border border-white/10 rounded-xl flex items-center justify-center gap-2 text-gray-300 text-[9px] font-black uppercase bg-white/5">
+                                                            <ImageIcon className="w-4 h-4 text-neon-cyan" />
+                                                            <span>Cloud R2</span>
+                                                        </button>
+                                                    </div>
+                                                    <button type="button" onClick={() => { setActivePanel(null); setIsDownloaderOpen(true); }} className="w-full py-2.5 border border-dashed border-white/10 rounded-xl flex items-center justify-center gap-2 text-gray-400 text-[9px] font-black uppercase bg-white/5">
+                                                        <LinkIcon className="w-3.5 h-3.5 text-neon-cyan" />Télécharger Vidéo/Photo (URL)
+                                                    </button>
+                                                    <button type="button" onClick={() => { setActivePanel(null); setIsRecapPickerOpen(true); }} className="w-full py-2.5 bg-[#c026d3]/10 border border-[#c026d3]/30 rounded-xl flex items-center justify-center gap-2 text-[#c026d3] text-[9px] font-black uppercase">
+                                                        <PlusCircle className="w-3.5 h-3.5" />Importer un RÉCAP ÉCRIT
+                                                    </button>
+
+                                                    {bgPositionControls}
+                                                    <button type="button" onClick={() => setIsRetouchMode(!isRetouchMode)} className={`w-full py-2.5 border rounded-xl flex items-center justify-center gap-2 text-[9px] font-black uppercase transition-all ${isRetouchMode ? 'bg-neon-cyan/20 border-neon-cyan text-neon-cyan' : 'bg-neon-cyan/10 border-neon-cyan/20 text-neon-cyan'}`}>
+                                                        <Wand2 className="w-3.5 h-3.5" /> Nettoyage Photo (Outil IA Local)
+                                                    </button>
+                                                    {isRetouchMode && (
+                                                        <div className="bg-white/5 border border-white/10 rounded-xl p-3 space-y-2">
+                                                            <div className="flex justify-between items-center text-[9px] uppercase font-black text-gray-400">
+                                                                <span>Taille pinceau</span>
+                                                                <span className="text-neon-cyan">{brushSize}px</span>
+                                                            </div>
+                                                            <input type="range" min="10" max="100" value={brushSize} onChange={e => setBrushSize(parseInt(e.target.value))} className="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-neon-cyan" />
+                                                            <div className="flex gap-2 pt-1">
+                                                                <button type="button" onClick={() => setRetouchPath([])} className="flex-1 py-2 bg-white/5 border border-white/10 rounded-lg text-[9px] font-black uppercase text-gray-400 flex items-center justify-center gap-1"><RotateCcw className="w-3 h-3" /> Reset</button>
+                                                                <button type="button" onClick={applyMagicErase} className="flex-[2] py-2 bg-neon-cyan text-black rounded-lg text-[9px] font-black uppercase flex items-center justify-center gap-1"><Sparkles className="w-3 h-3" /> Appliquer (IA)</button>
+                                                            </div>
+                                                        </div>
+                                                    )}
+
+                                                    {bgVideo && (
+                                                        <div className="space-y-1.5 pt-1">
+                                                            <div className="grid grid-cols-3 gap-2">
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => {
+                                                                        unlockMobileAudioSession();
+                                                                        ensureVideoMountedInDOM(bgVideo);
+                                                                        if (bgVideo.muted) {
+                                                                            bgVideo.muted = false;
+                                                                            bgVideo.play().catch(() => { });
+                                                                            setIsVideoAudioMuted(false);
+                                                                        } else {
+                                                                            bgVideo.muted = true;
+                                                                            setIsVideoAudioMuted(true);
+                                                                        }
+                                                                    }}
+                                                                    className={`py-2 px-2 rounded-xl border text-[8.5px] font-black uppercase flex items-center justify-center gap-1 ${!isVideoAudioMuted ? 'bg-[#00ff66]/15 border-[#00ff66]/40 text-[#00ff66]' : 'bg-white/5 border-white/10 text-gray-300'}`}
+                                                                >
+                                                                    {!isVideoAudioMuted ? <Volume2 className="w-3.5 h-3.5" /> : <VolumeX className="w-3.5 h-3.5" />}
+                                                                    <span>{!isVideoAudioMuted ? 'Son ON' : 'Son OFF'}</span>
+                                                                </button>
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => {
+                                                                        bgVideo.currentTime = 0;
+                                                                        bgVideo.play().catch(() => { });
+                                                                    }}
+                                                                    className="py-2 bg-neon-cyan/10 border border-neon-cyan/30 rounded-xl text-[8.5px] font-black text-neon-cyan uppercase flex items-center justify-center gap-1"
+                                                                >
+                                                                    <RotateCcw className="w-3.5 h-3.5" /> 0:00
+                                                                </button>
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => {
+                                                                        unlockMobileAudioSession();
+                                                                        if (bgVideo.paused) bgVideo.play().catch(() => { });
+                                                                        else bgVideo.pause();
+                                                                    }}
+                                                                    className="py-2 bg-white/5 border border-white/10 rounded-xl text-[8.5px] font-black text-gray-300 uppercase flex items-center justify-center gap-1"
+                                                                >
+                                                                    <Video className="w-3.5 h-3.5" /> Play/Pause
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    )}
+
+                                                    {theme === 'JEU_DJ' && (
+                                                        <div className="space-y-2 pt-2 border-t border-white/10">
+                                                            {djSilhouetteEditor}
+                                                        </div>
+                                                    )}
+                                                    {slideVisualEditor}
+                                                    <div className="pt-2 border-t border-white/10 space-y-2">
+                                                        {theme !== 'MAP' && bgAnimationControl}
+                                                    </div>
+                                                    <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*,video/*" />
+                                                </div>
+                                            )}
+
+                                            <div className="pt-3 border-t border-white/10 flex gap-2">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => { setSidebarStep('text'); setActivePanel('texte'); }}
+                                                    className="py-2.5 px-3 bg-white/5 border border-white/10 rounded-xl text-[9px] font-bold text-gray-300 uppercase flex items-center gap-1"
+                                                >
+                                                    <span>⬅️</span>
+                                                    <span>1. Texte</span>
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => { setSidebarStep('export'); setActivePanel('export'); }}
+                                                    className="flex-1 py-2.5 bg-emerald-400 text-black rounded-xl text-[9.5px] font-black uppercase flex items-center justify-center gap-1.5 shadow-[0_0_15px_rgba(52,211,153,0.3)]"
+                                                >
+                                                    <span>Suivant : 3. Export</span>
+                                                    <span>🚀</span>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* ÉTAPE 3 : OPTIONS & EXPORT (100% identique à l'étape 3 PC, incluant le champ texte du Lien Site !) */}
+                                    {activePanel === 'export' && (
+                                        <div className="space-y-4">
+                                            <div className="space-y-2.5">
+                                                <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Options & Liens</span>
+                                                <div className="grid grid-cols-2 gap-2">
+                                                    <div className="p-3 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-between cursor-pointer" onClick={() => setShowSwipe(!showSwipe)}>
+                                                        <div className="flex items-center gap-2 min-w-0"><Layout className="w-3.5 h-3.5 flex-shrink-0 text-neon-red" /><span className="text-[9px] font-black text-white uppercase truncate">Swipe</span></div>
+                                                        <div className={`w-4 h-4 rounded-md border-2 transition-all flex items-center justify-center flex-shrink-0 ${showSwipe ? 'bg-neon-red border-neon-red' : 'bg-black/40 border-white/20'}`}>
+                                                            {showSwipe && (<Check className="w-2.5 h-2.5 text-white" />)}
+                                                        </div>
+                                                    </div>
+                                                    <div className="p-3 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-between cursor-pointer" onClick={() => setShowVoteLink(!showVoteLink)}>
+                                                        <div className="flex items-center gap-2 min-w-0"><LinkIcon className="w-3.5 h-3.5 flex-shrink-0 text-neon-purple" /><span className="text-[9px] font-black text-white uppercase truncate">Lien Vote</span></div>
+                                                        <div className={`w-4 h-4 rounded-md border-2 transition-all flex items-center justify-center flex-shrink-0 ${showVoteLink ? 'bg-neon-purple border-neon-purple' : 'bg-black/40 border-white/20'}`}>
+                                                            {showVoteLink && (<Check className="w-2.5 h-2.5 text-white" />)}
+                                                        </div>
+                                                    </div>
+                                                    <div className="col-span-2 space-y-1.5">
+                                                        <div className="p-3 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-between cursor-pointer" onClick={() => setShowArticleLink(!showArticleLink)}>
+                                                            <div className="flex items-center gap-2 min-w-0"><LinkIcon className="w-3.5 h-3.5 flex-shrink-0 text-neon-cyan" /><span className="text-[9px] font-black text-white uppercase truncate">Lien Site ({articleLinkText.split(' ')[0]})</span></div>
+                                                            <div className={`w-4 h-4 rounded-md border-2 transition-all flex items-center justify-center flex-shrink-0 ${showArticleLink ? 'bg-neon-cyan border-neon-cyan' : 'bg-black/40 border-white/20'}`}>
+                                                                {showArticleLink && (<Check className="w-2.5 h-2.5 text-black" />)}
+                                                            </div>
+                                                        </div>
+                                                        {showArticleLink && (
+                                                            <div className="flex items-center gap-1.5 px-1">
+                                                                <input
+                                                                    type="text"
+                                                                    value={articleLinkText}
+                                                                    onChange={(e) => setArticleLinkText(e.target.value)}
+                                                                    placeholder="Phrase du lien..."
+                                                                    className="w-full bg-black/60 border border-white/20 focus:border-neon-cyan rounded-xl px-3 py-2 text-[10px] font-black uppercase text-white placeholder-gray-500 outline-none"
+                                                                />
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                    <div className="col-span-2 p-3 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-between cursor-pointer" onClick={() => setShowText(!showText)}>
+                                                        <div className="flex items-center gap-2"><Eraser className="w-3.5 h-3.5 flex-shrink-0 text-yellow-500" /><span className="text-[9px] font-black text-white uppercase">Masquer le Texte</span></div>
+                                                        <div className={`w-4 h-4 rounded-md border-2 transition-all flex items-center justify-center flex-shrink-0 ${!showText ? 'bg-yellow-500 border-yellow-500' : 'bg-black/40 border-white/20'}`}>
+                                                            {!showText && (<Check className="w-2.5 h-2.5 text-black" />)}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            {visualsList.length > 0 && (
+                                                <div className="space-y-2">
+                                                    <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Vos Captures ({visualsList.length})</span>
+                                                    <div className="grid grid-cols-3 gap-2">
+                                                        {visualsList.map((vis, idx) => (
+                                                            <div key={idx} className="relative aspect-[9/12] rounded-xl overflow-hidden border border-white/10 bg-black shadow-lg">
+                                                                <img src={vis} alt={`Visual ${idx}`} className="w-full h-full object-cover" />
+                                                                <div className="absolute inset-x-1 bottom-1 flex items-center justify-center gap-1">
+                                                                    <button onClick={() => {
+                                                                        const a = document.createElement('a'); a.href = vis;
+                                                                        a.download = `dropsiders-capture-${idx}.png`; a.click();
+                                                                    }} className="p-1.5 bg-white/90 text-black rounded-lg">
+                                                                        <Download className="w-3 h-3" />
+                                                                    </button>
+                                                                    <button onClick={() => setVisualsList(prev => prev.filter((_, i) => i !== idx))}
+                                                                        className="p-1.5 bg-red-500/90 text-white rounded-lg">
+                                                                        <X className="w-3 h-3" />
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            <div className="space-y-3 pt-2 border-t border-white/10">
+                                                <span className="text-[10px] font-black text-emerald-400 uppercase tracking-widest flex items-center gap-1.5">
+                                                    <span>🚀</span> Téléchargement & Export
+                                                </span>
+                                                {quickCarouselDownloadBar}
+                                                {exportButtons}
+                                            </div>
+
+                                            <div className="pt-2">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => { setSidebarStep('visual'); setActivePanel('fond'); }}
+                                                    className="w-full py-2.5 bg-white/5 border border-white/10 rounded-xl text-[9px] font-bold text-gray-300 uppercase flex items-center justify-center gap-1.5"
+                                                >
+                                                    <span>⬅️</span>
+                                                    <span>Revenir à l'étape 2 (Visuel & Fond)</span>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                             </motion.div>
                         )}
                     </AnimatePresence>
 
-                    {/* Bottom icon bar - Floating and transparent */}
-                    <div className="absolute bottom-0 inset-x-0 z-40 pb-6 pt-12 bg-gradient-to-t from-black/90 via-black/40 to-transparent pointer-events-none">
-
-                        {/* Quick toggles */}
-                        <div className="flex items-center justify-center gap-3 px-4 mb-4 pointer-events-auto">
-                            <button onClick={() => setShowSwipe(!showSwipe)}
-                                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[9px] font-black uppercase transition-all border backdrop-blur-md ${showSwipe ? 'bg-neon-red/20 border-neon-red/50 text-neon-red' : 'bg-black/40 border-white/10 text-gray-400 hover:text-white'}`}>
-                                <Layout className="w-3 h-3" /> Swipe {showSwipe ? 'ON' : 'OFF'}
-                            </button>
-                            <button onClick={() => setShowArticleLink(!showArticleLink)}
-                                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[9px] font-black uppercase transition-all border backdrop-blur-md ${showArticleLink ? 'bg-neon-cyan/20 border-neon-cyan/50 text-neon-cyan' : 'bg-black/40 border-white/10 text-gray-400 hover:text-white'}`}>
-                                <LinkIcon className="w-3 h-3" /> Lien Article {showArticleLink ? 'ON' : 'OFF'}
-                            </button>
-                            <button onClick={() => setShowVoteLink(!showVoteLink)}
-                                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[9px] font-black uppercase transition-all border backdrop-blur-md ${showVoteLink ? 'bg-neon-purple/20 border-neon-purple/50 text-neon-purple' : 'bg-black/40 border-white/10 text-gray-400 hover:text-white'}`}>
-                                <LinkIcon className="w-3 h-3" /> Lien Vote {showVoteLink ? 'ON' : 'OFF'}
-                            </button>
-                        </div>
-
-                        {/* Icon buttons */}
-                        <div className="flex items-center justify-around px-2 pointer-events-auto">
-                            {[
-                                { id: 'format', icon: <Layers className="w-5 h-5" />, label: 'Format' },
-                                { id: 'theme', icon: <Palette className="w-5 h-5" />, label: 'Thème' },
-                                { id: 'texte', icon: <Type className="w-5 h-5" />, label: 'Texte' },
-                                { id: 'fond', icon: <ImageIcon className="w-5 h-5" />, label: 'Fond' },
-                                { id: 'export', icon: <Film className="w-5 h-5" />, label: 'Export' },
-                            ].map(btn => (
-                                <button key={btn.id} onClick={() => togglePanel(btn.id)} className="flex flex-col items-center gap-1.5 px-2 py-1 transition-all group">
-                                    <div className={`p-3 rounded-full backdrop-blur-md transition-all ${activePanel === btn.id ? 'bg-white text-black scale-110 shadow-[0_0_20px_rgba(255,255,255,0.4)]' : 'text-white bg-black/40 border border-white/10 group-hover:bg-white/20'}`}>
-                                        {btn.icon}
-                                    </div>
-                                    <span style={{ textShadow: '0 2px 4px rgba(0,0,0,0.8)' }} className={`text-[8px] font-black uppercase tracking-wide ${activePanel === btn.id ? 'text-white' : 'text-gray-300 group-hover:text-white'}`}>{btn.label}</span>
-                                </button>
-                            ))}
-                        </div>
+                    {/* 5. BARRE DU BAS FIXE À 3 ONGLETS (Exactement les 3 mêmes onglets que sur PC : 1. Texte / 2. Visuel / 3. Export) */}
+                    <div className="shrink-0 h-[62px] px-3 py-1.5 bg-[#0a0a0e] border-t border-white/15 z-40 grid grid-cols-3 gap-2 items-center">
+                        <button
+                            type="button"
+                            onClick={() => { setSidebarStep('text'); togglePanel('texte'); }}
+                            className={`h-full rounded-xl text-[9px] font-black uppercase flex flex-col items-center justify-center gap-0.5 transition-all ${activePanel === 'texte'
+                                ? 'bg-gradient-to-r from-neon-red to-[#ff007f] text-white shadow-[0_0_15px_rgba(255,18,65,0.4)]'
+                                : 'bg-white/5 text-gray-300 border border-white/10 hover:text-white'}`}
+                        >
+                            <Type className="w-3.5 h-3.5" />
+                            <span className="tracking-wider">1. Texte</span>
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => { setSidebarStep('visual'); togglePanel('fond'); }}
+                            className={`h-full rounded-xl text-[9px] font-black uppercase flex flex-col items-center justify-center gap-0.5 transition-all ${activePanel === 'fond'
+                                ? 'bg-gradient-to-r from-neon-cyan to-blue-500 text-black shadow-[0_0_15px_rgba(0,255,255,0.4)]'
+                                : 'bg-white/5 text-gray-300 border border-white/10 hover:text-white'}`}
+                        >
+                            <ImageIcon className="w-3.5 h-3.5" />
+                            <span className="tracking-wider">2. Visuel</span>
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => { setSidebarStep('export'); togglePanel('export'); }}
+                            className={`h-full rounded-xl text-[9px] font-black uppercase flex flex-col items-center justify-center gap-0.5 transition-all ${activePanel === 'export'
+                                ? 'bg-gradient-to-r from-emerald-400 to-green-500 text-black shadow-[0_0_15px_rgba(16,185,129,0.4)]'
+                                : 'bg-white/5 text-gray-300 border border-white/10 hover:text-white'}`}
+                        >
+                            <Film className="w-3.5 h-3.5" />
+                            <span className="tracking-wider">3. Export</span>
+                        </button>
                     </div>
-                </motion.div>
+                </div>
 
             )} {/* end isMobile ternary */}
 
