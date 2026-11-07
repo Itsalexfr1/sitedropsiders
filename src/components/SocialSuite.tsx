@@ -1172,6 +1172,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
     const [isAutoFillingTop10, setIsAutoFillingTop10] = useState<boolean>(false);
     const [top10GenMode, setTop10GenMode] = useState<'style' | 'artist'>('style');
+    const top10GenModeRef = useRef<'style' | 'artist'>('style');
+    top10GenModeRef.current = top10GenMode;
+    const [top10StyleColor, setTop10StyleColor] = useState<string>('#BD00FF');
+    const top10StyleColorRef = useRef<string>('#BD00FF');
+    top10StyleColorRef.current = top10StyleColor;
     const [top10ArtistSearch, setTop10ArtistSearch] = useState<string>('');
     const [top10StyleSearch, setTop10StyleSearch] = useState<string>('');
     const [top10RawTextImport, setTop10RawTextImport] = useState<string>('');
@@ -1521,6 +1526,86 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 { rank: 9, query: 'Tyla Water', title: 'WATER', artist: 'TYLA', streams: '890M+' },
                 { rank: 10, query: 'DJ Maphorisa Tyler ICU Banyana', title: 'BANYANA', artist: 'DJ MAPHORISA & TYLER ICU', streams: '95M+' },
             ]
+        },
+        'techno': {
+            label: 'Techno',
+            icon: '⚡',
+            tracks: [
+                { rank: 1, query: 'Charlotte de Witte Enrico Sangiuliano Age of Love', title: 'THE AGE OF LOVE (REMIX)', artist: 'CHARLOTTE DE WITTE & ENRICO SANGIULIANO', streams: '120M+' },
+                { rank: 2, query: 'Adam Beyer Enrico Sangiuliano Your Mind', title: 'YOUR MIND', artist: 'ADAM BEYER & ENRICO SANGIULIANO', streams: '150M+' },
+                { rank: 3, query: 'Boris Brejcha Gravity Laura Korinth', title: 'GRAVITY', artist: 'BORIS BREJCHA & LAURA KORINTH', streams: '110M+' },
+                { rank: 4, query: 'Amelie Lens Follow', title: 'FOLLOW', artist: 'AMELIE LENS', streams: '65M+' },
+                { rank: 5, query: 'Reinier Zonneveld Awakening', title: 'AWAKENING', artist: 'REINIER ZONNEVELD', streams: '70M+' },
+                { rank: 6, query: 'Joyhauser C166W', title: 'C166W', artist: 'JOYHAUSER', streams: '55M+' },
+                { rank: 7, query: 'Deborah de Luca Dori Me', title: 'DORI ME', artist: 'DEBORAH DE LUCA', streams: '80M+' },
+                { rank: 8, query: 'I Hate Models Daydream', title: 'DAYDREAM', artist: 'I HATE MODELS', streams: '90M+' },
+                { rank: 9, query: 'KASST Hell on Earth', title: 'HELL ON EARTH', artist: 'KAS:ST', streams: '60M+' },
+                { rank: 10, query: 'Charlotte de Witte Doppler', title: 'DOPPLER', artist: 'CHARLOTTE DE WITTE', streams: '50M+' },
+            ]
+        },
+        'indie dance': {
+            label: 'Indie Dance',
+            icon: '🕺',
+            tracks: [
+                { rank: 1, query: 'Bicep Glue', title: 'GLUE', artist: 'BICEP', streams: '280M+' },
+                { rank: 2, query: 'Peggy Gou Nanana', title: '(IT GOES LIKE) NANANA', artist: 'PEGGY GOU', streams: '540M+' },
+                { rank: 3, query: 'Fred again Marea', title: "MAREA (WE'VE LOST DANCING)", artist: 'FRED AGAIN.. & THE BLESSED MADONNA', streams: '420M+' },
+                { rank: 4, query: 'Todd Terje Inspector Norse', title: 'INSPECTOR NORSE', artist: 'TODD TERJE', streams: '160M+' },
+                { rank: 5, query: 'Rufus Du Sol Innerbloom', title: 'INNERBLOOM', artist: 'RÜFÜS DU SOL', streams: '360M+' },
+                { rank: 6, query: 'Four Tet Baby', title: 'BABY', artist: 'FOUR TET & ELLIE GOULDING', streams: '95M+' },
+                { rank: 7, query: 'The Blaze Territory', title: 'TERRITORY', artist: 'THE BLAZE', streams: '210M+' },
+                { rank: 8, query: 'Disclosure Sam Smith Latch', title: 'LATCH', artist: 'DISCLOSURE & SAM SMITH', streams: '980M+' },
+                { rank: 9, query: 'Overmono So U Kno', title: 'SO U KNO', artist: 'OVERMONO', streams: '75M+' },
+                { rank: 10, query: 'Jamie xx Gosh', title: 'GOSH', artist: 'JAMIE XX', streams: '130M+' },
+            ]
+        },
+        'nu disco': {
+            label: 'Nu Disco',
+            icon: '🪩',
+            tracks: [
+                { rank: 1, query: 'Purple Disco Machine Sophie Hypnotized', title: 'HYPNOTIZED', artist: 'PURPLE DISCO MACHINE & SOPHIE AND THE GIANTS', streams: '510M+' },
+                { rank: 2, query: 'Duck Sauce Barbra Streisand', title: 'BARBRA STREISAND', artist: 'DUCK SAUCE', streams: '380M+' },
+                { rank: 3, query: 'Breakbot Baby I am Yours', title: "BABY I'M YOURS", artist: 'BREAKBOT & IRFANE', streams: '350M+' },
+                { rank: 4, query: 'Purple Disco Machine In The Dark', title: 'IN THE DARK', artist: 'PURPLE DISCO MACHINE & SOPHIE AND THE GIANTS', streams: '240M+' },
+                { rank: 5, query: 'Folamour The Power and The Blessings of Unity', title: 'THE POWER AND THE BLESSINGS OF UNITY', artist: 'FOLAMOUR', streams: '65M+' },
+                { rank: 6, query: 'The Knocks Foster the People All About You', title: 'ALL ABOUT YOU', artist: 'THE KNOCKS & FOSTER THE PEOPLE', streams: '110M+' },
+                { rank: 7, query: 'SG Lewis Chemicals', title: 'CHEMICALS', artist: 'SG LEWIS', streams: '140M+' },
+                { rank: 8, query: 'Oliver Night Is On Fire', title: 'NIGHT IS ON FIRE', artist: 'OLIVER', streams: '45M+' },
+                { rank: 9, query: 'Sophie Lloyd Calling Out', title: 'CALLING OUT', artist: 'SOPHIE LLOYD & DAMES BROWN', streams: '50M+' },
+                { rank: 10, query: 'Armand Van Helden I Want Your Soul', title: 'I WANT YOUR SOUL', artist: 'ARMAND VAN HELDEN', streams: '75M+' },
+            ]
+        },
+        'disco': {
+            label: 'Nu Disco',
+            icon: '🪩',
+            tracks: [
+                { rank: 1, query: 'Purple Disco Machine Sophie Hypnotized', title: 'HYPNOTIZED', artist: 'PURPLE DISCO MACHINE & SOPHIE AND THE GIANTS', streams: '510M+' },
+                { rank: 2, query: 'Duck Sauce Barbra Streisand', title: 'BARBRA STREISAND', artist: 'DUCK SAUCE', streams: '380M+' },
+                { rank: 3, query: 'Breakbot Baby I am Yours', title: "BABY I'M YOURS", artist: 'BREAKBOT & IRFANE', streams: '350M+' },
+                { rank: 4, query: 'Purple Disco Machine In The Dark', title: 'IN THE DARK', artist: 'PURPLE DISCO MACHINE & SOPHIE AND THE GIANTS', streams: '240M+' },
+                { rank: 5, query: 'Folamour The Power and The Blessings of Unity', title: 'THE POWER AND THE BLESSINGS OF UNITY', artist: 'FOLAMOUR', streams: '65M+' },
+                { rank: 6, query: 'The Knocks Foster the People All About You', title: 'ALL ABOUT YOU', artist: 'THE KNOCKS & FOSTER THE PEOPLE', streams: '110M+' },
+                { rank: 7, query: 'SG Lewis Chemicals', title: 'CHEMICALS', artist: 'SG LEWIS', streams: '140M+' },
+                { rank: 8, query: 'Oliver Night Is On Fire', title: 'NIGHT IS ON FIRE', artist: 'OLIVER', streams: '45M+' },
+                { rank: 9, query: 'Sophie Lloyd Calling Out', title: 'CALLING OUT', artist: 'SOPHIE LLOYD & DAMES BROWN', streams: '50M+' },
+                { rank: 10, query: 'Armand Van Helden I Want Your Soul', title: 'I WANT YOUR SOUL', artist: 'ARMAND VAN HELDEN', streams: '75M+' },
+            ]
+        },
+        'funky house': {
+            label: 'Funky House',
+            icon: '🎷',
+            tracks: [
+                { rank: 1, query: 'Armand Van Helden You Dont Know Me', title: "YOU DON'T KNOW ME", artist: 'ARMAND VAN HELDEN', streams: '260M+' },
+                { rank: 2, query: 'Bob Sinclar I Feel For You', title: 'I FEEL FOR YOU', artist: 'BOB SINCLAR', streams: '180M+' },
+                { rank: 3, query: 'Roger Sanchez Another Chance', title: 'ANOTHER CHANCE', artist: 'ROGER SANCHEZ', streams: '220M+' },
+                { rank: 4, query: 'Junior Jack E Samba', title: 'E SAMBA', artist: 'JUNIOR JACK', streams: '140M+' },
+                { rank: 5, query: 'Shapeshifters Lolas Theme', title: "LOLA'S THEME", artist: 'THE SHAPESHIFTERS', streams: '290M+' },
+                { rank: 6, query: 'Cassius 1999', title: '1999', artist: 'CASSIUS', streams: '120M+' },
+                { rank: 7, query: 'Basement Jaxx Red Alert', title: 'RED ALERT', artist: 'BASEMENT JAXX', streams: '175M+' },
+                { rank: 8, query: 'Modjo Lady Hear Me Tonight', title: 'LADY (HEAR ME TONIGHT)', artist: 'MODJO', streams: '580M+' },
+                { rank: 9, query: 'Masters At Work Work Puppah Nas-T', title: 'WORK', artist: 'MASTERS AT WORK', streams: '95M+' },
+                { rank: 10, query: 'Fatboy Slim Praise You', title: 'PRAISE YOU', artist: 'FATBOY SLIM', streams: '340M+' },
+            ]
         }
     };
 
@@ -1535,16 +1620,17 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         setArtistLogo('');
         artistLogoRef.current = null;
 
-        const normalizedKey = cleaned.toLowerCase().replace(/[-_]+/g, ' ').trim();
-        const presetKey = Object.keys(TOP10_GENRE_PRESETS).find(k => normalizedKey === k || normalizedKey.includes(k) || k.includes(normalizedKey));
-        const preset = presetKey ? TOP10_GENRE_PRESETS[presetKey] : null;
+        const normalizedKey = cleaned.toLowerCase().replace(/[-_]+/g, ' ').replace(/\s+/g, ' ').trim();
+        // Correspondance stricte directe pour ne JAMAIS remplacer "techno" par "melodic techno"
+        const preset = TOP10_GENRE_PRESETS[normalizedKey] || null;
 
-        const displayStyleTitle = preset ? preset.label : cleaned.toUpperCase();
-        setTop10Title(`TOP 10 *${displayStyleTitle.toUpperCase()}*`);
-        top10TitleRef.current = `TOP 10 *${displayStyleTitle.toUpperCase()}*`;
-        setTop10IntroArtist(displayStyleTitle.toUpperCase());
-        top10IntroArtistRef.current = displayStyleTitle.toUpperCase();
-        setTop10Badge(`TOP 10 ${displayStyleTitle.toUpperCase()}`);
+        // Conserver STRICTEMENT le nom de style tapé par l'utilisateur
+        const displayStyleTitle = cleaned.toUpperCase();
+        setTop10Title(`TOP 10 *${displayStyleTitle}*`);
+        top10TitleRef.current = `TOP 10 *${displayStyleTitle}*`;
+        setTop10IntroArtist(displayStyleTitle);
+        top10IntroArtistRef.current = displayStyleTitle;
+        setTop10Badge(`TOP 10 ${displayStyleTitle}`);
 
         try {
             if (preset) {
@@ -9401,32 +9487,39 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     const currentTracks = (top10TracksRef.current && top10TracksRef.current.length === 10) ? top10TracksRef.current : top10Tracks;
                     const currentActiveRank = top10ActiveRankRef.current ?? top10ActiveRank;
 
-                    // Découpeur de titre pour illuminer en bleu néon #00F0FF les mots entourés d'*astérisques* (ou par défaut TOP 10 / STREAM...)
-                    const parseTop10TitleSegments = (lineText: string): { text: string; isBlue: boolean }[] => {
+                    // Différenciation de couleur : Bleu Néon pour Artistes, Violet EDM (ou personnalisé) pour Styles
+                    const isStyleMode = (top10GenModeRef.current || top10GenMode) === 'style';
+                    const activeStyleColor = top10StyleColorRef.current || top10StyleColor || '#BD00FF';
+                    const activeStyleRgb = hexToRgb(activeStyleColor);
+                    const top10AccentColor = isStyleMode ? activeStyleColor : '#00f0ff';
+                    const top10AccentRgb = isStyleMode ? activeStyleRgb : '0, 240, 255';
+
+                    // Découpeur de titre pour illuminer en couleur néon les mots entourés d'*astérisques* (ou par défaut TOP 10 / STREAM...)
+                    const parseTop10TitleSegments = (lineText: string): { text: string; isHighlighted: boolean }[] => {
                         const hasAsterisks = lineText.includes('*');
                         const regex = hasAsterisks
                             ? /(\*([^*]+)\*)/gi
                             : /(TOP\s*10|\bSTREAM\S*|\bJOU\S*)/gi;
 
-                        const segs: { text: string; isBlue: boolean }[] = [];
+                        const segs: { text: string; isHighlighted: boolean }[] = [];
                         let lastIndex = 0;
                         let match: RegExpExecArray | null;
 
                         while ((match = regex.exec(lineText)) !== null) {
                             if (match.index > lastIndex) {
-                                segs.push({ text: lineText.slice(lastIndex, match.index).replace(/\*/g, ''), isBlue: false });
+                                segs.push({ text: lineText.slice(lastIndex, match.index).replace(/\*/g, ''), isHighlighted: false });
                             }
                             let matchedText = match[0];
                             if (matchedText.startsWith('*') && matchedText.endsWith('*')) {
                                 matchedText = matchedText.slice(1, -1);
                             }
-                            segs.push({ text: matchedText, isBlue: true });
+                            segs.push({ text: matchedText, isHighlighted: true });
                             lastIndex = regex.lastIndex;
                         }
                         if (lastIndex < lineText.length) {
-                            segs.push({ text: lineText.slice(lastIndex).replace(/\*/g, ''), isBlue: false });
+                            segs.push({ text: lineText.slice(lastIndex).replace(/\*/g, ''), isHighlighted: false });
                         }
-                        return segs.length > 0 ? segs : [{ text: lineText.replace(/\*/g, ''), isBlue: false }];
+                        return segs.length > 0 ? segs : [{ text: lineText.replace(/\*/g, ''), isHighlighted: false }];
                     };
 
                     if (currentActiveRank === 0) {
@@ -9479,15 +9572,15 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             canvas.width / 2, 880, 80 * auraBreath,
                             canvas.width / 2, 880, 680 * auraBreath
                         );
-                        auraGrad.addColorStop(0, 'rgba(0, 240, 255, 0.25)');
-                        auraGrad.addColorStop(0.45, 'rgba(0, 240, 255, 0.06)');
+                        auraGrad.addColorStop(0, `rgba(${top10AccentRgb}, 0.28)`);
+                        auraGrad.addColorStop(0.45, `rgba(${top10AccentRgb}, 0.06)`);
                         auraGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
                         ctx.fillStyle = auraGrad;
                         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
                         // 3. Particules montantes festival (rendu ultra-fluide 60fps)
                         ctx.save();
-                        ctx.shadowColor = '#00f0ff';
+                        ctx.shadowColor = top10AccentColor;
                         ctx.shadowBlur = 6;
                         for (let p = 0; p < 36; p++) {
                             const seedX = ((p * 137.5) % 1) * canvas.width;
@@ -9499,7 +9592,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             const rawY = (canvas.height + 70) - ((introAnimTime * speed + p * 89.3) % totalH);
                             const pX = seedX + Math.sin(introAnimTime * swaySpeed + p * 1.8) * swayAmp;
                             ctx.globalAlpha = p % 2 === 0 ? 0.70 : 0.40;
-                            ctx.fillStyle = p % 2 === 0 ? '#00f0ff' : '#ffffff';
+                            ctx.fillStyle = p % 2 === 0 ? top10AccentColor : '#ffffff';
                             ctx.beginPath();
                             ctx.arc(pX, rawY, pSize, 0, Math.PI * 2);
                             ctx.fill();
@@ -9507,7 +9600,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         ctx.restore();
 
                         // 4. Badge en haut à gauche
-                        drawTopCapsuleBadge((top10BadgeRef.current || top10Badge || 'TOP 10 TRACKS').toUpperCase(), '#00f0ff', '0, 240, 255');
+                        drawTopCapsuleBadge((top10BadgeRef.current || top10Badge || 'TOP 10 TRACKS').toUpperCase(), top10AccentColor, top10AccentRgb);
 
                         const isStory = canvas.height > 1500;
                         const centerX = canvas.width / 2;
@@ -9620,7 +9713,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                             segments.forEach(seg => {
                                 const segW = ctx.measureText(seg.text).width;
-                                const color = seg.isBlue ? '#00f0ff' : '#ffffff';
+                                const color = seg.isHighlighted ? top10AccentColor : '#ffffff';
 
                                 // 1. Ombre portée profonde diffuse
                                 ctx.save();
@@ -9642,14 +9735,14 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 ctx.fillText(seg.text, curX, lineY);
                                 ctx.restore();
 
-                                // 3. Lueur néon spéciale pour les mots en bleu ("TOP 10", "STREAMÉES")
-                                if (seg.isBlue) {
+                                // 3. Lueur néon spéciale pour les mots en couleur néon (Bleu pour Artiste, Violet EDM pour Styles)
+                                if (seg.isHighlighted) {
                                     ctx.save();
-                                    ctx.shadowColor = 'rgba(0, 240, 255, 0.85)';
+                                    ctx.shadowColor = `rgba(${top10AccentRgb}, 0.85)`;
                                     ctx.shadowBlur = 18;
                                     ctx.shadowOffsetX = 0;
                                     ctx.shadowOffsetY = 0;
-                                    ctx.fillStyle = '#00f0ff';
+                                    ctx.fillStyle = top10AccentColor;
                                     ctx.fillText(seg.text, curX, lineY);
                                     ctx.restore();
                                 }
@@ -9678,7 +9771,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 applyTextAnimCtx(ctx, 0.20 + titleLines.length * 0.10, centerX, artistCenterY, introAnimTime);
                             }
 
-                            ctx.shadowColor = 'rgba(0, 240, 255, 0.85)';
+                            ctx.shadowColor = `rgba(${top10AccentRgb}, 0.85)`;
                             ctx.shadowBlur = 30;
 
                             if (isArtistLogoNegative) {
@@ -9687,7 +9780,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             ctx.drawImage(artistLogoObj, lx, ly, logoW, logoH);
                             ctx.restore();
                         } else {
-                            // ➔ PAS DE LOGO : NOM DE L'ARTISTE ANCRÉ AU CENTRE EXACT (artistCenterY)
+                            // ➔ PAS DE LOGO : NOM DE L'ARTISTE / STYLE ANCRÉ AU CENTRE EXACT (artistCenterY)
                             ctx.save();
                             if (!isStaticPngExport && textAnimation !== 'NONE') {
                                 applyTextAnimCtx(ctx, 0.20 + titleLines.length * 0.10, centerX, artistCenterY, introAnimTime);
@@ -9702,15 +9795,15 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             ctx.shadowBlur = 32;
                             ctx.shadowOffsetX = 0;
                             ctx.shadowOffsetY = 6;
-                            ctx.fillStyle = '#00f0ff';
+                            ctx.fillStyle = top10AccentColor;
                             ctx.fillText(effectiveArtistName, centerX, artistCenterY);
 
-                            // Intense Neon Blue / Cyan Glow
-                            ctx.shadowColor = 'rgba(0, 240, 255, 0.90)';
+                            // Intense Neon Glow (Bleu pour Artiste, Violet EDM pour Styles)
+                            ctx.shadowColor = `rgba(${top10AccentRgb}, 0.90)`;
                             ctx.shadowBlur = 26;
                             ctx.shadowOffsetX = 0;
                             ctx.shadowOffsetY = 0;
-                            ctx.fillStyle = '#00f0ff';
+                            ctx.fillStyle = top10AccentColor;
                             ctx.fillText(effectiveArtistName, centerX, artistCenterY);
 
                             ctx.restore();
@@ -9731,7 +9824,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         const pTopY = pillY - pH / 2;
 
                         ctx.fillStyle = 'rgba(10, 14, 22, 0.85)';
-                        ctx.strokeStyle = 'rgba(0, 240, 255, 0.5)';
+                        ctx.strokeStyle = `rgba(${top10AccentRgb}, 0.5)`;
                         ctx.lineWidth = 1.5;
                         ctx.beginPath();
                         ctx.roundRect(pX, pTopY, pW, pH, pH / 2);
@@ -9740,8 +9833,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                         ctx.textAlign = 'center';
                         ctx.textBaseline = 'middle';
-                        ctx.fillStyle = '#00f0ff';
-                        ctx.shadowColor = 'rgba(0, 240, 255, 0.6)';
+                        ctx.fillStyle = top10AccentColor;
+                        ctx.shadowColor = `rgba(${top10AccentRgb}, 0.6)`;
                         ctx.shadowBlur = 8;
                         ctx.fillText(pillLabel, canvas.width / 2, pillY);
                         ctx.restore();
@@ -9940,8 +10033,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.fillRect(0, canvas.height - 420, canvas.width, 420);
                     ctx.restore();
 
-                    // 1. Top-Left Badge Dropsiders (Effets News avec couleur bleu néon comme avant)
-                    drawTopCapsuleBadge((top10BadgeRef.current || top10Badge || 'TOP 10 TRACKS').toUpperCase(), '#00f0ff', '0, 240, 255');
+                    // 1. Top-Left Badge Dropsiders (Effets News avec couleur néon dynamique)
+                    drawTopCapsuleBadge((top10BadgeRef.current || top10Badge || 'TOP 10 TRACKS').toUpperCase(), top10AccentColor, top10AccentRgb);
 
                     // 2. Header Titre Principal (TOP 10 TRACKS par défaut, sans doublon artiste)
                     ctx.save();
@@ -9980,7 +10073,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                     trackSegments.forEach(seg => {
                         const segW = ctx.measureText(seg.text).width;
-                        const color = seg.isBlue ? '#00f0ff' : '#ffffff';
+                        const color = seg.isHighlighted ? top10AccentColor : '#ffffff';
 
                         // 1. Ombre portée profonde diffuse
                         ctx.save();
@@ -10002,12 +10095,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         ctx.fillText(seg.text, trackCurX, 260);
                         ctx.restore();
 
-                        // 3. Lueur néon si bleu
-                        if (seg.isBlue) {
+                        // 3. Lueur néon si mis en valeur (Bleu pour Artiste, Violet EDM pour Style)
+                        if (seg.isHighlighted) {
                             ctx.save();
-                            ctx.shadowColor = 'rgba(0, 240, 255, 0.85)';
+                            ctx.shadowColor = `rgba(${top10AccentRgb}, 0.85)`;
                             ctx.shadowBlur = 16;
-                            ctx.fillStyle = '#00f0ff';
+                            ctx.fillStyle = top10AccentColor;
                             ctx.fillText(seg.text, trackCurX, 260);
                             ctx.restore();
                         }
@@ -10045,7 +10138,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         if (!isStaticPngExport && textAnimation !== 'NONE') {
                             applyTextAnimCtx(ctx, 0.04, canvas.width / 2, logoAreaCenterY, trackAnimTime);
                         }
-                        ctx.shadowColor = 'rgba(0, 240, 255, 0.85)';
+                        ctx.shadowColor = `rgba(${top10AccentRgb}, 0.85)`;
                         ctx.shadowBlur = 20;
                         if (isArtistLogoNegative) {
                             ctx.filter = 'brightness(0) invert(1)';
@@ -10068,8 +10161,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             aFontSize = Math.max(22, Math.floor(aFontSize * (820 / aW)));
                             ctx.font = `900 italic ${aFontSize}px "Montserrat", sans-serif`;
                         }
-                        ctx.fillStyle = '#00f0ff';
-                        ctx.shadowColor = 'rgba(0, 240, 255, 0.9)';
+                        ctx.fillStyle = top10AccentColor;
+                        ctx.shadowColor = `rgba(${top10AccentRgb}, 0.9)`;
                         ctx.shadowBlur = 18;
                         ctx.fillText(countdownArtistName, canvas.width / 2, logoAreaCenterY);
                         ctx.restore();
@@ -20486,102 +20579,96 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         )}
                     </div>
 
-                    {/* SÉLECTEUR DE MODE : PAR STYLE / GENRE (AFRO HOUSE, TECHNO...) vs PAR ARTISTE */}
+                    {/* SÉLECTEUR DE MODE : PAR STYLE / GENRE (VIOLET EDM) vs PAR ARTISTE (BLEU NÉON) */}
                     <div className="grid grid-cols-2 gap-1.5 p-1 bg-black/60 border border-white/10 rounded-xl">
                         <button
                             type="button"
-                            onClick={() => setTop10GenMode('style')}
+                            onClick={() => {
+                                setTop10GenMode('style');
+                                top10GenModeRef.current = 'style';
+                                generateImage();
+                            }}
                             className={`py-2 px-2.5 rounded-lg text-[9px] font-black uppercase transition-all flex items-center justify-center gap-1.5 ${top10GenMode === 'style'
-                                ? 'bg-gradient-to-r from-neon-cyan to-blue-500 text-black shadow-[0_0_12px_rgba(0,240,255,0.4)]'
+                                ? 'bg-gradient-to-r from-[#bd00ff] to-[#7928ca] text-white shadow-[0_0_14px_rgba(189,0,255,0.5)] border border-[#bd00ff]/60'
                                 : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
                                 }`}
                         >
                             <span>🎧</span>
-                            <span>Par Style / Genre</span>
+                            <span>Par Style / Genre (Violet EDM)</span>
                         </button>
                         <button
                             type="button"
-                            onClick={() => setTop10GenMode('artist')}
+                            onClick={() => {
+                                setTop10GenMode('artist');
+                                top10GenModeRef.current = 'artist';
+                                generateImage();
+                            }}
                             className={`py-2 px-2.5 rounded-lg text-[9px] font-black uppercase transition-all flex items-center justify-center gap-1.5 ${top10GenMode === 'artist'
-                                ? 'bg-gradient-to-r from-neon-cyan to-blue-500 text-black shadow-[0_0_12px_rgba(0,240,255,0.4)]'
+                                ? 'bg-gradient-to-r from-neon-cyan to-blue-500 text-black shadow-[0_0_14px_rgba(0,240,255,0.4)] border border-neon-cyan/60'
                                 : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
                                 }`}
                         >
                             <span>👤</span>
-                            <span>Par Artiste / DJ</span>
+                            <span>Par Artiste / DJ (Bleu Néon)</span>
                         </button>
                     </div>
 
                     {top10GenMode === 'style' ? (
-                        /* ─── OPTION 1 : GÉNÉRATION PAR STYLE (AFRO HOUSE, MELODIC TECHNO, ETC.) ─── */
-                        <div className="space-y-2.5">
-                            <div className="space-y-1.5">
-                                <label className="text-[8px] font-black text-gray-300 uppercase tracking-wider flex items-center justify-between">
-                                    <span>Styles Électro Populaires (1-Clic) :</span>
-                                    <span className="text-[7.5px] text-neon-cyan font-mono">10 plus streamés</span>
+                        /* ─── OPTION 1 : RECHERCHE LIBRE PAR STYLE / GENRE ÉLECTRONIQUE (TOUT STYLE ACCEPTÉ) ─── */
+                        <div className="space-y-2.5 p-3 bg-black/60 border border-[#bd00ff]/35 rounded-xl shadow-lg">
+                            <div className="flex items-center justify-between">
+                                <label className="text-[8.5px] font-black text-[#bd00ff] uppercase tracking-wider flex items-center gap-1.5">
+                                    <span>⚡ Style / Genre Électronique :</span>
                                 </label>
-                                <div className="grid grid-cols-2 gap-1.5">
+                                <div className="flex items-center gap-1.5">
+                                    <span className="text-[7.5px] text-gray-400 font-bold uppercase">Couleur Style :</span>
                                     {[
-                                        { key: 'afro house', label: '🌍 Afro House', hot: true },
-                                        { key: 'melodic techno', label: '🌌 Melodic Techno' },
-                                        { key: 'tech house', label: '⚡ Tech House' },
-                                        { key: 'edm', label: '🎆 EDM / Mainstage' },
-                                        { key: 'hardstyle', label: '🔨 Hardstyle' },
-                                        { key: 'drum and bass', label: '🥁 Drum & Bass' },
-                                        { key: 'bass house', label: '🔊 Bass House' },
-                                        { key: 'amapiano', label: '🌴 Amapiano' },
-                                    ].map(genre => (
+                                        { label: 'Violet EDM', color: '#BD00FF' },
+                                        { label: 'Vert Laser', color: '#00FF66' },
+                                        { label: 'Rose Fluo', color: '#FF007F' },
+                                        { label: 'Or Festival', color: '#FFB800' },
+                                    ].map(c => (
                                         <button
-                                            key={genre.key}
+                                            key={c.color}
                                             type="button"
-                                            disabled={isAutoFillingTop10}
                                             onClick={() => {
-                                                setTop10StyleSearch(genre.key);
-                                                handleAutoFetchStyleTop10(genre.key);
+                                                setTop10StyleColor(c.color);
+                                                top10StyleColorRef.current = c.color;
+                                                generateImage();
                                             }}
-                                            className={`py-2 px-2 rounded-xl text-[8.5px] font-black uppercase transition-all flex items-center justify-between border active:scale-95 disabled:opacity-40 ${top10StyleSearch.toLowerCase() === genre.key
-                                                ? 'bg-neon-cyan/25 border-neon-cyan text-neon-cyan shadow-[0_0_12px_rgba(0,240,255,0.35)]'
-                                                : 'bg-black/50 border-white/10 text-gray-300 hover:text-white hover:border-neon-cyan/40 hover:bg-white/5'
-                                                }`}
-                                        >
-                                            <span className="truncate">{genre.label}</span>
-                                            {genre.hot && (
-                                                <span className="px-1 py-0.2 bg-neon-cyan text-black text-[6.5px] font-black rounded uppercase ml-1 shrink-0 animate-pulse">
-                                                    POPULAIRE
-                                                </span>
-                                            )}
-                                        </button>
+                                            className={`w-3.5 h-3.5 rounded-full transition-all border ${top10StyleColor === c.color ? 'ring-2 ring-white scale-110 border-white' : 'border-white/20 opacity-70 hover:opacity-100'}`}
+                                            style={{ backgroundColor: c.color }}
+                                            title={c.label}
+                                        />
                                     ))}
                                 </div>
                             </div>
 
-                            {/* Recherche libre pour n'importe quel autre style */}
-                            <div className="space-y-1.5 pt-1 border-t border-white/10">
-                                <label className="text-[8px] font-black text-gray-300 uppercase tracking-wider flex items-center justify-between">
-                                    <span>Ou tapez un autre style musical :</span>
-                                    <span className="text-[7.5px] text-gray-400 font-mono">Recherche globale</span>
-                                </label>
-                                <div className="flex items-center gap-1.5">
-                                    <input
-                                        type="text"
-                                        value={top10StyleSearch}
-                                        onChange={e => setTop10StyleSearch(e.target.value)}
-                                        onKeyDown={e => {
-                                            if (e.key === 'Enter') handleAutoFetchStyleTop10(top10StyleSearch);
-                                        }}
-                                        placeholder="ex: Afro House, Future Rave, Deep House..."
-                                        className="flex-1 bg-black/60 border border-white/10 rounded-xl px-2.5 py-2 text-white text-[10.5px] font-bold focus:border-neon-cyan outline-none placeholder:text-gray-500"
-                                    />
-                                    <button
-                                        type="button"
-                                        disabled={isAutoFillingTop10 || !top10StyleSearch.trim()}
-                                        onClick={() => handleAutoFetchStyleTop10(top10StyleSearch)}
-                                        className="px-3.5 py-2 bg-neon-cyan text-black font-black text-[9.5px] uppercase rounded-xl hover:bg-neon-cyan/80 transition-all disabled:opacity-40 shrink-0 shadow-md shadow-neon-cyan/20 active:scale-95"
-                                    >
-                                        {isAutoFillingTop10 ? '⏳...' : '⚡ Générer'}
-                                    </button>
-                                </div>
+                            <div className="flex items-center gap-1.5">
+                                <input
+                                    type="text"
+                                    value={top10StyleSearch}
+                                    onChange={e => setTop10StyleSearch(e.target.value)}
+                                    onKeyDown={e => {
+                                        if (e.key === 'Enter') handleAutoFetchStyleTop10(top10StyleSearch);
+                                    }}
+                                    placeholder="ex: Techno, Indie Dance, Nu Disco, Funky House, Melodic Techno..."
+                                    className="flex-1 bg-black/80 border border-[#bd00ff]/30 focus:border-[#bd00ff] rounded-xl px-2.5 py-2.5 text-white text-[10.5px] font-bold outline-none placeholder:text-gray-500 shadow-inner"
+                                />
+                                <button
+                                    type="button"
+                                    disabled={isAutoFillingTop10 || !top10StyleSearch.trim()}
+                                    onClick={() => handleAutoFetchStyleTop10(top10StyleSearch)}
+                                    className="px-3.5 py-2.5 bg-gradient-to-r from-[#bd00ff] to-[#7928ca] hover:brightness-110 text-white font-black text-[9.5px] uppercase rounded-xl transition-all disabled:opacity-40 shrink-0 shadow-md shadow-[#bd00ff]/30 active:scale-95 flex items-center gap-1"
+                                >
+                                    <span>{isAutoFillingTop10 ? '⏳' : '⚡'}</span>
+                                    <span>{isAutoFillingTop10 ? 'Génération...' : 'Générer le Top 10'}</span>
+                                </button>
                             </div>
+
+                            <p className="text-[7.5px] text-gray-400 leading-tight">
+                                ✨ <span className="text-neon-cyan font-bold">Bleu Néon = Artistes</span> • <span style={{ color: top10StyleColor }} className="font-bold">Couleur choisie = Styles</span>. Tape n'importe quel style de musique électronique : le titre exact et 10 morceaux officiels avec pochettes HD seront résolus !
+                            </p>
                         </div>
                     ) : (
                         /* ─── OPTION 2 : RECHERCHE PAR NOM D'ARTISTE / DJ ─── */
@@ -20613,7 +20700,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         </div>
                     )}
 
-                    {/* 🎨 LOGO OFFICIEL DE L'ARTISTE (RECHERCHE WEB & UPLOAD INTÉGRÉS ICI) */}
+                    {/* 🎨 LOGO OFFICIEL DE L'ARTISTE (Affiché si mode artiste ou si un logo est déjà présent) */}
+                    {(top10GenMode === 'artist' || Boolean(artistLogo)) && (
                     <div className="p-3 bg-black/60 border border-neon-cyan/35 rounded-xl space-y-2.5">
                         <div className="flex items-center justify-between">
                             <span className="text-[9px] font-black text-white uppercase tracking-wider flex items-center gap-1.5">
@@ -20742,6 +20830,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             </div>
                         )}
                     </div>
+                    )}
 
                     {/* TRIEUR MAGIQUE SPOTIFY & KWORB (Résout le mauvais tri de Spotify !) */}
                     <div className="pt-2 border-t border-white/10 space-y-2">
