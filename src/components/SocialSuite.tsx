@@ -4728,7 +4728,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     try { (ctx as any).textRendering = 'geometricPrecision'; } catch (_) { }
                 }
                 const isStaticPngExport = exportMode === true || isDownloading;
-                const isAnyAnimationActive = !isStaticPngExport && (textAnimation !== 'NONE' || bgAnimation !== 'NONE' || (theme === 'JEU_DJ' && isCurrentSlideSilhouette && djAppearanceAnim !== 'STATIC') || (theme === 'PLANNING' && activeTab === 'REEL') || theme === 'TOP 100 DROPSIDERS' || theme === 'TOP 10 TRACKS');
+                const isAnyAnimationActive = !isStaticPngExport && (activeTab === 'REEL' || textAnimation !== 'NONE' || bgAnimation !== 'NONE' || (theme === 'JEU_DJ' && isCurrentSlideSilhouette && djAppearanceAnim !== 'STATIC') || theme === 'TOP 100 DROPSIDERS' || theme === 'TOP 10 TRACKS');
                 const animElapsed = isVideoRecordingRef.current
                     ? deterministicAnimTimeRef.current
                     : (isStaticPngExport
@@ -5562,6 +5562,92 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     }
 
                     ctx.restore();
+                };
+
+                // ==========================================
+                // LOGO DROPSIDERS 3D RELIEF & NACRAGE COULEUR THÈME
+                // ==========================================
+                const drawDropsiders3DLogo = (customX?: number, customY?: number, customW?: number) => {
+                    if (!logoRef.current || !logoRef.current.complete || !logoRef.current.naturalWidth) return;
+                    const logo = logoRef.current;
+                    const isReel = effectiveTab === 'REEL';
+                    const w = customW !== undefined ? customW : (isReel ? 275 : 290);
+                    const xOffset = isReel ? 80 : 60;
+                    const yOffset = isReel ? 56 : 38;
+                    const posX = customX !== undefined ? customX : (canvas.width - w - xOffset);
+                    const posY = customY !== undefined ? customY : yOffset;
+                    const logoH = (logo.height * w) / logo.width;
+                    const centerX = posX + w / 2;
+                    const centerY = posY + logoH / 2;
+
+                    const effectiveThemeHex = (typeof activeColor === 'string' ? activeColor : activeColor?.color)
+                        || (typeof themeColor === 'string' ? themeColor : themeColor?.color)
+                        || baseThemeData[theme]?.color
+                        || '#00f0ff';
+
+                    // Cycle harmonique continu de 4.2s (vitesse maximale à 0°, aucun à-coup)
+                    // En export PNG ou aperçu statique, angle fixe (t = 0.55s) pour révéler le relief et le nacrage
+                    const t = animElapsed >= 90.0 ? 0.55 : (animElapsed % 4.2);
+                    const angleY = Math.sin((t / 4.2) * Math.PI * 2) * 0.38;
+                    const cosA = Math.cos(angleY);
+                    const sinA = Math.sin(angleY);
+
+                    ctx.save();
+                    ctx.translate(centerX, centerY);
+                    ctx.transform(cosA, sinA * 0.08, 0, 1, 0, 0);
+
+                    // 1. Ombre portée de contact profonde
+                    ctx.save();
+                    ctx.shadowColor = 'rgba(0, 0, 0, 0.88)';
+                    ctx.shadowBlur = 16;
+                    ctx.shadowOffsetX = 0;
+                    ctx.shadowOffsetY = 6;
+
+                    // 2. Tranches 3D volumétriques extrudées (Acier sombre / Titane neutre sans bavure de couleur)
+                    const extrudeDepth = 14;
+                    const sliceCount = 10;
+                    for (let s = sliceCount; s >= 1; s--) {
+                        const z = (s / sliceCount) * extrudeDepth;
+                        const sliceX = -sinA * z * 0.85;
+                        const sliceY = z * 0.12;
+                        const ratio = 1 - (s / sliceCount);
+                        const shade = 0.16 + ratio * 0.42;
+
+                        ctx.save();
+                        ctx.translate(sliceX, sliceY);
+                        if ('filter' in ctx) {
+                            ctx.filter = `brightness(0) invert(${shade.toFixed(2)})`;
+                        }
+                        ctx.globalAlpha = 0.96;
+                        ctx.drawImage(logo, -w / 2, -logoH / 2, w, logoH);
+                        ctx.restore();
+                    }
+                    ctx.restore(); // Restaure l'ombre de contact
+
+                    // 3. Face avant : Blanc pur 100% net (priorité absolue)
+                    ctx.save();
+                    if ('filter' in ctx) ctx.filter = 'none';
+                    ctx.globalAlpha = 1.0;
+                    ctx.drawImage(logo, -w / 2, -logoH / 2, w, logoH);
+
+                    // 4. Nacrage dynamique couleur thème incrusté directement sur les lettres (source-atop)
+                    try {
+                        ctx.globalCompositeOperation = 'source-atop';
+                        const shiftX = Math.sin((t / 4.2) * Math.PI * 2) * (w * 0.45);
+                        const gradW = w * 0.55;
+                        const nacreGrad = ctx.createLinearGradient(shiftX - gradW, 0, shiftX + gradW, 0);
+                        const rgb = hexToRgb(effectiveThemeHex);
+                        nacreGrad.addColorStop(0, `rgba(${rgb}, 0)`);
+                        nacreGrad.addColorStop(0.25, `rgba(${rgb}, 0.25)`);
+                        nacreGrad.addColorStop(0.5, `rgba(${rgb}, 0.85)`);
+                        nacreGrad.addColorStop(0.75, `rgba(${rgb}, 0.25)`);
+                        nacreGrad.addColorStop(1, `rgba(${rgb}, 0)`);
+                        ctx.fillStyle = nacreGrad;
+                        ctx.fillRect(-w / 2, -logoH / 2, w, logoH);
+                    } catch (_) { }
+                    ctx.restore(); // Restaure le masque source-atop
+
+                    ctx.restore(); // Restaure la projection 3D
                 };
 
                 // Indicateur Swipe moderne avec Chevrons en Cascade animés (Option 2)
@@ -7815,16 +7901,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         ctx.restore();
                     }
 
-                    // 5. Dropsiders Logo (Top Right) - Aligned with other themes
+                    // 5. Dropsiders Logo (Top Right) - Aligned with other themes (3D + Nacrage Thème)
                     if (logoRef.current) {
-                        const logo = logoRef.current;
                         const lw = 320;
-                        const lh = (logo.height / logo.width) * lw;
                         const xOffset = bgVideo ? 140 : 40;
                         const yOffset = bgVideo ? 70 : 20;
-                        ctx.save();
-                        ctx.drawImage(logo, canvas.width - lw - xOffset, yOffset, lw, lh);
-                        ctx.restore();
+                        drawDropsiders3DLogo(canvas.width - lw - xOffset, yOffset, lw);
                     }
 
                 } else if (theme === 'CITATION') {
@@ -11992,18 +12074,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                 // --- FINAL OVERLAYS (Logo & Swipe) ---
                 if (logoRef.current && theme !== 'SPOTLIGHT' && !(theme === 'ARTISTE FESTIVAL' && artisteFestivalSlide === 2) && theme !== 'PROMO') {
-                    const logo = logoRef.current;
-                    const isReel = effectiveTab === 'REEL';
-                    const w = isReel ? 275 : 290;
-                    // Safe margins preventing cropping from rounded corners and Instagram UI
-                    const xOffset = isReel ? 80 : 60;
-                    const yOffset = isReel ? 56 : 38;
-                    const logoH = (logo.height * w) / logo.width;
-                    ctx.save();
-                    ctx.shadowColor = 'rgba(0,0,0,0.6)';
-                    ctx.shadowBlur = 18;
-                    ctx.drawImage(logo, canvas.width - w - xOffset, yOffset, w, logoH);
-                    ctx.restore();
+                    drawDropsiders3DLogo();
                 }
 
                 // Optional discreet frame around the image/canvas
@@ -12183,7 +12254,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         const shouldAnimateBadge = isBadgeTheme && activeTab === 'REEL';
         const shouldAnimateMap = theme === 'MAP' && isMapAnimPlaying;
         const shouldAnimateTweet = isEditorialTweetActive && tweetAnimMode !== 'NONE';
-        if (bgVideo || textAnimation !== 'NONE' || bgAnimation !== 'NONE' || showArticleLink || theme === 'TRACKLIST' || theme === 'MUSIQUE' || (theme === 'JEU_DJ' && djAppearanceAnim !== 'STATIC') || transitionProgress > 0 || shouldAnimateBadge || (showSwipe && activeTab === 'REEL') || (isCarouselPromoActive && (promoOutroStyle === 'INSTAGRAM' || promoOutroStyle === 'PHONE_3D') && isPromoAnimPlaying) || (theme === 'PROMO' && isPromoAnimPlaying) || theme === 'TOP 100 DROPSIDERS' || theme === 'TOP 10 TRACKS' || shouldAnimateMap || shouldAnimateTweet) {
+        if (activeTab === 'REEL' || bgVideo || textAnimation !== 'NONE' || bgAnimation !== 'NONE' || showArticleLink || theme === 'TRACKLIST' || theme === 'MUSIQUE' || (theme === 'JEU_DJ' && djAppearanceAnim !== 'STATIC') || transitionProgress > 0 || (isCarouselPromoActive && (promoOutroStyle === 'INSTAGRAM' || promoOutroStyle === 'PHONE_3D') && isPromoAnimPlaying) || (theme === 'PROMO' && isPromoAnimPlaying) || theme === 'TOP 100 DROPSIDERS' || theme === 'TOP 10 TRACKS' || shouldAnimateMap || shouldAnimateTweet) {
             let isRendering = false;
             const loop = () => {
                 if (isVideoRecordingRef.current) return;
