@@ -92,3 +92,30 @@ export function resolveBeatportGenre(query: string): BeatportGenreMeta {
   return BEATPORT_GENRES.find(g => g.slug === 'house')!;
 }
 
+
+
+export function cleanTop10TrackTitle(name?: string, mixName?: string): string {
+  let combined = (name || '').trim();
+  const cleanMix = (mixName || '').trim();
+
+  if (cleanMix && !combined.toLowerCase().includes(cleanMix.toLowerCase())) {
+    const isGeneric = /^(original|extended|radio)(\s*(mix|version|edit|cut))?$/i.test(cleanMix);
+    if (!isGeneric) {
+      combined = `${combined} (${cleanMix})`;
+    }
+  }
+
+  return combined
+    .replace(/\s*\(\s*(?:original|extended)\s*(?:mix|version|edit|cut)?\s*\)/gi, '')
+    .replace(/\s*\[\s*(?:original|extended)\s*(?:mix|version|edit|cut)?\s*\]/gi, '')
+    .replace(/\s*-\s*(?:original|extended)\s*(?:mix|version|edit|cut)?\s*$/gi, '')
+    .replace(/\bextended\s+remix\b/gi, 'Remix')
+    .replace(/(\(\s*[^)]*?\b)extended\s+remix(\b[^)]*?\))/gi, '$1Remix$2')
+    .replace(/(\(\s*[^)]*?)\bextended\s*([^)]*?\))/gi, '$1$2')
+    .replace(/(\[\s*[^\]]*?)\bextended\s*([^\]]*?\])/gi, '$1$2')
+    .replace(/\bextended\b\s*/gi, '')
+    .replace(/\s*\(\s*\)/g, '')
+    .replace(/\s*\[\s*\]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}

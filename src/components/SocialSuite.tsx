@@ -48,7 +48,7 @@ import { resolveImageUrl } from '../utils/image';
 import { resolveMusicSnippet, searchMusicTracksList, getBeatportToken, type ResolvedMusicData } from '../utils/musicResolver';
 import { fixWebmDuration } from '../utils/fixWebm';
 import recapsData from '../data/recaps.json';
-import { BEATPORT_GENRES, resolveBeatportGenre } from '../data/beatportGenres';
+import { BEATPORT_GENRES, resolveBeatportGenre, cleanTop10TrackTitle } from '../data/beatportGenres';
 import { renderPromoPhone3D } from './social/PromoPhone3DRenderer';
 import { translateToFrench } from '../utils/translate';
 // @ts-ignore
@@ -1372,13 +1372,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         const cUrl = t.cover || '';
                         mapped.push({
                             rank: rank,
-                            title: ((t.title || `TRACK #${rank}`)
-                                .replace(/\bextended\s+remix\b/gi, 'Remix')
-                                .replace(/(\(\s*.*?\b)extended\s+remix(\b.*?\))/gi, '$1Remix$2')
-                                .replace(/\s*\(\s*(?:original|extended)\s*(?:mix|version)?\s*\)/gi, '')
-                                .replace(/\s*\[\s*(?:original|extended)\s*(?:mix|version)?\s*\]/gi, '')
-                                .replace(/\s*-\s*(?:original|extended)\s*(?:mix|version)?/gi, '')
-                                .trim()).toUpperCase(),
+                            title: cleanTop10TrackTitle(t.title || `TRACK #${rank}`, t.mix_name).toUpperCase(),
                             artist: (t.artist || cleaned).toUpperCase(),
                             cover: cUrl,
                             audioUrl: t.audioUrl || '',
@@ -1445,13 +1439,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             const cUrl = t.cover || '';
                             mapped.push({
                                 rank: rank,
-                                title: ((t.title || `TRACK #${rank}`)
-                                .replace(/\bextended\s+remix\b/gi, 'Remix')
-                                .replace(/(\(\s*.*?\b)extended\s+remix(\b.*?\))/gi, '$1Remix$2')
-                                .replace(/\s*\(\s*(?:original|extended)\s*(?:mix|version)?\s*\)/gi, '')
-                                .replace(/\s*\[\s*(?:original|extended)\s*(?:mix|version)?\s*\]/gi, '')
-                                .replace(/\s*-\s*(?:original|extended)\s*(?:mix|version)?/gi, '')
-                                .trim()).toUpperCase(),
+                                title: cleanTop10TrackTitle(t.title || `TRACK #${rank}`, t.mix_name).toUpperCase(),
                                 artist: (t.artist || cleaned).toUpperCase(),
                                 cover: cUrl,
                                 audioUrl: t.audioUrl || '',
@@ -1718,11 +1706,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         const cUrl = t.cover || '';
                         mapped.push({
                             rank: rank,
-                            title: ((t.title || `TRACK #${rank}`)
-                                .replace(/\s*\(\s*(?:original|extended)\s*(?:mix|version)?\s*\)/gi, '')
-                                .replace(/\s*\[\s*(?:original|extended)\s*(?:mix|version)?\s*\]/gi, '')
-                                .replace(/\s*-\s*(?:original|extended)\s*(?:mix|version)?/gi, '')
-                                .trim()).toUpperCase(),
+                            title: cleanTop10TrackTitle(t.title || `TRACK #${rank}`, t.mix_name).toUpperCase(),
                             artist: (t.artist || cleaned).toUpperCase(),
                             cover: cUrl,
                             audioUrl: t.audioUrl || '',
@@ -1782,11 +1766,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                                     mapped.push({
                                         rank: rank,
-                                        title: (((tr.name || `TRACK #${rank}`) + mixSuffix)
-                                        .replace(/\s*\(\s*(?:original|extended)\s*(?:mix|version)?\s*\)/gi, '')
-                                        .replace(/\s*\[\s*(?:original|extended)\s*(?:mix|version)?\s*\]/gi, '')
-                                        .replace(/\s*-\s*(?:original|extended)\s*(?:mix|version)?/gi, '')
-                                        .trim()).toUpperCase(),
+                                        title: cleanTop10TrackTitle(tr.name || `TRACK #${rank}`, tr.mix_name).toUpperCase(),
                                         artist: artists.toUpperCase(),
                                         cover: cUrl,
                                         audioUrl: tr.sample_url || '',
@@ -10750,14 +10730,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                     const hasTitle = Boolean(activeTrack.title?.trim());
                     const rawTitle = (activeTrack.title || 'TITRE DU MORCEAU');
-                    const titleStr = rawTitle
-                        .replace(/\bextended\s+remix\b/gi, 'Remix')
-                        .replace(/(\(\s*.*?\b)extended\s+remix(\b.*?\))/gi, '$1Remix$2')
-                        .replace(/\s*\(\s*(?:original|extended)\s*(?:mix|version)?\s*\)/gi, '')
-                        .replace(/\s*\[\s*(?:original|extended)\s*(?:mix|version)?\s*\]/gi, '')
-                        .replace(/\s*-\s*(?:original|extended)\s*(?:mix|version)?/gi, '')
-                        .trim()
-                        .toUpperCase();
+                    const titleStr = cleanTop10TrackTitle(rawTitle).toUpperCase();
                     let titleFontSize = 56;
                     ctx.font = `900 ${titleFontSize}px "Montserrat", sans-serif`;
                     if ('letterSpacing' in ctx) (ctx as any).letterSpacing = '1px';
