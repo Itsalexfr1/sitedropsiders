@@ -1174,8 +1174,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const [top10GenMode, setTop10GenMode] = useState<'style' | 'artist'>('style');
     const top10GenModeRef = useRef<'style' | 'artist'>('style');
     top10GenModeRef.current = top10GenMode;
-    const [top10StyleColor, setTop10StyleColor] = useState<string>('#BD00FF');
-    const top10StyleColorRef = useRef<string>('#BD00FF');
+    const [top10StyleColor, setTop10StyleColor] = useState<string>('#FFB800');
+    const top10StyleColorRef = useRef<string>('#FFB800');
     top10StyleColorRef.current = top10StyleColor;
     const [top10ArtistSearch, setTop10ArtistSearch] = useState<string>('');
     const [top10StyleSearch, setTop10StyleSearch] = useState<string>('');
@@ -9487,10 +9487,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     const currentTracks = (top10TracksRef.current && top10TracksRef.current.length === 10) ? top10TracksRef.current : top10Tracks;
                     const currentActiveRank = top10ActiveRankRef.current ?? top10ActiveRank;
 
-                    // Différenciation de couleur : Bleu Néon pour Artistes, Violet EDM (ou personnalisé) pour Styles
+                    // Différenciation de couleur : Bleu Néon (#00F0FF) pour Artistes, Or Festival (#FFB800) pour Styles
                     const isStyleMode = (top10GenModeRef.current || top10GenMode) === 'style';
-                    const activeStyleColor = top10StyleColorRef.current || top10StyleColor || '#BD00FF';
-                    const activeStyleRgb = hexToRgb(activeStyleColor);
+                    const activeStyleColor = '#FFB800';
+                    const activeStyleRgb = '255, 184, 0';
                     const top10AccentColor = isStyleMode ? activeStyleColor : '#00f0ff';
                     const top10AccentRgb = isStyleMode ? activeStyleRgb : '0, 240, 255';
 
@@ -20579,7 +20579,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         )}
                     </div>
 
-                    {/* SÉLECTEUR DE MODE : PAR STYLE / GENRE (VIOLET EDM) vs PAR ARTISTE (BLEU NÉON) */}
+                    {/* SÉLECTEUR DE MODE : PAR STYLE / GENRE (OR FESTIVAL) vs PAR ARTISTE (BLEU NÉON) */}
                     <div className="grid grid-cols-2 gap-1.5 p-1 bg-black/60 border border-white/10 rounded-xl">
                         <button
                             type="button"
@@ -20589,12 +20589,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 generateImage();
                             }}
                             className={`py-2 px-2.5 rounded-lg text-[9px] font-black uppercase transition-all flex items-center justify-center gap-1.5 ${top10GenMode === 'style'
-                                ? 'bg-gradient-to-r from-[#bd00ff] to-[#7928ca] text-white shadow-[0_0_14px_rgba(189,0,255,0.5)] border border-[#bd00ff]/60'
+                                ? 'bg-gradient-to-r from-[#ffb800] via-[#ffa500] to-[#ff8c00] text-black font-black shadow-[0_0_14px_rgba(255,184,0,0.55)] border border-[#ffb800]/70'
                                 : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
                                 }`}
                         >
                             <span>🎧</span>
-                            <span>Par Style / Genre (Violet EDM)</span>
+                            <span>Par Style / Genre (Or Festival)</span>
                         </button>
                         <button
                             type="button"
@@ -20614,37 +20614,13 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     </div>
 
                     {top10GenMode === 'style' ? (
-                        /* ─── OPTION 1 : RECHERCHE LIBRE PAR STYLE / GENRE ÉLECTRONIQUE (TOUT STYLE ACCEPTÉ) ─── */
-                        <div className="space-y-2.5 p-3 bg-black/60 border border-[#bd00ff]/35 rounded-xl shadow-lg">
-                            <div className="flex items-center justify-between">
-                                <label className="text-[8.5px] font-black text-[#bd00ff] uppercase tracking-wider flex items-center gap-1.5">
-                                    <span>⚡ Style / Genre Électronique :</span>
-                                </label>
-                                <div className="flex items-center gap-1.5">
-                                    <span className="text-[7.5px] text-gray-400 font-bold uppercase">Couleur Style :</span>
-                                    {[
-                                        { label: 'Violet EDM', color: '#BD00FF' },
-                                        { label: 'Vert Laser', color: '#00FF66' },
-                                        { label: 'Rose Fluo', color: '#FF007F' },
-                                        { label: 'Or Festival', color: '#FFB800' },
-                                    ].map(c => (
-                                        <button
-                                            key={c.color}
-                                            type="button"
-                                            onClick={() => {
-                                                setTop10StyleColor(c.color);
-                                                top10StyleColorRef.current = c.color;
-                                                generateImage();
-                                            }}
-                                            className={`w-3.5 h-3.5 rounded-full transition-all border ${top10StyleColor === c.color ? 'ring-2 ring-white scale-110 border-white' : 'border-white/20 opacity-70 hover:opacity-100'}`}
-                                            style={{ backgroundColor: c.color }}
-                                            title={c.label}
-                                        />
-                                    ))}
-                                </div>
-                            </div>
+                        /* ─── OPTION 1 : RECHERCHE LIBRE PAR STYLE / GENRE ÉLECTRONIQUE (OR FESTIVAL) ─── */
+                        <div className="space-y-2.5 p-3 bg-black/60 border border-[#ffb800]/35 rounded-xl shadow-lg">
+                            <label className="text-[8.5px] font-black text-[#ffb800] uppercase tracking-wider flex items-center gap-1.5">
+                                <span>⚡ Style / Genre Électronique :</span>
+                            </label>
 
-                            <div className="flex items-center gap-1.5">
+                            <div className="space-y-2">
                                 <input
                                     type="text"
                                     value={top10StyleSearch}
@@ -20652,22 +20628,22 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     onKeyDown={e => {
                                         if (e.key === 'Enter') handleAutoFetchStyleTop10(top10StyleSearch);
                                     }}
-                                    placeholder="ex: Techno, Indie Dance, Nu Disco, Funky House, Melodic Techno..."
-                                    className="flex-1 bg-black/80 border border-[#bd00ff]/30 focus:border-[#bd00ff] rounded-xl px-2.5 py-2.5 text-white text-[10.5px] font-bold outline-none placeholder:text-gray-500 shadow-inner"
+                                    placeholder="ex: Afro House, Techno, Indie Dance, Nu Disco, Funky House, Melodic Techno..."
+                                    className="w-full bg-black/80 border border-[#ffb800]/35 focus:border-[#ffb800] rounded-xl px-3 py-2.5 text-white text-[10.5px] font-bold outline-none placeholder:text-gray-500 shadow-inner"
                                 />
                                 <button
                                     type="button"
                                     disabled={isAutoFillingTop10 || !top10StyleSearch.trim()}
                                     onClick={() => handleAutoFetchStyleTop10(top10StyleSearch)}
-                                    className="px-3.5 py-2.5 bg-gradient-to-r from-[#bd00ff] to-[#7928ca] hover:brightness-110 text-white font-black text-[9.5px] uppercase rounded-xl transition-all disabled:opacity-40 shrink-0 shadow-md shadow-[#bd00ff]/30 active:scale-95 flex items-center gap-1"
+                                    className="w-full py-2.5 bg-gradient-to-r from-[#ffb800] via-[#ffa500] to-[#ff8c00] hover:brightness-110 text-black font-black text-[10px] uppercase rounded-xl transition-all disabled:opacity-40 shadow-md shadow-[#ffb800]/30 active:scale-98 flex items-center justify-center gap-1.5"
                                 >
                                     <span>{isAutoFillingTop10 ? '⏳' : '⚡'}</span>
-                                    <span>{isAutoFillingTop10 ? 'Génération...' : 'Générer le Top 10'}</span>
+                                    <span>{isAutoFillingTop10 ? 'Génération du Top 10 en cours...' : 'Générer le Top 10'}</span>
                                 </button>
                             </div>
 
                             <p className="text-[7.5px] text-gray-400 leading-tight">
-                                ✨ <span className="text-neon-cyan font-bold">Bleu Néon = Artistes</span> • <span style={{ color: top10StyleColor }} className="font-bold">Couleur choisie = Styles</span>. Tape n'importe quel style de musique électronique : le titre exact et 10 morceaux officiels avec pochettes HD seront résolus !
+                                ✨ <span className="text-neon-cyan font-bold">Bleu Néon (#00F0FF) = Artistes</span> • <span className="text-[#ffb800] font-bold">Or Festival (#FFB800) = Styles</span>. Tape n'importe quel style de musique électronique : le titre exact et 10 morceaux officiels avec pochettes HD seront résolus !
                             </p>
                         </div>
                     ) : (
