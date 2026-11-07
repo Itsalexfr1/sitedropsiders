@@ -12545,7 +12545,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             /iPad|iPhone|iPod/i.test(navigator.userAgent) ||
             (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
         );
-        const needsBgVideoAudio = Boolean(bgVideo) && theme !== 'TOP 10 TRACKS' && theme !== 'MUSIQUE';
+        const needsBgVideoAudio = (Boolean(bgVideo) && theme !== 'TOP 10 TRACKS' && theme !== 'MUSIQUE')
+            || (theme === 'MUSIQUE' && (!!musicIntroAudio || musicTracks.some(t => !!t.audio)))
+            || (theme === 'TOP 10 TRACKS' && ((top10TracksRef.current && top10TracksRef.current.length === 10) ? top10TracksRef.current : top10Tracks).some(t => Boolean(t.audioUrl || t.videoUrl)));
         const canUseNativeRecorder = typeof MediaRecorder !== 'undefined'
             && typeof (canvas as any).captureStream === 'function';
         const iosForceMediaRecorder = isIOSWebKitExport && needsBgVideoAudio && canUseNativeRecorder;
@@ -13267,7 +13269,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 );
                 // Pendant l'export, la vidéo doit impérativement avoir le son actif pour que la piste audio soit capturée
                 // (sauf iOS avec piste PCM injectée : le son vient du buffer décodé, la vidéo reste visuelle)
-                bgVideo.muted = Boolean(iosBufferAudioSrc);
+                bgVideo.muted = Boolean(iosBufferAudioSrc) || theme === 'MUSIQUE' || theme === 'TOP 10 TRACKS';
                 bgVideo.volume = 1;
                 try {
                     await bgVideo.play();
@@ -13280,6 +13282,165 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 console.error('Erreur init bgVideo :', e);
                 bgVideo.muted = true;
                 bgVideo.loop = true;
+            }
+        }
+
+        // ── RENDU TIMELINE AUDIO (MUSIQUE / TOP 10 TRACKS) ──────────────────────────
+        // Fonction réutilisable : appelée AVANT l'enregistrement sur iOS (injection live dans le
+        // MediaRecorder natif) et dans finalizeRecording sur les autres plateformes.
+        let iosPreRenderedTimeline: AudioBuffer | null = null;
+        const renderTimelineAudioBuffer = async (): Promise<AudioBuffer | null> => {
+            const sampleRate = 48000;
+            try {
+                // Construire la liste de segments audio avec leur offset temporel (en secondes)
+                type AudioSegment = { url: string; startOffset: number; sourceOffset: number; duration?: number };
+                const audioSegments: AudioSegment[] = [];
+                const transitionDurationSec = getTransitionDuration(slideTransition) / 1000;
+
+                if (theme === 'MUSIQUE' && hasAnyMusicAudio) {
+                    if (combinedMode === 'EDITORIAL' || combinedMode === 'TIKTOK') {
+                        // Mode carrousel MUSIQUE : chaque slide a son extrait (durée slideDurationSec)
+                        const slideDurationSec = combinedMode === 'TIKTOK'
+                            ? (getTikTokSlideTimings(1 + musicTracks.length).slideDurationMs / 1000)
+                            : editorialSlide1Duration;
+                        let cursor = 0;
+                        const allSlides = [1, ...musicTracks.map((_, i) => i + 2)];
+                        for (let i = 0; i < allSlides.length; i++) {
+                            const s = allSlides[i];
+                            if (i > 0) cursor += transitionDurationSec;
+                            const audioUrl = s === 1
+                                ? (musicIntroAudio || musicTracks[0]?.audio || '')
+                                : (musicTracks[s - 2]?.audio || '');
+                            const srcOffset = s === 1
+                                ? (musicIntroAudio ? (musicIntroAudioStartTime || 0) : (musicTracks[0]?.audioStartTime || 0))
+                                : (musicTracks[s - 2]?.audioStartTime || 0);
+                            if (audioUrl) {
+                                // Chaque extrait audio joue pendant la durée de la slide et s'arrête avant la slide promo outro
+                                audioSegments.push({
+                                    url: audioUrl,
+                                    startOffset: cursor,
+                                    sourceOffset: srcOffset,
+                                    duration: slideDurationSec
+                                });
+                            }
+                            cursor += slideDurationSec;
+                        }
+                    } else if (combinedMode === 'PROMO_ONLY' || isCarouselPromoActive) {
+                        // Strictement aucun son pour la slide promo dans MUSIQUE
+                    } else {
+                        // Mode slide unique MUSIQUE (30s)
+                        const effectiveSlide = editorialSlideOverrideRef.current !== null ? editorialSlideOverrideRef.current : editorialSlide;
+                        const currentTrIdx = Math.max(0, effectiveSlide - 2);
+                        const audioUrl = effectiveSlide === 1
+                            ? (musicIntroAudio || musicTracks[0]?.audio || '')
+                            : (musicTracks[currentTrIdx]?.audio || musicIntroAudio || '');
+                        const srcOffset = effectiveSlide === 1
+                            ? (musicIntroAudio ? (musicIntroAudioStartTime || 0) : (musicTracks[0]?.audioStartTime || 0))
+                            : (musicTracks[currentTrIdx]?.audioStartTime || 0);
+                        if (audioUrl) audioSegments.push({ url: audioUrl, startOffset: 0, sourceOffset: srcOffset, duration: 30 });
+                    }
+                }
+
+                if (theme === 'TOP 10 TRACKS') {
+                    const introDuration = 5.0; // 5.0s intro
+                    const singleDur = 7.8; // 10 tracks x 7.8s = 78.0s
+                    const currentTracks = (top10TracksRef.current && top10TracksRef.current.length === 10) ? top10TracksRef.current : top10Tracks;
+                    for (let i = 0; i < 10; i++) {
+                        const rank = 10 - i;
+                        const tr = currentTracks.find(t => Number(t.rank) === Number(rank));
+                        const aUrl = tr?.audioUrl || (tr?.videoUrl && tr.videoUrl.match(/\.(mp3|m4a|aac|wav|ogg)/i) ? tr.videoUrl : '');
+                        if (aUrl) {
+                            // Le son du #10 démarre dès le début de l'intro (0s) et continue sur sa slide (3.5s + 4.95s = 8.45s)
+                            // Le track #1 continue sous l'outro téléphone 3D (+7.0s = 11.95s)
+                            const isRank10 = (rank === 10);
+                            const isRank1 = (rank === 1);
+                            const startOffset = isRank10 ? 0 : (introDuration + (i * singleDur));
+                            const trackDuration = isRank10
+                                ? (introDuration + singleDur)
+                                : (isRank1 ? (singleDur + 7.0) : singleDur);
+
+                            audioSegments.push({
+                                url: aUrl,
+                                startOffset: startOffset,
+                                sourceOffset: tr?.audioStartTime || tr?.videoStartTime || 0,
+                                duration: trackDuration
+                            });
+                        }
+                    }
+                }
+
+                if (audioSegments.length > 0) {
+                    const totalSec = totalDuration / 1000;
+                    const totalSamples = Math.ceil(totalSec * sampleRate);
+                    const OffCtx = (window as any).OfflineAudioContext || (window as any).webkitOfflineAudioContext;
+                    const offCtx = new OffCtx(2, totalSamples, sampleRate);
+                    let validSegCount = 0;
+
+                    for (const seg of audioSegments) {
+                        const buf = await getDecodedAudioBuffer(seg.url);
+                        if (!buf) continue;
+                        validSegCount++;
+                        const src = offCtx.createBufferSource();
+                        src.buffer = buf;
+                        const gain = offCtx.createGain();
+                        const t0 = seg.startOffset;
+                        const offset = Math.min(Math.max(0, seg.sourceOffset), Math.max(0, buf.duration - 0.05));
+                        const segDur = seg.duration ? Math.min(seg.duration, Math.max(0, totalSec - t0)) : (totalSec - t0);
+                        const tEnd = t0 + segDur;
+
+                        gain.gain.setValueAtTime(0, t0);
+                        gain.gain.linearRampToValueAtTime(1, t0 + 0.04);
+                        gain.gain.setValueAtTime(1, Math.max(t0 + 0.05, tEnd - 0.08));
+                        gain.gain.linearRampToValueAtTime(0, tEnd);
+
+                        src.connect(gain);
+                        gain.connect(offCtx.destination);
+                        src.start(t0, offset, segDur);
+                    }
+
+                    if (validSegCount > 0) {
+                        return await offCtx.startRendering();
+                    }
+                }
+            } catch (audioRenderErr) {
+                console.warn('Rendu audio offline échoué (fallback vidéo seule) :', audioRenderErr);
+            }
+            return null;
+        };
+
+        // ── iOS : injection live de la timeline audio MUSIQUE / TOP 10 TRACKS dans le MediaRecorder ──
+        // Sur iPhone, AudioEncoder AAC et FFmpeg WASM échouent → on pré-rend toute la bande son
+        // puis on la joue dans un MediaStreamDestination enregistré en direct (MP4 AAC natif).
+        if (!useWebCodecs && isIOSWebKitExport && !iosBufferAudioSrc && canvasStream && (theme === 'MUSIQUE' || theme === 'TOP 10 TRACKS')) {
+            try {
+                const actx = audioCtxRef.current;
+                if (actx && actx.state !== 'closed') {
+                    if (actx.state === 'suspended') await actx.resume().catch(() => { });
+                    const timelineBuf = await renderTimelineAudioBuffer();
+                    if (timelineBuf) {
+                        iosPreRenderedTimeline = timelineBuf;
+                        const iosDest = actx.createMediaStreamDestination();
+                        const tsrc = actx.createBufferSource();
+                        tsrc.buffer = timelineBuf;
+                        tsrc.connect(iosDest);
+                        // Gain quasi nul vers les haut-parleurs : garde le graphe audio actif sur iOS
+                        const keepAlive = actx.createGain();
+                        keepAlive.gain.value = 0.0001;
+                        tsrc.connect(keepAlive);
+                        keepAlive.connect(actx.destination);
+                        const iosTracks = iosDest.stream.getAudioTracks();
+                        if (iosTracks.length > 0) {
+                            iosBufferAudioSrc = tsrc;
+                            hasAudioTrack = true;
+                            combinedStream = new MediaStream([...canvasStream.getVideoTracks(), iosTracks[0]]);
+                            console.log(`[Export iOS] ✅ Bande son ${theme} injectée dans le MediaRecorder (${timelineBuf.duration.toFixed(1)}s).`);
+                        }
+                    } else {
+                        console.warn('[Export iOS] Aucune bande son rendue pour', theme);
+                    }
+                }
+            } catch (iosTimelineErr) {
+                console.warn('[Export iOS] Échec injection bande son :', iosTimelineErr);
             }
         }
 
@@ -13460,122 +13621,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             let finalAudioBuffer: AudioBuffer | null = null;
             const sampleRate = 48000;
 
-            try {
-                // Construire la liste de segments audio avec leur offset temporel (en secondes)
-                type AudioSegment = { url: string; startOffset: number; sourceOffset: number; duration?: number };
-                const audioSegments: AudioSegment[] = [];
-                const transitionDurationSec = getTransitionDuration(slideTransition) / 1000;
-
-                if (theme === 'MUSIQUE' && hasAnyMusicAudio) {
-                    if (combinedMode === 'EDITORIAL' || combinedMode === 'TIKTOK') {
-                        // Mode carrousel MUSIQUE : chaque slide a son extrait (durée slideDurationSec)
-                        const slideDurationSec = combinedMode === 'TIKTOK'
-                            ? (getTikTokSlideTimings(1 + musicTracks.length).slideDurationMs / 1000)
-                            : editorialSlide1Duration;
-                        let cursor = 0;
-                        const allSlides = [1, ...musicTracks.map((_, i) => i + 2)];
-                        for (let i = 0; i < allSlides.length; i++) {
-                            const s = allSlides[i];
-                            if (i > 0) cursor += transitionDurationSec;
-                            const audioUrl = s === 1
-                                ? (musicIntroAudio || musicTracks[0]?.audio || '')
-                                : (musicTracks[s - 2]?.audio || '');
-                            const srcOffset = s === 1
-                                ? (musicIntroAudio ? (musicIntroAudioStartTime || 0) : (musicTracks[0]?.audioStartTime || 0))
-                                : (musicTracks[s - 2]?.audioStartTime || 0);
-                            if (audioUrl) {
-                                // Chaque extrait audio joue pendant la durée de la slide et s'arrête avant la slide promo outro
-                                audioSegments.push({
-                                    url: audioUrl,
-                                    startOffset: cursor,
-                                    sourceOffset: srcOffset,
-                                    duration: slideDurationSec
-                                });
-                            }
-                            cursor += slideDurationSec;
-                        }
-                    } else if (combinedMode === 'PROMO_ONLY' || isCarouselPromoActive) {
-                        // Strictement aucun son pour la slide promo dans MUSIQUE
-                    } else {
-                        // Mode slide unique MUSIQUE (30s)
-                        const effectiveSlide = editorialSlideOverrideRef.current !== null ? editorialSlideOverrideRef.current : editorialSlide;
-                        const currentTrIdx = Math.max(0, effectiveSlide - 2);
-                        const audioUrl = effectiveSlide === 1
-                            ? (musicIntroAudio || musicTracks[0]?.audio || '')
-                            : (musicTracks[currentTrIdx]?.audio || musicIntroAudio || '');
-                        const srcOffset = effectiveSlide === 1
-                            ? (musicIntroAudio ? (musicIntroAudioStartTime || 0) : (musicTracks[0]?.audioStartTime || 0))
-                            : (musicTracks[currentTrIdx]?.audioStartTime || 0);
-                        if (audioUrl) audioSegments.push({ url: audioUrl, startOffset: 0, sourceOffset: srcOffset, duration: 30 });
-                    }
-                }
-
-                if (theme === 'TOP 10 TRACKS') {
-                    const introDuration = 5.0; // 5.0s intro
-                    const singleDur = 7.8; // 10 tracks x 7.8s = 78.0s
-                    const currentTracks = (top10TracksRef.current && top10TracksRef.current.length === 10) ? top10TracksRef.current : top10Tracks;
-                    for (let i = 0; i < 10; i++) {
-                        const rank = 10 - i;
-                        const tr = currentTracks.find(t => Number(t.rank) === Number(rank));
-                        const aUrl = tr?.audioUrl || (tr?.videoUrl && tr.videoUrl.match(/\.(mp3|m4a|aac|wav|ogg)/i) ? tr.videoUrl : '');
-                        if (aUrl) {
-                            // Le son du #10 démarre dès le début de l'intro (0s) et continue sur sa slide (3.5s + 4.95s = 8.45s)
-                            // Le track #1 continue sous l'outro téléphone 3D (+7.0s = 11.95s)
-                            const isRank10 = (rank === 10);
-                            const isRank1 = (rank === 1);
-                            const startOffset = isRank10 ? 0 : (introDuration + (i * singleDur));
-                            const trackDuration = isRank10
-                                ? (introDuration + singleDur)
-                                : (isRank1 ? (singleDur + 7.0) : singleDur);
-
-                            audioSegments.push({
-                                url: aUrl,
-                                startOffset: startOffset,
-                                sourceOffset: tr?.audioStartTime || tr?.videoStartTime || 0,
-                                duration: trackDuration
-                            });
-                        }
-                    }
-                }
-
-                if (audioSegments.length > 0) {
-                    const totalSec = totalDuration / 1000;
-                    const totalSamples = Math.ceil(totalSec * sampleRate);
-                    const OffCtx = (window as any).OfflineAudioContext || (window as any).webkitOfflineAudioContext;
-                    const offCtx = new OffCtx(2, totalSamples, sampleRate);
-                    let validSegCount = 0;
-
-                    for (const seg of audioSegments) {
-                        const buf = await getDecodedAudioBuffer(seg.url);
-                        if (!buf) continue;
-                        validSegCount++;
-                        const src = offCtx.createBufferSource();
-                        src.buffer = buf;
-                        const gain = offCtx.createGain();
-                        const t0 = seg.startOffset;
-                        const offset = Math.min(Math.max(0, seg.sourceOffset), Math.max(0, buf.duration - 0.05));
-                        const segDur = seg.duration ? Math.min(seg.duration, Math.max(0, totalSec - t0)) : (totalSec - t0);
-                        const tEnd = t0 + segDur;
-
-                        gain.gain.setValueAtTime(0, t0);
-                        gain.gain.linearRampToValueAtTime(1, t0 + 0.04);
-                        gain.gain.setValueAtTime(1, Math.max(t0 + 0.05, tEnd - 0.08));
-                        gain.gain.linearRampToValueAtTime(0, tEnd);
-
-                        src.connect(gain);
-                        gain.connect(offCtx.destination);
-                        src.start(t0, offset, segDur);
-                    }
-
-                    if (validSegCount > 0) {
-                        const renderedBuffer = await offCtx.startRendering();
-                        finalAudioBuffer = renderedBuffer;
-                        offlineWavBlob = audioBufferToWavBlob(renderedBuffer);
-                    }
-                }
-            } catch (audioRenderErr) {
-                console.warn('Rendu audio offline échoué (fallback vidéo seule) :', audioRenderErr);
-            }
+            finalAudioBuffer = iosPreRenderedTimeline || await renderTimelineAudioBuffer();
+            if (finalAudioBuffer) offlineWavBlob = audioBufferToWavBlob(finalAudioBuffer);
 
             // ── PHASE 2b : EXTRACTION AUDIO DEPUIS bgVideo (si pas de thème MUSIQUE ni TOP 10 TRACKS) ────
             if (!offlineWavBlob && bgVideoBlob && theme !== 'TOP 10 TRACKS' && !(theme === 'MUSIQUE' && (isCarouselPromoActive || combinedMode === 'PROMO_ONLY'))) {
