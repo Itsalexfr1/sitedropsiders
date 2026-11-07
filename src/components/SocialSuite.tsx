@@ -5585,69 +5585,95 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         || baseThemeData[theme]?.color
                         || '#00f0ff';
 
-                    // Cycle harmonique continu de 4.2s (vitesse maximale à 0°, aucun à-coup)
-                    // En export PNG ou aperçu statique, angle fixe (t = 0.55s) pour révéler le relief et le nacrage
-                    const t = animElapsed >= 90.0 ? 0.55 : (animElapsed % 4.2);
-                    const angleY = Math.sin((t / 4.2) * Math.PI * 2) * 0.38;
-                    const cosA = Math.cos(angleY);
-                    const sinA = Math.sin(angleY);
+                    let rgb = '0, 240, 255';
+                    if (typeof effectiveThemeHex === 'string') {
+                        if (effectiveThemeHex.startsWith('#')) {
+                            rgb = hexToRgb(effectiveThemeHex);
+                        } else if (effectiveThemeHex.includes(',')) {
+                            rgb = effectiveThemeHex.replace(/rgba?\(|\)/g, '').trim();
+                        }
+                    }
+
+                    // Mode statique (POST / export PNG) vs animé (REEL / preview vidéo)
+                    const isStatic = !isAnyAnimationActive || isStaticPngExport || animElapsed >= 90.0;
+                    const t = isStatic ? 0 : (animElapsed % 4.2);
+                    const phase = isStatic ? 0 : Math.sin((t / 4.2) * Math.PI * 2);
+
+                    // Géométrie 3D noble : AUCUN cisaillement ni distorsion trapézoïdale
+                    // En REEL : micro-respiration de perspective (max 2% en X) et oscillation du biseau
+                    // En POST : logo parfaitement droit, biseau net et fixe
+                    const scaleX = isStatic ? 1.0 : (1.0 - Math.abs(phase) * 0.022);
+                    const bevelX = isStatic ? -3.0 : (-phase * 4.5);
+                    const bevelY = 1.8;
 
                     ctx.save();
                     ctx.translate(centerX, centerY);
-                    ctx.transform(cosA, sinA * 0.08, 0, 1, 0, 0);
-
-                    // 1. Ombre portée de contact profonde
-                    ctx.save();
-                    ctx.shadowColor = 'rgba(0, 0, 0, 0.88)';
-                    ctx.shadowBlur = 16;
-                    ctx.shadowOffsetX = 0;
-                    ctx.shadowOffsetY = 6;
-
-                    // 2. Tranches 3D volumétriques extrudées (Acier sombre / Titane neutre sans bavure de couleur)
-                    const extrudeDepth = 14;
-                    const sliceCount = 10;
-                    for (let s = sliceCount; s >= 1; s--) {
-                        const z = (s / sliceCount) * extrudeDepth;
-                        const sliceX = -sinA * z * 0.85;
-                        const sliceY = z * 0.12;
-                        const ratio = 1 - (s / sliceCount);
-                        const shade = 0.16 + ratio * 0.42;
-
-                        ctx.save();
-                        ctx.translate(sliceX, sliceY);
-                        if ('filter' in ctx) {
-                            ctx.filter = `brightness(0) invert(${shade.toFixed(2)})`;
-                        }
-                        ctx.globalAlpha = 0.96;
-                        ctx.drawImage(logo, -w / 2, -logoH / 2, w, logoH);
-                        ctx.restore();
+                    if (scaleX !== 1.0) {
+                        ctx.scale(scaleX, 1.0);
                     }
-                    ctx.restore(); // Restaure l'ombre de contact
 
-                    // 3. Face avant : Blanc pur 100% net (priorité absolue)
+                    // 1. Ombre portée de contact propre et nette
+                    ctx.save();
+                    ctx.shadowColor = 'rgba(0, 0, 0, 0.75)';
+                    ctx.shadowBlur = 10;
+                    ctx.shadowOffsetX = 0;
+                    ctx.shadowOffsetY = 4;
+
+                    // 2. Tranche 3D métallique chiseled (Titane sombre net, ZÉRO flou de tranches multiples)
+                    // Première passe : acier sombre profond
+                    ctx.save();
+                    ctx.translate(bevelX, bevelY);
+                    if ('filter' in ctx) {
+                        ctx.filter = 'brightness(0) invert(0.22)';
+                    }
+                    ctx.globalAlpha = 0.88;
+                    ctx.drawImage(logo, -w / 2, -logoH / 2, w, logoH);
+                    ctx.restore();
+
+                    // Deuxième passe : biseau intermédiaire acier clair pour l'arête métallique
+                    ctx.save();
+                    ctx.translate(bevelX * 0.5, bevelY * 0.5);
+                    if ('filter' in ctx) {
+                        ctx.filter = 'brightness(0) invert(0.58)';
+                    }
+                    ctx.globalAlpha = 0.72;
+                    ctx.drawImage(logo, -w / 2, -logoH / 2, w, logoH);
+                    ctx.restore();
+
+                    ctx.restore(); // Restaure l'ombre portée
+
+                    // 3. Face avant : Blanc pur 100% éclatant (priorité absolue)
                     ctx.save();
                     if ('filter' in ctx) ctx.filter = 'none';
                     ctx.globalAlpha = 1.0;
                     ctx.drawImage(logo, -w / 2, -logoH / 2, w, logoH);
 
-                    // 4. Nacrage dynamique couleur thème incrusté directement sur les lettres (source-atop)
+                    // 4. Nacrage soyeux couleur thème incrusté sur les lettres (source-atop)
+                    // - Balayage synchrone fluide avec l'oscillation (phase)
+                    // - Largeur généreuse pour un dégradé doux et luxueux
+                    // - Opacité équilibrée (max 0.42) : la couleur du thème rayonne tout en gardant les lettres blanches et lisibles
+                    // - Zéro ligne blanche parasite au milieu
                     try {
                         ctx.globalCompositeOperation = 'source-atop';
-                        const shiftX = Math.sin((t / 4.2) * Math.PI * 2) * (w * 0.45);
-                        const gradW = w * 0.55;
-                        const nacreGrad = ctx.createLinearGradient(shiftX - gradW, 0, shiftX + gradW, 0);
-                        const rgb = hexToRgb(effectiveThemeHex);
+                        const shiftX = isStatic ? 0 : (phase * (w * 0.52));
+                        const gradW = w * 0.72;
+                        const nacreGrad = ctx.createLinearGradient(
+                            shiftX - gradW,
+                            -logoH * 0.35,
+                            shiftX + gradW,
+                            logoH * 0.35
+                        );
                         nacreGrad.addColorStop(0, `rgba(${rgb}, 0)`);
-                        nacreGrad.addColorStop(0.25, `rgba(${rgb}, 0.25)`);
-                        nacreGrad.addColorStop(0.5, `rgba(${rgb}, 0.85)`);
-                        nacreGrad.addColorStop(0.75, `rgba(${rgb}, 0.25)`);
+                        nacreGrad.addColorStop(0.22, `rgba(${rgb}, 0.12)`);
+                        nacreGrad.addColorStop(0.50, `rgba(${rgb}, 0.42)`);
+                        nacreGrad.addColorStop(0.78, `rgba(${rgb}, 0.12)`);
                         nacreGrad.addColorStop(1, `rgba(${rgb}, 0)`);
                         ctx.fillStyle = nacreGrad;
                         ctx.fillRect(-w / 2, -logoH / 2, w, logoH);
                     } catch (_) { }
-                    ctx.restore(); // Restaure le masque source-atop
+                    ctx.restore(); // Restaure la face avant et le compositeOperation
 
-                    ctx.restore(); // Restaure la projection 3D
+                    ctx.restore(); // Restaure le repère général
                 };
 
                 // Indicateur Swipe moderne avec Chevrons en Cascade animés (Option 2)
