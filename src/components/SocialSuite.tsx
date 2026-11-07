@@ -140,12 +140,18 @@ const STYLE_PRESETS = [
     { name: 'DRUM N BASS', grad: '150, 0, 255', color: '#9600ff' }
 ];
 
-const hexToRgb = (hex: string) => {
-    const clean = hex.replace('#', '');
-    const r = parseInt(clean.substring(0, 2), 16) || 112;
-    const g = parseInt(clean.substring(2, 4), 16) || 0;
-    const b = parseInt(clean.substring(4, 6), 16) || 255;
-    return `${r}, ${g}, ${b}`;
+const hexToRgb = (hex: string): string => {
+    const clean = hex.replace('#', '').trim();
+    if (clean.length === 3) {
+        const r = parseInt(clean[0] + clean[0], 16);
+        const g = parseInt(clean[1] + clean[1], 16);
+        const b = parseInt(clean[2] + clean[2], 16);
+        return `${isNaN(r) ? 255 : r}, ${isNaN(g) ? 255 : g}, ${isNaN(b) ? 255 : b}`;
+    }
+    const r = parseInt(clean.substring(0, 2), 16);
+    const g = parseInt(clean.substring(2, 4), 16);
+    const b = parseInt(clean.substring(4, 6), 16);
+    return `${isNaN(r) ? 255 : r}, ${isNaN(g) ? 255 : g}, ${isNaN(b) ? 255 : b}`;
 };
 
 const lon2tile = (lon: number, zoom: number) => {
@@ -924,9 +930,21 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
     // TOP 100 DROPSIDERS REVEAL
     const [top100Rank, setTop100Rank] = useState<number>(4);
+    const top100RankRef = useRef<number>(4);
+    top100RankRef.current = top100Rank;
+
     const [top100ArtistName, setTop100ArtistName] = useState<string>('MARTIN GARRIX');
+    const top100ArtistNameRef = useRef<string>('MARTIN GARRIX');
+    top100ArtistNameRef.current = top100ArtistName;
+
     const [top100Category, setTop100Category] = useState<string>('CLASSEMENT OFFICIEL 2026');
+    const top100CategoryRef = useRef<string>('CLASSEMENT OFFICIEL 2026');
+    top100CategoryRef.current = top100Category;
+
     const [top100Badge, setTop100Badge] = useState<string>('DROPSIDERS TOP 100');
+    const top100BadgeRef = useRef<string>('DROPSIDERS TOP 100');
+    top100BadgeRef.current = top100Badge;
+
     const [top100AnimKey, setTop100AnimKey] = useState<number>(0);
     const top100AnimStartRef = useRef<number>(Date.now());
 
@@ -3746,12 +3764,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         'TOP 10 TRACKS': { label: 'TOP 10 TRACKS', grad: '0, 240, 255', color: '#00f0ff' },
         'TOP 100 DROPSIDERS': { label: 'DROPSIDERS TOP 100', grad: '255, 18, 65', color: '#ff1241' },
         'NEWS': { label: 'NEWS', grad: '255, 0, 51', color: '#ff0033' },
-        'FOCUS': { label: 'FOCUS', grad: '255, 170, 0', color: '#ffaa00' },
+        'FOCUS': { label: 'FOCUS', grad: '255, 230, 0', color: '#ffe600' },
         'MUSIQUE': { label: 'MUSIQUE', grad: '57, 255, 20', color: '#39ff14' },
         'RECAP': { label: 'RÉCAP', grad: '192, 38, 211', color: '#c026d3' },
-        'EVENTS': { label: 'EVENTS', grad: '255, 55, 0', color: '#ff3700' },
+        'EVENTS': { label: 'EVENTS', grad: '255, 103, 0', color: '#ff6700' },
         'LIVESTREAM': { label: 'DIRECT', grad: '255, 18, 65', color: '#ff1241' },
-        'PLANNING': { label: 'AGENDA', grad: '255, 55, 0', color: '#ff3700' },
+        'PLANNING': { label: 'AGENDA', grad: '255, 103, 0', color: '#ff6700' },
         'TRACKLIST': { label: 'TRACKLIST', grad: '255, 120, 0', color: '#ff7800' },
         'INTERVIEW': { label: 'INTERVIEW', grad: '255, 255, 255', color: '#ffffff' },
         'SPOTLIGHT': { label: 'SPOTLIGHT', grad: '255, 0, 51', color: '#ff0033' },
@@ -3765,7 +3783,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         'MAP': { label: 'CARTE EN TEMPS RÉEL', grad: '0, 240, 255', color: '#00f0ff' },
         'CALENDRIER': { label: 'CALENDRIER', grad: '255, 103, 0', color: '#ff6700' },
         'JEU': { label: 'DEVINE LE CLIP', grad: '0, 240, 255', color: '#00f0ff' },
-        'JEU_FESTIVAL': { label: 'DEVINE LE FESTIVAL', grad: '255, 170, 0', color: '#ffaa00' },
+        'JEU_FESTIVAL': { label: 'DEVINE LE FESTIVAL', grad: '255, 103, 0', color: '#ff6700' },
         'JEU_DJ': { label: 'DEVINE LE DJ', grad: '189, 0, 255', color: '#bd00ff' },
         'HIGHLIGHTS': { label: 'HIGHLIGHT', grad: '255, 255, 255', color: '#ffffff' },
     };
@@ -9854,10 +9872,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.fillRect(0, centerY - 520, canvas.width, 1040);
 
                     // 2. Top-Left Badge Dropsiders Officiel
-                    drawTopCapsuleBadge(top100Badge || 'DROPSIDERS TOP 100', '#ff1241', '255, 18, 65');
+                    const effectiveTop100Badge = top100BadgeRef.current || top100Badge || 'DROPSIDERS TOP 100';
+                    drawTopCapsuleBadge(effectiveTop100Badge, '#ff1241', '255, 18, 65');
 
                     // 3. Défilement du rang : commence à 100 et roule jusqu'au rang cible
-                    const parsedTarget = Math.max(1, Math.min(100, Number(top100Rank) || 1));
+                    const parsedTarget = Math.max(1, Math.min(100, Number(top100RankRef.current ?? top100Rank) || 1));
                     const isVideoExport = isVideoRecordingRef.current;
                     const animTime = isVideoExport
                         ? deterministicAnimTimeRef.current
@@ -9899,7 +9918,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.globalAlpha *= artistAlpha;
                     let artistFontSize = isStory ? 68 : 52;
                     ctx.font = `900 ${artistFontSize}px "Montserrat", sans-serif`;
-                    const artistText = (top100ArtistName || 'MARTIN GARRIX').toUpperCase();
+                    const artistText = (top100ArtistNameRef.current || top100ArtistName || 'MARTIN GARRIX').toUpperCase();
                     let artistW = ctx.measureText(artistText).width;
                     const maxArtistW = 920;
                     if (artistW > maxArtistW) {
@@ -9922,7 +9941,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.save();
                     const catAlpha = (!isDownloading || isVideoExport) ? (isLiveRolling ? 0 : Math.min(1, postRollElapsed / 0.35)) : 1.0;
                     ctx.globalAlpha *= catAlpha;
-                    const catText = (top100Category || 'CLASSEMENT OFFICIEL 2026').toUpperCase();
+                    const catText = (top100CategoryRef.current || top100Category || 'CLASSEMENT OFFICIEL 2026').toUpperCase();
                     const catFontSize = isStory ? 18 : 15;
                     ctx.font = `800 ${catFontSize}px "Montserrat", sans-serif`;
                     if ('letterSpacing' in ctx) (ctx as any).letterSpacing = '3px';
@@ -12326,14 +12345,14 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             anim = requestAnimationFrame(loop);
         } else { generateImage(); }
         return () => cancelAnimationFrame(anim);
-    }, [bgImage, bgVideo, customText, theme, showSwipe, showArticleLink, articleLinkText, showVoteLink, top5Items, currentPreviewIndex, activeTab, rotation, themeColor, isVideoRecording, transitionProgress, showText, planningDate, planningItems, agendaMonth, agendaBadgeText, agendaSlide, agendaCoverBadge, agendaCoverTitle, agendaCoverYear, agendaCoverGenres, agendaCoverCta, showAgendaCoverCta, artisteFestivalSlide, eventsSlide, editorialSlide, isEditorialAfficheActive, isEditorialTweetActive, showTitleOnSlide2, showMusicDate, editorialDate, showDividerDate, citationAuthor, citationMedia, extraEditorialSlides, musicTracks, top10Tracks, top10ActiveRank, top10Title, top10IntroTitle, top10IntroArtist, top10ColoredWords, top10LogoScale, top10Subtitle, top10TrackDuration, top10TestingRank, top10GenMode, top10Badge, top10LabelSearch, top10StyleSearch, top10ArtistSearch, calendarMonth, calendarEvents, isRetouchMode, retouchPath, isTransparent, showBottomLogo, artistLogo, festivalLogo, bgOffsetX, bgOffsetY, artistNameText, festivalNameText, isArtistLogoNegative, mapFestivalText, mapCityCountry, mapZoom, mapLatitude, mapLongitude, mapStyle, isMapLoading, mapPinColor, mapLabelText, showMapPin, showMapLabel, mapAnimMode, isMapAnimPlaying, mapScrubTime, mapAnimDuration, mapDestLatitude, mapDestLongitude, mapDestFestivalText, mapDestVenue, mapDestCity, mapDestCountry, mapDestPinColor, imgLayoutMode, quizColor1, quizColor2, showFrame, conseilsTitle, conseilsSubtext, isConseilsLargeTitle, concoursFestivalName, concoursFestivalHandle, concoursBottomColor, concoursLateralText, concoursLateralOpacity, concoursBadgeTextColor, concoursMode, concoursGTAHeadline, concoursGTATitle, concoursGTAPlatformText, concoursGTACondition1, concoursGTACondition2, concoursGTACondition3, concoursGTACondition4, afficheImage, afficheGlow, afficheBorderColor, afficheMode, afficheScale, afficheOffsetY, tweetImage, tweetScale, tweetOffsetY, tweetGlow, tweetHeadline, tweetBadge, tweetBorderColor, tweetTranslation, showTweetTranslation, tweetAnimMode, textAnimation, animReplayKey, bgAnimation, cdjPlayerRing, musicBgMotion, isCarouselPromoActive, promoCustomPhrase, promoCustomSubphrase, promoOutroStyle, isPromoAnimPlaying, promoCategory, showPromoHook, showPromoHeadline, showPromoLine1, showPromoLine2, djCutoutImage, djOriginalImage, djSilhouetteColor, djGlowIntensity, djShowQuestionMark, djAppearanceAnim, editorialSlideImages, editorialSlideCutouts, editorialSlideTitles, djSlideModes, agendaAffiches, highlightsSlideArtists, highlightsColorArtist, highlightsColorFestival, highlightsColorCity, highlightsColorCountry, highlightsColorDate, afficheImgZoom, afficheImgPanX, afficheImgPanY]);
+    }, [bgImage, bgVideo, customText, theme, showSwipe, showArticleLink, articleLinkText, showVoteLink, top5Items, currentPreviewIndex, activeTab, rotation, themeColor, isVideoRecording, transitionProgress, showText, planningDate, planningItems, agendaMonth, agendaBadgeText, agendaSlide, agendaCoverBadge, agendaCoverTitle, agendaCoverYear, agendaCoverGenres, agendaCoverCta, showAgendaCoverCta, artisteFestivalSlide, eventsSlide, editorialSlide, isEditorialAfficheActive, isEditorialTweetActive, showTitleOnSlide2, showMusicDate, editorialDate, showDividerDate, citationAuthor, citationMedia, extraEditorialSlides, musicTracks, top10Tracks, top10ActiveRank, top10Title, top10IntroTitle, top10IntroArtist, top10ColoredWords, top10LogoScale, top10Subtitle, top10TrackDuration, top10TestingRank, top10GenMode, top10Badge, top10LabelSearch, top10StyleSearch, top10ArtistSearch, top100Rank, top100ArtistName, top100Category, top100Badge, top100AnimKey, calendarMonth, calendarEvents, isRetouchMode, retouchPath, isTransparent, showBottomLogo, artistLogo, festivalLogo, bgOffsetX, bgOffsetY, artistNameText, festivalNameText, isArtistLogoNegative, mapFestivalText, mapCityCountry, mapZoom, mapLatitude, mapLongitude, mapStyle, isMapLoading, mapPinColor, mapLabelText, showMapPin, showMapLabel, mapAnimMode, isMapAnimPlaying, mapScrubTime, mapAnimDuration, mapDestLatitude, mapDestLongitude, mapDestFestivalText, mapDestVenue, mapDestCity, mapDestCountry, mapDestPinColor, imgLayoutMode, quizColor1, quizColor2, showFrame, conseilsTitle, conseilsSubtext, isConseilsLargeTitle, concoursFestivalName, concoursFestivalHandle, concoursBottomColor, concoursLateralText, concoursLateralOpacity, concoursBadgeTextColor, concoursMode, concoursGTAHeadline, concoursGTATitle, concoursGTAPlatformText, concoursGTACondition1, concoursGTACondition2, concoursGTACondition3, concoursGTACondition4, afficheImage, afficheGlow, afficheBorderColor, afficheMode, afficheScale, afficheOffsetY, tweetImage, tweetScale, tweetOffsetY, tweetGlow, tweetHeadline, tweetBadge, tweetBorderColor, tweetTranslation, showTweetTranslation, tweetAnimMode, textAnimation, animReplayKey, bgAnimation, cdjPlayerRing, musicBgMotion, isCarouselPromoActive, promoCustomPhrase, promoCustomSubphrase, promoOutroStyle, isPromoAnimPlaying, promoCategory, showPromoHook, showPromoHeadline, showPromoLine1, showPromoLine2, djCutoutImage, djOriginalImage, djSilhouetteColor, djGlowIntensity, djShowQuestionMark, djAppearanceAnim, editorialSlideImages, editorialSlideCutouts, editorialSlideTitles, djSlideModes, agendaAffiches, highlightsSlideArtists, highlightsColorArtist, highlightsColorFestival, highlightsColorCity, highlightsColorCountry, highlightsColorDate, afficheImgZoom, afficheImgPanX, afficheImgPanY]);
 
     // Rejouer l'animation de texte proprement depuis le début à chaque changement de slide, track ou de thème
     useEffect(() => {
         pendingAnimResetRef.current = true;
         animStartTimeRef.current = Date.now();
         setAnimReplayKey(k => k + 1);
-    }, [editorialSlide, agendaSlide, artisteFestivalSlide, eventsSlide, isCarouselPromoActive, isEditorialAfficheActive, isEditorialTweetActive, theme, top10ActiveRank, top10TestingRank]);
+    }, [editorialSlide, agendaSlide, artisteFestivalSlide, eventsSlide, isCarouselPromoActive, isEditorialAfficheActive, isEditorialTweetActive, theme, top10ActiveRank, top10TestingRank, top100Rank, top100AnimKey]);
 
     // En mode REEL, ARTISTE FESTIVAL est verrouillé sur la Slide 2 (Spotlight) car la Slide 1 Cover fait doublon avec le thème REELS
     useEffect(() => {
@@ -15750,13 +15769,16 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 return { category: 'MUSIC' as const, catLabel: 'Musique', icon: '🎵', color: '#00f0ff', border: 'border-cyan-400/40', bg: 'bg-cyan-500/15', text: 'text-cyan-400' };
             }
             if (['PLANNING', 'CALENDRIER', 'EVENTS', 'AFFICHE', 'MAP'].includes(t)) {
-                return { category: 'AGENDA' as const, catLabel: 'Agenda', icon: '📅', color: '#ff3700', border: 'border-[#ff3700]/40', bg: 'bg-[#ff3700]/15', text: 'text-[#ff3700]' };
+                return { category: 'AGENDA' as const, catLabel: 'Agenda', icon: '📅', color: '#ff6700', border: 'border-[#ff6700]/40', bg: 'bg-[#ff6700]/15', text: 'text-[#ff6700]' };
             }
             if (['JEU', 'JEU_FESTIVAL', 'JEU_DJ', 'CONCOURS', 'TOP 100 DROPSIDERS'].includes(t)) {
                 return { category: 'GAMES' as const, catLabel: 'Jeux', icon: '🎮', color: '#00f0ff', border: 'border-[#00f0ff]/40', bg: 'bg-[#00f0ff]/15', text: 'text-[#00f0ff]' };
             }
             if (t === 'RECAP') {
                 return { category: 'EDITO' as const, catLabel: 'Édito', icon: '📰', color: '#c026d3', border: 'border-[#c026d3]/40', bg: 'bg-[#c026d3]/15', text: 'text-[#c026d3]' };
+            }
+            if (t === 'FOCUS') {
+                return { category: 'EDITO' as const, catLabel: 'Édito', icon: '📰', color: '#ffe600', border: 'border-[#ffe600]/40', bg: 'bg-[#ffe600]/15', text: 'text-[#ffe600]' };
             }
             return { category: 'EDITO' as const, catLabel: 'Édito', icon: '📰', color: '#ff1241', border: 'border-[#ff1241]/40', bg: 'bg-[#ff1241]/15', text: 'text-neon-red' };
         };
@@ -15773,7 +15795,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         const unifiedThemeList = [
             // 📰 Éditorial
             { id: 'NEWS', label: 'NEWS', category: 'EDITO', action: () => handleSetTheme('NEWS'), active: theme === 'NEWS', style: 'bg-neon-red/20 border-neon-red text-neon-red shadow-[0_0_12px_rgba(255,18,65,0.35)]' },
-            { id: 'FOCUS', label: 'FOCUS', category: 'EDITO', action: () => handleSetTheme('FOCUS'), active: theme === 'FOCUS', style: 'bg-[#ffaa00]/20 border-[#ffaa00] text-[#ffaa00] shadow-[0_0_12px_rgba(255,170,0,0.35)]' },
+            { id: 'FOCUS', label: 'FOCUS', category: 'EDITO', action: () => handleSetTheme('FOCUS'), active: theme === 'FOCUS', style: 'bg-[#ffe600]/20 border-[#ffe600] text-[#ffe600] shadow-[0_0_12px_rgba(255,230,0,0.35)]' },
             { id: 'RECAP', label: 'RÉCAP', category: 'EDITO', action: () => handleSetTheme('RECAP'), active: theme === 'RECAP', style: 'bg-[#c026d3]/20 border-[#c026d3] text-[#c026d3] shadow-[0_0_12px_rgba(192,38,211,0.35)]' },
             { id: 'INTERVIEW', label: 'INTERVIEW', category: 'EDITO', action: () => handleSetTheme('INTERVIEW'), active: theme === 'INTERVIEW', style: 'bg-white/20 border-white text-white shadow-[0_0_12px_rgba(255,255,255,0.35)]' },
             { id: 'CITATION', label: 'CITATION', category: 'EDITO', action: () => handleSetTheme('CITATION'), active: theme === 'CITATION', style: 'bg-neon-red/20 border-neon-red text-neon-red shadow-[0_0_12px_rgba(255,18,65,0.35)]' },
@@ -15797,8 +15819,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             { id: 'TRACKLIST', label: 'TRACKLIST', category: 'MUSIC', action: () => { if (activeTab !== 'REEL') setActiveTab('REEL'); handleSetTheme('TRACKLIST'); }, active: theme === 'TRACKLIST', style: 'bg-orange-500/20 border-orange-500 text-orange-500 shadow-[0_0_12px_rgba(255,120,0,0.35)]' },
 
             // 📅 Agenda
-            { id: 'PLANNING', label: 'AGENDA', category: 'AGENDA', action: () => handleSetTheme('PLANNING'), active: theme === 'PLANNING', style: 'bg-[#ff3700]/20 border-[#ff3700] text-[#ff3700] shadow-[0_0_12px_rgba(255,55,0,0.35)]' },
-            { id: 'EVENTS', label: 'EVENTS', category: 'AGENDA', action: () => { handleSetTheme('EVENTS'); setEventsSlide(1); }, active: theme === 'EVENTS' || theme === 'AFFICHE', style: 'bg-[#ff3700]/20 border-[#ff3700] text-[#ff3700] shadow-[0_0_12px_rgba(255,55,0,0.35)]' },
+            { id: 'PLANNING', label: 'AGENDA', category: 'AGENDA', action: () => handleSetTheme('PLANNING'), active: theme === 'PLANNING', style: 'bg-[#ff6700]/20 border-[#ff6700] text-[#ff6700] shadow-[0_0_12px_rgba(255,103,0,0.35)]' },
+            { id: 'EVENTS', label: 'EVENTS', category: 'AGENDA', action: () => { handleSetTheme('EVENTS'); setEventsSlide(1); }, active: theme === 'EVENTS' || theme === 'AFFICHE', style: 'bg-[#ff6700]/20 border-[#ff6700] text-[#ff6700] shadow-[0_0_12px_rgba(255,103,0,0.35)]' },
             { id: 'MAP', label: 'CARTE (STORY)', category: 'AGENDA', action: () => { if (activeTab !== 'REEL') setActiveTab('REEL'); handleSetTheme('MAP'); }, active: theme === 'MAP', style: 'bg-neon-cyan/20 border-neon-cyan text-neon-cyan shadow-[0_0_12px_rgba(0,240,255,0.35)]' },
 
             // 🎮 Jeux
@@ -15808,7 +15830,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 category: 'GAMES',
                 action: () => { if (theme !== 'JEU' && theme !== 'JEU_FESTIVAL' && theme !== 'JEU_DJ') handleSetTheme('JEU'); },
                 active: theme === 'JEU' || theme === 'JEU_FESTIVAL' || theme === 'JEU_DJ',
-                style: theme === 'JEU_FESTIVAL' ? 'bg-[#ffaa00]/20 border-[#ffaa00] text-[#ffaa00] shadow-[0_0_12px_rgba(255,170,0,0.35)]' : theme === 'JEU_DJ' ? 'bg-[#bd00ff]/20 border-[#bd00ff] text-[#bd00ff] shadow-[0_0_12px_rgba(189,0,255,0.35)]' : 'bg-neon-cyan/20 border-neon-cyan text-neon-cyan shadow-[0_0_12px_rgba(0,240,255,0.35)]'
+                style: theme === 'JEU_FESTIVAL' ? 'bg-[#ff6700]/20 border-[#ff6700] text-[#ff6700] shadow-[0_0_12px_rgba(255,103,0,0.35)]' : theme === 'JEU_DJ' ? 'bg-[#bd00ff]/20 border-[#bd00ff] text-[#bd00ff] shadow-[0_0_12px_rgba(189,0,255,0.35)]' : 'bg-neon-cyan/20 border-neon-cyan text-neon-cyan shadow-[0_0_12px_rgba(0,240,255,0.35)]'
             },
             { id: 'CONCOURS', label: 'CONCOURS', category: 'GAMES', action: () => handleSetTheme('CONCOURS'), active: theme === 'CONCOURS', style: 'bg-[#008cff]/20 border-[#008cff] text-[#008cff] shadow-[0_0_12px_rgba(0,140,255,0.35)]' },
             { id: 'TOP 100 DROPSIDERS', label: 'TOP 100 DROPSIDERS', category: 'GAMES', action: () => handleSetTheme('TOP 100 DROPSIDERS'), active: theme === 'TOP 100 DROPSIDERS', style: 'bg-neon-red/20 border-neon-red text-white shadow-[0_0_12px_rgba(255,18,65,0.4)]' }
@@ -21035,6 +21057,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         value={top100Rank}
                         onChange={e => {
                             const val = Number(e.target.value);
+                            top100RankRef.current = val;
                             setTop100Rank(val);
                             top100AnimStartRef.current = Date.now();
                             animStartTimeRef.current = Date.now();
@@ -21049,6 +21072,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         value={top100Rank}
                         onChange={e => {
                             const val = Math.max(1, Math.min(100, Number(e.target.value) || 1));
+                            top100RankRef.current = val;
                             setTop100Rank(val);
                             top100AnimStartRef.current = Date.now();
                             animStartTimeRef.current = Date.now();
@@ -21072,7 +21096,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         type="text"
                         value={top100ArtistName}
                         onChange={e => {
-                            setTop100ArtistName(e.target.value.toUpperCase());
+                            const val = e.target.value.toUpperCase();
+                            top100ArtistNameRef.current = val;
+                            setTop100ArtistName(val);
                             generateImage();
                         }}
                         placeholder="EX: MARTIN GARRIX"
@@ -21088,7 +21114,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         type="text"
                         value={top100Category}
                         onChange={e => {
-                            setTop100Category(e.target.value.toUpperCase());
+                            const val = e.target.value.toUpperCase();
+                            top100CategoryRef.current = val;
+                            setTop100Category(val);
                             generateImage();
                         }}
                         placeholder="EX: CLASSEMENT OFFICIEL 2026"
@@ -21104,7 +21132,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         type="text"
                         value={top100Badge}
                         onChange={e => {
-                            setTop100Badge(e.target.value.toUpperCase());
+                            const val = e.target.value.toUpperCase();
+                            top100BadgeRef.current = val;
+                            setTop100Badge(val);
                             generateImage();
                         }}
                         placeholder="EX: DROPSIDERS TOP 100"
@@ -25555,10 +25585,13 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                                 return { category: 'MUSIC' as const, catLabel: 'Musique', icon: '🎵', color: '#00f0ff', border: 'border-cyan-400/40', bg: 'bg-cyan-500/15', text: 'text-cyan-400' };
                                             }
                                             if (['PLANNING', 'CALENDRIER', 'EVENTS', 'AFFICHE', 'MAP'].includes(t)) {
-                                                return { category: 'AGENDA' as const, catLabel: 'Agenda', icon: '📅', color: '#ff3700', border: 'border-[#ff3700]/40', bg: 'bg-[#ff3700]/15', text: 'text-[#ff3700]' };
+                                                return { category: 'AGENDA' as const, catLabel: 'Agenda', icon: '📅', color: '#ff6700', border: 'border-[#ff6700]/40', bg: 'bg-[#ff6700]/15', text: 'text-[#ff6700]' };
                                             }
                                             if (['JEU', 'JEU_FESTIVAL', 'JEU_DJ', 'CONCOURS', 'TOP 100 DROPSIDERS'].includes(t)) {
                                                 return { category: 'GAMES' as const, catLabel: 'Jeux', icon: '🎮', color: '#00f0ff', border: 'border-[#00f0ff]/40', bg: 'bg-[#00f0ff]/15', text: 'text-[#00f0ff]' };
+                                            }
+                                            if (t === 'FOCUS') {
+                                                return { category: 'EDITO' as const, catLabel: 'Édito', icon: '📰', color: '#ffe600', border: 'border-[#ffe600]/40', bg: 'bg-[#ffe600]/15', text: 'text-[#ffe600]' };
                                             }
                                             return { category: 'EDITO' as const, catLabel: 'Édito', icon: '📰', color: '#ff1241', border: 'border-[#ff1241]/40', bg: 'bg-[#ff1241]/15', text: 'text-neon-red' };
                                         };
@@ -25574,7 +25607,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         const desktopThemeList = [
                                             // 📰 Éditorial
                                             { id: 'NEWS', label: 'NEWS', category: 'EDITO', action: () => handleSetTheme('NEWS'), active: theme === 'NEWS', style: 'bg-neon-red/20 border-neon-red text-neon-red shadow-[0_0_12px_rgba(255,18,65,0.35)]' },
-                                            { id: 'FOCUS', label: 'FOCUS', category: 'EDITO', action: () => handleSetTheme('FOCUS'), active: theme === 'FOCUS', style: 'bg-[#ffaa00]/20 border-[#ffaa00] text-[#ffaa00] shadow-[0_0_12px_rgba(255,170,0,0.35)]' },
+                                            { id: 'FOCUS', label: 'FOCUS', category: 'EDITO', action: () => handleSetTheme('FOCUS'), active: theme === 'FOCUS', style: 'bg-[#ffe600]/20 border-[#ffe600] text-[#ffe600] shadow-[0_0_12px_rgba(255,230,0,0.35)]' },
                                             { id: 'RECAP', label: 'RÉCAP', category: 'EDITO', action: () => handleSetTheme('RECAP'), active: theme === 'RECAP', style: 'bg-[#c026d3]/20 border-[#c026d3] text-[#c026d3] shadow-[0_0_12px_rgba(192,38,211,0.35)]' },
                                             { id: 'INTERVIEW', label: 'INTERVIEW', category: 'EDITO', action: () => handleSetTheme('INTERVIEW'), active: theme === 'INTERVIEW', style: 'bg-white/20 border-white text-white shadow-[0_0_12px_rgba(255,255,255,0.35)]' },
                                             { id: 'CITATION', label: 'CITATION', category: 'EDITO', action: () => handleSetTheme('CITATION'), active: theme === 'CITATION', style: 'bg-neon-red/20 border-neon-red text-neon-red shadow-[0_0_12px_rgba(255,18,65,0.35)]' },
@@ -25595,8 +25628,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                             ...(activeTab === 'REEL' ? [{ id: 'TRACKLIST', label: 'TRACKLIST', category: 'MUSIC', action: () => handleSetTheme('TRACKLIST'), active: theme === 'TRACKLIST', style: 'bg-orange-500/20 border-orange-500 text-orange-500 shadow-[0_0_12px_rgba(255,120,0,0.35)]' }] : []),
 
                                             // 📅 Agenda
-                                            { id: 'PLANNING', label: 'AGENDA', category: 'AGENDA', action: () => handleSetTheme('PLANNING'), active: theme === 'PLANNING', style: 'bg-[#ff3700]/20 border-[#ff3700] text-[#ff3700] shadow-[0_0_12px_rgba(255,55,0,0.35)]' },
-                                            { id: 'EVENTS', label: 'EVENTS', category: 'AGENDA', action: () => { handleSetTheme('EVENTS'); setEventsSlide(1); }, active: theme === 'EVENTS' || theme === 'AFFICHE', style: 'bg-[#ff3700]/20 border-[#ff3700] text-[#ff3700] shadow-[0_0_12px_rgba(255,55,0,0.35)]' },
+                                            { id: 'PLANNING', label: 'AGENDA', category: 'AGENDA', action: () => handleSetTheme('PLANNING'), active: theme === 'PLANNING', style: 'bg-[#ff6700]/20 border-[#ff6700] text-[#ff6700] shadow-[0_0_12px_rgba(255,103,0,0.35)]' },
+                                            { id: 'EVENTS', label: 'EVENTS', category: 'AGENDA', action: () => { handleSetTheme('EVENTS'); setEventsSlide(1); }, active: theme === 'EVENTS' || theme === 'AFFICHE', style: 'bg-[#ff6700]/20 border-[#ff6700] text-[#ff6700] shadow-[0_0_12px_rgba(255,103,0,0.35)]' },
                                             ...(activeTab === 'REEL' ? [{ id: 'MAP', label: 'CARTE (STORY)', category: 'AGENDA', action: () => handleSetTheme('MAP'), active: theme === 'MAP', style: 'bg-neon-cyan/20 border-neon-cyan text-neon-cyan shadow-[0_0_12px_rgba(0,240,255,0.35)]' }] : []),
 
                                             // 🎮 Jeux
@@ -25606,7 +25639,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                                 category: 'GAMES',
                                                 action: () => { if (theme !== 'JEU' && theme !== 'JEU_FESTIVAL' && theme !== 'JEU_DJ') handleSetTheme('JEU'); },
                                                 active: theme === 'JEU' || theme === 'JEU_FESTIVAL' || theme === 'JEU_DJ',
-                                                style: theme === 'JEU_FESTIVAL' ? 'bg-[#ffaa00]/20 border-[#ffaa00] text-[#ffaa00] shadow-[0_0_12px_rgba(255,170,0,0.35)]' : theme === 'JEU_DJ' ? 'bg-[#bd00ff]/20 border-[#bd00ff] text-[#bd00ff] shadow-[0_0_12px_rgba(189,0,255,0.35)]' : 'bg-neon-cyan/20 border-neon-cyan text-neon-cyan shadow-[0_0_12px_rgba(0,240,255,0.35)]'
+                                                style: theme === 'JEU_FESTIVAL' ? 'bg-[#ff6700]/20 border-[#ff6700] text-[#ff6700] shadow-[0_0_12px_rgba(255,103,0,0.35)]' : theme === 'JEU_DJ' ? 'bg-[#bd00ff]/20 border-[#bd00ff] text-[#bd00ff] shadow-[0_0_12px_rgba(189,0,255,0.35)]' : 'bg-neon-cyan/20 border-neon-cyan text-neon-cyan shadow-[0_0_12px_rgba(0,240,255,0.35)]'
                                             },
                                             { id: 'CONCOURS', label: 'CONCOURS', category: 'GAMES', action: () => handleSetTheme('CONCOURS'), active: theme === 'CONCOURS', style: 'bg-[#008cff]/20 border-[#008cff] text-[#008cff] shadow-[0_0_12px_rgba(0,140,255,0.35)]' },
                                             { id: 'TOP 100 DROPSIDERS', label: 'TOP 100 DROPSIDERS', category: 'GAMES', action: () => handleSetTheme('TOP 100 DROPSIDERS'), active: theme === 'TOP 100 DROPSIDERS', style: 'bg-neon-red/20 border-neon-red text-white shadow-[0_0_12px_rgba(255,18,65,0.4)]' }

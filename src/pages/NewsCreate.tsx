@@ -415,13 +415,13 @@ export function NewsCreate() {
             // Get Category Color Theme
             const categoryColors: Record<string, { color: string; grad: string }> = {
                 'news': { color: '#ff0033', grad: '255, 0, 51' },
-                'focus': { color: '#ffaa00', grad: '255, 170, 0' },
+                'focus': { color: '#ffe600', grad: '255, 230, 0' },
                 'highlights': { color: '#0070ff', grad: '0, 112, 255' },
                 'musique': { color: '#39ff14', grad: '57, 255, 20' },
                 'recap': { color: '#c026d3', grad: '192, 38, 211' },
                 'interview': { color: '#ffffff', grad: '255, 255, 255' },
                 'concours': { color: '#008cff', grad: '0, 140, 255' },
-                'events': { color: '#ff3700', grad: '255, 55, 0' },
+                'events': { color: '#ff6700', grad: '255, 103, 0' },
                 'tracklist': { color: '#ff7800', grad: '255, 120, 0' },
             };
 
