@@ -532,7 +532,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     };
     const [extraEditorialSlides, setExtraEditorialSlides] = useState<string[]>([]); // Slides 3, 4, 5... (texte de chaque slide)
     const [skipEditorialSlide2, setSkipEditorialSlide2] = useState<boolean>(true); // Masquer Slide 2 par défaut (Slide 1 + Promo uniquement, s'affiche uniquement si ajoutée)
-    const [editorialSlide1Duration, setEditorialSlide1Duration] = useState<number>(5); // Durée Slide 1 (en secondes, min 2s, max 15s)
+    const [editorialSlide1Duration, setEditorialSlide1Duration] = useState<number>(20); // Durée Slide 1 par défaut : 20 secondes
     const [editorialPromoDuration, setEditorialPromoDuration] = useState<number>(7); // Durée Promo (en secondes, fixée à 7s pour l'animation Instagram)
     const [exportFps, setExportFps] = useState<number>(30); // Fluidité vidéo : 30 FPS fluide par défaut (standard Instagram/Reels) ou 60 FPS Studio
     const [exportAccordion, setExportAccordion] = useState<'image' | 'video_slide' | 'video_carousel' | 'tiktok' | null>('image');
@@ -11970,13 +11970,13 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             } else if (isReelWithPromo) {
                 const contentDur = (bgVideo && !isNaN(bgVideo.duration) && bgVideo.duration > 0)
                     ? bgVideo.duration * 1000
-                    : 15000;
+                    : 20000;
                 const promoDur = promoOutroStyle === 'PHONE_3D' ? 7000 : 5000;
                 totalDuration = Math.min(600000, contentDur + currentTransitionDuration + promoDur);
             } else {
                 totalDuration = (bgVideo && !isNaN(bgVideo.duration) && bgVideo.duration > 0)
                     ? bgVideo.duration * 1000
-                    : ((activeTab === 'REEL' || textAnimation !== 'NONE' || bgAnimation !== 'NONE' || theme === 'TRACKLIST') ? 15000 : 60000);
+                    : 20000;
                 if (totalDuration > 600000) totalDuration = 600000;
             }
         }
@@ -13431,7 +13431,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             if (isReelWithPromo) {
                 const contentDur = (bgVideo && !isNaN(bgVideo.duration) && bgVideo.duration > 0)
                     ? bgVideo.duration * 1000
-                    : 15000;
+                    : 20000;
                 const promoDur = promoOutroStyle === 'PHONE_3D' ? 7000 : 5000;
                 const transitionDuration = currentTransitionDuration;
 
@@ -17324,7 +17324,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         </span>
                     </div>
                     <div className="flex gap-1">
-                        {[3, 4, 5, 7, 10].map(s => (
+                        {[5, 10, 15, 20].map(s => (
                             <button
                                 key={s}
                                 type="button"
