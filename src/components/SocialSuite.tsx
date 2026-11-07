@@ -1000,7 +1000,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const top10TestTimerRef = useRef<any>(null);
 
     // ─── SLIDE D'INTRO TOP 10 TRACKS (3.5s) ───
-    const [top10IntroTitle, setTop10IntroTitle] = useState<string>('TOP 10 DES TRACKS LES PLUS STREAMÉES');
+    const [top10IntroTitle, setTop10IntroTitle] = useState<string>('TOP 10 DES TRACKS LES PLUS TÉLÉCHARGÉES SUR BEATPORT');
     const [top10IntroArtist, setTop10IntroArtist] = useState<string>('');
     const top10IntroTitleRef = useRef<string>(top10IntroTitle);
     top10IntroTitleRef.current = top10IntroTitle;
@@ -1339,7 +1339,13 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         if (!cleaned) return;
         setIsAutoFillingTop10(true);
         setTop10Title('TOP 10 TRACKS');
+        top10TitleRef.current = 'TOP 10 TRACKS';
         setTop10IntroArtist(cleaned);
+        top10IntroArtistRef.current = cleaned;
+        setTop10Badge('TOP 10 TRACKS');
+        top10BadgeRef.current = 'TOP 10 TRACKS';
+        setTop10IntroTitle('TOP 10 DES TRACKS LES PLUS STREAMÉES');
+        top10IntroTitleRef.current = 'TOP 10 DES TRACKS LES PLUS STREAMÉES';
         setTop10ActiveRank(0);
         top10ActiveRankRef.current = 0;
 
@@ -1711,6 +1717,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         setTop10IntroArtist(displayStyleTitle);
         top10IntroArtistRef.current = displayStyleTitle;
         setTop10Badge(`TOP 10 ${displayStyleTitle}`);
+        top10BadgeRef.current = `TOP 10 ${displayStyleTitle}`;
+        setTop10IntroTitle('TOP 10 DES TRACKS LES PLUS TÉLÉCHARGÉES SUR BEATPORT');
+        top10IntroTitleRef.current = 'TOP 10 DES TRACKS LES PLUS TÉLÉCHARGÉES SUR BEATPORT';
 
         try {
             if (preset) {
@@ -9685,12 +9694,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     const top10AccentColor = isStyleMode ? activeStyleColor : '#00f0ff';
                     const top10AccentRgb = isStyleMode ? activeStyleRgb : '0, 240, 255';
 
-                    // Découpeur de titre pour illuminer en couleur néon les mots entourés d'*astérisques* (ou par défaut TOP 10 / STREAM...)
+                    // Découpeur de titre pour illuminer en couleur néon les mots entourés d'*astérisques* (ou par défaut TOP 10 / STREAM / BEATPORT / TÉLÉCHARG...)
                     const parseTop10TitleSegments = (lineText: string): { text: string; isHighlighted: boolean }[] => {
                         const hasAsterisks = lineText.includes('*');
                         const regex = hasAsterisks
                             ? /(\*([^*]+)\*)/gi
-                            : /(TOP\s*10|\bSTREAM\S*|\bJOU\S*)/gi;
+                            : /(TOP\s*10|\bSTREAM\S*|\bJOU\S*|\bT[EÉ]L[EÉ]CHARG\S*(?:\s+SUR\s+BEATPORT)?|\bBEATPORT\S*)/gi;
 
                         const segs: { text: string; isHighlighted: boolean }[] = [];
                         let lastIndex = 0;
@@ -9805,7 +9814,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         ctx.save();
                         ctx.textAlign = 'center';
                         ctx.textBaseline = 'middle';
-                        const rawIntroTitle = (top10IntroTitleRef.current || top10IntroTitle || 'TOP 10 DES TRACKS LES PLUS STREAMÉES').toUpperCase().trim();
+                        const rawIntroTitle = (top10IntroTitleRef.current || top10IntroTitle || (isStyleMode ? 'TOP 10 DES TRACKS LES PLUS TÉLÉCHARGÉES SUR BEATPORT' : 'TOP 10 DES TRACKS LES PLUS STREAMÉES')).toUpperCase().trim();
 
                         let titleLines: string[] = [];
                         if (rawIntroTitle.includes('\n')) {
@@ -9816,6 +9825,15 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             const part2 = rawIntroTitle.slice(idx).trim();
                             if (part1 && part2) {
                                 titleLines = [part1, part2];
+                            } else {
+                                const words = rawIntroTitle.split(' ');
+                                const mid = Math.ceil(words.length / 2);
+                                titleLines = [words.slice(0, mid).join(' '), words.slice(mid).join(' ')];
+                            }
+                        } else if (rawIntroTitle.includes('TÉLÉCHARG') || rawIntroTitle.includes('TELECHARG')) {
+                            const match = rawIntroTitle.match(/^(.*?)\s+(T[EÉ]L[EÉ]CHARG\S*.*)$/i);
+                            if (match && match[1] && match[2]) {
+                                titleLines = [match[1].trim(), match[2].trim()];
                             } else {
                                 const words = rawIntroTitle.split(' ');
                                 const mid = Math.ceil(words.length / 2);
@@ -10238,13 +10256,18 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         cleanTracksTitle === 'TOP 10 TRACKS' ||
                         cleanTracksTitle.includes('LES PLUS STREAMÉES') ||
                         cleanTracksTitle.includes('LES PLUS JOUÉES') ||
+                        cleanTracksTitle.includes('TÉLÉCHARG') ||
+                        cleanTracksTitle.includes('TELECHARG') ||
+                        cleanTracksTitle.includes('BEATPORT') ||
                         cleanTracksTitle.startsWith('TOP 10 DES TRACKS') ||
                         cleanTracksTitle.endsWith('• TOP 10 TRACKS') ||
                         cleanTracksTitle === 'ARTISTE • TOP 10 TRACKS';
 
                     const t10Title = isDefaultOrIntroTitle ? 'TOP 10 TRACKS' : rawTracksTitle.toUpperCase();
 
-                    let t10FontSize = 34;
+                    // En mode style, le titre est centré verticalement et légèrement plus grand (sans doublon de style en dessous)
+                    const t10TitleY = isStyleMode ? 295 : 260;
+                    let t10FontSize = isStyleMode ? 42 : 34;
                     ctx.font = `900 ${t10FontSize}px "Montserrat", sans-serif`;
                     if ('letterSpacing' in ctx) (ctx as any).letterSpacing = '3px';
                     let t10W = ctx.measureText(t10Title.replace(/\*/g, '')).width;
@@ -10253,7 +10276,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         ctx.font = `900 ${t10FontSize}px "Montserrat", sans-serif`;
                     }
                     if (!isStaticPngExport && textAnimation !== 'NONE') {
-                        applyTextAnimCtx(ctx, 0.0, canvas.width / 2, 260, trackAnimTime);
+                        applyTextAnimCtx(ctx, 0.0, canvas.width / 2, t10TitleY, trackAnimTime);
                     }
 
                     ctx.textAlign = 'left';
@@ -10273,7 +10296,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         ctx.shadowOffsetX = 0;
                         ctx.shadowOffsetY = 6;
                         ctx.fillStyle = color;
-                        ctx.fillText(seg.text, trackCurX, 260);
+                        ctx.fillText(seg.text, trackCurX, t10TitleY);
                         ctx.restore();
 
                         // 2. Ombre de contact nette vers le bas
@@ -10283,16 +10306,16 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         ctx.shadowOffsetX = 0;
                         ctx.shadowOffsetY = 3;
                         ctx.fillStyle = color;
-                        ctx.fillText(seg.text, trackCurX, 260);
+                        ctx.fillText(seg.text, trackCurX, t10TitleY);
                         ctx.restore();
 
-                        // 3. Lueur néon si mis en valeur (Bleu pour Artiste, Violet EDM pour Style)
+                        // 3. Lueur néon si mis en valeur (Bleu pour Artiste, Or Festival pour Style)
                         if (seg.isHighlighted) {
                             ctx.save();
                             ctx.shadowColor = `rgba(${top10AccentRgb}, 0.85)`;
                             ctx.shadowBlur = 16;
                             ctx.fillStyle = top10AccentColor;
-                            ctx.fillText(seg.text, trackCurX, 260);
+                            ctx.fillText(seg.text, trackCurX, t10TitleY);
                             ctx.restore();
                         }
 
@@ -10300,63 +10323,66 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         ctx.save();
                         ctx.shadowColor = 'transparent';
                         ctx.fillStyle = color;
-                        ctx.fillText(seg.text, trackCurX, 260);
+                        ctx.fillText(seg.text, trackCurX, t10TitleY);
                         ctx.restore();
 
                         trackCurX += segW;
                     });
                     ctx.restore();
 
-                    // 2b. Logo Officiel de l'Artiste (ou nom stylé) au-dessus de la place (Agrandie pour une forte présence)
-                    const countdownArtistName = (top10IntroArtistRef.current || top10IntroArtist || top10ArtistSearch || activeTrack.artist || 'ARTISTE').toUpperCase().trim();
-                    const countdownLogoObj = artistLogoRef.current;
-                    const countdownHasLogo = Boolean(artistLogo && artistLogo.trim() !== '' && !artistLogo.includes('JOHN-SUMMIT-GIVEAWAY') && countdownLogoObj && (countdownLogoObj.naturalWidth > 0 || countdownLogoObj.complete));
-                    const logoAreaCenterY = 352;
+                    // 2b. Logo Officiel de l'Artiste (ou nom stylé) au-dessus de la place
+                    // STRICTEMENT RÉSERVÉ AU MODE ARTISTE : En mode style, le titre au-dessus ("TOP 10 HOUSE") affiche déjà le style !
+                    if (!isStyleMode) {
+                        const countdownArtistName = (top10IntroArtistRef.current || top10IntroArtist || top10ArtistSearch || activeTrack.artist || 'ARTISTE').toUpperCase().trim();
+                        const countdownLogoObj = artistLogoRef.current;
+                        const countdownHasLogo = Boolean(artistLogo && artistLogo.trim() !== '' && !artistLogo.includes('JOHN-SUMMIT-GIVEAWAY') && countdownLogoObj && (countdownLogoObj.naturalWidth > 0 || countdownLogoObj.complete));
+                        const logoAreaCenterY = 352;
 
-                    if (countdownHasLogo && countdownLogoObj) {
-                        const scale = (top10LogoScaleRef.current || top10LogoScale || 100) / 100;
-                        const maxLogoW = Math.round(760 * scale);
-                        const maxLogoH = Math.round(125 * scale);
-                        let lw = countdownLogoObj.width;
-                        let lh = countdownLogoObj.height;
-                        const ratio = Math.min(maxLogoW / lw, maxLogoH / lh);
-                        lw = Math.round(lw * ratio);
-                        lh = Math.round(lh * ratio);
-                        const lx = (canvas.width - lw) / 2;
-                        const ly = logoAreaCenterY - (lh / 2);
+                        if (countdownHasLogo && countdownLogoObj) {
+                            const scale = (top10LogoScaleRef.current || top10LogoScale || 100) / 100;
+                            const maxLogoW = Math.round(760 * scale);
+                            const maxLogoH = Math.round(125 * scale);
+                            let lw = countdownLogoObj.width;
+                            let lh = countdownLogoObj.height;
+                            const ratio = Math.min(maxLogoW / lw, maxLogoH / lh);
+                            lw = Math.round(lw * ratio);
+                            lh = Math.round(lh * ratio);
+                            const lx = (canvas.width - lw) / 2;
+                            const ly = logoAreaCenterY - (lh / 2);
 
-                        ctx.save();
-                        if (!isStaticPngExport && textAnimation !== 'NONE') {
-                            applyTextAnimCtx(ctx, 0.04, canvas.width / 2, logoAreaCenterY, trackAnimTime);
-                        }
-                        ctx.shadowColor = `rgba(${top10AccentRgb}, 0.85)`;
-                        ctx.shadowBlur = 20;
-                        if (isArtistLogoNegative) {
-                            ctx.filter = 'brightness(0) invert(1)';
-                        }
-                        ctx.drawImage(countdownLogoObj, lx, ly, lw, lh);
-                        ctx.restore();
-                    } else {
-                        ctx.save();
-                        if (!isStaticPngExport && textAnimation !== 'NONE') {
-                            applyTextAnimCtx(ctx, 0.04, canvas.width / 2, logoAreaCenterY, trackAnimTime);
-                        }
-                        ctx.textAlign = 'center';
-                        ctx.textBaseline = 'middle';
-                        const scale = (top10LogoScaleRef.current || top10LogoScale || 100) / 100;
-                        let aFontSize = Math.round(44 * scale);
-                        ctx.font = `900 italic ${aFontSize}px "Montserrat", sans-serif`;
-                        if ('letterSpacing' in ctx) (ctx as any).letterSpacing = '3px';
-                        const aW = ctx.measureText(countdownArtistName).width;
-                        if (aW > 820) {
-                            aFontSize = Math.max(22, Math.floor(aFontSize * (820 / aW)));
+                            ctx.save();
+                            if (!isStaticPngExport && textAnimation !== 'NONE') {
+                                applyTextAnimCtx(ctx, 0.04, canvas.width / 2, logoAreaCenterY, trackAnimTime);
+                            }
+                            ctx.shadowColor = `rgba(${top10AccentRgb}, 0.85)`;
+                            ctx.shadowBlur = 20;
+                            if (isArtistLogoNegative) {
+                                ctx.filter = 'brightness(0) invert(1)';
+                            }
+                            ctx.drawImage(countdownLogoObj, lx, ly, lw, lh);
+                            ctx.restore();
+                        } else {
+                            ctx.save();
+                            if (!isStaticPngExport && textAnimation !== 'NONE') {
+                                applyTextAnimCtx(ctx, 0.04, canvas.width / 2, logoAreaCenterY, trackAnimTime);
+                            }
+                            ctx.textAlign = 'center';
+                            ctx.textBaseline = 'middle';
+                            const scale = (top10LogoScaleRef.current || top10LogoScale || 100) / 100;
+                            let aFontSize = Math.round(44 * scale);
                             ctx.font = `900 italic ${aFontSize}px "Montserrat", sans-serif`;
+                            if ('letterSpacing' in ctx) (ctx as any).letterSpacing = '3px';
+                            const aW = ctx.measureText(countdownArtistName).width;
+                            if (aW > 820) {
+                                aFontSize = Math.max(22, Math.floor(aFontSize * (820 / aW)));
+                                ctx.font = `900 italic ${aFontSize}px "Montserrat", sans-serif`;
+                            }
+                            ctx.fillStyle = top10AccentColor;
+                            ctx.shadowColor = `rgba(${top10AccentRgb}, 0.9)`;
+                            ctx.shadowBlur = 18;
+                            ctx.fillText(countdownArtistName, canvas.width / 2, logoAreaCenterY);
+                            ctx.restore();
                         }
-                        ctx.fillStyle = top10AccentColor;
-                        ctx.shadowColor = `rgba(${top10AccentRgb}, 0.9)`;
-                        ctx.shadowBlur = 18;
-                        ctx.fillText(countdownArtistName, canvas.width / 2, logoAreaCenterY);
-                        ctx.restore();
                     }
 
                     // 3. Rank Badge au-dessus de la vidéo ("la place", descendue et stylée)
@@ -20777,6 +20803,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             onClick={() => {
                                 setTop10GenMode('style');
                                 top10GenModeRef.current = 'style';
+                                if (!top10IntroTitle || top10IntroTitle.includes('STREAM')) {
+                                    setTop10IntroTitle('TOP 10 DES TRACKS LES PLUS TÉLÉCHARGÉES SUR BEATPORT');
+                                    top10IntroTitleRef.current = 'TOP 10 DES TRACKS LES PLUS TÉLÉCHARGÉES SUR BEATPORT';
+                                }
                                 generateImage();
                             }}
                             className={`py-2 px-2.5 rounded-lg text-[9px] font-black uppercase transition-all flex items-center justify-center gap-1.5 ${top10GenMode === 'style'
@@ -20792,10 +20822,14 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             onClick={() => {
                                 setTop10GenMode('artist');
                                 top10GenModeRef.current = 'artist';
+                                if (!top10IntroTitle || top10IntroTitle.includes('TÉLÉCHARG') || top10IntroTitle.includes('TELECHARG') || top10IntroTitle.includes('BEATPORT')) {
+                                    setTop10IntroTitle('TOP 10 DES TRACKS LES PLUS STREAMÉES');
+                                    top10IntroTitleRef.current = 'TOP 10 DES TRACKS LES PLUS STREAMÉES';
+                                }
                                 generateImage();
                             }}
                             className={`py-2 px-2.5 rounded-lg text-[9px] font-black uppercase transition-all flex items-center justify-center gap-1.5 ${top10GenMode === 'artist'
-                                ? 'bg-gradient-to-r from-neon-cyan to-blue-500 text-black shadow-[0_0_14px_rgba(0,240,255,0.4)] border border-neon-cyan/60'
+                                ? 'bg-gradient-to-r from-neon-cyan to-blue-500 text-black shadow-[0_0_14px_rgba(0,240,255,0.4)] border border-neon-cyan/60 font-black'
                                 : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
                                 }`}
                         >
@@ -21151,25 +21185,27 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     top10IntroTitleRef.current = e.target.value.toUpperCase();
                                     generateImage();
                                 }}
-                                placeholder="TOP 10 DES TRACKS LES PLUS STREAMÉES"
+                                placeholder={top10GenMode === 'style' ? "TOP 10 DES TRACKS LES PLUS TÉLÉCHARGÉES SUR BEATPORT" : "TOP 10 DES TRACKS LES PLUS STREAMÉES"}
                                 className="w-full bg-black/60 border border-white/10 rounded-xl p-2.5 text-white font-black uppercase text-[11px] focus:border-neon-cyan outline-none"
                             />
                         </div>
 
-                        {/* CHOIX DES MOTS EN BLEU NÉON (EXACTEMENT COMME DANS LES AUTRES THÈMES) */}
+                        {/* CHOIX DES MOTS EN COULEUR NÉON / OR FESTIVAL */}
                         {(() => {
                             const currentTitle = top10IntroTitle || '';
                             const rawWords = currentTitle ? currentTitle.split(/\s+/).filter(Boolean) : [];
                             if (rawWords.length === 0) return null;
+                            const isStyleMode = top10GenMode === 'style';
+                            const accentHex = isStyleMode ? '#FFB800' : '#00F0FF';
                             return (
                                 <div className="space-y-1.5 pt-1">
                                     <div className="flex items-center justify-between">
                                         <span className="text-[9px] font-black text-gray-400 uppercase tracking-wider flex items-center gap-1.5">
                                             <span
-                                                className="w-2 h-2 rounded-full inline-block animate-pulse bg-neon-cyan"
-                                                style={{ boxShadow: '0 0 8px #00f0ff' }}
+                                                className={`w-2 h-2 rounded-full inline-block animate-pulse ${isStyleMode ? 'bg-[#FFB800]' : 'bg-neon-cyan'}`}
+                                                style={{ boxShadow: `0 0 8px ${accentHex}` }}
                                             />
-                                            Clique pour illuminer un mot en bleu néon :
+                                            Clique pour illuminer un mot {isStyleMode ? 'en or festival' : 'en bleu néon'} :
                                         </span>
                                         <button
                                             type="button"
@@ -21194,7 +21230,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     </div>
                                     <div className="flex flex-wrap gap-1.5 p-2 bg-black/40 border border-white/10 rounded-xl max-h-28 overflow-y-auto">
                                         {rawWords.map((word, idx) => {
-                                            const isHighlighted = word.includes('*') || (!currentTitle.includes('*') && (word === 'TOP' || word === '10' || word.startsWith('STREAM') || word.startsWith('JOU')));
+                                            const isHighlighted = word.includes('*') || (!currentTitle.includes('*') && (word === 'TOP' || word === '10' || word.startsWith('STREAM') || word.startsWith('JOU') || word.startsWith('TÉLÉCHARG') || word.startsWith('TELECHARG') || word.startsWith('BEATPORT')));
                                             const cleanWord = word.replace(/\*/g, '');
                                             return (
                                                 <button
@@ -21203,7 +21239,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                                     onClick={() => {
                                                         let baseTitle = currentTitle;
                                                         if (!baseTitle.includes('*')) {
-                                                            baseTitle = baseTitle.replace(/\b(TOP\s*10|TOP|10|STREAM\S*|JOU\S*)\b/gi, '*$1*');
+                                                            baseTitle = baseTitle.replace(/\b(TOP\s*10|TOP|10|STREAM\S*|JOU\S*|T[EÉ]L[EÉ]CHARG\S*|BEATPORT\S*)\b/gi, '*$1*');
                                                         }
                                                         const parts = baseTitle.split(/(\s+)/);
                                                         let curIdx = 0;
@@ -21226,10 +21262,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                                         setTimeout(() => generateImage(), 30);
                                                     }}
                                                     className={`px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all border ${isHighlighted
-                                                        ? 'bg-neon-cyan/25 border-neon-cyan text-neon-cyan shadow-[0_0_10px_rgba(0,240,255,0.4)]'
+                                                        ? (isStyleMode ? 'bg-[#FFB800]/25 border-[#FFB800] text-[#FFB800] shadow-[0_0_10px_rgba(255,184,0,0.4)]' : 'bg-neon-cyan/25 border-neon-cyan text-neon-cyan shadow-[0_0_10px_rgba(0,240,255,0.4)]')
                                                         : 'bg-white/5 border-white/10 text-gray-400 hover:text-white hover:bg-white/10 hover:border-white/20'
                                                         }`}
-                                                    title={isHighlighted ? "Cliquer pour repasser en blanc" : "Cliquer pour illuminer en bleu néon"}
+                                                    title={isHighlighted ? "Cliquer pour repasser en blanc" : `Cliquer pour illuminer ${isStyleMode ? 'en or festival' : 'en bleu néon'}`}
                                                 >
                                                     {cleanWord}
                                                 </button>
