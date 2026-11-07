@@ -9695,6 +9695,27 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         let titleLines: string[] = [];
                         if (rawIntroTitle.includes('\n')) {
                             titleLines = rawIntroTitle.split('\n').map(l => l.trim()).filter(Boolean);
+                        } else if (rawIntroTitle.includes('BEATPORT')) {
+                            // Découpage automatique pour mettre "SUR BEATPORT" à la ligne en gros caractères
+                            const cleanT = rawIntroTitle.replace(/\s+/g, ' ').trim();
+                            if (cleanT.includes('LES PLUS')) {
+                                const idxLP = cleanT.indexOf('LES PLUS');
+                                const part1 = cleanT.slice(0, idxLP).trim();
+                                const afterLP = cleanT.slice(idxLP).trim();
+                                const bpMatch = afterLP.match(/^(.*?)\s+(SUR\s+BEATPORT|BEATPORT)$/i);
+                                if (bpMatch && bpMatch[1] && bpMatch[2]) {
+                                    titleLines = [part1, bpMatch[1].trim(), bpMatch[2].trim()].filter(Boolean);
+                                } else {
+                                    titleLines = [part1, afterLP].filter(Boolean);
+                                }
+                            } else {
+                                const bpMatch = cleanT.match(/^(.*?)\s+(SUR\s+BEATPORT|BEATPORT)$/i);
+                                if (bpMatch && bpMatch[1] && bpMatch[2]) {
+                                    titleLines = [bpMatch[1].trim(), bpMatch[2].trim()].filter(Boolean);
+                                } else {
+                                    titleLines = [cleanT];
+                                }
+                            }
                         } else if (rawIntroTitle.includes('LES PLUS')) {
                             const idx = rawIntroTitle.indexOf('LES PLUS');
                             const part1 = rawIntroTitle.slice(0, idx).trim();
