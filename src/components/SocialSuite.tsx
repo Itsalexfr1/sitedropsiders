@@ -1606,6 +1606,118 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 { rank: 9, query: 'Masters At Work Work Puppah Nas-T', title: 'WORK', artist: 'MASTERS AT WORK', streams: '95M+' },
                 { rank: 10, query: 'Fatboy Slim Praise You', title: 'PRAISE YOU', artist: 'FATBOY SLIM', streams: '340M+' },
             ]
+        },
+        'house': {
+            label: 'House',
+            icon: '🏠',
+            tracks: [
+                { rank: 1, query: 'Daft Punk One More Time', title: 'ONE MORE TIME', artist: 'DAFT PUNK', streams: '1.4B+' },
+                { rank: 2, query: 'Robin S Show Me Love Stonebridge', title: 'SHOW ME LOVE', artist: 'ROBIN S.', streams: '750M+' },
+                { rank: 3, query: 'Modjo Lady Hear Me Tonight', title: 'LADY (HEAR ME TONIGHT)', artist: 'MODJO', streams: '580M+' },
+                { rank: 4, query: 'Duke Dumont Ocean Drive', title: 'OCEAN DRIVE', artist: 'DUKE DUMONT', streams: '820M+' },
+                { rank: 5, query: 'Disclosure Sam Smith Latch', title: 'LATCH', artist: 'DISCLOSURE & SAM SMITH', streams: '980M+' },
+                { rank: 6, query: 'Crystal Waters Gypsy Woman', title: 'GYPSY WOMAN', artist: 'CRYSTAL WATERS', streams: '450M+' },
+                { rank: 7, query: 'Peggy Gou Nanana', title: '(IT GOES LIKE) NANANA', artist: 'PEGGY GOU', streams: '540M+' },
+                { rank: 8, query: 'Bob Sinclar World Hold On', title: 'WORLD, HOLD ON', artist: 'BOB SINCLAR', streams: '380M+' },
+                { rank: 9, query: 'Armand Van Helden You Dont Know Me', title: "YOU DON'T KNOW ME", artist: 'ARMAND VAN HELDEN', streams: '260M+' },
+                { rank: 10, query: 'Fisher Losing It', title: 'LOSING IT', artist: 'FISHER', streams: '620M+' },
+            ]
+        },
+        'house music': {
+            label: 'House Music',
+            icon: '🏠',
+            tracks: [
+                { rank: 1, query: 'Daft Punk One More Time', title: 'ONE MORE TIME', artist: 'DAFT PUNK', streams: '1.4B+' },
+                { rank: 2, query: 'Robin S Show Me Love Stonebridge', title: 'SHOW ME LOVE', artist: 'ROBIN S.', streams: '750M+' },
+                { rank: 3, query: 'Modjo Lady Hear Me Tonight', title: 'LADY (HEAR ME TONIGHT)', artist: 'MODJO', streams: '580M+' },
+                { rank: 4, query: 'Duke Dumont Ocean Drive', title: 'OCEAN DRIVE', artist: 'DUKE DUMONT', streams: '820M+' },
+                { rank: 5, query: 'Disclosure Sam Smith Latch', title: 'LATCH', artist: 'DISCLOSURE & SAM SMITH', streams: '980M+' },
+                { rank: 6, query: 'Crystal Waters Gypsy Woman', title: 'GYPSY WOMAN', artist: 'CRYSTAL WATERS', streams: '450M+' },
+                { rank: 7, query: 'Peggy Gou Nanana', title: '(IT GOES LIKE) NANANA', artist: 'PEGGY GOU', streams: '540M+' },
+                { rank: 8, query: 'Bob Sinclar World Hold On', title: 'WORLD, HOLD ON', artist: 'BOB SINCLAR', streams: '380M+' },
+                { rank: 9, query: 'Armand Van Helden You Dont Know Me', title: "YOU DON'T KNOW ME", artist: 'ARMAND VAN HELDEN', streams: '260M+' },
+                { rank: 10, query: 'Fisher Losing It', title: 'LOSING IT', artist: 'FISHER', streams: '620M+' },
+            ]
+        },
+        'deep house': {
+            label: 'Deep House',
+            icon: '🌊',
+            tracks: [
+                { rank: 1, query: 'Route 94 My Love', title: 'MY LOVE', artist: 'ROUTE 94 & JESS GLYNNE', streams: '680M+' },
+                { rank: 2, query: 'Zhu Faded', title: 'FADED', artist: 'ZHU', streams: '520M+' },
+                { rank: 3, query: 'Meduza Piece of Your Heart', title: 'PIECE OF YOUR HEART', artist: 'MEDUZA & GOODBOYS', streams: '950M+' },
+                { rank: 4, query: 'CamelPhat Elderbrook Cola', title: 'COLA', artist: 'CAMELPHAT & ELDERBROOK', streams: '420M+' },
+                { rank: 5, query: 'Lost Frequencies Are You With Me', title: 'ARE YOU WITH ME', artist: 'LOST FREQUENCIES', streams: '880M+' },
+                { rank: 6, query: 'Robin Schulz Sugar', title: 'SUGAR', artist: 'ROBIN SCHULZ & FRANCESCO YATES', streams: '1.1B+' },
+                { rank: 7, query: 'Klingande Jubel', title: 'JUBEL', artist: 'KLINGANDE', streams: '410M+' },
+                { rank: 8, query: 'Gorgon City Ready for Your Love', title: 'READY FOR YOUR LOVE', artist: 'GORGON CITY & MNEK', streams: '320M+' },
+                { rank: 9, query: 'Bakermat Vandaag', title: 'ONE DAY (VANDAAG)', artist: 'BAKERMAT', streams: '290M+' },
+                { rank: 10, query: 'Disclosure You and Me Flume Remix', title: 'YOU & ME (FLUME REMIX)', artist: 'DISCLOSURE & FLUME', streams: '780M+' },
+            ]
+        },
+        'trance': {
+            label: 'Trance',
+            icon: '✨',
+            tracks: [
+                { rank: 1, query: 'Tiesto Adagio for Strings', title: 'ADAGIO FOR STRINGS', artist: 'TIËSTO', streams: '390M+' },
+                { rank: 2, query: 'Darude Sandstorm', title: 'SANDSTORM', artist: 'DARUDE', streams: '550M+' },
+                { rank: 3, query: 'Robert Miles Children', title: 'CHILDREN', artist: 'ROBERT MILES', streams: '410M+' },
+                { rank: 4, query: 'Armin van Buuren Blah Blah Blah', title: 'BLAH BLAH BLAH', artist: 'ARMIN VAN BUUREN', streams: '720M+' },
+                { rank: 5, query: 'ATB 9 PM Till I Come', title: '9 PM (TILL I COME)', artist: 'ATB', streams: '350M+' },
+                { rank: 6, query: 'Alice Deejay Better Off Alone', title: 'BETTER OFF ALONE', artist: 'ALICE DEEJAY', streams: '490M+' },
+                { rank: 7, query: 'Gigi DAgostino LAmour Toujours', title: "L'AMOUR TOUJOURS", artist: "GIGI D'AGOSTINO", streams: '640M+' },
+                { rank: 8, query: 'Faithless Insomnia', title: 'INSOMNIA', artist: 'FAITHLESS', streams: '390M+' },
+                { rank: 9, query: 'Paul van Dyk For an Angel', title: 'FOR AN ANGEL', artist: 'PAUL VAN DYK', streams: '120M+' },
+                { rank: 10, query: 'Veracocha Carte Blanche', title: 'CARTE BLANCHE', artist: 'VERACOCHA', streams: '95M+' },
+            ]
+        },
+        'progressive house': {
+            label: 'Progressive House',
+            icon: '🚀',
+            tracks: [
+                { rank: 1, query: 'Avicii Levels', title: 'LEVELS', artist: 'AVICII', streams: '1.2B+' },
+                { rank: 2, query: 'Swedish House Mafia Dont You Worry Child', title: "DON'T YOU WORRY CHILD", artist: 'SWEDISH HOUSE MAFIA', streams: '1.3B+' },
+                { rank: 3, query: 'Sebastian Ingrosso Tommy Trash Reload', title: 'RELOAD', artist: 'SEBASTIAN INGROSSO & TOMMY TRASH', streams: '520M+' },
+                { rank: 4, query: 'Alesso Matthew Koma Years', title: 'YEARS', artist: 'ALESSO & MATTHEW KOMA', streams: '310M+' },
+                { rank: 5, query: 'Otto Knows Million Voices', title: 'MILLION VOICES', artist: 'OTTO KNOWS', streams: '380M+' },
+                { rank: 6, query: 'Martin Garrix Matisse Sadko High On Life', title: 'HIGH ON LIFE', artist: 'MARTIN GARRIX & MATISSE & SADKO', streams: '450M+' },
+                { rank: 7, query: 'Axwell Ingrosso Sun Is Shining', title: 'SUN IS SHINING', artist: 'AXWELL /\\ INGROSSO', streams: '690M+' },
+                { rank: 8, query: 'DubVision Turn It Around', title: 'TURN IT AROUND', artist: 'DUBVISION', streams: '110M+' },
+                { rank: 9, query: 'Third Party Everyday Of My Life', title: 'EVERYDAY OF MY LIFE', artist: 'THIRD PARTY', streams: '75M+' },
+                { rank: 10, query: 'Matisse Sadko Forever', title: 'FOREVER', artist: 'MATISSE & SADKO & MARTIN GARRIX', streams: '180M+' },
+            ]
+        },
+        'future rave': {
+            label: 'Future Rave',
+            icon: '🔮',
+            tracks: [
+                { rank: 1, query: 'David Guetta MORTEN Never Be Alone', title: 'NEVER BE ALONE', artist: 'DAVID GUETTA & MORTEN', streams: '180M+' },
+                { rank: 2, query: 'David Guetta MORTEN Dreams', title: 'DREAMS', artist: 'DAVID GUETTA & MORTEN', streams: '140M+' },
+                { rank: 3, query: 'David Guetta MORTEN Kill Me Slow', title: 'KILL ME SLOW', artist: 'DAVID GUETTA & MORTEN', streams: '95M+' },
+                { rank: 4, query: 'David Guetta MORTEN Titanium Future Rave', title: 'TITANIUM (FUTURE RAVE REMIX)', artist: 'DAVID GUETTA & MORTEN', streams: '110M+' },
+                { rank: 5, query: 'David Guetta MORTEN Alive Again', title: 'ALIVE AGAIN', artist: 'DAVID GUETTA & MORTEN', streams: '75M+' },
+                { rank: 6, query: 'David Guetta MORTEN Permanence', title: 'PERMANENCE', artist: 'DAVID GUETTA & MORTEN', streams: '65M+' },
+                { rank: 7, query: 'David Guetta MORTEN Element', title: 'ELEMENT', artist: 'DAVID GUETTA & MORTEN', streams: '55M+' },
+                { rank: 8, query: 'David Guetta MORTEN Something', title: 'SOMETHING', artist: 'DAVID GUETTA & MORTEN', streams: '50M+' },
+                { rank: 9, query: 'David Guetta MORTEN Odyssey', title: 'ODYSSEY', artist: 'DAVID GUETTA & MORTEN', streams: '45M+' },
+                { rank: 10, query: 'David Guetta MORTEN Lost in the Rhythm', title: 'LOST IN THE RHYTHM', artist: 'DAVID GUETTA & MORTEN', streams: '40M+' },
+            ]
+        },
+        'hard techno': {
+            label: 'Hard Techno',
+            icon: '🔥',
+            tracks: [
+                { rank: 1, query: 'Sara Landry Legacy', title: 'LEGACY', artist: 'SARA LANDRY', streams: '65M+' },
+                { rank: 2, query: 'Nico Moreno Purple Widow', title: 'PURPLE WIDOW', artist: 'NICO MORENO', streams: '55M+' },
+                { rank: 3, query: 'I Hate Models Daydream', title: 'DAYDREAM', artist: 'I HATE MODELS', streams: '90M+' },
+                { rank: 4, query: 'Alignment Attack', title: 'ATTACK', artist: 'ALIGNMENT', streams: '45M+' },
+                { rank: 5, query: 'Oguz Golden Szn', title: 'GOLDEN SZN', artist: 'OGUZ', streams: '40M+' },
+                { rank: 6, query: 'Reinier Zonneveld Awakening', title: 'AWAKENING', artist: 'REINIER ZONNEVELD', streams: '70M+' },
+                { rank: 7, query: 'KASST Hell on Earth', title: 'HELL ON EARTH', artist: 'KAS:ST', streams: '60M+' },
+                { rank: 8, query: 'Indira Paganotto Legend', title: 'LEGEND', artist: 'INDIRA PAGANOTTO', streams: '35M+' },
+                { rank: 9, query: 'Fantasm Bassline', title: 'BASSLINE', artist: 'FANTASM', streams: '30M+' },
+                { rank: 10, query: 'Deborah de Luca Dori Me', title: 'DORI ME', artist: 'DEBORAH DE LUCA', streams: '80M+' },
+            ]
         }
     };
 
@@ -1689,14 +1801,21 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 generateImage();
             } else {
                 // Recherche dynamique libre pour n'importe quel autre genre/style musical
+                // Nettoyage anti-spam pour éliminer les faux artistes du type "house music dj", "chillout lounge", etc.
+                const spamBlacklist = ['chillout', 'sleep', 'relax', 'lounge', 'workout', 'running', 'buddha', 'erotic', 'meditation', 'bar music', 'cafe', 'dj tools', 'sound effects', 'tribute', 'karaoke', 'instrumental version', 'ringtone'];
                 const query = `${cleaned} electronic`;
-                const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(query)}&entity=song&limit=40`);
+                const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(query)}&entity=song&limit=50`);
                 if (res.ok) {
                     const data = await res.json();
                     if (data.results && data.results.length > 0) {
                         const seenTitles = new Set<string>();
                         const uniqueSongs: any[] = [];
                         for (const s of data.results) {
+                            const artistLower = (s.artistName || '').toLowerCase();
+                            const trackLower = (s.trackName || '').toLowerCase();
+                            const isSpam = spamBlacklist.some(sp => artistLower.includes(sp) || trackLower.includes(sp));
+                            if (isSpam) continue;
+
                             const core = (s.trackName || '').toLowerCase().replace(/\s*\(.*?\)/g, '').replace(/\s*\[.*?\]/g, '').trim();
                             if (!seenTitles.has(core) && uniqueSongs.length < 10) {
                                 seenTitles.add(core);
