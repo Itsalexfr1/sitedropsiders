@@ -4762,7 +4762,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     try { (ctx as any).textRendering = 'geometricPrecision'; } catch (_) { }
                 }
                 const isStaticPngExport = exportMode === true || isDownloading;
-                const isAnyAnimationActive = !isStaticPngExport && (activeTab === 'REEL' || textAnimation !== 'NONE' || bgAnimation !== 'NONE' || (theme === 'JEU_DJ' && isCurrentSlideSilhouette && djAppearanceAnim !== 'STATIC') || theme === 'TOP 100 DROPSIDERS' || theme === 'TOP 10 TRACKS');
+                const isAnyAnimationActive = !isStaticPngExport && (activeTab === 'REEL' || activeTab === 'PUBLICATION' || textAnimation !== 'NONE' || bgAnimation !== 'NONE' || (theme === 'JEU_DJ' && isCurrentSlideSilhouette && djAppearanceAnim !== 'STATIC') || theme === 'TOP 100 DROPSIDERS' || theme === 'TOP 10 TRACKS');
                 const animElapsed = isVideoRecordingRef.current
                     ? deterministicAnimTimeRef.current
                     : (isStaticPngExport
@@ -5640,78 +5640,74 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         }
                     }
 
-                    // Mode statique (POST / export PNG) vs animé (REEL / preview vidéo)
-                    const isStatic = !isAnyAnimationActive || isStaticPngExport || animElapsed >= 90.0;
-                    const t = isStatic ? 0 : (animElapsed % 4.2);
-                    const phase = isStatic ? 0 : Math.sin((t / 4.2) * Math.PI * 2);
+                    // Mode statique (export PNG) vs animé (REEL & POST dans le studio, export vidéo)
+                    const isStatic = isStaticPngExport || animElapsed >= 90.0;
+                    const t = isStatic ? 0.6 : (animElapsed % 4.2);
+                    const phase = isStatic ? 0.35 : Math.sin((t / 4.2) * Math.PI * 2);
 
-                    // Géométrie 3D noble : AUCUN cisaillement ni distorsion trapézoïdale
-                    // En REEL : micro-respiration de perspective (max 2% en X) et oscillation du biseau
-                    // En POST : logo parfaitement droit, biseau net et fixe
-                    const scaleX = isStatic ? 1.0 : (1.0 - Math.abs(phase) * 0.022);
-                    const bevelX = isStatic ? -3.0 : (-phase * 4.5);
-                    const bevelY = 1.8;
+                    // Amplitude horizontale ample et fluide gauche <-> droite
+                    const swingX = isStatic ? 0 : (phase * 26);
+                    const maxAngle = 0.40; // ~23° d'angle de vue perspective
+                    const angleY = isStatic ? 0.18 : (phase * maxAngle);
+                    const scaleX = Math.cos(angleY); // Contraction cosinus naturelle en X sans cisaillement vertical
+                    const extrudeDepth = 14;
+                    const extrudeOffset = -Math.sin(angleY) * extrudeDepth;
 
                     ctx.save();
-                    ctx.translate(centerX, centerY);
+                    ctx.translate(centerX + swingX, centerY);
                     if (scaleX !== 1.0) {
                         ctx.scale(scaleX, 1.0);
                     }
 
-                    // 1. Ombre portée de contact propre et discrète
+                    // 1. Ombre portée dynamique
                     ctx.save();
-                    ctx.shadowColor = 'rgba(0, 0, 0, 0.65)';
-                    ctx.shadowBlur = 6;
-                    ctx.shadowOffsetX = 0;
-                    ctx.shadowOffsetY = 2.5;
+                    ctx.shadowColor = 'rgba(0, 0, 0, 0.70)';
+                    ctx.shadowBlur = 10;
+                    ctx.shadowOffsetX = swingX * 0.15;
+                    ctx.shadowOffsetY = 4;
 
-                    // 2. Tranche 3D métallique chiseled (Titane sombre net, ZÉRO flou de tranches multiples)
-                    // Première passe : acier sombre profond
-                    ctx.save();
-                    ctx.translate(bevelX, bevelY);
-                    if ('filter' in ctx) {
-                        ctx.filter = 'brightness(0) invert(0.20)';
+                    // 2. Tranches 3D volumétriques extrudées (Titane sombre / Acier pur)
+                    // Révèle le flanc gauche ou droit selon la direction d'oscillation
+                    const sliceCount = 5;
+                    for (let s = sliceCount; s >= 1; s--) {
+                        const ratio = s / sliceCount;
+                        const sliceX = extrudeOffset * ratio;
+                        const sliceY = ratio * 2.2;
+                        const shade = 0.18 + (1 - ratio) * 0.38;
+                        ctx.save();
+                        ctx.translate(sliceX, sliceY);
+                        if ('filter' in ctx) {
+                            ctx.filter = `brightness(0) invert(${shade.toFixed(2)})`;
+                        }
+                        ctx.globalAlpha = 0.88;
+                        ctx.drawImage(logo, -w / 2, -logoH / 2, w, logoH);
+                        ctx.restore();
                     }
-                    ctx.globalAlpha = 0.80;
-                    ctx.drawImage(logo, -w / 2, -logoH / 2, w, logoH);
-                    ctx.restore();
-
-                    // Deuxième passe : biseau intermédiaire acier clair pour l'arête métallique
-                    ctx.save();
-                    ctx.translate(bevelX * 0.5, bevelY * 0.5);
-                    if ('filter' in ctx) {
-                        ctx.filter = 'brightness(0) invert(0.55)';
-                    }
-                    ctx.globalAlpha = 0.60;
-                    ctx.drawImage(logo, -w / 2, -logoH / 2, w, logoH);
-                    ctx.restore();
 
                     ctx.restore(); // Restaure l'ombre portée
 
-                    // 3. Face avant : Blanc pur 100% éclatant (priorité absolue)
+                    // 3. Face avant : Blanc pur 100% éclatant
                     ctx.save();
                     if ('filter' in ctx) ctx.filter = 'none';
                     ctx.globalAlpha = 1.0;
                     ctx.drawImage(logo, -w / 2, -logoH / 2, w, logoH);
 
-                    // 4. Nacrage soyeux couleur thème incrusté sur les lettres (source-atop)
-                    // - Balayage synchrone fluide avec l'oscillation (phase)
-                    // - Lueur douce et raffinée (max 0.20) : éclat diamant avec un reflet luxueux sans saturer
-                    // - Zéro ligne blanche parasite au milieu
+                    // 4. Balayage nacré couleur thème ample de gauche à droite
+                    // Glisse d'un bout à l'autre sur toute la longueur des lettres
                     try {
                         ctx.globalCompositeOperation = 'source-atop';
-                        const shiftX = isStatic ? 0 : (phase * (w * 0.46));
-                        const gradW = w * 0.68;
+                        const shiftX = isStatic ? 0 : (phase * (w * 0.82));
+                        const gradW = w * 0.48;
                         const nacreGrad = ctx.createLinearGradient(
                             shiftX - gradW,
-                            -logoH * 0.35,
+                            0,
                             shiftX + gradW,
-                            logoH * 0.35
+                            0
                         );
                         nacreGrad.addColorStop(0, `rgba(${rgb}, 0)`);
-                        nacreGrad.addColorStop(0.25, `rgba(${rgb}, 0.05)`);
-                        nacreGrad.addColorStop(0.50, `rgba(${rgb}, 0.20)`);
-                        nacreGrad.addColorStop(0.75, `rgba(${rgb}, 0.05)`);
+                        nacreGrad.addColorStop(0.20, `rgba(${rgb}, 0.10)`);
+                        nacreGrad.addColorStop(0.50, `rgba(${rgb}, 0.60)`);
+                        nacreGrad.addColorStop(0.80, `rgba(${rgb}, 0.10)`);
                         nacreGrad.addColorStop(1, `rgba(${rgb}, 0)`);
                         ctx.fillStyle = nacreGrad;
                         ctx.fillRect(-w / 2, -logoH / 2, w, logoH);
@@ -12326,7 +12322,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         const shouldAnimateBadge = isBadgeTheme && activeTab === 'REEL';
         const shouldAnimateMap = theme === 'MAP' && isMapAnimPlaying;
         const shouldAnimateTweet = isEditorialTweetActive && tweetAnimMode !== 'NONE';
-        if (activeTab === 'REEL' || bgVideo || textAnimation !== 'NONE' || bgAnimation !== 'NONE' || showArticleLink || theme === 'TRACKLIST' || theme === 'MUSIQUE' || (theme === 'JEU_DJ' && djAppearanceAnim !== 'STATIC') || transitionProgress > 0 || (isCarouselPromoActive && (promoOutroStyle === 'INSTAGRAM' || promoOutroStyle === 'PHONE_3D') && isPromoAnimPlaying) || (theme === 'PROMO' && isPromoAnimPlaying) || theme === 'TOP 100 DROPSIDERS' || theme === 'TOP 10 TRACKS' || shouldAnimateMap || shouldAnimateTweet) {
+        if (activeTab === 'REEL' || activeTab === 'PUBLICATION' || bgVideo || textAnimation !== 'NONE' || bgAnimation !== 'NONE' || showArticleLink || theme === 'TRACKLIST' || theme === 'MUSIQUE' || (theme === 'JEU_DJ' && djAppearanceAnim !== 'STATIC') || transitionProgress > 0 || (isCarouselPromoActive && (promoOutroStyle === 'INSTAGRAM' || promoOutroStyle === 'PHONE_3D') && isPromoAnimPlaying) || (theme === 'PROMO' && isPromoAnimPlaying) || theme === 'TOP 100 DROPSIDERS' || theme === 'TOP 10 TRACKS' || shouldAnimateMap || shouldAnimateTweet) {
             let isRendering = false;
             const loop = () => {
                 if (isVideoRecordingRef.current) return;
