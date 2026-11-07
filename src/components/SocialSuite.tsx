@@ -802,7 +802,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const recordingTimeLeft2Ref = useRef<HTMLSpanElement | null>(null);
     const [isR2ModalOpen, setIsR2ModalOpen] = useState(false);
     const [r2TargetIdx, setR2TargetIdx] = useState<number | null>(null);
-    const [r2TargetType, setR2TargetType] = useState<'top5' | 'top10' | 'top10_track_cover' | 'background' | 'logo' | 'affiche' | 'musicCover' | 'musicAudio' | 'musicIntroAudio' | null>(null);
+    const [r2TargetType, setR2TargetType] = useState<'top5' | 'top10' | 'top10_track_cover' | 'background' | 'logo' | 'affiche' | 'musicCover' | 'musicAudio' | 'musicIntroAudio' | 'djPhoto' | 'djPhotoReveal' | null>(null);
 
     // AFFICHE Theme States (Poster Événement Flottant)
     const [afficheImage, setAfficheImage] = useState<string>('');
@@ -4028,9 +4028,27 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         : img;
                 if (theme === 'JEU_DJ') {
                     if (isCurrentSlideSilhouette) {
-                        effectiveImg = djCutoutImgObj || img || null;
+                        effectiveImg = djCutoutImgObj || djOriginalImgObj || img || null;
                     } else {
-                        effectiveImg = img || djOriginalImgObj || null;
+                        effectiveImg = djOriginalImgObj || img || null;
+                    }
+                }
+
+                // Fond de scène / club pour JEU_DJ
+                const djBgSrc = (theme === 'JEU_DJ') ? (bgImage || (editorialSlideImages[effectiveEditorialSlide] && editorialSlideImages[effectiveEditorialSlide] !== djOriginalImage ? editorialSlideImages[effectiveEditorialSlide] : null)) : null;
+                let djBgPhotoObj: HTMLImageElement | null = null;
+                if (djBgSrc) {
+                    const resolvedBgSrc = resolveImageUrl(djBgSrc);
+                    if (imageCacheRef.current[resolvedBgSrc]) {
+                        djBgPhotoObj = imageCacheRef.current[resolvedBgSrc];
+                    } else if (imageCacheRef.current[djBgSrc]) {
+                        djBgPhotoObj = imageCacheRef.current[djBgSrc];
+                    } else {
+                        loadCorsSafeImage(resolvedBgSrc, (imgObj) => {
+                            imageCacheRef.current[resolvedBgSrc] = imgObj;
+                            imageCacheRef.current[djBgSrc] = imgObj;
+                            generateImage();
+                        });
                     }
                 }
 
@@ -4194,6 +4212,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                 const hasAfficheVisual = isCurrentSlideAffiche && Boolean(currentSlideAfficheUrl);
                 const shouldUseBgVideo = bgVideo &&
+                    theme !== 'JEU_DJ' &&
                     (!isMusiqueTrackSlide || (!musiqueCoverImg && !musiqueCoverUrl && !editorialSlideImages[effectiveEditorialSlide])) &&
                     (!isCurrentSlideAffiche || !hasAfficheVisual);
                 if (shouldUseBgVideo) {
@@ -4216,25 +4235,30 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     } else {
                         ctx.drawImage(bgVideo, x, y, vw, vh);
                     }
-                } else if (effectiveImg) {
-                    if (theme === 'SPOTLIGHT') {
-                        const baseScale = Math.max(canvas.width / effectiveImg.width, canvas.height / effectiveImg.height);
-                        const scale = baseScale * bgAnimScale;
-                        const iw = effectiveImg.width * scale;
-                        const ih = effectiveImg.height * scale;
-                        // Position photo on the right with manual offset
-                        const x = (canvas.width - iw) + bgOffsetX + bgAnimX;
-                        const y = ((canvas.height - ih) / 2) + bgOffsetY + bgAnimY;
-                        ctx.drawImage(effectiveImg, x, y, iw, ih);
-                    } else if (theme === 'JEU_DJ') {
-                        // SILHOUETTE MYSTÈRE & RÉVÉLATION DJ
-                        // Le fond scénique de Slide 1 est partagé avec la Slide 2 pour conserver le même décor
-                        const bgPhoto = img;
-                        const isImgTransparent = bgPhoto ? checkImageHasAlpha(bgPhoto) : false;
-                        const activeSilhouetteImg = djCutoutImgObj || (isImgTransparent ? bgPhoto : null);
-
+                } else if (theme === 'JEU_DJ') {
+                    // SILHOUETTE MYSTÈRE & RÉVÉLATION DJ
                         // 1. DESSIN DU FOND VISUEL SCÉNIQUE (identique sur Slide 1 et Slide 2)
-                        if (bgPhoto && (!isImgTransparent || djCutoutImgObj)) {
+                        // Peut être une vidéo (bgVideo) ou une photo de décor (djBgPhotoObj / bgImage / img)
+                        const bgPhoto = djBgPhotoObj || (bgImage && imageCacheRef.current[bgImage]) || (bgImage && imageCacheRef.current[resolveImageUrl(bgImage)]) || (img && img !== djOriginalImgObj && img !== djCutoutImgObj ? img : null);
+
+                        if (bgVideo) {
+                            const baseScale = Math.max(canvas.width / bgVideo.videoWidth, canvas.height / bgVideo.videoHeight);
+                            const scale = baseScale * bgAnimScale;
+                            const vw = bgVideo.videoWidth * scale;
+                            const vh = bgVideo.videoHeight * scale;
+                            const vx = ((canvas.width - vw) / 2) + bgOffsetX + bgAnimX;
+                            const vy = ((canvas.height - vh) / 2) + bgOffsetY + bgAnimY;
+                            ctx.drawImage(bgVideo, vx, vy, vw, vh);
+
+                            // Voile atmosphérique club/EDM sombre immersif pour faire ressortir l'artiste & le texte
+                            const bgOverlay = ctx.createLinearGradient(0, 0, 0, canvas.height);
+                            bgOverlay.addColorStop(0, 'rgba(4, 6, 14, 0.40)');
+                            bgOverlay.addColorStop(0.35, 'rgba(4, 6, 14, 0.65)');
+                            bgOverlay.addColorStop(0.70, 'rgba(2, 3, 6, 0.88)');
+                            bgOverlay.addColorStop(1, 'rgba(2, 3, 6, 0.96)');
+                            ctx.fillStyle = bgOverlay;
+                            ctx.fillRect(0, 0, canvas.width, canvas.height);
+                        } else if (bgPhoto) {
                             // Dessiner la photo comme fond de scène / club / festival
                             const baseScale = Math.max(canvas.width / bgPhoto.width, canvas.height / bgPhoto.height);
                             const scale = baseScale * bgAnimScale;
@@ -4271,8 +4295,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         const rgbColor = hexToRgb(djSilhouetteColor);
 
                         // 2. DESSIN DE L'ARTISTE : SILHOUETTE (Slide 1) vs RÉVÉLATION EN COULEUR (Slide 2)
+                        // En Slide 1 : priorité absolue à la silhouette détourée IA, sinon image originale
+                        const activeSilhouetteImg = djCutoutImgObj || (djOriginalImgObj && checkImageHasAlpha(djOriginalImgObj) ? djOriginalImgObj : null) || djOriginalImgObj;
+
                         if (isCurrentSlideSilhouette) {
                             if (activeSilhouetteImg) {
+                                const isTransparentSil = Boolean(djCutoutImgObj || checkImageHasAlpha(activeSilhouetteImg));
                                 const baseScale = Math.min((canvas.width * 0.90) / activeSilhouetteImg.width, (canvas.height * 0.70) / activeSilhouetteImg.height);
                                 let scale = (baseScale > 1.25 ? baseScale : Math.max(canvas.width / activeSilhouetteImg.width, canvas.height / activeSilhouetteImg.height) * 0.92) * bgAnimScale;
 
@@ -4322,32 +4350,49 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 ctx.fillStyle = haloGrad;
                                 ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-                                // Traitement silhouette via canvas hors écran (fond transparent rempli en noir pur)
-                                const off = document.createElement('canvas');
-                                off.width = activeSilhouetteImg.width;
-                                off.height = activeSilhouetteImg.height;
-                                const offCtx = off.getContext('2d');
-                                if (offCtx) {
-                                    offCtx.drawImage(activeSilhouetteImg, 0, 0);
-                                    offCtx.globalCompositeOperation = 'source-in';
-                                    offCtx.fillStyle = '#060810';
-                                    offCtx.fillRect(0, 0, off.width, off.height);
+                                if (isTransparentSil) {
+                                    // Traitement silhouette transparente via canvas hors écran (fond rempli en noir pur)
+                                    const off = document.createElement('canvas');
+                                    off.width = activeSilhouetteImg.width;
+                                    off.height = activeSilhouetteImg.height;
+                                    const offCtx = off.getContext('2d');
+                                    if (offCtx) {
+                                        offCtx.drawImage(activeSilhouetteImg, 0, 0);
+                                        offCtx.globalCompositeOperation = 'source-in';
+                                        offCtx.fillStyle = '#060810';
+                                        offCtx.fillRect(0, 0, off.width, off.height);
+                                    }
+
+                                    // Dessin du halo / néon rim light
+                                    ctx.save();
+                                    ctx.globalAlpha = silAlpha;
+                                    ctx.shadowColor = djSilhouetteColor;
+                                    ctx.shadowBlur = silGlowBlur;
+                                    ctx.drawImage(off, x, y, iw, ih);
+                                    ctx.drawImage(off, x, y, iw, ih);
+                                    ctx.restore();
+
+                                    // Dessin de la silhouette noire pure
+                                    ctx.save();
+                                    ctx.globalAlpha = silAlpha;
+                                    ctx.drawImage(off, x, y, iw, ih);
+                                    ctx.restore();
+                                } else {
+                                    // Image opaque pas encore détourée : afficher l'artiste assombri avec contour néon
+                                    ctx.save();
+                                    ctx.globalAlpha = silAlpha;
+                                    ctx.shadowColor = djSilhouetteColor;
+                                    ctx.shadowBlur = silGlowBlur;
+                                    // Assombrissement mystère pour donner l'effet silhouette
+                                    ctx.filter = 'brightness(0.14) contrast(1.4)';
+                                    ctx.drawImage(activeSilhouetteImg, x, y, iw, ih);
+                                    ctx.filter = 'none';
+
+                                    ctx.strokeStyle = djSilhouetteColor;
+                                    ctx.lineWidth = 3.5;
+                                    ctx.strokeRect(x, y, iw, ih);
+                                    ctx.restore();
                                 }
-
-                                // Dessin du halo / néon rim light
-                                ctx.save();
-                                ctx.globalAlpha = silAlpha;
-                                ctx.shadowColor = djSilhouetteColor;
-                                ctx.shadowBlur = silGlowBlur;
-                                ctx.drawImage(off, x, y, iw, ih);
-                                ctx.drawImage(off, x, y, iw, ih);
-                                ctx.restore();
-
-                                // Dessin de la silhouette noire pure
-                                ctx.save();
-                                ctx.globalAlpha = silAlpha;
-                                ctx.drawImage(off, x, y, iw, ih);
-                                ctx.restore();
 
                                 // Faisceau Laser vertical si SCAN
                                 if (scanLaserY !== null && djAppearanceAnim === 'SCAN') {
@@ -4397,7 +4442,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     ctx.restore();
                                 }
                             } else {
-                                // Pas encore de silhouette détourée : halo d'ambiance et badge mystère central sur le fond visuel
+                                // Pas encore de photo DJ chargée : halo d'ambiance et badge mystère central sur le fond visuel
                                 const haloGrad = ctx.createRadialGradient(canvas.width / 2, canvas.height * 0.42, 20, canvas.width / 2, canvas.height * 0.42, 380);
                                 haloGrad.addColorStop(0, `rgba(${rgbColor}, 0.28)`);
                                 haloGrad.addColorStop(0.5, `rgba(${rgbColor}, 0.08)`);
@@ -4464,17 +4509,34 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     ctx.drawImage(activeRevealImg, x, y, iw, ih);
                                     ctx.restore();
                                 } else {
-                                    // Photo DJ originale non détourée : affichage centré sur le décor
-                                    const baseScale = Math.max(canvas.width / activeRevealImg.width, canvas.height / activeRevealImg.height);
+                                    // Photo DJ originale non détourée : affichage centré sur le décor avec bordure et ombre
+                                    const baseScale = Math.min((canvas.width * 0.85) / activeRevealImg.width, (canvas.height * 0.60) / activeRevealImg.height);
                                     const scale = baseScale * bgAnimScale;
                                     const iw = activeRevealImg.width * scale;
                                     const ih = activeRevealImg.height * scale;
                                     const x = ((canvas.width - iw) / 2) + bgOffsetX + bgAnimX;
-                                    const y = ((canvas.height - ih) / 2) + bgOffsetY + bgAnimY;
+                                    const y = ((canvas.height * 0.44 - ih / 2)) + bgOffsetY + bgAnimY;
+                                    ctx.save();
+                                    ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
+                                    ctx.shadowBlur = 30;
                                     ctx.drawImage(activeRevealImg, x, y, iw, ih);
+                                    ctx.strokeStyle = 'rgba(0, 240, 255, 0.6)';
+                                    ctx.lineWidth = 3;
+                                    ctx.strokeRect(x, y, iw, ih);
+                                    ctx.restore();
                                 }
                             }
                         }
+                } else if (effectiveImg) {
+                    if (theme === 'SPOTLIGHT') {
+                        const baseScale = Math.max(canvas.width / effectiveImg.width, canvas.height / effectiveImg.height);
+                        const scale = baseScale * bgAnimScale;
+                        const iw = effectiveImg.width * scale;
+                        const ih = effectiveImg.height * scale;
+                        // Position photo on the right with manual offset
+                        const x = (canvas.width - iw) + bgOffsetX + bgAnimX;
+                        const y = ((canvas.height - ih) / 2) + bgOffsetY + bgAnimY;
+                        ctx.drawImage(effectiveImg, x, y, iw, ih);
                     } else {
                         const baseScale = Math.max(canvas.width / effectiveImg.width, canvas.height / effectiveImg.height);
                         const scale = baseScale * bgAnimScale;
@@ -11531,11 +11593,13 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             setBgVideo(video);
             setIsVideoAudioMuted(true);
             setBgImage('');
-            setEditorialSlideImages(prev => {
-                const next = { ...prev };
-                delete next[editorialSlide];
-                return next;
-            });
+            if (theme !== 'JEU_DJ') {
+                setEditorialSlideImages(prev => {
+                    const next = { ...prev };
+                    delete next[editorialSlide];
+                    return next;
+                });
+            }
             setTimeout(() => generateImage(), 50);
         } else {
             // Pre-load image to ensure it works immediately with canvas
@@ -11551,10 +11615,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     setBgImage(url);
                     if (theme !== 'JEU_DJ') {
                         setDjOriginalImage(url);
+                        setEditorialSlideImages(prev => ({ ...prev, [editorialSlide]: url }));
                     }
                 }
                 setBgVideo(null);
-                setEditorialSlideImages(prev => ({ ...prev, [editorialSlide]: url }));
                 generateImage();
             };
             img.src = url;
@@ -18318,10 +18382,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         img.onload = () => {
             imageCacheRef.current[url] = img;
             setDjOriginalImage(url);
-            // Si aucun fond de scène n'est encore défini, l'initialiser
-            if (!bgImage) {
-                setBgImage(url);
-            }
+            setDjCutoutImage(null);
             generateImage();
         };
         img.src = url;
@@ -18329,7 +18390,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     };
 
     const handleIsolateDjSilhouette = async () => {
-        const sourceImage = djOriginalImage || editorialSlideImages[editorialSlide] || bgImage;
+        const sourceImage = djOriginalImage || (editorialSlideImages[editorialSlide] && editorialSlideImages[editorialSlide] !== bgImage ? editorialSlideImages[editorialSlide] : null);
         if (!sourceImage) return;
         setIsIsolatingSilhouette(true);
         setIsolationProgress(0);
@@ -18458,23 +18519,23 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
             {editorialSlide === 1 ? (
                 <>
-                    {/* 1. UPLOAD DE LA PHOTO DU DJ (POUR LA SILHOUETTE) */}
+                    {/* PHOTO DU DJ À FAIRE DEVINER */}
                     <div className="p-3 bg-black/60 border border-[#bd00ff]/30 rounded-xl space-y-2.5">
                         <div className="flex items-center justify-between">
                             <span className="text-[9px] font-black uppercase text-white flex items-center gap-1.5">
-                                📸 1. PHOTO DU DJ À FAIRE DEVINER
+                                📸 PHOTO DU DJ À FAIRE DEVINER
                             </span>
-                            {(djOriginalImage || editorialSlideImages[1] || bgImage) && (
+                            {djOriginalImage && (
                                 <span className="px-2 py-0.5 rounded-full text-[7.5px] font-black uppercase bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
                                     Photo Chargée ✓
                                 </span>
                             )}
                         </div>
 
-                        {(djOriginalImage || editorialSlideImages[1] || bgImage) ? (
+                        {djOriginalImage ? (
                             <div className="flex items-center gap-2.5 p-2 bg-white/5 rounded-xl border border-white/10">
                                 <img
-                                    src={djOriginalImage || editorialSlideImages[1] || bgImage}
+                                    src={djOriginalImage}
                                     alt="Photo DJ"
                                     className="w-12 h-12 object-cover rounded-lg border border-[#bd00ff]/40 shrink-0 shadow-md"
                                 />
@@ -18482,31 +18543,55 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     <p className="text-[8.5px] font-black text-white truncate">Photo prête pour le jeu</p>
                                     <p className="text-[7.5px] text-gray-400">Clique sur Détourer ci-dessous</p>
                                 </div>
-                                <button
-                                    type="button"
-                                    onClick={() => djPhotoInputRef.current?.click()}
-                                    className="px-2.5 py-1.5 bg-[#bd00ff]/20 hover:bg-[#bd00ff]/35 border border-[#bd00ff]/40 rounded-lg text-[8px] font-black uppercase text-white transition-all shrink-0 active:scale-95"
-                                >
-                                    Changer
-                                </button>
+                                <div className="flex items-center gap-1 shrink-0">
+                                    <button
+                                        type="button"
+                                        onClick={() => djPhotoInputRef.current?.click()}
+                                        className="px-2.5 py-1.5 bg-[#bd00ff]/20 hover:bg-[#bd00ff]/35 border border-[#bd00ff]/40 rounded-lg text-[8px] font-black uppercase text-white transition-all active:scale-95"
+                                    >
+                                        Changer
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setR2TargetType('djPhoto');
+                                            setIsR2ModalOpen(true);
+                                        }}
+                                        className="p-1.5 bg-white/5 hover:bg-white/15 border border-white/15 rounded-lg text-neon-cyan transition-all"
+                                        title="Changer via Cloud R2"
+                                    >
+                                        <ImageIcon className="w-3.5 h-3.5" />
+                                    </button>
+                                </div>
                             </div>
                         ) : (
-                            <p className="text-[8px] text-gray-300 leading-relaxed">
-                                Importe la photo du DJ à faire deviner (depuis Cloud R2).
-                            </p>
+                            <div className="space-y-2">
+                                <p className="text-[8px] text-gray-300 leading-relaxed">
+                                    Importe la photo du DJ à faire deviner (depuis ton appareil ou Cloud R2).
+                                </p>
+                                <div className="grid grid-cols-2 gap-1.5">
+                                    <button
+                                        type="button"
+                                        onClick={() => djPhotoInputRef.current?.click()}
+                                        className="py-2.5 px-2 bg-white/5 border border-white/15 hover:border-[#bd00ff]/50 rounded-xl flex items-center justify-center gap-1.5 text-white text-[8.5px] font-black uppercase transition-all shadow-sm hover:scale-[1.02] active:scale-98"
+                                    >
+                                        <Upload className="w-3.5 h-3.5 text-[#bd00ff]" />
+                                        <span>Mon Appareil</span>
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setR2TargetType('djPhoto');
+                                            setIsR2ModalOpen(true);
+                                        }}
+                                        className="py-2.5 px-2 bg-white/5 border border-white/15 hover:border-neon-cyan/40 rounded-xl flex items-center justify-center gap-1.5 text-white text-[8.5px] font-black uppercase transition-all shadow-sm hover:scale-[1.02] active:scale-98"
+                                    >
+                                        <ImageIcon className="w-3.5 h-3.5 text-neon-cyan" />
+                                        <span>Cloud R2</span>
+                                    </button>
+                                </div>
+                            </div>
                         )}
-
-                        <button
-                            type="button"
-                            onClick={() => {
-                                setR2TargetType('background');
-                                setIsR2ModalOpen(true);
-                            }}
-                            className="w-full py-2.5 px-2 bg-white/5 border border-white/15 hover:border-neon-cyan/40 rounded-xl flex items-center justify-center gap-1.5 text-white text-[8.5px] font-black uppercase transition-all shadow-sm hover:scale-[1.02] active:scale-98"
-                        >
-                            <ImageIcon className="w-3.5 h-3.5 text-neon-cyan" />
-                            <span>Galerie Cloud R2</span>
-                        </button>
                         <input
                             type="file"
                             ref={djPhotoInputRef}
@@ -18516,11 +18601,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         />
                     </div>
 
-                    {/* 2. DÉTOURAGE DE LA SILHOUETTE IA */}
+                    {/* DÉTOURAGE DE LA SILHOUETTE IA */}
                     <div className="p-2.5 bg-black/50 border border-white/10 rounded-xl space-y-2">
                         <div className="flex items-center justify-between">
                             <span className="text-[8.5px] font-black uppercase text-white flex items-center gap-1.5">
-                                🪄 2. DÉTOURAGE SILHOUETTE (IA 1-CLIC)
+                                🪄 DÉTOURAGE SILHOUETTE (IA 1-CLIC)
                             </span>
                             {djCutoutImage && (
                                 <span className="px-2 py-0.5 rounded-full text-[7.5px] font-black uppercase bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
@@ -18536,10 +18621,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             <button
                                 type="button"
                                 onClick={handleIsolateDjSilhouette}
-                                disabled={isIsolatingSilhouette || !(djOriginalImage || editorialSlideImages[1] || bgImage)}
+                                disabled={isIsolatingSilhouette || !djOriginalImage}
                                 className={`flex-1 py-2 px-3 rounded-xl text-[9px] font-black uppercase transition-all flex items-center justify-center gap-2 shadow-lg ${isIsolatingSilhouette
                                     ? 'bg-purple-900/50 text-purple-300 border border-purple-500/40 cursor-wait'
-                                    : !(djOriginalImage || editorialSlideImages[1] || bgImage)
+                                    : !djOriginalImage
                                         ? 'bg-white/5 text-gray-500 border border-white/5 cursor-not-allowed'
                                         : 'bg-gradient-to-r from-[#bd00ff] to-[#7928ca] hover:from-[#d13aff] hover:to-[#9333ea] text-white shadow-[0_0_15px_rgba(189,0,255,0.4)] active:scale-98'
                                     }`}
@@ -18832,7 +18917,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             <button
                                 type="button"
                                 onClick={() => {
-                                    setR2TargetType('background');
+                                    setR2TargetType('djPhotoReveal');
                                     setIsR2ModalOpen(true);
                                 }}
                                 className="py-2.5 px-2 bg-white/5 hover:bg-white/10 border border-white/15 hover:border-emerald-400/50 rounded-xl flex items-center justify-center gap-1.5 text-gray-200 text-[8.5px] font-black uppercase hover:text-white transition-all shadow-sm active:scale-98"
@@ -18958,7 +19043,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         </div>
     ) : null;
 
-    const slideVisualEditor = ['NEWS', 'FOCUS', 'RECAP', 'INTERVIEW', 'LIVESTREAM', 'CONSEILS', 'REELS', 'CONCOURS', 'TOP 100 DROPSIDERS', 'JEU', 'JEU_FESTIVAL', 'JEU_DJ', 'HIGHLIGHTS'].includes(theme) ? (
+    const slideVisualEditor = (['NEWS', 'FOCUS', 'RECAP', 'INTERVIEW', 'LIVESTREAM', 'CONSEILS', 'REELS', 'CONCOURS', 'TOP 100 DROPSIDERS', 'JEU', 'JEU_FESTIVAL', 'HIGHLIGHTS'].includes(theme) || (theme === 'JEU_DJ' && editorialSlide >= 3)) ? (
         <div className="p-3 bg-black/60 border border-white/10 rounded-2xl space-y-2.5 shadow-xl">
             <div className="flex items-center justify-between">
                 <span className="text-[9px] font-black uppercase text-white flex items-center gap-1.5">
@@ -23508,11 +23593,13 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         setBgVideo(video);
                                         setIsVideoAudioMuted(true);
                                         setBgImage('');
-                                        setEditorialSlideImages(prev => {
-                                            const next = { ...prev };
-                                            delete next[editorialSlide];
-                                            return next;
-                                        });
+                                        if (theme !== 'JEU_DJ') {
+                                            setEditorialSlideImages(prev => {
+                                                const next = { ...prev };
+                                                delete next[editorialSlide];
+                                                return next;
+                                            });
+                                        }
                                         setTimeout(() => generateImage(), 50);
                                     };
                                     video.onerror = () => { setBgImage(url); setBgVideo(null); };
@@ -23552,11 +23639,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                             setBgVideo(null);
                                             if (theme !== 'JEU_DJ') {
                                                 setDjOriginalImage(url);
+                                                setEditorialSlideImages(prev => ({ ...prev, [editorialSlide]: url }));
                                             }
                                             if (theme === 'TOP 10 TRACKS') {
                                                 updateTop10Track(top10ActiveRank, { cover: url });
                                             }
-                                            setEditorialSlideImages(prev => ({ ...prev, [editorialSlide]: url }));
                                         }
                                         generateImage();
                                     };
@@ -24280,13 +24367,6 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                             </div>
                                         )}
 
-                                        {/* Module Dédié Devine le DJ (Silhouette Mystère) */}
-                                        {theme === 'JEU_DJ' && (
-                                            <div className="space-y-2">
-                                                {djSilhouetteEditor}
-                                            </div>
-                                        )}
-
                                         <div className="flex items-center justify-between">
                                             <span className="text-[10px] font-black text-neon-cyan uppercase tracking-widest">
                                                 {theme === 'MUSIQUE' && editorialSlide >= 2 ? 'Fond & Ambiance Arrière-Plan' : theme === 'JEU_DJ' ? 'Fond Arrière-Plan Scène / Club' : 'Fond & Médias'}
@@ -24396,6 +24476,13 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                                 <p className="text-[7.5px] text-gray-400 italic text-center">
                                                     ⏱️ Le clip repartira automatiquement à 0:00 pile lors de l'export MP4
                                                 </p>
+                                            </div>
+                                        )}
+
+                                        {/* Module Dédié Devine le DJ (Artiste & Silhouette Mystère) placé sous le Fond Scène / Club */}
+                                        {theme === 'JEU_DJ' && (
+                                            <div className="space-y-2 pt-2 border-t border-white/10">
+                                                {djSilhouetteEditor}
                                             </div>
                                         )}
 
@@ -25699,9 +25786,6 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                                 {/* Logos & Position pour SPOTLIGHT & ARTISTE FESTIVAL (Slide 2) */}
                                                 {(theme === 'SPOTLIGHT' || (theme === 'ARTISTE FESTIVAL' && artisteFestivalSlide === 2)) && spotlightVisualEditor}
 
-                                                {/* Module Dédié Devine le DJ (Silhouette Mystère) */}
-                                                {theme === 'JEU_DJ' && djSilhouetteEditor}
-
                                                 <div className="flex items-center justify-between pt-1">
                                                     <span className="text-[10px] font-black text-neon-cyan uppercase tracking-widest">
                                                         {theme === 'MUSIQUE' && editorialSlide >= 2 ? 'Fond & Ambiance Arrière-Plan' : theme === 'JEU_DJ' ? 'Fond Arrière-Plan Scène / Club' : 'Fond & Médias'}
@@ -25801,6 +25885,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                                         </div>
                                                     </div>
                                                 )}
+                                                {/* Module Dédié Devine le DJ (Artiste & Silhouette Mystère) placé sous le Fond Scène / Club */}
+                                                {theme === 'JEU_DJ' && djSilhouetteEditor}
                                                 {slideVisualEditor}
                                                 {theme !== 'MAP' && bgAnimationControl}
                                                 <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*,video/*" />
@@ -26106,11 +26192,13 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 .catch(() => { });
                             setBgVideo(video);
                             setBgImage('');
-                            setEditorialSlideImages(prev => {
-                                const next = { ...prev };
-                                delete next[editorialSlide];
-                                return next;
-                            });
+                            if (theme !== 'JEU_DJ') {
+                                setEditorialSlideImages(prev => {
+                                    const next = { ...prev };
+                                    delete next[editorialSlide];
+                                    return next;
+                                });
+                            }
                             setTimeout(() => generateImage(), 50);
                         } else {
                             const img = new Image();
@@ -26126,8 +26214,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     setBgVideo(null);
                                     if (theme !== 'JEU_DJ') {
                                         setDjOriginalImage(finalUrl);
+                                        setEditorialSlideImages(prev => ({ ...prev, [editorialSlide]: finalUrl }));
                                     }
-                                    setEditorialSlideImages(prev => ({ ...prev, [editorialSlide]: finalUrl }));
                                     if (theme === 'AFFICHE' || (theme === 'EVENTS' && eventsSlide === 2 && eventNormalSlidesCount === 0)) {
                                         setAfficheImage(finalUrl);
                                         afficheImageRef.current = img;
@@ -26137,6 +26225,25 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             };
                             img.src = finalUrl;
                         }
+                    } else if (r2TargetType === 'djPhoto') {
+                        setDjOriginalImage(finalUrl);
+                        setDjCutoutImage(null);
+                        const img = new Image();
+                        img.crossOrigin = 'anonymous';
+                        img.onload = () => {
+                            imageCacheRef.current[finalUrl] = img;
+                            generateImage();
+                        };
+                        img.src = finalUrl;
+                    } else if (r2TargetType === 'djPhotoReveal') {
+                        setEditorialSlideImages(prev => ({ ...prev, 2: finalUrl }));
+                        const img = new Image();
+                        img.crossOrigin = 'anonymous';
+                        img.onload = () => {
+                            imageCacheRef.current[finalUrl] = img;
+                            generateImage();
+                        };
+                        img.src = finalUrl;
                     } else if (r2TargetType === 'logo') {
                         setArtistLogo(finalUrl);
                         // Logo pre-caching
