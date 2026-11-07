@@ -1,3 +1,21 @@
+
+function cleanBeatportTrackTitle(name: string, mixName?: string): string {
+    let cleanMix = (mixName || '')
+        .trim()
+        .replace(/\bextended\s+remix\b/gi, 'Remix')
+        .replace(/\bextended\s+mix\b/gi, '')
+        .trim();
+    const isGenericMix = /^(original\s*mix|extended\s*mix|extended|radio\s*edit|original)$/i.test(cleanMix);
+    const mixSuffix = cleanMix && !isGenericMix && !name?.toLowerCase().includes(cleanMix.toLowerCase()) ? ` (${cleanMix})` : '';
+    let cleanName = (name || '')
+        .replace(/\bextended\s+remix\b/gi, 'Remix')
+        .replace(/(\(\s*.*?\b)extended\s+remix(\b.*?\))/gi, '$1Remix$2')
+        .replace(/\s*\(\s*(?:original|extended)\s*(?:mix|version)?\s*\)/gi, '')
+        .replace(/\s*\[\s*(?:original|extended)\s*(?:mix|version)?\s*\]/gi, '')
+        .replace(/\s*-\s*(?:original|extended)\s*(?:mix|version)?/gi, '')
+        .trim();
+    return (cleanName + mixSuffix).trim();
+}
 import { AwsClient } from 'aws4fetch';
 // @ts-nocheck - Deploy: 2026-10-21T17:22:50 - Tweet Slide theme colors & animations
 import webpush from 'web-push';
@@ -1105,7 +1123,7 @@ export default {
                                     const cUrl = t.release?.image?.uri || t.image?.uri || '';
                                     return {
                                         rank: idx + 1,
-                                        title: t.mix_name && t.mix_name !== 'Original Mix' ? `${t.name} (${t.mix_name})` : (t.name || ''),
+                                        title: cleanBeatportTrackTitle(t.name, t.mix_name),
                                         artist: Array.isArray(t.artists) ? t.artists.map((a: any) => a.name).join(', ') : (t.artist || ''),
                                         cover: cUrl,
                                         audioUrl: t.sample_url || '',
@@ -1262,7 +1280,7 @@ export default {
                                             const cUrl = rawImg ? rawImg.replace('{w}x{h}', '1400x1400').replace(/500x500/i, '1400x1400') : '';
                                             return {
                                                 rank: idx + 1,
-                                                title: t.mix_name && t.mix_name !== 'Original Mix' ? `${t.name} (${t.mix_name})` : (t.name || ''),
+                                                title: cleanBeatportTrackTitle(t.name, t.mix_name),
                                                 artist: Array.isArray(t.artists) ? t.artists.map((a: any) => a.name).join(', ') : (t.artist || officialArtistName),
                                                 cover: cUrl,
                                                 audioUrl: t.sample_url || '',
@@ -1297,7 +1315,7 @@ export default {
                                     const cUrl = rawImg ? rawImg.replace('{w}x{h}', '1400x1400').replace(/500x500/i, '1400x1400') : '';
                                     return {
                                         rank: idx + 1,
-                                        title: t.mix_name && t.mix_name !== 'Original Mix' ? `${t.name} (${t.mix_name})` : (t.name || ''),
+                                        title: cleanBeatportTrackTitle(t.name, t.mix_name),
                                         artist: Array.isArray(t.artists) ? t.artists.map((a: any) => a.name).join(', ') : (t.artist || officialArtistName),
                                         cover: cUrl,
                                         audioUrl: t.sample_url || '',
@@ -1375,6 +1393,128 @@ export default {
             } catch (_) {}
 
             return new Response(JSON.stringify({ success: false, error: 'Impossible de résoudre le Top 10 Artiste' }), {
+                status: 404,
+                headers: { ...headers, 'Content-Type': 'application/json' }
+            });
+        }
+
+        // ─── BEATPORT TOP LABEL (OFFICIAL TOP 10 PAR LABEL) ───
+        if (path === '/api/beatport/top-label') {
+            const labelQuery = (url.searchParams.get('label') || '').trim();
+            if (!labelQuery) {
+                return new Response(JSON.stringify({ success: false, error: 'Label manquant' }), {
+                    status: 400,
+                    headers: { ...headers, 'Content-Type': 'application/json' }
+                });
+            }
+
+            let token: string | null = null;
+            try {
+                const tokenRes = await fetch('https://account.beatport.com/o/token/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: new URLSearchParams({
+                        client_id: '2tiTbKxmQFwnbFjMONU4k7njMRZmV3ZMwRBndiZs',
+                        client_secret: 'RDUJyAk4zFEGtQ8rsTmylDSfxmALRNBn3D1BsRr7MKi3oa1TL9Mq9QxqUPK7loiumXolEWbJcWa4IGAhtwnTz1cSXClGJ1tkkNCNWwRwjxIKTZJKOJxbwaNt0Rm3WG0v',
+                        grant_type: 'client_credentials'
+                    })
+                });
+                if (tokenRes.ok) {
+                    const tData: any = await tokenRes.json();
+                    token = tData.access_token || null;
+                }
+            } catch (_) {}
+
+            if (token) {
+                try {
+                    const searchRes = await fetch(`https://api.beatport.com/v4/catalog/search/?q=${encodeURIComponent(labelQuery)}&type=labels&per_page=10`, {
+                        headers: { Authorization: `Bearer ${token}` }
+                    });
+                    if (searchRes.ok) {
+                        const sData: any = await searchRes.json();
+                        const labels = sData.labels || sData.results || [];
+                        if (labels.length > 0) {
+                            const cleanInput = labelQuery.toLowerCase();
+                            const matched = labels.find((l: any) => (l.name || '').toLowerCase() === cleanInput) ||
+                                            labels.find((l: any) => (l.name || '').toLowerCase().includes(cleanInput) || cleanInput.includes((l.name || '').toLowerCase())) ||
+                                            labels[0];
+                            if (matched && matched.slug && matched.id) {
+                                try {
+                                    const bpUrl = `https://www.beatport.com/label/${matched.slug}/${matched.id}`;
+                                    const bpRes = await fetch(bpUrl, {
+                                        headers: {
+                                            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+                                            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'
+                                        }
+                                    });
+                                    if (bpRes.ok) {
+                                        const html = await bpRes.text();
+                                        const startTag = '<script id="__NEXT_DATA__" type="application/json">';
+                                        const start = html.indexOf(startTag);
+                                        if (start !== -1) {
+                                            const end = html.indexOf('</script>', start);
+                                            const nextData = JSON.parse(html.slice(start + startTag.length, end));
+                                            const queries = nextData.props?.pageProps?.dehydratedState?.queries || [];
+                                            for (const q of queries) {
+                                                const keyStr = JSON.stringify(q.queryKey || []);
+                                                if (keyStr.includes('top-10-tracks') || keyStr.includes('top-tracks')) {
+                                                    const results = q.state?.data?.results;
+                                                    if (Array.isArray(results) && results.length >= 5) {
+                                                        const top10 = results.slice(0, 10).map((t: any, idx: number) => {
+                                                            const rawImg = t.release?.image?.uri || t.image?.uri || '';
+                                                            const cUrl = rawImg ? rawImg.replace('{w}x{h}', '1400x1400').replace(/500x500/i, '1400x1400') : '';
+                                                            return {
+                                                                rank: idx + 1,
+                                                                title: cleanBeatportTrackTitle(t.name, t.mix_name),
+                                                                artist: Array.isArray(t.artists) ? t.artists.map((a: any) => a.name).join(', ') : (t.artist || ''),
+                                                                cover: cUrl,
+                                                                audioUrl: t.sample_url || '',
+                                                                sourceUrl: t.sample_url || '',
+                                                                genre: t.genre?.name || ''
+                                                            };
+                                                        });
+                                                        return new Response(JSON.stringify({ success: true, source: 'beatport-label-top-10', tracks: top10, label: matched.name, labelImg: matched.image?.uri || '' }), {
+                                                            headers: { ...headers, 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=1800' }
+                                                        });
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                } catch (_) {}
+
+                                const trkRes = await fetch(`https://api.beatport.com/v4/catalog/labels/${matched.id}/tracks/?order_by=-sales&per_page=10`, {
+                                    headers: { Authorization: `Bearer ${token}` }
+                                });
+                                if (trkRes.ok) {
+                                    const trkData: any = await trkRes.json();
+                                    const results = trkData.results || [];
+                                    if (results.length >= 5) {
+                                        const top10 = results.slice(0, 10).map((t: any, idx: number) => {
+                                            const rawImg = t.release?.image?.uri || t.image?.uri || '';
+                                            const cUrl = rawImg ? rawImg.replace('{w}x{h}', '1400x1400').replace(/500x500/i, '1400x1400') : '';
+                                            return {
+                                                rank: idx + 1,
+                                                title: cleanBeatportTrackTitle(t.name, t.mix_name),
+                                                artist: Array.isArray(t.artists) ? t.artists.map((a: any) => a.name).join(', ') : (t.artist || ''),
+                                                cover: cUrl,
+                                                audioUrl: t.sample_url || '',
+                                                sourceUrl: t.sample_url || '',
+                                                genre: t.genre?.name || ''
+                                            };
+                                        });
+                                        return new Response(JSON.stringify({ success: true, source: 'beatport-label-sales', tracks: top10, label: matched.name, labelImg: matched.image?.uri || '' }), {
+                                            headers: { ...headers, 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=1800' }
+                                        });
+                                    }
+                                }
+                            }
+                        }
+                    }
+                } catch (_) {}
+            }
+
+            return new Response(JSON.stringify({ success: false, error: 'Impossible de résoudre le Top 10 Label' }), {
                 status: 404,
                 headers: { ...headers, 'Content-Type': 'application/json' }
             });

@@ -1171,13 +1171,16 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     };
 
     const [isAutoFillingTop10, setIsAutoFillingTop10] = useState<boolean>(false);
-    const [top10GenMode, setTop10GenMode] = useState<'style' | 'artist'>('style');
-    const top10GenModeRef = useRef<'style' | 'artist'>('style');
+    const [top10GenMode, setTop10GenMode] = useState<'style' | 'artist' | 'label'>('style');
+    const top10GenModeRef = useRef<'style' | 'artist' | 'label'>('style');
     top10GenModeRef.current = top10GenMode;
     const [top10StyleColor, setTop10StyleColor] = useState<string>('#FFB800');
     const top10StyleColorRef = useRef<string>('#FFB800');
     top10StyleColorRef.current = top10StyleColor;
     const [top10ArtistSearch, setTop10ArtistSearch] = useState<string>('');
+    const [top10LabelSearch, setTop10LabelSearch] = useState<string>('Afterlife');
+    const top10LabelSearchRef = useRef<string>('Afterlife');
+    top10LabelSearchRef.current = top10LabelSearch;
     const [top10StyleSearch, setTop10StyleSearch] = useState<string>('');
     const [top10RawTextImport, setTop10RawTextImport] = useState<string>('');
     const [showRawTextImportModal, setShowRawTextImportModal] = useState<boolean>(false);
@@ -1334,6 +1337,79 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         }
     };
 
+        const handleAutoFetchLabelTop10 = async (labelName: string) => {
+        const cleaned = labelName.trim();
+        if (!cleaned) return;
+        setIsAutoFillingTop10(true);
+        setTop10ActiveRank(0);
+        top10ActiveRankRef.current = 0;
+
+        const displayLabelTitle = cleaned.toUpperCase();
+        setTop10Title('TOP 10 TRACKS');
+        top10TitleRef.current = 'TOP 10 TRACKS';
+        setTop10IntroArtist(displayLabelTitle);
+        top10IntroArtistRef.current = displayLabelTitle;
+        setTop10Badge(`TOP 10 ${displayLabelTitle}`);
+        top10BadgeRef.current = `TOP 10 ${displayLabelTitle}`;
+        setTop10IntroTitle('TOP 10 DES TRACKS LES PLUS TÉLÉCHARGÉES SUR BEATPORT');
+        top10IntroTitleRef.current = 'TOP 10 DES TRACKS LES PLUS TÉLÉCHARGÉES SUR BEATPORT';
+
+        let resolvedTracks: Top10TrackItem[] | null = null;
+
+        try {
+            const bpApiRes = await fetch(`/api/beatport/top-label?label=${encodeURIComponent(cleaned)}`);
+            if (bpApiRes.ok) {
+                const bpData: any = await bpApiRes.json();
+                if (bpData.success && Array.isArray(bpData.tracks) && bpData.tracks.length >= 5) {
+                    const tracksSlice = bpData.tracks.slice(0, 10);
+                    const count = tracksSlice.length;
+                    const mapped: Top10TrackItem[] = [];
+                    for (let i = 0; i < count; i++) {
+                        const rank = count - i;
+                        const t = tracksSlice[count - 1 - i];
+                        const cUrl = t.cover || '';
+                        mapped.push({
+                            rank: rank,
+                            title: ((t.title || `TRACK #${rank}`)
+                                .replace(/\bextended\s+remix\b/gi, 'Remix')
+                                .replace(/(\(\s*.*?\b)extended\s+remix(\b.*?\))/gi, '$1Remix$2')
+                                .replace(/\s*\(\s*(?:original|extended)\s*(?:mix|version)?\s*\)/gi, '')
+                                .replace(/\s*\[\s*(?:original|extended)\s*(?:mix|version)?\s*\]/gi, '')
+                                .replace(/\s*-\s*(?:original|extended)\s*(?:mix|version)?/gi, '')
+                                .trim()).toUpperCase(),
+                            artist: (t.artist || cleaned).toUpperCase(),
+                            cover: cUrl,
+                            audioUrl: t.audioUrl || '',
+                            sourceUrl: t.sourceUrl || t.audioUrl || '',
+                            videoStartTime: 0,
+                            audioStartTime: 0,
+                            streams: ''
+                        });
+                        if (cUrl) {
+                            loadCorsSafeImage(cUrl, (img) => {
+                                imageCacheRef.current[cUrl] = img;
+                                generateImage();
+                            });
+                        }
+                    }
+                    resolvedTracks = mapped;
+                }
+            }
+        } catch (e) {
+            console.warn("Échec requête Beatport top-label :", e);
+        }
+
+        if (resolvedTracks && resolvedTracks.length > 0) {
+            setTop10Tracks(resolvedTracks);
+            top10TracksRef.current = resolvedTracks;
+            try {
+                localStorage.setItem('dropsiders_top10_tracks_v7', JSON.stringify(resolvedTracks));
+            } catch (_) {}
+        }
+        setIsAutoFillingTop10(false);
+        generateImage();
+    };
+
     const handleAutoFetchArtistTop10 = async (artistName: string) => {
         const cleaned = artistName.trim();
         if (!cleaned) return;
@@ -1368,6 +1444,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             mapped.push({
                                 rank: rank,
                                 title: ((t.title || `TRACK #${rank}`)
+                                .replace(/\bextended\s+remix\b/gi, 'Remix')
+                                .replace(/(\(\s*.*?\b)extended\s+remix(\b.*?\))/gi, '$1Remix$2')
                                 .replace(/\s*\(\s*(?:original|extended)\s*(?:mix|version)?\s*\)/gi, '')
                                 .replace(/\s*\[\s*(?:original|extended)\s*(?:mix|version)?\s*\]/gi, '')
                                 .replace(/\s*-\s*(?:original|extended)\s*(?:mix|version)?/gi, '')
@@ -1611,8 +1689,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
         // Conserver STRICTEMENT le nom de style tapé par l'utilisateur
         const displayStyleTitle = cleaned.toUpperCase();
-        setTop10Title(`TOP 10 *${displayStyleTitle}*`);
-        top10TitleRef.current = `TOP 10 *${displayStyleTitle}*`;
+        setTop10Title('TOP 10 TRACKS');
+        top10TitleRef.current = 'TOP 10 TRACKS';
         setTop10IntroArtist(displayStyleTitle);
         top10IntroArtistRef.current = displayStyleTitle;
         setTop10Badge(`TOP 10 ${displayStyleTitle}`);
@@ -9577,10 +9655,13 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                     // Différenciation de couleur : Bleu Néon (#00F0FF) pour Artistes, Or Festival (#FFB800) pour Styles
                     const isStyleMode = (top10GenModeRef.current || top10GenMode) === 'style';
+                    const isLabelMode = (top10GenModeRef.current || top10GenMode) === 'label';
                     const activeStyleColor = '#FFB800';
                     const activeStyleRgb = '255, 184, 0';
-                    const top10AccentColor = isStyleMode ? activeStyleColor : '#00f0ff';
-                    const top10AccentRgb = isStyleMode ? activeStyleRgb : '0, 240, 255';
+                    const activeLabelColor = '#B86221';
+                    const activeLabelRgb = '184, 98, 33';
+                    const top10AccentColor = isLabelMode ? activeLabelColor : (isStyleMode ? activeStyleColor : '#00f0ff');
+                    const top10AccentRgb = isLabelMode ? activeLabelRgb : (isStyleMode ? activeStyleRgb : '0, 240, 255');
 
                     // Découpeur de titre pour illuminer en couleur néon les mots entourés d'*astérisques* (ou par défaut TOP 10 / STREAM / BEATPORT / TÉLÉCHARG...)
                     const parseTop10TitleSegments = (lineText: string): { text: string; isHighlighted: boolean }[] => {
@@ -9987,8 +10068,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             : Math.max(0, (Date.now() - animStartTimeRef.current) / 1000));
 
                     // Thématique couleur du rang (Podium Or, Argent, Bronze ou Cyber Néon)
-                    let rankColor = isStyleMode ? activeStyleColor : '#00f0ff';
-                    let rankColorRgb = isStyleMode ? activeStyleRgb : '0, 240, 255';
+                    let rankColor = isLabelMode ? activeLabelColor : (isStyleMode ? activeStyleColor : '#00f0ff');
+                    let rankColorRgb = isLabelMode ? activeLabelRgb : (isStyleMode ? activeStyleRgb : '0, 240, 255');
                     let rankTitle = `N° ${activeRank}`;
                     let isPodium = false;
 
@@ -10175,8 +10256,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     const t10Title = isDefaultOrIntroTitle ? 'TOP 10 TRACKS' : rawTracksTitle.toUpperCase();
 
                     // En mode style, le titre est centré verticalement et légèrement plus grand (sans doublon de style en dessous)
-                    const t10TitleY = isStyleMode ? 260 : 260;
-                    let t10FontSize = isStyleMode ? 46 : 34;
+                    const t10TitleY = 260;
+                    let t10FontSize = 34;
                     ctx.font = `900 ${t10FontSize}px "Montserrat", sans-serif`;
                     if ('letterSpacing' in ctx) (ctx as any).letterSpacing = '3px';
                     let t10W = ctx.measureText(t10Title.replace(/\*/g, '')).width;
@@ -10239,10 +10320,16 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     });
                     ctx.restore();
 
-                    // 2b. Logo Officiel de l'Artiste (ou nom stylé) au-dessus de la place
-                    // STRICTEMENT RÉSERVÉ AU MODE ARTISTE : En mode style, le titre au-dessus ("TOP 10 HOUSE") affiche déjà le style !
-                    if (!isStyleMode) {
-                        const countdownArtistName = (top10IntroArtistRef.current || top10IntroArtist || top10ArtistSearch || activeTrack.artist || 'ARTISTE').toUpperCase().trim();
+                    // 2b. Ligne 2 : Logo Officiel (ou nom stylé) de l'Artiste / Label / Genre
+                    {
+                        const countdownSubtitle = (
+                            top10IntroArtistRef.current ||
+                            top10IntroArtist ||
+                            (isLabelMode ? (top10LabelSearchRef.current || top10LabelSearch) : isStyleMode ? (top10StyleSearch || 'GENRE') : (top10ArtistSearch || 'ARTISTE')) ||
+                            activeTrack.artist ||
+                            (isLabelMode ? 'LABEL' : isStyleMode ? 'GENRE' : 'ARTISTE')
+                        ).toUpperCase().trim();
+
                         const countdownLogoObj = artistLogoRef.current;
                         const countdownHasLogo = Boolean(artistLogo && artistLogo.trim() !== '' && !artistLogo.includes('JOHN-SUMMIT-GIVEAWAY') && countdownLogoObj && (countdownLogoObj.naturalWidth > 0 || countdownLogoObj.complete));
                         const logoAreaCenterY = 352;
@@ -10281,7 +10368,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             let aFontSize = Math.round(44 * scale);
                             ctx.font = `900 italic ${aFontSize}px "Montserrat", sans-serif`;
                             if ('letterSpacing' in ctx) (ctx as any).letterSpacing = '3px';
-                            const aW = ctx.measureText(countdownArtistName).width;
+                            const aW = ctx.measureText(countdownSubtitle).width;
                             if (aW > 820) {
                                 aFontSize = Math.max(22, Math.floor(aFontSize * (820 / aW)));
                                 ctx.font = `900 italic ${aFontSize}px "Montserrat", sans-serif`;
@@ -10289,7 +10376,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             ctx.fillStyle = top10AccentColor;
                             ctx.shadowColor = `rgba(${top10AccentRgb}, 0.9)`;
                             ctx.shadowBlur = 18;
-                            ctx.fillText(countdownArtistName, canvas.width / 2, logoAreaCenterY);
+                            ctx.fillText(countdownSubtitle, canvas.width / 2, logoAreaCenterY);
                             ctx.restore();
                         }
                     }
@@ -10527,7 +10614,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     }
 
                     if (!isStaticPngExport && textAnimation !== 'NONE') {
-                        applyTextAnimCtx(ctx, 0.04, canvas.width / 2, isStyleMode ? 1245 : 1280, trackAnimTime);
+                        applyTextAnimCtx(ctx, 0.04, canvas.width / 2, 1280, trackAnimTime);
                     }
 
                     let artistToDraw = artistStr;
@@ -10541,7 +10628,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.shadowColor = hasArtist ? 'rgba(0, 0, 0, 0.95)' : 'transparent';
                     ctx.shadowBlur = hasArtist ? 18 : 0;
                     ctx.shadowOffsetY = 4;
-                    ctx.fillText(artistToDraw, canvas.width / 2, isStyleMode ? 1245 : 1280);
+                    ctx.fillText(artistToDraw, canvas.width / 2, 1280);
                     ctx.restore();
 
                     // 6b. Titre du Morceau
@@ -10552,6 +10639,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     const hasTitle = Boolean(activeTrack.title?.trim());
                     const rawTitle = (activeTrack.title || 'TITRE DU MORCEAU');
                     const titleStr = rawTitle
+                        .replace(/\bextended\s+remix\b/gi, 'Remix')
+                        .replace(/(\(\s*.*?\b)extended\s+remix(\b.*?\))/gi, '$1Remix$2')
                         .replace(/\s*\(\s*(?:original|extended)\s*(?:mix|version)?\s*\)/gi, '')
                         .replace(/\s*\[\s*(?:original|extended)\s*(?:mix|version)?\s*\]/gi, '')
                         .replace(/\s*-\s*(?:original|extended)\s*(?:mix|version)?/gi, '')
@@ -10567,7 +10656,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     }
 
                     if (!isStaticPngExport && textAnimation !== 'NONE') {
-                        applyTextAnimCtx(ctx, 0.14, canvas.width / 2, isStyleMode ? 1330 : 1360, trackAnimTime);
+                        applyTextAnimCtx(ctx, 0.14, canvas.width / 2, 1360, trackAnimTime);
                     }
 
                     let titleToDraw = titleStr;
@@ -10580,7 +10669,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.fillStyle = hasTitle ? rankColor : `rgba(${rankColorRgb}, 0.35)`;
                     ctx.shadowColor = hasTitle ? `rgba(${rankColorRgb}, 0.75)` : 'transparent';
                     ctx.shadowBlur = hasTitle ? 24 : 0;
-                    ctx.fillText(titleToDraw, canvas.width / 2, isStyleMode ? 1330 : 1360);
+                    ctx.fillText(titleToDraw, canvas.width / 2, 1360);
                     ctx.restore();
 
                     // 6c. Badge Nombre de Streams (Sous le titre)
@@ -10598,7 +10687,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         const pillW = Math.ceil(sMetrics.width + 50);
                         const pillH = 38;
                         const pillX = (canvas.width - pillW) / 2;
-                        const pillY = isStyleMode ? 1400 : 1430;
+                        const pillY = 1430;
 
                         if (!isStaticPngExport && textAnimation !== 'NONE') {
                             applyTextAnimCtx(ctx, 0.24, canvas.width / 2, pillY + pillH / 2, trackAnimTime);
@@ -10640,7 +10729,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     // 7. Visualiseur Waveform Audio Animé (rendu groupé 60fps)
                     ctx.save();
                     const waveBars = 32;
-                    const waveCenterY = activeStreams ? (isStyleMode ? 1515 : 1545) : (isStyleMode ? 1455 : 1485);
+                    const waveCenterY = activeStreams ? 1545 : 1485;
                     const waveMaxH = 70;
                     const waveTotalW = 600;
                     const waveBarW = 10;
@@ -11721,7 +11810,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     const w = isReel ? 275 : 290;
                     // Safe margins preventing cropping from rounded corners and Instagram UI
                     const xOffset = isReel ? 80 : 60;
-                    const yOffset = isReel ? 70 : 45;
+                    const yOffset = isReel ? 56 : 38;
                     const logoH = (logo.height * w) / logo.width;
                     ctx.save();
                     ctx.shadowColor = 'rgba(0,0,0,0.6)';
@@ -20711,8 +20800,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         )}
                     </div>
 
-                    {/* SÉLECTEUR DE MODE : PAR STYLE / GENRE (OR FESTIVAL) vs PAR ARTISTE (BLEU NÉON) */}
-                    <div className="grid grid-cols-2 gap-1.5 p-1 bg-black/60 border border-white/10 rounded-xl">
+                    {/* SÉLECTEUR DE MODE : TOP 10 GENRE / TOP 10 LABEL / TOP 10 ARTISTE */}
+                    <div className="grid grid-cols-3 gap-1.5 p-1 bg-black/60 border border-white/10 rounded-xl">
                         <button
                             type="button"
                             onClick={() => {
@@ -20724,13 +20813,32 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 }
                                 generateImage();
                             }}
-                            className={`py-2 px-2.5 rounded-lg text-[9px] font-black uppercase transition-all flex items-center justify-center gap-1.5 ${top10GenMode === 'style'
+                            className={`py-2 px-1.5 rounded-lg text-[8.5px] font-black uppercase transition-all flex items-center justify-center gap-1 ${top10GenMode === 'style'
                                 ? 'bg-gradient-to-r from-[#ffb800] via-[#ffa500] to-[#ff8c00] text-black font-black shadow-[0_0_14px_rgba(255,184,0,0.55)] border border-[#ffb800]/70'
                                 : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
                                 }`}
                         >
                             <span>🎧</span>
-                            <span>Par Style / Genre (Or Festival)</span>
+                            <span>Top 10 Genre</span>
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setTop10GenMode('label');
+                                top10GenModeRef.current = 'label';
+                                if (!top10IntroTitle || top10IntroTitle.includes('STREAM')) {
+                                    setTop10IntroTitle('TOP 10 DES TRACKS LES PLUS TÉLÉCHARGÉES SUR BEATPORT');
+                                    top10IntroTitleRef.current = 'TOP 10 DES TRACKS LES PLUS TÉLÉCHARGÉES SUR BEATPORT';
+                                }
+                                generateImage();
+                            }}
+                            className={`py-2 px-1.5 rounded-lg text-[8.5px] font-black uppercase transition-all flex items-center justify-center gap-1 ${top10GenMode === 'label'
+                                ? 'bg-gradient-to-r from-[#B86221] via-[#A05018] to-[#7B380A] text-white font-black shadow-[0_0_14px_rgba(184,98,33,0.55)] border border-[#B86221]/70'
+                                : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
+                                }`}
+                        >
+                            <span>🏷️</span>
+                            <span>Top 10 Label</span>
                         </button>
                         <button
                             type="button"
@@ -20743,18 +20851,18 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 }
                                 generateImage();
                             }}
-                            className={`py-2 px-2.5 rounded-lg text-[9px] font-black uppercase transition-all flex items-center justify-center gap-1.5 ${top10GenMode === 'artist'
+                            className={`py-2 px-1.5 rounded-lg text-[8.5px] font-black uppercase transition-all flex items-center justify-center gap-1 ${top10GenMode === 'artist'
                                 ? 'bg-gradient-to-r from-neon-cyan to-blue-500 text-black shadow-[0_0_14px_rgba(0,240,255,0.4)] border border-neon-cyan/60 font-black'
                                 : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
                                 }`}
                         >
                             <span>👤</span>
-                            <span>Par Artiste / DJ (Bleu Néon)</span>
+                            <span>Top 10 Artiste</span>
                         </button>
                     </div>
 
                     {top10GenMode === 'style' ? (
-                        /* ─── OPTION 1 : RECHERCHE LIBRE PAR STYLE / GENRE ÉLECTRONIQUE (OR FESTIVAL) ─── */
+                        /* ─── OPTION 1 : RECHERCHE PAR GENRE (OR FESTIVAL) ─── */
                         <div className="space-y-2.5 p-3 bg-black/60 border border-[#ffb800]/35 rounded-xl shadow-lg">
                             <label className="text-[8.5px] font-black text-[#ffb800] uppercase tracking-wider flex items-center gap-1.5">
                                 <span>⚡ Style / Genre Électronique :</span>
@@ -20768,7 +20876,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     onKeyDown={e => {
                                         if (e.key === 'Enter') handleAutoFetchStyleTop10(top10StyleSearch);
                                     }}
-                                    placeholder="ex: Afro House, Techno, Indie Dance, Nu Disco, Funky House, Melodic Techno..."
+                                    placeholder="ex: Afro House, Techno, Indie Dance, Nu Disco, Hard Techno..."
                                     className="w-full bg-black/80 border border-[#ffb800]/35 focus:border-[#ffb800] rounded-xl px-3 py-2.5 text-white text-[10.5px] font-bold outline-none placeholder:text-gray-500 shadow-inner"
                                 />
                                 <button
@@ -20778,16 +20886,49 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     className="w-full py-2.5 bg-gradient-to-r from-[#ffb800] via-[#ffa500] to-[#ff8c00] hover:brightness-110 text-black font-black text-[10px] uppercase rounded-xl transition-all disabled:opacity-40 shadow-md shadow-[#ffb800]/30 active:scale-98 flex items-center justify-center gap-1.5"
                                 >
                                     <span>{isAutoFillingTop10 ? '⏳' : '⚡'}</span>
-                                    <span>{isAutoFillingTop10 ? 'Génération du Top 10 en cours...' : 'Générer le Top 10'}</span>
+                                    <span>{isAutoFillingTop10 ? 'Génération du Top 10 en cours...' : 'Générer le Top 10 Genre'}</span>
                                 </button>
                             </div>
 
                             <p className="text-[7.5px] text-gray-400 leading-tight">
-                                ✨ <span className="text-neon-cyan font-bold">Bleu Néon (#00F0FF) = Artistes</span> • <span className="text-[#ffb800] font-bold">Or Festival (#FFB800) = Styles</span>. Tape n'importe quel style de musique électronique : le titre exact et 10 morceaux officiels avec pochettes HD seront résolus !
+                                ✨ <span className="text-[#ffb800] font-bold">Or Festival = Genres</span>. Résolution en direct du classement officiel Beatport Top 100 !
+                            </p>
+                        </div>
+                    ) : top10GenMode === 'label' ? (
+                        /* ─── OPTION 2 : RECHERCHE PAR LABEL (MARRON) ─── */
+                        <div className="space-y-2.5 p-3 bg-black/60 border border-[#B86221]/40 rounded-xl shadow-lg">
+                            <label className="text-[8.5px] font-black text-[#B86221] uppercase tracking-wider flex items-center gap-1.5">
+                                <span>🏷️ Label Électronique (Beatport) :</span>
+                            </label>
+
+                            <div className="space-y-2">
+                                <input
+                                    type="text"
+                                    value={top10LabelSearch}
+                                    onChange={e => setTop10LabelSearch(e.target.value)}
+                                    onKeyDown={e => {
+                                        if (e.key === 'Enter') handleAutoFetchLabelTop10(top10LabelSearch);
+                                    }}
+                                    placeholder="ex: Afterlife, Drumcode, Spinnin' Records, Defected, Toolroom, Armada..."
+                                    className="w-full bg-black/80 border border-[#B86221]/40 focus:border-[#B86221] rounded-xl px-3 py-2.5 text-white text-[10.5px] font-bold outline-none placeholder:text-gray-500 shadow-inner"
+                                />
+                                <button
+                                    type="button"
+                                    disabled={isAutoFillingTop10 || !top10LabelSearch.trim()}
+                                    onClick={() => handleAutoFetchLabelTop10(top10LabelSearch)}
+                                    className="w-full py-2.5 bg-gradient-to-r from-[#B86221] via-[#A05018] to-[#7B380A] hover:brightness-110 text-white font-black text-[10px] uppercase rounded-xl transition-all disabled:opacity-40 shadow-md shadow-[#B86221]/30 active:scale-98 flex items-center justify-center gap-1.5"
+                                >
+                                    <span>{isAutoFillingTop10 ? '⏳' : '🏷️'}</span>
+                                    <span>{isAutoFillingTop10 ? 'Génération du Top 10 en cours...' : 'Générer le Top 10 Label'}</span>
+                                </button>
+                            </div>
+
+                            <p className="text-[7.5px] text-gray-400 leading-tight">
+                                ✨ <span className="text-[#B86221] font-bold">Marron = Labels</span>. Téléchargement direct du Top 10 officiel du label avec pochettes HD 1400x1400 !
                             </p>
                         </div>
                     ) : (
-                        /* ─── OPTION 2 : RECHERCHE PAR NOM D'ARTISTE / DJ ─── */
+                        /* ─── OPTION 3 : RECHERCHE PAR ARTISTE (BLEU NÉON) ─── */
                         <div className="space-y-1.5">
                             <label className="text-[8px] font-black text-gray-300 uppercase tracking-wider flex items-center justify-between">
                                 <span>Nom de l'Artiste / DJ :</span>
@@ -20817,11 +20958,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     )}
 
                     {/* 🎨 LOGO OFFICIEL DE L'ARTISTE (Affiché si mode artiste ou si un logo est déjà présent) */}
-                    {(top10GenMode === 'artist' || Boolean(artistLogo)) && (
+                    {(top10GenMode === 'artist' || top10GenMode === 'label' || top10GenMode === 'style' || Boolean(artistLogo)) && (
                     <div className="p-3 bg-black/60 border border-neon-cyan/35 rounded-xl space-y-2.5">
                         <div className="flex items-center justify-between">
                             <span className="text-[9px] font-black text-white uppercase tracking-wider flex items-center gap-1.5">
-                                <span className="text-neon-cyan">🎨</span> Logo Transparent de l'Artiste
+                                <span className={top10GenMode === 'label' ? "text-[#B86221]" : top10GenMode === 'style' ? "text-[#ffb800]" : "text-neon-cyan"}>🎨</span> Logo Transparent {top10GenMode === 'label' ? 'du Label' : top10GenMode === 'style' ? 'du Genre' : "de l'Artiste"}
                             </span>
                             {artistLogo && (
                                 <button
@@ -21120,7 +21261,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                                 className={`w-2 h-2 rounded-full inline-block animate-pulse ${isStyleMode ? 'bg-[#FFB800]' : 'bg-neon-cyan'}`}
                                                 style={{ boxShadow: `0 0 8px ${accentHex}` }}
                                             />
-                                            Clique pour illuminer un mot {isStyleMode ? 'en or festival' : 'en bleu néon'} :
+                                            Clique pour illuminer un mot {top10GenMode === 'style' ? 'en or festival' : (top10GenMode === 'label' ? 'en marron' : 'en bleu néon')} :
                                         </span>
                                         <button
                                             type="button"
