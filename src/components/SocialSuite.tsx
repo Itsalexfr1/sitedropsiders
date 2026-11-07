@@ -2216,7 +2216,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         w: number,
         h: number,
         radius: number,
-        brightness: number
+        brightness: number,
+        saturate: number = 1
     ): boolean => {
         try {
             const imgData = ctx.getImageData(0, 0, w, h);
@@ -2267,10 +2268,19 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     }
                     for (let y = 0; y < h; y++) {
                         const outIdx = y * w * 4 + colOff;
-                        if (pass === 2 && brightness !== 1) {
-                            src[outIdx] = Math.min(255, ((rSum / div) * brightness) | 0);
-                            src[outIdx + 1] = Math.min(255, ((gSum / div) * brightness) | 0);
-                            src[outIdx + 2] = Math.min(255, ((bSum / div) * brightness) | 0);
+                        if (pass === 2 && (brightness !== 1 || saturate !== 1)) {
+                            let rf = (rSum / div) * brightness;
+                            let gf = (gSum / div) * brightness;
+                            let bf = (bSum / div) * brightness;
+                            if (saturate !== 1) {
+                                const lum = 0.2126 * rf + 0.7152 * gf + 0.0722 * bf;
+                                rf = lum + (rf - lum) * saturate;
+                                gf = lum + (gf - lum) * saturate;
+                                bf = lum + (bf - lum) * saturate;
+                            }
+                            src[outIdx] = Math.max(0, Math.min(255, rf | 0));
+                            src[outIdx + 1] = Math.max(0, Math.min(255, gf | 0));
+                            src[outIdx + 2] = Math.max(0, Math.min(255, bf | 0));
                         } else {
                             src[outIdx] = (rSum / div) | 0;
                             src[outIdx + 1] = (gSum / div) | 0;
@@ -2301,7 +2311,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         canvasW: number,
         canvasH: number,
         blurPx: number = 16,
-        brightness: number = 0.60
+        brightness: number = 0.60,
+        saturate: number = 1
     ): HTMLCanvasElement => {
         const srcW = sourceImg.naturalWidth || sourceImg.width || canvasW;
         const srcH = sourceImg.naturalHeight || sourceImg.height || canvasH;
@@ -2314,7 +2325,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             if (offCtx) {
                 offCtx.imageSmoothingEnabled = true;
                 offCtx.imageSmoothingQuality = 'high';
-                offCtx.filter = `blur(${blurPx}px) brightness(${brightness})`;
+                offCtx.filter = saturate !== 1 ? `blur(${blurPx}px) brightness(${brightness}) saturate(${saturate})` : `blur(${blurPx}px) brightness(${brightness})`;
                 const s = Math.max(off.width / srcW, off.height / srcH);
                 const dw = srcW * s;
                 const dh = srcH * s;
@@ -2340,7 +2351,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
             // blur(16px) sur 0.5x équivaut à rayon ~9px sur 0.25x
             const scaledRadius = Math.max(5, Math.round(blurPx * 0.56));
-            const blurredOk = applySoftwareGaussianBlurAndBrightness(offCtx, workW, workH, scaledRadius, brightness);
+            const blurredOk = applySoftwareGaussianBlurAndBrightness(offCtx, workW, workH, scaledRadius, brightness, saturate);
 
             if (!blurredOk) {
                 // Secours ultime sans getImageData (si image externe opaque sans CORS) : pyramide bilinéaire multi-étapes
@@ -10264,13 +10275,25 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             ctx.translate(canvas.width / 2 + bgDriftX, canvas.height / 2 + bgDriftY);
                             ctx.scale(bgScale, bgScale);
 
-                            if ('filter' in ctx) {
+                            if (supportsCanvasFilterBlur()) {
                                 (ctx as any).filter = 'blur(45px) brightness(0.40) saturate(1.45)';
-                            }
-                            ctx.globalAlpha = 0.85;
-                            ctx.drawImage(bgSource, -canvas.width / 2 - 40, -canvas.height / 2 - 40, canvas.width + 80, canvas.height + 80);
-                            if ('filter' in ctx) {
+                                ctx.globalAlpha = 0.85;
+                                ctx.drawImage(bgSource, -canvas.width / 2 - 40, -canvas.height / 2 - 40, canvas.width + 80, canvas.height + 80);
                                 (ctx as any).filter = 'none';
+                            } else {
+                                // iOS / WebKit : ctx.filter est ignoré → pochette floutée pré-calculée (flou logiciel, mise en cache)
+                                const coverKey = `${bgSource.src || 'cover'}_${canvas.width}x${canvas.height}_top10_blur`;
+                                let blurredCover = blurredBgCacheRef.current.get(coverKey);
+                                if (!blurredCover) {
+                                    // rayon ~11px à 0.25x ≈ blur(45px) en pleine résolution
+                                    blurredCover = createCrossBrowserBlurredCanvas(bgSource, canvas.width, canvas.height, 22, 0.40, 1.45);
+                                    if (blurredBgCacheRef.current.size > 24) blurredBgCacheRef.current.clear();
+                                    blurredBgCacheRef.current.set(coverKey, blurredCover);
+                                }
+                                ctx.imageSmoothingEnabled = true;
+                                ctx.imageSmoothingQuality = 'high';
+                                ctx.globalAlpha = 0.85;
+                                ctx.drawImage(blurredCover, -canvas.width / 2 - 40, -canvas.height / 2 - 40, canvas.width + 80, canvas.height + 80);
                             }
                             ctx.restore();
                         }
