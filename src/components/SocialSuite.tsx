@@ -2644,7 +2644,22 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             const OfflineCtx = (window as any).OfflineAudioContext || (window as any).webkitOfflineAudioContext;
             const AudioCtxClass = (window as any).AudioContext || (window as any).webkitAudioContext || OfflineCtx;
             if (!AudioCtxClass || !OfflineCtx) return null;
-            const decoder: BaseAudioContext = AudioCtxClass === OfflineCtx ? new OfflineCtx(2, 1, 48000) : new AudioCtxClass();
+
+            // Sur iOS WebKit (Safari, Opera GX, Chrome iOS), un AudioContext créé ici serait suspendu
+            // car il n'est pas rattaché à un geste utilisateur actif. On réutilise donc le contexte
+            // déjà unlocked (audioCtxRef.current) si disponible et non fermé — c'est critique pour iOS.
+            let decoder: BaseAudioContext;
+            const existingCtx = audioCtxRef.current;
+            if (existingCtx && existingCtx.state !== 'closed') {
+                // Réveiller le contexte si suspendu
+                if (existingCtx.state === 'suspended') {
+                    await existingCtx.resume().catch(() => { });
+                }
+                decoder = existingCtx;
+            } else {
+                decoder = AudioCtxClass === OfflineCtx ? new OfflineCtx(2, 1, 48000) : new AudioCtxClass();
+            }
+
             let buf: AudioBuffer | null = null;
             try {
                 buf = await new Promise<AudioBuffer>((resolve, reject) => {
@@ -2662,7 +2677,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 console.warn("[Audio] Décodage audio de la vidéo impossible ou vidéo muette :", decErr);
                 return null;
             } finally {
-                if ((decoder as any).close && typeof (decoder as any).close === 'function') {
+                // NE PAS fermer audioCtxRef.current — c'est notre contexte global partagé et unlocked (iOS).
+                // On ferme uniquement si c'est un contexte temporaire (pas le contexte partagé).
+                const isSharedCtx = audioCtxRef.current && decoder === (audioCtxRef.current as BaseAudioContext);
+                if (!isSharedCtx && (decoder as any).close && typeof (decoder as any).close === 'function') {
                     (decoder as any).close().catch(() => { });
                 }
             }
@@ -12519,7 +12537,22 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 } catch { }
             }
         }
-        const useWebCodecs = Boolean(chosenCodec);
+        // ── iOS WebKit (Safari / Opera GX / Chrome iOS) : FORCER MediaRecorder si la vidéo a du son ──
+        // Sur iOS, la chaîne WebCodecs → extraction PCM → AudioEncoder AAC / FFmpeg WASM échoue
+        // silencieusement (AudioEncoder AAC absent, FFmpeg WASM trop lourd) → MP4 muet.
+        // Le MediaRecorder natif d'iOS, lui, produit directement un MP4 H.264 + AAC lisible partout.
+        const isIOSWebKitExport = typeof navigator !== 'undefined' && (
+            /iPad|iPhone|iPod/i.test(navigator.userAgent) ||
+            (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
+        );
+        const needsBgVideoAudio = Boolean(bgVideo) && theme !== 'TOP 10 TRACKS' && theme !== 'MUSIQUE';
+        const canUseNativeRecorder = typeof MediaRecorder !== 'undefined'
+            && typeof (canvas as any).captureStream === 'function';
+        const iosForceMediaRecorder = isIOSWebKitExport && needsBgVideoAudio && canUseNativeRecorder;
+        if (iosForceMediaRecorder) {
+            console.log('[Export iOS] Mode MediaRecorder natif forcé pour conserver la piste audio AAC.');
+        }
+        const useWebCodecs = Boolean(chosenCodec) && !iosForceMediaRecorder;
 
         let videoEncoder: any = null;
         let muxerTarget: any = null;
@@ -13035,6 +13068,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         let canvasStream: MediaStream | null = null;
         let combinedStream: MediaStream | null = null;
         let hasAudioTrack = false;
+        // iOS : source audio PCM décodée depuis le fichier vidéo, injectée dans le MediaRecorder
+        let iosBufferAudioSrc: AudioBufferSourceNode | null = null;
         let recorder: MediaRecorder | null = null;
         const chunks: Blob[] = [];
         let mimeType = 'video/webm';
@@ -13119,7 +13154,46 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                     // En TOP 10 TRACKS et MUSIQUE, la vidéo de fond est STRICTEMENT visuelle (b-roll muet) : le son vient uniquement des morceaux.
                     if (theme !== 'TOP 10 TRACKS' && theme !== 'MUSIQUE') {
-                        try {
+                        // ── iOS : décodage PCM du fichier vidéo + AudioBufferSource → MediaStreamDestination ──
+                        // Évite createMediaElementSource / captureStream (non fiables sur WebKit iOS).
+                        if (isIOSWebKit && bgVideoBlob && canvasStream) {
+                            try {
+                                const actx = audioCtxRef.current;
+                                if (actx && actx.state !== 'closed') {
+                                    if (actx.state === 'suspended') await actx.resume().catch(() => { });
+                                    const decodedBuf = await extractAudioBufferFromBlob(bgVideoBlob, totalDuration);
+                                    if (decodedBuf) {
+                                        // Débrancher une éventuelle source élément vidéo pour éviter un double son
+                                        if (audioSourceNodeRef.current) {
+                                            try { audioSourceNodeRef.current.disconnect(); } catch { }
+                                            try { audioSourceNodeRef.current.connect(actx.destination); } catch { }
+                                        }
+                                        const iosDest = actx.createMediaStreamDestination();
+                                        const src = actx.createBufferSource();
+                                        src.buffer = decodedBuf;
+                                        src.connect(iosDest);
+                                        // Gain quasi nul vers les haut-parleurs : garde le graphe audio actif sur iOS
+                                        const keepAlive = actx.createGain();
+                                        keepAlive.gain.value = 0.0001;
+                                        src.connect(keepAlive);
+                                        keepAlive.connect(actx.destination);
+                                        const iosTracks = iosDest.stream.getAudioTracks();
+                                        if (iosTracks.length > 0) {
+                                            iosBufferAudioSrc = src;
+                                            hasAudioTrack = true;
+                                            combinedStream = new MediaStream([...canvasStream.getVideoTracks(), iosTracks[0]]);
+                                            console.log(`[Export iOS] ✅ Piste audio PCM injectée dans le MediaRecorder (${decodedBuf.duration.toFixed(1)}s).`);
+                                        }
+                                    } else {
+                                        console.warn('[Export iOS] Décodage PCM impossible, repli sur la source élément vidéo.');
+                                    }
+                                }
+                            } catch (iosAudioErr) {
+                                console.warn('[Export iOS] Échec injection audio PCM :', iosAudioErr);
+                            }
+                        }
+
+                        if (!hasAudioTrack) try {
                             const AudioCtxClass = (window as any).AudioContext || (window as any).webkitAudioContext;
                             if (AudioCtxClass) {
                                 if (!audioCtxRef.current || audioCtxRef.current.state === 'closed') {
@@ -13192,7 +13266,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
                 );
                 // Pendant l'export, la vidéo doit impérativement avoir le son actif pour que la piste audio soit capturée
-                bgVideo.muted = false;
+                // (sauf iOS avec piste PCM injectée : le son vient du buffer décodé, la vidéo reste visuelle)
+                bgVideo.muted = Boolean(iosBufferAudioSrc);
                 bgVideo.volume = 1;
                 try {
                     await bgVideo.play();
@@ -13263,6 +13338,39 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     return null;
                 }
                 videoBlob = new Blob(chunks, { type: mimeType });
+            }
+
+            // iOS : arrêt de la piste PCM injectée
+            if (iosBufferAudioSrc) {
+                try { iosBufferAudioSrc.stop(); } catch { }
+                try { iosBufferAudioSrc.disconnect(); } catch { }
+            }
+
+            // FAST-PATH iOS : le MediaRecorder natif a produit un MP4 H.264 + AAC avec le son → export direct
+            // (aucun FFmpeg WASM / AudioEncoder nécessaire, qui échouent silencieusement sur iPhone)
+            if (isIOSWebKitExport && !useWebCodecs && hasAudioTrack && (videoBlob.type.includes('mp4') || videoBlob.type.includes('quicktime'))) {
+                console.log('[Export iOS] ✅ MP4 natif avec piste audio AAC, export direct.');
+                isVideoRecordingRef.current = false;
+                setIsVideoRecording(false);
+                setRecordingProgress(0);
+                const iosMp4 = videoBlob.type.includes('mp4') ? videoBlob : new Blob([videoBlob], { type: 'video/mp4' });
+                if (options?.returnBlob) {
+                    if (finalizePromiseResolve) finalizePromiseResolve(iosMp4);
+                    return iosMp4;
+                }
+                const url = URL.createObjectURL(iosMp4);
+                setReadyVideoBlob(iosMp4);
+                setReadyVideoUrl(url);
+                setActivePanel(null);
+                const exportThemeName = combinedMode === 'PROMO_ONLY' ? 'promo' : combinedMode === 'TIKTOK' ? `tiktok-${theme.toLowerCase().replace(/\s+/g, '-')}` : theme.toLowerCase().replace(/\s+/g, '-');
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `dropsiders-${exportThemeName}-${effectiveTab.toLowerCase()}-${Date.now()}.mp4`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                if (finalizePromiseResolve) finalizePromiseResolve(iosMp4);
+                return iosMp4;
             }
 
             // S'assurer que le blob vidéo est bien disponible pour l'extraction audio
@@ -13879,6 +13987,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         if (!useWebCodecs && recorder) {
             recorder.onstop = finalizeRecording;
             recorder.start(500);
+            // iOS : démarrage de la piste PCM synchronisé avec le début de l'enregistrement
+            if (iosBufferAudioSrc) {
+                try { iosBufferAudioSrc.start(); } catch (e) { console.warn('[Export iOS] start audio :', e); }
+            }
             progressInterval = setInterval(updateProgressUI, 250);
         }
 
