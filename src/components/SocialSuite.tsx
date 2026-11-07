@@ -1171,7 +1171,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     };
 
     const [isAutoFillingTop10, setIsAutoFillingTop10] = useState<boolean>(false);
+    const [top10GenMode, setTop10GenMode] = useState<'style' | 'artist'>('style');
     const [top10ArtistSearch, setTop10ArtistSearch] = useState<string>('');
+    const [top10StyleSearch, setTop10StyleSearch] = useState<string>('');
     const [top10RawTextImport, setTop10RawTextImport] = useState<string>('');
     const [showRawTextImportModal, setShowRawTextImportModal] = useState<boolean>(false);
 
@@ -1386,6 +1388,270 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             }
         } catch (err) {
             console.warn("Erreur auto-fetch Top 10 :", err);
+        } finally {
+            setIsAutoFillingTop10(false);
+        }
+    };
+
+    const TOP10_GENRE_PRESETS: Record<string, { label: string; icon: string; tracks: { query: string; rank: number; title: string; artist: string; streams?: string }[] }> = {
+        'afro house': {
+            label: 'Afro House',
+            icon: '🌍',
+            tracks: [
+                { rank: 1, query: 'Adam Port Stryv Malachiii Move', title: 'MOVE', artist: 'ADAM PORT, STRYV, MALACHIII', streams: '550M+' },
+                { rank: 2, query: 'HUGEL Topic Arash I Adore You', title: 'I ADORE YOU', artist: 'HUGEL, TOPIC, ARASH', streams: '340M+' },
+                { rank: 3, query: 'ZERB Sofiya Nzau Mwaki', title: 'MWAKI', artist: 'ZERB & SOFIYA NZAU', streams: '310M+' },
+                { rank: 4, query: 'Francis Mercier MAGIC SYSTEM Premier Gaou', title: 'PREMIER GAOU', artist: 'FRANCIS MERCIER & MAGIC SYSTEM', streams: '180M+' },
+                { rank: 5, query: 'Armin van Buuren Sharon den Adel In and out of Love', title: 'IN AND OUT OF LOVE (RIVO REMIX)', artist: 'ARMIN VAN BUUREN & RIVO', streams: '125M+' },
+                { rank: 6, query: 'Maz Antdot Povoada Remix', title: 'POVOADA', artist: 'MAZ & ANTDOT', streams: '95M+' },
+                { rank: 7, query: 'Nitefreak Emmanuel Jal Gorah', title: 'GORAH', artist: 'NITEFREAK & EMMANUEL JAL', streams: '78M+' },
+                { rank: 8, query: 'Alex Wann Route 94 My Love', title: 'MY LOVE (2024)', artist: 'ALEX WANN & ROUTE 94', streams: '65M+' },
+                { rank: 9, query: 'MoBlack Salif Keita Yamore', title: 'YAMORE', artist: 'MOBLACK & SALIF KEITA', streams: '60M+' },
+                { rank: 10, query: 'Mont Rouge Belsunce', title: 'BELSUNCE', artist: 'MONT ROUGE', streams: '50M+' },
+            ]
+        },
+        'melodic techno': {
+            label: 'Melodic Techno',
+            icon: '🌌',
+            tracks: [
+                { rank: 1, query: 'Anyma Chris Avantgarde Eternity', title: 'ETERNITY', artist: 'ANYMA & CHRIS AVANTGARDE', streams: '210M+' },
+                { rank: 2, query: 'Tale Of Us Nova', title: 'NOVA', artist: 'TALE OF US', streams: '185M+' },
+                { rank: 3, query: 'CamelPhat Elderbrook Cola', title: 'COLA', artist: 'CAMELPHAT & ELDERBROOK', streams: '420M+' },
+                { rank: 4, query: 'Monolink ARTBAT Return to Oz Remix', title: 'RETURN TO OZ (ARTBAT REMIX)', artist: 'MONOLINK & ARTBAT', streams: '190M+' },
+                { rank: 5, query: 'Kevin de Vries Dance With Me', title: 'DANCE WITH ME', artist: 'KEVIN DE VRIES', streams: '130M+' },
+                { rank: 6, query: 'Argy Omnya Aria', title: 'ARIA', artist: 'ARGY & OMNYA', streams: '145M+' },
+                { rank: 7, query: 'Meduza Becky Hill Lose Control', title: 'LOSE CONTROL', artist: 'MEDUZA & BECKY HILL', streams: '780M+' },
+                { rank: 8, query: 'John Summit Hayla Where You Are', title: 'WHERE YOU ARE', artist: 'JOHN SUMMIT & HAYLA', streams: '320M+' },
+                { rank: 9, query: 'Cassian Anyma Save Me', title: 'SAVE ME', artist: 'CASSIAN & ANYMA', streams: '115M+' },
+                { rank: 10, query: 'Massano The Feeling', title: 'THE FEELING', artist: 'MASSANO', streams: '95M+' },
+            ]
+        },
+        'tech house': {
+            label: 'Tech House',
+            icon: '⚡',
+            tracks: [
+                { rank: 1, query: 'FISHER Losing It', title: 'LOSING IT', artist: 'FISHER', streams: '620M+' },
+                { rank: 2, query: 'Mau P Drugs From Amsterdam', title: 'DRUGS FROM AMSTERDAM', artist: 'MAU P', streams: '290M+' },
+                { rank: 3, query: 'Chris Lake Turn Off The Lights', title: 'TURN OFF THE LIGHTS', artist: 'CHRIS LAKE & ALEXIS ROBERTS', streams: '260M+' },
+                { rank: 4, query: 'MK Dom Dolla Rhyme Dust', title: 'RHYME DUST', artist: 'MK & DOM DOLLA', streams: '230M+' },
+                { rank: 5, query: 'James Hype Miggy Dela Rosa Ferrari', title: 'FERRARI', artist: 'JAMES HYPE & MIGGY DELA ROSA', streams: '680M+' },
+                { rank: 6, query: 'John Summit Deep End', title: 'DEEP END', artist: 'JOHN SUMMIT', streams: '175M+' },
+                { rank: 7, query: 'Cloonee Stephanie', title: 'STEPHANIE', artist: 'CLOONEE', streams: '120M+' },
+                { rank: 8, query: 'ACRAZE Cherish Do It To It', title: 'DO IT TO IT', artist: 'ACRAZE & CHERISH', streams: '740M+' },
+                { rank: 9, query: 'Michael Bibi Hanging Tree', title: 'HANGING TREE', artist: 'MICHAEL BIBI', streams: '95M+' },
+                { rank: 10, query: 'Westend Maracuya', title: 'MARACUYA', artist: 'WESTEND', streams: '80M+' },
+            ]
+        },
+        'edm': {
+            label: 'EDM / Mainstage',
+            icon: '🎆',
+            tracks: [
+                { rank: 1, query: 'Martin Garrix Animals', title: 'ANIMALS', artist: 'MARTIN GARRIX', streams: '1.2B+' },
+                { rank: 2, query: 'Avicii Wake Me Up', title: 'WAKE ME UP', artist: 'AVICII', streams: '2.5B+' },
+                { rank: 3, query: 'David Guetta Sia Titanium', title: 'TITANIUM', artist: 'DAVID GUETTA & SIA', streams: '1.9B+' },
+                { rank: 4, query: 'Tiesto The Business', title: 'THE BUSINESS', artist: 'TIËSTO', streams: '1.4B+' },
+                { rank: 5, query: 'Swedish House Mafia Dont You Worry Child', title: "DON'T YOU WORRY CHILD", artist: 'SWEDISH HOUSE MAFIA', streams: '1.3B+' },
+                { rank: 6, query: 'Alesso Tove Lo Heroes', title: 'HEROES (WE COULD BE)', artist: 'ALESSO & TOVE LO', streams: '750M+' },
+                { rank: 7, query: 'Dimitri Vegas Like Mike Tremor', title: 'TREMOR', artist: 'DIMITRI VEGAS, MARTIN GARRIX, LIKE MIKE', streams: '590M+' },
+                { rank: 8, query: 'Hardwell Spaceman', title: 'SPACEMAN', artist: 'HARDWELL', streams: '310M+' },
+                { rank: 9, query: 'DJ Snake Lil Jon Turn Down for What', title: 'TURN DOWN FOR WHAT', artist: 'DJ SNAKE & LIL JON', streams: '1.1B+' },
+                { rank: 10, query: 'Calvin Harris Summer', title: 'SUMMER', artist: 'CALVIN HARRIS', streams: '1.6B+' },
+            ]
+        },
+        'hardstyle': {
+            label: 'Hardstyle / Raw',
+            icon: '🔨',
+            tracks: [
+                { rank: 1, query: 'Ran D Zombie', title: 'ZOMBIE', artist: 'RAN-D', streams: '240M+' },
+                { rank: 2, query: 'Headhunterz Dragonborn', title: 'DRAGONBORN', artist: 'HEADHUNTERZ', streams: '110M+' },
+                { rank: 3, query: 'Sub Zero Project Darkest Hour', title: 'DARKEST HOUR', artist: 'D-STURB & SUB ZERO PROJECT', streams: '95M+' },
+                { rank: 4, query: 'Da Tweekaz Jagermeister', title: 'JÄGERMEISTER', artist: 'DA TWEEKAZ', streams: '130M+' },
+                { rank: 5, query: 'Brennan Heart Wildstylez Lose My Mind', title: 'LOSE MY MIND', artist: 'BRENNAN HEART & WILDSTYLEZ', streams: '160M+' },
+                { rank: 6, query: 'Rebelion City Lights', title: 'CITY LIGHTS', artist: 'REBELION', streams: '75M+' },
+                { rank: 7, query: 'D-Sturb High Power', title: 'HIGH POWER', artist: 'D-STURB', streams: '65M+' },
+                { rank: 8, query: 'Sound Rush Destination', title: 'DESTINATION', artist: 'SOUND RUSH', streams: '50M+' },
+                { rank: 9, query: 'Warface I Need You', title: 'I NEED YOU', artist: 'WARFACE', streams: '45M+' },
+                { rank: 10, query: 'Sefa In De Hemel', title: 'IN DE HEMEL', artist: 'SEFA', streams: '80M+' },
+            ]
+        },
+        'drum and bass': {
+            label: 'Drum & Bass',
+            icon: '🥁',
+            tracks: [
+                { rank: 1, query: 'Chase & Status Bou Baddadan', title: 'BADDADAN', artist: 'CHASE & STATUS & BOU', streams: '240M+' },
+                { rank: 2, query: 'Sub Focus Dimension Desire', title: 'DESIRE', artist: 'SUB FOCUS & DIMENSION', streams: '220M+' },
+                { rank: 3, query: 'Luude Colin Hay Down Under', title: 'DOWN UNDER', artist: 'LUUDE & COLIN HAY', streams: '380M+' },
+                { rank: 4, query: 'Dimension DJ Turn It Up', title: 'DJ TURN IT UP', artist: 'DIMENSION', streams: '130M+' },
+                { rank: 5, query: 'Wilkinson Becky Hill Afterglow', title: 'AFTERGLOW', artist: 'WILKINSON & BECKY HILL', streams: '310M+' },
+                { rank: 6, query: 'Hedex Eksman MHITR', title: 'MHITR (SEMI-AUTOMATIC)', artist: 'HEDEX & EKSMAN', streams: '90M+' },
+                { rank: 7, query: 'Bou Closer', title: 'CLOSER', artist: 'BOU', streams: '110M+' },
+                { rank: 8, query: 'Rudimental Ella Eyre Waiting All Night', title: 'WAITING ALL NIGHT', artist: 'RUDIMENTAL & ELLA EYRE', streams: '650M+' },
+                { rank: 9, query: 'Kanine Want You', title: 'WANT YOU', artist: 'KANINE', streams: '85M+' },
+                { rank: 10, query: 'Shy FX UK Apache Original Nuttah', title: 'ORIGINAL NUTTAH 25', artist: 'SHY FX & UK APACHE', streams: '120M+' },
+            ]
+        },
+        'bass house': {
+            label: 'Bass House',
+            icon: '🔊',
+            tracks: [
+                { rank: 1, query: 'Knock2 dashstar', title: 'DASHSTAR*', artist: 'KNOCK2', streams: '140M+' },
+                { rank: 2, query: 'JOYRYDE Hot Drum', title: 'HOT DRUM', artist: 'JOYRYDE', streams: '95M+' },
+                { rank: 3, query: 'Skrillex Habstrakt Chicken Soup', title: 'CHICKEN SOUP', artist: 'SKRILLEX & HABSTRAKT', streams: '180M+' },
+                { rank: 4, query: 'Jauz Feel The Volume', title: 'FEEL THE VOLUME', artist: 'JAUZ', streams: '150M+' },
+                { rank: 5, query: 'Malaa Notorious', title: 'NOTORIOUS', artist: 'MALAA', streams: '130M+' },
+                { rank: 6, query: 'ISOxo kidsgonemad', title: 'KIDSGONEMAD!', artist: 'ISOXO', streams: '60M+' },
+                { rank: 7, query: 'Tchami After Life', title: 'AFTER LIFE', artist: 'TCHAMI', streams: '160M+' },
+                { rank: 8, query: 'Matroda Forget It', title: 'FORGET IT', artist: 'MATRODA', streams: '75M+' },
+                { rank: 9, query: 'AC Slater Bass Inside', title: 'BASS INSIDE', artist: 'AC SLATER', streams: '55M+' },
+                { rank: 10, query: 'Valentino Khan Pump', title: 'PUMP', artist: 'VALENTINO KHAN', streams: '170M+' },
+            ]
+        },
+        'amapiano': {
+            label: 'Amapiano',
+            icon: '🌴',
+            tracks: [
+                { rank: 1, query: 'Tyler ICU Mnike', title: 'MNIKE', artist: 'TYLER ICU & TUMELO.ZA', streams: '210M+' },
+                { rank: 2, query: 'Uncle Waffles Tanzania', title: 'TANZANIA', artist: 'UNCLE WAFFLES', streams: '110M+' },
+                { rank: 3, query: 'Kabza De Small Asibe Happy', title: 'ASIBE HAPPY', artist: 'KABZA DE SMALL & DJ MAPHORISA', streams: '130M+' },
+                { rank: 4, query: 'Focalistic Davido Ke Star', title: 'KE STAR (REMIX)', artist: 'FOCALISTIC & DAVIDO', streams: '140M+' },
+                { rank: 5, query: 'Major League Djz Bakwa Lah', title: 'BAKWA LAH', artist: 'MAJOR LEAGUE DJZ', streams: '75M+' },
+                { rank: 6, query: 'Young Stunna Adiwele', title: 'ADIWELE', artist: 'YOUNG STUNNA', streams: '120M+' },
+                { rank: 7, query: 'Kamo Mphela Dalie', title: 'DALIE', artist: 'KAMO MPHELA', streams: '90M+' },
+                { rank: 8, query: 'Mellow Sleazy Bopha', title: 'BOPHA', artist: 'MELLOW & SLEAZY', streams: '85M+' },
+                { rank: 9, query: 'Tyla Water', title: 'WATER', artist: 'TYLA', streams: '890M+' },
+                { rank: 10, query: 'DJ Maphorisa Tyler ICU Banyana', title: 'BANYANA', artist: 'DJ MAPHORISA & TYLER ICU', streams: '95M+' },
+            ]
+        }
+    };
+
+    const handleAutoFetchStyleTop10 = async (styleName: string) => {
+        const cleaned = styleName.trim();
+        if (!cleaned) return;
+        setIsAutoFillingTop10(true);
+        setTop10ActiveRank(0);
+        top10ActiveRankRef.current = 0;
+
+        // Effacer tout logo d'artiste existant car on est en mode style/genre
+        setArtistLogo('');
+        artistLogoRef.current = null;
+
+        const normalizedKey = cleaned.toLowerCase().replace(/[-_]+/g, ' ').trim();
+        const presetKey = Object.keys(TOP10_GENRE_PRESETS).find(k => normalizedKey === k || normalizedKey.includes(k) || k.includes(normalizedKey));
+        const preset = presetKey ? TOP10_GENRE_PRESETS[presetKey] : null;
+
+        const displayStyleTitle = preset ? preset.label : cleaned.toUpperCase();
+        setTop10Title(`TOP 10 *${displayStyleTitle.toUpperCase()}*`);
+        top10TitleRef.current = `TOP 10 *${displayStyleTitle.toUpperCase()}*`;
+        setTop10IntroArtist(displayStyleTitle.toUpperCase());
+        top10IntroArtistRef.current = displayStyleTitle.toUpperCase();
+        setTop10Badge(`TOP 10 ${displayStyleTitle.toUpperCase()}`);
+
+        try {
+            if (preset) {
+                // Résolution ultra-rapide des 10 morceaux légendaires du style avec covers HD et audio
+                const resolvedPromises = preset.tracks.map(async (t) => {
+                    try {
+                        const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(t.query)}&entity=song&limit=1`);
+                        if (res.ok) {
+                            const data = await res.json();
+                            const song = data.results?.[0];
+                            const cUrl = song?.artworkUrl100 ? song.artworkUrl100.replace('100x100bb', '1400x1400bb') : '';
+                            return {
+                                rank: t.rank,
+                                title: t.title || (song?.trackName || `TRACK #${t.rank}`).toUpperCase(),
+                                artist: t.artist || (song?.artistName || '').toUpperCase(),
+                                cover: cUrl,
+                                audioUrl: song?.previewUrl || '',
+                                sourceUrl: song?.previewUrl || '',
+                                videoStartTime: 0,
+                                audioStartTime: 0,
+                                streams: t.streams || ''
+                            };
+                        }
+                    } catch (_) {}
+                    return {
+                        rank: t.rank,
+                        title: t.title,
+                        artist: t.artist,
+                        cover: '',
+                        audioUrl: '',
+                        sourceUrl: '',
+                        videoStartTime: 0,
+                        audioStartTime: 0,
+                        streams: t.streams || ''
+                    };
+                });
+
+                const newTracks = await Promise.all(resolvedPromises);
+                newTracks.sort((a, b) => b.rank - a.rank); // #10 en premier jusqu'à #1
+
+                // Pré-chargement immédiat des pochettes HD dans le cache canvas
+                newTracks.forEach(tr => {
+                    if (tr.cover) {
+                        loadCorsSafeImage(tr.cover, (img) => {
+                            imageCacheRef.current[tr.cover!] = img;
+                            generateImage();
+                        });
+                    }
+                });
+
+                setTop10Tracks(newTracks);
+                top10TracksRef.current = newTracks;
+                try {
+                    localStorage.setItem('dropsiders_top10_tracks_v7', JSON.stringify(newTracks));
+                } catch (_) {}
+                generateImage();
+            } else {
+                // Recherche dynamique libre pour n'importe quel autre genre/style musical
+                const query = `${cleaned} electronic`;
+                const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(query)}&entity=song&limit=40`);
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.results && data.results.length > 0) {
+                        const seenTitles = new Set<string>();
+                        const uniqueSongs: any[] = [];
+                        for (const s of data.results) {
+                            const core = (s.trackName || '').toLowerCase().replace(/\s*\(.*?\)/g, '').replace(/\s*\[.*?\]/g, '').trim();
+                            if (!seenTitles.has(core) && uniqueSongs.length < 10) {
+                                seenTitles.add(core);
+                                uniqueSongs.push(s);
+                            }
+                        }
+
+                        const newTracks: Top10TrackItem[] = [];
+                        for (let i = 0; i < 10; i++) {
+                            const rank = 10 - i;
+                            const song = uniqueSongs[9 - i] || uniqueSongs[i] || uniqueSongs[0];
+                            const cUrl = song?.artworkUrl100 ? song.artworkUrl100.replace('100x100bb', '1400x1400bb') : '';
+                            newTracks.push({
+                                rank: rank,
+                                title: (song?.trackName || `TRACK #${rank}`).toUpperCase(),
+                                artist: (song?.artistName || cleaned).toUpperCase(),
+                                cover: cUrl,
+                                audioUrl: song?.previewUrl || '',
+                                sourceUrl: song?.previewUrl || '',
+                                videoStartTime: 0,
+                                audioStartTime: 0,
+                                streams: ''
+                            });
+                            if (cUrl) {
+                                loadCorsSafeImage(cUrl, (img) => {
+                                    imageCacheRef.current[cUrl] = img;
+                                    generateImage();
+                                });
+                            }
+                        }
+                        setTop10Tracks(newTracks);
+                        top10TracksRef.current = newTracks;
+                        try {
+                            localStorage.setItem('dropsiders_top10_tracks_v7', JSON.stringify(newTracks));
+                        } catch (_) {}
+                        generateImage();
+                    }
+                }
+            }
+        } catch (err) {
+            console.warn("Erreur auto-fetch Top 10 par style :", err);
         } finally {
             setIsAutoFillingTop10(false);
         }
@@ -20211,7 +20477,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 <div className="p-3.5 bg-gradient-to-br from-neon-cyan/15 via-black/40 to-purple-500/10 border border-neon-cyan/40 rounded-2xl shadow-xl space-y-3">
                     <div className="flex items-center justify-between">
                         <span className="text-[10px] font-black text-neon-cyan uppercase tracking-wider flex items-center gap-1.5">
-                            ⚡ Générateur Top 10 par Artiste
+                            ⚡ Auto-Générateur Top 10
                         </span>
                         {isAutoFillingTop10 && (
                             <span className="px-2 py-0.5 bg-neon-cyan/20 text-neon-cyan text-[8px] font-black uppercase rounded-full animate-pulse border border-neon-cyan/40">
@@ -20220,33 +20486,132 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         )}
                     </div>
 
-                    {/* Recherche 1-Clic pour n'importe quel artiste */}
-                    <div className="space-y-1.5">
-                        <label className="text-[8px] font-black text-gray-300 uppercase tracking-wider flex items-center justify-between">
-                            <span>Nom de l'Artiste / DJ :</span>
-                            <span className="text-[7.5px] text-gray-400 font-mono">10 titres + Covers HD 1400x1400 + Audio</span>
-                        </label>
-                        <div className="flex items-center gap-1.5">
-                            <input
-                                type="text"
-                                value={top10ArtistSearch}
-                                onChange={e => setTop10ArtistSearch(e.target.value)}
-                                onKeyDown={e => {
-                                    if (e.key === 'Enter') handleAutoFetchArtistTop10(top10ArtistSearch);
-                                }}
-                                placeholder="Tapez n'importe quel artiste (ex: Martin Garrix, Dimitri Vegas...)"
-                                className="flex-1 bg-black/60 border border-white/10 rounded-xl px-2.5 py-2 text-white text-[10.5px] font-bold focus:border-neon-cyan outline-none placeholder:text-gray-500"
-                            />
-                            <button
-                                type="button"
-                                disabled={isAutoFillingTop10 || !top10ArtistSearch.trim()}
-                                onClick={() => handleAutoFetchArtistTop10(top10ArtistSearch)}
-                                className="px-3.5 py-2 bg-neon-cyan text-black font-black text-[9.5px] uppercase rounded-xl hover:bg-neon-cyan/80 transition-all disabled:opacity-40 shrink-0 shadow-md shadow-neon-cyan/20 active:scale-95"
-                            >
-                                {isAutoFillingTop10 ? '⏳...' : '⚡ Générer'}
-                            </button>
-                        </div>
+                    {/* SÉLECTEUR DE MODE : PAR STYLE / GENRE (AFRO HOUSE, TECHNO...) vs PAR ARTISTE */}
+                    <div className="grid grid-cols-2 gap-1.5 p-1 bg-black/60 border border-white/10 rounded-xl">
+                        <button
+                            type="button"
+                            onClick={() => setTop10GenMode('style')}
+                            className={`py-2 px-2.5 rounded-lg text-[9px] font-black uppercase transition-all flex items-center justify-center gap-1.5 ${top10GenMode === 'style'
+                                ? 'bg-gradient-to-r from-neon-cyan to-blue-500 text-black shadow-[0_0_12px_rgba(0,240,255,0.4)]'
+                                : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
+                                }`}
+                        >
+                            <span>🎧</span>
+                            <span>Par Style / Genre</span>
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => setTop10GenMode('artist')}
+                            className={`py-2 px-2.5 rounded-lg text-[9px] font-black uppercase transition-all flex items-center justify-center gap-1.5 ${top10GenMode === 'artist'
+                                ? 'bg-gradient-to-r from-neon-cyan to-blue-500 text-black shadow-[0_0_12px_rgba(0,240,255,0.4)]'
+                                : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
+                                }`}
+                        >
+                            <span>👤</span>
+                            <span>Par Artiste / DJ</span>
+                        </button>
                     </div>
+
+                    {top10GenMode === 'style' ? (
+                        /* ─── OPTION 1 : GÉNÉRATION PAR STYLE (AFRO HOUSE, MELODIC TECHNO, ETC.) ─── */
+                        <div className="space-y-2.5">
+                            <div className="space-y-1.5">
+                                <label className="text-[8px] font-black text-gray-300 uppercase tracking-wider flex items-center justify-between">
+                                    <span>Styles Électro Populaires (1-Clic) :</span>
+                                    <span className="text-[7.5px] text-neon-cyan font-mono">10 plus streamés</span>
+                                </label>
+                                <div className="grid grid-cols-2 gap-1.5">
+                                    {[
+                                        { key: 'afro house', label: '🌍 Afro House', hot: true },
+                                        { key: 'melodic techno', label: '🌌 Melodic Techno' },
+                                        { key: 'tech house', label: '⚡ Tech House' },
+                                        { key: 'edm', label: '🎆 EDM / Mainstage' },
+                                        { key: 'hardstyle', label: '🔨 Hardstyle' },
+                                        { key: 'drum and bass', label: '🥁 Drum & Bass' },
+                                        { key: 'bass house', label: '🔊 Bass House' },
+                                        { key: 'amapiano', label: '🌴 Amapiano' },
+                                    ].map(genre => (
+                                        <button
+                                            key={genre.key}
+                                            type="button"
+                                            disabled={isAutoFillingTop10}
+                                            onClick={() => {
+                                                setTop10StyleSearch(genre.key);
+                                                handleAutoFetchStyleTop10(genre.key);
+                                            }}
+                                            className={`py-2 px-2 rounded-xl text-[8.5px] font-black uppercase transition-all flex items-center justify-between border active:scale-95 disabled:opacity-40 ${top10StyleSearch.toLowerCase() === genre.key
+                                                ? 'bg-neon-cyan/25 border-neon-cyan text-neon-cyan shadow-[0_0_12px_rgba(0,240,255,0.35)]'
+                                                : 'bg-black/50 border-white/10 text-gray-300 hover:text-white hover:border-neon-cyan/40 hover:bg-white/5'
+                                                }`}
+                                        >
+                                            <span className="truncate">{genre.label}</span>
+                                            {genre.hot && (
+                                                <span className="px-1 py-0.2 bg-neon-cyan text-black text-[6.5px] font-black rounded uppercase ml-1 shrink-0 animate-pulse">
+                                                    POPULAIRE
+                                                </span>
+                                            )}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Recherche libre pour n'importe quel autre style */}
+                            <div className="space-y-1.5 pt-1 border-t border-white/10">
+                                <label className="text-[8px] font-black text-gray-300 uppercase tracking-wider flex items-center justify-between">
+                                    <span>Ou tapez un autre style musical :</span>
+                                    <span className="text-[7.5px] text-gray-400 font-mono">Recherche globale</span>
+                                </label>
+                                <div className="flex items-center gap-1.5">
+                                    <input
+                                        type="text"
+                                        value={top10StyleSearch}
+                                        onChange={e => setTop10StyleSearch(e.target.value)}
+                                        onKeyDown={e => {
+                                            if (e.key === 'Enter') handleAutoFetchStyleTop10(top10StyleSearch);
+                                        }}
+                                        placeholder="ex: Afro House, Future Rave, Deep House..."
+                                        className="flex-1 bg-black/60 border border-white/10 rounded-xl px-2.5 py-2 text-white text-[10.5px] font-bold focus:border-neon-cyan outline-none placeholder:text-gray-500"
+                                    />
+                                    <button
+                                        type="button"
+                                        disabled={isAutoFillingTop10 || !top10StyleSearch.trim()}
+                                        onClick={() => handleAutoFetchStyleTop10(top10StyleSearch)}
+                                        className="px-3.5 py-2 bg-neon-cyan text-black font-black text-[9.5px] uppercase rounded-xl hover:bg-neon-cyan/80 transition-all disabled:opacity-40 shrink-0 shadow-md shadow-neon-cyan/20 active:scale-95"
+                                    >
+                                        {isAutoFillingTop10 ? '⏳...' : '⚡ Générer'}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    ) : (
+                        /* ─── OPTION 2 : RECHERCHE PAR NOM D'ARTISTE / DJ ─── */
+                        <div className="space-y-1.5">
+                            <label className="text-[8px] font-black text-gray-300 uppercase tracking-wider flex items-center justify-between">
+                                <span>Nom de l'Artiste / DJ :</span>
+                                <span className="text-[7.5px] text-gray-400 font-mono">10 titres + Covers HD 1400x1400 + Audio</span>
+                            </label>
+                            <div className="flex items-center gap-1.5">
+                                <input
+                                    type="text"
+                                    value={top10ArtistSearch}
+                                    onChange={e => setTop10ArtistSearch(e.target.value)}
+                                    onKeyDown={e => {
+                                        if (e.key === 'Enter') handleAutoFetchArtistTop10(top10ArtistSearch);
+                                    }}
+                                    placeholder="Tapez n'importe quel artiste (ex: Martin Garrix, Dimitri Vegas...)"
+                                    className="flex-1 bg-black/60 border border-white/10 rounded-xl px-2.5 py-2 text-white text-[10.5px] font-bold focus:border-neon-cyan outline-none placeholder:text-gray-500"
+                                />
+                                <button
+                                    type="button"
+                                    disabled={isAutoFillingTop10 || !top10ArtistSearch.trim()}
+                                    onClick={() => handleAutoFetchArtistTop10(top10ArtistSearch)}
+                                    className="px-3.5 py-2 bg-neon-cyan text-black font-black text-[9.5px] uppercase rounded-xl hover:bg-neon-cyan/80 transition-all disabled:opacity-40 shrink-0 shadow-md shadow-neon-cyan/20 active:scale-95"
+                                >
+                                    {isAutoFillingTop10 ? '⏳...' : '⚡ Générer'}
+                                </button>
+                            </div>
+                        </div>
+                    )}
 
                     {/* 🎨 LOGO OFFICIEL DE L'ARTISTE (RECHERCHE WEB & UPLOAD INTÉGRÉS ICI) */}
                     <div className="p-3 bg-black/60 border border-neon-cyan/35 rounded-xl space-y-2.5">
