@@ -1344,8 +1344,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         top10IntroArtistRef.current = cleaned;
         setTop10Badge('TOP 10 TRACKS');
         top10BadgeRef.current = 'TOP 10 TRACKS';
-        setTop10IntroTitle('TOP 10 DES TRACKS LES PLUS STREAMÉES');
-        top10IntroTitleRef.current = 'TOP 10 DES TRACKS LES PLUS STREAMÉES';
+        setTop10IntroTitle('TOP 10 DES TRACKS LES PLUS TÉLÉCHARGÉES SUR BEATPORT');
+        top10IntroTitleRef.current = 'TOP 10 DES TRACKS LES PLUS TÉLÉCHARGÉES SUR BEATPORT';
         setTop10ActiveRank(0);
         top10ActiveRankRef.current = 0;
 
@@ -1367,7 +1367,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             const cUrl = t.cover || '';
                             mapped.push({
                                 rank: rank,
-                                title: (t.title || `TRACK #${rank}`).toUpperCase(),
+                                title: ((t.title || `TRACK #${rank}`)
+                                .replace(/\s*\(\s*(?:original|extended)\s*(?:mix|version)?\s*\)/gi, '')
+                                .replace(/\s*\[\s*(?:original|extended)\s*(?:mix|version)?\s*\]/gi, '')
+                                .replace(/\s*-\s*(?:original|extended)\s*(?:mix|version)?/gi, '')
+                                .trim()).toUpperCase(),
                                 artist: (t.artist || cleaned).toUpperCase(),
                                 cover: cUrl,
                                 audioUrl: t.audioUrl || '',
@@ -1634,7 +1638,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         const cUrl = t.cover || '';
                         mapped.push({
                             rank: rank,
-                            title: (t.title || `TRACK #${rank}`).toUpperCase(),
+                            title: ((t.title || `TRACK #${rank}`)
+                                .replace(/\s*\(\s*(?:original|extended)\s*(?:mix|version)?\s*\)/gi, '')
+                                .replace(/\s*\[\s*(?:original|extended)\s*(?:mix|version)?\s*\]/gi, '')
+                                .replace(/\s*-\s*(?:original|extended)\s*(?:mix|version)?/gi, '')
+                                .trim()).toUpperCase(),
                             artist: (t.artist || cleaned).toUpperCase(),
                             cover: cUrl,
                             audioUrl: t.audioUrl || '',
@@ -1694,7 +1702,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                                     mapped.push({
                                         rank: rank,
-                                        title: ((tr.name || `TRACK #${rank}`) + mixSuffix).toUpperCase(),
+                                        title: (((tr.name || `TRACK #${rank}`) + mixSuffix)
+                                        .replace(/\s*\(\s*(?:original|extended)\s*(?:mix|version)?\s*\)/gi, '')
+                                        .replace(/\s*\[\s*(?:original|extended)\s*(?:mix|version)?\s*\]/gi, '')
+                                        .replace(/\s*-\s*(?:original|extended)\s*(?:mix|version)?/gi, '')
+                                        .trim()).toUpperCase(),
                                         artist: artists.toUpperCase(),
                                         cover: cUrl,
                                         audioUrl: tr.sample_url || '',
@@ -9690,7 +9702,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         ctx.save();
                         ctx.textAlign = 'center';
                         ctx.textBaseline = 'middle';
-                        const rawIntroTitle = (top10IntroTitleRef.current || top10IntroTitle || (isStyleMode ? 'TOP 10 DES TRACKS LES PLUS TÉLÉCHARGÉES SUR BEATPORT' : 'TOP 10 DES TRACKS LES PLUS STREAMÉES')).toUpperCase().trim();
+                        const rawIntroTitle = (top10IntroTitleRef.current || top10IntroTitle || ('TOP 10 DES TRACKS LES PLUS TÉLÉCHARGÉES SUR BEATPORT')).toUpperCase().trim();
 
                         let titleLines: string[] = [];
                         if (rawIntroTitle.includes('\n')) {
@@ -10538,7 +10550,13 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.textBaseline = 'middle';
 
                     const hasTitle = Boolean(activeTrack.title?.trim());
-                    const titleStr = (activeTrack.title || 'TITRE DU MORCEAU').toUpperCase();
+                    const rawTitle = (activeTrack.title || 'TITRE DU MORCEAU');
+                    const titleStr = rawTitle
+                        .replace(/\s*\(\s*(?:original|extended)\s*(?:mix|version)?\s*\)/gi, '')
+                        .replace(/\s*\[\s*(?:original|extended)\s*(?:mix|version)?\s*\]/gi, '')
+                        .replace(/\s*-\s*(?:original|extended)\s*(?:mix|version)?/gi, '')
+                        .trim()
+                        .toUpperCase();
                     let titleFontSize = 56;
                     ctx.font = `900 ${titleFontSize}px "Montserrat", sans-serif`;
                     if ('letterSpacing' in ctx) (ctx as any).letterSpacing = '1px';
@@ -20720,8 +20738,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 setTop10GenMode('artist');
                                 top10GenModeRef.current = 'artist';
                                 if (!top10IntroTitle || top10IntroTitle.includes('TÉLÉCHARG') || top10IntroTitle.includes('TELECHARG') || top10IntroTitle.includes('BEATPORT')) {
-                                    setTop10IntroTitle('TOP 10 DES TRACKS LES PLUS STREAMÉES');
-                                    top10IntroTitleRef.current = 'TOP 10 DES TRACKS LES PLUS STREAMÉES';
+                                    setTop10IntroTitle('TOP 10 DES TRACKS LES PLUS TÉLÉCHARGÉES SUR BEATPORT');
+                                    top10IntroTitleRef.current = 'TOP 10 DES TRACKS LES PLUS TÉLÉCHARGÉES SUR BEATPORT';
                                 }
                                 generateImage();
                             }}
@@ -21082,7 +21100,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     top10IntroTitleRef.current = e.target.value.toUpperCase();
                                     generateImage();
                                 }}
-                                placeholder={top10GenMode === 'style' ? "TOP 10 DES TRACKS LES PLUS TÉLÉCHARGÉES SUR BEATPORT" : "TOP 10 DES TRACKS LES PLUS STREAMÉES"}
+                                placeholder="TOP 10 DES TRACKS LES PLUS TÉLÉCHARGÉES SUR BEATPORT"
                                 className="w-full bg-black/60 border border-white/10 rounded-xl p-2.5 text-white font-black uppercase text-[11px] focus:border-neon-cyan outline-none"
                             />
                         </div>
