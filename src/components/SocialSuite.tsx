@@ -9157,7 +9157,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         ctx.fillStyle = auraGrad;
                         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-                        // 3. Particules montantes festival
+                        // 3. Particules montantes festival (rendu ultra-fluide 60fps)
+                        ctx.save();
+                        ctx.shadowColor = '#00f0ff';
+                        ctx.shadowBlur = 6;
                         for (let p = 0; p < 36; p++) {
                             const seedX = ((p * 137.5) % 1) * canvas.width;
                             const speed = 32 + ((p * 31.7) % 45);
@@ -9167,16 +9170,13 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             const totalH = canvas.height + 140;
                             const rawY = (canvas.height + 70) - ((introAnimTime * speed + p * 89.3) % totalH);
                             const pX = seedX + Math.sin(introAnimTime * swaySpeed + p * 1.8) * swayAmp;
-                            ctx.save();
-                            ctx.globalAlpha = 0.65;
+                            ctx.globalAlpha = p % 2 === 0 ? 0.70 : 0.40;
+                            ctx.fillStyle = p % 2 === 0 ? '#00f0ff' : '#ffffff';
                             ctx.beginPath();
                             ctx.arc(pX, rawY, pSize, 0, Math.PI * 2);
-                            ctx.fillStyle = p % 2 === 0 ? '#00f0ff' : '#ffffff';
-                            ctx.shadowColor = '#00f0ff';
-                            ctx.shadowBlur = 8;
                             ctx.fill();
-                            ctx.restore();
                         }
+                        ctx.restore();
 
                         // 4. Badge en haut à gauche
                         drawTopCapsuleBadge((top10BadgeRef.current || top10Badge || 'TOP 10 TRACKS').toUpperCase(), '#00f0ff', '0, 240, 255');
@@ -9258,8 +9258,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             let textArtistFontSize = Math.round((isStory ? 94 : 70) * scale);
                             ctx.font = `900 italic ${textArtistFontSize}px "Montserrat", sans-serif`;
                             if ('letterSpacing' in ctx) (ctx as any).letterSpacing = '2px';
-                            while (ctx.measureText(effectiveArtistName).width > (canvas.width - 120) && textArtistFontSize > 36) {
-                                textArtistFontSize -= 2;
+                            const aW = ctx.measureText(effectiveArtistName).width;
+                            const maxAllowedAW = canvas.width - 120;
+                            if (aW > maxAllowedAW) {
+                                textArtistFontSize = Math.max(36, Math.floor(textArtistFontSize * (maxAllowedAW / aW)));
                                 ctx.font = `900 italic ${textArtistFontSize}px "Montserrat", sans-serif`;
                             }
                             ctx.restore();
@@ -9556,8 +9558,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.fillStyle = auraGrad;
                     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-                    // C) Particules & Poussières Magiques Festival (Fairy Dust Tomorrowland)
-                    const particleCount = 45;
+                    // C) Particules & Poussières Magiques Festival (Fairy Dust Tomorrowland - Rendu groupé 60fps)
+                    const particleCount = 36;
+                    ctx.save();
+                    ctx.shadowColor = `rgba(${rankColorRgb}, 0.85)`;
+                    ctx.shadowBlur = 6;
                     for (let p = 0; p < particleCount; p++) {
                         const seedX = ((p * 137.5) % 1) * canvas.width;
                         const speed = 32 + ((p * 31.7) % 48); // Vitesse d'ascension lente
@@ -9580,19 +9585,16 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         const sparkle = 0.65 + 0.35 * Math.sin(animTime * 3.2 + p * 2.3);
                         const finalAlpha = pAlpha * sparkle * (pSize > 3.8 ? 0.40 : 0.75);
 
-                        if (finalAlpha > 0.02) {
-                            ctx.save();
+                        if (finalAlpha > 0.05) {
                             ctx.globalAlpha = finalAlpha;
                             ctx.beginPath();
                             ctx.arc(pX, pY, pSize, 0, Math.PI * 2);
                             const isGold = (p % 3 === 0);
                             ctx.fillStyle = isGold ? '#ffe680' : rankColor;
-                            ctx.shadowColor = isGold ? 'rgba(255, 215, 0, 0.85)' : `rgba(${rankColorRgb}, 0.85)`;
-                            ctx.shadowBlur = pSize * 3;
                             ctx.fill();
-                            ctx.restore();
                         }
                     }
+                    ctx.restore();
 
                     // D) Vignette sombre cinématique haut et bas pour contraste des textes
                     const topVig = ctx.createLinearGradient(0, 0, 0, 320);
@@ -9619,9 +9621,16 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.textBaseline = 'middle';
 
                     const rawTracksTitle = (top10TitleRef.current || top10Title || '').trim();
-                    const t10Title = (rawTracksTitle && rawTracksTitle !== 'TOP 10 DES TRACKS LES PLUS STREAMÉES' && rawTracksTitle !== 'TOP 10 DES TRACKS LES PLUS JOUÉES' && !rawTracksTitle.endsWith('• TOP 10 TRACKS') && rawTracksTitle !== 'ARTISTE • TOP 10 TRACKS'
-                        ? rawTracksTitle
-                        : 'TOP 10 TRACKS').toUpperCase();
+                    const cleanTracksTitle = rawTracksTitle.replace(/\*/g, '').trim().toUpperCase();
+                    const isDefaultOrIntroTitle = !cleanTracksTitle ||
+                        cleanTracksTitle === 'TOP 10 TRACKS' ||
+                        cleanTracksTitle.includes('LES PLUS STREAMÉES') ||
+                        cleanTracksTitle.includes('LES PLUS JOUÉES') ||
+                        cleanTracksTitle.startsWith('TOP 10 DES TRACKS') ||
+                        cleanTracksTitle.endsWith('• TOP 10 TRACKS') ||
+                        cleanTracksTitle === 'ARTISTE • TOP 10 TRACKS';
+
+                    const t10Title = isDefaultOrIntroTitle ? 'TOP 10 TRACKS' : rawTracksTitle.toUpperCase();
 
                     let t10FontSize = 34;
                     ctx.font = `900 ${t10FontSize}px "Montserrat", sans-serif`;
@@ -9726,8 +9735,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         let aFontSize = Math.round(44 * scale);
                         ctx.font = `900 italic ${aFontSize}px "Montserrat", sans-serif`;
                         if ('letterSpacing' in ctx) (ctx as any).letterSpacing = '3px';
-                        while (ctx.measureText(countdownArtistName).width > 820 && aFontSize > 22) {
-                            aFontSize -= 2;
+                        const aW = ctx.measureText(countdownArtistName).width;
+                        if (aW > 820) {
+                            aFontSize = Math.max(22, Math.floor(aFontSize * (820 / aW)));
                             ctx.font = `900 italic ${aFontSize}px "Montserrat", sans-serif`;
                         }
                         ctx.fillStyle = '#00f0ff';
@@ -9787,12 +9797,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.fillRect(cardX - 120, cardY - 120, cardSize + 240, cardSize + 240);
                     ctx.restore();
 
-                    // C) Ombre portée 3D réaliste
+                    // C) Ombre portée 3D réaliste (optimisé 60fps)
                     ctx.save();
                     ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
-                    ctx.shadowBlur = 45;
+                    ctx.shadowBlur = 24;
                     ctx.shadowOffsetX = 0;
-                    ctx.shadowOffsetY = 18;
+                    ctx.shadowOffsetY = 16;
                     ctx.beginPath();
                     ctx.roundRect(cardX, cardY, cardSize, cardSize, cardR);
                     ctx.fillStyle = '#080a0e';
@@ -10074,7 +10084,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         ctx.restore();
                     }
 
-                    // 7. Visualiseur Waveform Audio Animé
+                    // 7. Visualiseur Waveform Audio Animé (rendu groupé 60fps)
                     ctx.save();
                     const waveBars = 32;
                     const waveCenterY = activeStreams ? 1545 : 1485;
@@ -10084,6 +10094,14 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     const waveGap = (waveTotalW - (waveBars * waveBarW)) / (waveBars - 1);
                     const waveStartX = (canvas.width - waveTotalW) / 2;
 
+                    const barGrad = ctx.createLinearGradient(0, waveCenterY - waveMaxH / 2, 0, waveCenterY + waveMaxH / 2);
+                    barGrad.addColorStop(0, rankColor);
+                    barGrad.addColorStop(1, 'rgba(255, 255, 255, 0.4)');
+                    ctx.fillStyle = barGrad;
+                    ctx.shadowColor = `rgba(${rankColorRgb}, 0.5)`;
+                    ctx.shadowBlur = 8;
+                    ctx.beginPath();
+
                     for (let b = 0; b < waveBars; b++) {
                         const distFromCenter = Math.abs(b - (waveBars / 2)) / (waveBars / 2);
                         const bellCurve = Math.cos(distFromCenter * Math.PI / 2);
@@ -10092,17 +10110,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         const barH = Math.max(10, waveMaxH * barFactor);
                         const barX = waveStartX + b * (waveBarW + waveGap);
                         const barY = waveCenterY - barH / 2;
-
-                        const barGrad = ctx.createLinearGradient(0, barY, 0, barY + barH);
-                        barGrad.addColorStop(0, rankColor);
-                        barGrad.addColorStop(1, 'rgba(255, 255, 255, 0.4)');
-                        ctx.fillStyle = barGrad;
-                        ctx.shadowColor = `rgba(${rankColorRgb}, 0.5)`;
-                        ctx.shadowBlur = 8;
-                        ctx.beginPath();
                         ctx.roundRect(barX, barY, waveBarW, barH, 5);
-                        ctx.fill();
                     }
+                    ctx.fill();
                     ctx.restore();
                     }
                 } else if (theme === 'HIGHLIGHTS') {
