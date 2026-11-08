@@ -932,6 +932,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const [top100Rank, setTop100Rank] = useState<number>(4);
     const top100RankRef = useRef<number>(4);
     top100RankRef.current = top100Rank;
+    const top100IsReplayingRef = useRef<boolean>(false);
 
     const [top100ArtistName, setTop100ArtistName] = useState<string>('MARTIN GARRIX');
     const top100ArtistNameRef = useRef<string>('MARTIN GARRIX');
@@ -3567,6 +3568,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const imageCacheRef = useRef<Record<string, HTMLImageElement>>({});
     const blurredBgCacheRef = useRef<Map<string, HTMLCanvasElement>>(new Map());
     const offCanvasRef = useRef<HTMLCanvasElement | null>(null);
+    const offCanvasCyanRef = useRef<HTMLCanvasElement | null>(null);
+    const offCanvasRedRef = useRef<HTMLCanvasElement | null>(null);
     const textAreaRef = useRef<HTMLTextAreaElement>(null);
     const [selection, setSelection] = useState({ start: 0, end: 0 });
     const selectionRef = useRef({ start: 0, end: 0 });
@@ -5642,101 +5645,124 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                     // Mode statique (export PNG) vs animé (REEL & POST dans le studio, export vidéo)
                     const isStatic = isStaticPngExport || animElapsed >= 90.0;
-                    const t = isStatic ? 0.6 : (animElapsed % 4.2);
-                    const phase = isStatic ? 0.35 : Math.sin((t / 4.2) * Math.PI * 2);
+                    const loopSec = 2.8;
+                    const cycleT = isStatic ? 0 : ((animElapsed % loopSec) / loopSec); // 0.0 à 1.0
 
-                    // Amplitude horizontale ample et fluide gauche <-> droite
-                    const swingX = isStatic ? 0 : (phase * 26);
-                    const maxAngle = 0.40; // ~23° d'angle de vue perspective
-                    const angleY = isStatic ? 0.18 : (phase * maxAngle);
-                    const scaleX = Math.cos(angleY); // Contraction cosinus naturelle en X sans cisaillement vertical
-                    const extrudeDepth = 14;
-                    const extrudeOffset = -Math.sin(angleY) * extrudeDepth;
+                    // Décalages glitch RGB calculés sur le cycle (calme ~82%, salves cyber précises 18%)
+                    let glitchActive = false;
+                    let cyanShiftX = 0;
+                    let cyanShiftY = 0;
+                    let redShiftX = 0;
+                    let redShiftY = 0;
+                    let glitchAlpha = 0;
 
-                    ctx.save();
-                    ctx.translate(centerX + swingX, centerY);
-                    if (scaleX !== 1.0) {
-                        ctx.scale(scaleX, 1.0);
-                    }
-
-                    // 1. Ombre portée dynamique
-                    ctx.save();
-                    ctx.shadowColor = 'rgba(0, 0, 0, 0.70)';
-                    ctx.shadowBlur = 10;
-                    ctx.shadowOffsetX = swingX * 0.15;
-                    ctx.shadowOffsetY = 4;
-
-                    // 2. Tranches 3D volumétriques extrudées (Titane sombre / Acier pur)
-                    // Révèle le flanc gauche ou droit selon la direction d'oscillation
-                    const sliceCount = 5;
-                    for (let s = sliceCount; s >= 1; s--) {
-                        const ratio = s / sliceCount;
-                        const sliceX = extrudeOffset * ratio;
-                        const sliceY = ratio * 2.2;
-                        const shade = 0.18 + (1 - ratio) * 0.38;
-                        ctx.save();
-                        ctx.translate(sliceX, sliceY);
-                        if ('filter' in ctx) {
-                            ctx.filter = `brightness(0) invert(${shade.toFixed(2)})`;
+                    if (!isStatic) {
+                        if (cycleT >= 0.82 && cycleT < 0.85) {
+                            glitchActive = true;
+                            cyanShiftX = -4.5;
+                            cyanShiftY = 1.0;
+                            redShiftX = 4.5;
+                            redShiftY = -1.0;
+                            glitchAlpha = 0.90;
+                        } else if (cycleT >= 0.87 && cycleT < 0.90) {
+                            glitchActive = true;
+                            cyanShiftX = 3.5;
+                            cyanShiftY = -1.0;
+                            redShiftX = -3.5;
+                            redShiftY = 1.0;
+                            glitchAlpha = 0.85;
+                        } else if (cycleT >= 0.92 && cycleT < 0.95) {
+                            glitchActive = true;
+                            cyanShiftX = -5.5;
+                            cyanShiftY = 0.5;
+                            redShiftX = 5.5;
+                            redShiftY = -0.5;
+                            glitchAlpha = 0.95;
                         }
-                        ctx.globalAlpha = 0.88;
-                        ctx.drawImage(logo, -w / 2, -logoH / 2, w, logoH);
-                        ctx.restore();
                     }
 
-                    ctx.restore(); // Restaure l'ombre portée
-
-                    // 3. Face avant avec nacrage couleur thème parfaitement détouré (zéro cadre rouge, zéro fuite)
-                    // Utilisation d'un canvas hors-champ transparent : le dégradé est masqué STRICTEMENT sur les pixels du logo
-                    let offCanvas = offCanvasRef.current;
-                    if (!offCanvas) {
-                        offCanvas = document.createElement('canvas');
-                        offCanvasRef.current = offCanvas;
+                    // Préparation des calques offscreen Cyan & Rouge/Thème (ZÉRO rectangle, ZÉRO cadre rouge)
+                    let offCyan = offCanvasCyanRef.current;
+                    if (!offCyan) {
+                        offCyan = document.createElement('canvas');
+                        offCanvasCyanRef.current = offCyan;
+                    }
+                    let offRed = offCanvasRedRef.current;
+                    if (!offRed) {
+                        offRed = document.createElement('canvas');
+                        offCanvasRedRef.current = offRed;
                     }
                     const iW = Math.max(1, Math.ceil(w));
                     const iH = Math.max(1, Math.ceil(logoH));
-                    if (offCanvas.width !== iW || offCanvas.height !== iH) {
-                        offCanvas.width = iW;
-                        offCanvas.height = iH;
-                    }
-                    const offCtx = offCanvas.getContext('2d');
-                    if (offCtx) {
-                        offCtx.clearRect(0, 0, iW, iH);
-                        // A. Rendu du logo blanc pur sur fond 100% transparent
-                        offCtx.globalCompositeOperation = 'source-over';
-                        offCtx.drawImage(logo, 0, 0, iW, iH);
 
-                        // B. Application du nacrage couleur thème UNIQUEMENT sur les pixels opaques du logo (source-atop isolé)
-                        offCtx.globalCompositeOperation = 'source-atop';
-                        const shiftX = isStatic ? (iW * 0.5) : (iW * 0.5 + phase * (iW * 0.52));
-                        const gradW = iW * 0.42;
-                        const nacreGrad = offCtx.createLinearGradient(
-                            shiftX - gradW,
-                            0,
-                            shiftX + gradW,
-                            0
-                        );
-                        // Lueur douce et raffinée (max 0.22) : éclat soyeux sans jamais aveugler
-                        nacreGrad.addColorStop(0, `rgba(${rgb}, 0)`);
-                        nacreGrad.addColorStop(0.25, `rgba(${rgb}, 0.04)`);
-                        nacreGrad.addColorStop(0.50, `rgba(${rgb}, 0.22)`);
-                        nacreGrad.addColorStop(0.75, `rgba(${rgb}, 0.04)`);
-                        nacreGrad.addColorStop(1, `rgba(${rgb}, 0)`);
-                        offCtx.fillStyle = nacreGrad;
-                        offCtx.fillRect(0, 0, iW, iH);
-                        offCtx.globalCompositeOperation = 'source-over';
+                    if (offCyan.width !== iW || offCyan.height !== iH) {
+                        offCyan.width = iW;
+                        offCyan.height = iH;
+                    }
+                    if (offRed.width !== iW || offRed.height !== iH) {
+                        offRed.width = iW;
+                        offRed.height = iH;
                     }
 
-                    // 4. Dessin de la face avant sur le canvas principal avec source-over natif
-                    // Aucune interaction avec le fond de l'image : aucun rectangle ni cadre résiduel possible !
+                    if (glitchActive) {
+                        const cyanCtx = offCyan.getContext('2d');
+                        if (cyanCtx) {
+                            cyanCtx.clearRect(0, 0, iW, iH);
+                            cyanCtx.globalCompositeOperation = 'source-over';
+                            cyanCtx.drawImage(logo, 0, 0, iW, iH);
+                            cyanCtx.globalCompositeOperation = 'source-in';
+                            cyanCtx.fillStyle = '#00f0ff';
+                            cyanCtx.fillRect(0, 0, iW, iH);
+                            cyanCtx.globalCompositeOperation = 'source-over';
+                        }
+
+                        const redCtx = offRed.getContext('2d');
+                        if (redCtx) {
+                            redCtx.clearRect(0, 0, iW, iH);
+                            redCtx.globalCompositeOperation = 'source-over';
+                            redCtx.drawImage(logo, 0, 0, iW, iH);
+                            redCtx.globalCompositeOperation = 'source-in';
+                            redCtx.fillStyle = (typeof effectiveThemeHex === 'string' && effectiveThemeHex) ? effectiveThemeHex : `rgb(${rgb})`;
+                            redCtx.fillRect(0, 0, iW, iH);
+                            redCtx.globalCompositeOperation = 'source-over';
+                        }
+                    }
+
                     ctx.save();
-                    if ('filter' in ctx) ctx.filter = 'none';
-                    ctx.globalAlpha = 1.0;
-                    if (offCanvas) {
-                        ctx.drawImage(offCanvas, -w / 2, -logoH / 2, w, logoH);
-                    } else {
-                        ctx.drawImage(logo, -w / 2, -logoH / 2, w, logoH);
+                    ctx.translate(centerX, centerY);
+
+                    // 1. RELIEF 3D (Ombre de contact profonde & biseau net sans dédoublement de cadre)
+                    ctx.save();
+                    ctx.shadowColor = 'rgba(0, 0, 0, 0.90)';
+                    ctx.shadowBlur = 14;
+                    ctx.shadowOffsetX = 3.5;
+                    ctx.shadowOffsetY = 4.5;
+                    ctx.drawImage(logo, -w / 2, -logoH / 2, w, logoH);
+                    ctx.restore();
+
+                    // 2. Biseau métallique titane sombre (+2px)
+                    ctx.save();
+                    ctx.globalAlpha = 0.45;
+                    ctx.drawImage(logo, -w / 2 + 2.0, -logoH / 2 + 2.0, w, logoH);
+                    ctx.restore();
+
+                    // 3. GLITCH RGB DYNAMIQUE (Aberration chromatique Cyan & Couleur Thème)
+                    if (glitchActive && glitchAlpha > 0) {
+                        ctx.save();
+                        ctx.globalCompositeOperation = 'screen';
+                        ctx.globalAlpha = glitchAlpha;
+                        if (offCyan) {
+                            ctx.drawImage(offCyan, -w / 2 + cyanShiftX, -logoH / 2 + cyanShiftY, w, logoH);
+                        }
+                        if (offRed) {
+                            ctx.drawImage(offRed, -w / 2 + redShiftX, -logoH / 2 + redShiftY, w, logoH);
+                        }
+                        ctx.restore();
                     }
+
+                    // 4. FACE AVANT DU LOGO BLANC PUR (Ultra nette, contrastée et solide)
+                    ctx.save();
+                    ctx.drawImage(logo, -w / 2, -logoH / 2, w, logoH);
                     ctx.restore();
 
                     ctx.restore(); // Restaure le repère général
@@ -9899,11 +9925,15 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     // 3. Défilement du rang : commence à 100 et roule jusqu'au rang cible
                     const parsedTarget = Math.max(1, Math.min(100, Number(top100RankRef.current ?? top100Rank) || 1));
                     const isVideoExport = isVideoRecordingRef.current;
+                    const isReplaying = top100IsReplayingRef.current;
                     const animTime = isVideoExport
                         ? deterministicAnimTimeRef.current
-                        : (animElapsed !== 99.0 ? animElapsed : (Date.now() - top100AnimStartRef.current) / 1000);
+                        : ((Date.now() - top100AnimStartRef.current) / 1000);
                     const rollDuration = 2.5; // Déroulement de 100 jusqu'au rang cible (2.5 secondes)
-                    const isLiveRolling = (!isDownloading || isVideoExport) && animTime < rollDuration;
+                    const isLiveRolling = (isVideoExport || isReplaying) && animTime < rollDuration;
+                    if (isReplaying && animTime >= rollDuration) {
+                        top100IsReplayingRef.current = false;
+                    }
 
                     let currentRank = parsedTarget;
                     if (isLiveRolling) {
@@ -9928,13 +9958,13 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.restore();
 
                     // B) Nom de l'artiste démasqué en grand (Montserrat 900 Black)
-                    // Apparaît EN MÊME TEMPS que le chiffre de la place (au terme du roulement de 2.5s)
+                    // Visible immédiatement en mode édition statique, ou à la fin du roulement en replay/vidéo
                     ctx.save();
-                    const postRollElapsed = Math.max(0, animTime - rollDuration);
-                    const artistProgress = isLiveRolling ? 0 : Math.min(1, postRollElapsed / 0.35);
+                    const postRollElapsed = isLiveRolling ? 0 : Math.max(0, animTime - rollDuration);
+                    const artistProgress = isLiveRolling ? 0 : (isReplaying ? Math.min(1, postRollElapsed / 0.35) : 1.0);
                     const artistEase = 1 - Math.pow(1 - artistProgress, 3);
-                    const artistYOff = (!isDownloading || isVideoExport) ? (1 - artistEase) * 35 : 0;
-                    const artistAlpha = (!isDownloading || isVideoExport) ? (isLiveRolling ? 0 : artistProgress) : 1.0;
+                    const artistYOff = isLiveRolling ? (1 - artistEase) * 35 : 0;
+                    const artistAlpha = isLiveRolling ? 0 : (isReplaying ? artistProgress : 1.0);
 
                     ctx.globalAlpha *= artistAlpha;
                     let artistFontSize = isStory ? 68 : 52;
@@ -9960,7 +9990,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                     // C) Capsule Catégorie / Sous-titre
                     ctx.save();
-                    const catAlpha = (!isDownloading || isVideoExport) ? (isLiveRolling ? 0 : Math.min(1, postRollElapsed / 0.35)) : 1.0;
+                    const catAlpha = isLiveRolling ? 0 : (isReplaying ? Math.min(1, postRollElapsed / 0.35) : 1.0);
                     ctx.globalAlpha *= catAlpha;
                     const catText = (top100CategoryRef.current || top100Category || 'CLASSEMENT OFFICIEL 2026').toUpperCase();
                     const catFontSize = isStory ? 18 : 15;
@@ -21078,10 +21108,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         value={top100Rank}
                         onChange={e => {
                             const val = Number(e.target.value);
+                            top100IsReplayingRef.current = false;
                             top100RankRef.current = val;
                             setTop100Rank(val);
-                            top100AnimStartRef.current = Date.now();
-                            animStartTimeRef.current = Date.now();
                             generateImage();
                         }}
                         className="flex-1 accent-neon-red bg-white/10 rounded-lg h-2 cursor-pointer"
@@ -21093,17 +21122,16 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         value={top100Rank}
                         onChange={e => {
                             const val = Math.max(1, Math.min(100, Number(e.target.value) || 1));
+                            top100IsReplayingRef.current = false;
                             top100RankRef.current = val;
                             setTop100Rank(val);
-                            top100AnimStartRef.current = Date.now();
-                            animStartTimeRef.current = Date.now();
                             generateImage();
                         }}
                         className="w-16 bg-white/5 border border-white/10 rounded-xl p-2 text-white text-center font-black text-[12px] font-mono outline-none focus:border-neon-red/50"
                     />
                 </div>
                 <p className="text-[8px] text-gray-400">
-                    💡 Le compteur part de <strong>100</strong> et roule automatiquement jusqu'à la position <strong>#{top100Rank < 10 ? '0' + top100Rank : top100Rank}</strong>.
+                    💡 La position est appliquée <strong>immédiatement</strong>. Cliquez sur <em>Rejouer</em> pour lancer l'animation du compteur (100 ➔ #{top100Rank < 10 ? '0' + top100Rank : top100Rank}).
                 </p>
             </div>
 
@@ -21168,6 +21196,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             <button
                 type="button"
                 onClick={() => {
+                    top100IsReplayingRef.current = true;
                     top100AnimStartRef.current = Date.now();
                     animStartTimeRef.current = Date.now();
                     setTop100AnimKey(k => k + 1);

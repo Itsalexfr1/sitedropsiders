@@ -16,6 +16,7 @@ import { getArticleLink, getRecapLink, getAgendaLink, getGalleryLink } from '../
 import { FlagIcon } from '../ui/FlagIcon';
 import { resolveImageUrl } from '../../utils/image';
 import settings from '../../data/settings.json';
+import { Animated3DLogo } from '../shared/Animated3DLogo';
 
 export function Navbar() {
     const [isOpen, setIsOpen] = useState(false);
@@ -226,11 +227,7 @@ export function Navbar() {
                             }}
                             className="flex items-center group py-2 lg:relative lg:left-0 absolute left-1/2 -translate-x-1/2 lg:translate-x-0"
                         >
-                            <img
-                                src="/Logo.png"
-                                alt="DROPSIDERS"
-                                className={`logo-img h-8 md:h-11 w-auto object-contain transition-all duration-500 group-hover:scale-105 ${!isDarkMode ? 'invert brightness-0' : ''}`}
-                            />
+                            <Animated3DLogo className="h-8 md:h-11 w-auto" />
                         </Link>
 
                         {/* Social Icons - Stacked vertically next to logo */}

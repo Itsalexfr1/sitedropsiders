@@ -11,62 +11,40 @@ interface Animated3DLogoProps {
 export const Animated3DLogo: React.FC<Animated3DLogoProps> = ({
     className = 'h-8 md:h-11 w-auto',
     themeColor = null,
-    depth = 14,
     speed = 4.2,
 }) => {
-    // Number of 3D slices for solid volumetric extrusion
-    const sliceCount = 12;
-    const slices = Array.from({ length: sliceCount }, (_, idx) => {
-        const i = sliceCount - idx;
-        const z = -((i / sliceCount) * depth).toFixed(1);
-        const ratio = 1 - (i / sliceCount);
-        // Titanium / steel shade: from 0.16 (deep back) to 0.58 (front edge)
-        const shade = (0.16 + ratio * 0.42).toFixed(3);
-        return { z, shade };
-    });
-
     const duration = `${speed}s`;
-    const halfDuration = `${(speed / 2).toFixed(2)}s`;
 
     return (
         <div 
             className={`animated-3d-logo-viewport relative inline-flex items-center justify-center select-none ${className}`}
             style={{
-                perspective: '700px',
+                perspective: '800px',
                 perspectiveOrigin: '50% 50%',
             }}
         >
             <style>{`
                 @keyframes dropsidersPendulum {
                     0% {
-                        transform: translateX(-18px) rotateX(4deg) rotateY(-36deg);
+                        transform: translateX(-50px) rotateY(-12deg);
                     }
                     50% {
-                        transform: translateX(18px) rotateX(4deg) rotateY(36deg);
+                        transform: translateX(50px) rotateY(12deg);
                     }
                     100% {
-                        transform: translateX(-18px) rotateX(4deg) rotateY(-36deg);
-                    }
-                }
-
-                @keyframes dropsidersFrontLight {
-                    0%, 100% {
-                        filter: brightness(0.85);
-                    }
-                    50% {
-                        filter: brightness(1.04);
+                        transform: translateX(-50px) rotateY(-12deg);
                     }
                 }
 
                 @keyframes dropsidersNacreSheen {
                     0% {
-                        transform: translateX(-260px);
+                        transform: translateX(-240px);
                     }
                     50% {
-                        transform: translateX(260px);
+                        transform: translateX(240px);
                     }
                     100% {
-                        transform: translateX(-260px);
+                        transform: translateX(-240px);
                     }
                 }
             `}</style>
@@ -75,64 +53,37 @@ export const Animated3DLogo: React.FC<Animated3DLogoProps> = ({
                 className="relative flex items-center justify-center h-full w-auto"
                 style={{
                     transformStyle: 'preserve-3d',
-                    animation: `dropsidersPendulum ${duration} cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite, dropsidersFrontLight ${halfDuration} ease-in-out infinite`,
-                    willChange: 'transform, filter',
+                    animation: `dropsidersPendulum ${duration} cubic-bezier(0.42, 0.0, 0.58, 1.0) infinite`,
+                    willChange: 'transform',
                 }}
             >
-                {/* 1. Deep contact drop shadow */}
+                {/* 1. Ombre douce réaliste (ZÉRO dédoublement, ZÉRO barre blanche) */}
                 <img
                     src="/logo_white_official.png"
                     alt=""
-                    className="absolute h-full w-auto max-w-none object-contain pointer-events-none opacity-90"
+                    className="absolute h-full w-auto max-w-none object-contain pointer-events-none opacity-70"
                     style={{
-                        transform: `translateZ(-${depth + 3}px)`,
-                        filter: 'drop-shadow(0 8px 12px rgba(0,0,0,0.95))',
+                        transform: 'translateY(6px) scale(0.96)',
+                        filter: 'blur(8px) brightness(0)',
                     }}
                 />
 
-                {/* 2. Extruded 3D slices (Titanium / Dark Steel) */}
-                {slices.map((s, idx) => (
-                    <img
-                        key={idx}
-                        src="/logo_white_official.png"
-                        alt=""
-                        className="absolute h-full w-auto max-w-none object-contain pointer-events-none"
-                        style={{
-                            transform: `translateZ(${s.z}px)`,
-                            filter: `brightness(0) invert(${s.shade})`,
-                            opacity: 0.96,
-                        }}
-                    />
-                ))}
-
-                {/* 3. Bevel highlight slice */}
-                <img
-                    src="/logo_white_official.png"
-                    alt=""
-                    className="absolute h-full w-auto max-w-none object-contain pointer-events-none"
-                    style={{
-                        transform: 'translateZ(-0.4px)',
-                        filter: 'brightness(0) invert(0.85)',
-                    }}
-                />
-
-                {/* 4. Front Face: Crisp, vector-sharp 100% Pure White */}
+                {/* 2. Logo Blanc Pur Unique (Parfaitement net, sans aucune tranche fantôme) */}
                 <img
                     src="/logo_white_official.png"
                     alt="DROPSIDERS"
                     className="relative h-full w-auto max-w-none object-contain"
                     style={{
-                        transform: 'translateZ(0px)',
-                        filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.9))',
+                        filter: 'drop-shadow(0 2px 8px rgba(0,0,0,0.85))',
                     }}
                 />
 
-                {/* 5. Optional pearlescent theme sheen (only if themeColor is provided) */}
+                {/* 3. Reflet Mode Vitre (100% couleur thème, zéro barre blanche) */}
                 {themeColor && (
                     <svg
                         viewBox="0 0 600 269"
                         className="absolute inset-0 h-full w-auto pointer-events-none"
-                        style={{ transform: 'translateZ(0.2px)' }}
+                        style={{ transform: 'translateZ(1px)' }}
                     >
                         <defs>
                             <mask id="logo-theme-sheen-mask">
@@ -140,22 +91,22 @@ export const Animated3DLogo: React.FC<Animated3DLogoProps> = ({
                             </mask>
                             <linearGradient id="logo-theme-sheen-grad" x1="0%" y1="0%" x2="100%" y2="0%">
                                 <stop offset="0%" stopColor={themeColor} stopOpacity="0" />
-                                <stop offset="25%" stopColor={themeColor} stopOpacity="0.25" />
-                                <stop offset="50%" stopColor={themeColor} stopOpacity="0.80" />
-                                <stop offset="75%" stopColor={themeColor} stopOpacity="0.25" />
+                                <stop offset="25%" stopColor={themeColor} stopOpacity="0.20" />
+                                <stop offset="50%" stopColor={themeColor} stopOpacity="0.85" />
+                                <stop offset="75%" stopColor={themeColor} stopOpacity="0.20" />
                                 <stop offset="100%" stopColor={themeColor} stopOpacity="0" />
                             </linearGradient>
                         </defs>
                         <g mask="url(#logo-theme-sheen-mask)">
                             <rect
-                                x="-100"
+                                x="-150"
                                 y="0"
-                                width="800"
+                                width="900"
                                 height="269"
                                 fill="url(#logo-theme-sheen-grad)"
                                 style={{
                                     mixBlendMode: 'screen',
-                                    animation: `dropsidersNacreSheen ${duration} cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite`,
+                                    animation: `dropsidersNacreSheen ${duration} cubic-bezier(0.42, 0.0, 0.58, 1.0) infinite`,
                                     willChange: 'transform',
                                 }}
                             />
