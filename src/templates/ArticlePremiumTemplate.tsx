@@ -55,6 +55,18 @@ const SnapchatIcon = (props: any) => (
     </svg>
 );
 
+const AppleMusicIcon = (props: any) => (
+    <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+        <path d="M12 2C6.477 2 2 6.477 2 12c0 5.523 4.477 10 10 10s10-4.477 10-10c0-5.523-4.477-10-10-10zm4.5 13.5a2.5 2.5 0 0 1-2.5 2.5c-1.381 0-2.5-1.119-2.5-2.5 0-1.381 1.119-2.5 2.5-2.5.352 0 .686.073.99.204V8.5a.75.75 0 0 0-.585-.733l-5-1A.75.75 0 0 0 8.5 7.5v8a2.5 2.5 0 0 1-2.5 2.5C4.619 18 3.5 16.881 3.5 15.5S4.619 13 6 13c.352 0 .686.073.99.204V6.5a1.5 1.5 0 0 1 1.21-1.47l6-1.2A1.5 1.5 0 0 1 16 5.3v8.2a2.49 2.49 0 0 1 .5 1.5z" />
+    </svg>
+);
+
+const DeezerIcon = (props: any) => (
+    <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+        <path d="M18.8 6.5h3.2V9h-3.2zm0 3.3h3.2v2.5h-3.2zm0 3.3h3.2v2.5h-3.2zm0 3.3h3.2v2.5h-3.2zm-4.2-3.3h3.2v2.5h-3.2zm0 3.3h3.2v2.5h-3.2zm-4.2-6.6h3.2V9h-3.2zm0 3.3h3.2v2.5h-3.2zm0 3.3h3.2v2.5h-3.2zm0 3.3h3.2v2.5h-3.2zm-4.2-3.3h3.2v2.5H6.2zm0 3.3h3.2v2.5H6.2zm-4.2 0h3.2v2.5H2z" />
+    </svg>
+);
+
 
 // ─── Native video player for uploaded videos (non-YouTube) ───────────────────
 const UploadedVideoPlayer: React.FC<{ src: string }> = ({ src }) => {
@@ -562,12 +574,18 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
                 iframe.closest('.youtube-player-widget') ||
                 iframe.closest('.music-top-item-premium') ||
                 iframe.closest('.music-top-section') ||
-                iframe.closest('.festival-track-embed');
+                iframe.closest('.festival-track-embed') ||
+                iframe.closest('.applemusic-compact-widget') ||
+                iframe.closest('.deezer-compact-widget') ||
+                iframe.closest('.spotify-compact-widget') ||
+                iframe.closest('.beatport-compact-widget');
 
             const isTrustedSource =
                 isYouTube ||
                 src.includes('spotify.com') ||
-                src.includes('beatport.com');
+                src.includes('beatport.com') ||
+                src.includes('apple.com') ||
+                src.includes('deezer.com');
 
             if (!isInsidePremium && isTrustedSource) {
                 // It's a manual link we want to keep. 
@@ -657,7 +675,10 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
         twitter: XIcon,
         spotify: SpotifyIcon,
         soundcloud: SoundCloudIcon,
-        beatport: BeatportIcon
+        beatport: BeatportIcon,
+        applemusic: AppleMusicIcon,
+        apple: AppleMusicIcon,
+        deezer: DeezerIcon
     };
 
     const processContent = (html: string) => {

@@ -58,6 +58,18 @@ const SnapchatIcon = (props: any) => (
     </svg>
 );
 
+const AppleMusicIcon = (props: any) => (
+    <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+        <path d="M12 2C6.477 2 2 6.477 2 12c0 5.523 4.477 10 10 10s10-4.477 10-10c0-5.523-4.477-10-10-10zm4.5 13.5a2.5 2.5 0 0 1-2.5 2.5c-1.381 0-2.5-1.119-2.5-2.5 0-1.381 1.119-2.5 2.5-2.5.352 0 .686.073.99.204V8.5a.75.75 0 0 0-.585-.733l-5-1A.75.75 0 0 0 8.5 7.5v8a2.5 2.5 0 0 1-2.5 2.5C4.619 18 3.5 16.881 3.5 15.5S4.619 13 6 13c.352 0 .686.073.99.204V6.5a1.5 1.5 0 0 1 1.21-1.47l6-1.2A1.5 1.5 0 0 1 16 5.3v8.2a2.49 2.49 0 0 1 .5 1.5z" />
+    </svg>
+);
+
+const DeezerIcon = (props: any) => (
+    <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+        <path d="M18.8 6.5h3.2V9h-3.2zm0 3.3h3.2v2.5h-3.2zm0 3.3h3.2v2.5h-3.2zm0 3.3h3.2v2.5h-3.2zm-4.2-3.3h3.2v2.5h-3.2zm0 3.3h3.2v2.5h-3.2zm-4.2-6.6h3.2V9h-3.2zm0 3.3h3.2v2.5h-3.2zm0 3.3h3.2v2.5h-3.2zm0 3.3h3.2v2.5h-3.2zm-4.2-3.3h3.2v2.5H6.2zm0 3.3h3.2v2.5H6.2zm-4.2 0h3.2v2.5H2z" />
+    </svg>
+);
+
 const EDITOR_COLORS = [
     '#FF1241', // neon-red
     '#00FFFF', // neon-cyan
@@ -919,7 +931,7 @@ export function NewsCreate() {
 
     const [interviewQuestions, setInterviewQuestions] = useState<{
         id: string,
-        type: 'qa' | 'image' | 'video' | 'spotify' | 'beatport',
+        type: 'qa' | 'image' | 'video' | 'spotify' | 'beatport' | 'applemusic' | 'deezer',
         artistName?: string,
         artistColor?: string,
         question?: string,
@@ -973,13 +985,13 @@ export function NewsCreate() {
         }
     }, [activeTab, wikiDjs.length]);
 
-    const [musicItems, setMusicItems] = useState<{ id: string, title: string, media: string, imageUrl: string, playerType: 'spotify' | 'youtube' | 'beatport', description: string, canVote: boolean }[]>(() => {
+    const [musicItems, setMusicItems] = useState<{ id: string, title: string, media: string, imageUrl: string, playerType: 'spotify' | 'youtube' | 'beatport' | 'applemusic' | 'deezer', description: string, canVote: boolean }[]>(() => {
         if (type === 'Musique') return [];
         return [{ id: Math.random().toString(36).substr(2, 9), title: '', media: '', imageUrl: '', playerType: 'spotify', description: '', canVote: true }];
     });
     const [mediaModal, setMediaModal] = useState<{
         show: boolean,
-        type: 'image' | 'gallery' | 'video' | 'spotify' | 'beatport' | 'social' | 'tweet',
+        type: 'image' | 'gallery' | 'video' | 'spotify' | 'beatport' | 'applemusic' | 'deezer' | 'social' | 'tweet',
         url: string,
         urls: string,
         aspectRatio?: string,
@@ -1013,12 +1025,15 @@ export function NewsCreate() {
         website: '',
         instagram: '',
         tiktok: '',
+        snapchat: '',
         youtube: '',
         facebook: '',
         x: '',
         spotify: '',
         soundcloud: '',
-        beatport: ''
+        beatport: '',
+        applemusic: '',
+        deezer: ''
     });
     const [duoModal, setDuoModal] = useState({ show: false, urls: ['', ''], widgetIndex: undefined as number | undefined, widgetId: undefined as string | undefined, aspectRatio: '3/4' });
     const [isLoading, setIsLoading] = useState(isEditing);
@@ -1176,11 +1191,14 @@ export function NewsCreate() {
             // Parse Socials
             const artistSocialsContainer = doc.querySelector('.artist-socials-premium');
             if (artistSocialsContainer) {
-                const newSocials: any = { website: '', instagram: '', tiktok: '', youtube: '', facebook: '', x: '', spotify: '', soundcloud: '', beatport: '' };
+                const newSocials: any = { website: '', instagram: '', tiktok: '', snapchat: '', youtube: '', facebook: '', x: '', spotify: '', soundcloud: '', beatport: '', applemusic: '', deezer: '' };
                 Array.from(artistSocialsContainer.querySelectorAll('a')).forEach((a: any) => {
-                    const platform = a.getAttribute('data-platform');
+                    const platform = (a.getAttribute('data-platform') || '').toLowerCase();
                     const url = a.getAttribute('href');
-                    if (platform && url && platform in newSocials) newSocials[platform] = url;
+                    if (platform && url) {
+                        const key = platform === 'apple' ? 'applemusic' : platform;
+                        if (key in newSocials) newSocials[key] = url;
+                    }
                 });
                 setArtistSocials(newSocials);
 
@@ -1256,6 +1274,10 @@ export function NewsCreate() {
                         foundQuestions.push({ id: Math.random().toString(36).substr(2, 9), type: 'spotify', mediaUrl: section.getAttribute('data-media-url') || '' });
                     } else if (section.classList.contains('interview-beatport-block')) {
                         foundQuestions.push({ id: Math.random().toString(36).substr(2, 9), type: 'beatport', mediaUrl: section.getAttribute('data-media-url') || '' });
+                    } else if (section.classList.contains('interview-applemusic-block')) {
+                        foundQuestions.push({ id: Math.random().toString(36).substr(2, 9), type: 'applemusic', mediaUrl: section.getAttribute('data-media-url') || '' });
+                    } else if (section.classList.contains('interview-deezer-block')) {
+                        foundQuestions.push({ id: Math.random().toString(36).substr(2, 9), type: 'deezer', mediaUrl: section.getAttribute('data-media-url') || '' });
                     } else if (!section.innerHTML.includes('artist-socials-premium') && !section.innerHTML.includes('tracklist-container')) {
                         foundWidgets.push({ id: Math.random().toString(36).substring(2, 11), content: section.innerHTML.trim() });
                     }
@@ -1991,6 +2013,8 @@ export function NewsCreate() {
                     if (value.includes('spotify.com')) newPlayerType = 'spotify';
                     else if (value.includes('youtube.com') || value.includes('youtu.be')) newPlayerType = 'youtube';
                     else if (value.includes('beatport.com') || value.match(/^\d+$/)) newPlayerType = 'beatport';
+                    else if (value.includes('music.apple.com')) newPlayerType = 'applemusic';
+                    else if (value.includes('deezer.com')) newPlayerType = 'deezer';
                 }
                 return { ...item, [field]: value, playerType: newPlayerType };
             }
@@ -2051,6 +2075,29 @@ export function NewsCreate() {
                 // If it contains beatport.com but no clear track/release in URL
                 return `<a href="${url}" target="_blank" class="text-neon-cyan hover:underline p-4 block bg-white/5 rounded-xl border border-white/10 text-center font-bold uppercase tracking-widest text-[10px]">${url} (BEATPORT)</a>`;
             }
+        }
+
+        // 4. Apple Music
+        if (playerType === 'applemusic' || url.includes('music.apple.com')) {
+            let embedSrc = url.trim();
+            if (embedSrc.includes('music.apple.com') && !embedSrc.includes('embed.music.apple.com')) {
+                embedSrc = embedSrc.replace('https://music.apple.com', 'https://embed.music.apple.com').replace('http://music.apple.com', 'https://embed.music.apple.com');
+            } else if (!embedSrc.startsWith('http')) {
+                embedSrc = `https://embed.music.apple.com/fr/album/${embedSrc}`;
+            }
+            const isSong = embedSrc.includes('?i=') || embedSrc.includes('/song/');
+            return `<iframe src="${embedSrc}" width="100%" height="${isSong ? 175 : 450}" frameborder="0" allow="autoplay *; encrypted-media *; fullscreen *; clipboard-write" sandbox="allow-forms allow-popups allow-same-origin allow-scripts allow-storage-access-by-user-activation allow-top-navigation-by-user-activation" loading="lazy" style="border-radius:12px; max-width:100%;"></iframe>`;
+        }
+
+        // 5. Deezer
+        if (playerType === 'deezer' || url.includes('deezer.com')) {
+            const clean = url.trim();
+            const tm = clean.match(/(?:track\/|track:)(\d+)/i);
+            const am = clean.match(/(?:album\/|album:)(\d+)/i);
+            const pm = clean.match(/(?:playlist\/|playlist:)(\d+)/i);
+            const dzId = tm ? tm[1] : am ? am[1] : pm ? pm[1] : clean.replace(/\D/g, '') || clean;
+            const dzType = tm ? 'track' : am ? 'album' : pm ? 'playlist' : 'track';
+            return `<iframe title="deezer-widget" src="https://widget.deezer.com/widget/dark/${dzType}/${dzId}" width="100%" height="${dzType === 'track' ? 152 : 300}" frameborder="0" allowtransparency="true" allow="encrypted-media; clipboard-write" loading="lazy" style="border-radius:12px;"></iframe>`;
         }
 
         return `<a href="${url}" target="_blank" class="text-neon-cyan hover:underline p-4 block bg-white/5 rounded-xl border border-white/10 text-center font-bold uppercase tracking-widest text-[10px]">${url}</a>`;
@@ -2141,6 +2188,33 @@ ${urlList.map(u => `  <div class="article-gallery-item aspect-square relative ov
   </div>
 </div>`;
             }
+        } else if (type === 'applemusic' && url) {
+            let embedSrc = url.trim();
+            if (embedSrc.includes('music.apple.com') && !embedSrc.includes('embed.music.apple.com')) {
+                embedSrc = embedSrc.replace('https://music.apple.com', 'https://embed.music.apple.com').replace('http://music.apple.com', 'https://embed.music.apple.com');
+            } else if (!embedSrc.startsWith('http')) {
+                embedSrc = `https://embed.music.apple.com/fr/album/${embedSrc}`;
+            }
+            const isSongOrTrack = embedSrc.includes('?i=') || embedSrc.includes('/song/');
+            const height = isSongOrTrack ? 175 : 450;
+            content = `<div class="applemusic-compact-widget article-section my-12" data-applemusic-url="${embedSrc}">
+  <div class="relative rounded-3xl overflow-hidden shadow-2xl border border-[#fc3c44]/20 bg-[#121212]">
+    <iframe src="${embedSrc}" width="100%" height="${height}" frameborder="0" allow="autoplay *; encrypted-media *; fullscreen *; clipboard-write" sandbox="allow-forms allow-popups allow-same-origin allow-scripts allow-storage-access-by-user-activation allow-top-navigation-by-user-activation" loading="lazy" style="border-radius:12px; max-width:100%;"></iframe>
+  </div>
+</div>`;
+        } else if (type === 'deezer' && url) {
+            const clean = url.trim();
+            const tm = clean.match(/(?:track\/|track:)(\d+)/i);
+            const am = clean.match(/(?:album\/|album:)(\d+)/i);
+            const pm = clean.match(/(?:playlist\/|playlist:)(\d+)/i);
+            const dzId = tm ? tm[1] : am ? am[1] : pm ? pm[1] : clean.replace(/\D/g, '') || clean;
+            const dzType = tm ? 'track' : am ? 'album' : pm ? 'playlist' : 'track';
+            const height = dzType === 'track' ? 152 : 300;
+            content = `<div class="deezer-compact-widget article-section my-12" data-deezer-id="${dzId}" data-deezer-type="${dzType}">
+  <div class="relative rounded-3xl overflow-hidden shadow-2xl border border-[#A238FF]/20 bg-[#121212]">
+    <iframe title="deezer-widget" src="https://widget.deezer.com/widget/dark/${dzType}/${dzId}" width="100%" height="${height}" frameborder="0" allowtransparency="true" allow="encrypted-media; clipboard-write" loading="lazy" style="border-radius:12px;"></iframe>
+  </div>
+</div>`;
         } else if ((type === 'social' || type === 'tweet') && url) {
             const cleanUrl = url.trim();
             const lower = cleanUrl.toLowerCase();
@@ -2425,6 +2499,33 @@ ${generateSocialsHtml()}
   <iframe src="https://embed.beatport.com/?id=${bpId}&type=${bpType}" width="100%" height="162" frameBorder="0" scrolling="no" style="border-radius:12px;background:#111;"></iframe>
 </div>
 </div>`;
+                    } else if (q.type === 'applemusic') {
+                        let embedSrc = (q.mediaUrl || '').trim();
+                        if (embedSrc.includes('music.apple.com') && !embedSrc.includes('embed.music.apple.com')) {
+                            embedSrc = embedSrc.replace('https://music.apple.com', 'https://embed.music.apple.com').replace('http://music.apple.com', 'https://embed.music.apple.com');
+                        } else if (!embedSrc.startsWith('http') && embedSrc) {
+                            embedSrc = `https://embed.music.apple.com/fr/album/${embedSrc}`;
+                        }
+                        if (!embedSrc) return '';
+                        const isSong = embedSrc.includes('?i=') || embedSrc.includes('/song/');
+                        return `<div class="article-section interview-applemusic-block my-8" data-media-url="${embedSrc}">
+<div class="applemusic-compact-widget bg-black/20 border border-[#fc3c44]/20 rounded-2xl overflow-hidden shadow-2xl">
+  <iframe src="${embedSrc}" width="100%" height="${isSong ? 175 : 450}" frameborder="0" allow="autoplay *; encrypted-media *; fullscreen *; clipboard-write" sandbox="allow-forms allow-popups allow-same-origin allow-scripts allow-storage-access-by-user-activation allow-top-navigation-by-user-activation" loading="lazy" style="border-radius:12px; max-width:100%;"></iframe>
+</div>
+</div>`;
+                    } else if (q.type === 'deezer') {
+                        const clean = (q.mediaUrl || '').trim();
+                        const tm = clean.match(/(?:track\/|track:)(\d+)/i);
+                        const am = clean.match(/(?:album\/|album:)(\d+)/i);
+                        const pm = clean.match(/(?:playlist\/|playlist:)(\d+)/i);
+                        const dzId = tm ? tm[1] : am ? am[1] : pm ? pm[1] : clean.replace(/\D/g, '') || clean;
+                        const dzType = tm ? 'track' : am ? 'album' : pm ? 'playlist' : 'track';
+                        if (!dzId) return '';
+                        return `<div class="article-section interview-deezer-block my-8" data-media-url="${clean}">
+<div class="deezer-compact-widget bg-black/20 border border-[#A238FF]/20 rounded-2xl overflow-hidden shadow-2xl">
+  <iframe title="deezer-widget" src="https://widget.deezer.com/widget/dark/${dzType}/${dzId}" width="100%" height="${dzType === 'track' ? 152 : 300}" frameborder="0" allowtransparency="true" allow="encrypted-media; clipboard-write" loading="lazy" style="border-radius:12px;"></iframe>
+</div>
+</div>`;
                     }
                     return '';
                 }).join('\n');
@@ -2650,7 +2751,7 @@ ${generateSocialsHtml()}
                     setMusicItems([{ id: Math.random().toString(36).substr(2, 9), title: '', media: '', imageUrl: '', playerType: 'spotify', description: '', canVote: true }]);
                     setArtistNameLabel('');
                     setArtistSocials({
-                        website: '', instagram: '', tiktok: '', youtube: '', facebook: '', x: '', spotify: '', soundcloud: '', beatport: ''
+                        website: '', instagram: '', tiktok: '', snapchat: '', youtube: '', facebook: '', x: '', spotify: '', soundcloud: '', beatport: '', applemusic: '', deezer: ''
                     });
                     setInterviewQuestions([
                         { id: Math.random().toString(36).substr(2, 9), type: 'qa', artistName: '', artistColor: '#ff1241', question: '', answer: '' }
@@ -3624,7 +3725,9 @@ ${generateSocialsHtml()}
                                     { id: 'x', name: 'X', icon: XIcon, color: 'text-white' },
                                     { id: 'spotify', name: 'Spotify', icon: SpotifyIcon, color: 'text-green-500' },
                                     { id: 'soundcloud', name: 'SoundCloud', icon: SoundCloudIcon, color: 'text-orange-500' },
-                                    { id: 'beatport', name: 'Beatport', icon: BeatportIcon, color: 'text-green-400' }
+                                    { id: 'beatport', name: 'Beatport', icon: BeatportIcon, color: 'text-green-400' },
+                                    { id: 'applemusic', name: 'Apple Music', icon: AppleMusicIcon, color: 'text-[#fc3c44]' },
+                                    { id: 'deezer', name: 'Deezer', icon: DeezerIcon, color: 'text-[#A238FF]' }
                                 ].map((social) => (
                                     <div key={social.id}>
                                         <label className="block text-[9px] font-bold text-gray-500 uppercase tracking-widest mb-2 ml-1">
@@ -3938,6 +4041,8 @@ ${generateSocialsHtml()}
                                                                     widget.content.includes('gallery-premium-grid') ? 'Galerie' : 
                                                                         widget.content.includes('spotify-compact-widget') ? 'Spotify' :
                                                                             widget.content.includes('beatport-compact-widget') ? 'Beatport' :
+                                                                                widget.content.includes('applemusic-compact-widget') ? 'Apple Music' :
+                                                                                    widget.content.includes('deezer-compact-widget') ? 'Deezer' :
                                                                                 widget.content.includes('instagram-embed-widget') ? 'Instagram' :
                                                                                     widget.content.includes('twitter-embed-widget') ? 'X / Twitter' :
                                                                                         widget.content.includes('facebook-embed-widget') ? 'Facebook' :
@@ -4002,7 +4107,7 @@ ${generateSocialsHtml()}
                                                     >
                                                         <Link2 className="w-4 h-4" /> <span className="hidden sm:inline">Lien</span>
                                                     </button>
-                                                    {(!widget.content.includes('image-premium-wrapper') && !widget.content.includes('gallery-premium-grid') && !widget.content.includes('youtube-player-widget') && !widget.content.includes('social-embed-widget') && !widget.content.includes('spotify-compact-widget') && !widget.content.includes('beatport-compact-widget')) && (
+                                                    {(!widget.content.includes('image-premium-wrapper') && !widget.content.includes('gallery-premium-grid') && !widget.content.includes('youtube-player-widget') && !widget.content.includes('social-embed-widget') && !widget.content.includes('spotify-compact-widget') && !widget.content.includes('beatport-compact-widget') && !widget.content.includes('applemusic-compact-widget') && !widget.content.includes('deezer-compact-widget')) && (
                                                         <>
                                                             <button
                                                                 type="button"
@@ -4319,7 +4424,9 @@ ${generateSocialsHtml()}
                                                     !widget.content.includes('duo-photos-premium') && !widget.content.includes('grid-photos-premium') &&
                                                     !widget.content.includes('social-embed-widget') &&
                                                     !widget.content.includes('spotify-compact-widget') &&
-                                                    !widget.content.includes('beatport-compact-widget') ? (
+                                                    !widget.content.includes('beatport-compact-widget') &&
+                                                    !widget.content.includes('applemusic-compact-widget') &&
+                                                    !widget.content.includes('deezer-compact-widget') ? (
                                                     <div className={`admin-editor-container bg-white/[0.02] border transition-all duration-500 ${isMobileEditorActive ? 'min-h-[80vh] border-0 rounded-none bg-black/40' : 'border-white/5 rounded-3xl overflow-hidden shadow-2xl'}`}>
                                                         <VisualEditor
                                                             content={widget.content}
@@ -4508,11 +4615,11 @@ ${generateSocialsHtml()}
                                     <Fragment key={q.id}>
                                         <div className="bg-black/40 border border-white/5 rounded-[2.5rem] p-8 relative group">
                                             <div className="flex items-center gap-3 mb-6">
-                                                <span className={`w-8 h-8 rounded-2xl flex items-center justify-center text-xs font-black ${q.type === 'qa' ? 'bg-neon-purple/10 border border-neon-purple/20 text-neon-purple' : q.type === 'image' ? 'bg-neon-cyan/10 border border-neon-cyan/20 text-neon-cyan' : q.type === 'spotify' ? 'bg-[#1DB954]/10 border border-[#1DB954]/20 text-[#1DB954]' : q.type === 'beatport' ? 'bg-[#02FF95]/10 border border-[#02FF95]/20 text-[#02FF95]' : 'bg-red-600/10 border border-red-600/20 text-red-600'}`}>
+                                                <span className={`w-8 h-8 rounded-2xl flex items-center justify-center text-xs font-black ${q.type === 'qa' ? 'bg-neon-purple/10 border border-neon-purple/20 text-neon-purple' : q.type === 'image' ? 'bg-neon-cyan/10 border border-neon-cyan/20 text-neon-cyan' : q.type === 'spotify' ? 'bg-[#1DB954]/10 border border-[#1DB954]/20 text-[#1DB954]' : q.type === 'beatport' ? 'bg-[#02FF95]/10 border border-[#02FF95]/20 text-[#02FF95]' : q.type === 'applemusic' ? 'bg-[#fc3c44]/10 border border-[#fc3c44]/20 text-[#fc3c44]' : q.type === 'deezer' ? 'bg-[#A238FF]/10 border border-[#A238FF]/20 text-[#A238FF]' : 'bg-red-600/10 border border-red-600/20 text-red-600'}`}>
                                                     {idx + 1}
                                                 </span>
                                                 <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">
-                                                    {q.type === 'qa' ? 'Bloc Question/Réponse' : q.type === 'image' ? 'Bloc Photo' : q.type === 'spotify' ? 'Bloc Spotify' : q.type === 'beatport' ? 'Bloc Beatport' : 'Bloc Vidéo'}
+                                                    {q.type === 'qa' ? 'Bloc Question/Réponse' : q.type === 'image' ? 'Bloc Photo' : q.type === 'spotify' ? 'Bloc Spotify' : q.type === 'beatport' ? 'Bloc Beatport' : q.type === 'applemusic' ? 'Bloc Apple Music' : q.type === 'deezer' ? 'Bloc Deezer' : 'Bloc Vidéo'}
                                                 </h4>
 
                                                 {/* Movement Arrows */}
@@ -4733,6 +4840,84 @@ ${generateSocialsHtml()}
                                                             ) : <p className="text-[10px] text-gray-500 italic">URL non reconnue. Format attendu : beatport.com/track/nom/ID</p>;
                                                         })()}
                                                     </div>
+                                                ) : q.type === 'applemusic' ? (
+                                                    <div className="space-y-4">
+                                                        <div className="space-y-2">
+                                                            <label className="text-[10px] font-black text-[#fc3c44] uppercase tracking-widest ml-1">Lien Apple Music (Morceau, Album, Playlist)</label>
+                                                            <input
+                                                                type="text"
+                                                                value={q.mediaUrl}
+                                                                onChange={(e) => {
+                                                                    const val = e.target.value.trim();
+                                                                    setInterviewQuestions(interviewQuestions.map(item => item.id === q.id ? { ...item, mediaUrl: val } : item));
+                                                                }}
+                                                                className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white text-sm focus:border-[#fc3c44] outline-none"
+                                                                placeholder="Ex: https://music.apple.com/fr/album/..."
+                                                            />
+                                                        </div>
+                                                        {q.mediaUrl && (() => {
+                                                            let embedSrc = (q.mediaUrl || '').trim();
+                                                            if (embedSrc.includes('music.apple.com') && !embedSrc.includes('embed.music.apple.com')) {
+                                                                embedSrc = embedSrc.replace('https://music.apple.com', 'https://embed.music.apple.com').replace('http://music.apple.com', 'https://embed.music.apple.com');
+                                                            } else if (!embedSrc.startsWith('http') && embedSrc) {
+                                                                embedSrc = `https://embed.music.apple.com/fr/album/${embedSrc}`;
+                                                            }
+                                                            const isSong = embedSrc.includes('?i=') || embedSrc.includes('/song/');
+                                                            return (
+                                                                <div className="bg-black/40 rounded-2xl p-4 border border-white/5">
+                                                                    <div className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-3">Aperçu Apple Music</div>
+                                                                    <iframe
+                                                                        src={embedSrc}
+                                                                        width="100%"
+                                                                        height={isSong ? 175 : 450}
+                                                                        frameBorder="0"
+                                                                        allow="autoplay *; encrypted-media *; fullscreen *; clipboard-write"
+                                                                        sandbox="allow-forms allow-popups allow-same-origin allow-scripts allow-storage-access-by-user-activation allow-top-navigation-by-user-activation"
+                                                                        style={{ borderRadius: '12px' }}
+                                                                    />
+                                                                </div>
+                                                            );
+                                                        })()}
+                                                    </div>
+                                                ) : q.type === 'deezer' ? (
+                                                    <div className="space-y-4">
+                                                        <div className="space-y-2">
+                                                            <label className="text-[10px] font-black text-[#A238FF] uppercase tracking-widest ml-1">Lien ou ID Deezer (Track, Album, Playlist)</label>
+                                                            <input
+                                                                type="text"
+                                                                value={q.mediaUrl}
+                                                                onChange={(e) => {
+                                                                    const val = e.target.value.trim();
+                                                                    setInterviewQuestions(interviewQuestions.map(item => item.id === q.id ? { ...item, mediaUrl: val } : item));
+                                                                }}
+                                                                className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white text-sm focus:border-[#A238FF] outline-none"
+                                                                placeholder="Ex: https://www.deezer.com/fr/track/12345678"
+                                                            />
+                                                        </div>
+                                                        {q.mediaUrl && (() => {
+                                                            const clean = (q.mediaUrl || '').trim();
+                                                            const tm = clean.match(/(?:track\/|track:)(\d+)/i);
+                                                            const am = clean.match(/(?:album\/|album:)(\d+)/i);
+                                                            const pm = clean.match(/(?:playlist\/|playlist:)(\d+)/i);
+                                                            const dzId = tm ? tm[1] : am ? am[1] : pm ? pm[1] : clean.replace(/\D/g, '') || clean;
+                                                            const dzType = tm ? 'track' : am ? 'album' : pm ? 'playlist' : 'track';
+                                                            return (
+                                                                <div className="bg-black/40 rounded-2xl p-4 border border-white/5">
+                                                                    <div className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-3">Aperçu Deezer</div>
+                                                                    <iframe
+                                                                        title="deezer-widget"
+                                                                        src={`https://widget.deezer.com/widget/dark/${dzType}/${dzId}`}
+                                                                        width="100%"
+                                                                        height={dzType === 'track' ? 152 : 300}
+                                                                        frameBorder="0"
+                                                                        allowtransparency="true"
+                                                                        allow="encrypted-media; clipboard-write"
+                                                                        style={{ borderRadius: '12px' }}
+                                                                    />
+                                                                </div>
+                                                            );
+                                                        })()}
+                                                    </div>
                                                 ) : (
                                                     <div className="space-y-2">
                                                         <label className="text-[10px] font-black text-red-600 uppercase tracking-widest ml-1">Lien ou ID YouTube</label>
@@ -4914,7 +5099,7 @@ ${generateSocialsHtml()}
                                                     value={item.media}
                                                     onChange={(e) => updateMusicItem(item.id, 'media', e.target.value)}
                                                     className="w-full bg-white/5 border border-white/10 rounded-lg p-3 text-white focus:border-neon-cyan outline-none mb-3"
-                                                    placeholder={item.playerType === 'beatport' ? "Lien ou ID Beatport..." : item.playerType === 'youtube' ? "Lien YouTube..." : "Lien Spotify..."}
+                                                    placeholder={item.playerType === 'beatport' ? "Lien ou ID Beatport..." : item.playerType === 'youtube' ? "Lien YouTube..." : item.playerType === 'applemusic' ? "Lien Apple Music..." : item.playerType === 'deezer' ? "Lien Deezer..." : "Lien Spotify..."}
                                                 />
                                                 <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Photo du Vinyl (URL)</label>
                                                 <input
@@ -5040,6 +5225,20 @@ ${generateSocialsHtml()}
                                     </button>
                                     <button
                                         type="button"
+                                        onClick={() => setMediaModal({ show: true, type: 'applemusic', url: '', urls: '' })}
+                                        className="whitespace-nowrap flex items-center gap-2 px-3 py-2 bg-[#fc3c44]/20 border border-[#fc3c44]/30 text-[#fc3c44] rounded-full hover:bg-[#fc3c44]/30 transition-all font-bold uppercase tracking-widest text-[9px]"
+                                    >
+                                        <AppleMusicIcon className="w-3.5 h-3.5" /> Apple Music
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setMediaModal({ show: true, type: 'deezer', url: '', urls: '' })}
+                                        className="whitespace-nowrap flex items-center gap-2 px-3 py-2 bg-[#A238FF]/20 border border-[#A238FF]/30 text-[#A238FF] rounded-full hover:bg-[#A238FF]/30 transition-all font-bold uppercase tracking-widest text-[9px]"
+                                    >
+                                        <DeezerIcon className="w-3.5 h-3.5" /> Deezer
+                                    </button>
+                                    <button
+                                        type="button"
                                         onClick={() => setMediaModal({ show: true, type: 'tweet', url: '', urls: '', socialPlatform: 'x' })}
                                         className="whitespace-nowrap flex items-center gap-1.5 px-3 py-2 bg-white/10 border border-white/20 text-white rounded-full hover:bg-white/20 transition-all font-bold uppercase tracking-widest text-[9px]"
                                         title="Intégrer un Tweet / Post X"
@@ -5079,6 +5278,8 @@ ${generateSocialsHtml()}
                                                                     widget.content.includes('gallery-premium-grid') ? 'Galerie' : 
                                                                         widget.content.includes('spotify-compact-widget') ? 'Spotify' :
                                                                             widget.content.includes('beatport-compact-widget') ? 'Beatport' :
+                                                                                widget.content.includes('applemusic-compact-widget') ? 'Apple Music' :
+                                                                                    widget.content.includes('deezer-compact-widget') ? 'Deezer' :
                                                                                 widget.content.includes('instagram-embed-widget') ? 'Instagram' :
                                                                                     widget.content.includes('twitter-embed-widget') ? 'X / Twitter' :
                                                                                         widget.content.includes('facebook-embed-widget') ? 'Facebook' :
@@ -5715,7 +5916,7 @@ ${generateSocialsHtml()}
                             </button>
 
                             <h3 className="text-xl font-display font-black text-white uppercase italic mb-6">
-                                {mediaModal.type === 'image' ? 'Ajouter une photo' : mediaModal.type === 'video' ? 'Ajouter une vidéo' : mediaModal.type === 'gallery' ? 'Ajouter une galerie' : mediaModal.type === 'spotify' ? '🎵 Lecteur Spotify' : mediaModal.type === 'beatport' ? '🎶 Lecteur Beatport' : mediaModal.type === 'tweet' ? '𝕏 Intégrer un Tweet (Post X)' : '📱 Post Réseau Social (Instagram, Facebook)'}
+                                {mediaModal.type === 'image' ? 'Ajouter une photo' : mediaModal.type === 'video' ? 'Ajouter une vidéo' : mediaModal.type === 'gallery' ? 'Ajouter une galerie' : mediaModal.type === 'spotify' ? '🎵 Lecteur Spotify' : mediaModal.type === 'beatport' ? '🎶 Lecteur Beatport' : mediaModal.type === 'applemusic' ? '🍎 Lecteur Apple Music' : mediaModal.type === 'deezer' ? '🎧 Lecteur Deezer' : mediaModal.type === 'tweet' ? '𝕏 Intégrer un Tweet (Post X)' : '📱 Post Réseau Social (Instagram, Facebook)'}
                             </h3>
 
                             <div className="space-y-4">
@@ -5810,6 +6011,94 @@ ${generateSocialsHtml()}
                                                 <div className="bg-black/40 rounded-2xl p-3 border border-[#02FF95]/20">
                                                     <p className="text-[9px] text-[#02FF95] font-black uppercase tracking-widest mb-2">Aperçu Beatport • {bpType} #{bpId}</p>
                                                     <iframe src={`https://embed.beatport.com/?id=${bpId}&type=${bpType}`} width="100%" height="162" frameBorder={0} scrolling="no" className="rounded-xl" />
+                                                </div>
+                                            );
+                                        })()}
+                                    </div>
+                                ) : mediaModal.type === 'applemusic' ? (
+                                    <div className="space-y-4">
+                                        <div>
+                                            <label className="block text-[10px] font-black text-[#fc3c44] uppercase tracking-widest mb-2">URL Apple Music (Morceau, Album, Playlist)</label>
+                                            <div className="relative">
+                                                <input
+                                                    type="text"
+                                                    value={mediaModal.url}
+                                                    onChange={e => setMediaModal({ ...mediaModal, url: e.target.value })}
+                                                    className="w-full bg-black/40 border border-[#fc3c44]/30 rounded-xl p-3 pr-10 text-white outline-none focus:border-[#fc3c44] transition-all text-xs"
+                                                    placeholder="https://music.apple.com/fr/album/... ou embed URL"
+                                                    autoFocus
+                                                />
+                                                {mediaModal.url && (
+                                                    <button type="button" onClick={() => setMediaModal({ ...mediaModal, url: '' })} className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-gray-500 hover:text-red-500">
+                                                        <Trash2 className="w-3.5 h-3.5" />
+                                                    </button>
+                                                )}
+                                            </div>
+                                        </div>
+                                        {mediaModal.url && (() => {
+                                            let embedSrc = mediaModal.url.trim();
+                                            if (embedSrc.includes('music.apple.com') && !embedSrc.includes('embed.music.apple.com')) {
+                                                embedSrc = embedSrc.replace('https://music.apple.com', 'https://embed.music.apple.com').replace('http://music.apple.com', 'https://embed.music.apple.com');
+                                            } else if (!embedSrc.startsWith('http')) {
+                                                embedSrc = `https://embed.music.apple.com/fr/album/${embedSrc}`;
+                                            }
+                                            const isSong = embedSrc.includes('?i=') || embedSrc.includes('/song/');
+                                            return (
+                                                <div className="bg-black/40 rounded-2xl p-3 border border-[#fc3c44]/20">
+                                                    <p className="text-[9px] text-[#fc3c44] font-black uppercase tracking-widest mb-2">Aperçu Apple Music</p>
+                                                    <iframe
+                                                        src={embedSrc}
+                                                        width="100%"
+                                                        height={isSong ? 175 : 450}
+                                                        frameBorder={0}
+                                                        allow="autoplay *; encrypted-media *; fullscreen *; clipboard-write"
+                                                        sandbox="allow-forms allow-popups allow-same-origin allow-scripts allow-storage-access-by-user-activation allow-top-navigation-by-user-activation"
+                                                        className="rounded-xl"
+                                                    />
+                                                </div>
+                                            );
+                                        })()}
+                                    </div>
+                                ) : mediaModal.type === 'deezer' ? (
+                                    <div className="space-y-4">
+                                        <div>
+                                            <label className="block text-[10px] font-black text-[#A238FF] uppercase tracking-widest mb-2">URL ou ID Deezer (Track, Album, Playlist)</label>
+                                            <div className="relative">
+                                                <input
+                                                    type="text"
+                                                    value={mediaModal.url}
+                                                    onChange={e => setMediaModal({ ...mediaModal, url: e.target.value })}
+                                                    className="w-full bg-black/40 border border-[#A238FF]/30 rounded-xl p-3 pr-10 text-white outline-none focus:border-[#A238FF] transition-all text-xs"
+                                                    placeholder="https://www.deezer.com/fr/track/123456 ou ID"
+                                                    autoFocus
+                                                />
+                                                {mediaModal.url && (
+                                                    <button type="button" onClick={() => setMediaModal({ ...mediaModal, url: '' })} className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-gray-500 hover:text-red-500">
+                                                        <Trash2 className="w-3.5 h-3.5" />
+                                                    </button>
+                                                )}
+                                            </div>
+                                        </div>
+                                        {mediaModal.url && (() => {
+                                            const clean = mediaModal.url.trim();
+                                            const tm = clean.match(/(?:track\/|track:)(\d+)/i);
+                                            const am = clean.match(/(?:album\/|album:)(\d+)/i);
+                                            const pm = clean.match(/(?:playlist\/|playlist:)(\d+)/i);
+                                            const dzId = tm ? tm[1] : am ? am[1] : pm ? pm[1] : clean.replace(/\D/g, '') || clean;
+                                            const dzType = tm ? 'track' : am ? 'album' : pm ? 'playlist' : 'track';
+                                            return (
+                                                <div className="bg-black/40 rounded-2xl p-3 border border-[#A238FF]/20">
+                                                    <p className="text-[9px] text-[#A238FF] font-black uppercase tracking-widest mb-2">Aperçu Deezer • ${dzType} #${dzId}</p>
+                                                    <iframe
+                                                        title="deezer-widget"
+                                                        src={`https://widget.deezer.com/widget/dark/${dzType}/${dzId}`}
+                                                        width="100%"
+                                                        height={dzType === 'track' ? 152 : 300}
+                                                        frameBorder={0}
+                                                        allowtransparency="true"
+                                                        allow="encrypted-media; clipboard-write"
+                                                        className="rounded-xl"
+                                                    />
                                                 </div>
                                             );
                                         })()}

@@ -53,6 +53,18 @@ const SnapchatIcon = (props: any) => (
     </svg>
 );
 
+const AppleMusicIcon = (props: any) => (
+    <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+        <path d="M12 2C6.477 2 2 6.477 2 12c0 5.523 4.477 10 10 10s10-4.477 10-10c0-5.523-4.477-10-10-10zm4.5 13.5a2.5 2.5 0 0 1-2.5 2.5c-1.381 0-2.5-1.119-2.5-2.5 0-1.381 1.119-2.5 2.5-2.5.352 0 .686.073.99.204V8.5a.75.75 0 0 0-.585-.733l-5-1A.75.75 0 0 0 8.5 7.5v8a2.5 2.5 0 0 1-2.5 2.5C4.619 18 3.5 16.881 3.5 15.5S4.619 13 6 13c.352 0 .686.073.99.204V6.5a1.5 1.5 0 0 1 1.21-1.47l6-1.2A1.5 1.5 0 0 1 16 5.3v8.2a2.49 2.49 0 0 1 .5 1.5z" />
+    </svg>
+);
+
+const DeezerIcon = (props: any) => (
+    <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+        <path d="M18.8 6.5h3.2V9h-3.2zm0 3.3h3.2v2.5h-3.2zm0 3.3h3.2v2.5h-3.2zm0 3.3h3.2v2.5h-3.2zm-4.2-3.3h3.2v2.5h-3.2zm0 3.3h3.2v2.5h-3.2zm-4.2-6.6h3.2V9h-3.2zm0 3.3h3.2v2.5h-3.2zm0 3.3h3.2v2.5h-3.2zm0 3.3h3.2v2.5h-3.2zm-4.2-3.3h3.2v2.5H6.2zm0 3.3h3.2v2.5H6.2zm-4.2 0h3.2v2.5H2z" />
+    </svg>
+);
+
 const EDITOR_COLORS = [
     '#FF1241', // neon-red
     '#00FFFF', // neon-cyan
@@ -226,7 +238,9 @@ export function RecapCreate() {
         x: '',
         spotify: '',
         soundcloud: '',
-        beatport: ''
+        beatport: '',
+        applemusic: '',
+        deezer: ''
     });
     const [artistNameLabel, setArtistNameLabel] = useState('');
 
@@ -2182,7 +2196,9 @@ export function RecapCreate() {
                                             { id: 'x', name: 'X', icon: XIcon, color: 'text-white' },
                                             { id: 'spotify', name: 'Spotify', icon: SpotifyIcon, color: 'text-green-500' },
                                             { id: 'soundcloud', name: 'SoundCloud', icon: SoundCloudIcon, color: 'text-orange-500' },
-                                            { id: 'beatport', name: 'Beatport', icon: BeatportIcon, color: 'text-green-400' }
+                                            { id: 'beatport', name: 'Beatport', icon: BeatportIcon, color: 'text-green-400' },
+                                            { id: 'applemusic', name: 'Apple Music', icon: AppleMusicIcon, color: 'text-[#fc3c44]' },
+                                            { id: 'deezer', name: 'Deezer', icon: DeezerIcon, color: 'text-[#A238FF]' }
                                         ].map((social) => (
                                             <div key={social.id}>
                                                 <label className="block text-[9px] font-bold text-gray-500 uppercase tracking-widest mb-2 ml-1">{social.name}</label>
