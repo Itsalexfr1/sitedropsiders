@@ -121,7 +121,7 @@ export function TopTracksLeaderboard({ resolvedColor }: { resolvedColor?: string
                                !t.includes('WEEKLY SELECTION') &&
                                !t.includes('DÉVOILE');
                     });
-                    setTracks(filteredData.slice(0, 5));
+                    setTracks(filteredData.slice(0, 10));
                 }
                 const today = new Date().toISOString().split('T')[0];
                 const lastBooster = localStorage.getItem('booster_top_tracks');
@@ -202,7 +202,7 @@ export function TopTracksLeaderboard({ resolvedColor }: { resolvedColor?: string
 
             if (res.ok) {
                 setTracks(prev => prev.filter(t => t.title !== title));
-                showNotification(`Morceau "${title}" supprimé du Top 5 !`, 'success');
+                showNotification(`Morceau "${title}" supprimé du Top 10 !`, 'success');
 
                 // Re-fetch to immediately pull the updated ranking from KV
                 const refreshRes = await fetch('/api/music/top-tracks');
@@ -214,7 +214,7 @@ export function TopTracksLeaderboard({ resolvedColor }: { resolvedColor?: string
                                !t.includes('WEEKLY SELECTION') &&
                                !t.includes('DÉVOILE');
                     });
-                    setTracks(filteredData.slice(0, 5));
+                    setTracks(filteredData.slice(0, 10));
                 }
             } else {
                 const errData = await res.json().catch(() => ({}));
@@ -240,7 +240,7 @@ export function TopTracksLeaderboard({ resolvedColor }: { resolvedColor?: string
                                !t.includes('WEEKLY SELECTION') &&
                                !t.includes('DÉVOILE');
                     });
-                    setTracks(filteredData.slice(0, 5));
+                    setTracks(filteredData.slice(0, 10));
                 }
             } catch (err) {
                 console.error('Failed to fetch top tracks', err);
@@ -415,25 +415,25 @@ export function TopTracksLeaderboard({ resolvedColor }: { resolvedColor?: string
             <div className="w-full flex justify-between items-center mb-6 mt-0 lg:mt-[calc(5%+28px)]">
                 <h3 className="text-2xl font-display font-bold text-white flex items-center gap-3">
                     <Trophy className="w-6 h-6 text-yellow-500" />
-                    TOP 5 TRACKS
+                    TOP 10 TRACKS
                 </h3>
             </div>
 
-            <div className="flex-1 bg-dark-bg/50 backdrop-blur-xl border border-white/10 rounded-[2.5rem] p-8 shadow-2xl relative overflow-hidden group">
+            <div className="flex-1 bg-dark-bg/50 backdrop-blur-xl border border-white/10 rounded-[2.5rem] p-6 sm:p-8 shadow-2xl relative overflow-hidden group flex flex-col justify-between">
                 <div className="absolute inset-0 bg-gradient-to-br from-neon-cyan/5 via-transparent to-neon-purple/5 opacity-50" />
                 
-                <div className="flex items-center justify-between mb-8 relative z-10 px-2">
+                <div className="flex items-center justify-between mb-6 relative z-10 px-2">
                     <div className="flex items-center gap-2">
                         <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
                         <span className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] italic">VOTES LIVE</span>
                     </div>
                 </div>
 
-                <div className="space-y-3 relative z-10 overflow-y-auto no-scrollbar max-h-[calc(100%-140px)]">
+                <div className="space-y-2 relative z-10 overflow-y-auto no-scrollbar flex-1">
                     <AnimatePresence mode="popLayout">
                         {loading ? (
-                            Array.from({ length: 5 }).map((_, i) => (
-                                <div key={i} className="h-14 bg-white/5 rounded-2xl animate-pulse" />
+                            Array.from({ length: 10 }).map((_, i) => (
+                                <div key={i} className="h-12 bg-white/5 rounded-2xl animate-pulse" />
                             ))
                         ) : tracks.length === 0 ? (
                             <div className="flex flex-col items-center justify-center p-8 text-center text-gray-500">
