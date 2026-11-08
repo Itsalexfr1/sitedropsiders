@@ -452,7 +452,7 @@
     "genre": "Tech House",
     "month": "JANVIER",
     "isWeekly": false,
-    "isSoldOut": false,
+    "isSoldOut": true,
     "isLiveDropsiders": false,
     "additionalDates": []
   },
