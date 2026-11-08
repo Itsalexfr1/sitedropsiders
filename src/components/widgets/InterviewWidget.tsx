@@ -112,27 +112,27 @@ export function InterviewWidget({ accentColor = 'white', resolvedColor, featured
             </div>
 
             {displayInterviews.length === 0 ? (
-                <div className="flex-1 flex items-center justify-center border border-white/10 rounded-3xl bg-dark-bg/40 backdrop-blur-md min-h-[400px]">
-                    <p className="text-gray-400 font-display uppercase tracking-widest text-sm">{t('home.no_interview')}</p>
+                <div className="flex-1 flex items-center justify-center border border-white/10 rounded-xl bg-dark-bg/40 backdrop-blur-md min-h-[200px]">
+                    <p className="text-gray-400 font-display uppercase tracking-widest text-xs">{t('home.no_interview')}</p>
                 </div>
             ) : (
-                <div className="flex-1 grid grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="flex-1 grid grid-cols-2 sm:grid-cols-4 gap-3">
                     {displayInterviews.map((item: any, index: number) => (
                         <Link to={`/interviews/${item.id}`} key={item.id} className="block group relative">
                             {/* Lueur externe derrière la carte */}
                             <div
-                                className="absolute -inset-2 opacity-0 group-hover:opacity-100 transition-all duration-500 pointer-events-none blur-[25px] rounded-3xl z-0"
-                                style={{ background: `${color}50` }}
+                                className="absolute -inset-1 opacity-0 group-hover:opacity-100 transition-all duration-500 pointer-events-none blur-[15px] rounded-xl z-0"
+                                style={{ background: `${color}40` }}
                             />
                             <motion.div
                                 initial={{ opacity: 0, scale: 0.95 }}
                                 animate={{ opacity: 1, scale: 1 }}
                                 onMouseEnter={playHoverSound}
-                                transition={{ delay: index * 0.1 }}
-                                className="h-full relative aspect-square rounded-2xl overflow-hidden cursor-pointer border border-white/10 transition-all duration-300 shadow-xl z-10"
+                                transition={{ delay: index * 0.08 }}
+                                className="h-full relative aspect-square rounded-xl overflow-hidden cursor-pointer border border-white/10 transition-all duration-300 shadow-xl z-10 flex items-stretch"
                                 onMouseOver={(e) => {
                                     e.currentTarget.style.borderColor = color;
-                                    e.currentTarget.style.boxShadow = `0 0 30px ${color}60`;
+                                    e.currentTarget.style.boxShadow = `0 0 20px ${color}50`;
                                 }}
                                 onMouseOut={(e) => {
                                     e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)';
@@ -143,7 +143,7 @@ export function InterviewWidget({ accentColor = 'white', resolvedColor, featured
                                 <div
                                     className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none z-[1]"
                                     style={{
-                                        background: `radial-gradient(circle at center, ${color}30 0%, transparent 70%)`,
+                                        background: `radial-gradient(circle at center, ${color}25 0%, transparent 70%)`,
                                     }}
                                 />
                                 <img
@@ -151,40 +151,43 @@ export function InterviewWidget({ accentColor = 'white', resolvedColor, featured
                                     alt={item.title}
                                     className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                                 />
-                                <div className="absolute inset-0 bg-black/50 group-hover:bg-black/30 transition-colors duration-300 flex items-center justify-center z-[2]">
+                                <div className="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition-colors duration-300 flex items-center justify-center z-10">
                                     <div
-                                        className="w-12 h-12 rounded-full backdrop-blur-md flex items-center justify-center border group-hover:scale-110 transition-all duration-300"
+                                        className="w-8 h-8 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center border border-white/20 group-hover:scale-110 transition-all duration-300"
                                         style={{
-                                            backgroundColor: `${color}33`,
-                                            borderColor: color
+                                            backgroundColor: `${color}25`,
+                                            borderColor: `${color}80`
                                         }}
                                     >
-                                        <Mic2 className="w-6 h-6 text-white" />
+                                        <Mic2 className="w-3.5 h-3.5 text-white" />
                                     </div>
                                 </div>
-                                <div className="absolute top-4 left-4 z-10">
+                                <div className="absolute top-2 left-2 z-20">
                                     <span
-                                        className={`px-3 py-1 text-[9px] font-black rounded-full uppercase tracking-widest ${
-                                            isLightColor ? 'text-black' : 'text-white'
-                                        }`}
+                                        className="px-1.5 py-0.5 bg-dark-bg/80 backdrop-blur-md border text-[7px] font-black rounded uppercase tracking-tighter"
                                         style={{
-                                            backgroundColor: color,
-                                            color: isLightColor ? '#000000' : '#ffffff',
-                                            boxShadow: `0 0 15px ${color}`
+                                            borderColor: color,
+                                            color: color,
+                                            boxShadow: `0 0 10px ${color}60`
                                         }}
                                     >
                                         {t('home.interview_badge')}
                                     </span>
                                 </div>
-                                <div className="absolute bottom-0 left-0 right-0 p-5 bg-gradient-to-t from-black via-black/40 to-transparent">
+                                <div className="absolute bottom-0 left-0 right-0 p-2.5 bg-gradient-to-t from-black/95 via-black/40 to-transparent z-20">
                                     <h4
-                                        className="text-white font-bold text-sm leading-tight transition-colors line-clamp-1 uppercase italic tracking-tight"
+                                        className="text-[11px] sm:text-[12px] font-display font-bold text-white leading-tight transition-colors line-clamp-2 uppercase italic tracking-tight"
                                         onMouseEnter={(e) => e.currentTarget.style.color = color}
                                         onMouseLeave={(e) => e.currentTarget.style.color = 'white'}
                                     >
                                         {item.title}
                                     </h4>
-                                    <p className="text-[10px] text-gray-400 mt-1 font-bold uppercase tracking-widest">{new Date(item.date).toLocaleDateString(locale, { day: 'numeric', month: 'short' })}</p>
+                                    <p className="text-[8px] text-gray-500 mt-1 font-bold uppercase tracking-widest">
+                                        {item.date && !isNaN(new Date(item.date).getTime())
+                                            ? new Date(item.date).toLocaleDateString(locale, { day: 'numeric', month: 'short', year: 'numeric' })
+                                            : item.date
+                                        }
+                                    </p>
                                 </div>
                             </motion.div>
                         </Link>

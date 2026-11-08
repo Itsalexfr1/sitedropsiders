@@ -119,8 +119,7 @@ export function Home() {
                                 <TikTokWidget accentColor="cyan" resolvedColor="var(--color-neon-cyan)" username={socials?.tiktok} />
                             </div>
                             <div className="space-y-8">
-                                <AgendaWidget maxItems={item.maxAgendaItems || 6} accentColor={item.accentColor2 || 'red'} resolvedColor={resolveColor(item.accentColor2 || 'red')} />
-                                <RecapWidget accentColor={accentColor} resolvedColor={color} />
+                                <AgendaWidget maxItems={item.maxAgendaItems || 7} accentColor={item.accentColor2 || 'red'} resolvedColor={resolveColor(item.accentColor2 || 'red')} />
                                 <TopTracksLeaderboard resolvedColor={color} />
                             </div>
                         </div>
@@ -129,7 +128,10 @@ export function Home() {
             case 'interviews':
                 return (
                     <section key="interviews" className="w-full px-4 sm:px-6 lg:px-12 xl:px-16 2xl:px-24 py-8">
-                        <InterviewWidget accentColor={accentColor} resolvedColor={color} featuredInterviews={item.featuredInterviews} />
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+                            <InterviewWidget accentColor={accentColor} resolvedColor={color} featuredInterviews={item.featuredInterviews} />
+                            <RecapWidget accentColor="purple" resolvedColor="var(--color-neon-purple)" />
+                        </div>
                     </section>
                 );
             case 'social_grid':

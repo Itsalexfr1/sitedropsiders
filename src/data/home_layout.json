@@ -15,7 +15,7 @@
     "id": "recap_agenda_grid",
     "enabled": true,
     "accentColor": "purple",
-    "maxAgendaItems": 6,
+    "maxAgendaItems": 7,
     "accentColor2": "#e1ff00"
   },
   {

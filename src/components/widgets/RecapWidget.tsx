@@ -128,11 +128,11 @@ export function RecapWidget({ accentColor = 'purple', resolvedColor }: { accentC
             </div>
 
             {latestRecaps.length === 0 ? (
-                <div className="flex-1 flex items-center justify-center border border-white/10 rounded-lg bg-dark-bg/40 backdrop-blur-md min-h-[400px]">
-                    <p className="text-gray-400 font-display uppercase tracking-widest text-sm">{t('home.no_recap')}</p>
+                <div className="flex-1 flex items-center justify-center border border-white/10 rounded-xl bg-dark-bg/40 backdrop-blur-md min-h-[200px]">
+                    <p className="text-gray-400 font-display uppercase tracking-widest text-xs">{t('home.no_recap')}</p>
                 </div>
             ) : (
-                <div className="flex-1 grid grid-cols-2 lg:grid-cols-4 gap-3">
+                <div className="flex-1 grid grid-cols-2 sm:grid-cols-4 gap-3">
                     {latestRecaps.map((item: any, index: number) => {
                         const isGallery = item.contentType === 'gallery';
                         const itemColor = isGallery ? '#ffffff' : (resolvedColor || '#bf00ff');
@@ -203,9 +203,9 @@ export function RecapWidget({ accentColor = 'purple', resolvedColor }: { accentC
                                             {isGallery ? 'Photo' : t('home.recap_badge')}
                                         </span>
                                     </div>
-                                    <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/95 via-black/40 to-transparent z-20">
+                                    <div className="absolute bottom-0 left-0 right-0 p-2.5 bg-gradient-to-t from-black/95 via-black/40 to-transparent z-20">
                                         <h4
-                                            className="text-[13px] font-display font-bold text-white leading-tight transition-colors line-clamp-2 uppercase italic tracking-tighter"
+                                            className="text-[11px] sm:text-[12px] font-display font-bold text-white leading-tight transition-colors line-clamp-2 uppercase italic tracking-tighter"
                                             onMouseEnter={(e) => e.currentTarget.style.color = itemColor}
                                             onMouseLeave={(e) => e.currentTarget.style.color = 'white'}
                                         >

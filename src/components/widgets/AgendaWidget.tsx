@@ -10,7 +10,7 @@ import { FlagIcon } from '../ui/FlagIcon';
 import { Users, Music2 } from 'lucide-react';
 import { resolveImageUrl } from '../../utils/image';
 
-export function AgendaWidget({ maxItems = 6, accentColor = 'cyan', resolvedColor }: { maxItems?: number, accentColor?: string, resolvedColor?: string }) {
+export function AgendaWidget({ maxItems = 7, accentColor = 'cyan', resolvedColor }: { maxItems?: number, accentColor?: string, resolvedColor?: string }) {
     const color = resolvedColor || `var(--color-neon-${accentColor})`;
     const { t, language } = useLanguage();
     const [agendaData, setAgendaData] = useState<any[]>([]);

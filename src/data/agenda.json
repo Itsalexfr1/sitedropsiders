@@ -512,5 +512,43 @@
     "isSoldOut": false,
     "isLiveDropsiders": false,
     "additionalDates": []
+  },
+  {
+    "id": 298,
+    "title": "Time Warp Germany 2026",
+    "date": "2026-11-21",
+    "startDate": "2026-11-21",
+    "endDate": "2026-11-22",
+    "venue": "Maimarkthalle",
+    "location": "MANNHEIM",
+    "country": "Allemagne",
+    "type": "Festival",
+    "image": "/uploads/f7007ecb28433f78-504691852_1287660722723180_554.jpg",
+    "url": "https://www.time-warp.de",
+    "genre": "Techno",
+    "month": "NOVEMBRE",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false,
+    "additionalDates": []
+  },
+  {
+    "id": 299,
+    "title": "Awakenings Eindhoven 2027",
+    "date": "2027-01-23",
+    "startDate": "2027-01-23",
+    "endDate": "2027-01-24",
+    "venue": "Klokgebouw",
+    "location": "EINDHOVEN",
+    "country": "Pays-Bas",
+    "type": "Festival",
+    "image": "/uploads/5dffe21bcc87de93-reverze_weekend_2027.png",
+    "url": "https://www.awakenings.com",
+    "genre": "Techno",
+    "month": "JANVIER",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false,
+    "additionalDates": []
   }
 ]
