@@ -32,41 +32,41 @@ export const Animated3DLogo: React.FC<Animated3DLogoProps> = ({
         <div 
             className={`animated-3d-logo-viewport relative inline-flex items-center justify-center select-none ${className}`}
             style={{
-                perspective: '700px',
+                perspective: '600px',
                 perspectiveOrigin: '50% 50%',
             }}
         >
             <style>{`
                 @keyframes dropsidersPendulum {
                     0% {
-                        transform: translateX(-18px) rotateX(4deg) rotateY(-36deg);
+                        transform: rotateX(4deg) rotateY(-22deg);
                     }
                     50% {
-                        transform: translateX(18px) rotateX(4deg) rotateY(36deg);
+                        transform: rotateX(4deg) rotateY(22deg);
                     }
                     100% {
-                        transform: translateX(-18px) rotateX(4deg) rotateY(-36deg);
+                        transform: rotateX(4deg) rotateY(-22deg);
                     }
                 }
 
                 @keyframes dropsidersFrontLight {
                     0%, 100% {
-                        filter: brightness(0.85);
+                        filter: brightness(0.88);
                     }
                     50% {
-                        filter: brightness(1.04);
+                        filter: brightness(1.0);
                     }
                 }
 
                 @keyframes dropsidersNacreSheen {
                     0% {
-                        transform: translateX(-260px);
+                        transform: translateX(-160px);
                     }
                     50% {
-                        transform: translateX(260px);
+                        transform: translateX(160px);
                     }
                     100% {
-                        transform: translateX(-260px);
+                        transform: translateX(-160px);
                     }
                 }
             `}</style>
