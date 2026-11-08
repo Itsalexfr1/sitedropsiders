@@ -105,16 +105,18 @@ export function FeaturedNews({ accentColor = 'red', resolvedColor }: { accentCol
 
     return (
         <div className="h-[450px] md:h-[750px] flex flex-col">
-            <h3 className="text-2xl font-display font-bold text-white flex items-center gap-3 mb-6">
-                <span
-                    className="w-2 h-2 rounded-full animate-pulse"
-                    style={{
-                        backgroundColor: color,
-                        boxShadow: `0 0 10px ${color}`
-                    }}
-                />
-                {t('home.featured')}
-            </h3>
+            <div className="flex items-center justify-between mb-6">
+                <h3 className="text-2xl font-display font-bold text-white flex items-center gap-3">
+                    <span
+                        className="w-2.5 h-2.5 rounded-full animate-pulse"
+                        style={{
+                            backgroundColor: color,
+                            boxShadow: `0 0 10px ${color}`
+                        }}
+                    />
+                    {t('home.featured')}
+                </h3>
+            </div>
 
             <Link to={getArticleLink(heroNews)} className="flex-1 block group relative">
                 <motion.div

@@ -115,7 +115,7 @@ export function CommunityMixesLeaderboard() {
     return (
         <div className="h-full flex flex-col">
             {/* Header */}
-            <div className="w-full flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 mt-[5%]">
+            <div className="w-full flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
                 <h3 className="text-2xl font-display font-bold text-white flex items-center gap-3">
                     <Trophy className="w-6 h-6 text-neon-purple animate-pulse" />
                     TOP 10 MIXES & PRODS

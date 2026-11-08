@@ -80,11 +80,11 @@ export function InterviewWidget({ accentColor = 'white', resolvedColor, featured
     const locale = language === 'fr' ? 'fr-FR' : 'en-US';
 
     return (
-        <div className="h-full flex flex-col space-y-6">
+        <div className="h-full flex flex-col">
             <div className="flex justify-between items-center mb-6">
                 <h3 className="text-2xl font-display font-bold text-white flex items-center gap-3">
                     <span
-                        className="w-2 h-2 rounded-full animate-pulse"
+                        className="w-2.5 h-2.5 rounded-full animate-pulse"
                         style={{
                             backgroundColor: color,
                             boxShadow: `0 0 10px ${color}`
@@ -94,10 +94,20 @@ export function InterviewWidget({ accentColor = 'white', resolvedColor, featured
                 </h3>
                 <Link
                     to="/interviews"
-                    className="text-sm hover:underline transition-all flex items-center gap-1 font-bold tracking-tight uppercase italic"
-                    style={{ color: color }}
+                    className="flex items-center gap-2 px-4 py-2 rounded-xl border font-black text-[10px] uppercase tracking-[0.15em] transition-all duration-300 group bg-white/5"
+                    style={{ borderColor: `${color}66`, color: 'white' }}
+                    onMouseEnter={(e) => {
+                        e.currentTarget.style.borderColor = color;
+                        e.currentTarget.style.boxShadow = `0 0 20px ${color}4D`;
+                        e.currentTarget.style.backgroundColor = `${color}26`;
+                    }}
+                    onMouseLeave={(e) => {
+                        e.currentTarget.style.borderColor = `${color}66`;
+                        e.currentTarget.style.boxShadow = 'none';
+                        e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.05)';
+                    }}
                 >
-                    {t('home.view_all')} <ArrowUpRight className="w-4 h-4" />
+                    {t('home.view_all')} <ArrowUpRight className="w-3 h-3 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
                 </Link>
             </div>
 

@@ -175,12 +175,12 @@ export function SpotifyWidget({
         .filter(p => p.url);
 
     return (
-        <div className="space-y-6">
+        <div className="h-full flex flex-col">
             {showTitle && (
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/5 pb-4">
+                <div className="w-full flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
                     <h3 className="text-2xl font-display font-bold text-white flex items-center gap-3">
                         <span
-                            className="w-2 h-2 rounded-full animate-pulse"
+                            className="w-2.5 h-2.5 rounded-full animate-pulse"
                             style={{
                                 backgroundColor: activeTab === 'playlists' ? (activePlaylists[0]?.color || color) : 'var(--color-neon-purple)',
                                 boxShadow: `0 0 15px ${activeTab === 'playlists' ? (activePlaylists[0]?.color || color) : 'var(--color-neon-purple)'}`

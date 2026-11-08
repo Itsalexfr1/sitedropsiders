@@ -100,7 +100,7 @@ export function RecapWidget({ accentColor = 'purple', resolvedColor }: { accentC
             <div className="flex justify-between items-center mb-6">
                 <h3 className="text-2xl font-display font-bold text-white flex items-center gap-3">
                     <span
-                        className="w-2 h-2 rounded-full animate-pulse"
+                        className="w-2.5 h-2.5 rounded-full animate-pulse"
                         style={{
                             backgroundColor: color,
                             boxShadow: `0 0 10px ${color}`

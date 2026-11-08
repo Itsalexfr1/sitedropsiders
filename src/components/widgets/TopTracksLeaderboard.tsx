@@ -412,7 +412,7 @@ export function TopTracksLeaderboard({ resolvedColor }: { resolvedColor?: string
 
     return (
         <div className="h-full flex flex-col">
-            <div className="w-full flex justify-between items-center mb-6 mt-0 lg:mt-[calc(5%+28px)]">
+            <div className="w-full flex justify-between items-center mb-6">
                 <h3 className="text-2xl font-display font-bold text-white flex items-center gap-3">
                     <Trophy className="w-6 h-6 text-yellow-500" />
                     TOP 10 TRACKS
