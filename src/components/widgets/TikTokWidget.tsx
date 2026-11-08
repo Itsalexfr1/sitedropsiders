@@ -198,16 +198,13 @@ export function TikTokWidget({ accentColor = 'cyan', resolvedColor, username }: 
                                         </svg>
                                     </div>
                                 </div>
-                                <div className="flex flex-col">
-                                    <div className="flex items-center gap-1">
-                                        <span className="text-xs font-bold text-white group-hover/header:text-cyan-400 transition-colors">
-                                            @{account}
-                                        </span>
-                                        <svg className="w-3 h-3 text-[#20d5ec] fill-[#20d5ec]" viewBox="0 0 24 24">
-                                            <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm-1.9 14.7l-4.1-4.1 1.4-1.4 2.7 2.7 6.4-6.4 1.4 1.4-7.8 7.8z" />
-                                        </svg>
-                                    </div>
-                                    <span className="text-[10px] text-gray-400">Vidéos récentes</span>
+                                <div className="flex items-center gap-1.5">
+                                    <span className="text-xs font-bold text-white group-hover/header:text-cyan-400 transition-colors">
+                                        @{account}
+                                    </span>
+                                    <svg className="w-3.5 h-3.5 text-[#20d5ec] fill-[#20d5ec]" viewBox="0 0 24 24">
+                                        <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm-1.9 14.7l-4.1-4.1 1.4-1.4 2.7 2.7 6.4-6.4 1.4 1.4-7.8 7.8z" />
+                                    </svg>
                                 </div>
                             </a>
 
