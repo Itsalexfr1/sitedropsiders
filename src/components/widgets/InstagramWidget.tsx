@@ -64,7 +64,7 @@ const FALLBACK_POSTS: InstagramPost[] = [
 ];
 
 const CURATOR_FEED_URL = "https://api.curator.io/v1/feeds/e4f58757-3f77-40df-af9c-87664185ba9c/posts";
-const CACHE_KEY = "dropsiders_ig_posts_cache_v1";
+const CACHE_KEY = "dropsiders_ig_posts_cache_v3";
 
 export function InstagramWidget({ accentColor = 'pink', resolvedColor, username }: { accentColor?: string, resolvedColor?: string, username?: string }) {
     const account = (username || 'dropsiders.fr').replace('@', '');
@@ -110,18 +110,28 @@ export function InstagramWidget({ accentColor = 'pink', resolvedColor, username 
             .then(res => res.json())
             .then(data => {
                 if (isMounted && data && Array.isArray(data.posts) && data.posts.length > 0) {
-                    const freshPosts: InstagramPost[] = data.posts.slice(0, 6).map((p: any) => ({
-                        id: p.id,
-                        image: p.image_large || p.image,
-                        url: p.url || instagramUrl,
-                        caption: p.text || '',
-                        likes: p.likes || 0,
-                        hasVideo: Boolean(p.has_video)
-                    }));
-                    setPosts(freshPosts);
-                    try {
-                        localStorage.setItem(CACHE_KEY, JSON.stringify(freshPosts));
-                    } catch { }
+                    const freshPosts: InstagramPost[] = data.posts
+                        .filter((p: any) => {
+                            const net = (p.network_name || '').toLowerCase();
+                            const url = (p.url || '').toLowerCase();
+                            return net.includes('instagram') || p.network_id === 1 || url.includes('instagram.com');
+                        })
+                        .slice(0, 6)
+                        .map((p: any) => ({
+                            id: p.id,
+                            image: p.image_large || p.image,
+                            url: p.url || instagramUrl,
+                            caption: p.text || '',
+                            likes: p.likes || 0,
+                            hasVideo: Boolean(p.has_video)
+                        }));
+
+                    if (freshPosts.length > 0) {
+                        setPosts(freshPosts);
+                        try {
+                            localStorage.setItem(CACHE_KEY, JSON.stringify(freshPosts));
+                        } catch { }
+                    }
                 }
             })
             .catch(() => {

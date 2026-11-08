@@ -64,7 +64,7 @@ const FALLBACK_TIKTOK_POSTS: TikTokPost[] = [
 ];
 
 const CURATOR_FEED_URL = "https://api.curator.io/v1/feeds/e4f58757-3f77-40df-af9c-87664185ba9c/posts";
-const CACHE_KEY = "dropsiders_tt_posts_cache_v1";
+const CACHE_KEY = "dropsiders_tt_posts_cache_v3";
 
 export function TikTokWidget({ accentColor = 'cyan', resolvedColor, username }: { accentColor?: string, resolvedColor?: string, username?: string }) {
     const account = (username || 'dropsiders.fr').replace('@', '');
@@ -110,7 +110,11 @@ export function TikTokWidget({ accentColor = 'cyan', resolvedColor, username }: 
             .then(data => {
                 if (isMounted && data && Array.isArray(data.posts)) {
                     const ttPosts = data.posts
-                        .filter((p: any) => p.network_id === 25 || (p.network_name && p.network_name.toLowerCase().includes('tiktok')))
+                        .filter((p: any) => {
+                            const net = (p.network_name || '').toLowerCase();
+                            const url = (p.url || '').toLowerCase();
+                            return net.includes('tiktok') || p.network_id === 25 || url.includes('tiktok.com');
+                        })
                         .slice(0, 6)
                         .map((p: any) => {
                             let cleanText = p.text || '';
