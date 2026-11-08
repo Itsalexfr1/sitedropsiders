@@ -105,23 +105,28 @@ export function Home() {
                     </section>
                 );
             case 'recap_agenda_grid':
+                const gridColsStyle = { 
+                    display: 'grid',
+                    gridTemplateColumns: window.innerWidth > 1024 ? (columns === '1fr' ? '1.5fr 1fr' : (columns || '1fr').toString().replace('_', ' ')) : '1fr'
+                };
                 return (
-                    <section key="recap_agenda_grid" className="w-full px-4 sm:px-6 lg:px-12 xl:px-16 2xl:px-24">
+                    <section key="recap_agenda_grid" className="w-full px-4 sm:px-6 lg:px-12 xl:px-16 2xl:px-24 space-y-8">
+                        {/* Ligne 1 : Instagram & Agenda (en vis-à-vis direct) */}
                         <div 
                             className="grid grid-cols-1 gap-8 items-start"
-                            style={{ 
-                                display: 'grid',
-                                gridTemplateColumns: window.innerWidth > 1024 ? (columns === '1fr' ? '1.5fr 1fr' : (columns || '1fr').toString().replace('_', ' ')) : '1fr'
-                            }}
+                            style={gridColsStyle}
                         >
-                            <div className="space-y-8">
-                                <InstagramWidget accentColor="pink" resolvedColor="var(--color-neon-pink)" username={socials?.instagram} />
-                                <TikTokWidget accentColor="cyan" resolvedColor="var(--color-neon-cyan)" username={socials?.tiktok} />
-                            </div>
-                            <div className="space-y-8">
-                                <AgendaWidget maxItems={item.maxAgendaItems || 7} accentColor={item.accentColor2 || 'red'} resolvedColor={resolveColor(item.accentColor2 || 'red')} />
-                                <TopTracksLeaderboard resolvedColor={color} />
-                            </div>
+                            <InstagramWidget accentColor="pink" resolvedColor="var(--color-neon-pink)" username={socials?.instagram} />
+                            <AgendaWidget maxItems={item.maxAgendaItems || 7} accentColor={item.accentColor2 || 'red'} resolvedColor={resolveColor(item.accentColor2 || 'red')} />
+                        </div>
+
+                        {/* Ligne 2 : TikTok & Top 10 Tracks (alignement horizontal garanti au pixel près) */}
+                        <div 
+                            className="grid grid-cols-1 gap-8 items-start"
+                            style={gridColsStyle}
+                        >
+                            <TikTokWidget accentColor="cyan" resolvedColor="var(--color-neon-cyan)" username={socials?.tiktok} />
+                            <TopTracksLeaderboard resolvedColor={color} />
                         </div>
                     </section>
                 );
