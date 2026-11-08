@@ -357,6 +357,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
     useEffect(() => {
         setArticleLinkText(getAutoArticleLinkText(theme));
+        if (['JEU', 'JEU_FESTIVAL', 'JEU_DJ'].includes(theme)) {
+            setEditorialSlide1Duration(prev => Math.min(15, prev));
+        }
     }, [theme]);
 
     useEffect(() => {
@@ -2793,6 +2796,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             const src = renderCtx.createBufferSource();
             src.buffer = buf;
             src.loop = true; // Répétition fluide si la vidéo est plus courte que le reel/slide
+            src.loopStart = Math.max(0, startOffsetSec);
+            src.loopEnd = buf.duration;
             src.connect(renderCtx.destination);
             src.start(0, Math.max(0, startOffsetSec));
 
@@ -12874,6 +12879,16 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             let isRendering = false;
             const loop = () => {
                 if (isVideoRecordingRef.current) return;
+                if (bgVideo && !bgVideo.paused) {
+                    const isDevinette = ['JEU', 'JEU_FESTIVAL', 'JEU_DJ'].includes(theme);
+                    const maxDur = isDevinette ? 15 : (bgVideo.duration || 15);
+                    const startT = bgVideoStartTimeRef.current;
+                    if (startT > 0 || isDevinette) {
+                        if (bgVideo.currentTime >= (startT + maxDur) || bgVideo.currentTime >= (bgVideo.duration - 0.1) || bgVideo.currentTime < startT - 0.5) {
+                            bgVideo.currentTime = startT;
+                        }
+                    }
+                }
                 if (!isRendering) {
                     isRendering = true;
                     if (pendingAnimResetRef.current) {
@@ -13461,7 +13476,14 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 if (isDevinette) {
                     slideDuration = Math.min(15000, slideDuration);
                 }
-                totalDuration = (numContentSlides * slideDuration) + (numContentSlides * transitionDuration) + promoDuration;
+                const slide2Dur = isDevinette ? 6000 : slideDuration;
+                if (shouldSkipSlide2) {
+                    totalDuration = slideDuration + transitionDuration + promoDuration;
+                } else if (isDevinette) {
+                    totalDuration = slideDuration + transitionDuration + slide2Dur + transitionDuration + promoDuration;
+                } else {
+                    totalDuration = (numContentSlides * slideDuration) + (numContentSlides * transitionDuration) + promoDuration;
+                }
             }
         } else if (combinedMode === 'PLANNING' || (combinedMode === 'TIKTOK' && theme === 'PLANNING')) {
             const transitionDuration = currentTransitionDuration;
@@ -13482,18 +13504,22 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             totalDuration = 90000; // Strictement 1 min 30 pile (90s) : Intro (5.0s) + 10 tracks × 7.8s (78s) + 7s Outro Téléphone 3D = 90s pile
         } else {
             const isReelWithPromo = (effectiveTab === 'REEL' && combinedMode === 'NONE' && theme !== 'PROMO' && theme !== 'MUSIQUE');
+            const isDevinette = ['JEU', 'JEU_FESTIVAL', 'JEU_DJ'].includes(theme);
             if (theme === 'MUSIQUE') {
                 totalDuration = 30000;
             } else if (isReelWithPromo) {
-                const contentDur = (bgVideo && !isNaN(bgVideo.duration) && bgVideo.duration > 0)
+                let contentDur = (bgVideo && !isNaN(bgVideo.duration) && bgVideo.duration > 0)
                     ? bgVideo.duration * 1000
                     : 20000;
+                if (isDevinette) contentDur = Math.min(15000, contentDur);
                 const promoDur = promoOutroStyle === 'PHONE_3D' ? 7000 : 5000;
                 totalDuration = Math.min(600000, contentDur + currentTransitionDuration + promoDur);
             } else {
-                totalDuration = (bgVideo && !isNaN(bgVideo.duration) && bgVideo.duration > 0)
+                let contentDur = (bgVideo && !isNaN(bgVideo.duration) && bgVideo.duration > 0)
                     ? bgVideo.duration * 1000
                     : 20000;
+                if (isDevinette) contentDur = Math.min(15000, contentDur);
+                totalDuration = contentDur;
                 if (totalDuration > 600000) totalDuration = 600000;
             }
         }
@@ -13520,7 +13546,21 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 const numFrames = Math.max(1, Math.round((durationMs / 1000) * fps));
                 const frameInterval = 1000 / fps;
                 const hasPlayingBgVideo = Boolean(bgVideo && !isNaN(bgVideo.duration) && bgVideo.duration > 0);
-                if (bgVideo && hasPlayingBgVideo && bgVideo.paused) {
+                if (bgVideo && hasPlayingBgVideo) {
+                    const targetTime = bgVideoStartTimeRef.current + startOffsetSec;
+                    bgVideo.pause();
+                    bgVideo.currentTime = targetTime;
+                    await new Promise<void>((resolve) => {
+                        let done = false;
+                        const onSeeked = () => {
+                            if (done) return;
+                            done = true;
+                            bgVideo.removeEventListener('seeked', onSeeked);
+                            resolve();
+                        };
+                        bgVideo.addEventListener('seeked', onSeeked, { once: true });
+                        setTimeout(onSeeked, 300);
+                    });
                     await bgVideo.play().catch(() => { });
                 }
                 const segmentStartTime = performance.now();
@@ -13528,7 +13568,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 for (let f = 0; f < numFrames; f++) {
                     if (cancelVideoExportRef.current) throw new Error('EXPORT_CANCELLED');
                     // Cadence fluide en temps réel alignée sur le décodage matériel de la vidéo de fond
-                    if (hasPlayingBgVideo) {
+                    if (hasPlayingBgVideo && bgVideo) {
+                        // Empêcher la vidéo de dévier ou de boucler à 0:00
+                        if (bgVideo.currentTime < bgVideoStartTimeRef.current - 0.2 || bgVideo.currentTime >= (bgVideo.duration - 0.1)) {
+                            bgVideo.currentTime = bgVideoStartTimeRef.current + (f / fps);
+                        }
                         const targetMs = f * frameInterval;
                         const now = performance.now() - segmentStartTime;
                         const delay = targetMs - now;
@@ -13568,6 +13612,24 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     }
                 }
             } else {
+                const hasPlayingBgVideo = Boolean(bgVideo && !isNaN(bgVideo.duration) && bgVideo.duration > 0);
+                if (bgVideo && hasPlayingBgVideo) {
+                    const targetTime = bgVideoStartTimeRef.current + startOffsetSec;
+                    bgVideo.pause();
+                    bgVideo.currentTime = targetTime;
+                    await new Promise<void>((resolve) => {
+                        let done = false;
+                        const onSeeked = () => {
+                            if (done) return;
+                            done = true;
+                            bgVideo.removeEventListener('seeked', onSeeked);
+                            resolve();
+                        };
+                        bgVideo.addEventListener('seeked', onSeeked, { once: true });
+                        setTimeout(onSeeked, 300);
+                    });
+                    await bgVideo.play().catch(() => { });
+                }
                 const start = performance.now();
                 let lastRender = -999;
                 let isRendering = false;
@@ -13575,6 +13637,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     const step = async (now: number) => {
                         const elapsed = now - start;
                         if (elapsed >= durationMs) { resolve(); return; }
+                        if (hasPlayingBgVideo && bgVideo) {
+                            if (bgVideo.currentTime < bgVideoStartTimeRef.current - 0.2 || bgVideo.currentTime >= (bgVideo.duration - 0.1)) {
+                                bgVideo.currentTime = bgVideoStartTimeRef.current + (elapsed / 1000);
+                            }
+                        }
                         if (now - lastRender >= frameInterval - 1 && !isRendering) {
                             isRendering = true;
                             lastRender = now;
@@ -13946,7 +14013,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 const actx = audioCtxRef.current;
                                 if (actx && actx.state !== 'closed') {
                                     if (actx.state === 'suspended') await actx.resume().catch(() => { });
-                                    const decodedBuf = await extractAudioBufferFromBlob(bgVideoBlob, totalDuration);
+                                    const decodedBuf = await extractAudioBufferFromBlob(bgVideoBlob, totalDuration, bgVideoStartTimeRef.current);
                                     if (decodedBuf) {
                                         // Débrancher une éventuelle source élément vidéo pour éviter un double son
                                         if (audioSourceNodeRef.current) {
@@ -14923,7 +14990,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 }
 
                 // Rendu actif frame-par-frame avec le texte qui commence son animation dès le début de la slide
-                const currentSlideDur = (s === 1 && hasVideoBg) ? videoDurationMs : slideDuration;
+                const currentSlideDur = (s === 1 && hasVideoBg)
+                    ? videoDurationMs
+                    : (isDevinette && s === 2 ? 6000 : slideDuration);
                 await renderDuration(currentSlideDur, 0);
             }
 
@@ -15107,14 +15176,16 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             }
 
             const isReelWithPromo = (effectiveTab === 'REEL' && combinedMode === 'NONE' && theme !== 'PROMO' && theme !== 'MUSIQUE');
+            const isDevinette = ['JEU', 'JEU_FESTIVAL', 'JEU_DJ'].includes(theme);
             if (isReelWithPromo) {
-                const contentDur = (bgVideo && !isNaN(bgVideo.duration) && bgVideo.duration > 0)
+                let contentDur = (bgVideo && !isNaN(bgVideo.duration) && bgVideo.duration > 0)
                     ? bgVideo.duration * 1000
                     : 20000;
+                if (isDevinette) contentDur = Math.min(15000, contentDur);
                 const promoDur = promoOutroStyle === 'PHONE_3D' ? 7000 : 5000;
                 const transitionDuration = currentTransitionDuration;
 
-                // 1. Rendu du Reel / vidéo principale (ex: vidéo Highlight de 45s)
+                // 1. Rendu du Reel / vidéo principale (ex: vidéo Highlight de 45s, Devinette max 15s)
                 await renderDuration(contentDur);
 
                 // 2. Transition fluide vers la slide Promo Dropsiders en fin de vidéo
@@ -15127,7 +15198,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 // 3. Rendu de la slide Promo Dropsiders en outro
                 await renderDuration(promoDur, 0);
             } else {
-                await renderDuration(totalDuration);
+                let actualDuration = totalDuration;
+                if (isDevinette) actualDuration = Math.min(15000, actualDuration);
+                await renderDuration(actualDuration);
             }
         }
 
@@ -27281,7 +27354,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         onClick={() => {
                                             setFocusReelStyle(st.id as 'CINEMATIC' | 'GLASS' | 'IMPACT' | 'MINIMAL' | 'CLASSIC');
                                             animStartTimeRef.current = Date.now();
-                                            if (bgVideo) bgVideo.currentTime = 0;
+                                            if (bgVideo) bgVideo.currentTime = bgVideoStartTimeRef.current;
                                             setAnimReplayKey(k => k + 1);
                                         }}
                                         className={`px-2.5 py-1 rounded-xl text-[9.5px] font-black uppercase transition-all flex items-center gap-1 ${
@@ -27300,7 +27373,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         onClick={() => {
                                             animStartTimeRef.current = Date.now();
                                             if (bgVideo) {
-                                                bgVideo.currentTime = 0;
+                                                bgVideo.currentTime = bgVideoStartTimeRef.current;
                                                 bgVideo.play().catch(() => {});
                                             }
                                             setAnimReplayKey(k => k + 1);
