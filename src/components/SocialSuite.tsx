@@ -425,7 +425,17 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const [agendaCoverGenres, setAgendaCoverGenres] = useState<string>('HARD TECHNO • RAWSTYLE • MULTI-GENRES');
     const [agendaCoverCta, setAgendaCoverCta] = useState<string>('Les meilleurs events et coups de cœur du mois rassemblés en un post ➡️');
     const [showAgendaCoverCta, setShowAgendaCoverCta] = useState<boolean>(true);
-    const [artisteFestivalSlide, setArtisteFestivalSlide] = useState<1 | 2>(1);
+    const [artisteFestivalSlide, setArtisteFestivalSlide] = useState<number>(1);
+    const [extraSpotlightSlides, setExtraSpotlightSlides] = useState<number[]>([]);
+    const [spotlightSlidesData, setSpotlightSlidesData] = useState<Record<number, {
+        artistName: string;
+        stage: string;
+        day: string;
+        hour: string;
+        artistLogo: string;
+        bgImage?: string;
+    }>>({});
+    const [festivalIntroTitle, setFestivalIntroTitle] = useState<string>('LES 10 ARTISTES À VOIR LORS *FESTIVAL*');
     const [eventsSlide, setEventsSlide] = useState<number>(1);
     const [eventNormalSlidesCount, setEventNormalSlidesCount] = useState<number>(0);
     const [editorialSlide, setEditorialSlide] = useState<number>(1);
@@ -5872,8 +5882,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 const isModernEditorialTheme = (
                     (!isEditorialAfficheRequested && ['NEWS', 'FOCUS', 'RECAP', 'INTERVIEW', 'LIVESTREAM', 'TRACKLIST', 'CONCOURS', 'CONSEILS', 'REELS', 'JEU', 'JEU_FESTIVAL', 'JEU_DJ'].includes(theme)) ||
                     (theme === 'MUSIQUE' && effectiveEditorialSlide === 1) ||
-                    (theme === 'EVENTS' && (eventsSlide !== 2 || eventNormalSlidesCount > 0) && !isEditorialAfficheActive) ||
-                    (theme === 'ARTISTE FESTIVAL' && artisteFestivalSlide === 1)
+                    (theme === 'EVENTS' && (eventsSlide !== 2 || eventNormalSlidesCount > 0) && !isEditorialAfficheActive)
                 );
 
                 // Modern editorial themes (NEWS, FOCUS, MUSIQUE, RECAP, EVENTS, INTERVIEW, LIVESTREAM, ARTISTE FESTIVAL Slide 1, TOP 100, DEVINE CLIP / FESTIVAL / DJ)
@@ -5909,7 +5918,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         ctx.fillRect(0, canvas.height * 0.82, canvas.width, canvas.height * 0.18);
                     }
                 } else {
-                    if (theme !== 'MAP' && theme !== 'HIGHLIGHTS' && theme !== 'CONSEILS' && theme !== 'REELS' && theme !== 'CONCOURS' && theme !== 'TRACKLIST' && theme !== 'SPOTLIGHT' && theme !== 'CITATION' && theme !== 'PROMO' && theme !== 'JEU' && theme !== 'JEU_FESTIVAL' && theme !== 'JEU_DJ' && theme !== 'TOP 100 DROPSIDERS' && theme !== 'AFFICHE' && !(theme === 'EVENTS' && ((eventsSlide === 2 && eventNormalSlidesCount === 0) || isEditorialAfficheActive)) && !(theme === 'MUSIQUE' && effectiveEditorialSlide >= 2) && !isEditorialAfficheRequested && theme !== 'PLANNING' && !(theme === 'ARTISTE FESTIVAL' && artisteFestivalSlide === 2)) {
+                    if (theme !== 'MAP' && theme !== 'HIGHLIGHTS' && theme !== 'CONSEILS' && theme !== 'REELS' && theme !== 'CONCOURS' && theme !== 'TRACKLIST' && theme !== 'SPOTLIGHT' && theme !== 'ARTISTE FESTIVAL' && theme !== 'CITATION' && theme !== 'PROMO' && theme !== 'JEU' && theme !== 'JEU_FESTIVAL' && theme !== 'JEU_DJ' && theme !== 'TOP 100 DROPSIDERS' && theme !== 'AFFICHE' && !(theme === 'EVENTS' && ((eventsSlide === 2 && eventNormalSlidesCount === 0) || isEditorialAfficheActive)) && !(theme === 'MUSIQUE' && effectiveEditorialSlide >= 2) && !isEditorialAfficheRequested && theme !== 'PLANNING') {
                         const gradStart = (theme === 'TOP 5 ARTISTE' || theme === 'TOP 5 STYLES')
                             ? canvas.height * 0.8
                             : canvas.height * 0.4;
@@ -7881,181 +7890,418 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                         ctx.restore();
                     }
-                } else if (theme === 'SPOTLIGHT' || (theme === 'ARTISTE FESTIVAL' && artisteFestivalSlide === 2)) {
-                    // 1. Black Fade from left (Darker and deeper for text legibility)
-                    const fadeGrad = ctx.createLinearGradient(0, 0, canvas.width * 0.8, 0);
-                    fadeGrad.addColorStop(0, '#000000');
-                    fadeGrad.addColorStop(0.4, '#000000'); // Deeper black area
-                    fadeGrad.addColorStop(0.7, 'rgba(0,0,0,0.6)');
-                    fadeGrad.addColorStop(1, 'rgba(0,0,0,0)');
-                    ctx.fillStyle = fadeGrad;
-                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                } else if (theme === 'SPOTLIGHT' || theme === 'ARTISTE FESTIVAL') {
+                    if (artisteFestivalSlide === 1) {
+                        // ══════════════════════════════════════════════════════════════
+                        // SLIDE 1 : INTRO STYLE TOP 10 (LES 10 ARTISTES À VOIR LORS *FESTIVAL*)
+                        // ══════════════════════════════════════════════════════════════
+                        const isStory = canvas.height > 1500;
+                        const centerX = canvas.width / 2;
+                        const centerY = isStory ? 960 : 540;
 
-                    // 2. Artist Logo or Name (Top Left)
-                    if (artistLogoRef.current) {
-                        const logo = artistLogoRef.current;
-                        const maxW = 420; // Réduit de 500
-                        const maxH = 180; // Réduit de 220
-                        let lw = logo.width;
-                        let lh = logo.height;
-                        const ratio = Math.min(maxW / lw, maxH / lh);
-                        lw *= ratio; lh *= ratio;
-                        ctx.save();
-                        applyTextAnimCtx(ctx, 0.10, 80 + lw / 2, 150 + lh / 2);
-                        if (isArtistLogoNegative) {
-                            drawWhiteLogoCrossBrowser(ctx, logo, 80, 150, lw, lh);
+                        // 1. Fond sombre & Aura néon rouge centrale
+                        const auraGrad = ctx.createRadialGradient(centerX, centerY, 50, centerX, centerY, canvas.width * 0.75);
+                        auraGrad.addColorStop(0, 'rgba(255, 0, 51, 0.28)');
+                        auraGrad.addColorStop(0.45, 'rgba(255, 0, 51, 0.08)');
+                        auraGrad.addColorStop(1, 'rgba(0, 0, 0, 0.75)');
+                        ctx.fillStyle = auraGrad;
+                        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                        // Vignette cinématique sur les bords
+                        const darkEdgeGrad = ctx.createLinearGradient(0, 0, 0, canvas.height);
+                        darkEdgeGrad.addColorStop(0, 'rgba(0, 0, 0, 0.75)');
+                        darkEdgeGrad.addColorStop(0.2, 'rgba(0, 0, 0, 0.2)');
+                        darkEdgeGrad.addColorStop(0.8, 'rgba(0, 0, 0, 0.3)');
+                        darkEdgeGrad.addColorStop(1, 'rgba(0, 0, 0, 0.85)');
+                        ctx.fillStyle = darkEdgeGrad;
+                        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                        // 2. Top-Left Capsule Badge (FESTIVAL GUIDE)
+                        const festBadgeText = festivalNameText ? festivalNameText.toUpperCase() : 'FESTIVAL GUIDE';
+                        drawTopCapsuleBadge(festBadgeText, '#ff0033', '255, 0, 51');
+
+                        // 3. Dropsiders 3D Logo Top-Right
+                        if (logoRef.current) {
+                            const lw = 320;
+                            const xOffset = bgVideo ? 140 : 40;
+                            const yOffset = bgVideo ? 70 : 20;
+                            drawDropsiders3DLogo(canvas.width - lw - xOffset, yOffset, lw);
+                        }
+
+                        // 4. Hook Title Géant (Style Top 10 avec découpage intelligent & asterisques rouge néon)
+                        const parseSpotlightSegments = (lineText: string): { text: string; isHighlighted: boolean }[] => {
+                            const regex = /(\*([^*]+)\*)/gi;
+                            const segs: { text: string; isHighlighted: boolean }[] = [];
+                            let lastIndex = 0;
+                            let match: RegExpExecArray | null;
+                            while ((match = regex.exec(lineText)) !== null) {
+                                if (match.index > lastIndex) {
+                                    segs.push({ text: lineText.slice(lastIndex, match.index).replace(/\*/g, ''), isHighlighted: false });
+                                }
+                                segs.push({ text: match[2], isHighlighted: true });
+                                lastIndex = regex.lastIndex;
+                            }
+                            if (lastIndex < lineText.length) {
+                                segs.push({ text: lineText.slice(lastIndex).replace(/\*/g, ''), isHighlighted: false });
+                            }
+                            return segs.length > 0 ? segs : [{ text: lineText.replace(/\*/g, ''), isHighlighted: false }];
+                        };
+
+                        const rawIntroTitle = (festivalIntroTitle || `LES 10 ARTISTES À VOIR LORS *${(festivalNameText || 'FESTIVAL').toUpperCase()}*`).toUpperCase().trim();
+
+                        let titleLines: string[] = [];
+                        if (rawIntroTitle.includes('\n')) {
+                            titleLines = rawIntroTitle.split('\n').map(l => l.trim()).filter(Boolean);
+                        } else if (rawIntroTitle.includes('À VOIR')) {
+                            const idx = rawIntroTitle.indexOf('À VOIR');
+                            titleLines = [rawIntroTitle.slice(0, idx).trim(), rawIntroTitle.slice(idx).trim()].filter(Boolean);
+                        } else if (rawIntroTitle.includes('A VOIR')) {
+                            const idx = rawIntroTitle.indexOf('A VOIR');
+                            titleLines = [rawIntroTitle.slice(0, idx).trim(), rawIntroTitle.slice(idx).trim()].filter(Boolean);
+                        } else if (rawIntroTitle.includes('LORS')) {
+                            const idx = rawIntroTitle.indexOf('LORS');
+                            titleLines = [rawIntroTitle.slice(0, idx).trim(), rawIntroTitle.slice(idx).trim()].filter(Boolean);
+                        } else if (rawIntroTitle.length > 20 && rawIntroTitle.includes(' ')) {
+                            const words = rawIntroTitle.split(' ');
+                            const mid = Math.ceil(words.length / 2);
+                            titleLines = [words.slice(0, mid).join(' '), words.slice(mid).join(' ')];
                         } else {
-                            ctx.drawImage(logo, 80, 150, lw, lh); // Remonté de 200 à 150
+                            titleLines = [rawIntroTitle];
                         }
-                        ctx.restore();
-                    } else if (artistNameText) {
-                        ctx.save();
-                        applyTextAnimCtx(ctx, 0.10, 80 + 200, 280);
-                        ctx.fillStyle = '#ffffff';
-                        let fontSize = 80;
-                        ctx.font = `900 italic ${fontSize}px "Orbitron", sans-serif`;
-                        const maxArtistWidth = 748;
-                        let textWidth = ctx.measureText(artistNameText.toUpperCase()).width;
-                        if (textWidth > maxArtistWidth) {
-                            fontSize = Math.max(30, Math.floor(fontSize * (maxArtistWidth / textWidth)));
-                            ctx.font = `900 italic ${fontSize}px "Orbitron", sans-serif`;
-                        }
-                        ctx.textAlign = 'left';
-                        ctx.shadowColor = 'rgba(0,0,0,0.5)';
-                        ctx.shadowBlur = 15;
-                        ctx.fillText(artistNameText.toUpperCase(), 80, 280); // Remonté de 300 à 280
-                        ctx.restore();
-                    }
 
-                    // 3. Texts (Tagline, Stage & Day)
-                    if (customText) {
-                        const lines = customText.split('\n').map(l => l.trim().toUpperCase());
-                        const tagline = lines[0] || '';
-                        const stageName = lines[1] || '';
-                        // dayName est récupéré plus bas via lines[2]
+                        let titleFontSize = isStory
+                            ? (titleLines.length > 2 ? 80 : (titleLines.length === 2 ? 102 : 116))
+                            : (titleLines.length > 2 ? 58 : (titleLines.length === 2 ? 74 : 88));
 
-                        ctx.save();
-                        applyTextAnimCtx(ctx, 0.22, 250, 480);
-                        ctx.textAlign = 'left';
-                        ctx.shadowColor = 'rgba(0,0,0,0.8)';
-                        ctx.shadowBlur = 15;
+                        ctx.font = `900 italic ${titleFontSize}px "Montserrat", sans-serif`;
+                        if ('letterSpacing' in ctx) (ctx as any).letterSpacing = '1px';
 
-                        // Tagline (White, small)
-                        let taglineY = 440; // Descendu de 420 à 440 pour laisser plus d'air sous le logo
-                        if (tagline) {
-                            ctx.fillStyle = '#ffffff';
-                            ctx.font = '800 28px "Montserrat", sans-serif';
-                            ctx.letterSpacing = '3px';
+                        titleLines.forEach(l => {
+                            const cleanL = l.replace(/\*/g, '');
+                            while (ctx.measureText(cleanL).width > (canvas.width - 120) && titleFontSize > 36) {
+                                titleFontSize -= 2;
+                                ctx.font = `900 italic ${titleFontSize}px "Montserrat", sans-serif`;
+                            }
+                        });
 
-                            const taglinePart1 = lines[0] || '';
-                            const taglinePart2 = lines[3] || '';
+                        const titleLineHeight = titleFontSize * 1.15;
+                        const titleCenterY = isStory ? 730 : 410;
+                        const festCenterY = isStory ? 1040 : 585;
+                        const pillY = isStory ? 1270 : 715;
+                        const titleLine0Y = titleCenterY - (((titleLines.length - 1) * titleLineHeight) / 2);
 
-                            ctx.fillText(taglinePart1, 80, taglineY);
-                            if (taglinePart2) {
-                                taglineY += 40;
-                                ctx.fillText(taglinePart2, 80, taglineY);
+                        // Tracé des lignes du titre avec asterisques en rouge néon
+                        titleLines.forEach((line, idx) => {
+                            const lineY = titleLine0Y + idx * titleLineHeight;
+                            const segments = parseSpotlightSegments(line);
+
+                            ctx.save();
+                            applyTextAnimCtx(ctx, 0.20 + idx * 0.10, centerX, lineY);
+                            ctx.textAlign = 'left';
+                            ctx.textBaseline = 'middle';
+
+                            const totalLineW = segments.reduce((sum, s) => sum + ctx.measureText(s.text).width, 0);
+                            let curX = centerX - (totalLineW / 2);
+
+                            segments.forEach(seg => {
+                                const segW = ctx.measureText(seg.text).width;
+                                const color = seg.isHighlighted ? '#ff0033' : '#ffffff';
+
+                                // Ombre portée 3D
+                                ctx.save();
+                                ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
+                                ctx.shadowBlur = 24;
+                                ctx.shadowOffsetX = 0;
+                                ctx.shadowOffsetY = 6;
+                                ctx.fillStyle = color;
+                                ctx.fillText(seg.text, curX, lineY);
+                                ctx.restore();
+
+                                // Lueur néon intense pour les segments entre astérisques
+                                if (seg.isHighlighted) {
+                                    ctx.save();
+                                    ctx.shadowColor = 'rgba(255, 0, 51, 0.9)';
+                                    ctx.shadowBlur = 26;
+                                    ctx.fillStyle = '#ff0033';
+                                    ctx.fillText(seg.text, curX, lineY);
+                                    ctx.restore();
+                                }
+
+                                // Face avant propre
+                                ctx.save();
+                                ctx.fillStyle = color;
+                                ctx.fillText(seg.text, curX, lineY);
+                                ctx.restore();
+
+                                curX += segW;
+                            });
+                            ctx.restore();
+                        });
+
+                        // 5. Logo Festival Uploadé OU Nom Festival en Grand
+                        const festLogoObj = festivalLogoRef.current;
+                        const hasUploadedFestLogo = Boolean(festivalLogo && festivalLogo.trim() !== '' && festLogoObj && (festLogoObj.naturalWidth > 0 || festLogoObj.complete));
+
+                        if (hasUploadedFestLogo && festLogoObj) {
+                            const maxW = isStory ? 680 : 500;
+                            const maxH = isStory ? 240 : 170;
+                            let lw = festLogoObj.width;
+                            let lh = festLogoObj.height;
+                            const ratio = Math.min(maxW / lw, maxH / lh);
+                            lw = Math.round(lw * ratio);
+                            lh = Math.round(lh * ratio);
+                            const lx = (canvas.width - lw) / 2;
+                            const ly = festCenterY - (lh / 2);
+
+                            ctx.save();
+                            applyTextAnimCtx(ctx, 0.35, centerX, festCenterY);
+                            ctx.shadowColor = 'rgba(255, 0, 51, 0.85)';
+                            ctx.shadowBlur = 30;
+                            ctx.drawImage(festLogoObj, lx, ly, lw, lh);
+                            ctx.restore();
+                        } else {
+                            const effectiveFestName = (festivalNameText || 'FESTIVAL 2026').toUpperCase().trim();
+                            let textFestFontSize = isStory ? 92 : 68;
+                            ctx.save();
+                            ctx.font = `900 italic ${textFestFontSize}px "Orbitron", sans-serif`;
+                            if ('letterSpacing' in ctx) (ctx as any).letterSpacing = '2px';
+                            let tW = ctx.measureText(effectiveFestName).width;
+                            const maxAllowedW = canvas.width - 120;
+                            if (tW > maxAllowedW) {
+                                textFestFontSize = Math.max(34, Math.floor(textFestFontSize * (maxAllowedW / tW)));
+                                ctx.font = `900 italic ${textFestFontSize}px "Orbitron", sans-serif`;
                             }
 
-                            // Decorative Red Bar
-                            ctx.fillStyle = activeColor.color;
-                            ctx.fillRect(80, taglineY + 50, 70, 8);
+                            applyTextAnimCtx(ctx, 0.35, centerX, festCenterY);
+                            ctx.textAlign = 'center';
+                            ctx.textBaseline = 'middle';
+                            ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
+                            ctx.shadowBlur = 30;
+                            ctx.shadowOffsetY = 6;
+                            ctx.fillStyle = '#ffffff';
+                            ctx.fillText(effectiveFestName, centerX, festCenterY);
+
+                            ctx.shadowColor = 'rgba(255, 0, 51, 0.9)';
+                            ctx.shadowBlur = 24;
+                            ctx.fillStyle = '#ff0033';
+                            ctx.fillText(effectiveFestName, centerX, festCenterY);
+                            ctx.restore();
                         }
 
-                        // Stage Section
-                        let currY = taglineY + 180; // Restored base layout spacing
-                        ctx.fillStyle = 'rgba(255,255,255,0.6)';
-                        ctx.font = '900 32px "Orbitron", sans-serif'; // Restored base size
-                        ctx.letterSpacing = '4px';
-                        ctx.fillText('STAGE', 80, currY);
-
-                        ctx.fillStyle = activeColor.color; // Yellow
-                        let stageFontSize = 85; // Restored base size
-                        ctx.font = `900 italic ${stageFontSize}px "Orbitron", sans-serif`;
-                        let stageWidth = ctx.measureText(stageName).width;
-                        const maxStageWidth = 748;
-                        if (stageWidth > maxStageWidth) {
-                            stageFontSize = Math.max(30, Math.floor(stageFontSize * (maxStageWidth / stageWidth)));
-                            ctx.font = `900 italic ${stageFontSize}px "Orbitron", sans-serif`;
-                        }
-                        ctx.letterSpacing = '-2px';
-                        ctx.fillText(stageName, 75, currY + 85); // Restored base offset
-
-                        // Day Section
-                        currY += 210; // Restored base layout spacing
-                        ctx.fillStyle = 'rgba(255,255,255,0.6)';
-                        ctx.font = '900 32px "Orbitron", sans-serif'; // Restored base size
-                        ctx.letterSpacing = '4px';
-                        ctx.fillText('JOUR', 80, currY);
-
-                        const dayName = lines[2] || '';
-                        ctx.fillStyle = activeColor.color; // Yellow
-                        let dayFontSize = 85; // Restored base size
-                        ctx.font = `900 italic ${dayFontSize}px "Orbitron", sans-serif`;
-                        let dayWidth = ctx.measureText(dayName).width;
-                        const maxDayWidth = 748;
-                        if (dayWidth > maxDayWidth) {
-                            dayFontSize = Math.max(30, Math.floor(dayFontSize * (maxDayWidth / dayWidth)));
-                            ctx.font = `900 italic ${dayFontSize}px "Orbitron", sans-serif`;
-                        }
-                        ctx.letterSpacing = '-2px';
-                        ctx.fillText(dayName, 75, currY + 85); // Restored base offset
-
-                        // Hour Section
-                        currY += 210; // Restored base layout spacing
-                        ctx.fillStyle = 'rgba(255,255,255,0.6)';
-                        ctx.font = '900 32px "Orbitron", sans-serif'; // Restored base size
-                        ctx.letterSpacing = '4px';
-                        ctx.fillText('HEURE', 80, currY);
-
-                        const hourName = lines[4] || '';
-                        ctx.fillStyle = activeColor.color; // Yellow
-                        let hourFontSize = 85; // Restored base size
-                        ctx.font = `900 italic ${hourFontSize}px "Orbitron", sans-serif`;
-                        let hourWidth = ctx.measureText(hourName).width;
-                        const maxHourWidth = 748;
-                        if (hourWidth > maxHourWidth) {
-                            hourFontSize = Math.max(30, Math.floor(hourFontSize * (maxHourWidth / hourWidth)));
-                            ctx.font = `900 italic ${hourFontSize}px "Orbitron", sans-serif`;
-                        }
-                        ctx.letterSpacing = '-2px';
-                        ctx.fillText(hourName, 75, currY + 85); // Restored base offset
-
-                        ctx.restore();
-                    }
-
-                    // 4. Festival Logo or Name (Bottom Left)
-                    if (festivalLogoRef.current) {
-                        const fest = festivalLogoRef.current;
-                        const maxW = 350;
-                        const maxH = 120;
-                        let lw = fest.width;
-                        let lh = fest.height;
-                        const ratio = Math.min(maxW / lw, maxH / lh);
-                        lw *= ratio; lh *= ratio;
-                        ctx.drawImage(fest, 80, canvas.height - 180, lw, lh);
-                    } else if (festivalNameText) {
+                        // 6. Pill cyber subtile
                         ctx.save();
-                        ctx.fillStyle = '#ffffff';
-                        let festFontSize = 45;
-                        ctx.font = `900 italic ${festFontSize}px "Montserrat", sans-serif`;
-                        const maxFestWidth = 748;
-                        let festWidth = ctx.measureText(festivalNameText.toUpperCase()).width;
-                        if (festWidth > maxFestWidth) {
-                            festFontSize = Math.max(20, Math.floor(festFontSize * (maxFestWidth / festWidth)));
-                            ctx.font = `900 italic ${festFontSize}px "Montserrat", sans-serif`;
-                        }
-                        ctx.textAlign = 'left';
-                        ctx.letterSpacing = '2px';
-                        ctx.fillText(festivalNameText.toUpperCase(), 80, canvas.height - 120);
-                        ctx.restore();
-                    }
+                        applyTextAnimCtx(ctx, 0.45, centerX, pillY);
+                        const pillLabel = (conseilsSubtext || '🎪 SÉLECTION OFFICIELLE • LINE-UP GUIDE').toUpperCase();
+                        ctx.font = '800 italic 20px "Montserrat", sans-serif';
+                        if ('letterSpacing' in ctx) (ctx as any).letterSpacing = '2px';
+                        const pTextW = ctx.measureText(pillLabel).width;
+                        const pW = pTextW + 48;
+                        const pH = 44;
+                        const pX = (canvas.width - pW) / 2;
+                        const pTopY = pillY - pH / 2;
 
-                    // 5. Dropsiders Logo (Top Right) - Aligned with other themes (3D + Nacrage Thème)
-                    if (logoRef.current) {
-                        const lw = 320;
-                        const xOffset = bgVideo ? 140 : 40;
-                        const yOffset = bgVideo ? 70 : 20;
-                        drawDropsiders3DLogo(canvas.width - lw - xOffset, yOffset, lw);
+                        ctx.fillStyle = 'rgba(10, 14, 22, 0.85)';
+                        ctx.strokeStyle = 'rgba(255, 0, 51, 0.5)';
+                        ctx.lineWidth = 1.5;
+                        ctx.beginPath();
+                        ctx.roundRect(pX, pTopY, pW, pH, pH / 2);
+                        ctx.fill();
+                        ctx.stroke();
+
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'middle';
+                        ctx.fillStyle = '#ffffff';
+                        ctx.fillText(pillLabel, centerX, pillY);
+                        ctx.restore();
+
+                        // 7. Indicateur Swipe
+                        if (showSwipe) {
+                            const swipeY = isStory ? canvas.height - 120 : canvas.height - 70;
+                            drawAnimatedSwipeIndicator(canvas.width / 2 + 50, swipeY, '#ff0033', 24);
+                        }
+                    } else {
+                        // ══════════════════════════════════════════════════════════════
+                        // SLIDES 2+ : SPOTLIGHT ARTISTE CENTRÉ (SANS TAGLINE 1 NI 2)
+                        // ══════════════════════════════════════════════════════════════
+                        const isStory = canvas.height > 1500;
+
+                        // 1. Black Fade from left (Profond et net pour lisibilité parfaite des textes)
+                        const fadeGrad = ctx.createLinearGradient(0, 0, canvas.width * 0.85, 0);
+                        fadeGrad.addColorStop(0, '#000000');
+                        fadeGrad.addColorStop(0.35, '#000000');
+                        fadeGrad.addColorStop(0.65, 'rgba(0,0,0,0.65)');
+                        fadeGrad.addColorStop(1, 'rgba(0,0,0,0)');
+                        ctx.fillStyle = fadeGrad;
+                        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                        // Données de la slide active
+                        const slideData = spotlightSlidesData[artisteFestivalSlide];
+                        const curArtistName = (slideData?.artistName !== undefined ? slideData.artistName : artistNameText) || '';
+                        const lines = customText ? customText.split('\n').map(l => l.trim().toUpperCase()) : [];
+                        const stageName = (slideData?.stage !== undefined ? slideData.stage : (lines[1] || '')) || '';
+                        const dayName = (slideData?.day !== undefined ? slideData.day : (lines[2] || '')) || '';
+                        const hourName = (slideData?.hour !== undefined ? slideData.hour : (lines[4] || '')) || '';
+
+                        // Calcul des positions Y verticalement CENTRÉES
+                        // En Story 1920: bloc s'étend de Y=480 à Y=1320 (centre ~900)
+                        // En Post 1080: bloc s'étend de Y=220 à Y=780 (centre ~500)
+                        const startY = isStory ? 480 : Math.round(canvas.height * 0.20);
+                        const stageY = isStory ? 740 : Math.round(canvas.height * 0.38);
+                        const dayY = isStory ? 980 : Math.round(canvas.height * 0.54);
+                        const hourY = isStory ? 1220 : Math.round(canvas.height * 0.70);
+
+                        // 2. Artist Logo or Name (Centré verticalement dans le haut du bloc)
+                        if (artistLogoRef.current) {
+                            const logo = artistLogoRef.current;
+                            const maxW = isStory ? 480 : 380;
+                            const maxH = isStory ? 180 : 130;
+                            let lw = logo.width;
+                            let lh = logo.height;
+                            const ratio = Math.min(maxW / lw, maxH / lh);
+                            lw *= ratio; lh *= ratio;
+                            ctx.save();
+                            applyTextAnimCtx(ctx, 0.10, 80 + lw / 2, startY + lh / 2);
+                            if (isArtistLogoNegative) {
+                                drawWhiteLogoCrossBrowser(ctx, logo, 80, startY, lw, lh);
+                            } else {
+                                ctx.drawImage(logo, 80, startY, lw, lh);
+                            }
+                            ctx.restore();
+                        } else if (curArtistName) {
+                            ctx.save();
+                            applyTextAnimCtx(ctx, 0.10, 80 + 200, startY + 50);
+                            ctx.fillStyle = '#ffffff';
+                            let fontSize = isStory ? 82 : 62;
+                            ctx.font = `900 italic ${fontSize}px "Orbitron", sans-serif`;
+                            const maxArtistWidth = canvas.width - 160;
+                            let textWidth = ctx.measureText(curArtistName.toUpperCase()).width;
+                            if (textWidth > maxArtistWidth) {
+                                fontSize = Math.max(28, Math.floor(fontSize * (maxArtistWidth / textWidth)));
+                                ctx.font = `900 italic ${fontSize}px "Orbitron", sans-serif`;
+                            }
+                            ctx.textAlign = 'left';
+                            ctx.textBaseline = 'middle';
+                            ctx.shadowColor = 'rgba(0,0,0,0.85)';
+                            ctx.shadowBlur = 18;
+                            ctx.fillText(curArtistName.toUpperCase(), 80, startY + 50);
+                            ctx.restore();
+                        }
+
+                        // 3. Lineup Sections (STAGE, JOUR, HEURE) - SANS TAGLINE 1 NI 2
+                        ctx.save();
+                        ctx.textAlign = 'left';
+                        ctx.shadowColor = 'rgba(0,0,0,0.85)';
+                        ctx.shadowBlur = 15;
+
+                        const labelFontSize = isStory ? 32 : 24;
+                        const valFontSize = isStory ? 82 : 58;
+
+                        // STAGE
+                        if (stageName) {
+                            ctx.save();
+                            applyTextAnimCtx(ctx, 0.20, 250, stageY);
+                            ctx.fillStyle = 'rgba(255,255,255,0.6)';
+                            ctx.font = `900 ${labelFontSize}px "Orbitron", sans-serif`;
+                            ctx.letterSpacing = '4px';
+                            ctx.fillText('STAGE', 80, stageY);
+
+                            ctx.fillStyle = activeColor.color;
+                            let sFontSize = valFontSize;
+                            ctx.font = `900 italic ${sFontSize}px "Orbitron", sans-serif`;
+                            let stageWidth = ctx.measureText(stageName).width;
+                            const maxStageWidth = canvas.width - 160;
+                            if (stageWidth > maxStageWidth) {
+                                sFontSize = Math.max(28, Math.floor(sFontSize * (maxStageWidth / stageWidth)));
+                                ctx.font = `900 italic ${sFontSize}px "Orbitron", sans-serif`;
+                            }
+                            ctx.letterSpacing = '-2px';
+                            ctx.fillText(stageName, 75, stageY + (isStory ? 85 : 55));
+                            ctx.restore();
+                        }
+
+                        // JOUR
+                        if (dayName) {
+                            ctx.save();
+                            applyTextAnimCtx(ctx, 0.28, 250, dayY);
+                            ctx.fillStyle = 'rgba(255,255,255,0.6)';
+                            ctx.font = `900 ${labelFontSize}px "Orbitron", sans-serif`;
+                            ctx.letterSpacing = '4px';
+                            ctx.fillText('JOUR', 80, dayY);
+
+                            ctx.fillStyle = activeColor.color;
+                            let dFontSize = valFontSize;
+                            ctx.font = `900 italic ${dFontSize}px "Orbitron", sans-serif`;
+                            let dayWidth = ctx.measureText(dayName).width;
+                            const maxDayWidth = canvas.width - 160;
+                            if (dayWidth > maxDayWidth) {
+                                dFontSize = Math.max(28, Math.floor(dFontSize * (maxDayWidth / dayWidth)));
+                                ctx.font = `900 italic ${dFontSize}px "Orbitron", sans-serif`;
+                            }
+                            ctx.letterSpacing = '-2px';
+                            ctx.fillText(dayName, 75, dayY + (isStory ? 85 : 55));
+                            ctx.restore();
+                        }
+
+                        // HEURE
+                        if (hourName) {
+                            ctx.save();
+                            applyTextAnimCtx(ctx, 0.36, 250, hourY);
+                            ctx.fillStyle = 'rgba(255,255,255,0.6)';
+                            ctx.font = `900 ${labelFontSize}px "Orbitron", sans-serif`;
+                            ctx.letterSpacing = '4px';
+                            ctx.fillText('HEURE', 80, hourY);
+
+                            ctx.fillStyle = activeColor.color;
+                            let hFontSize = valFontSize;
+                            ctx.font = `900 italic ${hFontSize}px "Orbitron", sans-serif`;
+                            let hourWidth = ctx.measureText(hourName).width;
+                            const maxHourWidth = canvas.width - 160;
+                            if (hourWidth > maxHourWidth) {
+                                hFontSize = Math.max(28, Math.floor(hFontSize * (maxHourWidth / hourWidth)));
+                                ctx.font = `900 italic ${hFontSize}px "Orbitron", sans-serif`;
+                            }
+                            ctx.letterSpacing = '-2px';
+                            ctx.fillText(hourName, 75, hourY + (isStory ? 85 : 55));
+                            ctx.restore();
+                        }
+                        ctx.restore();
+
+                        // 4. Festival Logo or Name (Bottom Left)
+                        if (festivalLogoRef.current) {
+                            const fest = festivalLogoRef.current;
+                            const maxW = isStory ? 350 : 260;
+                            const maxH = isStory ? 120 : 90;
+                            let lw = fest.width;
+                            let lh = fest.height;
+                            const ratio = Math.min(maxW / lw, maxH / lh);
+                            lw *= ratio; lh *= ratio;
+                            ctx.drawImage(fest, 80, canvas.height - (isStory ? 160 : 110), lw, lh);
+                        } else if (festivalNameText) {
+                            ctx.save();
+                            ctx.fillStyle = '#ffffff';
+                            let festFontSize = isStory ? 45 : 32;
+                            ctx.font = `900 italic ${festFontSize}px "Montserrat", sans-serif`;
+                            const maxFestWidth = canvas.width - 160;
+                            let festWidth = ctx.measureText(festivalNameText.toUpperCase()).width;
+                            if (festWidth > maxFestWidth) {
+                                festFontSize = Math.max(18, Math.floor(festFontSize * (maxFestWidth / festWidth)));
+                                ctx.font = `900 italic ${festFontSize}px "Montserrat", sans-serif`;
+                            }
+                            ctx.textAlign = 'left';
+                            ctx.letterSpacing = '2px';
+                            ctx.shadowColor = 'rgba(0,0,0,0.85)';
+                            ctx.shadowBlur = 12;
+                            ctx.fillText(festivalNameText.toUpperCase(), 80, canvas.height - (isStory ? 110 : 70));
+                            ctx.restore();
+                        }
+
+                        // 5. Dropsiders Logo (Top Right)
+                        if (logoRef.current) {
+                            const lw = 320;
+                            const xOffset = bgVideo ? 140 : 40;
+                            const yOffset = bgVideo ? 70 : 20;
+                            drawDropsiders3DLogo(canvas.width - lw - xOffset, yOffset, lw);
+                        }
                     }
 
                 } else if (theme === 'CITATION') {
@@ -11565,7 +11811,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                     // 1. TOP-LEFT STYLIZED CAPSULE BADGE (French Crowd / Modern Editorial)
                     const isReel = effectiveTab === 'REEL';
-                    const isEditorialCarouselTheme = ['NEWS', 'FOCUS', 'MUSIQUE', 'RECAP', 'INTERVIEW', 'LIVESTREAM', 'CONSEILS', 'REELS', 'CONCOURS', 'TOP 100 DROPSIDERS', 'JEU', 'JEU_FESTIVAL', 'JEU_DJ', 'ARTISTE FESTIVAL', 'HIGHLIGHTS', 'EVENTS'].includes(theme);
+                    const isEditorialCarouselTheme = ['NEWS', 'FOCUS', 'MUSIQUE', 'RECAP', 'INTERVIEW', 'LIVESTREAM', 'CONSEILS', 'REELS', 'CONCOURS', 'TOP 100 DROPSIDERS', 'JEU', 'JEU_FESTIVAL', 'JEU_DJ', 'HIGHLIGHTS', 'EVENTS'].includes(theme);
 
                     ctx.save();
                     if (isEditorialCarouselTheme) {
@@ -11573,9 +11819,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     }
 
                     let themeDotColor = (theme === 'INTERVIEW') ? '#ffffff' : activeData.color;
-                    let badgeLabelText = (theme === 'ARTISTE FESTIVAL')
-                        ? (festivalNameText ? festivalNameText.toUpperCase() : 'FESTIVAL')
-                        : (('label' in activeData) ? (activeData as any).label : theme);
+                    let badgeLabelText = (('label' in activeData) ? (activeData as any).label : theme);
                     let badgeGrad = (theme === 'INTERVIEW') ? '255, 255, 255' : activeData.grad;
 
                     if (theme === 'JEU_DJ' && !isCurrentSlideSilhouette) {
@@ -11629,7 +11873,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             : 99.0);
 
                     // Date centrée dans la barre blanche (avec un segment de barre blanche de chaque côté)
-                    const showEditorialDate = showDividerDate && ['NEWS', 'FOCUS', 'RECAP', 'INTERVIEW', 'LIVESTREAM', 'MUSIQUE', 'EVENTS', 'ARTISTE FESTIVAL', 'CONCOURS', 'REELS', 'CONSEILS', 'TOP 100 DROPSIDERS', 'JEU', 'JEU_FESTIVAL', 'JEU_DJ', 'TRACKLIST', 'SPOTLIGHT', 'CITATION'].includes(theme);
+                    const showEditorialDate = showDividerDate && ['NEWS', 'FOCUS', 'RECAP', 'INTERVIEW', 'LIVESTREAM', 'MUSIQUE', 'EVENTS', 'CONCOURS', 'REELS', 'CONSEILS', 'TOP 100 DROPSIDERS', 'JEU', 'JEU_FESTIVAL', 'JEU_DJ', 'TRACKLIST', 'CITATION'].includes(theme);
 
                     if (!isFocusReelHook) {
                         ctx.save();
@@ -11726,7 +11970,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         ? slideCustomTitle
                         : ((conseilsTitle && conseilsTitle !== 'LE TITRE ICI')
                             ? conseilsTitle
-                            : (customText || (theme === 'ARTISTE FESTIVAL' ? 'LES 10 ARTISTES À NE PAS LOUPER' : '')));
+                            : (customText || ''));
 
                     // Sur les slides 2+ des thèmes éditoriaux, possibilité de masquer le grand titre si pas de titre spécifique
                     if (effectiveEditorialSlide >= 2 && isEditorialCarouselTheme && !showTitleOnSlide2 && !slideCustomTitle && !isCurrentSlideSilhouette) {
@@ -12325,7 +12569,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 }
 
                 // --- FINAL OVERLAYS (Logo & Swipe) ---
-                if (logoRef.current && theme !== 'SPOTLIGHT' && !(theme === 'ARTISTE FESTIVAL' && artisteFestivalSlide === 2) && theme !== 'PROMO') {
+                if (logoRef.current && theme !== 'SPOTLIGHT' && theme !== 'ARTISTE FESTIVAL' && theme !== 'PROMO') {
                     drawDropsiders3DLogo();
                 }
 
@@ -12525,7 +12769,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             anim = requestAnimationFrame(loop);
         } else { generateImage(); }
         return () => cancelAnimationFrame(anim);
-    }, [bgImage, bgVideo, customText, theme, showSwipe, showArticleLink, articleLinkText, showVoteLink, top5Items, currentPreviewIndex, activeTab, rotation, themeColor, isVideoRecording, transitionProgress, showText, planningDate, planningItems, agendaMonth, agendaBadgeText, agendaSlide, agendaCoverBadge, agendaCoverTitle, agendaCoverYear, agendaCoverGenres, agendaCoverCta, showAgendaCoverCta, artisteFestivalSlide, eventsSlide, editorialSlide, isEditorialAfficheActive, isEditorialTweetActive, showTitleOnSlide2, showMusicDate, editorialDate, showDividerDate, citationAuthor, citationMedia, extraEditorialSlides, musicTracks, top10Tracks, top10ActiveRank, top10Title, top10IntroTitle, top10IntroArtist, top10ColoredWords, top10LogoScale, top10Subtitle, top10TrackDuration, top10TestingRank, top10GenMode, top10Badge, top10LabelSearch, top10StyleSearch, top10ArtistSearch, top100Rank, top100ArtistName, top100Category, top100Badge, top100AnimKey, calendarMonth, calendarEvents, isRetouchMode, retouchPath, isTransparent, showBottomLogo, artistLogo, festivalLogo, bgOffsetX, bgOffsetY, artistNameText, festivalNameText, isArtistLogoNegative, mapFestivalText, mapCityCountry, mapZoom, mapLatitude, mapLongitude, mapStyle, isMapLoading, mapPinColor, mapLabelText, showMapPin, showMapLabel, mapAnimMode, isMapAnimPlaying, mapScrubTime, mapAnimDuration, mapDestLatitude, mapDestLongitude, mapDestFestivalText, mapDestVenue, mapDestCity, mapDestCountry, mapDestPinColor, imgLayoutMode, quizColor1, quizColor2, showFrame, focusReelStyle, conseilsTitle, conseilsSubtext, isConseilsLargeTitle, concoursFestivalName, concoursFestivalHandle, concoursBottomColor, concoursLateralText, concoursLateralOpacity, concoursBadgeTextColor, concoursMode, concoursGTAHeadline, concoursGTATitle, concoursGTAPlatformText, concoursGTACondition1, concoursGTACondition2, concoursGTACondition3, concoursGTACondition4, afficheImage, afficheGlow, afficheBorderColor, afficheMode, afficheScale, afficheOffsetY, tweetImage, tweetScale, tweetOffsetY, tweetGlow, tweetHeadline, tweetBadge, tweetBorderColor, tweetTranslation, showTweetTranslation, tweetAnimMode, textAnimation, animReplayKey, bgAnimation, cdjPlayerRing, musicBgMotion, isCarouselPromoActive, promoCustomPhrase, promoCustomSubphrase, promoOutroStyle, isPromoAnimPlaying, promoCategory, showPromoHook, showPromoHeadline, showPromoLine1, showPromoLine2, djCutoutImage, djOriginalImage, djSilhouetteColor, djGlowIntensity, djShowQuestionMark, djAppearanceAnim, editorialSlideImages, editorialSlideCutouts, editorialSlideTitles, djSlideModes, agendaAffiches, highlightsSlideArtists, highlightsColorArtist, highlightsColorFestival, highlightsColorCity, highlightsColorCountry, highlightsColorDate, afficheImgZoom, afficheImgPanX, afficheImgPanY]);
+    }, [bgImage, bgVideo, customText, theme, showSwipe, showArticleLink, articleLinkText, showVoteLink, top5Items, currentPreviewIndex, activeTab, rotation, themeColor, isVideoRecording, transitionProgress, showText, planningDate, planningItems, agendaMonth, agendaBadgeText, agendaSlide, agendaCoverBadge, agendaCoverTitle, agendaCoverYear, agendaCoverGenres, agendaCoverCta, showAgendaCoverCta, artisteFestivalSlide, extraSpotlightSlides, spotlightSlidesData, festivalIntroTitle, eventsSlide, editorialSlide, isEditorialAfficheActive, isEditorialTweetActive, showTitleOnSlide2, showMusicDate, editorialDate, showDividerDate, citationAuthor, citationMedia, extraEditorialSlides, musicTracks, top10Tracks, top10ActiveRank, top10Title, top10IntroTitle, top10IntroArtist, top10ColoredWords, top10LogoScale, top10Subtitle, top10TrackDuration, top10TestingRank, top10GenMode, top10Badge, top10LabelSearch, top10StyleSearch, top10ArtistSearch, top100Rank, top100ArtistName, top100Category, top100Badge, top100AnimKey, calendarMonth, calendarEvents, isRetouchMode, retouchPath, isTransparent, showBottomLogo, artistLogo, festivalLogo, bgOffsetX, bgOffsetY, artistNameText, festivalNameText, isArtistLogoNegative, mapFestivalText, mapCityCountry, mapZoom, mapLatitude, mapLongitude, mapStyle, isMapLoading, mapPinColor, mapLabelText, showMapPin, showMapLabel, mapAnimMode, isMapAnimPlaying, mapScrubTime, mapAnimDuration, mapDestLatitude, mapDestLongitude, mapDestFestivalText, mapDestVenue, mapDestCity, mapDestCountry, mapDestPinColor, imgLayoutMode, quizColor1, quizColor2, showFrame, focusReelStyle, conseilsTitle, conseilsSubtext, isConseilsLargeTitle, concoursFestivalName, concoursFestivalHandle, concoursBottomColor, concoursLateralText, concoursLateralOpacity, concoursBadgeTextColor, concoursMode, concoursGTAHeadline, concoursGTATitle, concoursGTAPlatformText, concoursGTACondition1, concoursGTACondition2, concoursGTACondition3, concoursGTACondition4, afficheImage, afficheGlow, afficheBorderColor, afficheMode, afficheScale, afficheOffsetY, tweetImage, tweetScale, tweetOffsetY, tweetGlow, tweetHeadline, tweetBadge, tweetBorderColor, tweetTranslation, showTweetTranslation, tweetAnimMode, textAnimation, animReplayKey, bgAnimation, cdjPlayerRing, musicBgMotion, isCarouselPromoActive, promoCustomPhrase, promoCustomSubphrase, promoOutroStyle, isPromoAnimPlaying, promoCategory, showPromoHook, showPromoHeadline, showPromoLine1, showPromoLine2, djCutoutImage, djOriginalImage, djSilhouetteColor, djGlowIntensity, djShowQuestionMark, djAppearanceAnim, editorialSlideImages, editorialSlideCutouts, editorialSlideTitles, djSlideModes, agendaAffiches, highlightsSlideArtists, highlightsColorArtist, highlightsColorFestival, highlightsColorCity, highlightsColorCountry, highlightsColorDate, afficheImgZoom, afficheImgPanX, afficheImgPanY]);
 
     // Rejouer l'animation de texte proprement depuis le début à chaque changement de slide, track ou de thème
     useEffect(() => {
@@ -12533,13 +12777,6 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         animStartTimeRef.current = Date.now();
         setAnimReplayKey(k => k + 1);
     }, [editorialSlide, agendaSlide, artisteFestivalSlide, eventsSlide, isCarouselPromoActive, isEditorialAfficheActive, isEditorialTweetActive, theme, top10ActiveRank, top10TestingRank, top100Rank, top100AnimKey, focusReelStyle]);
-
-    // En mode REEL, ARTISTE FESTIVAL est verrouillé sur la Slide 2 (Spotlight) car la Slide 1 Cover fait doublon avec le thème REELS
-    useEffect(() => {
-        if (activeTab === 'REEL' && theme === 'ARTISTE FESTIVAL' && artisteFestivalSlide !== 2) {
-            setArtisteFestivalSlide(2);
-        }
-    }, [activeTab, theme, artisteFestivalSlide]);
 
     // Pre-charger les pochettes des tracks du thème MUSIQUE (avec contournement CORS automatique sur mobile)
     useEffect(() => {
@@ -15317,15 +15554,110 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         }
     };
 
-    const downloadArtisteFestivalSlide = async (slideNumber: 1 | 2, format: TabType = (activeTab || 'PUBLICATION')) => {
+    const handleSwitchSpotlightSlide = (targetSlide: number) => {
+        setIsCarouselPromoActive(false);
+        // Sauvegarder les données de l'artiste actuel avant de basculer
+        if (artisteFestivalSlide === 2) {
+            setSpotlightSlidesData(prev => ({
+                ...prev,
+                2: {
+                    artistName: artistNameText,
+                    stage: customText.split('\n')[1] || '',
+                    day: customText.split('\n')[2] || '',
+                    hour: customText.split('\n')[4] || '',
+                    artistLogo: artistLogo,
+                    bgImage: editorialSlideImages[2] || bgImage,
+                }
+            }));
+        } else if (artisteFestivalSlide >= 3) {
+            setSpotlightSlidesData(prev => ({
+                ...prev,
+                [artisteFestivalSlide]: {
+                    artistName: artistNameText,
+                    stage: customText.split('\n')[1] || '',
+                    day: customText.split('\n')[2] || '',
+                    hour: customText.split('\n')[4] || '',
+                    artistLogo: artistLogo,
+                    bgImage: editorialSlideImages[artisteFestivalSlide] || '',
+                }
+            }));
+        }
+
+        // Basculer vers la slide demandée
+        setArtisteFestivalSlide(targetSlide);
+
+        // Charger les données de la slide cible si c'est un artiste
+        if (targetSlide === 2) {
+            const d2 = spotlightSlidesData[2];
+            if (d2) {
+                setArtistNameText(d2.artistName);
+                const lines = ['', d2.stage, d2.day, '', d2.hour];
+                setCustomText(lines.join('\n'));
+                setArtistLogo(d2.artistLogo);
+                if (d2.artistLogo) {
+                    const img = new Image();
+                    img.crossOrigin = 'anonymous';
+                    img.src = d2.artistLogo;
+                    img.onload = () => { artistLogoRef.current = img; generateImage(); };
+                } else {
+                    artistLogoRef.current = null;
+                }
+            }
+        } else if (targetSlide >= 3) {
+            const d = spotlightSlidesData[targetSlide];
+            if (d) {
+                setArtistNameText(d.artistName);
+                const lines = ['', d.stage, d.day, '', d.hour];
+                setCustomText(lines.join('\n'));
+                setArtistLogo(d.artistLogo);
+                if (d.artistLogo) {
+                    const img = new Image();
+                    img.crossOrigin = 'anonymous';
+                    img.src = d.artistLogo;
+                    img.onload = () => { artistLogoRef.current = img; generateImage(); };
+                } else {
+                    artistLogoRef.current = null;
+                }
+            } else {
+                setArtistNameText('');
+                setCustomText('\n\n\n\n');
+                setArtistLogo('');
+                artistLogoRef.current = null;
+            }
+        }
+
+        setTimeout(() => generateImage(), 50);
+    };
+
+    const handleAddSpotlightSlide = () => {
+        const nextNum = extraSpotlightSlides.length === 0 ? 3 : Math.max(...extraSpotlightSlides) + 1;
+        setExtraSpotlightSlides(prev => [...prev, nextNum]);
+        handleSwitchSpotlightSlide(nextNum);
+    };
+
+    const handleRemoveSpotlightSlide = (slideNum: number) => {
+        setExtraSpotlightSlides(prev => prev.filter(n => n !== slideNum));
+        setSpotlightSlidesData(prev => {
+            const copy = { ...prev };
+            delete copy[slideNum];
+            return copy;
+        });
+        if (artisteFestivalSlide === slideNum) {
+            handleSwitchSpotlightSlide(2);
+        } else {
+            setTimeout(() => generateImage(), 50);
+        }
+    };
+
+    const downloadArtisteFestivalSlide = async (slideNumber: number, format: TabType = (activeTab || 'PUBLICATION')) => {
         if (!canvasRef.current) return;
         setIsDownloading(true);
         const prevSlide = artisteFestivalSlide;
         try {
-            setArtisteFestivalSlide(slideNumber);
-            await new Promise(r => setTimeout(r, 60));
+            handleSwitchSpotlightSlide(slideNumber);
+            await new Promise(r => setTimeout(r, 80));
             await generateImage(format, true);
-            const fileName = `${format === 'REEL' ? 'STORY' : 'POST'}-artiste-festival-slide${slideNumber}-${slideNumber === 1 ? 'cover' : 'spotlight'}.png`;
+            const fileName = `${format === 'REEL' ? 'STORY' : 'POST'}-spotlight-slide${slideNumber}-${slideNumber === 1 ? 'intro' : `artiste-${slideNumber - 1}`}.png`;
             const dataUrl = canvasRef.current.toDataURL('image/png');
             const a = document.createElement('a');
             a.href = dataUrl;
@@ -15338,7 +15670,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             setErrorMessage(`Erreur lors du téléchargement de la slide ${slideNumber}.`);
         } finally {
             setTimeout(() => {
-                setArtisteFestivalSlide(prevSlide);
+                handleSwitchSpotlightSlide(prevSlide);
                 setIsDownloading(false);
                 generateImage();
             }, 400);
@@ -15350,36 +15682,27 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         setIsDownloading(true);
         const prevSlide = artisteFestivalSlide;
         try {
-            // 1. Slide 1 (Cover)
-            setArtisteFestivalSlide(1);
-            await new Promise(r => setTimeout(r, 60));
-            await generateImage(format, true);
-            const dataUrl1 = canvasRef.current.toDataURL('image/png');
-            const a1 = document.createElement('a');
-            a1.href = dataUrl1;
-            a1.download = `${format === 'REEL' ? 'STORY' : 'POST'}-artiste-festival-slide1-cover.png`;
-            document.body.appendChild(a1);
-            a1.click();
-            document.body.removeChild(a1);
-
-            // 2. Slide 2 (Spotlight)
-            await new Promise(r => setTimeout(r, 350));
-            setArtisteFestivalSlide(2);
-            await new Promise(r => setTimeout(r, 60));
-            await generateImage(format, true);
-            const dataUrl2 = canvasRef.current.toDataURL('image/png');
-            const a2 = document.createElement('a');
-            a2.href = dataUrl2;
-            a2.download = `${format === 'REEL' ? 'STORY' : 'POST'}-artiste-festival-slide2-spotlight.png`;
-            document.body.appendChild(a2);
-            a2.click();
-            document.body.removeChild(a2);
+            const allSlides = [1, 2, ...extraSpotlightSlides];
+            for (let i = 0; i < allSlides.length; i++) {
+                const sNum = allSlides[i];
+                handleSwitchSpotlightSlide(sNum);
+                await new Promise(r => setTimeout(r, 120));
+                await generateImage(format, true);
+                const dataUrl = canvasRef.current.toDataURL('image/png');
+                const a = document.createElement('a');
+                a.href = dataUrl;
+                a.download = `${format === 'REEL' ? 'STORY' : 'POST'}-spotlight-slide${sNum}-${sNum === 1 ? 'intro' : `artiste-${sNum - 1}`}.png`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                await new Promise(r => setTimeout(r, 200));
+            }
         } catch (e) {
             console.error(e);
             setErrorMessage("Erreur lors de l'exportation du carrousel.");
         } finally {
             setTimeout(() => {
-                setArtisteFestivalSlide(prevSlide);
+                handleSwitchSpotlightSlide(prevSlide);
                 setIsDownloading(false);
                 generateImage();
             }, 500);
@@ -15735,9 +16058,6 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             animStartTimeRef.current = Date.now();
         }
         setTheme(newTheme);
-        if (newTheme === 'ARTISTE FESTIVAL' && activeTab === 'REEL') {
-            setArtisteFestivalSlide(2);
-        }
         setArticleLinkText(getAutoArticleLinkText(newTheme));
         if (newTheme !== 'PROMO') {
             setPromoCategory(newTheme);
@@ -18193,7 +18513,19 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Nom Artiste</label>
                     <input
                         value={artistNameText}
-                        onChange={e => setArtistNameText(e.target.value)}
+                        onChange={e => {
+                            const val = e.target.value;
+                            setArtistNameText(val);
+                            if (artisteFestivalSlide >= 2) {
+                                setSpotlightSlidesData(prev => ({
+                                    ...prev,
+                                    [artisteFestivalSlide]: {
+                                        ...(prev[artisteFestivalSlide] || { stage: '', day: '', hour: '', artistLogo: '' }),
+                                        artistName: val,
+                                    }
+                                }));
+                            }
+                        }}
                         placeholder="Ex: SUB FOCUS..."
                         className="w-full bg-white/5 border border-white/10 rounded-xl p-2.5 text-[10px] text-white uppercase font-bold"
                     />
@@ -18209,43 +18541,26 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 </div>
             </div>
 
-            <div className="space-y-2">
-                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Tagline / Phrase (Ligne 1 & 2)</label>
-                <div className="space-y-2">
-                    <input
-                        value={customText.split('\n')[0] || ''}
-                        onChange={e => {
-                            const lines = customText.split('\n');
-                            lines[0] = e.target.value;
-                            setCustomText(lines.join('\n'));
-                        }}
-                        placeholder="LIGNE 1 (EX: FROM UNDERGROUND ROOTS)"
-                        className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white font-bold uppercase text-[10px]"
-                    />
-                    <input
-                        value={customText.split('\n')[3] || ''}
-                        onChange={e => {
-                            const lines = customText.split('\n');
-                            while (lines.length < 4) lines.push('');
-                            lines[3] = e.target.value;
-                            setCustomText(lines.join('\n'));
-                        }}
-                        placeholder="LIGNE 2 (EX: TO BASS CULTURE ICON)"
-                        className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white font-bold uppercase text-[10px]"
-                    />
-                </div>
-            </div>
-
             <div className="grid grid-cols-3 gap-3">
                 <div className="space-y-2">
                     <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Nom Stage</label>
                     <input
                         value={customText.split('\n')[1] || ''}
                         onChange={e => {
+                            const val = e.target.value;
                             const lines = customText.split('\n');
                             while (lines.length < 2) lines.push('');
-                            lines[1] = e.target.value;
+                            lines[1] = val;
                             setCustomText(lines.join('\n'));
+                            if (artisteFestivalSlide >= 2) {
+                                setSpotlightSlidesData(prev => ({
+                                    ...prev,
+                                    [artisteFestivalSlide]: {
+                                        ...(prev[artisteFestivalSlide] || { artistName: artistNameText, day: '', hour: '', artistLogo: '' }),
+                                        stage: val,
+                                    }
+                                }));
+                            }
                         }}
                         placeholder="BASSPOD"
                         className="w-full bg-white/10 border border-white/20 rounded-xl p-3 text-neon-red font-black italic uppercase text-xs"
@@ -18256,10 +18571,20 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     <input
                         value={customText.split('\n')[2] || ''}
                         onChange={e => {
+                            const val = e.target.value;
                             const lines = customText.split('\n');
                             while (lines.length < 3) lines.push('');
-                            lines[2] = e.target.value;
+                            lines[2] = val;
                             setCustomText(lines.join('\n'));
+                            if (artisteFestivalSlide >= 2) {
+                                setSpotlightSlidesData(prev => ({
+                                    ...prev,
+                                    [artisteFestivalSlide]: {
+                                        ...(prev[artisteFestivalSlide] || { artistName: artistNameText, stage: '', hour: '', artistLogo: '' }),
+                                        day: val,
+                                    }
+                                }));
+                            }
                         }}
                         placeholder="SATURDAY"
                         className="w-full bg-white/10 border border-white/20 rounded-xl p-3 text-neon-red font-black italic uppercase text-xs"
@@ -18270,10 +18595,20 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     <input
                         value={customText.split('\n')[4] || ''}
                         onChange={e => {
+                            const val = e.target.value;
                             const lines = customText.split('\n');
                             while (lines.length < 5) lines.push('');
-                            lines[4] = e.target.value;
+                            lines[4] = val;
                             setCustomText(lines.join('\n'));
+                            if (artisteFestivalSlide >= 2) {
+                                setSpotlightSlidesData(prev => ({
+                                    ...prev,
+                                    [artisteFestivalSlide]: {
+                                        ...(prev[artisteFestivalSlide] || { artistName: artistNameText, stage: '', day: '', artistLogo: '' }),
+                                        hour: val,
+                                    }
+                                }));
+                            }
                         }}
                         placeholder="22:00 - 23:00"
                         className="w-full bg-white/10 border border-white/20 rounded-xl p-3 text-neon-red font-black italic uppercase text-xs"
@@ -18400,80 +18735,92 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
     const artisteFestivalEditor = (
         <div className="space-y-4">
-            {/* CARROUSEL SLIDE SWITCHER - Uniquement en mode Post / Publication */}
-            {activeTab !== 'REEL' ? (
-                <div className="p-1.5 bg-black/60 border border-neon-red/30 rounded-2xl flex gap-1 shadow-xl">
+            {/* CARROUSEL SLIDE SWITCHER - Disponible en POST et en REEL */}
+            <div className="p-1.5 bg-black/60 border border-neon-red/30 rounded-2xl flex gap-1 shadow-xl flex-wrap">
+                <button
+                    type="button"
+                    onClick={() => handleSwitchSpotlightSlide(1)}
+                    className={`flex-1 min-w-[120px] py-2.5 px-3 rounded-xl text-[10px] font-black uppercase transition-all flex items-center justify-center gap-1.5 ${artisteFestivalSlide === 1
+                        ? 'bg-neon-red text-white shadow-[0_0_15px_rgba(255,0,51,0.5)] scale-[1.02]'
+                        : 'text-gray-400 hover:text-white hover:bg-white/5'
+                        }`}
+                >
+                    <span className="text-xs">🎪</span> Slide 1 (Intro)
+                </button>
+                <button
+                    type="button"
+                    onClick={() => handleSwitchSpotlightSlide(2)}
+                    className={`flex-1 min-w-[120px] py-2.5 px-3 rounded-xl text-[10px] font-black uppercase transition-all flex items-center justify-center gap-1.5 ${artisteFestivalSlide === 2
+                        ? 'bg-neon-red text-white shadow-[0_0_15px_rgba(255,0,51,0.5)] scale-[1.02]'
+                        : 'text-gray-400 hover:text-white hover:bg-white/5'
+                        }`}
+                >
+                    <span className="text-xs">⭐</span> Slide 2 (Artiste 1)
+                </button>
+                {extraSpotlightSlides.map((num, idx) => (
                     <button
+                        key={num}
                         type="button"
-                        onClick={() => setArtisteFestivalSlide(1)}
-                        className={`flex-1 py-3 px-3 rounded-xl text-[10px] font-black uppercase transition-all flex items-center justify-center gap-2 ${artisteFestivalSlide === 1
+                        onClick={() => handleSwitchSpotlightSlide(num)}
+                        className={`flex-1 min-w-[120px] py-2.5 px-3 rounded-xl text-[10px] font-black uppercase transition-all flex items-center justify-center gap-1.5 ${artisteFestivalSlide === num
                             ? 'bg-neon-red text-white shadow-[0_0_15px_rgba(255,0,51,0.5)] scale-[1.02]'
                             : 'text-gray-400 hover:text-white hover:bg-white/5'
                             }`}
                     >
-                        <span className="text-xs">🎪</span> Slide 1 : Cover Festival
+                        <span className="text-xs">⭐</span> Slide {num} (Artiste {idx + 2})
                     </button>
-                    <button
-                        type="button"
-                        onClick={() => setArtisteFestivalSlide(2)}
-                        className={`flex-1 py-3 px-3 rounded-xl text-[10px] font-black uppercase transition-all flex items-center justify-center gap-2 ${artisteFestivalSlide === 2
-                            ? 'bg-neon-red text-white shadow-[0_0_15px_rgba(255,0,51,0.5)] scale-[1.02]'
-                            : 'text-gray-400 hover:text-white hover:bg-white/5'
-                            }`}
-                    >
-                        <span className="text-xs">⭐</span> Slide 2 : Spotlight Artiste
-                    </button>
-                </div>
-            ) : (
-                <div className="px-3.5 py-2.5 bg-neon-red/10 border border-neon-red/30 rounded-2xl flex items-center justify-between text-[10px] font-black uppercase text-neon-red">
-                    <span className="flex items-center gap-2"><span>⭐</span> MODE REEL / STORY : SPOTLIGHT ARTISTE</span>
-                    <span className="text-[8px] bg-neon-red/25 px-2 py-0.5 rounded text-white font-mono">9:16</span>
-                </div>
-            )}
+                ))}
+            </div>
 
-            {/* Slide 1 Content */}
-            {activeTab !== 'REEL' && artisteFestivalSlide === 1 && (
-                <div className="space-y-3">
+            {/* Slide 1 Content : Intro Style Top 10 */}
+            {artisteFestivalSlide === 1 && (
+                <div className="space-y-4">
                     <div className="space-y-1">
-                        <label className="text-[9px] font-black text-gray-400 uppercase">Nom du Festival</label>
+                        <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Nom du Festival</label>
                         <input
                             value={festivalNameText}
-                            onChange={e => setFestivalNameText(e.target.value)}
+                            onChange={e => {
+                                const newFest = e.target.value;
+                                setFestivalNameText(newFest);
+                                if (!festivalIntroTitle || festivalIntroTitle.startsWith('LES 10 ARTISTES À VOIR LORS *')) {
+                                    setFestivalIntroTitle(`LES 10 ARTISTES À VOIR LORS *${newFest.toUpperCase() || 'FESTIVAL'}*`);
+                                }
+                            }}
                             placeholder="NOM DU FESTIVAL (ex: TOMORROWLAND)"
                             className="w-full bg-white/10 border border-white/20 rounded-xl p-3 text-white font-black italic uppercase text-xs"
                         />
                     </div>
                     <div className="space-y-1">
-                        <label className="text-[9px] font-black text-gray-400 uppercase">Titre de la Cover (Hook)</label>
-                        <textarea
-                            value={customText || 'LES 10 ARTISTES À NE PAS LOUPER'}
-                            onChange={e => {
-                                setCustomText(e.target.value);
-                                setConseilsTitle(e.target.value);
-                            }}
-                            placeholder="LES 10 ARTISTES À NE PAS LOUPER"
-                            className="w-full h-20 bg-white/10 border border-white/20 rounded-xl p-3 text-white font-black italic uppercase text-xs"
+                        <div className="flex items-center justify-between">
+                            <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Titre Intro (Hook Top 10)</label>
+                            <span className="text-[8px] text-neon-red font-bold">Astérisques *...* = Rouge néon</span>
+                        </div>
+                        <input
+                            value={festivalIntroTitle || `LES 10 ARTISTES À VOIR LORS *${(festivalNameText || 'FESTIVAL').toUpperCase()}*`}
+                            onChange={e => setFestivalIntroTitle(e.target.value)}
+                            placeholder="LES 10 ARTISTES À VOIR LORS *FESTIVAL*"
+                            className="w-full bg-white/10 border border-white/20 rounded-xl p-3 text-white font-black italic uppercase text-xs"
                         />
+                        <p className="text-[9px] text-gray-500 italic">Ex: LES 10 ARTISTES À VOIR LORS *TOMORROWLAND*</p>
                     </div>
                     <div className="space-y-1">
-                        <label className="text-[9px] font-black text-gray-400 uppercase">Sous-titre / Détails (Italique)</label>
-                        <textarea
-                            rows={2}
-                            value={conseilsSubtext}
+                        <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Badge Pill / Sous-titre</label>
+                        <input
+                            value={conseilsSubtext || '🎪 SÉLECTION OFFICIELLE • LINE-UP GUIDE'}
                             onChange={e => setConseilsSubtext(e.target.value)}
-                            placeholder="EX: Édition 2026&#10;Belgique"
-                            className="w-full bg-white/10 border border-white/20 rounded-xl p-3 text-white italic text-xs resize-none"
+                            placeholder="🎪 SÉLECTION OFFICIELLE • LINE-UP GUIDE"
+                            className="w-full bg-white/10 border border-white/20 rounded-xl p-3 text-white italic text-xs"
                         />
                     </div>
                 </div>
             )}
 
-            {/* Slide 2 Content (Spotlight) */}
-            {(activeTab === 'REEL' || artisteFestivalSlide === 2) && (
+            {/* Slide 2+ Content : Spotlight Artiste Centré */}
+            {artisteFestivalSlide >= 2 && (
                 <div className="space-y-3">
                     <div className="px-1 py-1 text-[9px] font-bold text-gray-400 uppercase flex items-center justify-between">
-                        <span>Édition Spotlight de l'Artiste</span>
-                        <span className="text-neon-red">{activeTab === 'REEL' ? 'Story 9:16' : 'Slide 2'}</span>
+                        <span>Édition Spotlight de l'Artiste ({artisteFestivalSlide === 2 ? 'Artiste 1' : `Artiste ${artisteFestivalSlide - 1}`})</span>
+                        <span className="text-neon-red">{activeTab === 'REEL' ? 'Story 9:16' : `Slide ${artisteFestivalSlide}`}</span>
                     </div>
                     {spotlightEditor}
                 </div>
@@ -18481,7 +18828,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         </div>
     );
 
-    const isMultiSlideTheme = ['PLANNING', 'ARTISTE FESTIVAL', 'EVENTS', 'AFFICHE', 'MUSIQUE', 'NEWS', 'FOCUS', 'RECAP', 'INTERVIEW', 'LIVESTREAM', 'CONSEILS', 'REELS', 'CONCOURS', 'TOP 5 STYLES', 'TOP 5 ARTISTE', 'TOP 10 FESTIVAL', 'TOP 100 DROPSIDERS', 'JEU', 'JEU_FESTIVAL', 'JEU_DJ', 'HIGHLIGHTS'].includes(theme);
+    const isMultiSlideTheme = ['PLANNING', 'ARTISTE FESTIVAL', 'SPOTLIGHT', 'EVENTS', 'AFFICHE', 'MUSIQUE', 'NEWS', 'FOCUS', 'RECAP', 'INTERVIEW', 'LIVESTREAM', 'CONSEILS', 'REELS', 'CONCOURS', 'TOP 5 STYLES', 'TOP 5 ARTISTE', 'TOP 10 FESTIVAL', 'TOP 100 DROPSIDERS', 'JEU', 'JEU_FESTIVAL', 'JEU_DJ', 'HIGHLIGHTS'].includes(theme);
 
     const slideTransitionQuickBar = (
         <div className="flex items-center gap-1 pl-2 ml-1 border-l border-white/15">
@@ -20482,57 +20829,35 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             );
         }
 
-        if (theme === 'ARTISTE FESTIVAL') {
-            if (activeTab === 'REEL') {
-                return (
-                    <div className="p-3 bg-white/5 border border-white/10 rounded-2xl space-y-2.5 shadow-xl">
-                        <div className="flex items-center justify-between text-[8px] font-bold text-gray-400 uppercase px-1">
-                            <span>Export Story Spotlight</span>
-                            <span className="text-neon-red font-mono">Format Story (9:16)</span>
-                        </div>
-                        <button
-                            type="button"
-                            onClick={() => downloadArtisteFestivalSlide(2, 'REEL')}
-                            disabled={isDownloading}
-                            className="w-full py-2.5 bg-neon-red hover:bg-neon-red/90 text-white font-black text-[10px] uppercase rounded-xl transition-all flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(255,0,51,0.4)]"
-                        >
-                            <Download className="w-4 h-4" /> Télécharger Spotlight (Story 9:16)
-                        </button>
-                    </div>
-                );
-            }
+        if (theme === 'ARTISTE FESTIVAL' || theme === 'SPOTLIGHT') {
+            const isReel = activeTab === 'REEL';
+            const totalSlides = 2 + extraSpotlightSlides.length;
             return (
                 <div className="p-3 bg-white/5 border border-white/10 rounded-2xl space-y-2.5 shadow-xl">
                     <div className="flex items-center justify-between text-[8px] font-bold text-gray-400 uppercase px-1">
-                        <span>Export Carrousel Artiste Festival</span>
-                        <span className="text-neon-red">Format Post (4:5)</span>
+                        <span>Export Spotlight Festival</span>
+                        <span className="text-neon-red font-mono">{isReel ? 'Format Story (9:16)' : 'Format Post (4:5)'}</span>
                     </div>
                     <div className="grid grid-cols-2 gap-2">
                         <button
                             type="button"
-                            onClick={() => downloadArtisteFestivalSlide(1)}
+                            onClick={() => downloadArtisteFestivalSlide(artisteFestivalSlide, activeTab)}
                             disabled={isDownloading}
-                            className="py-2 bg-white/10 hover:bg-white/20 border border-white/15 text-white font-black text-[9px] uppercase rounded-lg transition-all flex items-center justify-center gap-1.5"
+                            className="py-2.5 bg-white/10 hover:bg-white/20 border border-white/15 text-white font-black text-[9px] uppercase rounded-xl transition-all flex items-center justify-center gap-1.5"
                         >
-                            <Download className="w-3.5 h-3.5 text-neon-red" /> Slide 1 (PNG)
+                            <Download className="w-3.5 h-3.5 text-neon-red" />
+                            <span>Slide {artisteFestivalSlide} ({artisteFestivalSlide === 1 ? 'Intro' : `Artiste ${artisteFestivalSlide - 1}`})</span>
                         </button>
                         <button
                             type="button"
-                            onClick={() => downloadArtisteFestivalSlide(2)}
+                            onClick={() => downloadArtisteFestivalCarousel(activeTab)}
                             disabled={isDownloading}
-                            className="py-2 bg-white/10 hover:bg-white/20 border border-white/15 text-white font-black text-[9px] uppercase rounded-lg transition-all flex items-center justify-center gap-1.5"
+                            className="py-2.5 bg-neon-red hover:bg-neon-red/90 text-white font-black text-[9px] uppercase rounded-xl transition-all flex items-center justify-center gap-1.5 shadow-[0_0_12px_rgba(255,0,51,0.35)]"
                         >
-                            <Download className="w-3.5 h-3.5 text-neon-red" /> Slide 2 (PNG)
+                            <Sparkles className="w-3.5 h-3.5" />
+                            <span>Tout Exporter ({totalSlides} Slides)</span>
                         </button>
                     </div>
-                    <button
-                        type="button"
-                        onClick={() => downloadArtisteFestivalCarousel()}
-                        disabled={isDownloading}
-                        className="w-full py-2 bg-neon-red/20 hover:bg-neon-red/30 border border-neon-red/40 text-neon-red hover:text-white font-black text-[9px] uppercase rounded-xl transition-all flex items-center justify-center gap-2"
-                    >
-                        <Sparkles className="w-3.5 h-3.5" /> Exporter le Carrousel Images (Slide 1 + 2)
-                    </button>
                 </div>
             );
         }
@@ -26054,8 +26379,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                             </div>
                                         )}
 
-                                        {/* Logos & Position pour SPOTLIGHT & ARTISTE FESTIVAL (Slide 2) */}
-                                        {(theme === 'SPOTLIGHT' || (theme === 'ARTISTE FESTIVAL' && artisteFestivalSlide === 2)) && (
+                                        {/* Logos & Position pour SPOTLIGHT & ARTISTE FESTIVAL */}
+                                        {(theme === 'SPOTLIGHT' || theme === 'ARTISTE FESTIVAL') && (
                                             <div className="space-y-2">
                                                 {spotlightVisualEditor}
                                             </div>
@@ -26312,29 +26637,63 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                     {/* Preview */}
                     <div className="flex-1 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-neutral-900/60 via-[#0a0a0f] to-[#020202] flex flex-col items-center justify-center relative overflow-hidden h-full border-l border-white/10">
-                        {theme === 'ARTISTE FESTIVAL' && activeTab !== 'REEL' && (
+                        {(theme === 'ARTISTE FESTIVAL' || theme === 'SPOTLIGHT') && (
                             <div className="mb-3 flex items-center gap-1.5 bg-black/80 backdrop-blur-md px-3 py-1.5 rounded-2xl border border-white/10 shadow-2xl z-20 flex-wrap justify-center">
-                                <span className="text-[9px] font-black text-gray-400 uppercase tracking-wider mr-1">Carrousel Insta :</span>
+                                <span className="text-[9px] font-black text-gray-400 uppercase tracking-wider mr-1">Slides Festival :</span>
                                 <button
                                     type="button"
-                                    onClick={() => { setIsCarouselPromoActive(false); setArtisteFestivalSlide(1); }}
+                                    onClick={() => handleSwitchSpotlightSlide(1)}
                                     className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase transition-all flex items-center gap-1.5 ${!isCarouselPromoActive && artisteFestivalSlide === 1
                                         ? 'bg-neon-red text-white shadow-[0_0_12px_rgba(255,0,51,0.5)]'
                                         : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
                                         }`}
                                 >
-                                    🎪 Slide 1 (Cover)
+                                    🎪 Slide 1 (Intro)
                                 </button>
                                 <button
                                     type="button"
-                                    onClick={() => { setIsCarouselPromoActive(false); setArtisteFestivalSlide(2); }}
+                                    onClick={() => handleSwitchSpotlightSlide(2)}
                                     className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase transition-all flex items-center gap-1.5 ${!isCarouselPromoActive && artisteFestivalSlide === 2
                                         ? 'bg-neon-red text-white shadow-[0_0_12px_rgba(255,0,51,0.5)]'
                                         : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
                                         }`}
                                 >
-                                    ⭐ Slide 2 (Spotlight)
+                                    ⭐ Slide 2 (Artiste 1)
                                 </button>
+                                {extraSpotlightSlides.map((slideNum, idx) => (
+                                    <div key={slideNum} className="flex items-center gap-0.5">
+                                        <button
+                                            type="button"
+                                            onClick={() => handleSwitchSpotlightSlide(slideNum)}
+                                            className={`px-2.5 py-1.5 rounded-xl text-[9px] font-black uppercase transition-all flex items-center gap-1 ${!isCarouselPromoActive && artisteFestivalSlide === slideNum
+                                                ? 'bg-neon-red text-white shadow-[0_0_12px_rgba(255,0,51,0.5)]'
+                                                : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
+                                                }`}
+                                        >
+                                            ⭐ Slide {slideNum} (Artiste {idx + 2})
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleRemoveSpotlightSlide(slideNum);
+                                            }}
+                                            title="Supprimer cette slide"
+                                            className="p-1 rounded-lg text-gray-500 hover:text-red-400 hover:bg-red-500/10 transition-colors"
+                                        >
+                                            <X className="w-3 h-3" />
+                                        </button>
+                                    </div>
+                                ))}
+                                {extraSpotlightSlides.length < 9 && (
+                                    <button
+                                        type="button"
+                                        onClick={handleAddSpotlightSlide}
+                                        className="px-2.5 py-1.5 rounded-xl text-[9px] font-black uppercase transition-all flex items-center gap-1 bg-white/5 text-gray-300 hover:text-white hover:bg-neon-red/20 hover:border-neon-red/40 border border-white/10"
+                                    >
+                                        <Plus className="w-3 h-3 text-neon-red" /> Artiste
+                                    </button>
+                                )}
                                 <button
                                     type="button"
                                     onClick={() => {
@@ -26966,24 +27325,44 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             }
                         }}
                     >
-                        {theme === 'ARTISTE FESTIVAL' && activeTab !== 'REEL' && (
+                        {(theme === 'ARTISTE FESTIVAL' || theme === 'SPOTLIGHT') && (
                             <div className="absolute top-16 left-1/2 -translate-x-1/2 z-30 flex items-center gap-1.5 bg-black/85 backdrop-blur-md px-2.5 py-1 rounded-2xl border border-white/10 shadow-2xl max-w-[95vw] overflow-x-auto scrollbar-none">
                                 <button
                                     type="button"
-                                    onClick={(e) => { e.stopPropagation(); setIsCarouselPromoActive(false); setArtisteFestivalSlide(1); }}
+                                    onClick={(e) => { e.stopPropagation(); handleSwitchSpotlightSlide(1); }}
                                     className={`px-2.5 py-1 rounded-xl text-[8px] font-black uppercase transition-all shrink-0 ${!isCarouselPromoActive && artisteFestivalSlide === 1 ? 'bg-neon-red text-white shadow-md' : 'text-gray-400'
                                         }`}
                                 >
-                                    Slide 1 (Cover)
+                                    Slide 1 (Intro)
                                 </button>
                                 <button
                                     type="button"
-                                    onClick={(e) => { e.stopPropagation(); setIsCarouselPromoActive(false); setArtisteFestivalSlide(2); }}
+                                    onClick={(e) => { e.stopPropagation(); handleSwitchSpotlightSlide(2); }}
                                     className={`px-2.5 py-1 rounded-xl text-[8px] font-black uppercase transition-all shrink-0 ${!isCarouselPromoActive && artisteFestivalSlide === 2 ? 'bg-neon-red text-white shadow-md' : 'text-gray-400'
                                         }`}
                                 >
-                                    Slide 2 (Spotlight)
+                                    Slide 2 (Artiste 1)
                                 </button>
+                                {extraSpotlightSlides.map((slideNum, idx) => (
+                                    <button
+                                        key={slideNum}
+                                        type="button"
+                                        onClick={(e) => { e.stopPropagation(); handleSwitchSpotlightSlide(slideNum); }}
+                                        className={`px-2.5 py-1 rounded-xl text-[8px] font-black uppercase transition-all shrink-0 ${!isCarouselPromoActive && artisteFestivalSlide === slideNum ? 'bg-neon-red text-white shadow-md' : 'text-gray-400'
+                                            }`}
+                                    >
+                                        Slide {slideNum} (Artiste {idx + 2})
+                                    </button>
+                                ))}
+                                {extraSpotlightSlides.length < 9 && (
+                                    <button
+                                        type="button"
+                                        onClick={(e) => { e.stopPropagation(); handleAddSpotlightSlide(); }}
+                                        className="px-2 py-1 rounded-xl text-[8px] font-black uppercase transition-all shrink-0 bg-white/10 text-white flex items-center gap-1"
+                                    >
+                                        <Plus className="w-2.5 h-2.5 text-neon-red" /> Artiste
+                                    </button>
+                                )}
                                 <button
                                     type="button"
                                     onClick={(e) => {
@@ -27609,8 +27988,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                                 {/* Cover pour MUSIQUE (Slide 1 Annonce ou Slide 2+ Morceaux) — placé en haut comme sur PC */}
                                                 {theme === 'MUSIQUE' && (editorialSlide === 1 ? musicSlide1VisualEditor : musicCoverEditor)}
 
-                                                {/* Logos & Position pour SPOTLIGHT & ARTISTE FESTIVAL (Slide 2) */}
-                                                {(theme === 'SPOTLIGHT' || (theme === 'ARTISTE FESTIVAL' && artisteFestivalSlide === 2)) && spotlightVisualEditor}
+                                                {/* Logos & Position pour SPOTLIGHT & ARTISTE FESTIVAL */}
+                                                {(theme === 'SPOTLIGHT' || theme === 'ARTISTE FESTIVAL') && spotlightVisualEditor}
 
                                                 <div className="flex items-center justify-between pt-1">
                                                     <span className="text-[10px] font-black text-neon-cyan uppercase tracking-widest">
