@@ -252,7 +252,7 @@
     "title": "Dystopia St Etienne",
     "date": "2026-12-04",
     "startDate": "2026-12-04",
-    "endDate": "2026-12-04",
+    "endDate": "2026-12-05",
     "venue": "Par Expo",
     "location": "ST ETIENNE",
     "country": "FRANCE",
@@ -264,9 +264,7 @@
     "isWeekly": false,
     "isSoldOut": false,
     "isLiveDropsiders": false,
-    "additionalDates": [
-      "2026-12-05"
-    ]
+    "additionalDates": []
   },
   {
     "id": 1126,
