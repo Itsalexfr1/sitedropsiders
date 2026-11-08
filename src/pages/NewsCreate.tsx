@@ -2190,6 +2190,8 @@ ${urlList.map(u => `  <div class="article-gallery-item aspect-square relative ov
             }
         } else if (type === 'applemusic' && url) {
             let embedSrc = url.trim();
+            const iframeMatch = embedSrc.match(/src=["']([^"']+)["']/i);
+            if (iframeMatch) embedSrc = iframeMatch[1];
             if (embedSrc.includes('music.apple.com') && !embedSrc.includes('embed.music.apple.com')) {
                 embedSrc = embedSrc.replace('https://music.apple.com', 'https://embed.music.apple.com').replace('http://music.apple.com', 'https://embed.music.apple.com');
             } else if (!embedSrc.startsWith('http')) {
@@ -2203,7 +2205,9 @@ ${urlList.map(u => `  <div class="article-gallery-item aspect-square relative ov
   </div>
 </div>`;
         } else if (type === 'deezer' && url) {
-            const clean = url.trim();
+            let clean = url.trim();
+            const iframeMatch = clean.match(/src=["']([^"']+)["']/i);
+            if (iframeMatch) clean = iframeMatch[1];
             const tm = clean.match(/(?:track\/|track:)(\d+)/i);
             const am = clean.match(/(?:album\/|album:)(\d+)/i);
             const pm = clean.match(/(?:playlist\/|playlist:)(\d+)/i);
@@ -6067,14 +6071,22 @@ ${generateSocialsHtml()}
                                         </div>
                                         {mediaModal.url && (() => {
                                             let embedSrc = mediaModal.url.trim();
+                                            const iframeMatch = embedSrc.match(/src=["']([^"']+)["']/i);
+                                            if (iframeMatch) embedSrc = iframeMatch[1];
                                             if (embedSrc.includes('music.apple.com') && !embedSrc.includes('embed.music.apple.com')) {
                                                 embedSrc = embedSrc.replace('https://music.apple.com', 'https://embed.music.apple.com').replace('http://music.apple.com', 'https://embed.music.apple.com');
                                             } else if (!embedSrc.startsWith('http')) {
                                                 embedSrc = `https://embed.music.apple.com/fr/album/${embedSrc}`;
                                             }
+                                            const isArtist = embedSrc.includes('/artist/');
                                             const isSong = embedSrc.includes('?i=') || embedSrc.includes('/song/');
                                             return (
                                                 <div className="bg-black/40 rounded-2xl p-3 border border-[#fc3c44]/20">
+                                                    {isArtist && (
+                                                        <div className="mb-2 p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-300 text-[10px] leading-relaxed">
+                                                            ⚠️ <strong>Attention :</strong> Apple Music n'autorise pas l'intégration de profils <em>Artiste</em> en player audio (uniquement Morceaux, Albums ou Playlists). Copie le lien d'un morceau ou album de l'artiste.
+                                                        </div>
+                                                    )}
                                                     <p className="text-[9px] text-[#fc3c44] font-black uppercase tracking-widest mb-2">Aperçu Apple Music</p>
                                                     <iframe
                                                         src={embedSrc}
@@ -6110,7 +6122,9 @@ ${generateSocialsHtml()}
                                             </div>
                                         </div>
                                         {mediaModal.url && (() => {
-                                            const clean = mediaModal.url.trim();
+                                            let clean = mediaModal.url.trim();
+                                            const iframeMatch = clean.match(/src=["']([^"']+)["']/i);
+                                            if (iframeMatch) clean = iframeMatch[1];
                                             const tm = clean.match(/(?:track\/|track:)(\d+)/i);
                                             const am = clean.match(/(?:album\/|album:)(\d+)/i);
                                             const pm = clean.match(/(?:playlist\/|playlist:)(\d+)/i);
