@@ -13175,11 +13175,7 @@ const contentType = response.headers.get("content-type");
         const toAddress = (message.to || 'info@dropsiders.fr').toLowerCase().trim();
         console.log(`[EMAIL WORKER] Incoming email to ${toAddress} from ${message.from}`);
 
-        // Option A: alex@ and contact@ are managed directly on LWS mailboxes. Completely ignore them!
-        if (toAddress === 'alex@dropsiders.fr' || toAddress === 'contact@dropsiders.fr') {
-            console.log(`[EMAIL WORKER] Ignoring ${toAddress} (handled via external LWS mail)`);
-            return;
-        }
+        // Allow all incoming dropsiders addresses (contact@, alex@, info@, etc.) to be captured in contacts.json
 
         try {
             const parser = new PostalMime();

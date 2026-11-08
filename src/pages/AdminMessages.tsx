@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Mail, Trash2, Reply, Send, X, User, Clock, Calendar, MessageSquare, CheckCircle, CheckCircle2, Check, AlertCircle, ShieldAlert, Inbox, Plus, Archive, FileText, Video, Paperclip, ExternalLink, File as FileIcon, Eye, Ban, ShieldCheck, Camera } from 'lucide-react';
+import { ArrowLeft, Mail, Trash2, Reply, Send, X, User, Clock, Calendar, MessageSquare, CheckCircle, CheckCircle2, Check, AlertCircle, ShieldAlert, Inbox, Plus, Archive, FileText, Video, Paperclip, ExternalLink, File as FileIcon, Eye, Ban, ShieldCheck, Camera, RotateCw, Sparkles } from 'lucide-react';
 import { getAuthHeaders, isSuperAdmin, apiFetch, hasPermission } from '../utils/auth';
 import teamData from '../data/team.json';
 
@@ -332,13 +332,19 @@ export function AdminMessages() {
         }
     };
 
+    const [isRefreshing, setIsRefreshing] = useState(false);
+    const [hasNewIncoming, setHasNewIncoming] = useState(false);
+    const prevMessagesCountRef = useRef<number>(0);
+
     const showNotif = (type: 'success' | 'error', msg: string) => {
         setNotification({ type, msg });
         setTimeout(() => setNotification(null), 4000);
     };
 
-    const fetchMessages = async () => {
-        setLoading(true);
+    const fetchMessages = async (isManual = false) => {
+        if (isManual) setIsRefreshing(true);
+        else if (prevMessagesCountRef.current === 0) setLoading(true);
+
         try {
             const res = await apiFetch(`/api/contacts?t=${Date.now()}`, {
                 headers: getAuthHeaders(),
@@ -346,19 +352,28 @@ export function AdminMessages() {
             });
             if (res.ok) {
                 const data = await res.json();
-                setMessages(Array.isArray(data) ? data.reverse() : []);
+                const newArr = Array.isArray(data) ? [...data].reverse() : [];
+                
+                // If new messages arrived during polling
+                if (prevMessagesCountRef.current > 0 && newArr.length > prevMessagesCountRef.current) {
+                    setHasNewIncoming(true);
+                    setTimeout(() => setHasNewIncoming(false), 5000);
+                }
+                prevMessagesCountRef.current = newArr.length;
+                setMessages(newArr);
             } else {
                 const errText = await res.text().catch(() => '');
                 console.error(`[AdminMessages] fetchMessages failed: HTTP ${res.status}`, errText);
-                showNotif('error', `Erreur ${res.status} lors de la récupération des messages`);
+                if (isManual) showNotif('error', `Erreur ${res.status} lors de la récupération des messages`);
                 setIsLoading(false);
             }
         } catch (e: any) {
             console.error('[AdminMessages] fetchMessages error:', e);
-            showNotif('error', 'Erreur réseau lors de la récupération des messages');
+            if (isManual) showNotif('error', 'Erreur réseau lors de la récupération des messages');
         } finally {
             setLoading(false);
             setIsLoading(false);
+            if (isManual) setTimeout(() => setIsRefreshing(false), 500);
         }
     };
 
@@ -396,8 +411,24 @@ export function AdminMessages() {
     };
 
     useEffect(() => {
-        fetchMessages();
+        fetchMessages(false);
         fetchBlockedSenders();
+
+        // Real-time polling: automatically check for new messages & emails every 12 seconds
+        const pollInterval = setInterval(() => {
+            fetchMessages(false);
+        }, 12000);
+
+        // Immediate refresh when tab/window gains focus
+        const handleFocus = () => {
+            fetchMessages(false);
+        };
+        window.addEventListener('focus', handleFocus);
+
+        return () => {
+            clearInterval(pollInterval);
+            window.removeEventListener('focus', handleFocus);
+        };
     }, []);
 
     const handleBlockSender = async (email: string, andDeleteMsgId?: string) => {
@@ -1330,6 +1361,23 @@ Alex (Dropsiders)`;
                         </div>
                     </div>
                     <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap sm:flex-nowrap">
+                        <button
+                            onClick={() => fetchMessages(true)}
+                            disabled={isRefreshing}
+                            className="flex items-center gap-1.5 px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl text-[9px] sm:text-[10px] font-black uppercase tracking-wider transition-all hover:bg-white/10 relative"
+                            style={{
+                                background: isRefreshing ? 'rgba(0,255,255,0.15)' : 'rgba(255,255,255,0.06)',
+                                border: isRefreshing ? '1px solid rgba(0,255,255,0.4)' : '1px solid rgba(255,255,255,0.1)',
+                                color: isRefreshing ? '#00ffff' : 'rgba(255,255,255,0.7)'
+                            }}
+                            title="Actualiser les messages et e-mails en direct"
+                        >
+                            <RotateCw className={`w-3 h-3 shrink-0 ${isRefreshing ? 'animate-spin text-neon-cyan' : ''}`} />
+                            <span>{isRefreshing ? 'Actualisation...' : 'Actualiser'}</span>
+                            {hasNewIncoming && (
+                                <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-cyan-400 animate-ping" />
+                            )}
+                        </button>
                         {bulkSelectMode && bulkSelected.size > 0 && (
                             <button
                                 onClick={() => setBulkDeleteConfirm(true)}
@@ -1394,6 +1442,17 @@ Alex (Dropsiders)`;
 
             {/* Notification toast */}
             <AnimatePresence>
+                {hasNewIncoming && (
+                    <motion.div
+                        initial={{ opacity: 0, y: -20, x: '-50%' }}
+                        animate={{ opacity: 1, y: 0, x: '-50%' }}
+                        exit={{ opacity: 0, y: -20, x: '-50%' }}
+                        className="fixed top-20 left-1/2 z-50 px-6 py-3 rounded-2xl text-xs sm:text-sm font-bold flex items-center gap-2.5 shadow-[0_0_30px_rgba(0,255,255,0.4)] bg-black/90 border border-cyan-400 text-cyan-300 backdrop-blur-xl"
+                    >
+                        <Sparkles className="w-4 h-4 text-cyan-300 animate-spin" />
+                        <span>Nouveau message / e-mail reçu en direct !</span>
+                    </motion.div>
+                )}
                 {notification && (
                     <motion.div
                         initial={{ opacity: 0, y: -20, x: '-50%' }}
