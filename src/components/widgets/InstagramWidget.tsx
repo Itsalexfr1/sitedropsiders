@@ -106,7 +106,7 @@ export function InstagramWidget({ accentColor = 'pink', resolvedColor, username 
         if (!isInView) return;
 
         let isMounted = true;
-        fetch(CURATOR_FEED_URL)
+        fetch(`${CURATOR_FEED_URL}?_t=${Date.now()}`, { cache: 'no-store' })
             .then(res => res.json())
             .then(data => {
                 if (isMounted && data && Array.isArray(data.posts) && data.posts.length > 0) {
