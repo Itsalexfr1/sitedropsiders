@@ -5681,7 +5681,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         }
                     }
 
-                    // Préparation des calques offscreen Cyan & Rouge/Thème (ZÉRO rectangle, ZÉRO cadre rouge)
+                    // Préparation des calques offscreen : Relief volumétrique titane + Glitch Cyan & Rouge/Thème
+                    let offRelief = offCanvasRef.current;
+                    if (!offRelief) {
+                        offRelief = document.createElement('canvas');
+                        offCanvasRef.current = offRelief;
+                    }
                     let offCyan = offCanvasCyanRef.current;
                     if (!offCyan) {
                         offCyan = document.createElement('canvas');
@@ -5695,6 +5700,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     const iW = Math.max(1, Math.ceil(w));
                     const iH = Math.max(1, Math.ceil(logoH));
 
+                    if (offRelief.width !== iW || offRelief.height !== iH) {
+                        offRelief.width = iW;
+                        offRelief.height = iH;
+                    }
                     if (offCyan.width !== iW || offCyan.height !== iH) {
                         offCyan.width = iW;
                         offCyan.height = iH;
@@ -5702,6 +5711,18 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     if (offRed.width !== iW || offRed.height !== iH) {
                         offRed.width = iW;
                         offRed.height = iH;
+                    }
+
+                    // Calque titane sombre pour l'extrusion de relief volumétrique
+                    const reliefCtx = offRelief.getContext('2d');
+                    if (reliefCtx) {
+                        reliefCtx.clearRect(0, 0, iW, iH);
+                        reliefCtx.globalCompositeOperation = 'source-over';
+                        reliefCtx.drawImage(logo, 0, 0, iW, iH);
+                        reliefCtx.globalCompositeOperation = 'source-in';
+                        reliefCtx.fillStyle = '#1c1e28'; // Teinte titane sombre volumétrique
+                        reliefCtx.fillRect(0, 0, iW, iH);
+                        reliefCtx.globalCompositeOperation = 'source-over';
                     }
 
                     if (glitchActive) {
@@ -5730,7 +5751,27 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                     ctx.save();
 
-                    // 1. GLITCH RGB DYNAMIQUE (Aberration chromatique Cyan & Couleur Thème)
+                    // 1. RELIEF VOLUMÉTRIQUE (Ombre de contact et extrusion d'épaisseur 3D titane)
+                    // A. Ombre de contact douce
+                    ctx.save();
+                    ctx.shadowColor = 'rgba(0, 0, 0, 0.92)';
+                    ctx.shadowBlur = 10;
+                    ctx.shadowOffsetX = 3.5;
+                    ctx.shadowOffsetY = 4.5;
+                    ctx.drawImage(offRelief, posX, posY, w, logoH);
+                    ctx.restore();
+
+                    // B. Tranches d'extrusion volumétrique (relief solide biseauté)
+                    ctx.save();
+                    const reliefDepth = 3.5;
+                    const reliefSteps = 5;
+                    for (let s = reliefSteps; s >= 1; s--) {
+                        const off = (s / reliefSteps) * reliefDepth;
+                        ctx.drawImage(offRelief, posX + off, posY + off, w, logoH);
+                    }
+                    ctx.restore();
+
+                    // 2. GLITCH RGB DYNAMIQUE (Aberration chromatique Cyan & Couleur Thème)
                     if (glitchActive && glitchAlpha > 0) {
                         ctx.save();
                         ctx.globalCompositeOperation = 'screen';
@@ -5744,7 +5785,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         ctx.restore();
                     }
 
-                    // 2. LOGO DROPSIDERS NORMAL (Exactement comme avant, à sa place d'origine)
+                    // 3. FACE AVANT DU LOGO BLANC PUR (Sur le dessus du relief, exactement à sa place d'origine)
                     ctx.drawImage(logo, posX, posY, w, logoH);
 
                     ctx.restore();
