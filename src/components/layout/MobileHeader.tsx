@@ -3,7 +3,6 @@ import { Sun, Moon, Search, Mail } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
 import { useLanguage } from '../../context/LanguageContext';
 import { FlagIcon } from '../ui/FlagIcon';
-import { Animated3DLogo } from '../shared/Animated3DLogo';
 
 interface MobileHeaderProps {
     onOpenSearch: () => void;
@@ -21,7 +20,11 @@ export function MobileHeader({ onOpenSearch }: MobileHeaderProps) {
                 <div className="absolute inset-0 bg-gradient-to-b from-white/[0.02] to-transparent pointer-events-none" />
 
                 <Link to="/" className="relative flex items-center gap-2 active:scale-95 transition-transform duration-300 z-10">
-                    <Animated3DLogo className="h-7 w-auto" />
+                    <img
+                        src="/Logo.png"
+                        className={`h-6 w-auto object-contain logo-img transition-all duration-500 ${!isDarkMode ? 'invert brightness-0' : ''}`}
+                        alt="DROPSIDERS"
+                    />
                 </Link>
 
             <div className="relative flex items-center gap-3 z-10">
