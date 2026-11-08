@@ -1821,6 +1821,7 @@ export default {
             path === '/api/admin/cleanup-past-agenda' ||
             path === '/api/admin/reset-leaderboards' ||
             path === '/api/music/reset' ||
+            path === '/api/music/delete' ||
             path === '/api/admin/clean-encoding' ||
             path === '/api/quiz/reset-blind-test' ||
             path === '/api/r2/delete' ||
@@ -1861,7 +1862,7 @@ export default {
                 
                 if (requestSessionId && requestSessionId === masterSessionId) {
                     const isSuperEmail = requestUsername && (requestUsername.toLowerCase() === 'alexflex30@gmail.com' || requestUsername.toLowerCase() === 'contact@dropsiders.fr' || requestUsername.toLowerCase() === 'alex@dropsiders.fr');
-                    if (isSuperEmail || requestUsername === 'alex') {
+                    if (isSuperEmail || requestUsername === 'alex' || !requestUsername) {
                         authenticated = true;
                         userPermissions = ['all'];
                     }
@@ -11904,7 +11905,7 @@ ${urls.map(u => `  <url>
             try {
                 const body = await request.json().catch(() => ({}));
                 const { adminToken } = body;
-                if (!authenticated && adminToken !== env.ADMIN_TOKEN) {
+                if (!authenticated && (!adminPassword || adminToken !== adminPassword)) {
                     console.error('[AUTH] Music reset unauthorized. authenticated:', authenticated, 'adminToken provided:', !!adminToken);
                     return new Response(JSON.stringify({ error: 'Unauthorized: Admin authentication or token required' }), { status: 401, headers });
                 }
@@ -12076,14 +12077,36 @@ ${urls.map(u => `  <url>
         // --- NEW: DELETE TRACK (admin) ---
         if (path === '/api/music/delete' && request.method === 'POST') {
             try {
-                const { title, adminToken } = await request.json();
-                if (!authenticated && adminToken !== env.ADMIN_TOKEN) {
-                    return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers });
+                const body = await request.json().catch(() => ({}));
+                const { title, adminToken, password } = body;
+                const token = adminToken || password || requestPassword;
+                const isAuthorized = authenticated || (adminPassword && token === adminPassword);
+
+                if (!isAuthorized) {
+                    return new Response(JSON.stringify({ error: 'Unauthorized: Admin authentication required' }), { status: 401, headers });
                 }
                 if (!title) return new Response(JSON.stringify({ error: 'Title required' }), { status: 400, headers });
                 
                 const trackIdSlug = title.toLowerCase().trim().replace(/[^a-z0-9]/g, '_');
                 await env.CHAT_KV.delete(`music_track:${trackIdSlug}`);
+
+                // Also scan to ensure any variant key with matching title is wiped
+                try {
+                    const list = await env.CHAT_KV.list({ prefix: 'music_track:' });
+                    const keysToDelete: string[] = [];
+                    for (const key of list.keys) {
+                        if (key.name === `music_track:${trackIdSlug}`) continue;
+                        const data = await env.CHAT_KV.get(key.name, { type: 'json' }) as any;
+                        if (data && data.title && data.title.toLowerCase().trim() === title.toLowerCase().trim()) {
+                            keysToDelete.push(key.name);
+                        }
+                    }
+                    if (keysToDelete.length > 0) {
+                        await Promise.all(keysToDelete.map(k => env.CHAT_KV.delete(k)));
+                    }
+                } catch (scanErr) {
+                    console.error('Scan delete error:', scanErr);
+                }
                 
                 return new Response(JSON.stringify({ success: true }), { status: 200, headers });
             } catch (error: any) {

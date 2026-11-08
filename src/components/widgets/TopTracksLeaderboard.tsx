@@ -6,6 +6,7 @@ import { useLanguage } from '../../context/LanguageContext';
 import { useUser } from '../../context/UserContext';
 import { UserAuthModal } from '../auth/UserAuthModal';
 import { ConfirmationModal } from '../ConfirmationModal';
+import { getAuthHeaders, apiFetch } from '../../utils/auth';
 
 function extractYouTubeId(urlOrId?: string | null): string | null {
     if (!urlOrId) return null;
@@ -190,17 +191,38 @@ export function TopTracksLeaderboard({ resolvedColor }: { resolvedColor?: string
         if (!deleteConfirm) return;
         const title = deleteConfirm;
         try {
-            const res = await fetch('/api/music/delete', {
+            const res = await apiFetch('/api/music/delete', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ title, adminToken: localStorage.getItem('admin_token') })
+                headers: getAuthHeaders(),
+                body: JSON.stringify({ 
+                    title, 
+                    adminToken: localStorage.getItem('admin_password') || localStorage.getItem('admin_session_id') || '' 
+                })
             });
 
             if (res.ok) {
                 setTracks(prev => prev.filter(t => t.title !== title));
+                showNotification(`Morceau "${title}" supprimé du Top 5 !`, 'success');
+
+                // Re-fetch to immediately pull the updated ranking from KV
+                const refreshRes = await fetch('/api/music/top-tracks');
+                if (refreshRes.ok) {
+                    const data = await refreshRes.json();
+                    const filteredData = (Array.isArray(data) ? data : []).filter((item: any) => {
+                        const t = (item.title || '').toUpperCase();
+                        return !t.includes('SORTIES DE LA SEMAINE') && 
+                               !t.includes('WEEKLY SELECTION') &&
+                               !t.includes('DÉVOILE');
+                    });
+                    setTracks(filteredData.slice(0, 5));
+                }
+            } else {
+                const errData = await res.json().catch(() => ({}));
+                showNotification(errData.error || 'Erreur lors de la suppression', 'error');
             }
         } catch (err) {
             console.error('Failed to delete track:', err);
+            showNotification('Erreur réseau lors de la suppression', 'error');
         } finally {
             setDeleteConfirm(null);
         }
