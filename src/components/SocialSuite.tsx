@@ -5645,57 +5645,19 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                     // Mode statique (export PNG) vs animé (REEL & POST dans le studio, export vidéo)
                     const isStatic = isStaticPngExport || animElapsed >= 90.0;
-                    const loopSec = 2.8;
-                    const cycleT = isStatic ? 0 : ((animElapsed % loopSec) / loopSec); // 0.0 à 1.0
+                    const speed = 4.2; // Même vitesse d'oscillation que la navbar
+                    const t = isStatic ? 0.0 : (animElapsed % speed);
+                    // Cycle pendulaire cubic-bezier lissé (oscillation gauche/droite 3D)
+                    const phase = isStatic ? 0.0 : Math.sin((t / speed) * Math.PI * 2);
+                    const maxAngleY = 22 * (Math.PI / 180); // Exactement ±22° comme la navbar
+                    const angleY = phase * maxAngleY;
+                    const scaleX = Math.cos(angleY);
 
-                    // Décalages glitch RGB calculés sur le cycle (calme ~82%, salves cyber précises 18%)
-                    let glitchActive = false;
-                    let cyanShiftX = 0;
-                    let cyanShiftY = 0;
-                    let redShiftX = 0;
-                    let redShiftY = 0;
-                    let glitchAlpha = 0;
-
-                    if (!isStatic) {
-                        if (cycleT >= 0.82 && cycleT < 0.85) {
-                            glitchActive = true;
-                            cyanShiftX = -4.5;
-                            cyanShiftY = 1.0;
-                            redShiftX = 4.5;
-                            redShiftY = -1.0;
-                            glitchAlpha = 0.90;
-                        } else if (cycleT >= 0.87 && cycleT < 0.90) {
-                            glitchActive = true;
-                            cyanShiftX = 3.5;
-                            cyanShiftY = -1.0;
-                            redShiftX = -3.5;
-                            redShiftY = 1.0;
-                            glitchAlpha = 0.85;
-                        } else if (cycleT >= 0.92 && cycleT < 0.95) {
-                            glitchActive = true;
-                            cyanShiftX = -5.5;
-                            cyanShiftY = 0.5;
-                            redShiftX = 5.5;
-                            redShiftY = -0.5;
-                            glitchAlpha = 0.95;
-                        }
-                    }
-
-                    // Préparation des calques offscreen : Relief volumétrique titane + Glitch Cyan & Rouge/Thème
+                    // Préparation du calque titane sombre pour les 12 tranches d'extrusion 3D
                     let offRelief = offCanvasRef.current;
                     if (!offRelief) {
                         offRelief = document.createElement('canvas');
                         offCanvasRef.current = offRelief;
-                    }
-                    let offCyan = offCanvasCyanRef.current;
-                    if (!offCyan) {
-                        offCyan = document.createElement('canvas');
-                        offCanvasCyanRef.current = offCyan;
-                    }
-                    let offRed = offCanvasRedRef.current;
-                    if (!offRed) {
-                        offRed = document.createElement('canvas');
-                        offCanvasRedRef.current = offRed;
                     }
                     const iW = Math.max(1, Math.ceil(w));
                     const iH = Math.max(1, Math.ceil(logoH));
@@ -5704,89 +5666,71 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         offRelief.width = iW;
                         offRelief.height = iH;
                     }
-                    if (offCyan.width !== iW || offCyan.height !== iH) {
-                        offCyan.width = iW;
-                        offCyan.height = iH;
-                    }
-                    if (offRed.width !== iW || offRed.height !== iH) {
-                        offRed.width = iW;
-                        offRed.height = iH;
-                    }
 
-                    // Calque titane sombre pour l'extrusion de relief volumétrique
                     const reliefCtx = offRelief.getContext('2d');
                     if (reliefCtx) {
                         reliefCtx.clearRect(0, 0, iW, iH);
                         reliefCtx.globalCompositeOperation = 'source-over';
                         reliefCtx.drawImage(logo, 0, 0, iW, iH);
                         reliefCtx.globalCompositeOperation = 'source-in';
-                        reliefCtx.fillStyle = '#1c1e28'; // Teinte titane sombre volumétrique
+                        reliefCtx.fillStyle = '#1c1e28'; // Teinte titane sombre (identique à la navbar)
                         reliefCtx.fillRect(0, 0, iW, iH);
                         reliefCtx.globalCompositeOperation = 'source-over';
                     }
 
-                    if (glitchActive) {
-                        const cyanCtx = offCyan.getContext('2d');
-                        if (cyanCtx) {
-                            cyanCtx.clearRect(0, 0, iW, iH);
-                            cyanCtx.globalCompositeOperation = 'source-over';
-                            cyanCtx.drawImage(logo, 0, 0, iW, iH);
-                            cyanCtx.globalCompositeOperation = 'source-in';
-                            cyanCtx.fillStyle = '#00f0ff';
-                            cyanCtx.fillRect(0, 0, iW, iH);
-                            cyanCtx.globalCompositeOperation = 'source-over';
-                        }
-
-                        const redCtx = offRed.getContext('2d');
-                        if (redCtx) {
-                            redCtx.clearRect(0, 0, iW, iH);
-                            redCtx.globalCompositeOperation = 'source-over';
-                            redCtx.drawImage(logo, 0, 0, iW, iH);
-                            redCtx.globalCompositeOperation = 'source-in';
-                            redCtx.fillStyle = (typeof effectiveThemeHex === 'string' && effectiveThemeHex) ? effectiveThemeHex : `rgb(${rgb})`;
-                            redCtx.fillRect(0, 0, iW, iH);
-                            redCtx.globalCompositeOperation = 'source-over';
-                        }
+                    ctx.save();
+                    ctx.translate(centerX, centerY);
+                    if (scaleX !== 1.0) {
+                        ctx.scale(scaleX, 1.0);
                     }
 
+                    // 1. TRÈS LÉGÈRE LUEUR DE COULEUR DU THÈME DERRIÈRE L'ANIMATION (Subtile, élégante et non aveuglante)
                     ctx.save();
+                    ctx.shadowColor = `rgba(${rgb}, 0.22)`; // Très légère lueur
+                    ctx.shadowBlur = 18;
+                    ctx.shadowOffsetX = 0;
+                    ctx.shadowOffsetY = 0;
+                    ctx.drawImage(logo, -w / 2, -logoH / 2, w, logoH);
+                    ctx.restore();
 
-                    // 1. RELIEF VOLUMÉTRIQUE (Ombre de contact et extrusion d'épaisseur 3D titane)
-                    // A. Ombre de contact douce
+                    // 2. OMBRE DE CONTACT ARRIÈRE PROFONDE (Exactement comme la navbar)
+                    const depth = 14;
+                    const sliceCount = 12;
                     ctx.save();
-                    ctx.shadowColor = 'rgba(0, 0, 0, 0.92)';
+                    ctx.shadowColor = 'rgba(0, 0, 0, 0.90)';
                     ctx.shadowBlur = 10;
-                    ctx.shadowOffsetX = 3.5;
-                    ctx.shadowOffsetY = 4.5;
-                    ctx.drawImage(offRelief, posX, posY, w, logoH);
+                    ctx.shadowOffsetX = -phase * 4;
+                    ctx.shadowOffsetY = 6;
+                    ctx.drawImage(offRelief, -w / 2, -logoH / 2, w, logoH);
                     ctx.restore();
 
-                    // B. Tranches d'extrusion volumétrique (relief solide biseauté)
+                    // 3. 12 TRANCHES VOLUMÉTRIQUES 3D TITANE/ACIER (Exactement comme la navbar)
                     ctx.save();
-                    const reliefDepth = 3.5;
-                    const reliefSteps = 5;
-                    for (let s = reliefSteps; s >= 1; s--) {
-                        const off = (s / reliefSteps) * reliefDepth;
-                        ctx.drawImage(offRelief, posX + off, posY + off, w, logoH);
+                    for (let s = sliceCount; s >= 1; s--) {
+                        const ratio = 1 - (s / sliceCount);
+                        const sliceZ = (s / sliceCount) * depth;
+                        const offX = -phase * sliceZ * 0.70;
+                        const offY = sliceZ * 0.18; // 4° de tilt vertical
+                        ctx.globalAlpha = 0.50 + ratio * 0.45;
+                        ctx.drawImage(offRelief, -w / 2 + offX, -logoH / 2 + offY, w, logoH);
                     }
                     ctx.restore();
 
-                    // 2. GLITCH RGB DYNAMIQUE (Aberration chromatique Cyan & Couleur Thème)
-                    if (glitchActive && glitchAlpha > 0) {
-                        ctx.save();
-                        ctx.globalCompositeOperation = 'screen';
-                        ctx.globalAlpha = glitchAlpha;
-                        if (offCyan) {
-                            ctx.drawImage(offCyan, posX + cyanShiftX, posY + cyanShiftY, w, logoH);
-                        }
-                        if (offRed) {
-                            ctx.drawImage(offRed, posX + redShiftX, posY + redShiftY, w, logoH);
-                        }
-                        ctx.restore();
-                    }
+                    // 4. BISEAU HIGHLIGHT DISCRET SUR L'ARÊTE AVANT
+                    ctx.save();
+                    ctx.globalAlpha = 0.35;
+                    ctx.drawImage(logo, -w / 2 - phase * 0.8, -logoH / 2 - 0.5, w, logoH);
+                    ctx.restore();
 
-                    // 3. FACE AVANT DU LOGO BLANC PUR (Sur le dessus du relief, exactement à sa place d'origine)
-                    ctx.drawImage(logo, posX, posY, w, logoH);
+                    // 5. FACE AVANT DU LOGO BLANC PUR (Éclairage dynamique 0.88 - 1.0 comme la navbar)
+                    const frontLight = isStatic ? 1.0 : (0.88 + 0.12 * Math.abs(Math.cos((t / speed) * Math.PI * 2)));
+                    ctx.save();
+                    ctx.globalAlpha = frontLight;
+                    ctx.shadowColor = 'rgba(0, 0, 0, 0.85)';
+                    ctx.shadowBlur = 3;
+                    ctx.shadowOffsetY = 1;
+                    ctx.drawImage(logo, -w / 2, -logoH / 2, w, logoH);
+                    ctx.restore();
 
                     ctx.restore();
                 };
