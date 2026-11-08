@@ -917,7 +917,7 @@ export function Agenda() {
                                                                 <button
                                                                     onClick={handleReminder}
                                                                     className="hidden sm:flex w-10 h-10 rounded-xl bg-white/5 border border-white/10 items-center justify-center hover:bg-neon-fuchsia/10 hover:border-neon-fuchsia transition-all group/btn"
-                                                                    title="Rappel Calendrier"
+                                                                    title={t('agenda.add_to_calendar')}
                                                                 >
                                                                     <Calendar className="w-5 h-5 text-gray-500 group-hover/btn:text-neon-fuchsia" />
                                                                 </button>
@@ -1074,7 +1074,7 @@ export function Agenda() {
                                                                             className="flex-1 md:flex-none flex items-center justify-center gap-3 px-10 py-5 bg-white/5 border border-white/10 text-white rounded-2xl font-black uppercase tracking-widest hover:bg-white/10 transition-all text-xs md:text-sm"
                                                                         >
                                                                             <Calendar className="w-5 h-5 text-neon-fuchsia" />
-                                                                            M'en rappeler
+                                                                            {t('agenda.add_to_calendar')}
                                                                         </button>
                                                                     )}
 

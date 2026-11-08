@@ -18,7 +18,7 @@ export type TranslationKey =
     | 'newsletter_form.email_label' | 'newsletter_form.email_placeholder' | 'newsletter_form.first_name_label' | 'newsletter_form.first_name_placeholder' | 'newsletter_form.last_name_label' | 'newsletter_form.last_name_placeholder' | 'newsletter_form.submit_btn' | 'newsletter_form.submitting_btn' | 'newsletter_form.success_msg' | 'newsletter_form.error_required' | 'newsletter_form.error_invalid' | 'newsletter_form.error_server' | 'newsletter_form.privacy_notice' | 'newsletter_form.privacy_link'
     | 'article_detail.link_copied' | 'article_detail.share' | 'article_detail.focus' | 'article_detail.previous' | 'article_detail.next' | 'article_detail.must_watch' | 'article_detail.share_btn' | 'article_detail.copied_btn'
     | 'admin.featured' | 'admin.add' | 'admin.delete' | 'admin.cancel' | 'admin.modify'
-    | 'nav.explore_styles' | 'recap.newsletter_title' | 'agenda.no_desc' | 'agenda.book_tickets'
+    | 'nav.explore_styles' | 'recap.newsletter_title' | 'agenda.no_desc' | 'agenda.book_tickets' | 'agenda.add_to_calendar'
     | 'contact.title' | 'contact.title_span' | 'contact.subtitle' | 'contact.name' | 'contact.email' | 'contact.subject' | 'contact.subject_placeholder' | 'contact.message' | 'contact.message_placeholder' | 'contact.send' | 'contact.sending' | 'contact.success' | 'contact.error_fields' | 'contact.error_send' | 'contact.subject_question' | 'contact.subject_suggestion' | 'contact.subject_partnership' | 'contact.subject_recruitment' | 'contact.subject_problem'
     | 'contact.name_placeholder' | 'contact.email_placeholder'
     | 'interviews.title_prefix' | 'recaps.title_prefix' | 'communaute.title_prefix' | 'news.title_prefix'
@@ -286,6 +286,7 @@ export const translations: Record<TranslationKey, { fr: string, en: string }> = 
     'recap.newsletter_title': { fr: "S'INSCRIRE \u00c0 LA <span class=\"text-neon-red\">NEWSLETTER</span>", en: "SUBSCRIBE TO THE <span class=\"text-neon-red\">NEWSLETTER</span>" },
     'agenda.no_desc': { fr: "Aucune description disponible pour cet \u00e9v\u00e9nement.", en: "No description available for this event." },
     'agenda.book_tickets': { fr: "R\u00e9server mes tickets", en: "Book my tickets" },
+    'agenda.add_to_calendar': { fr: "Ajouter au calendrier", en: "Add to calendar" },
     'contact.title': { fr: 'Nous ', en: 'Contact ' },
     'contact.title_span': { fr: 'Contacter', en: 'Us' },
     'contact.subtitle': { fr: "Une question, une suggestion, un partenariat ou l'envie de rejoindre l'aventure et d'int\u00e9grer l'\u00e9quipe ? Envoyez-nous un message, nous vous r\u00e9pondrons dans les plus brefs d\u00e9lais !", en: "A question, a suggestion, a partnership, or the desire to join the adventure and the team? Send us a message, we'll get back to you as soon as possible!" },
