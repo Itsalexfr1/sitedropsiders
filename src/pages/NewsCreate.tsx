@@ -4910,7 +4910,7 @@ ${generateSocialsHtml()}
                                                                         width="100%"
                                                                         height={dzType === 'track' ? 152 : 300}
                                                                         frameBorder="0"
-                                                                        allowtransparency="true"
+                                                                        allowTransparency={true}
                                                                         allow="encrypted-media; clipboard-write"
                                                                         style={{ borderRadius: '12px' }}
                                                                     />
@@ -6095,7 +6095,7 @@ ${generateSocialsHtml()}
                                                         width="100%"
                                                         height={dzType === 'track' ? 152 : 300}
                                                         frameBorder={0}
-                                                        allowtransparency="true"
+                                                        allowTransparency={true}
                                                         allow="encrypted-media; clipboard-write"
                                                         className="rounded-xl"
                                                     />

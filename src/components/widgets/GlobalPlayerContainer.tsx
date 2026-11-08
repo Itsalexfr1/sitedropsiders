@@ -36,7 +36,13 @@ export function GlobalPlayerContainer() {
     };
 
     const location = useLocation();
-    if (location.pathname.startsWith('/websiders')) return null;
+
+    // Auto-minimize (open mini-player) on new track/mix change
+    useEffect(() => {
+        if (activeTrack) {
+            setIsMinimized(true);
+        }
+    }, [activeTrack?.id]);
 
     const generateMiniStory = async (e: React.MouseEvent) => {
         e.stopPropagation();
@@ -317,15 +323,8 @@ export function GlobalPlayerContainer() {
         }
     };
 
-    // Auto-minimize (open mini-player) on new track/mix change
-    useEffect(() => {
-        if (activeTrack) {
-            setIsMinimized(true);
-        }
-    }, [activeTrack?.id]);
-
-    // Don't render anything if no track is active
-    if (!activeTrack) return null;
+    // Don't render anything if on Websiders or no track is active
+    if (location.pathname.startsWith('/websiders') || !activeTrack) return null;
 
     const shareUrl = `https://dropsiders.fr/mix/${activeTrack.id}`;
 
