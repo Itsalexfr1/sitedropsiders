@@ -5729,43 +5729,25 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     }
 
                     ctx.save();
-                    ctx.translate(centerX, centerY);
 
-                    // 1. RELIEF 3D (Ombre de contact profonde & biseau net sans dédoublement de cadre)
-                    ctx.save();
-                    ctx.shadowColor = 'rgba(0, 0, 0, 0.90)';
-                    ctx.shadowBlur = 14;
-                    ctx.shadowOffsetX = 3.5;
-                    ctx.shadowOffsetY = 4.5;
-                    ctx.drawImage(logo, -w / 2, -logoH / 2, w, logoH);
-                    ctx.restore();
-
-                    // 2. Biseau métallique titane sombre (+2px)
-                    ctx.save();
-                    ctx.globalAlpha = 0.45;
-                    ctx.drawImage(logo, -w / 2 + 2.0, -logoH / 2 + 2.0, w, logoH);
-                    ctx.restore();
-
-                    // 3. GLITCH RGB DYNAMIQUE (Aberration chromatique Cyan & Couleur Thème)
+                    // 1. GLITCH RGB DYNAMIQUE (Aberration chromatique Cyan & Couleur Thème)
                     if (glitchActive && glitchAlpha > 0) {
                         ctx.save();
                         ctx.globalCompositeOperation = 'screen';
                         ctx.globalAlpha = glitchAlpha;
                         if (offCyan) {
-                            ctx.drawImage(offCyan, -w / 2 + cyanShiftX, -logoH / 2 + cyanShiftY, w, logoH);
+                            ctx.drawImage(offCyan, posX + cyanShiftX, posY + cyanShiftY, w, logoH);
                         }
                         if (offRed) {
-                            ctx.drawImage(offRed, -w / 2 + redShiftX, -logoH / 2 + redShiftY, w, logoH);
+                            ctx.drawImage(offRed, posX + redShiftX, posY + redShiftY, w, logoH);
                         }
                         ctx.restore();
                     }
 
-                    // 4. FACE AVANT DU LOGO BLANC PUR (Ultra nette, contrastée et solide)
-                    ctx.save();
-                    ctx.drawImage(logo, -w / 2, -logoH / 2, w, logoH);
-                    ctx.restore();
+                    // 2. LOGO DROPSIDERS NORMAL (Exactement comme avant, à sa place d'origine)
+                    ctx.drawImage(logo, posX, posY, w, logoH);
 
-                    ctx.restore(); // Restaure le repère général
+                    ctx.restore();
                 };
 
                 // Indicateur Swipe moderne avec Chevrons en Cascade animés (Option 2)
