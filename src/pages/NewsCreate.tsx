@@ -3995,6 +3995,20 @@ ${generateSocialsHtml()}
                                     </button>
                                     <button
                                         type="button"
+                                        onClick={() => setMediaModal({ show: true, type: 'applemusic', url: '', urls: '' })}
+                                        className="whitespace-nowrap flex items-center gap-2 px-3 py-2 bg-[#fc3c44]/20 border border-[#fc3c44]/30 text-[#fc3c44] rounded-full hover:bg-[#fc3c44]/30 transition-all font-bold uppercase tracking-widest text-[9px]"
+                                    >
+                                        <AppleMusicIcon className="w-3.5 h-3.5" /> Apple Music
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setMediaModal({ show: true, type: 'deezer', url: '', urls: '' })}
+                                        className="whitespace-nowrap flex items-center gap-2 px-3 py-2 bg-[#A238FF]/20 border border-[#A238FF]/30 text-[#A238FF] rounded-full hover:bg-[#A238FF]/30 transition-all font-bold uppercase tracking-widest text-[9px]"
+                                    >
+                                        <DeezerIcon className="w-3.5 h-3.5" /> Deezer
+                                    </button>
+                                    <button
+                                        type="button"
                                         onClick={() => setShowTracklistModal(true)}
                                         className="whitespace-nowrap flex items-center gap-2 px-3 py-2 bg-neon-purple/20 border border-neon-purple/30 text-neon-purple rounded-full hover:bg-neon-purple/30 transition-all font-bold uppercase tracking-widest text-[9px]"
                                     >
@@ -4541,6 +4555,22 @@ ${generateSocialsHtml()}
                                                     title="Ajouter Beatport ici"
                                                 >
                                                     <BeatportIcon className="w-4 h-4" />
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setMediaModal({ show: true, type: 'applemusic', url: '', urls: '', widgetIndex: index } as any)}
+                                                    className="w-8 h-8 rounded-full bg-[#fc3c44]/10 border border-[#fc3c44]/30 text-[#fc3c44] flex items-center justify-center hover:bg-[#fc3c44]/20 transition-all"
+                                                    title="Ajouter Apple Music ici"
+                                                >
+                                                    <AppleMusicIcon className="w-4 h-4" />
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setMediaModal({ show: true, type: 'deezer', url: '', urls: '', widgetIndex: index } as any)}
+                                                    className="w-8 h-8 rounded-full bg-[#A238FF]/10 border border-[#A238FF]/30 text-[#A238FF] flex items-center justify-center hover:bg-[#A238FF]/20 transition-all"
+                                                    title="Ajouter Deezer ici"
+                                                >
+                                                    <DeezerIcon className="w-4 h-4" />
                                                 </button>
                                                 <button
                                                     type="button"
