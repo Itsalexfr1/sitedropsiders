@@ -374,6 +374,15 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         }
     }, [imageUrl]);
     const [bgVideo, setBgVideo] = useState<HTMLVideoElement | null>(null);
+    const [bgVideoStartTime, setBgVideoStartTime] = useState<number>(0);
+    const bgVideoStartTimeRef = useRef<number>(0);
+    useEffect(() => { bgVideoStartTimeRef.current = bgVideoStartTime; }, [bgVideoStartTime]);
+    const formatVideoTime = (sec: number) => {
+        if (isNaN(sec) || sec < 0) return '0:00';
+        const m = Math.floor(sec / 60);
+        const s = Math.floor(sec % 60);
+        return `${m}:${s < 10 ? '0' : ''}${s}`;
+    };
     const [isVideoAudioMuted, setIsVideoAudioMuted] = useState<boolean>(true);
     const [textColor, setTextColor] = useState('#ffffff');
     const [textBgColor, setTextBgColor] = useState('transparent');
@@ -2721,7 +2730,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     };
 
     /** Extrait et boucle la piste audio d'une vidéo sous forme d'AudioBuffer prêt pour WebCodecs AudioEncoder ou WAV */
-    const extractAudioBufferFromBlob = async (blob: Blob, targetDurationMs: number): Promise<AudioBuffer | null> => {
+    const extractAudioBufferFromBlob = async (blob: Blob, targetDurationMs: number, startOffsetSec: number = 0): Promise<AudioBuffer | null> => {
         try {
             const arr = await blob.arrayBuffer();
             const OfflineCtx = (window as any).OfflineAudioContext || (window as any).webkitOfflineAudioContext;
@@ -2785,7 +2794,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             src.buffer = buf;
             src.loop = true; // Répétition fluide si la vidéo est plus courte que le reel/slide
             src.connect(renderCtx.destination);
-            src.start(0);
+            src.start(0, Math.max(0, startOffsetSec));
 
             return await renderCtx.startRendering();
         } catch (err) {
@@ -4794,7 +4803,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 if (isVideoRecordingRef.current) {
                     focusHookTime = deterministicAnimTimeRef.current;
                 } else if (bgVideo && !bgVideo.paused) {
-                    focusHookTime = bgVideo.currentTime;
+                    focusHookTime = Math.max(0, bgVideo.currentTime - bgVideoStartTimeRef.current);
                 } else {
                     focusHookTime = animElapsed < 90 ? (animElapsed % 6.0) : 0;
                 }
@@ -5253,28 +5262,33 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 }
                             }
                         } else {
-                            // SLIDE 2 : RÉVÉLATION DU DJ EN COULEURS NON MASQUÉ SUR LE MÊME FOND DE SCÈNE
+                            // SLIDE 2 : RÉVÉLATION DU DJ EN COULEURS NON MASQUÉ SUR LE MÊME FOND DE SCÈNE (AVEC FONDU PROGRESSIF)
                             const activeRevealImg = djCutoutImgObj || djOriginalImgObj || (editorialSlideImages[2] ? imageCacheRef.current[editorialSlideImages[2]] : null);
                             if (activeRevealImg) {
                                 const isCutout = Boolean(djCutoutImgObj && activeRevealImg === djCutoutImgObj) || checkImageHasAlpha(activeRevealImg);
+                                const revealFadeT = isStaticPngExport ? 1 : Math.min(1, Math.max(0, animElapsed / 0.85));
+                                const revealAlpha = 1 - Math.pow(1 - revealFadeT, 3);
+                                const revealScale = 0.94 + (0.06 * revealAlpha);
+
                                 if (isCutout) {
                                     // Dessin du DJ détouré en couleur naturelle à la même position exacte que la silhouette
                                     const baseScale = Math.min((canvas.width * 0.90) / activeRevealImg.width, (canvas.height * 0.70) / activeRevealImg.height);
-                                    let scale = (baseScale > 1.25 ? baseScale : Math.max(canvas.width / activeRevealImg.width, canvas.height / activeRevealImg.height) * 0.92) * bgAnimScale;
+                                    let scale = (baseScale > 1.25 ? baseScale : Math.max(canvas.width / activeRevealImg.width, canvas.height / activeRevealImg.height) * 0.92) * bgAnimScale * revealScale;
                                     const iw = activeRevealImg.width * scale;
                                     const ih = activeRevealImg.height * scale;
                                     const x = ((canvas.width - iw) / 2) + bgOffsetX + bgAnimX;
                                     const y = ((canvas.height * 0.44 - ih / 2)) + bgOffsetY + bgAnimY;
 
-                                    // Lueur d'ambiance cyan/émeraude subtile pour détacher l'artiste du fond
+                                    // Lueur d'ambiance cyan/émeraude subtile pour détacher l'artiste du fond avec fondu
                                     const haloGrad = ctx.createRadialGradient(canvas.width / 2, y + ih * 0.42, 20, canvas.width / 2, y + ih * 0.42, Math.max(iw, ih) * 0.60);
-                                    haloGrad.addColorStop(0, 'rgba(0, 240, 255, 0.22)');
-                                    haloGrad.addColorStop(0.5, 'rgba(0, 240, 255, 0.05)');
+                                    haloGrad.addColorStop(0, `rgba(0, 240, 255, ${0.22 * revealAlpha})`);
+                                    haloGrad.addColorStop(0.5, `rgba(0, 240, 255, ${0.05 * revealAlpha})`);
                                     haloGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
                                     ctx.fillStyle = haloGrad;
                                     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
                                     ctx.save();
+                                    ctx.globalAlpha = revealAlpha;
                                     // Ombre portée de profondeur
                                     ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
                                     ctx.shadowBlur = 32;
@@ -5283,16 +5297,17 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 } else {
                                     // Photo DJ originale non détourée : affichage centré sur le décor avec bordure et ombre
                                     const baseScale = Math.min((canvas.width * 0.85) / activeRevealImg.width, (canvas.height * 0.60) / activeRevealImg.height);
-                                    const scale = baseScale * bgAnimScale;
+                                    const scale = baseScale * bgAnimScale * revealScale;
                                     const iw = activeRevealImg.width * scale;
                                     const ih = activeRevealImg.height * scale;
                                     const x = ((canvas.width - iw) / 2) + bgOffsetX + bgAnimX;
                                     const y = ((canvas.height * 0.44 - ih / 2)) + bgOffsetY + bgAnimY;
                                     ctx.save();
+                                    ctx.globalAlpha = revealAlpha;
                                     ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
                                     ctx.shadowBlur = 30;
                                     ctx.drawImage(activeRevealImg, x, y, iw, ih);
-                                    ctx.strokeStyle = 'rgba(0, 240, 255, 0.6)';
+                                    ctx.strokeStyle = `rgba(0, 240, 255, ${0.6 * revealAlpha})`;
                                     ctx.lineWidth = 3;
                                     ctx.strokeRect(x, y, iw, ih);
                                     ctx.restore();
@@ -5365,7 +5380,17 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             ctx.fillRect(0, 0, canvas.width, canvas.height);
                             ctx.restore();
                         } else {
-                            ctx.drawImage(effectiveImg, x, y, iw, ih);
+                            const isDevinetteReveal = (theme === 'JEU' || theme === 'JEU_FESTIVAL') && effectiveEditorialSlide === 2;
+                            if (isDevinetteReveal) {
+                                const revealFadeT = isStaticPngExport ? 1 : Math.min(1, Math.max(0, animElapsed / 0.85));
+                                const revealAlpha = 1 - Math.pow(1 - revealFadeT, 3);
+                                ctx.save();
+                                ctx.globalAlpha = revealAlpha;
+                                ctx.drawImage(effectiveImg, x, y, iw, ih);
+                                ctx.restore();
+                            } else {
+                                ctx.drawImage(effectiveImg, x, y, iw, ih);
+                            }
                         }
                     }
                 } else {
@@ -5460,6 +5485,73 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         currentX += segWidth;
                     });
                     ctx.restore();
+                };
+
+                const drawTop10StyledText = (
+                    c: CanvasRenderingContext2D,
+                    text: string,
+                    x: number,
+                    y: number,
+                    accentColor: string = '#ffe600',
+                    accentRgb: string = '255, 230, 0',
+                    align: 'left' | 'center' | 'right' = 'center'
+                ) => {
+                    const segments = parseRichText(text);
+                    let totalW = 0;
+                    segments.forEach(s => { totalW += c.measureText(s.text).width; });
+                    let curX = align === 'center' ? x - (totalW / 2) : (align === 'right' ? x - totalW : x);
+
+                    c.save();
+                    c.textAlign = 'left';
+                    c.textBaseline = 'alphabetic';
+
+                    segments.forEach(seg => {
+                        const segW = c.measureText(seg.text).width;
+                        const isHl = Boolean(seg.color || text.includes('*'));
+                        const effectiveColor = seg.color || (isHl && seg.color ? seg.color : (isHl ? accentColor : '#ffffff'));
+
+                        // 1. Ombre portée diffuse profonde (Top 10 Tracks style)
+                        c.save();
+                        c.shadowColor = 'rgba(0, 0, 0, 0.98)';
+                        c.shadowBlur = 24;
+                        c.shadowOffsetX = 0;
+                        c.shadowOffsetY = 8;
+                        c.fillStyle = effectiveColor;
+                        c.fillText(seg.text, curX, y);
+                        c.restore();
+
+                        // 2. Ombre de contact nette vers le bas
+                        c.save();
+                        c.shadowColor = 'rgba(0, 0, 0, 0.92)';
+                        c.shadowBlur = 6;
+                        c.shadowOffsetX = 0;
+                        c.shadowOffsetY = 4;
+                        c.fillStyle = effectiveColor;
+                        c.fillText(seg.text, curX, y);
+                        c.restore();
+
+                        // 3. Lueur néon intense sur les mots mis en valeur
+                        if (seg.color || effectiveColor !== '#ffffff') {
+                            c.save();
+                            c.shadowColor = `rgba(${accentRgb}, 0.90)`;
+                            c.shadowBlur = 22;
+                            c.shadowOffsetX = 0;
+                            c.shadowOffsetY = 0;
+                            c.fillStyle = effectiveColor;
+                            c.fillText(seg.text, curX, y);
+                            c.restore();
+                        }
+
+                        // 4. Texte net au premier plan
+                        c.save();
+                        c.shadowColor = 'transparent';
+                        c.fillStyle = effectiveColor;
+                        c.fillText(seg.text, curX, y);
+                        c.restore();
+
+                        curX += segW;
+                    });
+                    c.restore();
                 };
 
                 const drawTopCapsuleBadge = (label: string, dotColor: string, gradStr: string) => {
@@ -5811,13 +5903,14 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     targetRightX: number,
                     targetCenterY: number,
                     accentColor: string = (typeof themeColor === 'string' ? themeColor : (themeColor?.color || '#00ff66')),
-                    fontSize: number = 24
+                    fontSize: number = 24,
+                    customWord: string = 'Swipe'
                 ): number => {
                     ctx.save();
                     ctx.font = `800 ${fontSize}px "Montserrat", sans-serif`;
                     ctx.textBaseline = 'middle';
 
-                    const swipeWord = 'Swipe';
+                    const swipeWord = customWord;
                     const chevronChar = '›';
                     const spaceWidth = ctx.measureText(' ').width;
                     const wordWidth = ctx.measureText(swipeWord).width;
@@ -11731,11 +11824,13 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     if (shouldDrawVideoProgress) {
                         let vProgress = 0;
                         if (bgVideo && !isNaN(bgVideo.duration) && bgVideo.duration > 0) {
+                            const effectiveVideoDuration = Math.max(0.1, bgVideo.duration - bgVideoStartTimeRef.current);
                             if (isVideoRecordingRef.current) {
-                                const vTime = deterministicTotalTimeRef.current % bgVideo.duration;
-                                vProgress = Math.max(0, Math.min(1, vTime / bgVideo.duration));
+                                const vTime = deterministicTotalTimeRef.current % effectiveVideoDuration;
+                                vProgress = Math.max(0, Math.min(1, vTime / effectiveVideoDuration));
                             } else {
-                                vProgress = Math.max(0, Math.min(1, bgVideo.currentTime / bgVideo.duration));
+                                const relCurrentTime = Math.max(0, bgVideo.currentTime - bgVideoStartTimeRef.current);
+                                vProgress = Math.max(0, Math.min(1, relCurrentTime / effectiveVideoDuration));
                             }
                         } else if (isVideoRecordingRef.current) {
                             const dur = 6.0;
@@ -11846,19 +11941,26 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         ctx.restore();
                     }
 
+                    const isDevinetteTheme = (theme === 'JEU' || theme === 'JEU_FESTIVAL' || theme === 'JEU_DJ');
+
                     // 3. HORIZONTAL DIVIDER LINE & SWIPE (Positioned at ~68-70% height)
                     const dividerY = Math.floor(canvas.height * (isReel ? 0.68 : 0.70));
                     const lineMarginX = isReel ? 80 : 60;
                     let swipeSpaceRight = 0;
 
                     // Swipe indicator aligned directly on the divider line (Chevrons en Cascade)
-                    if (showSwipe) {
+                    const isDevinetteSlide1 = isDevinetteTheme && effectiveEditorialSlide === 1;
+                    const shouldDrawSwipe = showSwipe || isDevinetteSlide1;
+                    if (shouldDrawSwipe) {
+                        const swipeWord = isDevinetteSlide1 ? 'Swipe pour la révélation' : 'Swipe';
+                        const swipeFontSize = isDevinetteSlide1 ? (isReel ? 18 : 16) : 24;
                         const resolvedColor = themeDotColor || (typeof themeColor === 'string' ? themeColor : themeColor?.color) || '#00ff66';
                         const swipeWidth = drawAnimatedSwipeIndicator(
                             canvas.width - lineMarginX,
                             dividerY,
                             resolvedColor,
-                            24
+                            swipeFontSize,
+                            swipeWord
                         );
                         swipeSpaceRight = swipeWidth + 20;
                     }
@@ -11872,8 +11974,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             ? (Date.now() - animStartTimeRef.current) / 1000
                             : 99.0);
 
-                    // Date centrée dans la barre blanche (avec un segment de barre blanche de chaque côté)
-                    const showEditorialDate = showDividerDate && ['NEWS', 'FOCUS', 'RECAP', 'INTERVIEW', 'LIVESTREAM', 'MUSIQUE', 'EVENTS', 'CONCOURS', 'REELS', 'CONSEILS', 'TOP 100 DROPSIDERS', 'JEU', 'JEU_FESTIVAL', 'JEU_DJ', 'TRACKLIST', 'CITATION'].includes(theme);
+                    // Date centrée dans la barre blanche (avec un segment de barre blanche de chaque côté) - exclue en FOCUS REEL
+                    const showEditorialDate = showDividerDate && ['NEWS', 'FOCUS', 'RECAP', 'INTERVIEW', 'LIVESTREAM', 'MUSIQUE', 'EVENTS', 'CONCOURS', 'REELS', 'CONSEILS', 'TOP 100 DROPSIDERS', 'JEU', 'JEU_FESTIVAL', 'JEU_DJ', 'TRACKLIST', 'CITATION'].includes(theme) && !(theme === 'FOCUS' && isReel);
 
                     if (!isFocusReelHook) {
                         ctx.save();
@@ -11942,7 +12044,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             ctx.stroke();
                         }
                         ctx.restore();
-                    } else if (showEditorialDate && focusHookAlpha > 0.001) {
+                    } else if (showEditorialDate && focusHookAlpha > 0.001 && !(theme === 'FOCUS' && isReel)) {
                         // Date épurée centrée au-dessus du grand titre, sans barre blanche
                         const defaultDateText = getTodayFormattedDate();
                         const dateText = (editorialDate && editorialDate.trim()) ? editorialDate.trim().toUpperCase() : defaultDateText;
@@ -11996,14 +12098,17 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                     const lineWidth = canvas.width - (lineMarginX * 2);
                     const isTitleOnly = mainTitleText && !bodyText;
-                    const isDevinetteTheme = (theme === 'JEU' || theme === 'JEU_FESTIVAL' || theme === 'JEU_DJ');
                     const isDevinetteReveal = isDevinetteTheme && effectiveEditorialSlide === 2;
                     const isSlide1Editorial = (effectiveEditorialSlide === 1 && isEditorialCarouselTheme);
 
-                    // 1. Définition et préparation du Titre (taille standard 64px comme NEWS pour Slide 1, Révélation et thèmes éditoriaux)
-                    let titleFontSize = (isTitleOnly || isSlide1Editorial || isDevinetteReveal) ? 64 : (isEditorialCarouselTheme ? 60 : 54);
+                    // 1. Définition et préparation du Titre (taille standard 64px comme NEWS pour Slide 1, Révélation et thèmes éditoriaux ; Top 10 Tracks pour Focus Reel)
+                    let titleFontSize = isFocusReelHook
+                        ? (isReel ? 118 : 90)
+                        : ((isTitleOnly || isSlide1Editorial || isDevinetteReveal) ? 64 : (isEditorialCarouselTheme ? 60 : 54));
                     const formatTitleLines = (fSize: number) => {
-                        ctx.font = `900 ${fSize}px "Montserrat", sans-serif`;
+                        ctx.font = isFocusReelHook
+                            ? `900 italic ${fSize}px "Montserrat", sans-serif`
+                            : `900 ${fSize}px "Montserrat", sans-serif`;
                         const lines: string[] = [];
                         if (!mainTitleText) return lines;
                         mainTitleText.split('\n').forEach(line => {
@@ -12025,11 +12130,18 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     };
 
                     let titleLines = formatTitleLines(titleFontSize);
-                    while (titleFontSize > 24 && titleLines.some(l => ctx.measureText(stripTags(l).toUpperCase()).width > lineWidth)) {
+                    if (isFocusReelHook) {
+                        titleFontSize = isReel
+                            ? (titleLines.length > 2 ? 82 : (titleLines.length === 2 ? 104 : 118))
+                            : (titleLines.length > 2 ? 60 : (titleLines.length === 2 ? 78 : 90));
+                        titleLines = formatTitleLines(titleFontSize);
+                    }
+                    const minAllowedTitleSize = isFocusReelHook ? 36 : 24;
+                    while (titleFontSize > minAllowedTitleSize && titleLines.some(l => ctx.measureText(stripTags(l).toUpperCase()).width > lineWidth)) {
                         titleFontSize -= 2;
                         titleLines = formatTitleLines(titleFontSize);
                     }
-                    const titleLineHeight = Math.round(titleFontSize * (isDevinetteReveal ? 1.15 : 1.18));
+                    const titleLineHeight = Math.round(titleFontSize * (isFocusReelHook ? 1.15 : (isDevinetteReveal ? 1.15 : 1.18)));
                     let titleHeight = mainTitleText ? (titleLines.length * titleLineHeight) : 0;
 
                     // 2. Définition et préparation du Sous-titre / Réponse (64px sur la Révélation pour être identique au Titre et à NEWS)
@@ -12126,7 +12238,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     if (isFocusReelHook && focusReelStyle === 'GLASS' && focusHookAlpha > 0.001) {
                         const cardPadX = lineMarginX - 20;
                         const cardW = canvas.width - (cardPadX * 2);
-                        const cardH = totalTextHeight + (showEditorialDate ? 140 : 90);
+                        const cardH = totalTextHeight + ((showEditorialDate && !(theme === 'FOCUS' && isReel)) ? 140 : 90);
                         const cardX = cardPadX;
                         const cardY = Math.floor(canvas.height * 0.42 - cardH / 2);
 
@@ -12152,7 +12264,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     // --- A) MAIN TITLE IN WHITE (WITH THEME COLOR HIGHLIGHTS) ---
                     if (mainTitleText) {
                         ctx.save();
-                        ctx.font = `900 ${titleFontSize}px "Montserrat", sans-serif`;
+                        ctx.font = isFocusReelHook ? `900 italic ${titleFontSize}px "Montserrat", sans-serif` : `900 ${titleFontSize}px "Montserrat", sans-serif`;
                         ctx.fillStyle = '#ffffff';
                         ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
                         ctx.shadowBlur = 6;
@@ -12283,9 +12395,17 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 if (effScale !== 1) {
                                     ctx.translate((canvas.width / 2) + xOff, finalY);
                                     ctx.scale(effScale, effScale);
-                                    drawRichText(ctx, displayText, 0, 0, '#ffffff', 'center');
+                                    if (isFocusReelHook) {
+                                        drawTop10StyledText(ctx, displayText, 0, 0, '#ffe600', '255, 230, 0', 'center');
+                                    } else {
+                                        drawRichText(ctx, displayText, 0, 0, '#ffffff', 'center');
+                                    }
                                 } else {
-                                    drawRichText(ctx, displayText, (canvas.width / 2) + xOff, finalY, '#ffffff', 'center');
+                                    if (isFocusReelHook) {
+                                        drawTop10StyledText(ctx, displayText, (canvas.width / 2) + xOff, finalY, '#ffe600', '255, 230, 0', 'center');
+                                    } else {
+                                        drawRichText(ctx, displayText, (canvas.width / 2) + xOff, finalY, '#ffffff', 'center');
+                                    }
                                 }
                                 ctx.restore();
                             }
@@ -12928,6 +13048,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
             const onLoaded = () => {
                 video.currentTime = 0;
+                setBgVideoStartTime(0);
                 video.play().then(() => {
                     setIsVideoAudioMuted(false);
                 }).catch(() => {
@@ -12936,13 +13057,26 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     setIsVideoAudioMuted(true);
                     video.play().catch(() => {});
                 });
-                if (video.duration && !isNaN(video.duration) && video.duration > 0) {
+                if (['JEU', 'JEU_FESTIVAL', 'JEU_DJ'].includes(theme)) {
+                    if (video.duration && !isNaN(video.duration) && video.duration > 0) {
+                        setEditorialSlide1Duration(Math.min(15, Math.round(video.duration)));
+                    } else {
+                        setEditorialSlide1Duration(15);
+                    }
+                } else if (video.duration && !isNaN(video.duration) && video.duration > 0) {
                     setEditorialSlide1Duration(Math.round(video.duration));
                 }
                 video.removeEventListener('loadedmetadata', onLoaded);
             };
             video.addEventListener('loadedmetadata', onLoaded);
-            if (video.duration && !isNaN(video.duration) && video.duration > 0) {
+            setBgVideoStartTime(0);
+            if (['JEU', 'JEU_FESTIVAL', 'JEU_DJ'].includes(theme)) {
+                if (video.duration && !isNaN(video.duration) && video.duration > 0) {
+                    setEditorialSlide1Duration(Math.min(15, Math.round(video.duration)));
+                } else {
+                    setEditorialSlide1Duration(15);
+                }
+            } else if (video.duration && !isNaN(video.duration) && video.duration > 0) {
                 setEditorialSlide1Duration(Math.round(video.duration));
             }
             video.play().then(() => {
@@ -13053,7 +13187,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             }
             bgVideo.pause();
             bgVideo.muted = true;
-            bgVideo.currentTime = 0;
+            bgVideo.currentTime = bgVideoStartTimeRef.current;
         }
 
         const isActualMobileDevice = typeof navigator !== 'undefined' && (
@@ -13307,13 +13441,15 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ? [1, ...extraEditorialSlides.map((_, i) => i + 3)]
                     : [1, 2, ...extraEditorialSlides.map((_, i) => i + 3)]);
             const numContentSlides = contentSlideNumbers.length + (hasAfficheSlide ? 1 : 0);
+            const isDevinette = ['JEU', 'JEU_FESTIVAL', 'JEU_DJ'].includes(theme);
             const hasVideoBg = Boolean(bgVideo && !isNaN(bgVideo.duration) && bgVideo.duration > 0);
-            const videoDurationMs = hasVideoBg ? Math.round(bgVideo!.duration * 1000) : 0;
+            const rawVideoDurMs = hasVideoBg ? Math.round(bgVideo!.duration * 1000) : 0;
+            const videoDurationMs = isDevinette && hasVideoBg ? Math.min(15000, rawVideoDurMs) : rawVideoDurMs;
             if (combinedMode === 'TIKTOK') {
                 const timings = getTikTokSlideTimings(numContentSlides);
                 if (hasVideoBg) {
                     const promoDuration = promoOutroStyle === 'PHONE_3D' ? 7000 : 5000;
-                    const otherSlidesDur = (numContentSlides > 1) ? (numContentSlides - 1) * timings.slideDurationMs : 0;
+                    const otherSlidesDur = (numContentSlides > 1) ? (numContentSlides - 1) * (isDevinette ? Math.min(15000, timings.slideDurationMs) : timings.slideDurationMs) : 0;
                     totalDuration = videoDurationMs + otherSlidesDur + (numContentSlides * currentTransitionDuration) + promoDuration;
                 } else {
                     totalDuration = timings.totalDurationMs;
@@ -13321,7 +13457,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             } else {
                 const promoDuration = promoOutroStyle === 'PHONE_3D' ? 10000 : 7000; // 10.0s pour Smartphone 3D, 7.0s pour Instagram
                 const transitionDuration = currentTransitionDuration;
-                const slideDuration = hasVideoBg ? videoDurationMs : Math.round(editorialSlide1Duration * 1000);
+                let slideDuration = hasVideoBg ? videoDurationMs : Math.round(editorialSlide1Duration * 1000);
+                if (isDevinette) {
+                    slideDuration = Math.min(15000, slideDuration);
+                }
                 totalDuration = (numContentSlides * slideDuration) + (numContentSlides * transitionDuration) + promoDuration;
             }
         } else if (combinedMode === 'PLANNING' || (combinedMode === 'TIKTOK' && theme === 'PLANNING')) {
@@ -13777,7 +13916,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         if (bgVideo) {
             try {
                 bgVideo.pause();
-                bgVideo.currentTime = 0;
+                bgVideo.currentTime = bgVideoStartTimeRef.current;
                 await new Promise<void>((resolve) => {
                     let done = false;
                     const onSeeked = () => {
@@ -14272,7 +14411,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             if (!offlineWavBlob && bgVideoBlob && theme !== 'TOP 10 TRACKS' && !(theme === 'MUSIQUE' && (isCarouselPromoActive || combinedMode === 'PROMO_ONLY'))) {
                 console.log('[Audio] Extraction haute-fidélité de la piste audio de bgVideo via Web Audio API...');
                 try {
-                    const extractedBuf = await extractAudioBufferFromBlob(bgVideoBlob, totalDuration);
+                    const extractedBuf = await extractAudioBufferFromBlob(bgVideoBlob, totalDuration, bgVideoStartTimeRef.current);
                     if (extractedBuf) {
                         finalAudioBuffer = extractedBuf;
                         offlineWavBlob = audioBufferToWavBlob(extractedBuf);
@@ -14292,7 +14431,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         const bgFilename = `bg_extract.${bgExt}`;
                         try { await ffmpeg.deleteFile('extracted_audio.wav'); } catch { }
                         await ffmpeg.writeFile(bgFilename, await fetchFile(bgVideoBlob));
-                        await ffmpeg.exec(['-i', bgFilename, '-vn', '-c:a', 'pcm_s16le', '-ar', '48000', '-ac', '2', 'extracted_audio.wav']);
+                        const ssArgs = bgVideoStartTimeRef.current > 0 ? ['-ss', String(bgVideoStartTimeRef.current)] : [];
+                        await ffmpeg.exec([...ssArgs, '-i', bgFilename, '-vn', '-c:a', 'pcm_s16le', '-ar', '48000', '-ac', '2', 'extracted_audio.wav']);
                         const wavData: any = await ffmpeg.readFile('extracted_audio.wav');
                         try { await ffmpeg.deleteFile(bgFilename); } catch { }
                         try { await ffmpeg.deleteFile('extracted_audio.wav'); } catch { }
@@ -14554,7 +14694,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         await ffmpeg.writeFile(bgFilename, await fetchFile(bgVideoBlob));
                         let hasExtracted = false;
                         try {
-                            await ffmpeg.exec(['-i', bgFilename, '-vn', '-c:a', 'pcm_s16le', '-ar', '48000', '-ac', '2', 'audio.wav']);
+                            const ssArgs = bgVideoStartTimeRef.current > 0 ? ['-ss', String(bgVideoStartTimeRef.current)] : [];
+                            await ffmpeg.exec([...ssArgs, '-i', bgFilename, '-vn', '-c:a', 'pcm_s16le', '-ar', '48000', '-ac', '2', 'audio.wav']);
                             hasExtracted = true;
                         } catch (e) {
                             console.warn('[Audio] Extraction FFmpeg échouée, bg_source sans piste audio :', e);
@@ -14727,15 +14868,23 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 : (shouldSkipSlide2
                     ? [1, ...extraEditorialSlides.map((_, i) => i + 3)]
                     : [1, 2, ...extraEditorialSlides.map((_, i) => i + 3)]);
+            const isDevinette = ['JEU', 'JEU_FESTIVAL', 'JEU_DJ'].includes(theme);
             const transitionDuration = currentTransitionDuration;
             const hasVideoBg = Boolean(bgVideo && !isNaN(bgVideo.duration) && bgVideo.duration > 0);
-            const videoDurationMs = hasVideoBg ? Math.round(bgVideo!.duration * 1000) : 0;
+            const rawVideoDurMs = hasVideoBg ? Math.round(bgVideo!.duration * 1000) : 0;
+            const videoDurationMs = isDevinette && hasVideoBg ? Math.min(15000, rawVideoDurMs) : rawVideoDurMs;
             let promoDuration = promoOutroStyle === 'PHONE_3D' ? 7000 : 5000;
             let slideDuration = hasVideoBg ? videoDurationMs : Math.round(editorialSlide1Duration * 1000);
+            if (isDevinette) {
+                slideDuration = Math.min(15000, slideDuration);
+            }
             if (combinedMode === 'TIKTOK') {
                 const numContentSlides = contentSlideNumbers.length + (hasAfficheSlide ? 1 : 0);
                 const timings = getTikTokSlideTimings(numContentSlides);
                 slideDuration = hasVideoBg ? videoDurationMs : timings.slideDurationMs;
+                if (isDevinette) {
+                    slideDuration = Math.min(15000, slideDuration);
+                }
                 promoDuration = (hasVideoBg && promoOutroStyle === 'PHONE_3D') ? 7000 : (hasVideoBg ? 5000 : timings.promoDurationMs);
             }
 
@@ -18961,13 +19110,13 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 {/* Durée Slide 1 */}
                 <div className="pt-2 border-t border-white/10 space-y-1">
                     <div className="flex items-center justify-between text-[8px]">
-                        <span className="text-gray-300 font-bold">⏱️ Durée Slide 1 :</span>
+                        <span className="text-gray-300 font-bold">⏱️ Durée Slide 1 {['JEU', 'JEU_FESTIVAL', 'JEU_DJ'].includes(theme) ? '(Max 15s)' : ''} :</span>
                         <span className="text-amber-400 font-mono font-black bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/20">
                             {editorialSlide1Duration}s
                         </span>
                     </div>
                     <div className="flex gap-1">
-                        {[5, 10, 15, 20].map(s => (
+                        {[5, 10, 15, 20].filter(s => !['JEU', 'JEU_FESTIVAL', 'JEU_DJ'].includes(theme) || s <= 15).map(s => (
                             <button
                                 key={s}
                                 type="button"
@@ -26469,13 +26618,13 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                                     <button
                                                         type="button"
                                                         onClick={() => {
-                                                            bgVideo.currentTime = 0;
+                                                            bgVideo.currentTime = bgVideoStartTime;
                                                             bgVideo.play().catch(() => { });
                                                         }}
                                                         className="py-2 bg-neon-cyan/10 border border-neon-cyan/30 rounded-xl text-[8.5px] font-black text-neon-cyan uppercase hover:bg-neon-cyan/20 transition-all flex items-center justify-center gap-1 active:scale-95 shadow-sm"
-                                                        title="Remettre la vidéo à 0:00 et relancer"
+                                                        title={`Remettre la vidéo à ${formatVideoTime(bgVideoStartTime)} et relancer`}
                                                     >
-                                                        <RotateCcw className="w-3.5 h-3.5" /> 0:00
+                                                        <RotateCcw className="w-3.5 h-3.5" /> {formatVideoTime(bgVideoStartTime)}
                                                     </button>
                                                     <button
                                                         type="button"
@@ -26492,9 +26641,75 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                                         <Video className="w-3.5 h-3.5" /> Play/Pause
                                                     </button>
                                                 </div>
-                                                <p className="text-[7.5px] text-gray-400 italic text-center">
-                                                    ⏱️ Le clip repartira automatiquement à 0:00 pile lors de l'export MP4
-                                                </p>
+
+                                                {/* Barre Scrubber / Timeline de passage vidéo */}
+                                                <div className="bg-black/40 border border-white/10 rounded-xl p-2.5 space-y-2 mt-2">
+                                                    <div className="flex justify-between items-center text-[9px] font-black uppercase text-gray-400">
+                                                        <span className="flex items-center gap-1.5 text-white">
+                                                            <Film className="w-3.5 h-3.5 text-neon-cyan" />
+                                                            Passage de la vidéo (Départ)
+                                                        </span>
+                                                        <span className="text-neon-cyan font-mono text-[10px] bg-neon-cyan/10 px-1.5 py-0.5 rounded border border-neon-cyan/30">
+                                                            {formatVideoTime(bgVideoStartTime)} / {formatVideoTime(bgVideo.duration || 0)}
+                                                        </span>
+                                                    </div>
+                                                    <input
+                                                        type="range"
+                                                        min={0}
+                                                        max={Math.max(0, (bgVideo.duration || 1) - 0.5)}
+                                                        step={0.5}
+                                                        value={bgVideoStartTime}
+                                                        onChange={(e) => {
+                                                            const newTime = parseFloat(e.target.value);
+                                                            setBgVideoStartTime(newTime);
+                                                            bgVideo.currentTime = newTime;
+                                                            generateImage();
+                                                        }}
+                                                        className="w-full h-1.5 bg-white/10 rounded-lg appearance-none cursor-pointer accent-neon-cyan"
+                                                    />
+                                                    <div className="flex items-center justify-between gap-1 text-[8px] font-black uppercase text-gray-400">
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => {
+                                                                setBgVideoStartTime(0);
+                                                                bgVideo.currentTime = 0;
+                                                                generateImage();
+                                                            }}
+                                                            className="px-2 py-1 bg-white/5 hover:bg-white/10 border border-white/10 rounded-md transition-all active:scale-95"
+                                                        >
+                                                            ⏪ 0:00
+                                                        </button>
+                                                        <div className="flex items-center gap-1">
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => {
+                                                                    const newTime = Math.max(0, bgVideoStartTime - 5);
+                                                                    setBgVideoStartTime(newTime);
+                                                                    bgVideo.currentTime = newTime;
+                                                                    generateImage();
+                                                                }}
+                                                                className="px-2 py-1 bg-white/5 hover:bg-white/10 border border-white/10 rounded-md transition-all active:scale-95"
+                                                            >
+                                                                -5s
+                                                            </button>
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => {
+                                                                    const newTime = Math.min(Math.max(0, (bgVideo.duration || 1) - 0.5), bgVideoStartTime + 5);
+                                                                    setBgVideoStartTime(newTime);
+                                                                    bgVideo.currentTime = newTime;
+                                                                    generateImage();
+                                                                }}
+                                                                className="px-2 py-1 bg-white/5 hover:bg-white/10 border border-white/10 rounded-md transition-all active:scale-95"
+                                                            >
+                                                                +5s
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                    <p className="text-[7.5px] text-neon-cyan/80 italic text-center">
+                                                        ⏱️ Le clip et l'export MP4 commenceront à {formatVideoTime(bgVideoStartTime)}
+                                                    </p>
+                                                </div>
                                             </div>
                                         )}
 
@@ -28046,13 +28261,13 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                                             <button
                                                                 type="button"
                                                                 onClick={() => {
-                                                                    bgVideo.currentTime = 0;
+                                                                    bgVideo.currentTime = bgVideoStartTime;
                                                                     bgVideo.play().catch(() => { });
                                                                 }}
                                                                 className="py-2 px-2 rounded-xl bg-neon-cyan/10 border border-neon-cyan/30 text-neon-cyan text-[8.5px] font-black uppercase flex items-center justify-center gap-1 hover:bg-neon-cyan/20 transition-all active:scale-95"
                                                             >
                                                                 <RotateCcw className="w-3.5 h-3.5" />
-                                                                <span>0:00</span>
+                                                                <span>{formatVideoTime(bgVideoStartTime)}</span>
                                                             </button>
                                                             <button
                                                                 type="button"
@@ -28066,6 +28281,75 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                                                 <Video className="w-3.5 h-3.5" />
                                                                 <span>Play/Pause</span>
                                                             </button>
+                                                        </div>
+
+                                                        {/* Barre Scrubber Mobile */}
+                                                        <div className="bg-black/40 border border-white/10 rounded-xl p-2.5 space-y-2 mt-2">
+                                                            <div className="flex justify-between items-center text-[9px] font-black uppercase text-gray-400">
+                                                                <span className="flex items-center gap-1.5 text-white">
+                                                                    <Film className="w-3.5 h-3.5 text-neon-cyan" />
+                                                                    Passage Vidéo
+                                                                </span>
+                                                                <span className="text-neon-cyan font-mono text-[9.5px] bg-neon-cyan/10 px-1.5 py-0.5 rounded border border-neon-cyan/30">
+                                                                    {formatVideoTime(bgVideoStartTime)} / {formatVideoTime(bgVideo.duration || 0)}
+                                                                </span>
+                                                            </div>
+                                                            <input
+                                                                type="range"
+                                                                min={0}
+                                                                max={Math.max(0, (bgVideo.duration || 1) - 0.5)}
+                                                                step={0.5}
+                                                                value={bgVideoStartTime}
+                                                                onChange={(e) => {
+                                                                    const newTime = parseFloat(e.target.value);
+                                                                    setBgVideoStartTime(newTime);
+                                                                    bgVideo.currentTime = newTime;
+                                                                    generateImage();
+                                                                }}
+                                                                className="w-full h-1.5 bg-white/10 rounded-lg appearance-none cursor-pointer accent-neon-cyan"
+                                                            />
+                                                            <div className="flex items-center justify-between gap-1 text-[8px] font-black uppercase text-gray-400">
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => {
+                                                                        setBgVideoStartTime(0);
+                                                                        bgVideo.currentTime = 0;
+                                                                        generateImage();
+                                                                    }}
+                                                                    className="px-2 py-1 bg-white/5 hover:bg-white/10 border border-white/10 rounded-md transition-all active:scale-95"
+                                                                >
+                                                                    ⏪ 0:00
+                                                                </button>
+                                                                <div className="flex items-center gap-1">
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() => {
+                                                                            const newTime = Math.max(0, bgVideoStartTime - 5);
+                                                                            setBgVideoStartTime(newTime);
+                                                                            bgVideo.currentTime = newTime;
+                                                                            generateImage();
+                                                                        }}
+                                                                        className="px-2 py-1 bg-white/5 hover:bg-white/10 border border-white/10 rounded-md transition-all active:scale-95"
+                                                                    >
+                                                                        -5s
+                                                                    </button>
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() => {
+                                                                            const newTime = Math.min(Math.max(0, (bgVideo.duration || 1) - 0.5), bgVideoStartTime + 5);
+                                                                            setBgVideoStartTime(newTime);
+                                                                            bgVideo.currentTime = newTime;
+                                                                            generateImage();
+                                                                        }}
+                                                                        className="px-2 py-1 bg-white/5 hover:bg-white/10 border border-white/10 rounded-md transition-all active:scale-95"
+                                                                    >
+                                                                        +5s
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+                                                            <p className="text-[7.5px] text-neon-cyan/80 italic text-center">
+                                                                ⏱️ L'export commencera à {formatVideoTime(bgVideoStartTime)}
+                                                            </p>
                                                         </div>
                                                     </div>
                                                 )}
