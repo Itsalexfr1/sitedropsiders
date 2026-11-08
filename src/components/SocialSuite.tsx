@@ -475,6 +475,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const [quizColor1, setQuizColor1] = useState<string>('#38bdf8');
     const [quizColor2, setQuizColor2] = useState<string>('#a855f7');
     const [showFrame, setShowFrame] = useState<boolean>(false);
+    // Template Reel Focus (Hook 4s dynamique & flou vidéo)
+    const [focusReelStyle, setFocusReelStyle] = useState<'CINEMATIC' | 'GLASS' | 'IMPACT' | 'MINIMAL' | 'CLASSIC'>('CINEMATIC');
 
     // Devinette Silhouette DJ (Thème JEU_DJ - Options A + B)
     const [djCutoutImage, setDjCutoutImage] = useState<string | null>(null);
@@ -4774,6 +4776,27 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             ? (Date.now() - animStartTimeRef.current) / 1000
                             : 99.0));
 
+                const isReel = effectiveTab === 'REEL';
+                const isFocusReelHook = isReel && theme === 'FOCUS' && focusReelStyle !== 'CLASSIC';
+
+                // Timing Hook Reel Focus (0.0s à 3.2s affichage complet, 3.2s à 4.0s fondu vers disparition)
+                let focusHookTime = 0;
+                if (isVideoRecordingRef.current) {
+                    focusHookTime = deterministicAnimTimeRef.current;
+                } else if (bgVideo && !bgVideo.paused) {
+                    focusHookTime = bgVideo.currentTime;
+                } else {
+                    focusHookTime = animElapsed < 90 ? (animElapsed % 6.0) : 0;
+                }
+
+                const focusHookAlpha = !isFocusReelHook
+                    ? 1.0
+                    : (isStaticPngExport
+                        ? 1.0
+                        : (focusHookTime < 3.2
+                            ? 1.0
+                            : Math.max(0, 1.0 - (focusHookTime - 3.2) / 0.8)));
+
                 const getTextAnimTransform = (delay: number = 0, customElapsed?: number) => {
                     if (textAnimation === 'NONE') {
                         return { alpha: 1, xOff: 0, yOff: 0, scale: 1 };
@@ -4941,6 +4964,20 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     if (theme === 'AFFICHE' || (theme === 'EVENTS' && ((eventsSlide === 2 && eventNormalSlidesCount === 0) || isEditorialAfficheActive)) || (theme === 'MUSIQUE' && effectiveEditorialSlide >= 2) || isEditorialAfficheRequested || isEditorialTweetRequested) {
                         const blurBleed = 28;
                         drawBlurredVideoCrossBrowser(ctx, bgVideo, x - blurBleed, y - blurBleed, vw + blurBleed * 2, vh + blurBleed * 2, 14);
+                    } else if (isFocusReelHook && focusHookAlpha > 0.01) {
+                        const maxBlur = (focusReelStyle === 'IMPACT') ? 22 : (focusReelStyle === 'GLASS' ? 12 : (focusReelStyle === 'MINIMAL' ? 14 : 18));
+                        const currentBlur = Math.round(maxBlur * focusHookAlpha);
+                        if (currentBlur > 1) {
+                            const blurBleed = 28;
+                            drawBlurredVideoCrossBrowser(ctx, bgVideo, x - blurBleed, y - blurBleed, vw + blurBleed * 2, vh + blurBleed * 2, currentBlur);
+                        } else {
+                            ctx.drawImage(bgVideo, x, y, vw, vh);
+                        }
+                        const overlayDarkness = (focusReelStyle === 'MINIMAL') ? 0.30 : (focusReelStyle === 'GLASS' ? 0.26 : 0.42);
+                        ctx.save();
+                        ctx.fillStyle = `rgba(0, 0, 0, ${overlayDarkness * focusHookAlpha})`;
+                        ctx.fillRect(0, 0, canvas.width, canvas.height);
+                        ctx.restore();
                     } else {
                         ctx.drawImage(bgVideo, x, y, vw, vh);
                     }
@@ -5292,6 +5329,30 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             ctx.imageSmoothingEnabled = true;
                             ctx.imageSmoothingQuality = 'high';
                             ctx.drawImage(cachedBlur, x - blurBleed, y - blurBleed, targetW, targetH);
+                            ctx.restore();
+                        } else if (isFocusReelHook && focusHookAlpha > 0.01) {
+                            ctx.save();
+                            const blurBleed = 80;
+                            const targetW = Math.round(iw + blurBleed * 2);
+                            const targetH = Math.round(ih + blurBleed * 2);
+                            const maxBlur = (focusReelStyle === 'IMPACT') ? 22 : (focusReelStyle === 'GLASS' ? 12 : (focusReelStyle === 'MINIMAL' ? 14 : 18));
+                            const currentBlur = Math.round(maxBlur * focusHookAlpha);
+                            if (currentBlur > 2) {
+                                if (supportsCanvasFilterBlur()) {
+                                    ctx.save();
+                                    ctx.filter = `blur(${currentBlur}px)`;
+                                    ctx.drawImage(effectiveImg, x, y, iw, ih);
+                                    ctx.restore();
+                                } else {
+                                    const off = createCrossBrowserBlurredCanvas(effectiveImg, canvas.width, canvas.height, currentBlur, 0.60);
+                                    ctx.drawImage(off, x - blurBleed, y - blurBleed, targetW, targetH);
+                                }
+                            } else {
+                                ctx.drawImage(effectiveImg, x, y, iw, ih);
+                            }
+                            const overlayDarkness = (focusReelStyle === 'MINIMAL') ? 0.30 : (focusReelStyle === 'GLASS' ? 0.26 : 0.42);
+                            ctx.fillStyle = `rgba(0, 0, 0, ${overlayDarkness * focusHookAlpha})`;
+                            ctx.fillRect(0, 0, canvas.width, canvas.height);
                             ctx.restore();
                         } else {
                             ctx.drawImage(effectiveImg, x, y, iw, ih);
@@ -5826,18 +5887,21 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.fillRect(0, 0, canvas.width, 220);
 
                     // Continuous cinematic bottom gradient (from ~44% height down to bottom)
-                    const gradStart = canvas.height * 0.44;
-                    const bGrad = ctx.createLinearGradient(0, gradStart, 0, canvas.height);
-                    bGrad.addColorStop(0, 'rgba(0, 0, 0, 0)');
-                    bGrad.addColorStop(0.30, 'rgba(0, 0, 0, 0.45)');
-                    bGrad.addColorStop(0.60, 'rgba(0, 0, 0, 0.82)');
-                    bGrad.addColorStop(0.88, 'rgba(0, 0, 0, 0.98)');
-                    bGrad.addColorStop(1, 'rgba(0, 0, 0, 1.0)');
-                    ctx.fillStyle = bGrad;
-                    ctx.fillRect(0, gradStart, canvas.width, canvas.height - gradStart);
+                    // Masqué sur le template dynamique Reel Focus pour laisser la vidéo 100% visible
+                    if (!isFocusReelHook) {
+                        const gradStart = canvas.height * 0.44;
+                        const bGrad = ctx.createLinearGradient(0, gradStart, 0, canvas.height);
+                        bGrad.addColorStop(0, 'rgba(0, 0, 0, 0)');
+                        bGrad.addColorStop(0.30, 'rgba(0, 0, 0, 0.45)');
+                        bGrad.addColorStop(0.60, 'rgba(0, 0, 0, 0.82)');
+                        bGrad.addColorStop(0.88, 'rgba(0, 0, 0, 0.98)');
+                        bGrad.addColorStop(1, 'rgba(0, 0, 0, 1.0)');
+                        ctx.fillStyle = bGrad;
+                        ctx.fillRect(0, gradStart, canvas.width, canvas.height - gradStart);
+                    }
 
-                    // Subtle ambient colored glow at the bottom edge (max 14% opacity, skip for Interview pure white)
-                    if (activeData?.grad && theme !== 'INTERVIEW' && theme !== 'MAP') {
+                    // Subtle ambient colored glow at the bottom edge (max 14% opacity, skip for Interview pure white et retiré sur FOCUS REEL)
+                    if (activeData?.grad && theme !== 'INTERVIEW' && theme !== 'MAP' && !(isReel && theme === 'FOCUS')) {
                         const edgeGrad = ctx.createLinearGradient(0, canvas.height * 0.82, 0, canvas.height);
                         edgeGrad.addColorStop(0, `rgba(${activeData.grad}, 0)`);
                         edgeGrad.addColorStop(1, `rgba(${activeData.grad}, 0.14)`);
@@ -11567,72 +11631,94 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     // Date centrée dans la barre blanche (avec un segment de barre blanche de chaque côté)
                     const showEditorialDate = showDividerDate && ['NEWS', 'FOCUS', 'RECAP', 'INTERVIEW', 'LIVESTREAM', 'MUSIQUE', 'EVENTS', 'ARTISTE FESTIVAL', 'CONCOURS', 'REELS', 'CONSEILS', 'TOP 100 DROPSIDERS', 'JEU', 'JEU_FESTIVAL', 'JEU_DJ', 'TRACKLIST', 'SPOTLIGHT', 'CITATION'].includes(theme);
 
-                    ctx.save();
-                    ctx.strokeStyle = '#ffffff';
-                    ctx.lineWidth = 5;
-                    ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
-                    ctx.shadowBlur = 6;
+                    if (!isFocusReelHook) {
+                        ctx.save();
+                        ctx.strokeStyle = '#ffffff';
+                        ctx.lineWidth = 5;
+                        ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
+                        ctx.shadowBlur = 6;
 
-                    if (textAnimation !== 'NONE') {
-                        const lineT = Math.max(0, Math.min(1, animElapsed / 0.35));
-                        ctx.globalAlpha = 1 - Math.pow(1 - lineT, 3);
-                    }
-
-                    if (showEditorialDate) {
-                        const defaultDateText = getTodayFormattedDate();
-                        const dateText = (editorialDate && editorialDate.trim()) ? editorialDate.trim().toUpperCase() : defaultDateText;
-
-                        const dateFontSize = isReel ? 18 : 16;
-                        const dateLetterSpacing = 3;
-                        ctx.font = `800 ${dateFontSize}px "Montserrat", sans-serif`;
-                        if ('letterSpacing' in ctx) {
-                            (ctx as any).letterSpacing = `${dateLetterSpacing}px`;
+                        if (textAnimation !== 'NONE') {
+                            const lineT = Math.max(0, Math.min(1, animElapsed / 0.35));
+                            ctx.globalAlpha = 1 - Math.pow(1 - lineT, 3);
                         }
-                        const dateWidth = ctx.measureText(dateText).width;
-                        const gap = 24; // Espace net entre le texte et chaque bout de barre blanche
-                        const centerX = canvas.width / 2;
-                        const dateLeft = centerX - (dateWidth / 2);
-                        const dateRight = centerX + (dateWidth / 2);
 
-                        // 1. Bout de bande blanche gauche
-                        if (dateLeft - gap > lineMarginX) {
+                        if (showEditorialDate) {
+                            const defaultDateText = getTodayFormattedDate();
+                            const dateText = (editorialDate && editorialDate.trim()) ? editorialDate.trim().toUpperCase() : defaultDateText;
+
+                            const dateFontSize = isReel ? 18 : 16;
+                            const dateLetterSpacing = 3;
+                            ctx.font = `800 ${dateFontSize}px "Montserrat", sans-serif`;
+                            if ('letterSpacing' in ctx) {
+                                (ctx as any).letterSpacing = `${dateLetterSpacing}px`;
+                            }
+                            const dateWidth = ctx.measureText(dateText).width;
+                            const gap = 24; // Espace net entre le texte et chaque bout de barre blanche
+                            const centerX = canvas.width / 2;
+                            const dateLeft = centerX - (dateWidth / 2);
+                            const dateRight = centerX + (dateWidth / 2);
+
+                            // 1. Bout de bande blanche gauche
+                            if (dateLeft - gap > lineMarginX) {
+                                ctx.beginPath();
+                                ctx.moveTo(lineMarginX, dividerY);
+                                ctx.lineTo(dateLeft - gap, dividerY);
+                                ctx.stroke();
+                            }
+
+                            // 2. Texte de la date au centre exact
+                            let dateAlpha = 1;
+                            if (textAnimation !== 'NONE') {
+                                const dateT = Math.max(0, Math.min(1, (animElapsed - 0.20) / 0.30));
+                                dateAlpha = 1 - Math.pow(1 - dateT, 3);
+                            }
+                            ctx.save();
+                            ctx.globalAlpha = dateAlpha;
+                            ctx.fillStyle = '#ffffff';
+                            ctx.textAlign = 'center';
+                            ctx.textBaseline = 'middle';
+                            ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
+                            ctx.shadowBlur = 8;
+                            ctx.fillText(dateText, centerX, dividerY);
+                            ctx.restore();
+
+                            // 3. Bout de bande blanche droite
+                            if (lineRightX > dateRight + gap) {
+                                ctx.beginPath();
+                                ctx.moveTo(dateRight + gap, dividerY);
+                                ctx.lineTo(lineRightX, dividerY);
+                                ctx.stroke();
+                            }
+                        } else {
+                            // Barre continue normale si le thème n'utilise pas la date
                             ctx.beginPath();
                             ctx.moveTo(lineMarginX, dividerY);
-                            ctx.lineTo(dateLeft - gap, dividerY);
-                            ctx.stroke();
-                        }
-
-                        // 2. Texte de la date au centre exact
-                        let dateAlpha = 1;
-                        if (textAnimation !== 'NONE') {
-                            const dateT = Math.max(0, Math.min(1, (animElapsed - 0.20) / 0.30));
-                            dateAlpha = 1 - Math.pow(1 - dateT, 3);
-                        }
-                        ctx.save();
-                        ctx.globalAlpha = dateAlpha;
-                        ctx.fillStyle = '#ffffff';
-                        ctx.textAlign = 'center';
-                        ctx.textBaseline = 'middle';
-                        ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
-                        ctx.shadowBlur = 8;
-                        ctx.fillText(dateText, centerX, dividerY);
-                        ctx.restore();
-
-                        // 3. Bout de bande blanche droite
-                        if (lineRightX > dateRight + gap) {
-                            ctx.beginPath();
-                            ctx.moveTo(dateRight + gap, dividerY);
                             ctx.lineTo(lineRightX, dividerY);
                             ctx.stroke();
                         }
-                    } else {
-                        // Barre continue normale si le thème n'utilise pas la date
-                        ctx.beginPath();
-                        ctx.moveTo(lineMarginX, dividerY);
-                        ctx.lineTo(lineRightX, dividerY);
-                        ctx.stroke();
+                        ctx.restore();
+                    } else if (showEditorialDate && focusHookAlpha > 0.001) {
+                        // Date épurée centrée au-dessus du grand titre, sans barre blanche
+                        const defaultDateText = getTodayFormattedDate();
+                        const dateText = (editorialDate && editorialDate.trim()) ? editorialDate.trim().toUpperCase() : defaultDateText;
+                        ctx.save();
+                        ctx.globalAlpha = focusHookAlpha;
+                        ctx.font = '800 20px "Montserrat", sans-serif';
+                        if ('letterSpacing' in ctx) {
+                            (ctx as any).letterSpacing = '3.5px';
+                        }
+                        ctx.fillStyle = '#ffe600';
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'middle';
+                        ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
+                        ctx.shadowBlur = 10;
+                        const dateCenterY = (focusReelStyle === 'MINIMAL')
+                            ? Math.floor(canvas.height * 0.22)
+                            : (focusReelStyle === 'GLASS' ? Math.floor(canvas.height * 0.31) : Math.floor(canvas.height * 0.33));
+                        ctx.fillText(dateText, canvas.width / 2, dateCenterY);
+                        ctx.restore();
                     }
-                    ctx.restore();
 
                     // 4. MAIN TITLE IN WHITE (BOLD) & SUBTEXT UNDERNEATH (ITALIC)
                     const slideCustomTitle = editorialSlideTitles[effectiveEditorialSlide];
@@ -11780,6 +11866,45 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     const firstLineFontSize = mainTitleText ? titleFontSize : subFontSize;
                     let curY = dividerY + startPadding + Math.round(firstLineFontSize * 0.82);
 
+                    if (isFocusReelHook) {
+                        let targetCenterY = canvas.height * 0.42;
+                        if (focusReelStyle === 'MINIMAL') {
+                            targetCenterY = canvas.height * 0.30;
+                        } else if (focusReelStyle === 'GLASS') {
+                            targetCenterY = canvas.height * 0.42;
+                        } else if (focusReelStyle === 'IMPACT') {
+                            targetCenterY = canvas.height * 0.44;
+                        }
+                        curY = Math.floor(targetCenterY - (totalTextHeight / 2) + Math.round(firstLineFontSize * 0.82));
+                    }
+
+                    // Cartouche en verre dépoli stylisé (Glass Card)
+                    if (isFocusReelHook && focusReelStyle === 'GLASS' && focusHookAlpha > 0.001) {
+                        const cardPadX = lineMarginX - 20;
+                        const cardW = canvas.width - (cardPadX * 2);
+                        const cardH = totalTextHeight + (showEditorialDate ? 140 : 90);
+                        const cardX = cardPadX;
+                        const cardY = Math.floor(canvas.height * 0.42 - cardH / 2);
+
+                        ctx.save();
+                        ctx.globalAlpha = focusHookAlpha;
+                        ctx.fillStyle = 'rgba(10, 12, 20, 0.70)';
+                        ctx.shadowColor = 'rgba(0, 0, 0, 0.85)';
+                        ctx.shadowBlur = 30;
+                        ctx.beginPath();
+                        ctx.roundRect(cardX, cardY, cardW, cardH, 28);
+                        ctx.fill();
+
+                        const borderGrad = ctx.createLinearGradient(cardX, cardY, cardX + cardW, cardY + cardH);
+                        borderGrad.addColorStop(0, 'rgba(255, 230, 0, 0.45)');
+                        borderGrad.addColorStop(0.5, 'rgba(255, 255, 255, 0.25)');
+                        borderGrad.addColorStop(1, 'rgba(255, 230, 0, 0.35)');
+                        ctx.strokeStyle = borderGrad;
+                        ctx.lineWidth = 2;
+                        ctx.stroke();
+                        ctx.restore();
+                    }
+
                     // --- A) MAIN TITLE IN WHITE (WITH THEME COLOR HIGHLIGHTS) ---
                     if (mainTitleText) {
                         ctx.save();
@@ -11893,16 +12018,33 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 }
                             }
 
-                            ctx.save();
-                            ctx.globalAlpha = alpha;
-                            if (scale !== 1) {
-                                ctx.translate((canvas.width / 2) + xOff, curY + yOff);
-                                ctx.scale(scale, scale);
-                                drawRichText(ctx, displayText, 0, 0, '#ffffff', 'center');
-                            } else {
-                                drawRichText(ctx, displayText, (canvas.width / 2) + xOff, curY + yOff, '#ffffff', 'center');
+                            let hookYOff = 0;
+                            let hookScale = 1;
+                            if (isFocusReelHook) {
+                                if (focusReelStyle === 'IMPACT' && focusHookTime > 3.2) {
+                                    const exitT = Math.min(1, Math.max(0, (focusHookTime - 3.2) / 0.8));
+                                    hookYOff = -130 * Math.pow(exitT, 2.5);
+                                } else if (focusReelStyle === 'IMPACT' && focusHookTime < 0.4) {
+                                    const enterT = Math.min(1, Math.max(0, focusHookTime / 0.4));
+                                    hookScale = 1.15 - (0.15 * enterT);
+                                }
                             }
-                            ctx.restore();
+
+                            const finalTitleAlpha = alpha * focusHookAlpha;
+                            if (finalTitleAlpha > 0.005) {
+                                ctx.save();
+                                ctx.globalAlpha = finalTitleAlpha;
+                                const finalY = curY + yOff + hookYOff;
+                                const effScale = scale * hookScale;
+                                if (effScale !== 1) {
+                                    ctx.translate((canvas.width / 2) + xOff, finalY);
+                                    ctx.scale(effScale, effScale);
+                                    drawRichText(ctx, displayText, 0, 0, '#ffffff', 'center');
+                                } else {
+                                    drawRichText(ctx, displayText, (canvas.width / 2) + xOff, finalY, '#ffffff', 'center');
+                                }
+                                ctx.restore();
+                            }
                             curY += titleLineHeight;
                         });
                         ctx.restore();
@@ -12024,16 +12166,33 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 }
                             }
 
-                            ctx.save();
-                            ctx.globalAlpha = alpha;
-                            if (scale !== 1) {
-                                ctx.translate((canvas.width / 2) + xOff, curY + yOff);
-                                ctx.scale(scale, scale);
-                                drawRichText(ctx, displayText, 0, 0, 'rgba(255,255,255,0.92)', 'center');
-                            } else {
-                                drawRichText(ctx, displayText, (canvas.width / 2) + xOff, curY + yOff, 'rgba(255,255,255,0.92)', 'center');
+                            let hookYOff = 0;
+                            let hookScale = 1;
+                            if (isFocusReelHook) {
+                                if (focusReelStyle === 'IMPACT' && focusHookTime > 3.2) {
+                                    const exitT = Math.min(1, Math.max(0, (focusHookTime - 3.2) / 0.8));
+                                    hookYOff = -130 * Math.pow(exitT, 2.5);
+                                } else if (focusReelStyle === 'IMPACT' && focusHookTime < 0.4) {
+                                    const enterT = Math.min(1, Math.max(0, focusHookTime / 0.4));
+                                    hookScale = 1.15 - (0.15 * enterT);
+                                }
                             }
-                            ctx.restore();
+
+                            const finalSubAlpha = alpha * focusHookAlpha;
+                            if (finalSubAlpha > 0.005) {
+                                ctx.save();
+                                ctx.globalAlpha = finalSubAlpha;
+                                const finalY = curY + yOff + hookYOff;
+                                const effScale = scale * hookScale;
+                                if (effScale !== 1) {
+                                    ctx.translate((canvas.width / 2) + xOff, finalY);
+                                    ctx.scale(effScale, effScale);
+                                    drawRichText(ctx, displayText, 0, 0, 'rgba(255,255,255,0.92)', 'center');
+                                } else {
+                                    drawRichText(ctx, displayText, (canvas.width / 2) + xOff, finalY, 'rgba(255,255,255,0.92)', 'center');
+                                }
+                                ctx.restore();
+                            }
                             curY += subLineHeight;
                         });
                         ctx.restore();
@@ -12043,9 +12202,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                     // 5. BOTTOM LINK INDICATORS (Strictement interdit sur la slide promo)
                     let curIndicatorY = (effectiveTab === 'PUBLICATION') ? canvas.height - 28 : canvas.height - 180;
-                    if (showArticleLink && !isPromoTheme && !isPromoRequested) {
+                    if (showArticleLink && !isPromoTheme && !isPromoRequested && (!isFocusReelHook || focusHookAlpha > 0.01)) {
                         const textToDraw = articleLinkText || 'ARTICLE COMPLET SUR DROPSIDERS.FR';
                         ctx.save();
+                        if (isFocusReelHook) {
+                            ctx.globalAlpha = focusHookAlpha;
+                        }
                         ctx.font = '900 italic 22px "Montserrat", sans-serif';
                         ctx.letterSpacing = '0.8px';
                         ctx.textAlign = 'left';
@@ -12363,14 +12525,14 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             anim = requestAnimationFrame(loop);
         } else { generateImage(); }
         return () => cancelAnimationFrame(anim);
-    }, [bgImage, bgVideo, customText, theme, showSwipe, showArticleLink, articleLinkText, showVoteLink, top5Items, currentPreviewIndex, activeTab, rotation, themeColor, isVideoRecording, transitionProgress, showText, planningDate, planningItems, agendaMonth, agendaBadgeText, agendaSlide, agendaCoverBadge, agendaCoverTitle, agendaCoverYear, agendaCoverGenres, agendaCoverCta, showAgendaCoverCta, artisteFestivalSlide, eventsSlide, editorialSlide, isEditorialAfficheActive, isEditorialTweetActive, showTitleOnSlide2, showMusicDate, editorialDate, showDividerDate, citationAuthor, citationMedia, extraEditorialSlides, musicTracks, top10Tracks, top10ActiveRank, top10Title, top10IntroTitle, top10IntroArtist, top10ColoredWords, top10LogoScale, top10Subtitle, top10TrackDuration, top10TestingRank, top10GenMode, top10Badge, top10LabelSearch, top10StyleSearch, top10ArtistSearch, top100Rank, top100ArtistName, top100Category, top100Badge, top100AnimKey, calendarMonth, calendarEvents, isRetouchMode, retouchPath, isTransparent, showBottomLogo, artistLogo, festivalLogo, bgOffsetX, bgOffsetY, artistNameText, festivalNameText, isArtistLogoNegative, mapFestivalText, mapCityCountry, mapZoom, mapLatitude, mapLongitude, mapStyle, isMapLoading, mapPinColor, mapLabelText, showMapPin, showMapLabel, mapAnimMode, isMapAnimPlaying, mapScrubTime, mapAnimDuration, mapDestLatitude, mapDestLongitude, mapDestFestivalText, mapDestVenue, mapDestCity, mapDestCountry, mapDestPinColor, imgLayoutMode, quizColor1, quizColor2, showFrame, conseilsTitle, conseilsSubtext, isConseilsLargeTitle, concoursFestivalName, concoursFestivalHandle, concoursBottomColor, concoursLateralText, concoursLateralOpacity, concoursBadgeTextColor, concoursMode, concoursGTAHeadline, concoursGTATitle, concoursGTAPlatformText, concoursGTACondition1, concoursGTACondition2, concoursGTACondition3, concoursGTACondition4, afficheImage, afficheGlow, afficheBorderColor, afficheMode, afficheScale, afficheOffsetY, tweetImage, tweetScale, tweetOffsetY, tweetGlow, tweetHeadline, tweetBadge, tweetBorderColor, tweetTranslation, showTweetTranslation, tweetAnimMode, textAnimation, animReplayKey, bgAnimation, cdjPlayerRing, musicBgMotion, isCarouselPromoActive, promoCustomPhrase, promoCustomSubphrase, promoOutroStyle, isPromoAnimPlaying, promoCategory, showPromoHook, showPromoHeadline, showPromoLine1, showPromoLine2, djCutoutImage, djOriginalImage, djSilhouetteColor, djGlowIntensity, djShowQuestionMark, djAppearanceAnim, editorialSlideImages, editorialSlideCutouts, editorialSlideTitles, djSlideModes, agendaAffiches, highlightsSlideArtists, highlightsColorArtist, highlightsColorFestival, highlightsColorCity, highlightsColorCountry, highlightsColorDate, afficheImgZoom, afficheImgPanX, afficheImgPanY]);
+    }, [bgImage, bgVideo, customText, theme, showSwipe, showArticleLink, articleLinkText, showVoteLink, top5Items, currentPreviewIndex, activeTab, rotation, themeColor, isVideoRecording, transitionProgress, showText, planningDate, planningItems, agendaMonth, agendaBadgeText, agendaSlide, agendaCoverBadge, agendaCoverTitle, agendaCoverYear, agendaCoverGenres, agendaCoverCta, showAgendaCoverCta, artisteFestivalSlide, eventsSlide, editorialSlide, isEditorialAfficheActive, isEditorialTweetActive, showTitleOnSlide2, showMusicDate, editorialDate, showDividerDate, citationAuthor, citationMedia, extraEditorialSlides, musicTracks, top10Tracks, top10ActiveRank, top10Title, top10IntroTitle, top10IntroArtist, top10ColoredWords, top10LogoScale, top10Subtitle, top10TrackDuration, top10TestingRank, top10GenMode, top10Badge, top10LabelSearch, top10StyleSearch, top10ArtistSearch, top100Rank, top100ArtistName, top100Category, top100Badge, top100AnimKey, calendarMonth, calendarEvents, isRetouchMode, retouchPath, isTransparent, showBottomLogo, artistLogo, festivalLogo, bgOffsetX, bgOffsetY, artistNameText, festivalNameText, isArtistLogoNegative, mapFestivalText, mapCityCountry, mapZoom, mapLatitude, mapLongitude, mapStyle, isMapLoading, mapPinColor, mapLabelText, showMapPin, showMapLabel, mapAnimMode, isMapAnimPlaying, mapScrubTime, mapAnimDuration, mapDestLatitude, mapDestLongitude, mapDestFestivalText, mapDestVenue, mapDestCity, mapDestCountry, mapDestPinColor, imgLayoutMode, quizColor1, quizColor2, showFrame, focusReelStyle, conseilsTitle, conseilsSubtext, isConseilsLargeTitle, concoursFestivalName, concoursFestivalHandle, concoursBottomColor, concoursLateralText, concoursLateralOpacity, concoursBadgeTextColor, concoursMode, concoursGTAHeadline, concoursGTATitle, concoursGTAPlatformText, concoursGTACondition1, concoursGTACondition2, concoursGTACondition3, concoursGTACondition4, afficheImage, afficheGlow, afficheBorderColor, afficheMode, afficheScale, afficheOffsetY, tweetImage, tweetScale, tweetOffsetY, tweetGlow, tweetHeadline, tweetBadge, tweetBorderColor, tweetTranslation, showTweetTranslation, tweetAnimMode, textAnimation, animReplayKey, bgAnimation, cdjPlayerRing, musicBgMotion, isCarouselPromoActive, promoCustomPhrase, promoCustomSubphrase, promoOutroStyle, isPromoAnimPlaying, promoCategory, showPromoHook, showPromoHeadline, showPromoLine1, showPromoLine2, djCutoutImage, djOriginalImage, djSilhouetteColor, djGlowIntensity, djShowQuestionMark, djAppearanceAnim, editorialSlideImages, editorialSlideCutouts, editorialSlideTitles, djSlideModes, agendaAffiches, highlightsSlideArtists, highlightsColorArtist, highlightsColorFestival, highlightsColorCity, highlightsColorCountry, highlightsColorDate, afficheImgZoom, afficheImgPanX, afficheImgPanY]);
 
     // Rejouer l'animation de texte proprement depuis le début à chaque changement de slide, track ou de thème
     useEffect(() => {
         pendingAnimResetRef.current = true;
         animStartTimeRef.current = Date.now();
         setAnimReplayKey(k => k + 1);
-    }, [editorialSlide, agendaSlide, artisteFestivalSlide, eventsSlide, isCarouselPromoActive, isEditorialAfficheActive, isEditorialTweetActive, theme, top10ActiveRank, top10TestingRank, top100Rank, top100AnimKey]);
+    }, [editorialSlide, agendaSlide, artisteFestivalSlide, eventsSlide, isCarouselPromoActive, isEditorialAfficheActive, isEditorialTweetActive, theme, top10ActiveRank, top10TestingRank, top100Rank, top100AnimKey, focusReelStyle]);
 
     // En mode REEL, ARTISTE FESTIVAL est verrouillé sur la Slide 2 (Spotlight) car la Slide 1 Cover fait doublon avec le thème REELS
     useEffect(() => {
@@ -26524,6 +26686,57 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         #{r}
                                     </button>
                                 ))}
+                            </div>
+                        )}
+                        {activeTab === 'REEL' && theme === 'FOCUS' && (
+                            <div className="mb-3 flex items-center gap-1.5 bg-black/85 backdrop-blur-xl px-3 py-2 rounded-2xl border border-[#ffe600]/30 shadow-2xl z-20 flex-wrap justify-center max-w-[95%]">
+                                <div className="flex items-center gap-1.5 mr-1 text-[#ffe600] font-black text-[10px] uppercase tracking-wider">
+                                    <span className="w-2 h-2 rounded-full bg-[#ffe600] animate-pulse shadow-[0_0_8px_#ffe600]" />
+                                    <span>Focus Reel :</span>
+                                </div>
+                                {[
+                                    { id: 'CINEMATIC', label: '🎬 Cinematic', desc: 'Flou vidéo + fondu doux 4s' },
+                                    { id: 'GLASS', label: '🧊 Glass Card', desc: 'Cartouche verre dépoli givré' },
+                                    { id: 'IMPACT', label: '💥 Impact', desc: 'Punchy + sortie haute dynamique' },
+                                    { id: 'MINIMAL', label: '✨ Minimal', desc: 'Haut épuré + dégradé discret' },
+                                    { id: 'CLASSIC', label: '📄 Classique', desc: 'Fixe avec barre blanche' },
+                                ].map(st => (
+                                    <button
+                                        key={st.id}
+                                        type="button"
+                                        onClick={() => {
+                                            setFocusReelStyle(st.id as 'CINEMATIC' | 'GLASS' | 'IMPACT' | 'MINIMAL' | 'CLASSIC');
+                                            animStartTimeRef.current = Date.now();
+                                            if (bgVideo) bgVideo.currentTime = 0;
+                                            setAnimReplayKey(k => k + 1);
+                                        }}
+                                        className={`px-2.5 py-1 rounded-xl text-[9.5px] font-black uppercase transition-all flex items-center gap-1 ${
+                                            focusReelStyle === st.id
+                                                ? 'bg-[#ffe600] text-black shadow-[0_0_14px_rgba(255,230,0,0.6)] scale-[1.03]'
+                                                : 'bg-white/5 text-gray-300 hover:text-white hover:bg-white/10 border border-white/10'
+                                        }`}
+                                        title={st.desc}
+                                    >
+                                        {st.label}
+                                    </button>
+                                ))}
+                                {focusReelStyle !== 'CLASSIC' && (
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            animStartTimeRef.current = Date.now();
+                                            if (bgVideo) {
+                                                bgVideo.currentTime = 0;
+                                                bgVideo.play().catch(() => {});
+                                            }
+                                            setAnimReplayKey(k => k + 1);
+                                        }}
+                                        className="px-2 py-1 rounded-xl text-[9px] font-black uppercase transition-all bg-white/10 text-white hover:bg-white/20 border border-white/15 ml-1 flex items-center gap-1"
+                                        title="Rejouer l'animation de 4s"
+                                    >
+                                        ↻ Rejouer
+                                    </button>
+                                )}
                             </div>
                         )}
                         <div className={`relative ${activeTab === 'REEL' ? 'w-full max-w-[320px] xl:max-w-[360px] 2xl:max-w-[400px] max-h-[82vh]' : 'w-full max-w-[450px]'} transition-all duration-300 flex items-center justify-center`} style={{ aspectRatio: activeTab === 'REEL' ? '9/16' : '4/5' }}>
