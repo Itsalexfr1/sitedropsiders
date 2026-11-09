@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+﻿import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence, useDragControls } from 'framer-motion';
 import {
@@ -71,7 +71,7 @@ const safeFetchToBlobURL = async (url: string, mimeType: string): Promise<string
     }
     const buf = await resp.arrayBuffer();
     if (buf.byteLength < 1024) {
-        throw new Error(`Réponse invalide (${buf.byteLength} octets) sur ${url}`);
+        throw new Error(`RÃ©ponse invalide (${buf.byteLength} octets) sur ${url}`);
     }
     return URL.createObjectURL(new Blob([buf], { type: mimeType }));
 };
@@ -80,28 +80,28 @@ import { Muxer, ArrayBufferTarget } from 'mp4-muxer';
 import JSZip from 'jszip';
 
 const FESTIVAL_TIMEZONES = [
-    { group: "🌍 Europe (Aucun décalage)", options: [{ label: "🇫🇷 Heure Française", offset: 0 }] },
-    { group: "🇬🇧 Royaume-Uni (-1h)", options: [{ label: "Londres / Creamfields", offset: 1 }] },
+    { group: "ðŸŒ Europe (Aucun dÃ©calage)", options: [{ label: "ðŸ‡«ðŸ‡· Heure FranÃ§aise", offset: 0 }] },
+    { group: "ðŸ‡¬ðŸ‡§ Royaume-Uni (-1h)", options: [{ label: "Londres / Creamfields", offset: 1 }] },
     {
-        group: "🌴 US - Côte Est (Miami / NY | -5h)", options: [
-            { label: "Ultra Miami / Lost Lands (Été)", offset: 5 },
+        group: "ðŸŒ´ US - CÃ´te Est (Miami / NY | -5h)", options: [
+            { label: "Ultra Miami / Lost Lands (Ã‰tÃ©)", offset: 5 },
             { label: "Miami / NY (Hiver)", offset: 6 }
         ]
     },
     {
-        group: "🎡 US - Côte Ouest (Vegas / LA | -8h)", options: [
-            { label: "EDC LV / Coachella / Day Trip (Été)", offset: 8 },
+        group: "ðŸŽ¡ US - CÃ´te Ouest (Vegas / LA | -8h)", options: [
+            { label: "EDC LV / Coachella / Day Trip (Ã‰tÃ©)", offset: 8 },
             { label: "Vegas / LA (Hiver)", offset: 9 }
         ]
     },
     {
-        group: "🤠 US - Centre (Chicago / Texas | -6h)", options: [
-            { label: "Lollapalooza / Ubbi Dubbi (Été)", offset: 6 },
+        group: "ðŸ¤  US - Centre (Chicago / Texas | -6h)", options: [
+            { label: "Lollapalooza / Ubbi Dubbi (Ã‰tÃ©)", offset: 6 },
             { label: "Chicago / Texas (Hiver)", offset: 7 }
         ]
     },
     {
-        group: "🌏 Asie & Océanie", options: [
+        group: "ðŸŒ Asie & OcÃ©anie", options: [
             { label: "Japon / Tokyo (+8h)", offset: -8 },
             { label: "Sydney (+7h)", offset: -7 }
         ]
@@ -173,7 +173,7 @@ const lat2tile = (lat: number, zoom: number) => {
     );
 };
 
-// Petits helpers visuels pour les accordéons rétractables (badge d'état + chevron)
+// Petits helpers visuels pour les accordÃ©ons rÃ©tractables (badge d'Ã©tat + chevron)
 const AccordionBadge = ({ active, label }: { active: boolean; label: string }) => (
     <span className={`px-1.5 py-0.5 rounded-md text-[7.5px] font-black uppercase tracking-wider border whitespace-nowrap ${active
         ? 'bg-neon-cyan/15 border-neon-cyan/40 text-neon-cyan shadow-[0_0_8px_rgba(0,240,255,0.3)]'
@@ -184,7 +184,7 @@ const AccordionBadge = ({ active, label }: { active: boolean; label: string }) =
 );
 
 const AccordionChevron = ({ open }: { open: boolean }) => (
-    <span className={`text-[10px] text-gray-400 group-hover:text-white transition-transform duration-300 ${open ? 'rotate-180' : ''}`}>▾</span>
+    <span className={`text-[10px] text-gray-400 group-hover:text-white transition-transform duration-300 ${open ? 'rotate-180' : ''}`}>â–¾</span>
 );
 
 export interface AgendaAfficheItem {
@@ -198,8 +198,8 @@ export interface AgendaAfficheItem {
     panY?: number; // -100 (haut) .. 100 (bas)
 }
 
-// Dessine une image dans un cadre (x, y, w, h) avec zoom + déplacement interne,
-// sans jamais déplacer le cadre lui-même (le clip doit être appliqué par l'appelant).
+// Dessine une image dans un cadre (x, y, w, h) avec zoom + dÃ©placement interne,
+// sans jamais dÃ©placer le cadre lui-mÃªme (le clip doit Ãªtre appliquÃ© par l'appelant).
 function drawImageZoomPan(
     ctx: CanvasRenderingContext2D,
     img: HTMLImageElement,
@@ -215,24 +215,24 @@ function drawImageZoomPan(
     const dw = iw * s;
     const dh = ih * s;
 
-    // Amplitude de déplacement garantie et fluide sur toute la carte (au moins 80% du cadre)
+    // Amplitude de dÃ©placement garantie et fluide sur toute la carte (au moins 80% du cadre)
     const maxTravelX = Math.max(Math.abs(dw - w), w * 0.8) / 2;
     const maxTravelY = Math.max(Math.abs(dh - h), h * 0.8) / 2;
 
     const px = Math.max(-1, Math.min(1, (panXPct || 0) / 100));
     const py = Math.max(-1, Math.min(1, (panYPct || 0) / 100));
 
-    // py < 0 (Haut / -100) -> décale vers le HAUT pour afficher le bas
-    // py > 0 (Bas / +100) -> décale vers le BAS pour afficher le haut
-    // px < 0 (Gauche / -100) -> décale vers la GAUCHE
-    // px > 0 (Droite / +100) -> décale vers la DROITE
+    // py < 0 (Haut / -100) -> dÃ©cale vers le HAUT pour afficher le bas
+    // py > 0 (Bas / +100) -> dÃ©cale vers le BAS pour afficher le haut
+    // px < 0 (Gauche / -100) -> dÃ©cale vers la GAUCHE
+    // px > 0 (Droite / +100) -> dÃ©cale vers la DROITE
     const dx = Math.round(x + (w - dw) / 2 + maxTravelX * px);
     const dy = Math.round(y + (h - dh) / 2 + maxTravelY * py);
 
     ctx.drawImage(img, dx, dy, dw, dh);
 }
 
-// Helpers géométriques pour le Player CDJ (bague de progression circulaire/carrée arrondie)
+// Helpers gÃ©omÃ©triques pour le Player CDJ (bague de progression circulaire/carrÃ©e arrondie)
 function drawRoundRectPathFromTopCenter(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {
     ctx.beginPath();
     ctx.moveTo(x + w / 2, y);
@@ -301,7 +301,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         }
         return 'NEWS';
     });
-    // Accordéons rétractables : fermés par défaut sur POST, ouverts sur REEL
+    // AccordÃ©ons rÃ©tractables : fermÃ©s par dÃ©faut sur POST, ouverts sur REEL
     const isInitialReel = (initialTab || 'PUBLICATION') === 'REEL';
     const [animOptionsOpen, setAnimOptionsOpen] = useState<boolean>(isInitialReel);
     const [videoOptionsOpen, setVideoOptionsOpen] = useState<boolean>(true);
@@ -323,14 +323,14 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const getAutoArticleLinkText = (themeName: string): string => {
         switch (themeName) {
             case 'RECAP':
-                return 'RÉCAP À LIRE SUR DROPSIDERS.FR';
+                return 'RÃ‰CAP Ã€ LIRE SUR DROPSIDERS.FR';
             case 'INTERVIEW':
-                return 'INTERVIEW COMPLÈTE SUR DROPSIDERS.FR';
+                return 'INTERVIEW COMPLÃˆTE SUR DROPSIDERS.FR';
             case 'FOCUS':
                 return 'DOSSIER COMPLET SUR DROPSIDERS.FR';
             case 'MUSIQUE':
             case 'TRACKLIST':
-                return 'ÉCOUTER LA RELEASE SUR DROPSIDERS.FR';
+                return 'Ã‰COUTER LA RELEASE SUR DROPSIDERS.FR';
             case 'TOP 5 ARTISTE':
             case 'TOP 5 STYLES':
             case 'TOP 10 FESTIVAL':
@@ -348,7 +348,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             case 'JEU':
             case 'JEU_FESTIVAL':
             case 'JEU_DJ':
-                return 'RÉPONDRE AU QUIZ SUR DROPSIDERS.FR';
+                return 'RÃ‰PONDRE AU QUIZ SUR DROPSIDERS.FR';
             case 'SPOTLIGHT':
             case 'ARTISTE FESTIVAL':
                 return 'FICHE ARTISTE SUR DROPSIDERS.FR';
@@ -425,23 +425,23 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         time?: string;
         artist?: string;
     }[]>([
-        { day: '06 OCT', title: 'WAREHOUSE RAVE', artists: 'I HATE MODELS • NICO MORENO', genre: 'HARD TECHNO', venue: 'PARIS' },
-        { day: '13 OCT', title: 'SUB ZERO PROJECT LIVE', artists: 'SUB ZERO PROJECT • REBELION', genre: 'RAWSTYLE', venue: 'LYON' },
-        { day: '20 OCT', title: 'APEX FESTIVAL', artists: 'AMELIE LENS • CHARLOTTE DE WITTE', genre: 'TECHNO', venue: 'MARSEILLE' },
-        { day: '27 OCT', title: 'HALLOWEEN MASSACRE', artists: 'D-STURB • WARFACE', genre: 'HARDSTYLE', venue: 'BORDEAUX' },
+        { day: '06 OCT', title: 'WAREHOUSE RAVE', artists: 'I HATE MODELS â€¢ NICO MORENO', genre: 'HARD TECHNO', venue: 'PARIS' },
+        { day: '13 OCT', title: 'SUB ZERO PROJECT LIVE', artists: 'SUB ZERO PROJECT â€¢ REBELION', genre: 'RAWSTYLE', venue: 'LYON' },
+        { day: '20 OCT', title: 'APEX FESTIVAL', artists: 'AMELIE LENS â€¢ CHARLOTTE DE WITTE', genre: 'TECHNO', venue: 'MARSEILLE' },
+        { day: '27 OCT', title: 'HALLOWEEN MASSACRE', artists: 'D-STURB â€¢ WARFACE', genre: 'HARDSTYLE', venue: 'BORDEAUX' },
     ]);
     const [agendaMonth, setAgendaMonth] = useState<string>(() => {
-        const MONTHS_FR = ['JANVIER', 'FÉVRIER', 'MARS', 'AVRIL', 'MAI', 'JUIN', 'JUILLET', 'AOÛT', 'SEPTEMBRE', 'OCTOBRE', 'NOVEMBRE', 'DÉCEMBRE'];
+        const MONTHS_FR = ['JANVIER', 'FÃ‰VRIER', 'MARS', 'AVRIL', 'MAI', 'JUIN', 'JUILLET', 'AOÃ›T', 'SEPTEMBRE', 'OCTOBRE', 'NOVEMBRE', 'DÃ‰CEMBRE'];
         return MONTHS_FR[new Date().getMonth()] || 'OCTOBRE';
     });
     const [agendaBadgeText, setAgendaBadgeText] = useState<string>('AGENDA');
     const [agendaSlide, setAgendaSlide] = useState<number>(1);
     const [agendaAffiches, setAgendaAffiches] = useState<AgendaAfficheItem[]>([]);
     const [agendaCoverBadge, setAgendaCoverBadge] = useState<string>('AGENDA');
-    const [agendaCoverTitle, setAgendaCoverTitle] = useState<string>('ON VA OÙ CE MOIS-CI ?');
+    const [agendaCoverTitle, setAgendaCoverTitle] = useState<string>('ON VA OÃ™ CE MOIS-CI ?');
     const [agendaCoverYear, setAgendaCoverYear] = useState<string>(() => String(new Date().getFullYear()));
-    const [agendaCoverGenres, setAgendaCoverGenres] = useState<string>('HARD TECHNO • RAWSTYLE • MULTI-GENRES');
-    const [agendaCoverCta, setAgendaCoverCta] = useState<string>('Les meilleurs events et coups de cœur du mois rassemblés en un post ➡️');
+    const [agendaCoverGenres, setAgendaCoverGenres] = useState<string>('HARD TECHNO â€¢ RAWSTYLE â€¢ MULTI-GENRES');
+    const [agendaCoverCta, setAgendaCoverCta] = useState<string>('Les meilleurs events et coups de cÅ“ur du mois rassemblÃ©s en un post âž¡ï¸');
     const [showAgendaCoverCta, setShowAgendaCoverCta] = useState<boolean>(true);
     const [artisteFestivalSlide, setArtisteFestivalSlide] = useState<number>(1);
     const [extraSpotlightSlides, setExtraSpotlightSlides] = useState<number[]>([]);
@@ -453,7 +453,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         artistLogo: string;
         bgImage?: string;
     }>>({});
-    const [festivalIntroTitle, setFestivalIntroTitle] = useState<string>('LES 10 ARTISTES À VOIR LORS *FESTIVAL*');
+    const [festivalIntroTitle, setFestivalIntroTitle] = useState<string>('LES 10 ARTISTES Ã€ VOIR LORS *FESTIVAL*');
     const [eventsSlide, setEventsSlide] = useState<number>(1);
     const [eventNormalSlidesCount, setEventNormalSlidesCount] = useState<number>(0);
     const [editorialSlide, setEditorialSlide] = useState<number>(1);
@@ -503,10 +503,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const [quizColor1, setQuizColor1] = useState<string>('#38bdf8');
     const [quizColor2, setQuizColor2] = useState<string>('#a855f7');
     const [showFrame, setShowFrame] = useState<boolean>(false);
-    // Template Reel Focus (Hook 4s dynamique & flou vidéo)
+    // Template Reel Focus (Hook 4s dynamique & flou vidÃ©o)
     const [focusReelStyle, setFocusReelStyle] = useState<'CINEMATIC' | 'GLASS' | 'IMPACT' | 'MINIMAL' | 'CLASSIC'>('CINEMATIC');
 
-    // Devinette Silhouette DJ (Thème JEU_DJ - Options A + B)
+    // Devinette Silhouette DJ (ThÃ¨me JEU_DJ - Options A + B)
     const [djCutoutImage, setDjCutoutImage] = useState<string | null>(null);
     const [djOriginalImage, setDjOriginalImage] = useState<string | null>(null);
     const [djSilhouetteColor, setDjSilhouetteColor] = useState<string>('#bd00ff');
@@ -557,8 +557,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const conseilsSubtextInputRef = useRef<HTMLTextAreaElement | null>(null);
     const [isConseilsLargeTitle, setIsConseilsLargeTitle] = useState(false);
     const [showTitleOnSlide2, setShowTitleOnSlide2] = useState<boolean>(false);
-    const [showMusicDate, setShowMusicDate] = useState<boolean>(false); // Masquer ou afficher la date sous le titre en thème MUSIQUE
-    const [editorialDate, setEditorialDate] = useState<string>(''); // Date personnalisée au centre de la barre blanche (vide = aujourd'hui)
+    const [showMusicDate, setShowMusicDate] = useState<boolean>(false); // Masquer ou afficher la date sous le titre en thÃ¨me MUSIQUE
+    const [editorialDate, setEditorialDate] = useState<string>(''); // Date personnalisÃ©e au centre de la barre blanche (vide = aujourd'hui)
     const [showDividerDate, setShowDividerDate] = useState<boolean>(true); // Afficher ou masquer la date au centre de la barre blanche
     const editorialDateInputRef = useRef<HTMLInputElement | null>(null);
     const getTodayFormattedDate = () => {
@@ -569,13 +569,13 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         return `${dayStr} ${monthStr} ${yearStr}`;
     };
     const [extraEditorialSlides, setExtraEditorialSlides] = useState<string[]>([]); // Slides 3, 4, 5... (texte de chaque slide)
-    const [skipEditorialSlide2, setSkipEditorialSlide2] = useState<boolean>(true); // Masquer Slide 2 par défaut (Slide 1 + Promo uniquement, s'affiche uniquement si ajoutée)
-    const [editorialSlide1Duration, setEditorialSlide1Duration] = useState<number>(20); // Durée Slide 1 par défaut : 20 secondes
-    const [editorialPromoDuration, setEditorialPromoDuration] = useState<number>(7); // Durée Promo (en secondes, fixée à 7s pour l'animation Instagram)
-    const [exportFps, setExportFps] = useState<number>(30); // Fluidité vidéo : 30 FPS fluide par défaut (standard Instagram/Reels) ou 60 FPS Studio
+    const [skipEditorialSlide2, setSkipEditorialSlide2] = useState<boolean>(true); // Masquer Slide 2 par dÃ©faut (Slide 1 + Promo uniquement, s'affiche uniquement si ajoutÃ©e)
+    const [editorialSlide1Duration, setEditorialSlide1Duration] = useState<number>(20); // DurÃ©e Slide 1 par dÃ©faut : 20 secondes
+    const [editorialPromoDuration, setEditorialPromoDuration] = useState<number>(7); // DurÃ©e Promo (en secondes, fixÃ©e Ã  7s pour l'animation Instagram)
+    const [exportFps, setExportFps] = useState<number>(30); // FluiditÃ© vidÃ©o : 30 FPS fluide par dÃ©faut (standard Instagram/Reels) ou 60 FPS Studio
     const [exportAccordion, setExportAccordion] = useState<'image' | 'video_slide' | 'video_carousel' | 'tiktok' | null>(null);
 
-    // ── BANDE SON CARROUSEL VIDÉO & SLIDES INDIVIDUELLES (MP3 Upload & Beatport) ──
+    // â”€â”€ BANDE SON CARROUSEL VIDÃ‰O & SLIDES INDIVIDUELLES (MP3 Upload & Beatport) â”€â”€
     type SlideAudioItem = {
         url: string;
         title: string;
@@ -794,14 +794,14 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     </span>
                     {activeData.url ? (
                         <span className="text-[9px] font-mono text-[#00f0ff] bg-[#00f0ff]/10 px-2 py-0.5 rounded border border-[#00f0ff]/30">
-                            ✓ Active
+                            âœ“ Active
                         </span>
                     ) : (
                         <span className="text-[9px] text-gray-500 font-medium">Optionnelle</span>
                     )}
                 </div>
 
-                {/* Sélecteur de Cible : Carrousel Global OU Slide par Slide */}
+                {/* SÃ©lecteur de Cible : Carrousel Global OU Slide par Slide */}
                 <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-[9px] no-scrollbar">
                     <button
                         type="button"
@@ -812,7 +812,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
                         }`}
                     >
-                        🌐 Tout le Carrousel
+                        ðŸŒ Tout le Carrousel
                         {carouselAudioUrl && <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>}
                     </button>
                     {availableSlides.map(s => {
@@ -829,7 +829,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
                                 }`}
                             >
-                                {s === 1 ? '📌 Slide 1' : s === 2 ? '📖 Slide 2' : `📄 Slide ${s}`}
+                                {s === 1 ? 'ðŸ“Œ Slide 1' : s === 2 ? 'ðŸ“– Slide 2' : `ðŸ“„ Slide ${s}`}
                                 {hasAudio && <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>}
                             </button>
                         );
@@ -869,7 +869,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 value={carouselBeatportQuery}
                                 onChange={(e) => setCarouselBeatportQuery(e.target.value)}
                                 onKeyDown={(e) => e.key === 'Enter' && handleCarouselBeatportSearch()}
-                                placeholder="Artiste, titre ou mot clé..."
+                                placeholder="Artiste, titre ou mot clÃ©..."
                                 className="flex-1 bg-white/10 border border-white/20 rounded-lg px-2 py-1 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-emerald-400"
                             />
                             <button
@@ -882,7 +882,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             </button>
                         </div>
 
-                        {/* Résultats Beatport */}
+                        {/* RÃ©sultats Beatport */}
                         {carouselBeatportResults.length > 0 && (
                             <div className="space-y-1 max-h-40 overflow-y-auto pr-1">
                                 {carouselBeatportResults.map((item, idx) => (
@@ -912,7 +912,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     </div>
                 )}
 
-                {/* Morceau sélectionné */}
+                {/* Morceau sÃ©lectionnÃ© */}
                 {activeData.url && (
                     <div className="space-y-2.5 pt-2 border-t border-white/10">
                         <div className="flex items-center gap-2 p-2 rounded-xl bg-black/50 border border-white/10">
@@ -928,7 +928,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     {activeData.title || `Piste ${targetLabel}`}
                                 </p>
                                 <p className="text-[9.5px] text-gray-400 truncate">
-                                    {activeData.artist || 'Audio synchronisé'}
+                                    {activeData.artist || 'Audio synchronisÃ©'}
                                 </p>
                             </div>
                             <button
@@ -941,16 +941,16 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 {isPlayingCarouselPreview ? (
                                     <>Pause</>
                                 ) : (
-                                    <><Play className="w-3 h-3 text-[#00f0ff]" /> Écouter</>
+                                    <><Play className="w-3 h-3 text-[#00f0ff]" /> Ã‰couter</>
                                 )}
                             </button>
                         </div>
 
-                        {/* Départ du morceau */}
+                        {/* DÃ©part du morceau */}
                         <div className="flex justify-between items-center text-[10px] font-black uppercase text-gray-300">
                             <span className="flex items-center gap-1.5">
                                 <Clock className="w-3 h-3 text-[#00f0ff]" />
-                                Départ de la musique ({targetLabel}) :
+                                DÃ©part de la musique ({targetLabel}) :
                             </span>
                             <span className="text-[#00f0ff] font-mono font-bold bg-[#00f0ff]/10 px-2 py-0.5 rounded border border-[#00f0ff]/30">
                                 {activeData.startTime.toFixed(1)}s / {activeData.duration > 0 ? `${activeData.duration.toFixed(1)}s` : 'Max'}
@@ -980,7 +980,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 }}
                                 className="px-2 py-0.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded"
                             >
-                                ⏪ 0:00
+                                âª 0:00
                             </button>
                             <div className="flex gap-1.5">
                                 <button
@@ -1011,7 +1011,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                         <div className="flex items-center justify-between pt-1">
                             <span className="text-[9px] text-gray-400">
-                                {isGlobal ? 'Piste synchronisée sur tout le carrousel' : `Piste synchronisée sur Slide ${audioTargetSlide}`}
+                                {isGlobal ? 'Piste synchronisÃ©e sur tout le carrousel' : `Piste synchronisÃ©e sur Slide ${audioTargetSlide}`}
                             </span>
                             <button
                                 type="button"
@@ -1027,7 +1027,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         );
     };
 
-    // ── CALCUL DYNAMIQUE DU RYTHME SPÉCIAL TIKTOK (<60s MAX, SWEET SPOT 15-30s) ───
+    // â”€â”€ CALCUL DYNAMIQUE DU RYTHME SPÃ‰CIAL TIKTOK (<60s MAX, SWEET SPOT 15-30s) â”€â”€â”€
     const getTikTokSlideTimings = (numSlides: number) => {
         const promoOutroSec = 3.5; // Outro promo dynamique Dropsiders
         const transSec = getTransitionDuration(slideTransition) / 1000;
@@ -1041,7 +1041,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         } else if (numSlides <= 8) {
             slideSec = 2.8;
         } else {
-            // Plafond strict : la durée totale ne doit JAMAIS dépasser 55s (marge de sécurité TikTok 60s)
+            // Plafond strict : la durÃ©e totale ne doit JAMAIS dÃ©passer 55s (marge de sÃ©curitÃ© TikTok 60s)
             slideSec = Math.max(2.2, Math.min(2.8, (54 - promoOutroSec - (numSlides * transSec)) / Math.max(1, numSlides)));
         }
         const totalSec = (numSlides * slideSec) + (numSlides * transSec) + promoOutroSec;
@@ -1065,19 +1065,19 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             setTimeout(() => generateImage(), 50);
             return;
         }
-        if (extraEditorialSlides.length >= 18) return; // Limite stricte à 20 slides totales max (2 de base + 18 supplémentaires)
+        if (extraEditorialSlides.length >= 18) return; // Limite stricte Ã  20 slides totales max (2 de base + 18 supplÃ©mentaires)
         const nextSlideNum = 2 + extraEditorialSlides.length + 1;
         setExtraEditorialSlides(prev => [...prev, '']);
         setEditorialSlide(nextSlideNum);
     };
 
     const addAgendaAffiche = () => {
-        if (agendaAffiches.length >= 18) return; // Limite stricte à 20 slides totales max (2 de base + 18 affiches)
+        if (agendaAffiches.length >= 18) return; // Limite stricte Ã  20 slides totales max (2 de base + 18 affiches)
         const nextNum = 2 + agendaAffiches.length + 1;
         const newAffiche: AgendaAfficheItem = {
             id: `aff-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
             title: `FESTIVAL ${agendaAffiches.length + 1}`,
-            date: 'DATE ÉVÉNEMENT',
+            date: 'DATE Ã‰VÃ‰NEMENT',
             venue: 'LIEU / VILLE',
             image: ''
         };
@@ -1201,7 +1201,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         }
     };
 
-    // Détection clôture GTA 6 après le 12 novembre 2026
+    // DÃ©tection clÃ´ture GTA 6 aprÃ¨s le 12 novembre 2026
     const isGTA6Expired = typeof window !== 'undefined' && new Date() > new Date('2026-11-12T23:59:59');
 
     // CONCOURS Theme States
@@ -1222,7 +1222,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const [concoursGTACondition1, setConcoursGTACondition1] = useState('1 - LIKEZ LA PUBLICATION');
     const [concoursGTACondition2, setConcoursGTACondition2] = useState('2 - IDENTIFIEZ 2 POTES QUI DOIVENT LIKER LA PAGE');
     const [concoursGTACondition3, setConcoursGTACondition3] = useState('3 - PARTAGEZ EN STORIE');
-    const [concoursGTACondition4, setConcoursGTACondition4] = useState('4 - POUR VALIDER LA PARTICIPATION RÉPONDEZ AUX 3 QUESTIONS SUR DROPSIDERS.FR');
+    const [concoursGTACondition4, setConcoursGTACondition4] = useState('4 - POUR VALIDER LA PARTICIPATION RÃ‰PONDEZ AUX 3 QUESTIONS SUR DROPSIDERS.FR');
     const isVideoRecordingRef = useRef<boolean>(false);
     const recordingStartTimeRef = useRef<number>(0);
     const agendaSlideOverrideRef = useRef<number | null>(null);
@@ -1244,7 +1244,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
         let lastErr: unknown = null;
 
-        // 1. Chargement direct via CDN HTTPS ESM (évite tout blocage CSP / navigateur sur import(blob:...))
+        // 1. Chargement direct via CDN HTTPS ESM (Ã©vite tout blocage CSP / navigateur sur import(blob:...))
         for (const baseURL of FFMPEG_CORE_CDNS) {
             const instance = new FFmpeg();
             try {
@@ -1256,12 +1256,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 return instance;
             } catch (err) {
                 lastErr = err;
-                console.warn(`[FFmpeg] Chargement direct CDN échoué (${baseURL}) :`, err);
+                console.warn(`[FFmpeg] Chargement direct CDN Ã©chouÃ© (${baseURL}) :`, err);
                 try { instance.terminate(); } catch { }
             }
         }
 
-        // 2. Fallback Blob URL vérifié (utile si environnement COEP strict)
+        // 2. Fallback Blob URL vÃ©rifiÃ© (utile si environnement COEP strict)
         for (const baseURL of FFMPEG_CORE_CDNS) {
             const instance = new FFmpeg();
             let coreBlobUrl = '';
@@ -1277,7 +1277,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 return instance;
             } catch (err) {
                 lastErr = err;
-                console.warn(`[FFmpeg] Chargement Blob URL échoué (${baseURL}) :`, err);
+                console.warn(`[FFmpeg] Chargement Blob URL Ã©chouÃ© (${baseURL}) :`, err);
                 try { instance.terminate(); } catch { }
                 if (coreBlobUrl) URL.revokeObjectURL(coreBlobUrl);
                 if (wasmBlobUrl) URL.revokeObjectURL(wasmBlobUrl);
@@ -1288,12 +1288,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     };
     const audioCtxRef = useRef<AudioContext | null>(null);
     // On stocke la source et la dest pour ne pas rappeler createMediaElementSource
-    // sur le même élément vidéo (lance un InvalidStateError si rappelé)
+    // sur le mÃªme Ã©lÃ©ment vidÃ©o (lance un InvalidStateError si rappelÃ©)
     const audioSourceNodeRef = useRef<MediaElementAudioSourceNode | null>(null);
     const audioDestNodeRef = useRef<MediaStreamAudioDestinationNode | null>(null);
-    const audioSourceVideoRef = useRef<HTMLVideoElement | null>(null); // pour détecter si bgVideo a changé
+    const audioSourceVideoRef = useRef<HTMLVideoElement | null>(null); // pour dÃ©tecter si bgVideo a changÃ©
     const bgVideoBlobRef = useRef<Blob | null>(null);
-    // Refs DOM pour le progress bar d'enregistrement — évite tout re-render React pendant la capture
+    // Refs DOM pour le progress bar d'enregistrement â€” Ã©vite tout re-render React pendant la capture
     const recordingCircleRef = useRef<SVGCircleElement | null>(null);
     const recordingPercentRef = useRef<HTMLSpanElement | null>(null);
     const recordingTimeRef = useRef<HTMLSpanElement | null>(null);
@@ -1305,7 +1305,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const [r2TargetIdx, setR2TargetIdx] = useState<number | null>(null);
     const [r2TargetType, setR2TargetType] = useState<'top5' | 'top10' | 'top10_track_cover' | 'background' | 'logo' | 'affiche' | 'musicCover' | 'musicAudio' | 'musicIntroAudio' | 'djPhoto' | 'djPhotoReveal' | null>(null);
 
-    // AFFICHE Theme States (Poster Événement Flottant)
+    // AFFICHE Theme States (Poster Ã‰vÃ©nement Flottant)
     const [afficheImage, setAfficheImage] = useState<string>('');
     const afficheImageRef = useRef<HTMLImageElement | null>(null);
     const [afficheGlow, setAfficheGlow] = useState<boolean>(true);
@@ -1313,12 +1313,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const [afficheMode, setAfficheMode] = useState<'cover' | 'contain'>('contain');
     const [afficheScale, setAfficheScale] = useState<number>(100);
     const [afficheOffsetY, setAfficheOffsetY] = useState<number>(0);
-    // Recadrage interne de l'image de l'affiche (zoom + déplacement sans bouger le cadre)
+    // Recadrage interne de l'image de l'affiche (zoom + dÃ©placement sans bouger le cadre)
     const [afficheImgZoom, setAfficheImgZoom] = useState<number>(100);
     const [afficheImgPanX, setAfficheImgPanX] = useState<number>(0);
     const [afficheImgPanY, setAfficheImgPanY] = useState<number>(0);
 
-    // TWEET / POST X Theme States (Capture d'écran flottante cadrée avec précision)
+    // TWEET / POST X Theme States (Capture d'Ã©cran flottante cadrÃ©e avec prÃ©cision)
     const [isEditorialTweetActive, setIsEditorialTweetActive] = useState<boolean>(false);
     const editorialTweetOverrideRef = useRef<boolean>(false);
     const [tweetImage, setTweetImage] = useState<string>('');
@@ -1362,7 +1362,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     ) => (
         <div className="space-y-2.5 p-3 bg-black/40 border border-white/10 rounded-xl">
             <div className="flex items-center justify-between text-[9px] font-black uppercase text-gray-300">
-                <span>🔍 Zoom & Recadrage (le cadre reste fixe)</span>
+                <span>ðŸ” Zoom & Recadrage (le cadre reste fixe)</span>
                 {(zoom !== 100 || panX !== 0 || panY !== 0) && (
                     <button
                         type="button"
@@ -1374,10 +1374,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 )}
             </div>
 
-            {/* Raccourcis Rapides Zoom / Dézoom */}
+            {/* Raccourcis Rapides Zoom / DÃ©zoom */}
             <div className="grid grid-cols-4 gap-1">
                 {[
-                    { label: '50% (Dézoom)', val: 50 },
+                    { label: '50% (DÃ©zoom)', val: 50 },
                     { label: '75%', val: 75 },
                     { label: '100% (Normal)', val: 100 },
                     { label: '125% (Zoom)', val: 125 }
@@ -1397,9 +1397,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             </div>
 
             {([
-                { key: 'zoom' as const, label: 'Zoom / Échelle', value: zoom, min: 20, max: 200, unit: '%' },
-                { key: 'panX' as const, label: 'Gauche ↔ Droite', value: panX, min: -100, max: 100, unit: '' },
-                { key: 'panY' as const, label: 'Haut ↕ Bas', value: panY, min: -100, max: 100, unit: '' }
+                { key: 'zoom' as const, label: 'Zoom / Ã‰chelle', value: zoom, min: 20, max: 200, unit: '%' },
+                { key: 'panX' as const, label: 'Gauche â†” Droite', value: panX, min: -100, max: 100, unit: '' },
+                { key: 'panY' as const, label: 'Haut â†• Bas', value: panY, min: -100, max: 100, unit: '' }
             ]).map(ctrl => (
                 <div key={ctrl.key} className="space-y-1">
                     <div className="flex items-center justify-between text-[8.5px] font-bold uppercase text-gray-400">
@@ -1442,9 +1442,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const [top100AnimKey, setTop100AnimKey] = useState<number>(0);
     const top100AnimStartRef = useRef<number>(Date.now());
 
-    // ══════════════════════════════════════════════════════════════════════
-    // TOP 10 TRACKS COUNTDOWN (#10 ➔ #1 EN REEL 9:16)
-    // ══════════════════════════════════════════════════════════════════════
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    // TOP 10 TRACKS COUNTDOWN (#10 âž” #1 EN REEL 9:16)
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
     type Top10TrackItem = {
         rank: number;
         title: string;
@@ -1479,7 +1479,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 if (Array.isArray(parsed) && parsed.length === 10) {
                     return parsed.map((tr: Top10TrackItem) => ({
                         ...tr,
-                        // Assainir tout blob URL périmé qui bloquerait la lecture audio
+                        // Assainir tout blob URL pÃ©rimÃ© qui bloquerait la lecture audio
                         audioUrl: (tr.audioUrl && tr.audioUrl.startsWith('blob:')) ? (tr.sourceUrl || '') : tr.audioUrl
                     }));
                 }
@@ -1491,9 +1491,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const [top10Badge, setTop10Badge] = useState<string>('TOP 10 TRACKS');
     const [top10Title, setTop10Title] = useState<string>('TOP 10 TRACKS');
     const [top10Subtitle, setTop10Subtitle] = useState<string>('FESTIVAL 2026');
-    const [top10HasPromoOutro, setTop10HasPromoOutro] = useState<boolean>(true); // Outro Téléphone 3D à la fin
-    const [top10TrackDuration, setTop10TrackDuration] = useState<number>(7.8); // 10 tracks × 7.8s (78s) + 5s intro + 7s outro = 90s (1 min 30 pile)
-    const [top10ActiveRank, setTop10ActiveRank] = useState<number>(0); // 0 = Slide 1: INTRO par défaut
+    const [top10HasPromoOutro, setTop10HasPromoOutro] = useState<boolean>(true); // Outro TÃ©lÃ©phone 3D Ã  la fin
+    const [top10TrackDuration, setTop10TrackDuration] = useState<number>(7.8); // 10 tracks Ã— 7.8s (78s) + 5s intro + 7s outro = 90s (1 min 30 pile)
+    const [top10ActiveRank, setTop10ActiveRank] = useState<number>(0); // 0 = Slide 1: INTRO par dÃ©faut
     const top10TracksRef = useRef<Top10TrackItem[]>(top10Tracks);
     top10TracksRef.current = top10Tracks;
     const top10ActiveRankRef = useRef<number>(top10ActiveRank);
@@ -1513,8 +1513,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const [top10TestingRank, setTop10TestingRank] = useState<number | null>(null);
     const top10TestTimerRef = useRef<any>(null);
 
-    // ─── SLIDE D'INTRO TOP 10 TRACKS (3.5s) ───
-    const [top10IntroTitle, setTop10IntroTitle] = useState<string>('TOP 10 DES TRACKS LES PLUS TÉLÉCHARGÉES SUR BEATPORT');
+    // â”€â”€â”€ SLIDE D'INTRO TOP 10 TRACKS (3.5s) â”€â”€â”€
+    const [top10IntroTitle, setTop10IntroTitle] = useState<string>('TOP 10 DES TRACKS LES PLUS TÃ‰LÃ‰CHARGÃ‰ES SUR BEATPORT');
     const [top10IntroArtist, setTop10IntroArtist] = useState<string>('');
     const top10IntroTitleRef = useRef<string>(top10IntroTitle);
     top10IntroTitleRef.current = top10IntroTitle;
@@ -1523,12 +1523,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const top10IntroTitleInputRef = useRef<HTMLInputElement | null>(null);
     const top10TracksTitleInputRef = useRef<HTMLInputElement | null>(null);
 
-    // Mots à mettre en bleu néon (#00F0FF) dans les titres
-    const [top10ColoredWords, setTop10ColoredWords] = useState<string>('TOP 10, STREAMÉES, JOUÉES');
+    // Mots Ã  mettre en bleu nÃ©on (#00F0FF) dans les titres
+    const [top10ColoredWords, setTop10ColoredWords] = useState<string>('TOP 10, STREAMÃ‰ES, JOUÃ‰ES');
     const top10ColoredWordsRef = useRef<string>(top10ColoredWords);
     top10ColoredWordsRef.current = top10ColoredWords;
 
-    // Taille / Échelle du logo artiste Top 10 (en %, ex: 100% normal, 60% plus petit)
+    // Taille / Ã‰chelle du logo artiste Top 10 (en %, ex: 100% normal, 60% plus petit)
     const [top10LogoScale, setTop10LogoScale] = useState<number>(() => {
         try {
             const saved = localStorage.getItem('dropsiders_top10_logo_scale_v1');
@@ -1546,7 +1546,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         generateImage();
     };
 
-    // Recherche automatique Web de logo artiste (PNG détouré)
+    // Recherche automatique Web de logo artiste (PNG dÃ©tourÃ©)
     const [top10LogoSearchResults, setTop10LogoSearchResults] = useState<Array<{ title: string; url: string; previewUrl: string }>>([]);
     const [isSearchingTop10Logo, setIsSearchingTop10Logo] = useState<boolean>(false);
     const [showTop10LogoModal, setShowTop10LogoModal] = useState<boolean>(false);
@@ -1700,9 +1700,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const [showRawTextImportModal, setShowRawTextImportModal] = useState<boolean>(false);
 
     /**
-     * Analyse et trie automatiquement n'importe quelle liste copiée depuis Spotify, Kworb ou texte brut.
-     * Détecte les nombres d'écoutes / streams, trie par ordre décroissant (du #10 au #1 réel)
-     * et résout automatiquement les pochettes HD 1400x1400 et extraits audio officiels !
+     * Analyse et trie automatiquement n'importe quelle liste copiÃ©e depuis Spotify, Kworb ou texte brut.
+     * DÃ©tecte les nombres d'Ã©coutes / streams, trie par ordre dÃ©croissant (du #10 au #1 rÃ©el)
+     * et rÃ©sout automatiquement les pochettes HD 1400x1400 et extraits audio officiels !
      */
     const handleImportAndSortRawTracks = async (rawText: string, defaultArtist: string = '') => {
         const text = rawText.trim();
@@ -1721,10 +1721,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             const parsedList: ParsedItem[] = [];
 
             for (const line of lines) {
-                // Ignorer les en-têtes ou lignes de titre globales
-                if (/^(populaires|top songs|titre|morceau|streams|daily|écoutes)/i.test(line)) continue;
+                // Ignorer les en-tÃªtes ou lignes de titre globales
+                if (/^(populaires|top songs|titre|morceau|streams|daily|Ã©coutes)/i.test(line)) continue;
 
-                // 1. Chercher un nombre d'écoutes / streams (ex: 1826620962, 743,051,251, 530 000 000, 743M)
+                // 1. Chercher un nombre d'Ã©coutes / streams (ex: 1826620962, 743,051,251, 530 000 000, 743M)
                 let streamsNum = 0;
                 let streamsDisplay = '';
 
@@ -1736,7 +1736,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     streamsNum = Math.round(val * mult);
                     streamsDisplay = `${mMatch[1]} ${mMatch[2].toUpperCase()} STREAMS`;
                 } else {
-                    // Chercher de grands nombres (> 10 000) séparés par des virgules, points ou espaces ou collés
+                    // Chercher de grands nombres (> 10 000) sÃ©parÃ©s par des virgules, points ou espaces ou collÃ©s
                     const numMatches = line.match(/\b(?:\d{1,3}(?:[ ,.]\d{3}){1,4}|\d{5,12})\b/g);
                     if (numMatches && numMatches.length > 0) {
                         for (const nm of numMatches) {
@@ -1751,15 +1751,15 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                 // 2. Extraire le titre du morceau
                 let cleanLine = line
-                    .replace(/\b\d+:\d{2}\b/g, '') // supprime les durées de piste
-                    .replace(/^\d+[\t.)\s-]+/, '') // supprime le rang en début de ligne
+                    .replace(/\b\d+:\d{2}\b/g, '') // supprime les durÃ©es de piste
+                    .replace(/^\d+[\t.)\s-]+/, '') // supprime le rang en dÃ©but de ligne
                     .replace(/\b(?:\d{1,3}(?:[ ,.]\d{3}){1,4}|\d{5,12})\b/g, '') // supprime les streams
                     .replace(/(\d+(?:[.,]\d+)?)\s*([MB])/gi, '') // supprime les 743M
-                    .replace(/\b(vidéo|audio|official|lyrics|remaster)\b/gi, '')
+                    .replace(/\b(vidÃ©o|audio|official|lyrics|remaster)\b/gi, '')
                     .replace(/\s+/g, ' ')
                     .trim();
 
-                // Séparer artiste et titre si "Artiste - Titre"
+                // SÃ©parer artiste et titre si "Artiste - Titre"
                 let art = defaultArtist;
                 let tit = cleanLine;
                 if (cleanLine.includes(' - ')) {
@@ -1781,12 +1781,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             }
 
             if (parsedList.length === 0) {
-                alert("Aucun titre détecté. Copiez simplement les lignes depuis Spotify ou Kworb et collez-les.");
+                alert("Aucun titre dÃ©tectÃ©. Copiez simplement les lignes depuis Spotify ou Kworb et collez-les.");
                 setIsAutoFillingTop10(false);
                 return;
             }
 
-            // Trier automatiquement par nombre de streams décroissant (du plus gros hit au 10ème)
+            // Trier automatiquement par nombre de streams dÃ©croissant (du plus gros hit au 10Ã¨me)
             if (parsedList.some(p => p.streamsNum > 0)) {
                 parsedList.sort((a, b) => b.streamsNum - a.streamsNum);
             }
@@ -1795,7 +1795,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             const top10 = parsedList.slice(0, 10);
             const newTracks: Top10TrackItem[] = [];
 
-            // Assigner du rang 10 au rang 1 (#10 à l'index 0, #1 à l'index 9)
+            // Assigner du rang 10 au rang 1 (#10 Ã  l'index 0, #1 Ã  l'index 9)
             for (let i = 0; i < 10; i++) {
                 const rank = 10 - i;
                 const item = top10[9 - i] || top10[i] || { rawTitle: `TRACK #${rank}`, artist: defaultArtist, streamsDisplay: '' };
@@ -1823,7 +1823,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             } catch (_) {}
             generateImage();
 
-            // Résolution automatique en tâche de fond des pochettes HD et audio pour chacun des 10 morceaux
+            // RÃ©solution automatique en tÃ¢che de fond des pochettes HD et audio pour chacun des 10 morceaux
             for (const tr of newTracks) {
                 if (!tr.title || tr.title.startsWith('TRACK #')) continue;
                 try {
@@ -1865,8 +1865,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         top10IntroArtistRef.current = displayLabelTitle;
         setTop10Badge(`TOP 10 ${displayLabelTitle}`);
         top10BadgeRef.current = `TOP 10 ${displayLabelTitle}`;
-        setTop10IntroTitle('TOP 10 DES TRACKS LES PLUS TÉLÉCHARGÉES SUR BEATPORT');
-        top10IntroTitleRef.current = 'TOP 10 DES TRACKS LES PLUS TÉLÉCHARGÉES SUR BEATPORT';
+        setTop10IntroTitle('TOP 10 DES TRACKS LES PLUS TÃ‰LÃ‰CHARGÃ‰ES SUR BEATPORT');
+        top10IntroTitleRef.current = 'TOP 10 DES TRACKS LES PLUS TÃ‰LÃ‰CHARGÃ‰ES SUR BEATPORT';
 
         let resolvedTracks: Top10TrackItem[] | null = null;
 
@@ -1904,7 +1904,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 }
             }
         } catch (e) {
-            console.warn("Échec requête Beatport top-label :", e);
+            console.warn("Ã‰chec requÃªte Beatport top-label :", e);
         }
 
         if (resolvedTracks && resolvedTracks.length > 0) {
@@ -1928,15 +1928,15 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         top10IntroArtistRef.current = cleaned;
         setTop10Badge('TOP 10 TRACKS');
         top10BadgeRef.current = 'TOP 10 TRACKS';
-        setTop10IntroTitle('TOP 10 DES TRACKS LES PLUS TÉLÉCHARGÉES SUR BEATPORT');
-        top10IntroTitleRef.current = 'TOP 10 DES TRACKS LES PLUS TÉLÉCHARGÉES SUR BEATPORT';
+        setTop10IntroTitle('TOP 10 DES TRACKS LES PLUS TÃ‰LÃ‰CHARGÃ‰ES SUR BEATPORT');
+        top10IntroTitleRef.current = 'TOP 10 DES TRACKS LES PLUS TÃ‰LÃ‰CHARGÃ‰ES SUR BEATPORT';
         setTop10ActiveRank(0);
         top10ActiveRankRef.current = 0;
 
         let resolvedFromBeatport = false;
 
         try {
-            // 1. PRIORITÉ ABSOLUE : ENDPOINT OFFICIEL BEATPORT TOP 10 ARTISTE (Classement officiel des ventes & téléchargements)
+            // 1. PRIORITÃ‰ ABSOLUE : ENDPOINT OFFICIEL BEATPORT TOP 10 ARTISTE (Classement officiel des ventes & tÃ©lÃ©chargements)
             try {
                 const bpArtRes = await fetch(`/api/beatport/top-artist?artist=${encodeURIComponent(cleaned)}`);
                 if (bpArtRes.ok) {
@@ -1979,7 +1979,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     }
                 }
             } catch (e) {
-                console.warn("Échec résolution Beatport top-artist :", e);
+                console.warn("Ã‰chec rÃ©solution Beatport top-artist :", e);
             }
 
             // 2. FALLBACK 1 : RECHERCHE DIRECTE BEATPORT CATALOG v4
@@ -2070,7 +2070,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         }
                     }
                 } catch (e) {
-                    console.warn("Échec résolution Beatport artiste v4, bascule iTunes :", e);
+                    console.warn("Ã‰chec rÃ©solution Beatport artiste v4, bascule iTunes :", e);
                 }
             }
 
@@ -2189,7 +2189,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         setArtistLogo('');
         artistLogoRef.current = null;
 
-        // Conserver STRICTEMENT le nom de style tapé par l'utilisateur
+        // Conserver STRICTEMENT le nom de style tapÃ© par l'utilisateur
         const displayStyleTitle = cleaned.toUpperCase();
         setTop10Title('TOP 10 TRACKS');
         top10TitleRef.current = 'TOP 10 TRACKS';
@@ -2197,24 +2197,24 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         top10IntroArtistRef.current = displayStyleTitle;
         setTop10Badge(`TOP 10 ${displayStyleTitle}`);
         top10BadgeRef.current = `TOP 10 ${displayStyleTitle}`;
-        setTop10IntroTitle('TOP 10 DES TRACKS LES PLUS TÉLÉCHARGÉES SUR BEATPORT');
-        top10IntroTitleRef.current = 'TOP 10 DES TRACKS LES PLUS TÉLÉCHARGÉES SUR BEATPORT';
+        setTop10IntroTitle('TOP 10 DES TRACKS LES PLUS TÃ‰LÃ‰CHARGÃ‰ES SUR BEATPORT');
+        top10IntroTitleRef.current = 'TOP 10 DES TRACKS LES PLUS TÃ‰LÃ‰CHARGÃ‰ES SUR BEATPORT';
 
         let resolvedTracks: Top10TrackItem[] | null = null;
 
-        // 1. PRIORITÉ ABSOLUE : ENDPOINT OFFICIEL BEATPORT TOP 100 PAR GENRE (Pochettes HD 1400x1400 & Audio Drop 120s)
+        // 1. PRIORITÃ‰ ABSOLUE : ENDPOINT OFFICIEL BEATPORT TOP 100 PAR GENRE (Pochettes HD 1400x1400 & Audio Drop 120s)
         try {
             const bpApiRes = await fetch(`/api/beatport/top-genre?genre=${encodeURIComponent(cleaned)}`);
             if (bpApiRes.ok) {
                 const bpData: any = await bpApiRes.json();
                 if (bpData.success && Array.isArray(bpData.tracks) && bpData.tracks.length >= 5) {
                     const tracksSlice = bpData.tracks.slice(0, 10);
-                    // On prend les 10 premiers morceaux du top 100 Beatport et on les inverse pour le countdown (#10 en 1er jusqu'à #1)
+                    // On prend les 10 premiers morceaux du top 100 Beatport et on les inverse pour le countdown (#10 en 1er jusqu'Ã  #1)
                     const count = tracksSlice.length;
                     const mapped: Top10TrackItem[] = [];
                     for (let i = 0; i < count; i++) {
                         const rank = count - i;
-                        const t = tracksSlice[count - 1 - i]; // Inversion pour compte à rebours #10 -> #1
+                        const t = tracksSlice[count - 1 - i]; // Inversion pour compte Ã  rebours #10 -> #1
                         const cUrl = t.cover || '';
                         mapped.push({
                             rank: rank,
@@ -2238,10 +2238,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 }
             }
         } catch (e) {
-            console.warn("Échec requête Beatport top-genre :", e);
+            console.warn("Ã‰chec requÃªte Beatport top-genre :", e);
         }
 
-        // 2. FALLBACK 1 : RECHERCHE DIRECTE BEATPORT CATALOG v4 (API Développeur Embed)
+        // 2. FALLBACK 1 : RECHERCHE DIRECTE BEATPORT CATALOG v4 (API DÃ©veloppeur Embed)
         if (!resolvedTracks || resolvedTracks.length < 5) {
             try {
                 const bpToken = await getBeatportToken();
@@ -2300,7 +2300,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     }
                 }
             } catch (e) {
-                console.warn("Échec repli Beatport Catalog v4 :", e);
+                console.warn("Ã‰chec repli Beatport Catalog v4 :", e);
             }
         }
 
@@ -2339,7 +2339,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     }
                 }
             } catch (e) {
-                console.warn("Échec repli Deezer :", e);
+                console.warn("Ã‰chec repli Deezer :", e);
             }
         }
 
@@ -2387,7 +2387,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     }
                 }
             } catch (e) {
-                console.warn("Échec repli Apple Music :", e);
+                console.warn("Ã‰chec repli Apple Music :", e);
             }
         }
 
@@ -2403,7 +2403,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         setIsAutoFillingTop10(false);
     };
 
-        // Système de recherche universelle par Titre & Artiste (Beatport / Spotify / Apple Music)
+        // SystÃ¨me de recherche universelle par Titre & Artiste (Beatport / Spotify / Apple Music)
     const [top10SearchQuery, setTop10SearchQuery] = useState<string>('');
     const [top10SearchResults, setTop10SearchResults] = useState<ResolvedMusicData[]>([]);
     const [isTop10Searching, setIsTop10Searching] = useState<boolean>(false);
@@ -2454,7 +2454,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             const next = prev.map(t => Number(t.rank) === Number(rank) ? { ...t, ...patch } : t);
             top10TracksRef.current = next;
             try {
-                // Évite d'exploser le quota de 5Mo de localStorage avec les grosses images base64 et ne jamais persister de blob URL audio éphémère
+                // Ã‰vite d'exploser le quota de 5Mo de localStorage avec les grosses images base64 et ne jamais persister de blob URL audio Ã©phÃ©mÃ¨re
                 const forStorage = next.map(tr => ({
                     ...tr,
                     cover: (tr.cover && tr.cover.startsWith('data:') && tr.cover.length > 50000) ? '' : tr.cover,
@@ -2528,7 +2528,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             let extractedCover = '';
             let extractedAudio = '';
 
-            // A) Résolution intelligente universelle (Spotify, Beatport, Deezer, Soundcloud, Apple Music, YouTube...)
+            // A) RÃ©solution intelligente universelle (Spotify, Beatport, Deezer, Soundcloud, Apple Music, YouTube...)
             const musicMeta = await resolveMusicSnippet(trimmed).catch(() => null);
             if (musicMeta) {
                 if (musicMeta.artist) extractedArtist = musicMeta.artist.trim();
@@ -2559,7 +2559,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             .replace(/\[(?:official\s*(?:video|audio|music\s*video|visualizer|clip|lyric\s*video)|4k|hd|remaster(?:ed)?)[^\]]*\]/gi, '')
                             .trim();
 
-                        const split = clean.split(/\s+[-–—:]\s+/);
+                        const split = clean.split(/\s+[-â€“â€”:]\s+/);
                         if (split.length >= 2) {
                             if (!extractedArtist) extractedArtist = split[0].trim();
                             if (!extractedTitle) extractedTitle = split.slice(1).join(' - ').trim();
@@ -2589,7 +2589,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 } catch (_) { }
             }
 
-            // D) Préchargement de la pochette pour éviter les erreurs CORS et le canvas tainting
+            // D) PrÃ©chargement de la pochette pour Ã©viter les erreurs CORS et le canvas tainting
             if (extractedCover) {
                 loadCorsSafeImage(extractedCover, (img) => {
                     imageCacheRef.current[extractedCover] = img;
@@ -2597,7 +2597,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 });
             }
 
-            // E) Préchargement audio en Blob mémoire vive (RAM) pour éliminer les latences et coupures
+            // E) PrÃ©chargement audio en Blob mÃ©moire vive (RAM) pour Ã©liminer les latences et coupures
             if (extractedAudio) {
                 getPreloadedAudioBlobUrl(extractedAudio).catch(() => null);
             }
@@ -2612,7 +2612,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             }
             if (extractedAudio) patch.audioUrl = extractedAudio;
 
-            // F) Fichiers vidéo directs (MP4, WebM, Blob)
+            // F) Fichiers vidÃ©o directs (MP4, WebM, Blob)
             if (trimmed.includes('.mp4') || trimmed.includes('.webm') || trimmed.startsWith('blob:') || trimmed.startsWith('data:')) {
                 patch.videoUrl = trimmed;
                 getOrCreateTop10Video(rank, trimmed);
@@ -2621,13 +2621,13 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             updateTop10Track(rank, patch);
 
         } catch (e) {
-            console.warn("Erreur extraction métadonnées Top 10 :", e);
+            console.warn("Erreur extraction mÃ©tadonnÃ©es Top 10 :", e);
         } finally {
             setTop10ResolvingRank(null);
         }
     };
 
-    // MUSIQUE : Slide 1 = Annonce, Slides 2 à 19 = Tracks (pochette + titre + artiste + label + extrait audio), Slide 20 = Promo
+    // MUSIQUE : Slide 1 = Annonce, Slides 2 Ã  19 = Tracks (pochette + titre + artiste + label + extrait audio), Slide 20 = Promo
     type MusicTrackSlide = { cover: string; title: string; artist: string; label: string; audio?: string; audioStartTime?: number };
     const MAX_MUSIC_TRACKS = 18; // 1 intro + 18 tracks + 1 promo = 20 slides max (limite carrousel Instagram)
     const createEmptyMusicTrack = (): MusicTrackSlide => ({ cover: '', title: '', artist: '', label: '', audio: '', audioStartTime: 0 });
@@ -2635,7 +2635,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const [musicIntroAudio, setMusicIntroAudio] = useState<string>('');
     const [musicIntroAudioStartTime, setMusicIntroAudioStartTime] = useState<number>(0);
     const [audioDurations, setAudioDurations] = useState<Record<string, number>>({});
-    // Lecteur preview basé sur WebAudio (AudioBuffer décodé en PCM, joué sur le thread audio dédié => zéro micro-coupure)
+    // Lecteur preview basÃ© sur WebAudio (AudioBuffer dÃ©codÃ© en PCM, jouÃ© sur le thread audio dÃ©diÃ© => zÃ©ro micro-coupure)
     const previewAudioPlayerRef = useRef<{
         ctx: AudioContext;
         source: AudioBufferSourceNode | null;
@@ -2658,9 +2658,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const whiteLogoCacheRef = useRef<Map<string, HTMLCanvasElement>>(new Map());
     const [activeAudioPreviewSrc, setActiveAudioPreviewSrc] = useState<string | null>(null);
     const [cdjPlayerRing, setCdjPlayerRing] = useState<boolean>(true); // Bague de progression 30s style Player CDJ Pioneer
-    const [musicBgMotion, setMusicBgMotion] = useState<boolean>(true); // Mouvement organique doux en arrière-plan
+    const [musicBgMotion, setMusicBgMotion] = useState<boolean>(true); // Mouvement organique doux en arriÃ¨re-plan
 
-    /** Débloque la session audio iOS/Android (contourne le bouton Silencieux iPhone via audioSession='playback') */
+    /** DÃ©bloque la session audio iOS/Android (contourne le bouton Silencieux iPhone via audioSession='playback') */
     const unlockMobileAudioSession = (targetCtx?: AudioContext | null) => {
         try {
             if (typeof navigator !== 'undefined' && (navigator as any).audioSession) {
@@ -2675,7 +2675,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     (silentEl as any).playsInline = true;
                     silentEl.preload = 'auto';
                     silentEl.volume = 0.01;
-                    // Micro WAV PCM muet valide (1 échantillon) pour forcer la catégorie AVAudioSessionPlayback sur iOS < 17
+                    // Micro WAV PCM muet valide (1 Ã©chantillon) pour forcer la catÃ©gorie AVAudioSessionPlayback sur iOS < 17
                     silentEl.src = 'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA';
                     silentUnlockAudioRef.current = silentEl;
                 }
@@ -2689,7 +2689,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 if (ctx.state === 'suspended') {
                     ctx.resume().catch(() => { });
                 }
-                // Impulsion silencieuse synchrone dans le geste utilisateur (obligatoire sur Safari iOS avant un await réseau)
+                // Impulsion silencieuse synchrone dans le geste utilisateur (obligatoire sur Safari iOS avant un await rÃ©seau)
                 const silentBuf = ctx.createBuffer(1, 1, 22050);
                 const silentSrc = ctx.createBufferSource();
                 silentSrc.buffer = silentBuf;
@@ -2699,7 +2699,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         } catch (_) { }
     };
 
-    /** Détecte si le navigateur supporte réellement ctx.filter = 'blur(...)' (non supporté sur iOS Safari / WebKit < 18) */
+    /** DÃ©tecte si le navigateur supporte rÃ©ellement ctx.filter = 'blur(...)' (non supportÃ© sur iOS Safari / WebKit < 18) */
     const supportsCanvasFilterBlur = (): boolean => {
         if (canvasFilterBlurSupportedRef.current !== null) return canvasFilterBlurSupportedRef.current;
         try {
@@ -2723,7 +2723,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         }
     };
 
-    /** Flou Gaussien 3-passes séparable (O(W*H)) + luminosité pour iOS/WebKit (rendu identique à CSS blur() PC) */
+    /** Flou Gaussien 3-passes sÃ©parable (O(W*H)) + luminositÃ© pour iOS/WebKit (rendu identique Ã  CSS blur() PC) */
     const applySoftwareGaussianBlurAndBrightness = (
         ctx: CanvasRenderingContext2D,
         w: number,
@@ -2742,7 +2742,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             const r = Math.max(1, Math.min(48, Math.round(radius)));
             const div = r * 2 + 1;
 
-            // 3 passes Box Blur séparables (Horizontal + Vertical) = approximation exacte du flou Gaussien
+            // 3 passes Box Blur sÃ©parables (Horizontal + Vertical) = approximation exacte du flou Gaussien
             for (let pass = 0; pass < 3; pass++) {
                 // Passe horizontale : src -> dst
                 for (let y = 0; y < h; y++) {
@@ -2818,7 +2818,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         }
     };
 
-    /** Génère un canvas hors-écran flouté & assombri 100% compatible PC + iOS Safari/Chrome + Android */
+    /** GÃ©nÃ¨re un canvas hors-Ã©cran floutÃ© & assombri 100% compatible PC + iOS Safari/Chrome + Android */
     const createCrossBrowserBlurredCanvas = (
         sourceImg: HTMLImageElement,
         canvasW: number,
@@ -2847,7 +2847,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             return off;
         }
 
-        // Fallback haute-fidélité iOS Safari / WebKit : rendu à 0.25x + Flou Gaussien 3-passes exact
+        // Fallback haute-fidÃ©litÃ© iOS Safari / WebKit : rendu Ã  0.25x + Flou Gaussien 3-passes exact
         const workW = Math.max(32, Math.round(canvasW * 0.25));
         const workH = Math.max(32, Math.round(canvasH * 0.25));
         const off = document.createElement('canvas');
@@ -2862,12 +2862,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             const dh = srcH * s;
             offCtx.drawImage(sourceImg, (workW - dw) / 2, (workH - dh) / 2, dw, dh);
 
-            // blur(16px) sur 0.5x équivaut à rayon ~9px sur 0.25x
+            // blur(16px) sur 0.5x Ã©quivaut Ã  rayon ~9px sur 0.25x
             const scaledRadius = Math.max(5, Math.round(blurPx * 0.56));
             const blurredOk = applySoftwareGaussianBlurAndBrightness(offCtx, workW, workH, scaledRadius, brightness, saturate);
 
             if (!blurredOk) {
-                // Secours ultime sans getImageData (si image externe opaque sans CORS) : pyramide bilinéaire multi-étapes
+                // Secours ultime sans getImageData (si image externe opaque sans CORS) : pyramide bilinÃ©aire multi-Ã©tapes
                 const tiny = document.createElement('canvas');
                 tiny.width = Math.max(16, Math.round(workW * 0.16));
                 tiny.height = Math.max(16, Math.round(workH * 0.16));
@@ -2878,7 +2878,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     tinyCtx.drawImage(off, 0, 0, tiny.width, tiny.height);
                     offCtx.clearRect(0, 0, workW, workH);
                     offCtx.drawImage(tiny, 0, 0, workW, workH);
-                    // Seconde passe bilinéaire pour éliminer tout artefact carré
+                    // Seconde passe bilinÃ©aire pour Ã©liminer tout artefact carrÃ©
                     tinyCtx.clearRect(0, 0, tiny.width, tiny.height);
                     tinyCtx.drawImage(off, 0, 0, tiny.width, tiny.height);
                     offCtx.clearRect(0, 0, workW, workH);
@@ -2893,7 +2893,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         return off;
     };
 
-    /** Dessine une vidéo de fond floutée à 60 FPS (compatible PC + iOS WebKit sans ctx.filter) */
+    /** Dessine une vidÃ©o de fond floutÃ©e Ã  60 FPS (compatible PC + iOS WebKit sans ctx.filter) */
     const drawBlurredVideoCrossBrowser = (
         ctx: CanvasRenderingContext2D,
         video: HTMLVideoElement,
@@ -2938,7 +2938,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         }
     };
 
-    /** Dessine un logo en blanc pur (#ffffff) en conservant l'alpha exact et l'ombre portée (remplace ctx.filter brightness(0) invert(1) sur iOS WebKit) */
+    /** Dessine un logo en blanc pur (#ffffff) en conservant l'alpha exact et l'ombre portÃ©e (remplace ctx.filter brightness(0) invert(1) sur iOS WebKit) */
     const drawWhiteLogoCrossBrowser = (
         ctx: CanvasRenderingContext2D,
         img: HTMLImageElement,
@@ -2985,7 +2985,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         onError?: () => void
     ) => {
         if (!url) return;
-        // 0. Base64 et Blob : ne JAMAIS fixer crossOrigin (sécurité navigateur Chromium)
+        // 0. Base64 et Blob : ne JAMAIS fixer crossOrigin (sÃ©curitÃ© navigateur Chromium)
         if (url.startsWith('data:') || url.startsWith('blob:')) {
             const imgObj = new Image();
             imgObj.onload = () => onLoad(imgObj);
@@ -3044,8 +3044,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         }
     };
 
-    // Cache mémoire vive (RAM) des fichiers audio complets sous forme de Blob
-    // Élimine 100% des micro-coupures réseau, latences de requêtes partielles HTTP et dropouts
+    // Cache mÃ©moire vive (RAM) des fichiers audio complets sous forme de Blob
+    // Ã‰limine 100% des micro-coupures rÃ©seau, latences de requÃªtes partielles HTTP et dropouts
     const audioBlobCacheRef = useRef<Map<string, string>>(new Map());
     const [audioBlobUrls, setAudioBlobUrls] = useState<Record<string, string>>({});
 
@@ -3079,10 +3079,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         return blobUrl;
                     }
                 } catch (proxyErr) {
-                    console.warn("Préchargement audio via proxy échoué :", proxyErr);
+                    console.warn("PrÃ©chargement audio via proxy Ã©chouÃ© :", proxyErr);
                 }
             }
-            console.warn("Préchargement audio direct impossible (repli streaming direct) :", e);
+            console.warn("PrÃ©chargement audio direct impossible (repli streaming direct) :", e);
             const fallbackStreamUrl = (/^https?:\/\//i.test(url) && !url.includes('/api/proxy-media'))
                 ? `/api/proxy-media?url=${encodeURIComponent(url)}`
                 : url;
@@ -3091,8 +3091,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         }
     };
 
-    // Cache des pistes entièrement décodées en PCM (AudioBuffer). Une fois décodé, le son est joué
-    // par le moteur audio natif sur son propre thread temps-réel : le rendu canvas, React ou le
+    // Cache des pistes entiÃ¨rement dÃ©codÃ©es en PCM (AudioBuffer). Une fois dÃ©codÃ©, le son est jouÃ©
+    // par le moteur audio natif sur son propre thread temps-rÃ©el : le rendu canvas, React ou le
     // MediaRecorder ne peuvent plus provoquer de micro-coupures.
     const audioBufferCacheRef = useRef<Map<string, AudioBuffer>>(new Map());
     const audioBufferPendingRef = useRef<Map<string, Promise<AudioBuffer | null>>>(new Map());
@@ -3157,7 +3157,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 }
                 return buf;
             } catch (e) {
-                console.warn("Décodage PCM impossible pour", url, e);
+                console.warn("DÃ©codage PCM impossible pour", url, e);
                 return null;
             } finally {
                 audioBufferPendingRef.current.delete(url);
@@ -3201,7 +3201,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         return new Blob([wavBuffer], { type: 'audio/wav' });
     };
 
-    /** Extrait et boucle la piste audio d'une vidéo sous forme d'AudioBuffer prêt pour WebCodecs AudioEncoder ou WAV */
+    /** Extrait et boucle la piste audio d'une vidÃ©o sous forme d'AudioBuffer prÃªt pour WebCodecs AudioEncoder ou WAV */
     const extractAudioBufferFromBlob = async (blob: Blob, targetDurationMs: number, startOffsetSec: number = 0): Promise<AudioBuffer | null> => {
         try {
             const arr = await blob.arrayBuffer();
@@ -3209,13 +3209,13 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             const AudioCtxClass = (window as any).AudioContext || (window as any).webkitAudioContext || OfflineCtx;
             if (!AudioCtxClass || !OfflineCtx) return null;
 
-            // Sur iOS WebKit (Safari, Opera GX, Chrome iOS), un AudioContext créé ici serait suspendu
-            // car il n'est pas rattaché à un geste utilisateur actif. On réutilise donc le contexte
-            // déjà unlocked (audioCtxRef.current) si disponible et non fermé — c'est critique pour iOS.
+            // Sur iOS WebKit (Safari, Opera GX, Chrome iOS), un AudioContext crÃ©Ã© ici serait suspendu
+            // car il n'est pas rattachÃ© Ã  un geste utilisateur actif. On rÃ©utilise donc le contexte
+            // dÃ©jÃ  unlocked (audioCtxRef.current) si disponible et non fermÃ© â€” c'est critique pour iOS.
             let decoder: BaseAudioContext;
             const existingCtx = audioCtxRef.current;
             if (existingCtx && existingCtx.state !== 'closed') {
-                // Réveiller le contexte si suspendu
+                // RÃ©veiller le contexte si suspendu
                 if (existingCtx.state === 'suspended') {
                     await existingCtx.resume().catch(() => { });
                 }
@@ -3238,11 +3238,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     }
                 });
             } catch (decErr) {
-                console.warn("[Audio] Décodage audio de la vidéo impossible ou vidéo muette :", decErr);
+                console.warn("[Audio] DÃ©codage audio de la vidÃ©o impossible ou vidÃ©o muette :", decErr);
                 return null;
             } finally {
-                // NE PAS fermer audioCtxRef.current — c'est notre contexte global partagé et unlocked (iOS).
-                // On ferme uniquement si c'est un contexte temporaire (pas le contexte partagé).
+                // NE PAS fermer audioCtxRef.current â€” c'est notre contexte global partagÃ© et unlocked (iOS).
+                // On ferme uniquement si c'est un contexte temporaire (pas le contexte partagÃ©).
                 const isSharedCtx = audioCtxRef.current && decoder === (audioCtxRef.current as BaseAudioContext);
                 if (!isSharedCtx && (decoder as any).close && typeof (decoder as any).close === 'function') {
                     (decoder as any).close().catch(() => { });
@@ -3250,11 +3250,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             }
 
             if (!buf || buf.numberOfChannels === 0 || buf.length === 0) {
-                console.warn('[Audio] Aucune donnée audio dans la vidéo.');
+                console.warn('[Audio] Aucune donnÃ©e audio dans la vidÃ©o.');
                 return null;
             }
 
-            console.log(`[Audio] ✅ Piste audio de la vidéo détectée : ${buf.numberOfChannels} canaux, ${buf.duration.toFixed(2)}s @ ${buf.sampleRate}Hz`);
+            console.log(`[Audio] âœ… Piste audio de la vidÃ©o dÃ©tectÃ©e : ${buf.numberOfChannels} canaux, ${buf.duration.toFixed(2)}s @ ${buf.sampleRate}Hz`);
 
             const sampleRate = 48000;
             const totalSec = Math.max(0.5, targetDurationMs / 1000);
@@ -3264,7 +3264,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
             const src = renderCtx.createBufferSource();
             src.buffer = buf;
-            src.loop = true; // Répétition fluide si la vidéo est plus courte que le reel/slide
+            src.loop = true; // RÃ©pÃ©tition fluide si la vidÃ©o est plus courte que le reel/slide
             src.loopStart = Math.max(0, startOffsetSec);
             src.loopEnd = buf.duration;
             src.connect(renderCtx.destination);
@@ -3277,14 +3277,14 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         }
     };
 
-    /** Extrait la piste audio d'une vidéo en WAV 16-bit uncompressed offline via Web Audio API */
+    /** Extrait la piste audio d'une vidÃ©o en WAV 16-bit uncompressed offline via Web Audio API */
     const extractAudioFromBlob = async (blob: Blob, targetDurationMs: number): Promise<Blob | null> => {
         const renderedBuffer = await extractAudioBufferFromBlob(blob, targetDurationMs);
         if (!renderedBuffer) return null;
         return audioBufferToWavBlob(renderedBuffer);
     };
 
-    /** Joue un AudioBuffer dans un contexte donné avec micro fondu (anti-clic). Retourne la source. */
+    /** Joue un AudioBuffer dans un contexte donnÃ© avec micro fondu (anti-clic). Retourne la source. */
     const startBufferSegment = (
         ctx: AudioContext,
         buffer: AudioBuffer,
@@ -3358,7 +3358,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             return;
         }
 
-        // Déblocage audio synchrone dans le geste tactile (critique sur iPhone/iOS Safari + mode silencieux)
+        // DÃ©blocage audio synchrone dans le geste tactile (critique sur iPhone/iOS Safari + mode silencieux)
         unlockMobileAudioSession(p.ctx);
 
         try {
@@ -3384,7 +3384,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 return;
             }
 
-            // Repli HTMLAudioElement natif si le flux distant refuse le décodage PCM WebAudio sur mobile
+            // Repli HTMLAudioElement natif si le flux distant refuse le dÃ©codage PCM WebAudio sur mobile
             const streamUrl = audioBlobCacheRef.current.get(src)
                 || ((/^https?:\/\//i.test(src) && !src.includes('/api/proxy-media')) ? `/api/proxy-media?url=${encodeURIComponent(src)}` : src);
             const audioEl = new Audio();
@@ -3490,7 +3490,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     };
 
 
-    // Durée strictement fixe à 30 secondes pour l'export vidéo de morceau (impossible à modifier)
+    // DurÃ©e strictement fixe Ã  30 secondes pour l'export vidÃ©o de morceau (impossible Ã  modifier)
     const singleSlideVideoDuration = 30;
     const musicAudioInputRef = useRef<HTMLInputElement>(null);
     const musicIntroAudioInputRef = useRef<HTMLInputElement>(null);
@@ -3504,7 +3504,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
     const addMusicTrack = () => {
         if (musicTracks.length >= MAX_MUSIC_TRACKS) return;
-        const newSlideNum = musicTracks.length + 2; // Slide 1 = annonce, tracks à partir de la slide 2
+        const newSlideNum = musicTracks.length + 2; // Slide 1 = annonce, tracks Ã  partir de la slide 2
         setMusicTracks(prev => [...prev, createEmptyMusicTrack()]);
         setIsCarouselPromoActive(false);
         setEditorialSlide(newSlideNum);
@@ -3542,7 +3542,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         if (!file) return;
         const url = URL.createObjectURL(file);
         if (theme === 'MUSIQUE') {
-            // Pochette propre à la slide track active
+            // Pochette propre Ã  la slide track active
             updateMusicTrack(Math.max(0, editorialSlide - 2), { cover: url });
         } else if (theme === 'PLANNING' && agendaSlide >= 3) {
             const affIdx = agendaSlide - 3;
@@ -3614,7 +3614,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     if (res.duration) {
                         setAudioDurations(prev => ({ ...prev, [res.audioUrl]: res.duration! }));
                     }
-                    // Préchargement immédiat en mémoire vive (RAM) pour éliminer les micro-coupures
+                    // PrÃ©chargement immÃ©diat en mÃ©moire vive (RAM) pour Ã©liminer les micro-coupures
                     getPreloadedAudioBlobUrl(res.audioUrl).then(blobUrl => {
                         if (blobUrl && blobUrl !== res.audioUrl) {
                             updateMusicTrack(trackIdx, { audio: blobUrl });
@@ -3644,11 +3644,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 });
                 setTimeout(() => generateImage(), 50);
             } else {
-                setErrorMessage("Impossible d'extraire les informations du morceau. Vérifiez le lien ou utilisez un fichier local.");
+                setErrorMessage("Impossible d'extraire les informations du morceau. VÃ©rifiez le lien ou utilisez un fichier local.");
             }
         } catch (e: any) {
             console.warn("Erreur extraction track data :", e);
-            setErrorMessage("Erreur lors de l'extraction des données.");
+            setErrorMessage("Erreur lors de l'extraction des donnÃ©es.");
         } finally {
             setIsResolvingAudio(false);
         }
@@ -3688,16 +3688,16 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 if (res.title && (!conseilsTitle || conseilsTitle === 'TITRE PRINCIPAL')) {
                     setConseilsTitle(res.title);
                 }
-                if (res.artist && (!conseilsSubtext || conseilsSubtext === 'SOUS-TITRE / CATÉGORIE')) {
+                if (res.artist && (!conseilsSubtext || conseilsSubtext === 'SOUS-TITRE / CATÃ‰GORIE')) {
                     setConseilsSubtext(res.artist);
                 }
                 setTimeout(() => generateImage(), 50);
             } else {
-                setErrorMessage("Impossible d'extraire les données (cover/audio). Vérifiez le lien ou utilisez un fichier local.");
+                setErrorMessage("Impossible d'extraire les donnÃ©es (cover/audio). VÃ©rifiez le lien ou utilisez un fichier local.");
             }
         } catch (e) {
-            console.warn("Erreur résolution intro :", e);
-            setErrorMessage("Erreur lors de la récupération de la musique et de la cover.");
+            console.warn("Erreur rÃ©solution intro :", e);
+            setErrorMessage("Erreur lors de la rÃ©cupÃ©ration de la musique et de la cover.");
         } finally {
             setIsResolvingAudio(false);
         }
@@ -3719,11 +3719,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     // Slide transition states for Multi-Slide / Carrousel / Reels
     type SlideTransitionType = 'SLIDE' | 'FADE' | 'ZOOM' | 'GLITCH' | 'CUT';
     const SLIDE_TRANSITIONS: { id: SlideTransitionType; label: string; icon: string; desc: string }[] = [
-        { id: 'SLIDE', label: 'Glissement', icon: '➡️', desc: 'Carrousel fluide horizontal' },
-        { id: 'FADE', label: 'Fondu', icon: '🎚️', desc: 'Crossfade enchaîné doux' },
-        { id: 'ZOOM', label: 'Zoom', icon: '🔍', desc: 'Zoom avant / arrière percutant' },
-        { id: 'GLITCH', label: 'Glitch Cyber', icon: '⚡', desc: 'Flash & secousse numérique' },
-        { id: 'CUT', label: 'Cut Direct', icon: '✂️', desc: 'Passage sec instantané' },
+        { id: 'SLIDE', label: 'Glissement', icon: 'âž¡ï¸', desc: 'Carrousel fluide horizontal' },
+        { id: 'FADE', label: 'Fondu', icon: 'ðŸŽšï¸', desc: 'Crossfade enchaÃ®nÃ© doux' },
+        { id: 'ZOOM', label: 'Zoom', icon: 'ðŸ”', desc: 'Zoom avant / arriÃ¨re percutant' },
+        { id: 'GLITCH', label: 'Glitch Cyber', icon: 'âš¡', desc: 'Flash & secousse numÃ©rique' },
+        { id: 'CUT', label: 'Cut Direct', icon: 'âœ‚ï¸', desc: 'Passage sec instantanÃ©' },
     ];
     const [slideTransition, setSlideTransition] = useState<SlideTransitionType>(() => {
         try {
@@ -3799,10 +3799,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         return 48;
     });
 
-    // Réseau actif sélectionné en mode prévisualisation fixe
+    // RÃ©seau actif sÃ©lectionnÃ© en mode prÃ©visualisation fixe
     const [promoPreviewNetwork, setPromoPreviewNetwork] = useState<'INSTAGRAM' | 'TIKTOK' | 'YOUTUBE'>('INSTAGRAM');
 
-    // Synchronisation multi-plateforme des profils réseaux sociaux
+    // Synchronisation multi-plateforme des profils rÃ©seaux sociaux
     useEffect(() => {
         fetch('/api/social-profiles')
             .then(res => res.json())
@@ -4021,17 +4021,17 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const [isMapLoading, setIsMapLoading] = useState(false);
     const [mapStyle, setMapStyle] = useState<'dark' | 'voyager' | 'satellite'>('satellite');
     const [mapPinColor, setMapPinColor] = useState('#00f0ff');
-    const [mapLabelText, setMapLabelText] = useState('ESCAPE HALLOWEEN • SAN BERNARDINO');
+    const [mapLabelText, setMapLabelText] = useState('ESCAPE HALLOWEEN â€¢ SAN BERNARDINO');
     const [showMapPin, setShowMapPin] = useState(true);
     const [showMapLabel, setShowMapLabel] = useState(true);
 
     // Modes d'Animation Carte en Reel (Trajet 2 Events, Zoom Terre)
     const [mapAnimMode, setMapAnimMode] = useState<'DEEP_DIVE' | 'FLIGHT_ROUTE'>('FLIGHT_ROUTE');
-    const [mapAnimDuration, setMapAnimDuration] = useState<number>(15); // 15s (Cinématique - Recommandé)
+    const [mapAnimDuration, setMapAnimDuration] = useState<number>(15); // 15s (CinÃ©matique - RecommandÃ©)
     const [isMapAnimPlaying, setIsMapAnimPlaying] = useState<boolean>(true);
     const [mapScrubTime, setMapScrubTime] = useState<number | null>(null);
 
-    // Événement Destination B (pour le Mode Trajet 2 Events, ex: Dream Nation Paris)
+    // Ã‰vÃ©nement Destination B (pour le Mode Trajet 2 Events, ex: Dream Nation Paris)
     const [mapDestFestivalText, setMapDestFestivalText] = useState('DREAM NATION');
     const [mapDestVenue, setMapDestVenue] = useState('Parc des Expositions Paris Nord');
     const [mapDestCity, setMapDestCity] = useState('Paris');
@@ -4091,7 +4091,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const earthWorldTextureRef = useRef<HTMLCanvasElement | null>(null);
     const earthSatelliteImgRef = useRef<HTMLImageElement | null>(null);
 
-    // Pré-chargement automatique et immédiat de la vraie texture satellite de la Terre (0ms, photoréaliste)
+    // PrÃ©-chargement automatique et immÃ©diat de la vraie texture satellite de la Terre (0ms, photorÃ©aliste)
     useEffect(() => {
         const satImg = new Image();
         satImg.src = '/assets/earth_satellite.jpg';
@@ -4117,7 +4117,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const [isTakeoverLoading, setIsTakeoverLoading] = useState(false);
     const [takeoverData, setTakeoverData] = useState<{ lineup: any[], streams: any[] } | null>(null);
 
-    // Detect mobile vs desktop (lg breakpoint = 1024px) — JS-based to avoid canvasRef conflict
+    // Detect mobile vs desktop (lg breakpoint = 1024px) â€” JS-based to avoid canvasRef conflict
     const [isMobile, setIsMobile] = useState(() => window.innerWidth < 1024);
 
     useEffect(() => {
@@ -4191,7 +4191,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         logo.onload = () => { logoRef.current = logo; };
         if (logo.complete) { logoRef.current = logo; }
 
-        // Préchargement des assets pour la slide Promo Smartphone 3D
+        // PrÃ©chargement des assets pour la slide Promo Smartphone 3D
         const phoneAssets = [
             'public/logo_white_official.png',
             '/logo_white_official.png',
@@ -4264,7 +4264,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         'NEWS': { label: 'NEWS', grad: '255, 0, 51', color: '#ff0033' },
         'FOCUS': { label: 'FOCUS', grad: '255, 230, 0', color: '#ffe600' },
         'MUSIQUE': { label: 'MUSIQUE', grad: '57, 255, 20', color: '#39ff14' },
-        'RECAP': { label: 'RÉCAP', grad: '192, 38, 211', color: '#c026d3' },
+        'RECAP': { label: 'RÃ‰CAP', grad: '192, 38, 211', color: '#c026d3' },
         'EVENTS': { label: 'EVENTS', grad: '255, 103, 0', color: '#ff6700' },
         'LIVESTREAM': { label: 'DIRECT', grad: '255, 18, 65', color: '#ff1241' },
         'PLANNING': { label: 'AGENDA', grad: '255, 103, 0', color: '#ff6700' },
@@ -4278,7 +4278,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         'ARTISTE FESTIVAL': { label: 'ARTISTE FESTIVAL', grad: '255, 0, 51', color: '#ff0033' },
         'AFFICHE': { label: 'AFFICHE', grad: '255, 0, 51', color: '#ff0033' },
         'PROMO': { label: 'PROMO', grad: '255, 0, 51', color: '#ff0033' },
-        'MAP': { label: 'CARTE EN TEMPS RÉEL', grad: '0, 240, 255', color: '#00f0ff' },
+        'MAP': { label: 'CARTE EN TEMPS RÃ‰EL', grad: '0, 240, 255', color: '#00f0ff' },
         'CALENDRIER': { label: 'CALENDRIER', grad: '255, 103, 0', color: '#ff6700' },
         'JEU': { label: 'DEVINE LE CLIP', grad: '0, 240, 255', color: '#00f0ff' },
         'JEU_FESTIVAL': { label: 'DEVINE LE FESTIVAL', grad: '255, 103, 0', color: '#ff6700' },
@@ -4419,7 +4419,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             };
             reader.readAsDataURL(blob);
         } catch (e) {
-            console.error('Erreur lors du détourage du logo:', e);
+            console.error('Erreur lors du dÃ©tourage du logo:', e);
         }
     };
 
@@ -4557,7 +4557,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             cvs.height = h;
             const c = cvs.getContext('2d');
             if (c) {
-                // Fond océan spatial photoréaliste
+                // Fond ocÃ©an spatial photorÃ©aliste
                 c.fillStyle = '#040b17';
                 c.fillRect(0, 0, w, h);
 
@@ -4586,7 +4586,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         const key = `${lat.toFixed(4)}_${lon.toFixed(4)}_${style}`;
         let entry = venueMapCacheRef.current.get(key);
         if (!entry) {
-            // 1. Niveau Pays / Région (Zoom 9 : 5x8 tuiles = 1280x2048px)
+            // 1. Niveau Pays / RÃ©gion (Zoom 9 : 5x8 tuiles = 1280x2048px)
             const countryCanvas = document.createElement('canvas');
             countryCanvas.width = 1280;
             countryCanvas.height = 2048;
@@ -4601,7 +4601,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             const sXCountry = Math.floor(cXCountry) - 2;
             const sYCountry = Math.floor(cYCountry) - 4;
 
-            // 2. Niveau Métropole / Ville (Zoom 14 : 5x8 tuiles = 1280x2048px)
+            // 2. Niveau MÃ©tropole / Ville (Zoom 14 : 5x8 tuiles = 1280x2048px)
             const cityCanvas = document.createElement('canvas');
             cityCanvas.width = 1280;
             cityCanvas.height = 2048;
@@ -4616,7 +4616,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             const sXCity = Math.floor(cXCity) - 2;
             const sYCity = Math.floor(cYCity) - 4;
 
-            // 3. Niveau Salle / Scène / Festival (Zoom 18 : 5x8 tuiles = 1280x2048px ultra haute définition)
+            // 3. Niveau Salle / ScÃ¨ne / Festival (Zoom 18 : 5x8 tuiles = 1280x2048px ultra haute dÃ©finition)
             const venueCanvas = document.createElement('canvas');
             venueCanvas.width = 1280;
             venueCanvas.height = 2048;
@@ -4770,7 +4770,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         ctx.save();
         ctx.globalAlpha = Math.max(0, Math.min(1, globeAlpha));
 
-        // Halo atmosphérique externe néon cyan
+        // Halo atmosphÃ©rique externe nÃ©on cyan
         const atmoGlow = ctx.createRadialGradient(cx, cy, radius * 0.95, cx, cy, radius * 1.25);
         atmoGlow.addColorStop(0, 'rgba(0, 240, 255, 0.45)');
         atmoGlow.addColorStop(0.35, 'rgba(0, 160, 255, 0.18)');
@@ -4780,26 +4780,26 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         ctx.arc(cx, cy, radius * 1.25, 0, Math.PI * 2);
         ctx.fill();
 
-        // Disque de découpe sphérique de la Terre
+        // Disque de dÃ©coupe sphÃ©rique de la Terre
         ctx.save();
         ctx.beginPath();
         ctx.arc(cx, cy, radius, 0, Math.PI * 2);
         ctx.clip();
 
-        // Fond sombre océan profond
+        // Fond sombre ocÃ©an profond
         ctx.fillStyle = '#040b17';
         ctx.fillRect(cx - radius, cy - radius, radius * 2, radius * 2);
 
         // Texture mondiale satellite NASA avec centrage GPS rigoureux sur (centerLat, centerLon)
         const worldTex = getEarthWorldTexture();
-        const texW = radius * 2 * Math.PI; // Périmètre exact 2πR ≈ 6.283 R
-        const texH = radius * Math.PI;     // Hauteur exacte πR ≈ 3.1415 R
+        const texW = radius * 2 * Math.PI; // PÃ©rimÃ¨tre exact 2Ï€R â‰ˆ 6.283 R
+        const texH = radius * Math.PI;     // Hauteur exacte Ï€R â‰ˆ 3.1415 R
 
         // Longitude : centre sur centerLon
         const normLonPct = (((centerLon + 180) % 360 + 360) % 360) / 360;
         const drawX = cx - (normLonPct * texW);
 
-        // Latitude : centre sur centerLat (+90° pôle nord en haut = 0, -90° pôle sud en bas = texH)
+        // Latitude : centre sur centerLat (+90Â° pÃ´le nord en haut = 0, -90Â° pÃ´le sud en bas = texH)
         const normLatPct = (90 - centerLat) / 180;
         const drawY = cy - (normLatPct * texH);
 
@@ -4808,7 +4808,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         ctx.drawImage(worldTex, drawX, drawY, texW, texH);
         ctx.drawImage(worldTex, drawX + texW, drawY, texW, texH);
 
-        // Ombrage 3D sphérique photoréaliste (effet boule / éclairage spatial jour & nuit)
+        // Ombrage 3D sphÃ©rique photorÃ©aliste (effet boule / Ã©clairage spatial jour & nuit)
         const sphere3d = ctx.createRadialGradient(
             cx - radius * 0.35, cy - radius * 0.35, radius * 0.05,
             cx, cy, radius
@@ -4822,7 +4822,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
         ctx.restore(); // Fin clip disque
 
-        // Anneau atmosphère fine néon
+        // Anneau atmosphÃ¨re fine nÃ©on
         ctx.strokeStyle = 'rgba(0, 240, 255, 0.6)';
         ctx.lineWidth = 2.5;
         ctx.beginPath();
@@ -4864,7 +4864,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         ctx.imageSmoothingEnabled = true;
         ctx.imageSmoothingQuality = 'medium';
 
-        // 1. ESPACE & GLOBE TERRESTRE 3D (Zoom 3.0 à 5.8)
+        // 1. ESPACE & GLOBE TERRESTRE 3D (Zoom 3.0 Ã  5.8)
         if (clampedZoom < 5.8) {
             drawSpaceBackgroundGlobal(ctx, width, height, 1.0, animTimeVal);
             const globeRadius = (256 * Math.pow(2, clampedZoom)) / (2 * Math.PI);
@@ -4872,7 +4872,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             drawEarthGlobeGlobal(ctx, canvasCenterX + droneDriftX, canvasCenterY + droneDriftY, globeRadius, lat, lon, globeAlpha);
         }
 
-        // 2. RENDU DYNAMIQUE PLEIN ÉCRAN DES TUILES SATELLITE (Zoom 4.8 à 20.5)
+        // 2. RENDU DYNAMIQUE PLEIN Ã‰CRAN DES TUILES SATELLITE (Zoom 4.8 Ã  20.5)
         // Remplit 100% de la surface du canvas sans aucun bord noir
         if (clampedZoom >= 4.8) {
             const surfaceAlpha = clampedZoom < 5.8 ? (clampedZoom - 4.8) / 1.0 : 1.0;
@@ -4884,7 +4884,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             const centerTileX = lon2tile(lon, baseZ);
             const centerTileY = lat2tile(lat, baseZ);
 
-            // Rayon pour couvrir tout l'écran y compris diagonale sous rotation drone
+            // Rayon pour couvrir tout l'Ã©cran y compris diagonale sous rotation drone
             const diag = Math.hypot(width, height);
             const radiusTiles = Math.ceil((diag / 2 + 128) / tileSize) + 1;
 
@@ -4898,7 +4898,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             ctx.translate(canvasCenterX, canvasCenterY);
             if (droneAngle !== 0) ctx.rotate(droneAngle);
 
-            // A) Couche de secours régionale (Zoom inférieur) pour garantir 100% d'image même si chargement réseau
+            // A) Couche de secours rÃ©gionale (Zoom infÃ©rieur) pour garantir 100% d'image mÃªme si chargement rÃ©seau
             const fallbackZ = Math.min(baseZ, Math.max(4, Math.floor(clampedZoom) - 2));
             if (fallbackZ < baseZ) {
                 const fbMaxT = Math.pow(2, fallbackZ);
@@ -4930,7 +4930,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 }
             }
 
-            // B) Couche haute résolution principale
+            // B) Couche haute rÃ©solution principale
             for (let tx = minTx; tx <= maxTx; tx++) {
                 for (let ty = minTy; ty <= maxTy; ty++) {
                     if (ty < 0 || ty >= maxTiles) continue;
@@ -5042,7 +5042,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         }
     };
 
-    // Pré-chargement automatique immédiat des festivals en tâche de fond (pyramide complète de zooms)
+    // PrÃ©-chargement automatique immÃ©diat des festivals en tÃ¢che de fond (pyramide complÃ¨te de zooms)
     useEffect(() => {
         if (theme !== 'MAP') return;
         const style = mapStyle || 'satellite';
@@ -5083,7 +5083,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         ctx.imageSmoothingEnabled = true;
         ctx.imageSmoothingQuality = 'high';
 
-        // Pendant l'export vidéo déterministe, seul l'encodeur exportateur a le droit de dessiner sur le canvas
+        // Pendant l'export vidÃ©o dÃ©terministe, seul l'encodeur exportateur a le droit de dessiner sur le canvas
         if (isVideoRecordingRef.current && !isExportRenderingRef.current) return;
 
         const effectiveTab = targetTab || activeTab;
@@ -5127,7 +5127,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 const effectiveEditorialSlide = editorialSlideOverrideRef.current !== null ? editorialSlideOverrideRef.current : editorialSlide;
                 const effectiveTransitionProgress = transitionProgressRef.current !== null ? transitionProgressRef.current : transitionProgress;
 
-                // Pour MUSIQUE slide >= 2 : récupérer la cover active du morceau pour l'arrière-plan
+                // Pour MUSIQUE slide >= 2 : rÃ©cupÃ©rer la cover active du morceau pour l'arriÃ¨re-plan
                 const isMusiqueTrackSlide = (theme === 'MUSIQUE' && effectiveEditorialSlide >= 2);
                 const musiqueTrackIdx = isMusiqueTrackSlide ? Math.max(0, effectiveEditorialSlide - 2) : 0;
                 const musiqueActiveTrack = isMusiqueTrackSlide ? musicTracks[musiqueTrackIdx] : null;
@@ -5146,8 +5146,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     }
                 }
 
-                // Image spécifique à la slide ou image de fond globale
-                // Dans le slide AFFICHE ou MUSIQUE slide >= 2, le visuel dédié (affiche ou cover) prend la priorité absolue sur le fond uploadé pour la slide 1 (bgImage) !
+                // Image spÃ©cifique Ã  la slide ou image de fond globale
+                // Dans le slide AFFICHE ou MUSIQUE slide >= 2, le visuel dÃ©diÃ© (affiche ou cover) prend la prioritÃ© absolue sur le fond uploadÃ© pour la slide 1 (bgImage) !
                 const isCurrentSlideAffiche = Boolean(
                     theme === 'AFFICHE' ||
                     (theme === 'EVENTS' && ((eventsSlide === 2 && eventNormalSlidesCount === 0) || isEditorialAfficheActive)) ||
@@ -5187,14 +5187,14 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     }
                 }
 
-                // Déterminer si la slide active est en mode Silhouette ou Reveal (JEU_DJ)
+                // DÃ©terminer si la slide active est en mode Silhouette ou Reveal (JEU_DJ)
                 const isCurrentSlideSilhouette = (theme === 'JEU_DJ') && (
                     djSlideModes[effectiveEditorialSlide] !== undefined
                         ? djSlideModes[effectiveEditorialSlide] === 'SILHOUETTE'
                         : (effectiveEditorialSlide % 2 === 1)
                 );
 
-                // Image détourée IA pour JEU_DJ (pour la slide active ou héritée de Slide 1)
+                // Image dÃ©tourÃ©e IA pour JEU_DJ (pour la slide active ou hÃ©ritÃ©e de Slide 1)
                 const activeCutoutSrc = editorialSlideCutouts[effectiveEditorialSlide] || djCutoutImage || null;
                 let djCutoutImgObj: HTMLImageElement | null = null;
                 if (activeCutoutSrc) {
@@ -5211,7 +5211,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     }
                 }
 
-                // Image originale sauvegardée pour le reveal en Slide 2
+                // Image originale sauvegardÃ©e pour le reveal en Slide 2
                 let djOriginalImgObj: HTMLImageElement | null = null;
                 if (djOriginalImage) {
                     if (imageCacheRef.current[djOriginalImage]) {
@@ -5227,7 +5227,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     }
                 }
 
-                // Dans le slide AFFICHE ou MUSIQUE slide >= 2, le visuel dédié (affiche ou cover) prend la priorité absolue sur le fond uploadé pour la slide 1 (bgImage) !
+                // Dans le slide AFFICHE ou MUSIQUE slide >= 2, le visuel dÃ©diÃ© (affiche ou cover) prend la prioritÃ© absolue sur le fond uploadÃ© pour la slide 1 (bgImage) !
                 let effectiveImg = isCurrentSlideAffiche
                     ? ((currentSlideAfficheUrl && (afficheImageRef.current || imageCacheRef.current[currentSlideAfficheUrl] || imageCacheRef.current[resolveImageUrl(currentSlideAfficheUrl)])) || img)
                     : isMusiqueTrackSlide
@@ -5241,7 +5241,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     }
                 }
 
-                // Fond de scène / club pour JEU_DJ
+                // Fond de scÃ¨ne / club pour JEU_DJ
                 const djBgSrc = (theme === 'JEU_DJ') ? (bgImage || (editorialSlideImages[effectiveEditorialSlide] && editorialSlideImages[effectiveEditorialSlide] !== djOriginalImage ? editorialSlideImages[effectiveEditorialSlide] : null)) : null;
                 let djBgPhotoObj: HTMLImageElement | null = null;
                 if (djBgSrc) {
@@ -5275,7 +5275,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 const isReel = effectiveTab === 'REEL';
                 const isFocusReelHook = isReel && theme === 'FOCUS' && focusReelStyle !== 'CLASSIC';
 
-                // Timing Hook Reel Focus (0.0s à 3.2s affichage complet, 3.2s à 4.0s fondu vers disparition)
+                // Timing Hook Reel Focus (0.0s Ã  3.2s affichage complet, 3.2s Ã  4.0s fondu vers disparition)
                 let focusHookTime = 0;
                 if (isVideoRecordingRef.current) {
                     focusHookTime = deterministicAnimTimeRef.current;
@@ -5386,7 +5386,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 let bgAnimX = 0;
                 let bgAnimY = 0;
 
-                // En mode MUSIQUE : mouvement organique doux et cinématique de fond (dérive lente + respiration)
+                // En mode MUSIQUE : mouvement organique doux et cinÃ©matique de fond (dÃ©rive lente + respiration)
                 if (theme === 'MUSIQUE' && musicBgMotion && bgAnimation === 'NONE') {
                     const mTime = animElapsed;
                     bgAnimScale = 1.06 + Math.sin(mTime * 0.55) * 0.035;
@@ -5478,9 +5478,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         ctx.drawImage(bgVideo, x, y, vw, vh);
                     }
                 } else if (theme === 'JEU_DJ') {
-                    // SILHOUETTE MYSTÈRE & RÉVÉLATION DJ
-                        // 1. DESSIN DU FOND VISUEL SCÉNIQUE (identique sur Slide 1 et Slide 2)
-                        // Peut être une vidéo (bgVideo) ou une photo de décor (djBgPhotoObj / bgImage / img)
+                    // SILHOUETTE MYSTÃˆRE & RÃ‰VÃ‰LATION DJ
+                        // 1. DESSIN DU FOND VISUEL SCÃ‰NIQUE (identique sur Slide 1 et Slide 2)
+                        // Peut Ãªtre une vidÃ©o (bgVideo) ou une photo de dÃ©cor (djBgPhotoObj / bgImage / img)
                         const bgPhoto = djBgPhotoObj || (bgImage && imageCacheRef.current[bgImage]) || (bgImage && imageCacheRef.current[resolveImageUrl(bgImage)]) || (img && img !== djOriginalImgObj && img !== djCutoutImgObj ? img : null);
 
                         if (bgVideo) {
@@ -5492,7 +5492,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             const vy = ((canvas.height - vh) / 2) + bgOffsetY + bgAnimY;
                             ctx.drawImage(bgVideo, vx, vy, vw, vh);
 
-                            // Voile atmosphérique club/EDM sombre immersif pour faire ressortir l'artiste & le texte
+                            // Voile atmosphÃ©rique club/EDM sombre immersif pour faire ressortir l'artiste & le texte
                             const bgOverlay = ctx.createLinearGradient(0, 0, 0, canvas.height);
                             bgOverlay.addColorStop(0, 'rgba(4, 6, 14, 0.40)');
                             bgOverlay.addColorStop(0.35, 'rgba(4, 6, 14, 0.65)');
@@ -5501,7 +5501,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             ctx.fillStyle = bgOverlay;
                             ctx.fillRect(0, 0, canvas.width, canvas.height);
                         } else if (bgPhoto) {
-                            // Dessiner la photo comme fond de scène / club / festival
+                            // Dessiner la photo comme fond de scÃ¨ne / club / festival
                             const baseScale = Math.max(canvas.width / bgPhoto.width, canvas.height / bgPhoto.height);
                             const scale = baseScale * bgAnimScale;
                             const biw = bgPhoto.width * scale;
@@ -5510,7 +5510,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             const by = ((canvas.height - bih) / 2) + bgOffsetY + bgAnimY;
                             ctx.drawImage(bgPhoto, bx, by, biw, bih);
 
-                            // Voile atmosphérique club/EDM sombre immersif pour faire ressortir l'artiste & le texte
+                            // Voile atmosphÃ©rique club/EDM sombre immersif pour faire ressortir l'artiste & le texte
                             const bgOverlay = ctx.createLinearGradient(0, 0, 0, canvas.height);
                             bgOverlay.addColorStop(0, 'rgba(4, 6, 14, 0.40)');
                             bgOverlay.addColorStop(0.35, 'rgba(4, 6, 14, 0.65)');
@@ -5519,7 +5519,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             ctx.fillStyle = bgOverlay;
                             ctx.fillRect(0, 0, canvas.width, canvas.height);
                         } else if (!isTransparent) {
-                            // Fond dégradé scène EDM sombre et immersif si aucun fond photo ou fond transparent
+                            // Fond dÃ©gradÃ© scÃ¨ne EDM sombre et immersif si aucun fond photo ou fond transparent
                             const bgGrad = ctx.createRadialGradient(canvas.width / 2, canvas.height * 0.42, 40, canvas.width / 2, canvas.height * 0.45, canvas.height * 0.75);
                             bgGrad.addColorStop(0, '#101322');
                             bgGrad.addColorStop(0.45, '#070913');
@@ -5536,8 +5536,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         };
                         const rgbColor = hexToRgb(djSilhouetteColor);
 
-                        // 2. DESSIN DE L'ARTISTE : SILHOUETTE (Slide 1) vs RÉVÉLATION EN COULEUR (Slide 2)
-                        // En Slide 1 : priorité absolue à la silhouette détourée IA, sinon image originale
+                        // 2. DESSIN DE L'ARTISTE : SILHOUETTE (Slide 1) vs RÃ‰VÃ‰LATION EN COULEUR (Slide 2)
+                        // En Slide 1 : prioritÃ© absolue Ã  la silhouette dÃ©tourÃ©e IA, sinon image originale
                         const activeSilhouetteImg = djCutoutImgObj || (djOriginalImgObj && checkImageHasAlpha(djOriginalImgObj) ? djOriginalImgObj : null) || djOriginalImgObj;
 
                         if (isCurrentSlideSilhouette) {
@@ -5584,7 +5584,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 const x = ((canvas.width - iw) / 2) + bgOffsetX + bgAnimX;
                                 const y = ((canvas.height * 0.44 - ih / 2)) + bgOffsetY + bgAnimY;
 
-                                // Lueur d'ambiance scénique derrière la silhouette (couleur néon choisie)
+                                // Lueur d'ambiance scÃ©nique derriÃ¨re la silhouette (couleur nÃ©on choisie)
                                 const haloGrad = ctx.createRadialGradient(canvas.width / 2, y + ih * 0.42, 20, canvas.width / 2, y + ih * 0.42, Math.max(iw, ih) * 0.60);
                                 haloGrad.addColorStop(0, `rgba(${rgbColor}, 0.30)`);
                                 haloGrad.addColorStop(0.5, `rgba(${rgbColor}, 0.09)`);
@@ -5593,7 +5593,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 ctx.fillRect(0, 0, canvas.width, canvas.height);
 
                                 if (isTransparentSil) {
-                                    // Traitement silhouette transparente via canvas hors écran (fond rempli en noir pur)
+                                    // Traitement silhouette transparente via canvas hors Ã©cran (fond rempli en noir pur)
                                     const off = document.createElement('canvas');
                                     off.width = activeSilhouetteImg.width;
                                     off.height = activeSilhouetteImg.height;
@@ -5605,7 +5605,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         offCtx.fillRect(0, 0, off.width, off.height);
                                     }
 
-                                    // Dessin du halo / néon rim light
+                                    // Dessin du halo / nÃ©on rim light
                                     ctx.save();
                                     ctx.globalAlpha = silAlpha;
                                     ctx.shadowColor = djSilhouetteColor;
@@ -5620,12 +5620,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     ctx.drawImage(off, x, y, iw, ih);
                                     ctx.restore();
                                 } else {
-                                    // Image opaque pas encore détourée : afficher l'artiste assombri avec contour néon
+                                    // Image opaque pas encore dÃ©tourÃ©e : afficher l'artiste assombri avec contour nÃ©on
                                     ctx.save();
                                     ctx.globalAlpha = silAlpha;
                                     ctx.shadowColor = djSilhouetteColor;
                                     ctx.shadowBlur = silGlowBlur;
-                                    // Assombrissement mystère pour donner l'effet silhouette (compatible PC + iOS WebKit)
+                                    // Assombrissement mystÃ¨re pour donner l'effet silhouette (compatible PC + iOS WebKit)
                                     if (supportsCanvasFilterBlur()) {
                                         ctx.filter = 'brightness(0.14) contrast(1.4)';
                                         ctx.drawImage(activeSilhouetteImg, x, y, iw, ih);
@@ -5668,7 +5668,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     ctx.restore();
                                 }
 
-                                // Badge mystère "?" chic sur la silhouette
+                                // Badge mystÃ¨re "?" chic sur la silhouette
                                 if (djShowQuestionMark) {
                                     ctx.save();
                                     ctx.globalAlpha = silAlpha;
@@ -5700,7 +5700,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     ctx.restore();
                                 }
                             } else {
-                                // Pas encore de photo DJ chargée : halo d'ambiance et badge mystère central sur le fond visuel
+                                // Pas encore de photo DJ chargÃ©e : halo d'ambiance et badge mystÃ¨re central sur le fond visuel
                                 const haloGrad = ctx.createRadialGradient(canvas.width / 2, canvas.height * 0.42, 20, canvas.width / 2, canvas.height * 0.42, 380);
                                 haloGrad.addColorStop(0, `rgba(${rgbColor}, 0.28)`);
                                 haloGrad.addColorStop(0.5, `rgba(${rgbColor}, 0.08)`);
@@ -5739,7 +5739,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 }
                             }
                         } else {
-                            // SLIDE 2 : RÉVÉLATION DU DJ EN COULEURS NON MASQUÉ SUR LE MÊME FOND DE SCÈNE (AVEC FONDU PROGRESSIF)
+                            // SLIDE 2 : RÃ‰VÃ‰LATION DU DJ EN COULEURS NON MASQUÃ‰ SUR LE MÃŠME FOND DE SCÃˆNE (AVEC FONDU PROGRESSIF)
                             const activeRevealImg = djCutoutImgObj || djOriginalImgObj || (editorialSlideImages[2] ? imageCacheRef.current[editorialSlideImages[2]] : null);
                             if (activeRevealImg) {
                                 const isCutout = Boolean(djCutoutImgObj && activeRevealImg === djCutoutImgObj) || checkImageHasAlpha(activeRevealImg);
@@ -5748,7 +5748,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 const revealScale = 0.94 + (0.06 * revealAlpha);
 
                                 if (isCutout) {
-                                    // Dessin du DJ détouré en couleur naturelle à la même position exacte que la silhouette
+                                    // Dessin du DJ dÃ©tourÃ© en couleur naturelle Ã  la mÃªme position exacte que la silhouette
                                     const baseScale = Math.min((canvas.width * 0.90) / activeRevealImg.width, (canvas.height * 0.70) / activeRevealImg.height);
                                     let scale = (baseScale > 1.25 ? baseScale : Math.max(canvas.width / activeRevealImg.width, canvas.height / activeRevealImg.height) * 0.92) * bgAnimScale * revealScale;
                                     const iw = activeRevealImg.width * scale;
@@ -5756,7 +5756,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     const x = ((canvas.width - iw) / 2) + bgOffsetX + bgAnimX;
                                     const y = ((canvas.height * 0.44 - ih / 2)) + bgOffsetY + bgAnimY;
 
-                                    // Lueur d'ambiance cyan/émeraude subtile pour détacher l'artiste du fond avec fondu
+                                    // Lueur d'ambiance cyan/Ã©meraude subtile pour dÃ©tacher l'artiste du fond avec fondu
                                     const haloGrad = ctx.createRadialGradient(canvas.width / 2, y + ih * 0.42, 20, canvas.width / 2, y + ih * 0.42, Math.max(iw, ih) * 0.60);
                                     haloGrad.addColorStop(0, `rgba(0, 240, 255, ${0.22 * revealAlpha})`);
                                     haloGrad.addColorStop(0.5, `rgba(0, 240, 255, ${0.05 * revealAlpha})`);
@@ -5766,13 +5766,13 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                                     ctx.save();
                                     ctx.globalAlpha = revealAlpha;
-                                    // Ombre portée de profondeur
+                                    // Ombre portÃ©e de profondeur
                                     ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
                                     ctx.shadowBlur = 32;
                                     ctx.drawImage(activeRevealImg, x, y, iw, ih);
                                     ctx.restore();
                                 } else {
-                                    // Photo DJ originale non détourée : affichage centré sur le décor avec bordure et ombre
+                                    // Photo DJ originale non dÃ©tourÃ©e : affichage centrÃ© sur le dÃ©cor avec bordure et ombre
                                     const baseScale = Math.min((canvas.width * 0.85) / activeRevealImg.width, (canvas.height * 0.60) / activeRevealImg.height);
                                     const scale = baseScale * bgAnimScale * revealScale;
                                     const iw = activeRevealImg.width * scale;
@@ -5987,7 +5987,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         const isHl = Boolean(seg.color || text.includes('*'));
                         const effectiveColor = seg.color || (isHl && seg.color ? seg.color : (isHl ? accentColor : '#ffffff'));
 
-                        // 1. Ombre portée diffuse profonde (Top 10 Tracks style)
+                        // 1. Ombre portÃ©e diffuse profonde (Top 10 Tracks style)
                         c.save();
                         c.shadowColor = 'rgba(0, 0, 0, 0.98)';
                         c.shadowBlur = 24;
@@ -6007,7 +6007,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         c.fillText(seg.text, curX, y);
                         c.restore();
 
-                        // 3. Lueur néon intense sur les mots mis en valeur
+                        // 3. Lueur nÃ©on intense sur les mots mis en valeur
                         if (seg.color || effectiveColor !== '#ffffff') {
                             c.save();
                             c.shadowColor = `rgba(${accentRgb}, 0.90)`;
@@ -6034,7 +6034,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 const drawTopCapsuleBadge = (label: string, dotColor: string, gradStr: string) => {
                     const isReel = effectiveTab === 'REEL';
                     const badgeX = isReel ? 80 : 60;
-                    // Alignement au pixel près avec le haut du cadre du logo Dropsiders
+                    // Alignement au pixel prÃ¨s avec le haut du cadre du logo Dropsiders
                     const badgeY = isReel ? 74 : 50;
 
                     ctx.save();
@@ -6045,12 +6045,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         (ctx as any).letterSpacing = `${badgeLetterSpacing}px`;
                     }
 
-                    // Mesure précise du texte avec espacement
+                    // Mesure prÃ©cise du texte avec espacement
                     const textMetrics = ctx.measureText(label);
                     const textWidth = textMetrics.width;
                     const italicSlantBuffer = 6;
 
-                    // Géométrie de la capsule
+                    // GÃ©omÃ©trie de la capsule
                     const badgePadLeft = 18;
                     const dotRadius = 5.5;
                     const dotGap = 11;
@@ -6065,15 +6065,15 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
 
 
-                    // Détection export image (PNG) vs export vidéo (MP4)
+                    // DÃ©tection export image (PNG) vs export vidÃ©o (MP4)
                     const isPngExport = isDownloading || Boolean(exportMode);
                     const isMp4Export = isVideoRecordingRef.current;
-                    // L'effet animé (balayage glare lumineux, onde radar, pulsations) est strictement réservé à l'export MP4
-                    // (et prévisualisation active d'un Reel en mode vidéo). Dans tous les exports PNG, le badge reste 100% net, propre et statique.
+                    // L'effet animÃ© (balayage glare lumineux, onde radar, pulsations) est strictement rÃ©servÃ© Ã  l'export MP4
+                    // (et prÃ©visualisation active d'un Reel en mode vidÃ©o). Dans tous les exports PNG, le badge reste 100% net, propre et statique.
                     const hasBadgeEffect = !isPngExport && (isMp4Export || (effectiveTab === 'REEL' && (bgVideo || textAnimation !== 'NONE' || bgAnimation !== 'NONE' || theme === 'TOP 10 TRACKS')));
 
                     if (hasBadgeEffect) {
-                        // Temps déterministe pour animation fluide continue sans à-coup
+                        // Temps dÃ©terministe pour animation fluide continue sans Ã -coup
                         const badgeTime = isVideoRecordingRef.current
                             ? deterministicTotalTimeRef.current
                             : (animElapsed !== 99.0 ? animElapsed : (Date.now() / 1000));
@@ -6081,7 +6081,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         const dotPulse = 0.5 + 0.5 * Math.sin(badgeTime * 4.2);
                         const haloPulse = 0.5 + 0.5 * Math.sin(badgeTime * 3.0);
 
-                        // 1. Aura néon externe diffuse derrière la capsule
+                        // 1. Aura nÃ©on externe diffuse derriÃ¨re la capsule
                         ctx.save();
                         ctx.shadowColor = `rgba(${gradStr}, ${0.40 + 0.25 * haloPulse})`;
                         ctx.shadowBlur = 18 + 8 * haloPulse;
@@ -6092,13 +6092,13 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         ctx.fill();
                         ctx.restore();
 
-                        // 2. Fond capsule verre fumé avec clip pour effet de brillance / glare balayant
+                        // 2. Fond capsule verre fumÃ© avec clip pour effet de brillance / glare balayant
                         ctx.save();
                         ctx.beginPath();
                         ctx.roundRect(badgeX, badgeY, badgeW, badgeH, badgeRadius);
                         ctx.clip();
 
-                        // Fond teinté très sombre
+                        // Fond teintÃ© trÃ¨s sombre
                         ctx.fillStyle = 'rgba(10, 12, 18, 0.88)';
                         ctx.fill();
 
@@ -6116,7 +6116,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                         ctx.restore();
 
-                        // 3. Bordure dynamique avec gradient animé respirant
+                        // 3. Bordure dynamique avec gradient animÃ© respirant
                         ctx.save();
                         const borderPulseAlpha = 0.55 + 0.35 * dotPulse;
                         const borderGrad = ctx.createLinearGradient(badgeX, badgeY, badgeX + badgeW, badgeY + badgeH);
@@ -6130,7 +6130,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         ctx.stroke();
                         ctx.restore();
 
-                        // 4. Onde radar / ripple néon qui pulse autour du point
+                        // 4. Onde radar / ripple nÃ©on qui pulse autour du point
                         const radarCycle = (badgeTime * 1.25) % 1.0;
                         const radarRadius = dotRadius + radarCycle * 14;
                         const radarAlpha = Math.max(0, (1 - radarCycle) * 0.85);
@@ -6144,7 +6144,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         ctx.stroke();
                         ctx.restore();
 
-                        // 5. Point lumineux néon battant
+                        // 5. Point lumineux nÃ©on battant
                         ctx.save();
                         const currentDotRadius = dotRadius * (0.92 + 0.18 * dotPulse);
                         ctx.fillStyle = dotColor;
@@ -6162,7 +6162,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         ctx.fill();
                         ctx.restore();
 
-                        // 6. Texte de la capsule en blanc gras italique avec reflet du thème
+                        // 6. Texte de la capsule en blanc gras italique avec reflet du thÃ¨me
                         ctx.save();
                         ctx.fillStyle = '#ffffff';
                         ctx.shadowColor = `rgba(${gradStr}, ${0.55 * haloPulse})`;
@@ -6172,8 +6172,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         }
                         ctx.textAlign = 'left';
 
-                        // Centrage vertical robuste — on utilise 'middle' pour éviter le décalage
-                        // des caractères accentués (ex: RÉCAP avec É) qui fausse actualBoundingBoxAscent
+                        // Centrage vertical robuste â€” on utilise 'middle' pour Ã©viter le dÃ©calage
+                        // des caractÃ¨res accentuÃ©s (ex: RÃ‰CAP avec Ã‰) qui fausse actualBoundingBoxAscent
                         ctx.textBaseline = 'middle';
                         const textY = dotCenterY + 0.5;
 
@@ -6181,8 +6181,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         ctx.restore();
 
                     } else {
-                        // RENDU STATIQUE NET POUR EXPORT PNG (AUCUN EFFET FIGÉ, AUCUN BALAYAGE, AUCUNE ONDE RADAR)
-                        // 1. Fond capsule verre fumé sobre et propre
+                        // RENDU STATIQUE NET POUR EXPORT PNG (AUCUN EFFET FIGÃ‰, AUCUN BALAYAGE, AUCUNE ONDE RADAR)
+                        // 1. Fond capsule verre fumÃ© sobre et propre
                         ctx.save();
                         ctx.fillStyle = 'rgba(12, 14, 20, 0.85)';
                         ctx.shadowColor = 'rgba(0, 0, 0, 0.65)';
@@ -6193,7 +6193,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         ctx.fill();
                         ctx.restore();
 
-                        // 2. Bordure nette fixe du thème (sans animation ni gradient changeant)
+                        // 2. Bordure nette fixe du thÃ¨me (sans animation ni gradient changeant)
                         ctx.save();
                         ctx.strokeStyle = (theme === 'INTERVIEW') ? 'rgba(255, 255, 255, 0.55)' : `rgba(${gradStr}, 0.55)`;
                         ctx.lineWidth = 1.8;
@@ -6202,7 +6202,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         ctx.stroke();
                         ctx.restore();
 
-                        // 3. Point LED net fixe (aucun halo qui déborde, aucun cercle radar)
+                        // 3. Point LED net fixe (aucun halo qui dÃ©borde, aucun cercle radar)
                         ctx.save();
                         ctx.fillStyle = dotColor;
                         ctx.shadowColor = dotColor;
@@ -6229,8 +6229,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         }
                         ctx.textAlign = 'left';
 
-                        // Centrage vertical robuste — on utilise 'middle' pour éviter le décalage
-                        // des caractères accentués (ex: RÉCAP avec É) qui fausse actualBoundingBoxAscent
+                        // Centrage vertical robuste â€” on utilise 'middle' pour Ã©viter le dÃ©calage
+                        // des caractÃ¨res accentuÃ©s (ex: RÃ‰CAP avec Ã‰) qui fausse actualBoundingBoxAscent
                         ctx.textBaseline = 'middle';
                         const textY = dotCenterY + 0.5;
 
@@ -6242,7 +6242,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 };
 
                 // ==========================================
-                // LOGO DROPSIDERS 3D RELIEF & NACRAGE COULEUR THÈME
+                // LOGO DROPSIDERS 3D RELIEF & NACRAGE COULEUR THÃˆME
                 // ==========================================
                 const drawDropsiders3DLogo = (customX?: number, customY?: number, customW?: number) => {
                     if (!logoRef.current || !logoRef.current.complete || !logoRef.current.naturalWidth) return;
@@ -6283,23 +6283,23 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         }
                     }
 
-                    // Mode statique (export PNG) vs animé (REEL & POST dans le studio, export vidéo)
+                    // Mode statique (export PNG) vs animÃ© (REEL & POST dans le studio, export vidÃ©o)
                     const isStatic = isStaticPngExport;
-                    const speed = 4.2; // Même vitesse d'oscillation que la navbar
+                    const speed = 4.2; // MÃªme vitesse d'oscillation que la navbar
                     // Temps d'animation continu :
-                    // - En export vidéo : deterministicTotalTimeRef.current (temps continu de 0 à 60s sans reset par position)
-                    // - En preview direct : performance.now() / 1000 pour que le logo oscille sans jamais sauter ni repartir de zéro
+                    // - En export vidÃ©o : deterministicTotalTimeRef.current (temps continu de 0 Ã  60s sans reset par position)
+                    // - En preview direct : performance.now() / 1000 pour que le logo oscille sans jamais sauter ni repartir de zÃ©ro
                     const logoAnimTime = isVideoRecordingRef.current
                         ? (deterministicTotalTimeRef.current || animElapsed)
                         : (typeof performance !== 'undefined' ? performance.now() / 1000 : animElapsed);
                     const t = isStatic ? 0.0 : (logoAnimTime % speed);
-                    // Cycle pendulaire cubic-bezier lissé (oscillation gauche/droite 3D)
+                    // Cycle pendulaire cubic-bezier lissÃ© (oscillation gauche/droite 3D)
                     const phase = isStatic ? 0.0 : Math.sin((t / speed) * Math.PI * 2);
-                    const maxAngleY = 22 * (Math.PI / 180); // Exactement ±22° comme la navbar
+                    const maxAngleY = 22 * (Math.PI / 180); // Exactement Â±22Â° comme la navbar
                     const angleY = phase * maxAngleY;
                     const scaleX = Math.cos(angleY);
 
-                    // Préparation du calque titane sombre pour les 12 tranches d'extrusion 3D
+                    // PrÃ©paration du calque titane sombre pour les 12 tranches d'extrusion 3D
                     let offRelief = offCanvasRef.current;
                     if (!offRelief) {
                         offRelief = document.createElement('canvas');
@@ -6319,7 +6319,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         reliefCtx.globalCompositeOperation = 'source-over';
                         reliefCtx.drawImage(logo, 0, 0, iW, iH);
                         reliefCtx.globalCompositeOperation = 'source-in';
-                        reliefCtx.fillStyle = '#1c1e28'; // Teinte titane sombre (identique à la navbar)
+                        reliefCtx.fillStyle = '#1c1e28'; // Teinte titane sombre (identique Ã  la navbar)
                         reliefCtx.fillRect(0, 0, iW, iH);
                         reliefCtx.globalCompositeOperation = 'source-over';
                     }
@@ -6330,16 +6330,16 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         ctx.scale(scaleX, 1.0);
                     }
 
-                    // 1. TRÈS LÉGÈRE LUEUR DE COULEUR DU THÈME DERRIÈRE L'ANIMATION (Subtile, élégante et non aveuglante)
+                    // 1. TRÃˆS LÃ‰GÃˆRE LUEUR DE COULEUR DU THÃˆME DERRIÃˆRE L'ANIMATION (Subtile, Ã©lÃ©gante et non aveuglante)
                     ctx.save();
-                    ctx.shadowColor = `rgba(${rgb}, 0.22)`; // Très légère lueur
+                    ctx.shadowColor = `rgba(${rgb}, 0.22)`; // TrÃ¨s lÃ©gÃ¨re lueur
                     ctx.shadowBlur = 18;
                     ctx.shadowOffsetX = 0;
                     ctx.shadowOffsetY = 0;
                     ctx.drawImage(logo, -w / 2, -logoH / 2, w, logoH);
                     ctx.restore();
 
-                    // 2. OMBRE DE CONTACT ARRIÈRE PROFONDE (Exactement comme la navbar)
+                    // 2. OMBRE DE CONTACT ARRIÃˆRE PROFONDE (Exactement comme la navbar)
                     const depth = 14;
                     const sliceCount = 12;
                     ctx.save();
@@ -6350,25 +6350,25 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.drawImage(offRelief, -w / 2, -logoH / 2, w, logoH);
                     ctx.restore();
 
-                    // 3. 12 TRANCHES VOLUMÉTRIQUES 3D TITANE/ACIER (Exactement comme la navbar)
+                    // 3. 12 TRANCHES VOLUMÃ‰TRIQUES 3D TITANE/ACIER (Exactement comme la navbar)
                     ctx.save();
                     for (let s = sliceCount; s >= 1; s--) {
                         const ratio = 1 - (s / sliceCount);
                         const sliceZ = (s / sliceCount) * depth;
                         const offX = -phase * sliceZ * 0.70;
-                        const offY = sliceZ * 0.18; // 4° de tilt vertical
+                        const offY = sliceZ * 0.18; // 4Â° de tilt vertical
                         ctx.globalAlpha = 0.50 + ratio * 0.45;
                         ctx.drawImage(offRelief, -w / 2 + offX, -logoH / 2 + offY, w, logoH);
                     }
                     ctx.restore();
 
-                    // 4. BISEAU HIGHLIGHT DISCRET SUR L'ARÊTE AVANT
+                    // 4. BISEAU HIGHLIGHT DISCRET SUR L'ARÃŠTE AVANT
                     ctx.save();
                     ctx.globalAlpha = 0.35;
                     ctx.drawImage(logo, -w / 2 - phase * 0.8, -logoH / 2 - 0.5, w, logoH);
                     ctx.restore();
 
-                    // 5. FACE AVANT DU LOGO BLANC PUR (Éclairage dynamique 0.88 - 1.0 comme la navbar)
+                    // 5. FACE AVANT DU LOGO BLANC PUR (Ã‰clairage dynamique 0.88 - 1.0 comme la navbar)
                     const frontLight = isStatic ? 1.0 : (0.88 + 0.12 * Math.abs(Math.cos((t / speed) * Math.PI * 2)));
                     ctx.save();
                     ctx.globalAlpha = frontLight;
@@ -6381,7 +6381,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.restore();
                 };
 
-                // Indicateur Swipe moderne avec Chevrons en Cascade animés (Option 2)
+                // Indicateur Swipe moderne avec Chevrons en Cascade animÃ©s (Option 2)
                 const drawAnimatedSwipeIndicator = (
                     targetRightX: number,
                     targetCenterY: number,
@@ -6394,7 +6394,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.textBaseline = 'middle';
 
                     const swipeWord = customWord;
-                    const chevronChar = '›';
+                    const chevronChar = 'â€º';
                     const spaceWidth = ctx.measureText(' ').width;
                     const wordWidth = ctx.measureText(swipeWord).width;
                     const chevronWidth = ctx.measureText(chevronChar).width;
@@ -6408,7 +6408,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         ? deterministicAnimTimeRef.current
                         : (animStartTimeRef.current ? (Date.now() - animStartTimeRef.current) / 1000 : 0);
 
-                    // 1. Mot "Swipe" en blanc pur avec ombre portée nette
+                    // 1. Mot "Swipe" en blanc pur avec ombre portÃ©e nette
                     const startX = targetRightX - totalWidth;
                     ctx.textAlign = 'left';
                     ctx.fillStyle = '#ffffff';
@@ -6416,9 +6416,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.shadowBlur = 6;
                     ctx.fillText(swipeWord, startX, targetCenterY);
 
-                    // 2. Trois chevrons animés en cascade séquentielle vers la droite (Option 2)
+                    // 2. Trois chevrons animÃ©s en cascade sÃ©quentielle vers la droite (Option 2)
                     let curChevronX = startX + wordWidth + spaceWidth;
-                    const cycleDuration = 1.35; // Durée totale du cycle de cascade
+                    const cycleDuration = 1.35; // DurÃ©e totale du cycle de cascade
                     const cycleT = (animTime % cycleDuration);
 
                     for (let i = 0; i < 3; i++) {
@@ -6430,7 +6430,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 wave = Math.sin((diff / 0.45) * Math.PI); // Onde fluide 0 -> 1 -> 0
                             }
                         } else {
-                            // Rendu statique (export image PNG / visuel fixe) : dégradé progressif élégant
+                            // Rendu statique (export image PNG / visuel fixe) : dÃ©gradÃ© progressif Ã©lÃ©gant
                             wave = i === 2 ? 0.95 : (i === 1 ? 0.60 : 0.30);
                         }
 
@@ -6472,7 +6472,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.fillRect(0, 0, canvas.width, 220);
 
                     // Continuous cinematic bottom gradient (from ~44% height down to bottom)
-                    // Masqué sur le template dynamique Reel Focus pour laisser la vidéo 100% visible
+                    // MasquÃ© sur le template dynamique Reel Focus pour laisser la vidÃ©o 100% visible
                     if (!isFocusReelHook) {
                         const gradStart = canvas.height * 0.44;
                         const bGrad = ctx.createLinearGradient(0, gradStart, 0, canvas.height);
@@ -6485,7 +6485,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         ctx.fillRect(0, gradStart, canvas.width, canvas.height - gradStart);
                     }
 
-                    // Subtle ambient colored glow at the bottom edge (max 14% opacity, skip for Interview pure white et retiré sur FOCUS REEL)
+                    // Subtle ambient colored glow at the bottom edge (max 14% opacity, skip for Interview pure white et retirÃ© sur FOCUS REEL)
                     if (activeData?.grad && theme !== 'INTERVIEW' && theme !== 'MAP' && !(isReel && theme === 'FOCUS')) {
                         const edgeGrad = ctx.createLinearGradient(0, canvas.height * 0.82, 0, canvas.height);
                         edgeGrad.addColorStop(0, `rgba(${activeData.grad}, 0)`);
@@ -6509,7 +6509,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         ctx.fillRect(0, gradStart, canvas.width, canvas.height - gradStart);
                     }
 
-                    // Lignes de scan rétro (uniquement sur les thèmes non modernisés)
+                    // Lignes de scan rÃ©tro (uniquement sur les thÃ¨mes non modernisÃ©s)
                     if (theme !== 'MAP' && theme !== 'HIGHLIGHTS' && theme !== 'PLANNING' && theme !== 'CONSEILS' && theme !== 'REELS' && theme !== 'CONCOURS' && theme !== 'TOP 100 DROPSIDERS' && theme !== 'JEU' && theme !== 'JEU_FESTIVAL' && theme !== 'JEU_DJ') {
                         const scanlineLimitY = canvas.height;
                         ctx.fillStyle = 'rgba(0,0,0,0.1)';
@@ -6600,7 +6600,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         applySlideTransitionCtx(ctx, centerX, canvas.height / 2);
                     }
 
-                    // 1. Dark overlay — uniquement pour le style classique / carte (pour PHONE_3D, un seul voile transparent est géré dans le renderer pour voir la photo)
+                    // 1. Dark overlay â€” uniquement pour le style classique / carte (pour PHONE_3D, un seul voile transparent est gÃ©rÃ© dans le renderer pour voir la photo)
                     if (promoOutroStyle !== 'PHONE_3D') {
                         ctx.fillStyle = 'rgba(0, 0, 0, 0.78)';
                         ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -6651,7 +6651,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     const defaultHeadline = (activeTargetCategory === 'EVENTS')
                         ? 'POUR NE LOUPER AUCUN EVENTS ET FESTIVALS'
                         : (activeTargetCategory === 'MUSIQUE')
-                            ? 'POUR NE RIEN RATER DE NOS TRACKS COUPS DE CŒURS'
+                            ? 'POUR NE RIEN RATER DE NOS TRACKS COUPS DE CÅ’URS'
                             : (activeTargetCategory === 'FOCUS')
                                 ? 'POUR NE RIEN MANQUER DE NOS FOCUS & DOSSIERS'
                                 : (activeTargetCategory === 'RECAPS')
@@ -6661,7 +6661,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         : (activeTargetCategory === 'INTERVIEWS')
                                             ? 'POUR NE RIEN MANQUER DE NOS INTERVIEWS EXCLUSIVES'
                                             : (activeTargetCategory === 'VIDEOS')
-                                                ? 'POUR NE RIEN MANQUER DE NOS VIDÉOS & REELS'
+                                                ? 'POUR NE RIEN MANQUER DE NOS VIDÃ‰OS & REELS'
                                                 : 'POUR NE RATER AUCUNE NEWS';
 
                     const effectiveHeadline = promoCustomPhrase.trim()
@@ -6670,7 +6670,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                     const effectiveSubphrase = promoCustomSubphrase.trim()
                         ? promoCustomSubphrase.trim().toUpperCase()
-                        : 'SUR LA MUSIQUE ÉLECTRONIQUE ET LES FESTIVALS,';
+                        : 'SUR LA MUSIQUE Ã‰LECTRONIQUE ET LES FESTIVALS,';
 
                     const headlineParts = (showPromoHeadline && showPromoLine1 && effectiveHeadline) ? effectiveHeadline.split('\n').filter(Boolean) : [];
                     const subphraseParts = (showPromoHeadline && showPromoLine2 && effectiveSubphrase) ? [effectiveSubphrase] : [];
@@ -6679,7 +6679,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         ...subphraseParts
                     ];
 
-                    // Question fixe sur la slide promo — ne reprend plus le texte de la slide 1
+                    // Question fixe sur la slide promo â€” ne reprend plus le texte de la slide 1
                     const cleanQuestion = "ET TOI, QU'EN PENSES-TU ?";
 
                     const qLines: string[] = [];
@@ -6769,7 +6769,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     const isStaticPreview = animElapsed >= 90.0;
                     const tAnim = isStaticPreview ? 7.0 : animElapsed;
 
-                    // Animation Timeline (7.0s au total) : Apparition à 1.0s, Action follow à 2.5s, Descente à 4.0s et texte remis jusqu'à 7.0s
+                    // Animation Timeline (7.0s au total) : Apparition Ã  1.0s, Action follow Ã  2.5s, Descente Ã  4.0s et texte remis jusqu'Ã  7.0s
                     let shiftProgress = 0.0;
                     let cardProgress = 0.0;
                     if (isInstagramStyle) {
@@ -6780,29 +6780,29 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             shiftProgress = 0.0;
                             cardProgress = 0.0;
                         } else if (tAnim < 1.6) {
-                            // Entrée à 1.0s : le texte monte et la carte Instagram glisse depuis le bas
+                            // EntrÃ©e Ã  1.0s : le texte monte et la carte Instagram glisse depuis le bas
                             const p = (tAnim - 1.0) / 0.6;
                             const ease = 1 - Math.pow(1 - p, 3);
                             shiftProgress = ease;
                             cardProgress = ease;
                         } else if (tAnim < 4.0) {
-                            // Affichage actif de 1.6s à 4.0s
+                            // Affichage actif de 1.6s Ã  4.0s
                             shiftProgress = 1.0;
                             cardProgress = 1.0;
                         } else if (tAnim < 4.6) {
-                            // À 4.0s : la carte Instagram redescend comme l'entrée (sans fondu) et le texte redescend normalement
+                            // Ã€ 4.0s : la carte Instagram redescend comme l'entrÃ©e (sans fondu) et le texte redescend normalement
                             const p = (tAnim - 4.0) / 0.6;
                             const ease = 1 - Math.pow(1 - p, 3);
                             shiftProgress = 1.0 - ease;
                             cardProgress = 1.0 - ease;
                         } else {
-                            // De 4.6s à 7.0s : texte remis normalement au centre, carte invisible
+                            // De 4.6s Ã  7.0s : texte remis normalement au centre, carte invisible
                             shiftProgress = 0.0;
                             cardProgress = 0.0;
                         }
                     }
 
-                    // Décalage vertical du bloc de question quand la carte Instagram monte
+                    // DÃ©calage vertical du bloc de question quand la carte Instagram monte
                     const shiftUpDistance = isReel ? 270 : 190;
                     const targetCenterY = (isReel ? 950 : 675) - (isInstagramStyle ? (shiftProgress * shiftUpDistance) : 0);
                     let outroStartY = 0;
@@ -6850,7 +6850,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         });
                         ctx.restore();
 
-                        // Call-to-action d'engagement : "DONNE TON AVIS EN COMMENTAIRE 👇"
+                        // Call-to-action d'engagement : "DONNE TON AVIS EN COMMENTAIRE ðŸ‘‡"
                         const lastQLineY = qStartY + (qLines.length - 1) * qLineHeight;
                         const ctaCommentY = lastQLineY + ctaCommentOffset;
 
@@ -6861,10 +6861,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         ctx.fillStyle = activeColor.color;
                         ctx.shadowColor = `rgba(${activeColor.grad}, 0.6)`;
                         ctx.shadowBlur = 18;
-                        ctx.fillText('DONNE TON AVIS EN COMMENTAIRE 👇', centerX, ctaCommentY);
+                        ctx.fillText('DONNE TON AVIS EN COMMENTAIRE ðŸ‘‡', centerX, ctaCommentY);
                         ctx.restore();
 
-                        // Ligne de séparation fine néon
+                        // Ligne de sÃ©paration fine nÃ©on
                         const sepY = ctaCommentY + sepOffset;
                         const sepGrad = ctx.createLinearGradient(centerX - 200, 0, centerX + 200, 0);
                         sepGrad.addColorStop(0, 'rgba(255, 255, 255, 0)');
@@ -6875,7 +6875,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                         outroStartY = sepY + outroOffset;
                     } else {
-                        // Phrase d'accroche DÉSACTIVÉE : Centrage parfait du texte en dessous au milieu du visuel
+                        // Phrase d'accroche DÃ‰SACTIVÃ‰E : Centrage parfait du texte en dessous au milieu du visuel
                         outroStartY = Math.round(targetCenterY - (lowerBlockHeight / 2));
 
                         const bgGlow = ctx.createRadialGradient(centerX, targetCenterY, 80, centerX, targetCenterY, isReel ? 560 : 480);
@@ -6911,16 +6911,16 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     }
 
                     // ==========================================
-                    // "ABONNEZ-VOUS À" + GRAND LOGO NÉON "DROPSIDERS"
+                    // "ABONNEZ-VOUS Ã€" + GRAND LOGO NÃ‰ON "DROPSIDERS"
                     // ==========================================
                     const abonneY = outroLines.length > 0
                         ? (outroStartY + outroLines.length * outroSpacing + abonneGap)
                         : (outroStartY + abonneGap);
                     ctx.font = `700 ${isReel ? 26 : 24}px "Montserrat", sans-serif`;
                     ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
-                    ctx.fillText('ABONNEZ-VOUS À', centerX, abonneY);
+                    ctx.fillText('ABONNEZ-VOUS Ã€', centerX, abonneY);
 
-                    // "DROPSIDERS" en grand Orbitron néon
+                    // "DROPSIDERS" en grand Orbitron nÃ©on
                     dropsidersY = abonneY + dropsidersOffset;
                     ctx.font = `900 italic ${isReel ? (isAgendaPromo ? 92 : 86) : 76}px "Orbitron", sans-serif`;
                     ctx.letterSpacing = '-2px';
@@ -6939,13 +6939,13 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             const cardH = isReel ? 440 : 380;
                             const cardX = centerX - cardW / 2;
                             const cardFinalY = Math.round(dropsidersY + (isReel ? 50 : 35));
-                            // Redescend tout en bas hors-écran sans aucun fondu d'opacité (comme à l'entrée)
+                            // Redescend tout en bas hors-Ã©cran sans aucun fondu d'opacitÃ© (comme Ã  l'entrÃ©e)
                             const slideDownDistance = (canvas.height - cardFinalY) + 60;
                             const cardY = cardFinalY + (1 - cardProgress) * slideDownDistance;
 
                             ctx.save();
 
-                            // 1. Fond carte sombre glassmorphism luxueux avec dégradé
+                            // 1. Fond carte sombre glassmorphism luxueux avec dÃ©gradÃ©
                             ctx.beginPath();
                             ctx.roundRect(cardX, cardY, cardW, cardH, 30);
                             const cardGrad = ctx.createLinearGradient(cardX, cardY, cardX, cardY + cardH);
@@ -6960,7 +6960,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             ctx.lineWidth = 2;
                             ctx.stroke();
 
-                            // Ligne de reflet spéculaire en haut de carte
+                            // Ligne de reflet spÃ©culaire en haut de carte
                             ctx.beginPath();
                             ctx.moveTo(cardX + 35, cardY + 1.5);
                             ctx.lineTo(cardX + cardW - 35, cardY + 1.5);
@@ -6972,12 +6972,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             ctx.lineWidth = 2;
                             ctx.stroke();
 
-                            // 2. Avatar officiel avec anneau story dégradé
+                            // 2. Avatar officiel avec anneau story dÃ©gradÃ©
                             const avatarCenterX = cardX + (isReel ? 95 : 85);
                             const avatarCenterY = cardY + (isReel ? 88 : 78);
                             const avatarR = isReel ? 56 : 50;
 
-                            // Anneau dégradé Instagram officiel
+                            // Anneau dÃ©gradÃ© Instagram officiel
                             const ringGrad = ctx.createLinearGradient(avatarCenterX - avatarR, avatarCenterY - avatarR, avatarCenterX + avatarR, avatarCenterY + avatarR);
                             ringGrad.addColorStop(0, '#f09433');
                             ringGrad.addColorStop(0.25, '#e6683c');
@@ -6997,7 +6997,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             ctx.fillStyle = '#000000';
                             ctx.fill();
 
-                            // Logo DROPSIDERS.FR centré
+                            // Logo DROPSIDERS.FR centrÃ©
                             if (logoRef.current) {
                                 const logo = logoRef.current;
                                 const alw = avatarR * 1.55;
@@ -7007,7 +7007,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 ctx.restore();
                             }
 
-                            // 3. Stats Réelles Officielles (N publications • N -> N+1 abonnés • 668 abonnements)
+                            // 3. Stats RÃ©elles Officielles (N publications â€¢ N -> N+1 abonnÃ©s â€¢ 668 abonnements)
                             const isFollowed = isStaticPreview || tAnim >= 2.5;
                             const baseFollowers = promoFollowersCount || 4698;
                             const displayFollowers = isFollowed ? (baseFollowers + 1) : baseFollowers;
@@ -7019,7 +7019,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             const colW = statsWidth / 3;
                             const statsData = [
                                 { val: postsCountStr, lbl: 'publications' },
-                                { val: followersCountStr, lbl: 'abonnés' },
+                                { val: followersCountStr, lbl: 'abonnÃ©s' },
                                 { val: '668', lbl: 'abonnements' }
                             ];
 
@@ -7037,7 +7037,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 ctx.fillText(st.lbl, sx, sy + (isReel ? 26 : 22));
                             });
 
-                            // 4. Ligne Profil : DROPSIDERS + Badge Certifié
+                            // 4. Ligne Profil : DROPSIDERS + Badge CertifiÃ©
                             const infoX = cardX + 32;
                             let curY = avatarCenterY + avatarR + (isReel ? 28 : 22);
 
@@ -7048,7 +7048,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             ctx.fillText('DROPSIDERS', infoX, curY);
 
                             const nameW = ctx.measureText('DROPSIDERS').width;
-                            // Badge vérifié bleu
+                            // Badge vÃ©rifiÃ© bleu
                             const badgeX = infoX + nameW + 16;
                             const badgeY = curY - 9;
                             ctx.beginPath();
@@ -7060,7 +7060,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             ctx.font = '900 12px sans-serif';
                             ctx.textAlign = 'center';
                             ctx.textBaseline = 'middle';
-                            ctx.fillText('✓', badgeX, badgeY);
+                            ctx.fillText('âœ“', badgeX, badgeY);
 
                             // Pseudo
                             curY += (isReel ? 26 : 22);
@@ -7070,25 +7070,25 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             ctx.fillStyle = '#8e8e93';
                             ctx.fillText('@dropsiders.fr', infoX, curY);
 
-                            // Vraie Bio Officielle Agrandie (x1.5) & Performatée sur 2 lignes ultra-lisibles
+                            // Vraie Bio Officielle Agrandie (x1.5) & PerformatÃ©e sur 2 lignes ultra-lisibles
                             curY += (isReel ? 30 : 25);
                             ctx.font = `600 ${isReel ? 23 : 20}px -apple-system, "Inter", sans-serif`;
                             ctx.fillStyle = '#f4f4f6';
                             ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
                             ctx.shadowBlur = 10;
-                            const bioLine1 = 'La 1ère plateforme interactive consacrée à';
-                            const bioLine2 = 'la musique électronique et aux festivals 🔥';
+                            const bioLine1 = 'La 1Ã¨re plateforme interactive consacrÃ©e Ã ';
+                            const bioLine2 = 'la musique Ã©lectronique et aux festivals ðŸ”¥';
                             ctx.fillText(bioLine1, infoX, curY);
                             curY += (isReel ? 32 : 27);
                             ctx.fillText(bioLine2, infoX, curY);
 
-                            // 5. Boutons d'Action : [ Suivre / ✓ Suivi ▾ ]  [ Message ]
+                            // 5. Boutons d'Action : [ Suivre / âœ“ Suivi â–¾ ]  [ Message ]
                             const btnRowY = cardY + cardH - (isReel ? 72 : 62);
                             const btnH = isReel ? 52 : 46;
                             const btnGap = 16;
                             const btnW = (cardW - 64 - btnGap) / 2;
 
-                            // Bouton 1 : Suivre -> Suivi (avec appui / clic animé à 2.3s - 2.5s)
+                            // Bouton 1 : Suivre -> Suivi (avec appui / clic animÃ© Ã  2.3s - 2.5s)
                             const btn1X = infoX;
                             const btn1CenterX = btn1X + btnW / 2;
                             const btn1CenterY = btnRowY + btnH / 2;
@@ -7114,8 +7114,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             ctx.font = `700 ${isReel ? 20 : 18}px -apple-system, "Inter", sans-serif`;
 
                             if (isFollowed) {
-                                const checkmarkText = '✓ ';
-                                const suiviText = 'Suivi ▾';
+                                const checkmarkText = 'âœ“ ';
+                                const suiviText = 'Suivi â–¾';
                                 const totalW = ctx.measureText(checkmarkText + suiviText).width;
                                 const checkW = ctx.measureText(checkmarkText).width;
                                 const startTextX = btn1CenterX - totalW / 2;
@@ -7132,7 +7132,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             }
                             ctx.restore();
 
-                            // Onde de choc (shockwave) à 2.5s
+                            // Onde de choc (shockwave) Ã  2.5s
                             if (!isStaticPreview && tAnim >= 2.5 && tAnim < 3.1) {
                                 const waveP = (tAnim - 2.5) / 0.6;
                                 const waveR = 25 + waveP * 110;
@@ -7162,7 +7162,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             ctx.fillStyle = '#ffffff';
                             ctx.fillText('Message', btn2X + btnW / 2, btnRowY + btnH / 2);
 
-                            // 6. Curseur tactile animé (Pointer) entre 1.8s et 2.8s
+                            // 6. Curseur tactile animÃ© (Pointer) entre 1.8s et 2.8s
                             if (!isStaticPreview && tAnim >= 1.8 && tAnim < 2.8) {
                                 let pX = btn1CenterX;
                                 let pY = btn1CenterY;
@@ -7277,8 +7277,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 if (theme === 'TOP 5 STYLES') {
                     const item = top5Items[currentPreviewIndex];
                     const centerX = canvas.width / 2;
-                    const centerY = safeTop + 620; // Descendu de 80px supplémentaires
-                    const radius = 240; // Encore plus réduit (était 280)
+                    const centerY = safeTop + 620; // Descendu de 80px supplÃ©mentaires
+                    const radius = 240; // Encore plus rÃ©duit (Ã©tait 280)
                     const currentItem = top5Items[currentPreviewIndex];
                     let itemPhotoImg: HTMLImageElement | null = null;
                     if (currentItem.photo) {
@@ -7386,7 +7386,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.fillStyle = '#000'; // Black text on yellow bar
                     ctx.font = '900 italic 43px "Montserrat", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif';
                     ctx.textAlign = 'left';
-                    ctx.fillText(`${item.value.toUpperCase()} MILLIONS D'ÉCOUTES`, barX + 30 + slideX, barY + 60);
+                    ctx.fillText(`${item.value.toUpperCase()} MILLIONS D'Ã‰COUTES`, barX + 30 + slideX, barY + 60);
                     ctx.restore();
 
                     ctx.save();
@@ -7545,8 +7545,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         const centerX = canvas.width / 2;
                         const centerY = canvas.height / 2;
 
-                        // 0. ATMOSPHERE & BACKGROUND EFFECTS (Identique à NEWS & MUSIQUE)
-                        // Halo néon volumétrique centré
+                        // 0. ATMOSPHERE & BACKGROUND EFFECTS (Identique Ã  NEWS & MUSIQUE)
+                        // Halo nÃ©on volumÃ©trique centrÃ©
                         const bgGlow = ctx.createRadialGradient(centerX, centerY, 60, centerX, centerY, isStory ? 640 : 500);
                         bgGlow.addColorStop(0, `rgba(${monthGrad}, 0.28)`);
                         bgGlow.addColorStop(0.45, `rgba(${monthGrad}, 0.08)`);
@@ -7554,7 +7554,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         ctx.fillStyle = bgGlow;
                         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-                        // Micro-grille cyber subtile (lignes très fines transparentes)
+                        // Micro-grille cyber subtile (lignes trÃ¨s fines transparentes)
                         ctx.save();
                         ctx.strokeStyle = `rgba(${monthGrad}, 0.05)`;
                         ctx.lineWidth = 1;
@@ -7572,7 +7572,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         }
                         ctx.restore();
 
-                        // Particules / Motes cyber flottantes lumineuses (effet club / scène festival)
+                        // Particules / Motes cyber flottantes lumineuses (effet club / scÃ¨ne festival)
                         ctx.save();
                         const particleTime = isVideoRecordingRef.current
                             ? deterministicTotalTimeRef.current
@@ -7593,21 +7593,21 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         }
                         ctx.restore();
 
-                        // Halo cinématique au bas de l'écran
+                        // Halo cinÃ©matique au bas de l'Ã©cran
                         const bottomAura = ctx.createLinearGradient(0, canvas.height * 0.82, 0, canvas.height);
                         bottomAura.addColorStop(0, `rgba(${monthGrad}, 0)`);
                         bottomAura.addColorStop(1, `rgba(${monthGrad}, 0.18)`);
                         ctx.fillStyle = bottomAura;
                         ctx.fillRect(0, canvas.height * 0.82, canvas.width, canvas.height * 0.18);
 
-                        // 1. TOP-LEFT BADGE DROPSIDERS OFFICIEL (Identique à NEWS, FOCUS, MUSIQUE)
+                        // 1. TOP-LEFT BADGE DROPSIDERS OFFICIEL (Identique Ã  NEWS, FOCUS, MUSIQUE)
                         drawTopCapsuleBadge((agendaCoverBadge || 'AGENDA').toUpperCase(), monthColor, monthGrad);
 
-                        // 2. CATEGORY TAG MOIS / ANNÉE (Sleek Dropsiders Pill)
+                        // 2. CATEGORY TAG MOIS / ANNÃ‰E (Sleek Dropsiders Pill)
                         const monthName = (agendaMonth || 'OCTOBRE').toUpperCase().trim();
                         const tagYear = (agendaCoverYear || '').trim();
                         const tagText = tagYear && !monthName.includes(tagYear)
-                            ? `${monthName} • ${tagYear}`
+                            ? `${monthName} â€¢ ${tagYear}`
                             : monthName;
                         const tagY = centerY - (isStory ? 200 : 150);
 
@@ -7642,7 +7642,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         ctx.save();
                         ctx.textAlign = 'center';
                         ctx.textBaseline = 'middle';
-                        const rawTitle = (agendaCoverTitle || 'ON VA OÙ CE MOIS-CI ?').toUpperCase().trim();
+                        const rawTitle = (agendaCoverTitle || 'ON VA OÃ™ CE MOIS-CI ?').toUpperCase().trim();
 
                         let titleLines: string[] = [];
                         if (rawTitle.includes('\n')) {
@@ -7697,7 +7697,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         ctx.restore();
 
                         // 4. SUBTITLE / GENRES MUSICAUX (Glassmorphism Pill)
-                        const genresText = (agendaCoverGenres || 'HARD TECHNO • RAWSTYLE • MULTI-GENRES').toUpperCase().trim();
+                        const genresText = (agendaCoverGenres || 'HARD TECHNO â€¢ RAWSTYLE â€¢ MULTI-GENRES').toUpperCase().trim();
                         if (genresText) {
                             let genresFontSize = isStory ? 24 : 18;
                             ctx.font = `800 italic ${genresFontSize}px "Montserrat", sans-serif`;
@@ -7770,7 +7770,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             ctx.restore();
                         }
 
-                        // 6. MENTION SWIPE ANIMÉE OFFICIELLE (au bas de l'écran, sans chevaucher le texte)
+                        // 6. MENTION SWIPE ANIMÃ‰E OFFICIELLE (au bas de l'Ã©cran, sans chevaucher le texte)
                         if (showSwipe) {
                             const swipeY = canvas.height - (isStory ? 80 : 45);
                             drawAnimatedSwipeIndicator(
@@ -7792,7 +7792,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         const centerX = canvas.width / 2;
                         const centerY = canvas.height / 2;
 
-                        // 0. ATMOSPHERE & BACKGROUND EFFECTS (Slide 2 Événements)
+                        // 0. ATMOSPHERE & BACKGROUND EFFECTS (Slide 2 Ã‰vÃ©nements)
                         const bgGlow2 = ctx.createRadialGradient(centerX, centerY, 60, centerX, centerY, isStory ? 650 : 500);
                         bgGlow2.addColorStop(0, `rgba(${monthGrad}, 0.20)`);
                         bgGlow2.addColorStop(0.5, `rgba(${monthGrad}, 0.05)`);
@@ -7803,7 +7803,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         // 1. TOP-LEFT BADGE DROPSIDERS OFFICIEL
                         drawTopCapsuleBadge((agendaBadgeText || 'AGENDA').toUpperCase(), monthColor, monthGrad);
 
-                        // 2. GRAND TITRE DU MOIS (Fluide, vibrant, teinté avec le gradient du mois, sans blanc agressif)
+                        // 2. GRAND TITRE DU MOIS (Fluide, vibrant, teintÃ© avec le gradient du mois, sans blanc agressif)
                         const monthY = isStory ? 370 : 280;
                         const monthText = (agendaMonth || 'OCTOBRE').toUpperCase().trim();
 
@@ -7815,7 +7815,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             ctx.font = `900 italic ${monthFontSize}px "Montserrat", Arial, sans-serif`;
                         }
 
-                        // Animation d'entrée du titre de mois pour MP4 / vidéo
+                        // Animation d'entrÃ©e du titre de mois pour MP4 / vidÃ©o
                         const isVideoAnim = isVideoRecordingRef.current || (activeTab === 'REEL' && !isDownloading);
                         const mElapsed = isVideoAnim ? (animElapsed - 0.06) : 99.0;
                         let mAlpha = 1.0;
@@ -7844,14 +7844,14 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         ctx.font = `900 italic ${monthFontSize}px "Montserrat", Arial, sans-serif`;
                         ctx.letterSpacing = '5px';
 
-                        // Dégradé ultra-fluide teinté avec la couleur du mois (retire le blanc plat)
+                        // DÃ©gradÃ© ultra-fluide teintÃ© avec la couleur du mois (retire le blanc plat)
                         const monthGradFill = ctx.createLinearGradient(0, -monthFontSize * 0.45, 0, monthFontSize * 0.45);
                         monthGradFill.addColorStop(0, monthColor);
                         monthGradFill.addColorStop(0.35, `rgba(${monthGrad}, 0.95)`);
                         monthGradFill.addColorStop(0.70, `rgba(${monthGrad}, 0.85)`);
                         monthGradFill.addColorStop(1, `rgba(${monthGrad}, 0.55)`);
 
-                        // 1) Ombre de profondeur noire 3D pour découper le texte
+                        // 1) Ombre de profondeur noire 3D pour dÃ©couper le texte
                         ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
                         ctx.shadowBlur = 20;
                         ctx.shadowOffsetX = 0;
@@ -7859,7 +7859,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         ctx.fillStyle = monthGradFill;
                         ctx.fillText(monthText, 0, 0);
 
-                        // 2) Halo néon d'ambiance vibrant
+                        // 2) Halo nÃ©on d'ambiance vibrant
                         ctx.shadowColor = `rgba(${monthGrad}, 0.80)`;
                         ctx.shadowBlur = 28;
                         ctx.shadowOffsetX = 0;
@@ -7873,7 +7873,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         ctx.fillStyle = monthGradFill;
                         ctx.fillText(monthText, 0, 0);
 
-                        // 4) Fin filet de brillance pour une fluidité cristalline
+                        // 4) Fin filet de brillance pour une fluiditÃ© cristalline
                         ctx.strokeStyle = `rgba(${monthGrad}, 0.45)`;
                         ctx.lineWidth = 1.5;
                         ctx.strokeText(monthText, 0, 0);
@@ -7899,14 +7899,14 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             ctx.textBaseline = 'middle';
                             ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
                             ctx.font = '700 italic 24px "Montserrat", sans-serif';
-                            ctx.fillText("Aucun événement renseigné — ajoutez vos dates dans le panneau latéral", centerX, listStartY + 100);
+                            ctx.fillText("Aucun Ã©vÃ©nement renseignÃ© â€” ajoutez vos dates dans le panneau latÃ©ral", centerX, listStartY + 100);
                             ctx.restore();
                         } else {
                             itemsToDraw.forEach((item, i) => {
                                 const rowY = listStartY + (i * rowSpacing);
                                 if (rowY > canvas.height - 60) return;
 
-                                // Animation d'entrée cinématique échelonnée (staggered cascade) pour MP4 et Reel
+                                // Animation d'entrÃ©e cinÃ©matique Ã©chelonnÃ©e (staggered cascade) pour MP4 et Reel
                                 const rowDelay = 0.28 + (i * 0.16);
                                 const rowElapsed = isVideoAnim ? (animElapsed - rowDelay) : 99.0;
 
@@ -7927,12 +7927,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 }
 
                                 const dayText = (item.day || item.time || 'VENDREDI').toUpperCase().trim();
-                                const titleText = (item.title || item.artist || 'ÉVÉNEMENT').toUpperCase().trim();
+                                const titleText = (item.title || item.artist || 'Ã‰VÃ‰NEMENT').toUpperCase().trim();
                                 const artistsText = (item.artists || '').trim();
                                 const genreText = (item.genre || '').trim();
                                 const venueText = (item.venue || '').toUpperCase().trim();
 
-                                // A) Left sticker badge for Day (avec animation d'entrée)
+                                // A) Left sticker badge for Day (avec animation d'entrÃ©e)
                                 ctx.save();
                                 if (rowAlpha < 1) ctx.globalAlpha *= rowAlpha;
                                 ctx.font = '900 italic 20px "Montserrat", sans-serif';
@@ -7966,7 +7966,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 ctx.fillText(dayText, 0, 1);
                                 ctx.restore();
 
-                                // B) Right content block (avec animation d'entrée)
+                                // B) Right content block (avec animation d'entrÃ©e)
                                 ctx.save();
                                 if (rowAlpha < 1) ctx.globalAlpha *= rowAlpha;
                                 const contentX = (75 + badgeW / 2) + badgeW / 2 + 28 + contentXOffset;
@@ -8072,7 +8072,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         if (offsetX !== 0) sCtx.translate(offsetX, 0);
                         const ctx = sCtx;
 
-                        // 1. Ambiance sombre & immersive avec halo néon du mois
+                        // 1. Ambiance sombre & immersive avec halo nÃ©on du mois
                         const vig = ctx.createRadialGradient(
                             canvas.width / 2, canvas.height / 2, canvas.width * 0.15,
                             canvas.width / 2, canvas.height / 2, canvas.height * 0.72
@@ -8086,7 +8086,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         // 2. Top-Left Badge Dropsiders Officiel
                         drawTopCapsuleBadge('AGENDA', monthColor, monthGrad);
 
-                        // 3. Dimensions exactes de la carte affiche "comme partout" (ne dépasse JAMAIS sous le logo)
+                        // 3. Dimensions exactes de la carte affiche "comme partout" (ne dÃ©passe JAMAIS sous le logo)
                         const baseCardW = isStory ? 920 : 800;
                         const baseCardH = isStory ? 1130 : 980;
                         const baseCardY = isStory ? Math.round((canvas.height - baseCardH) / 2) + 15 : 210;
@@ -8098,7 +8098,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         const cardY = Math.round(baseCardY + ((baseCardH - cardH) / 2) + (afficheOffsetY || 0));
                         const rad = isStory ? 28 : 24;
 
-                        // 4. Ombre portée 3D et halo ambiant néon
+                        // 4. Ombre portÃ©e 3D et halo ambiant nÃ©on
                         ctx.save();
                         if (afficheGlow) {
                             ctx.shadowColor = `rgba(${monthGrad}, 0.35)`;
@@ -8121,7 +8121,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         ctx.fill();
                         ctx.restore();
 
-                        // 5. Rendu de l'affiche dans le rectangle arrondi clippé
+                        // 5. Rendu de l'affiche dans le rectangle arrondi clippÃ©
                         ctx.save();
                         ctx.beginPath();
                         ctx.roundRect(cardX, cardY, cardW, cardH, rad);
@@ -8145,7 +8145,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             }
                             drawImageZoomPan(ctx, flyerImg, cardX, cardY, cardW, cardH, afficheMode === 'contain' ? 'contain' : 'cover', affiche.zoom ?? 100, affiche.panX ?? 0, affiche.panY ?? 0);
                         } else {
-                            // Carte placeholder élégante en attente d'image (COMME PARTOUT)
+                            // Carte placeholder Ã©lÃ©gante en attente d'image (COMME PARTOUT)
                             const phGrad = ctx.createLinearGradient(cardX, cardY, cardX + cardW, cardY + cardH);
                             phGrad.addColorStop(0, 'rgba(26, 26, 32, 0.95)');
                             phGrad.addColorStop(1, 'rgba(12, 12, 16, 0.98)');
@@ -8156,14 +8156,14 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             ctx.textBaseline = 'middle';
                             ctx.fillStyle = '#ffffff';
                             ctx.font = '900 italic 30px "Orbitron", sans-serif';
-                            ctx.fillText("AFFICHE DE L'ÉVÉNEMENT", cardX + cardW / 2, cardY + cardH / 2 - 25);
+                            ctx.fillText("AFFICHE DE L'Ã‰VÃ‰NEMENT", cardX + cardW / 2, cardY + cardH / 2 - 25);
 
                             ctx.font = '700 16px "Montserrat", sans-serif';
                             ctx.fillStyle = 'rgba(255, 255, 255, 0.45)';
-                            ctx.fillText(`Slide ${afficheIndex + 3} • Importez dans le panneau Visuel`, cardX + cardW / 2, cardY + cardH / 2 + 25);
+                            ctx.fillText(`Slide ${afficheIndex + 3} â€¢ Importez dans le panneau Visuel`, cardX + cardW / 2, cardY + cardH / 2 + 25);
                         }
 
-                        // Reflet subtil en dégradé sur le haut de la carte
+                        // Reflet subtil en dÃ©gradÃ© sur le haut de la carte
                         const glossGrad = ctx.createLinearGradient(cardX, cardY, cardX, cardY + cardH * 0.35);
                         glossGrad.addColorStop(0, 'rgba(255, 255, 255, 0.12)');
                         glossGrad.addColorStop(1, 'rgba(255, 255, 255, 0)');
@@ -8171,7 +8171,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         ctx.fillRect(cardX, cardY, cardW, cardH * 0.35);
                         ctx.restore();
 
-                        // 6. Contour bordure élégant
+                        // 6. Contour bordure Ã©lÃ©gant
                         ctx.save();
                         ctx.beginPath();
                         ctx.roundRect(cardX, cardY, cardW, cardH, rad);
@@ -8180,7 +8180,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         ctx.stroke();
                         ctx.restore();
 
-                        // 7. Mention Swipe (Chevrons en Cascade) si activée
+                        // 7. Mention Swipe (Chevrons en Cascade) si activÃ©e
                         if (showSwipe) {
                             const swipeY = canvas.height - (isStory ? 80 : 50);
                             drawAnimatedSwipeIndicator(
@@ -8301,7 +8301,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.fillStyle = '#c026d3';
                     ctx.font = '900 italic 60px "Montserrat", sans-serif';
                     ctx.letterSpacing = '8px';
-                    ctx.fillText('📅  ' + (calendarMonth || 'CALENDRIER').toUpperCase(), calCenterX, calTopY);
+                    ctx.fillText('ðŸ“…  ' + (calendarMonth || 'CALENDRIER').toUpperCase(), calCenterX, calTopY);
 
                     // Divider line
                     ctx.fillStyle = 'rgba(192,38,211,0.4)';
@@ -8379,7 +8379,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.restore();
 
                 } else if (theme === 'TRACKLIST') {
-                    // Charte V2 : Capsule Badge en haut à gauche [ • TRACKLIST ]
+                    // Charte V2 : Capsule Badge en haut Ã  gauche [ â€¢ TRACKLIST ]
                     drawTopCapsuleBadge('TRACKLIST', activeData.color || '#ff7800', activeData.grad || '255, 120, 0');
 
                     if (customText) {
@@ -8405,7 +8405,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         ctx.save();
                         ctx.textAlign = 'center';
 
-                        // Animation logic: Entrée au début puis reste fixe
+                        // Animation logic: EntrÃ©e au dÃ©but puis reste fixe
                         const elapsed = isVideoRecordingRef.current
                             ? deterministicAnimTimeRef.current
                             : ((bgVideo && !isDownloading)
@@ -8468,14 +8468,14 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     }
                 } else if (theme === 'SPOTLIGHT' || theme === 'ARTISTE FESTIVAL') {
                     if (artisteFestivalSlide === 1) {
-                        // ══════════════════════════════════════════════════════════════
-                        // SLIDE 1 : INTRO STYLE TOP 10 (LES 10 ARTISTES À VOIR LORS *FESTIVAL*)
-                        // ══════════════════════════════════════════════════════════════
+                        // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+                        // SLIDE 1 : INTRO STYLE TOP 10 (LES 10 ARTISTES Ã€ VOIR LORS *FESTIVAL*)
+                        // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
                         const isStory = canvas.height > 1500;
                         const centerX = canvas.width / 2;
                         const centerY = isStory ? 960 : 675;
 
-                        // 1. Fond sombre & Aura néon rouge centrale
+                        // 1. Fond sombre & Aura nÃ©on rouge centrale
                         const auraGrad = ctx.createRadialGradient(centerX, centerY, 50, centerX, centerY, canvas.width * 0.75);
                         auraGrad.addColorStop(0, 'rgba(0, 0, 0, 0.15)');
                         auraGrad.addColorStop(0.45, 'rgba(0, 0, 0, 0.35)');
@@ -8483,7 +8483,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         ctx.fillStyle = auraGrad;
                         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-                        // Vignette cinématique sur les bords
+                        // Vignette cinÃ©matique sur les bords
                         const darkEdgeGrad = ctx.createLinearGradient(0, 0, 0, canvas.height);
                         darkEdgeGrad.addColorStop(0, 'rgba(0, 0, 0, 0.75)');
                         darkEdgeGrad.addColorStop(0.2, 'rgba(0, 0, 0, 0.2)');
@@ -8504,7 +8504,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             drawDropsiders3DLogo(canvas.width - lw - xOffset, yOffset, lw);
                         }
 
-                        // 4. Hook Title Géant (Style Top 10 avec découpage intelligent & asterisques rouge néon)
+                        // 4. Hook Title GÃ©ant (Style Top 10 avec dÃ©coupage intelligent & asterisques rouge nÃ©on)
                         const parseSpotlightSegments = (lineText: string): { text: string; isHighlighted: boolean }[] => {
                             const regex = /(\*([^*]+)\*)/gi;
                             const segs: { text: string; isHighlighted: boolean }[] = [];
@@ -8523,13 +8523,13 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             return segs.length > 0 ? segs : [{ text: lineText.replace(/\*/g, ''), isHighlighted: false }];
                         };
 
-                        const rawIntroTitle = (festivalIntroTitle || `LES 10 ARTISTES À VOIR LORS *${(festivalNameText || 'FESTIVAL').toUpperCase()}*`).toUpperCase().trim();
+                        const rawIntroTitle = (festivalIntroTitle || `LES 10 ARTISTES Ã€ VOIR LORS *${(festivalNameText || 'FESTIVAL').toUpperCase()}*`).toUpperCase().trim();
 
                         let titleLines: string[] = [];
                         if (rawIntroTitle.includes('\n')) {
                             titleLines = rawIntroTitle.split('\n').map(l => l.trim()).filter(Boolean);
-                        } else if (rawIntroTitle.includes('À VOIR')) {
-                            const idx = rawIntroTitle.indexOf('À VOIR');
+                        } else if (rawIntroTitle.includes('Ã€ VOIR')) {
+                            const idx = rawIntroTitle.indexOf('Ã€ VOIR');
                             titleLines = [rawIntroTitle.slice(0, idx).trim(), rawIntroTitle.slice(idx).trim()].filter(Boolean);
                         } else if (rawIntroTitle.includes('A VOIR')) {
                             const idx = rawIntroTitle.indexOf('A VOIR');
@@ -8566,7 +8566,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         const pillY = isStory ? 1310 : 900;
                         const titleLine0Y = titleCenterY - (((titleLines.length - 1) * titleLineHeight) / 2);
 
-                        // Tracé des lignes du titre avec asterisques en rouge néon
+                        // TracÃ© des lignes du titre avec asterisques en rouge nÃ©on
                         titleLines.forEach((line, idx) => {
                             const lineY = titleLine0Y + idx * titleLineHeight;
                             const segments = parseSpotlightSegments(line);
@@ -8583,7 +8583,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 const segW = ctx.measureText(seg.text).width;
                                 const color = seg.isHighlighted ? '#ff0033' : '#ffffff';
 
-                                // Ombre portée 3D
+                                // Ombre portÃ©e 3D
                                 ctx.save();
                                 ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
                                 ctx.shadowBlur = 24;
@@ -8604,7 +8604,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             ctx.restore();
                         });
 
-                        // 5. Logo Festival Uploadé OU Nom Festival en Grand
+                        // 5. Logo Festival UploadÃ© OU Nom Festival en Grand
                         const festLogoObj = festivalLogoRef.current;
                         const hasUploadedFestLogo = Boolean(festivalLogo && festivalLogo.trim() !== '' && festLogoObj && (festLogoObj.naturalWidth > 0 || festLogoObj.complete));
 
@@ -8658,7 +8658,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         // 6. Pill cyber subtile
                         ctx.save();
                         applyTextAnimCtx(ctx, 0.45, centerX, pillY);
-                        const pillLabel = (conseilsSubtext || '🎪 SÉLECTION OFFICIELLE • LINE-UP GUIDE').toUpperCase();
+                        const pillLabel = (conseilsSubtext || 'ðŸŽª SÃ‰LECTION OFFICIELLE â€¢ LINE-UP GUIDE').toUpperCase();
                         ctx.font = '800 italic 20px "Montserrat", sans-serif';
                         if ('letterSpacing' in ctx) (ctx as any).letterSpacing = '2px';
                         const pTextW = ctx.measureText(pillLabel).width;
@@ -8687,12 +8687,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             drawAnimatedSwipeIndicator(canvas.width / 2 + 50, swipeY, '#ff0033', 24);
                         }
                     } else {
-                        // ══════════════════════════════════════════════════════════════
-                        // SLIDES 2+ : SPOTLIGHT ARTISTE CENTRÉ (SANS TAGLINE 1 NI 2)
-                        // ══════════════════════════════════════════════════════════════
+                        // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+                        // SLIDES 2+ : SPOTLIGHT ARTISTE CENTRÃ‰ (SANS TAGLINE 1 NI 2)
+                        // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
                         const isStory = canvas.height > 1500;
 
-                        // 1. Black Fade from left (Profond et net pour lisibilité parfaite des textes)
+                        // 1. Black Fade from left (Profond et net pour lisibilitÃ© parfaite des textes)
                         const fadeGrad = ctx.createLinearGradient(0, 0, canvas.width * 0.85, 0);
                         fadeGrad.addColorStop(0, '#000000');
                         fadeGrad.addColorStop(0.35, '#000000');
@@ -8701,7 +8701,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         ctx.fillStyle = fadeGrad;
                         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-                        // Données de la slide active
+                        // DonnÃ©es de la slide active
                         const slideData = spotlightSlidesData[artisteFestivalSlide];
                         const curArtistName = (slideData?.artistName !== undefined ? slideData.artistName : artistNameText) || '';
                         const lines = customText ? customText.split('\n').map(l => l.trim().toUpperCase()) : [];
@@ -8709,15 +8709,15 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         const dayName = (slideData?.day !== undefined ? slideData.day : (lines[2] || '')) || '';
                         const hourName = (slideData?.hour !== undefined ? slideData.hour : (lines[4] || '')) || '';
 
-                        // Calcul des positions Y verticalement CENTRÉES
-                        // En Story 1920: bloc s'étend de Y=480 à Y=1320 (centre ~900)
-                        // En Post 1080: bloc s'étend de Y=220 à Y=780 (centre ~500)
+                        // Calcul des positions Y verticalement CENTRÃ‰ES
+                        // En Story 1920: bloc s'Ã©tend de Y=480 Ã  Y=1320 (centre ~900)
+                        // En Post 1080: bloc s'Ã©tend de Y=220 Ã  Y=780 (centre ~500)
                         const startY = isStory ? 550 : 320;
                         const stageY = isStory ? 810 : 535;
                         const dayY = isStory ? 1050 : 725;
                         const hourY = isStory ? 1290 : 915;
 
-                        // 2. Artist Logo or Name (Centré verticalement dans le haut du bloc)
+                        // 2. Artist Logo or Name (CentrÃ© verticalement dans le haut du bloc)
                         if (artistLogoRef.current) {
                             const logo = artistLogoRef.current;
                             const maxW = isStory ? 480 : 380;
@@ -8877,7 +8877,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     const startX = isReel ? 60 : 44;
                     const safeW = canvas.width - (startX * 2);
 
-                    // 1. Badge supérieur CITATION (Capsule stylisée avec rouge néon Dropsiders)
+                    // 1. Badge supÃ©rieur CITATION (Capsule stylisÃ©e avec rouge nÃ©on Dropsiders)
                     drawTopCapsuleBadge('CITATION', activeData.color || '#ff1241', activeData.grad || '255, 18, 65');
 
                     if (customText) {
@@ -8921,10 +8921,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         ctx.font = '900 italic 140px "Montserrat", sans-serif';
                         ctx.shadowColor = 'rgba(0,0,0,0.8)';
                         ctx.shadowBlur = 10;
-                        ctx.fillText('“', startX, quoteMarkY);
+                        ctx.fillText('â€œ', startX, quoteMarkY);
                         ctx.restore();
 
-                        // 4. Lignes de la citation - animées LIGNE PAR LIGNE avec un décalage progressif
+                        // 4. Lignes de la citation - animÃ©es LIGNE PAR LIGNE avec un dÃ©calage progressif
                         let curY = quoteStartY;
                         ctx.font = '700 48px "Montserrat", sans-serif';
                         ctx.letterSpacing = "-1px";
@@ -8944,7 +8944,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     if (wordsToShow <= 0) {
                                         lineToDraw = '';
                                     } else {
-                                        lineToDraw = words.slice(0, wordsToShow).join(' ') + (wordsToShow < words.length ? ' ▌' : '');
+                                        lineToDraw = words.slice(0, wordsToShow).join(' ') + (wordsToShow < words.length ? ' â–Œ' : '');
                                     }
                                 }
                             }
@@ -8962,7 +8962,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             curY += lineHeight;
                         });
 
-                        // 5. Auteur de la citation (animé successivement après la dernière ligne)
+                        // 5. Auteur de la citation (animÃ© successivement aprÃ¨s la derniÃ¨re ligne)
                         if (citationAuthor) {
                             curY += (isStory ? 70 : 50);
                             const authorDelay = 0.16 + (quoteLines.length * 0.20) + 0.12;
@@ -8982,7 +8982,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             ctx.restore();
                         }
 
-                        // 6. Média / Contexte (animé en dernier)
+                        // 6. MÃ©dia / Contexte (animÃ© en dernier)
                         if (citationMedia) {
                             curY += (citationAuthor ? 45 : 55);
                             const mediaDelay = 0.16 + (quoteLines.length * 0.20) + 0.24;
@@ -9022,7 +9022,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 } else if (theme === 'AFFICHE' || (theme === 'EVENTS' && ((eventsSlide === 2 && eventNormalSlidesCount === 0) || isEditorialAfficheActive)) || isEditorialAfficheRequested) {
                     const isStory = canvas.height > 1500;
 
-                    // 1. Dark Vignette overlay (Atmosphère sombre et immersive Dropsiders)
+                    // 1. Dark Vignette overlay (AtmosphÃ¨re sombre et immersive Dropsiders)
                     const vig = ctx.createRadialGradient(
                         canvas.width / 2, canvas.height / 2, canvas.width * 0.15,
                         canvas.width / 2, canvas.height / 2, canvas.height * 0.72
@@ -9051,7 +9051,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     const cardY = Math.round(baseCardY + ((baseCardH - cardH) / 2) + (afficheOffsetY || 0));
                     const rad = isStory ? 28 : 24;
 
-                    // 4. Ombre portée 3D et halo ambiant néon
+                    // 4. Ombre portÃ©e 3D et halo ambiant nÃ©on
                     ctx.save();
                     if (afficheGlow) {
                         ctx.shadowColor = `rgba(${activeColor.grad || '255, 55, 0'}, 0.35)`;
@@ -9074,7 +9074,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.fill();
                     ctx.restore();
 
-                    // 5. Rendu de l'affiche de l'événement dans le rectangle arrondi clippé
+                    // 5. Rendu de l'affiche de l'Ã©vÃ©nement dans le rectangle arrondi clippÃ©
                     ctx.save();
                     ctx.beginPath();
                     ctx.roundRect(cardX, cardY, cardW, cardH, rad);
@@ -9114,10 +9114,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             ctx.fillStyle = '#0a0a0e';
                             ctx.fillRect(cardX, cardY, cardW, cardH);
                         }
-                        // Zoom + déplacement interne : seule l'image bouge, le cadre reste fixe
+                        // Zoom + dÃ©placement interne : seule l'image bouge, le cadre reste fixe
                         drawImageZoomPan(ctx, posterImg, cardX, cardY, cardW, cardH, afficheMode === 'contain' ? 'contain' : 'cover', afficheImgZoom, afficheImgPanX, afficheImgPanY);
                     } else {
-                        // Carte placeholder élégante en attente d'image
+                        // Carte placeholder Ã©lÃ©gante en attente d'image
                         const phGrad = ctx.createLinearGradient(cardX, cardY, cardX + cardW, cardY + cardH);
                         phGrad.addColorStop(0, 'rgba(26, 26, 32, 0.95)');
                         phGrad.addColorStop(1, 'rgba(12, 12, 16, 0.98)');
@@ -9128,14 +9128,14 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         ctx.textBaseline = 'middle';
                         ctx.fillStyle = '#ffffff';
                         ctx.font = '900 italic 30px "Orbitron", sans-serif';
-                        ctx.fillText("AFFICHE DE L'ÉVÉNEMENT", cardX + cardW / 2, cardY + cardH / 2 - 25);
+                        ctx.fillText("AFFICHE DE L'Ã‰VÃ‰NEMENT", cardX + cardW / 2, cardY + cardH / 2 - 25);
 
                         ctx.font = '700 16px "Montserrat", sans-serif';
                         ctx.fillStyle = 'rgba(255, 255, 255, 0.45)';
-                        ctx.fillText("Importez l'affiche dans le panneau latéral", cardX + cardW / 2, cardY + cardH / 2 + 25);
+                        ctx.fillText("Importez l'affiche dans le panneau latÃ©ral", cardX + cardW / 2, cardY + cardH / 2 + 25);
                     }
 
-                    // Reflet subtil en dégradé sur le haut de la carte
+                    // Reflet subtil en dÃ©gradÃ© sur le haut de la carte
                     const glossGrad = ctx.createLinearGradient(cardX, cardY, cardX, cardY + cardH * 0.35);
                     glossGrad.addColorStop(0, 'rgba(255, 255, 255, 0.12)');
                     glossGrad.addColorStop(1, 'rgba(255, 255, 255, 0)');
@@ -9143,7 +9143,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.fillRect(cardX, cardY, cardW, cardH * 0.35);
                     ctx.restore();
 
-                    // 6. Contour bordure élégant
+                    // 6. Contour bordure Ã©lÃ©gant
                     ctx.save();
                     ctx.beginPath();
                     ctx.roundRect(cardX, cardY, cardW, cardH, rad);
@@ -9166,7 +9166,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 } else if (isEditorialTweetRequested) {
                     const isStory = canvas.height > 1500;
 
-                    // 1. Dark Vignette overlay (Atmosphère cinéma sombre Dropsiders)
+                    // 1. Dark Vignette overlay (AtmosphÃ¨re cinÃ©ma sombre Dropsiders)
                     const vig = ctx.createRadialGradient(
                         canvas.width / 2, canvas.height / 2, canvas.width * 0.15,
                         canvas.width / 2, canvas.height / 2, canvas.height * 0.72
@@ -9177,11 +9177,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.fillStyle = vig;
                     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-                    // Couleurs dynamiques synchronisées avec le thème actif
+                    // Couleurs dynamiques synchronisÃ©es avec le thÃ¨me actif
                     const effectiveThemeColor = (typeof themeColor === 'string' ? themeColor : themeColor?.color) || baseThemeData[theme]?.color || '#ff0033';
                     const effectiveThemeGrad = (themeColor && typeof themeColor === 'object' && themeColor.grad) || baseThemeData[theme]?.grad || '255, 0, 51';
 
-                    // 2. Top Capsule Badge (ex: "• SOURCE X" ou personnalisé aux couleurs du thème)
+                    // 2. Top Capsule Badge (ex: "â€¢ SOURCE X" ou personnalisÃ© aux couleurs du thÃ¨me)
                     const badgeLabel = (tweetBadge || 'SOURCE X').toUpperCase();
                     const badgeColor = effectiveThemeColor;
                     const badgeGrad = effectiveThemeGrad;
@@ -9205,7 +9205,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         ctx.restore();
                     }
 
-                    // 4. Dimensions et proportions de la carte Tweet (calculées selon le ratio naturel du screenshot)
+                    // 4. Dimensions et proportions de la carte Tweet (calculÃ©es selon le ratio naturel du screenshot)
                     let tweetImg = (tweetImage && tweetImageRef.current) || (tweetImage && imageCacheRef.current[tweetImage]) || null;
                     if (tweetImage && (!tweetImg || !tweetImg.complete || tweetImg.naturalWidth === 0)) {
                         if (imageCacheRef.current[tweetImage]) {
@@ -9274,7 +9274,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     const totalBlockH = cardH + (hasTranslation ? (gap + transCardH) : 0);
                     const maxAvailableH = canvas.height - (isStory ? 140 : 100) - headlineBottomY;
 
-                    // Si l'ensemble dépasse la hauteur disponible, on réduit la hauteur du Tweet proportionnellement
+                    // Si l'ensemble dÃ©passe la hauteur disponible, on rÃ©duit la hauteur du Tweet proportionnellement
                     let finalCardH = cardH;
                     if (totalBlockH > maxAvailableH) {
                         const excess = totalBlockH - maxAvailableH;
@@ -9287,7 +9287,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     const transCardY = cardY + finalCardH + gap;
                     const rad = 28;
 
-                    // Calcul du temps d'animation pour les modes vidéo / live
+                    // Calcul du temps d'animation pour les modes vidÃ©o / live
                     const tweetAnimT = animStartTimeRef.current ? Math.max(0, (Date.now() - animStartTimeRef.current) / 1000) : 0;
 
                     let cardAnimScale = 1;
@@ -9301,12 +9301,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     let sweepGlossProgress = 0;
 
                     if (tweetAnimMode === 'FLOAT') {
-                        // 1. Zoom d'entrée fluide 0.55s
+                        // 1. Zoom d'entrÃ©e fluide 0.55s
                         const entryT = Math.min(1, tweetAnimT / 0.55);
                         cardAnimScale = 0.93 + (1 - Math.pow(1 - entryT, 3)) * 0.07;
                         cardAnimOpacity = Math.min(1, tweetAnimT / 0.35);
 
-                        // 2. Lévitation subtile continue (onde sinusoïdale 6px)
+                        // 2. LÃ©vitation subtile continue (onde sinusoÃ¯dale 6px)
                         cardAnimOffsetY = Math.sin(tweetAnimT * 2.2) * 6;
 
                         // 3. Stagger de la carte Traduction FR (+25px slide)
@@ -9314,7 +9314,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         transAnimSlideY = (1 - Math.pow(1 - trT, 3)) * 25;
                         transAnimOpacity = trT;
 
-                        // 4. Balayage de reflet lumineux oblique périodique (toutes les 2.8s)
+                        // 4. Balayage de reflet lumineux oblique pÃ©riodique (toutes les 2.8s)
                         const sheenCycle = (tweetAnimT % 2.8) / 2.8;
                         if (sheenCycle >= 0.12 && sheenCycle <= 0.62) {
                             isSweepGlossActive = true;
@@ -9329,12 +9329,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         // 2. Micro pulsation du scale au rythme du scan
                         cardAnimScale = 1.0 + Math.sin(tweetAnimT * 4) * 0.005;
 
-                        // 3. Traduction FR qui apparaît avec décodage / fondu progressif
+                        // 3. Traduction FR qui apparaÃ®t avec dÃ©codage / fondu progressif
                         const trT = Math.max(0, Math.min(1, (tweetAnimT - 0.4) / 0.5));
                         transAnimSlideY = (1 - trT) * 15;
                         transAnimOpacity = trT;
                     } else if (tweetAnimMode === 'POPUP') {
-                        // 1. Rebond élastique notification (spring bounce)
+                        // 1. Rebond Ã©lastique notification (spring bounce)
                         const popT = Math.min(1, tweetAnimT / 0.7);
                         if (popT < 1) {
                             cardAnimScale = 1 + Math.sin(popT * Math.PI * 2.2) * Math.exp(-popT * 5.2) * 0.26;
@@ -9344,7 +9344,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             cardAnimOpacity = 1.0;
                         }
 
-                        // 2. Traduction FR qui drop avec un léger rebond après 0.3s
+                        // 2. Traduction FR qui drop avec un lÃ©ger rebond aprÃ¨s 0.3s
                         const trPopT = Math.max(0, Math.min(1, (tweetAnimT - 0.3) / 0.6));
                         if (trPopT < 1) {
                             transAnimSlideY = (1 - Math.pow(1 - trPopT, 3)) * 30;
@@ -9354,11 +9354,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             transAnimOpacity = 1;
                         }
                     } else if (tweetAnimMode === 'TILT') {
-                        // 1. Inclinaison 3D cinématique (-3.5° à 0°) avec amorti doux
+                        // 1. Inclinaison 3D cinÃ©matique (-3.5Â° Ã  0Â°) avec amorti doux
                         const tiltT = Math.min(1, tweetAnimT / 1.1);
                         cardAnimRotate = (1 - Math.pow(1 - tiltT, 3)) * (3.5 * Math.PI / 180) - (3.5 * Math.PI / 180);
 
-                        // 2. Zoom avant continu caméra cinématique très subtil (1.0 à 1.035)
+                        // 2. Zoom avant continu camÃ©ra cinÃ©matique trÃ¨s subtil (1.0 Ã  1.035)
                         cardAnimScale = 1.0 + Math.min(0.035, tweetAnimT * 0.007);
                         cardAnimOpacity = Math.min(1, tweetAnimT / 0.4);
 
@@ -9381,7 +9381,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                     const currentCardY = cardY + cardAnimOffsetY;
 
-                    // 5. Ombre portée 3D et halo ambiant néon aux couleurs du thème
+                    // 5. Ombre portÃ©e 3D et halo ambiant nÃ©on aux couleurs du thÃ¨me
                     ctx.save();
                     if (tweetGlow) {
                         ctx.shadowColor = tweetAnimMode === 'SCANNER'
@@ -9430,7 +9430,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         ctx.font = '900 64px "Montserrat", sans-serif';
                         ctx.textAlign = 'center';
                         ctx.textBaseline = 'middle';
-                        ctx.fillText('𝕏', cx, cy);
+                        ctx.fillText('ð•', cx, cy);
 
                         ctx.font = '900 italic 26px "Orbitron", sans-serif';
                         ctx.fillStyle = effectiveThemeColor;
@@ -9438,11 +9438,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                         ctx.font = '600 15px "Montserrat", sans-serif';
                         ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
-                        ctx.fillText("Importez la capture d'écran du post dans le panneau latéral", cx, cy + 95);
+                        ctx.fillText("Importez la capture d'Ã©cran du post dans le panneau latÃ©ral", cx, cy + 95);
                         ctx.restore();
                     }
 
-                    // Reflet subtil en dégradé sur le haut de la carte
+                    // Reflet subtil en dÃ©gradÃ© sur le haut de la carte
                     const glossGrad = ctx.createLinearGradient(cardX, currentCardY, cardX, currentCardY + Math.min(finalCardH * 0.4, 120));
                     glossGrad.addColorStop(0, 'rgba(255, 255, 255, 0.08)');
                     glossGrad.addColorStop(1, 'rgba(255, 255, 255, 0)');
@@ -9460,7 +9460,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         ctx.fillRect(cardX, currentCardY, cardW, finalCardH);
                     }
 
-                    // Faisceau Laser Cyber Scanner (Mode SCANNER) aux couleurs du thème
+                    // Faisceau Laser Cyber Scanner (Mode SCANNER) aux couleurs du thÃ¨me
                     if (scannerLaserY !== null) {
                         const lY = currentCardY + scannerLaserY;
                         ctx.save();
@@ -9486,7 +9486,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                     ctx.restore();
 
-                    // 7. Contour bordure élégant
+                    // 7. Contour bordure Ã©lÃ©gant
                     ctx.save();
                     ctx.beginPath();
                     ctx.roundRect(cardX, currentCardY, cardW, finalCardH, rad);
@@ -9498,7 +9498,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     // Fermeture des transformations de la carte Tweet
                     ctx.restore();
 
-                    // 8. Rendu de la Carte Traduction FR en dessous avec animation propre et couleurs du thème
+                    // 8. Rendu de la Carte Traduction FR en dessous avec animation propre et couleurs du thÃ¨me
                     if (hasTranslation && transLines.length > 0) {
                         const currentTransY = transCardY + cardAnimOffsetY + transAnimSlideY;
                         const transRad = 22;
@@ -9533,8 +9533,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         ctx.fillStyle = trGloss;
                         ctx.fillRect(cardX, currentTransY, cardW, 40);
 
-                        // Badge Traduction FR avec pastille lumineuse aux couleurs du thème
-                        const badgeText = '• TRADUCTION FR';
+                        // Badge Traduction FR avec pastille lumineuse aux couleurs du thÃ¨me
+                        const badgeText = 'â€¢ TRADUCTION FR';
                         ctx.font = '900 italic 14px "Orbitron", sans-serif';
                         ctx.fillStyle = effectiveThemeColor;
                         ctx.textAlign = 'left';
@@ -9560,7 +9560,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             const line = transLines[i];
                             const isFirst = (i === 0);
                             const isLast = (i === transLines.length - 1);
-                            const displayLine = `${isFirst ? '« ' : ''}${line}${isLast ? ' »' : ''}`;
+                            const displayLine = `${isFirst ? 'Â« ' : ''}${line}${isLast ? ' Â»' : ''}`;
                             ctx.fillText(displayLine, cardX + transPadX, lineY);
                             lineY += transLineH;
                         }
@@ -9576,7 +9576,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         ctx.restore();
                     }
 
-                    // 9. Mention Swipe aux couleurs du thème
+                    // 9. Mention Swipe aux couleurs du thÃ¨me
                     if (showSwipe) {
                         const swipeY = canvas.height - (isStory ? 80 : 50);
                         drawAnimatedSwipeIndicator(
@@ -9594,7 +9594,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     const currentCoverUrl = currentTrack.cover || (trackIdx === 0 ? afficheImage : '');
                     const currentCoverImg = (currentCoverUrl && musicCoverImgsRef.current[currentCoverUrl]) || (trackIdx === 0 ? afficheImageRef.current : null);
 
-                    // 1. Ambiance sombre & immersive avec halo néon vert Dropsiders
+                    // 1. Ambiance sombre & immersive avec halo nÃ©on vert Dropsiders
                     const vig = ctx.createRadialGradient(
                         canvas.width / 2, canvas.height / 2, canvas.width * 0.15,
                         canvas.width / 2, canvas.height / 2, canvas.height * 0.72
@@ -9605,7 +9605,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.fillStyle = vig;
                     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-                    // Halo lumineux néon vert centré derrière la pochette avec respiration douce cinématique
+                    // Halo lumineux nÃ©on vert centrÃ© derriÃ¨re la pochette avec respiration douce cinÃ©matique
                     const haloY = isStory ? 730 : 555;
                     const haloBreath = musicBgMotion ? (1.0 + Math.sin(animElapsed * 1.2) * 0.12) : 1.0;
                     const haloGrad = ctx.createRadialGradient(
@@ -9618,21 +9618,21 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.fillStyle = haloGrad;
                     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-                    // 2. Top Capsule Badge MUSIQUE (vert néon #39ff14)
+                    // 2. Top Capsule Badge MUSIQUE (vert nÃ©on #39ff14)
                     drawTopCapsuleBadge('MUSIQUE', '#39ff14', '57, 255, 20');
 
-                    // 3. Animation de lévitation douce classe de la pochette (gauche-droite et haut-bas)
+                    // 3. Animation de lÃ©vitation douce classe de la pochette (gauche-droite et haut-bas)
                     const coverAnimTime = isVideoRecordingRef.current
                         ? deterministicAnimTimeRef.current
                         : (animStartTimeRef.current ? (Date.now() - animStartTimeRef.current) / 1000 : 0);
                     const isCoverFloating = !isStaticPngExport && !isDownloading;
-                    // Lévitation orbitale douce et fluide (Lissajous harmonieux sans à-coups)
+                    // LÃ©vitation orbitale douce et fluide (Lissajous harmonieux sans Ã -coups)
                     const floatAmpX = isStory ? 14 : 9;
                     const floatAmpY = isStory ? 16 : 10;
                     const floatX = isCoverFloating ? Math.sin(coverAnimTime * 1.5) * floatAmpX : 0;
                     const floatY = isCoverFloating ? Math.cos(coverAnimTime * 1.15) * floatAmpY : 0;
 
-                    // Dimensions et proportions de la pochette carrée 1:1
+                    // Dimensions et proportions de la pochette carrÃ©e 1:1
                     const baseCardSize = isStory ? 780 : 510;
                     const scale = (afficheScale || 100) / 100;
                     const cardW = Math.round(baseCardSize * scale);
@@ -9643,7 +9643,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     const cardY = Math.round(baseCardY + (afficheOffsetY || 0) + floatY);
                     const rad = isStory ? 34 : 26;
 
-                    // 4. Ombre portée 3D et halo ambiant néon vert
+                    // 4. Ombre portÃ©e 3D et halo ambiant nÃ©on vert
                     ctx.save();
                     if (afficheGlow) {
                         ctx.shadowColor = 'rgba(57, 255, 20, 0.40)';
@@ -9666,7 +9666,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.fill();
                     ctx.restore();
 
-                    // 5. Rendu de l'image de la pochette ou vinyle stylisé Dropsiders (propre, zéro trait blanc)
+                    // 5. Rendu de l'image de la pochette ou vinyle stylisÃ© Dropsiders (propre, zÃ©ro trait blanc)
                     ctx.save();
                     ctx.beginPath();
                     ctx.roundRect(cardX, cardY, cardW, cardH, rad);
@@ -9678,10 +9678,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             ctx.fillStyle = '#0a0a0e';
                             ctx.fillRect(cardX, cardY, cardW, cardH);
                         }
-                        // Zoom + déplacement interne de la pochette (cadre fixe)
+                        // Zoom + dÃ©placement interne de la pochette (cadre fixe)
                         drawImageZoomPan(ctx, poster, cardX, cardY, cardW, cardH, afficheMode === 'contain' ? 'contain' : 'cover', afficheImgZoom, afficheImgPanX, afficheImgPanY);
                     } else {
-                        // Placeholder vinyle / music art élégant et épuré
+                        // Placeholder vinyle / music art Ã©lÃ©gant et Ã©purÃ©
                         const phGrad = ctx.createLinearGradient(cardX, cardY, cardX + cardW, cardY + cardH);
                         phGrad.addColorStop(0, '#151b16');
                         phGrad.addColorStop(0.5, '#0e120f');
@@ -9700,7 +9700,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             ctx.stroke();
                         });
 
-                        // Centre du vinyle avec pastille néon vert
+                        // Centre du vinyle avec pastille nÃ©on vert
                         ctx.beginPath();
                         ctx.arc(cCenterX, cCenterY, 34, 0, Math.PI * 2);
                         ctx.fillStyle = '#0a0e0b';
@@ -9714,7 +9714,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         ctx.fillStyle = '#39ff14';
                         ctx.fill();
 
-                        // Textes de consignes épurés
+                        // Textes de consignes Ã©purÃ©s
                         ctx.textAlign = 'center';
                         ctx.textBaseline = 'middle';
                         ctx.font = '800 24px "Montserrat", sans-serif';
@@ -9723,14 +9723,14 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                         ctx.font = '600 14px "Montserrat", sans-serif';
                         ctx.fillStyle = 'rgba(255, 255, 255, 0.45)';
-                        ctx.fillText("Format carré 1:1 • Importer dans le panneau", cCenterX, cardY + cardH * 0.84);
+                        ctx.fillText("Format carrÃ© 1:1 â€¢ Importer dans le panneau", cCenterX, cardY + cardH * 0.84);
                     }
 
                     ctx.restore();
 
                     // 6. Bague de lecture Pioneer CDJ Rouge (Remplissage 30s) ou bordure classique
                     if (cdjPlayerRing) {
-                        // A) Rainure / rail de fond CDJ métallique avec repère
+                        // A) Rainure / rail de fond CDJ mÃ©tallique avec repÃ¨re
                         ctx.save();
                         ctx.beginPath();
                         drawRoundRectPathFromTopCenter(ctx, cardX, cardY, cardW, cardH, rad);
@@ -9738,7 +9738,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         ctx.lineWidth = 4;
                         ctx.stroke();
 
-                        // Repère 12h au sommet (notch cue CDJ)
+                        // RepÃ¨re 12h au sommet (notch cue CDJ)
                         ctx.beginPath();
                         ctx.moveTo(cardX + cardW / 2, cardY - 4);
                         ctx.lineTo(cardX + cardW / 2, cardY + 4);
@@ -9763,7 +9763,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         const perimeter = 2 * (cardW + cardH) - (8 - 2 * Math.PI) * rad;
                         const fillLength = Math.max(0.1, playerProgress * perimeter);
 
-                        // C) Laser vert néon CDJ (#00ff66) avec lueur incandescente
+                        // C) Laser vert nÃ©on CDJ (#00ff66) avec lueur incandescente
                         ctx.save();
                         ctx.shadowColor = '#00ff66';
                         ctx.shadowBlur = 14;
@@ -9776,7 +9776,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         ctx.setLineDash([]);
                         ctx.restore();
 
-                        // D) Tête de lecture LED Cue / Jog Head luminescente vert néon
+                        // D) TÃªte de lecture LED Cue / Jog Head luminescente vert nÃ©on
                         if (playerProgress > 0 && playerProgress < 1.0) {
                             const pt = getRoundRectPerimeterPoint(cardX, cardY, cardW, cardH, rad, playerProgress);
                             ctx.save();
@@ -9787,7 +9787,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             ctx.arc(pt.x, pt.y, 6.5, 0, Math.PI * 2);
                             ctx.fill();
 
-                            // Point blanc cœur de diode
+                            // Point blanc cÅ“ur de diode
                             ctx.fillStyle = '#ffffff';
                             ctx.beginPath();
                             ctx.arc(pt.x, pt.y, 2.5, 0, Math.PI * 2);
@@ -9795,7 +9795,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             ctx.restore();
                         }
                     } else {
-                        // Contour bordure vert néon Dropsiders intense avec halo lumineux
+                        // Contour bordure vert nÃ©on Dropsiders intense avec halo lumineux
                         ctx.save();
                         ctx.beginPath();
                         ctx.roundRect(cardX, cardY, cardW, cardH, rad);
@@ -9836,7 +9836,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.fillText(trackNumText, centerX, pillY);
                     ctx.restore();
 
-                    // B) TITRE DU MORCEAU (Aéré sous la pilule, verrouillé avec l'artiste)
+                    // B) TITRE DU MORCEAU (AÃ©rÃ© sous la pilule, verrouillÃ© avec l'artiste)
                     const titleY = isStory ? 1285 : 868;
                     const titleText = currentTrack.title?.trim() || `TITRE DU MORCEAU`;
                     ctx.save();
@@ -9882,7 +9882,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     }
                     ctx.restore();
 
-                    // C) ARTISTE (Rapproché du titre : bloc typographique unifié et puissant)
+                    // C) ARTISTE (RapprochÃ© du titre : bloc typographique unifiÃ© et puissant)
                     const artistY = isStory ? 1348 : 916;
                     const artistText = currentTrack.artist?.trim() || 'NOM DE L\'ARTISTE';
                     const artistUpper = artistText.toUpperCase();
@@ -9912,7 +9912,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     }
                     ctx.restore();
 
-                    // D) LABEL DISCOGRAPHIQUE (Badge capsule élégant parfaitement cadré en dessous)
+                    // D) LABEL DISCOGRAPHIQUE (Badge capsule Ã©lÃ©gant parfaitement cadrÃ© en dessous)
                     const labelRaw = currentTrack.label?.trim();
                     if (labelRaw) {
                         const labelY = isStory ? 1425 : 975;
@@ -9975,11 +9975,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     const isStory = canvas.height > 1500;
                     const isExport = isVideoRecordingRef.current;
 
-                    // Fond d'espace cosmique propre (élimine tout résidu ou dégradé rouge en bas)
+                    // Fond d'espace cosmique propre (Ã©limine tout rÃ©sidu ou dÃ©gradÃ© rouge en bas)
                     ctx.fillStyle = '#03050a';
                     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-                    // 1. Calcul du temps et du progrès
+                    // 1. Calcul du temps et du progrÃ¨s
                     let animTime = 0;
                     const duration = Math.max(4, mapAnimDuration || 15);
                     if (mapScrubTime !== null && !isExport) {
@@ -9992,12 +9992,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     const rawProgress = (animTime % duration) / duration;
                     const progress = Math.max(0, Math.min(1, rawProgress));
 
-                    // Helper Espace étoilé cosmique (délégué au helper global)
+                    // Helper Espace Ã©toilÃ© cosmique (dÃ©lÃ©guÃ© au helper global)
                     const drawSpaceBackground = (alpha: number = 1.0) => {
                         drawSpaceBackgroundGlobal(ctx, canvas.width, canvas.height, alpha, animTime);
                     };
 
-                    // Helper Globe Terrestre 3D photoréaliste (délégué au helper global centré sur coordonnées)
+                    // Helper Globe Terrestre 3D photorÃ©aliste (dÃ©lÃ©guÃ© au helper global centrÃ© sur coordonnÃ©es)
                     const drawEarthGlobe = (cx: number, cy: number, radius: number, centerLat: number, centerLon: number, globeAlpha: number = 1.0) => {
                         drawEarthGlobeGlobal(ctx, cx, cy, radius, centerLat, centerLon, globeAlpha);
                     };
@@ -10027,7 +10027,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         ctx.roundRect(frameX, frameY, frameW, frameH, 28);
                         ctx.fill();
 
-                        // Bordure néon
+                        // Bordure nÃ©on
                         ctx.strokeStyle = badgeCol;
                         ctx.lineWidth = 3;
                         ctx.stroke();
@@ -10047,7 +10047,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         ctx.textAlign = 'left';
                         ctx.fillText(badgeLabel, frameX + 70, frameY + 52);
 
-                        // Ligne de séparation
+                        // Ligne de sÃ©paration
                         ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
                         ctx.fillRect(frameX + 35, frameY + 75, frameW - 70, 2);
 
@@ -10063,7 +10063,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         ctx.fillText(nameStr, frameX + frameW / 2, frameY + 130);
 
                         // Lieu / Salle / Ville
-                        const subLoc = [venueName, cityCountryStr].filter(Boolean).join(' • ').toUpperCase();
+                        const subLoc = [venueName, cityCountryStr].filter(Boolean).join(' â€¢ ').toUpperCase();
                         ctx.font = '800 20px "Montserrat", sans-serif';
                         ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
                         let subSize = 20;
@@ -10076,10 +10076,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         ctx.restore();
                     };
 
-                    // Helper Traînées de vitesse désactivées (retrait des feux d'artifice bleus)
+                    // Helper TraÃ®nÃ©es de vitesse dÃ©sactivÃ©es (retrait des feux d'artifice bleus)
                     const drawSpeedStreaks = (_intensity: number) => { };
 
-                    // Helper Overlay HUD Drone FPV Professionnel & Télémétrie Aérienne
+                    // Helper Overlay HUD Drone FPV Professionnel & TÃ©lÃ©mÃ©trie AÃ©rienne
                     const drawDroneHudOverlay = (
                         altitudeM: number,
                         speedKmh: number = 24,
@@ -10093,7 +10093,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         const margin = 45;
                         const bLen = 35; // longueur des coins de cadrage FPV
 
-                        // 1. Coins de cadrage FPV drone (┌ ┐ └ ┘)
+                        // 1. Coins de cadrage FPV drone (â”Œ â” â”” â”˜)
                         ctx.strokeStyle = 'rgba(0, 240, 255, 0.7)';
                         ctx.lineWidth = 2.5;
 
@@ -10125,7 +10125,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         ctx.lineTo(canvas.width - margin, canvas.height - margin - bLen);
                         ctx.stroke();
 
-                        // 2. Viseur Réticule FPV Central [ + ] avec horizon artificiel
+                        // 2. Viseur RÃ©ticule FPV Central [ + ] avec horizon artificiel
                         const cx = canvas.width / 2;
                         const cy = canvas.height / 2;
 
@@ -10163,12 +10163,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         ctx.stroke();
                         ctx.restore();
 
-                        // 3. Status Bar FPV - REC 4K et Télémétrie Drone
+                        // 3. Status Bar FPV - REC 4K et TÃ©lÃ©mÃ©trie Drone
                         const recPulse = 0.5 + 0.5 * Math.sin(animTime * 6);
                         ctx.save();
                         ctx.font = '900 13px "Orbitron", sans-serif';
 
-                        // REC Indicator en haut à gauche
+                        // REC Indicator en haut Ã  gauche
                         const topStatusY = margin + 20;
                         ctx.fillStyle = `rgba(255, 40, 80, ${0.4 + 0.6 * recPulse})`;
                         ctx.beginPath();
@@ -10179,16 +10179,16 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         ctx.textAlign = 'left';
                         ctx.fillText('REC 4K 60FPS', margin + 24, topStatusY);
 
-                        // FPV Drone mode & Satellite Lock en haut à droite
+                        // FPV Drone mode & Satellite Lock en haut Ã  droite
                         ctx.fillStyle = 'rgba(0, 240, 255, 0.9)';
                         ctx.textAlign = 'right';
                         const rightStatusX = canvas.width - margin - 10;
-                        ctx.fillText(`GPS 18 SATS • BAT ${batteryPct}%`, rightStatusX, topStatusY);
+                        ctx.fillText(`GPS 18 SATS â€¢ BAT ${batteryPct}%`, rightStatusX, topStatusY);
 
-                        // 4. Barre Télémétrie Basse (Altitude drone, vitesse, gimbal)
+                        // 4. Barre TÃ©lÃ©mÃ©trie Basse (Altitude drone, vitesse, gimbal)
                         const bottomHudY = canvas.height - 350;
 
-                        // Capsule altitude drone à gauche
+                        // Capsule altitude drone Ã  gauche
                         ctx.fillStyle = 'rgba(8, 12, 22, 0.80)';
                         ctx.strokeStyle = 'rgba(0, 240, 255, 0.45)';
                         ctx.lineWidth = 1.2;
@@ -10202,7 +10202,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         ctx.font = '900 13px "Orbitron", sans-serif';
                         ctx.fillText(`ALT: ${Math.round(altitudeM)}M`, margin + 24, bottomHudY + 23);
 
-                        // Capsule vitesse & gimbal à droite
+                        // Capsule vitesse & gimbal Ã  droite
                         ctx.beginPath();
                         ctx.roundRect(canvas.width - margin - 225, bottomHudY, 215, 36, 8);
                         ctx.fill();
@@ -10210,7 +10210,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                         ctx.fillStyle = '#ffffff';
                         ctx.textAlign = 'right';
-                        ctx.fillText(`SPD: ${speedKmh} KM/H • GMB: ${gimbalDeg}°`, canvas.width - margin - 22, bottomHudY + 23);
+                        ctx.fillText(`SPD: ${speedKmh} KM/H â€¢ GMB: ${gimbalDeg}Â°`, canvas.width - margin - 22, bottomHudY + 23);
 
                         ctx.restore();
                         ctx.restore();
@@ -10257,7 +10257,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         ctx.restore();
                     };
 
-                    // Helper Bannière Header HUD - Capsule élégante à gauche du logo Dropsiders (Zéro chevauchement !)
+                    // Helper BanniÃ¨re Header HUD - Capsule Ã©lÃ©gante Ã  gauche du logo Dropsiders (ZÃ©ro chevauchement !)
                     const drawHudTopBar = (leftText: string, rightText: string) => {
                         ctx.save();
                         const isReel = effectiveTab === 'REEL';
@@ -10265,8 +10265,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         const barY = isReel ? 74 : 50;
                         const barH = 50;
 
-                        // Le logo officiel Dropsiders commence à x = canvas.width - 275 - 80 = 725.
-                        // Donc la capsule HUD s'arrête à 660 maximum pour un espace parfait garanti !
+                        // Le logo officiel Dropsiders commence Ã  x = canvas.width - 275 - 80 = 725.
+                        // Donc la capsule HUD s'arrÃªte Ã  660 maximum pour un espace parfait garanti !
                         const maxBarW = canvas.width - (isReel ? 420 : 380);
 
                         ctx.font = '900 15px "Montserrat", sans-serif';
@@ -10318,13 +10318,13 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     };
 
                     // ==============================================================
-                    // EXÉCUTION DU MODE CHOISI
+                    // EXÃ‰CUTION DU MODE CHOISI
                     // ==============================================================
                     // ==============================================================
-                    // EXÉCUTION DU MODE CHOISI (TRAJET 2 EVENTS OU ZOOM TERRE)
+                    // EXÃ‰CUTION DU MODE CHOISI (TRAJET 2 EVENTS OU ZOOM TERRE)
                     // ==============================================================
                     if (mapAnimMode === 'FLIGHT_ROUTE') {
-                        // MODE 1 : TRAJET 2 EVENTS (ex: Escape Halloween ➔ Dream Nation)
+                        // MODE 1 : TRAJET 2 EVENTS (ex: Escape Halloween âž” Dream Nation)
                         const t = progress;
                         const latA = mapLatitude;
                         const lonA = mapLongitude;
@@ -10340,7 +10340,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         const distKm = Math.round(6371 * cH);
 
                         if (t < 0.16) {
-                            // Phase 1 (0 à 16%) : Mode Drone FPV Event 1 au ras de la scène
+                            // Phase 1 (0 Ã  16%) : Mode Drone FPV Event 1 au ras de la scÃ¨ne
                             const rel = t / 0.16;
                             const droneZoom = 18.2 + rel * 1.3;
                             const droneAngle = Math.sin(t * 2.0) * 0.025;
@@ -10352,20 +10352,20 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             drawDroneHudOverlay(altM, 20, 96, -45, 1.0);
                             drawPinDrop(canvas.width / 2 + driftX, canvas.height / 2 + driftY, 1.0, mapPinColor);
                             drawFestivalCard(mapFestivalText, mapVenue, mapCityCountry, 'DRONE FPV (EVENT 1)', mapPinColor, 1.0);
-                            drawHudTopBar('MODE DRONE FPV', 'POINT DE DÉPART');
+                            drawHudTopBar('MODE DRONE FPV', 'POINT DE DÃ‰PART');
                         } else if (t < 0.28) {
-                            // Phase 2 (16% à 28%) : Décollage fluide vers l'orbite (S-Curve sinusoïdale douce)
+                            // Phase 2 (16% Ã  28%) : DÃ©collage fluide vers l'orbite (S-Curve sinusoÃ¯dale douce)
                             const rel = (t - 0.16) / 0.12;
                             const ease = 0.5 - 0.5 * Math.cos(rel * Math.PI);
                             const curZ = 19.5 - ease * 15.9; // 19.5 -> 3.6 continu !
                             drawMap(ctx, latA, lonA, curZ, canvas.width, canvas.height, 0, 0, false, 0, 0, 0, animTime);
-                            drawHudTopBar('DÉCOLLAGE ORBITAL', 'ALT: 10 000 KM');
+                            drawHudTopBar('DÃ‰COLLAGE ORBITAL', 'ALT: 10 000 KM');
                         } else if (t < 0.68) {
-                            // Phase 3 (28% à 68%) : Vol Orbital A ➔ B avec Trajectoire 3D Réelle & Faisceau Laser Haute Définition
+                            // Phase 3 (28% Ã  68%) : Vol Orbital A âž” B avec Trajectoire 3D RÃ©elle & Faisceau Laser Haute DÃ©finition
                             const rel = (t - 0.28) / 0.40;
                             const easeRel = 0.5 - 0.5 * Math.cos(rel * Math.PI);
 
-                            // Calcul de la distance géodésique et du point médian du Grand Cercle
+                            // Calcul de la distance gÃ©odÃ©sique et du point mÃ©dian du Grand Cercle
                             const shortestLonDiff = ((((lonB - lonA) + 540) % 360) - 180);
                             const phiA = (latA * Math.PI) / 180;
                             const lamA = (lonA * Math.PI) / 180;
@@ -10374,7 +10374,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             const cosDelta = Math.sin(phiA) * Math.sin(phiB) + Math.cos(phiA) * Math.cos(phiB) * Math.cos(lamB - lamA);
                             const delta = Math.acos(Math.max(-1, Math.min(1, cosDelta)));
 
-                            // Point médian géographique réel pour centrer les 2 festivals simultanément sur la Terre
+                            // Point mÃ©dian gÃ©ographique rÃ©el pour centrer les 2 festivals simultanÃ©ment sur la Terre
                             let midLat = (latA + latB) / 2;
                             let midLon = lonA + shortestLonDiff / 2;
                             if (delta > 0.001) {
@@ -10388,7 +10388,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 midLon = Math.atan2(yM, xM) * (180 / Math.PI);
                             }
 
-                            // Cadrage caméra parfait : centré au milieu avec une micro-rotation douce qui suit la progression
+                            // Cadrage camÃ©ra parfait : centrÃ© au milieu avec une micro-rotation douce qui suit la progression
                             const camLat = midLat + (latB - latA) * 0.15 * (easeRel - 0.5);
                             const camLon = midLon + shortestLonDiff * 0.15 * (easeRel - 0.5);
 
@@ -10398,14 +10398,14 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             const cy = canvas.height / 2;
                             drawEarthGlobe(cx, cy, radius, camLat, camLon, 1.0);
 
-                            // Helper de projection 3D rigoureuse (ne déborde JAMAIS du disque terrestre)
+                            // Helper de projection 3D rigoureuse (ne dÃ©borde JAMAIS du disque terrestre)
                             const projectOnGlobe = (pLat: number, pLon: number, altitudePx: number = 0) => {
                                 const diffLon = ((((pLon - camLon) + 540) % 360) - 180);
                                 const pPhi = (pLat * Math.PI) / 180;
                                 const pPhi0 = (camLat * Math.PI) / 180;
                                 const pLam = diffLon * (Math.PI / 180);
 
-                                // Coordonnées 3D sur la sphère (Z = profondeur face à la caméra)
+                                // CoordonnÃ©es 3D sur la sphÃ¨re (Z = profondeur face Ã  la camÃ©ra)
                                 const vx = Math.cos(pPhi) * Math.sin(pLam);
                                 const vy = Math.cos(pPhi0) * Math.sin(pPhi) - Math.sin(pPhi0) * Math.cos(pPhi) * Math.cos(pLam);
                                 const vz = Math.sin(pPhi0) * Math.sin(pPhi) + Math.cos(pPhi0) * Math.cos(pPhi) * Math.cos(pLam);
@@ -10426,10 +10426,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             const posA = projectOnGlobe(latA, lonA, 0);
                             const posB = projectOnGlobe(latB, lonB, 0);
 
-                            // Échantillonnage de la trajectoire orbitale réelle en 50 points
+                            // Ã‰chantillonnage de la trajectoire orbitale rÃ©elle en 50 points
                             const numSteps = 50;
                             const curvePoints: { x: number; y: number; s: number; isVisible: boolean }[] = [];
-                            const maxArcAltitude = Math.min(32, Math.max(16, radius * 0.09)); // Élévation orbitale discrète et élégante
+                            const maxArcAltitude = Math.min(32, Math.max(16, radius * 0.09)); // Ã‰lÃ©vation orbitale discrÃ¨te et Ã©lÃ©gante
 
                             for (let i = 0; i <= numSteps; i++) {
                                 const s = i / numSteps;
@@ -10458,7 +10458,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 curvePoints.push({ x: pt.x, y: pt.y, s, isVisible: pt.isVisible });
                             }
 
-                            // 1. Couloir de vol futuriste (pointillés fins très élégants sur tout le trajet)
+                            // 1. Couloir de vol futuriste (pointillÃ©s fins trÃ¨s Ã©lÃ©gants sur tout le trajet)
                             ctx.save();
                             ctx.setLineDash([4, 6]);
                             ctx.strokeStyle = 'rgba(0, 240, 255, 0.30)';
@@ -10480,7 +10480,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             ctx.stroke();
                             ctx.restore();
 
-                            // 2. Faisceau Laser Cyber en 3 couches (Halo lumineux + Faisceau dégradé + Cœur blanc éclatant)
+                            // 2. Faisceau Laser Cyber en 3 couches (Halo lumineux + Faisceau dÃ©gradÃ© + CÅ“ur blanc Ã©clatant)
                             const activeSteps = Math.max(1, Math.floor(easeRel * numSteps));
                             const activePoints = curvePoints.slice(0, activeSteps + 1).filter(p => p.isVisible);
 
@@ -10489,7 +10489,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 ctx.lineCap = 'round';
                                 ctx.lineJoin = 'round';
 
-                                // Couche 1 : Halo néon d'ambiance
+                                // Couche 1 : Halo nÃ©on d'ambiance
                                 ctx.strokeStyle = 'rgba(0, 240, 255, 0.35)';
                                 ctx.lineWidth = 7;
                                 ctx.shadowColor = '#00f0ff';
@@ -10501,7 +10501,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 });
                                 ctx.stroke();
 
-                                // Couche 2 : Faisceau dégradé néon cyan vers magenta
+                                // Couche 2 : Faisceau dÃ©gradÃ© nÃ©on cyan vers magenta
                                 const grad = ctx.createLinearGradient(posA.x, posA.y, posB.x, posB.y);
                                 grad.addColorStop(0, mapPinColor || '#00f0ff');
                                 grad.addColorStop(0.5, '#00f0ff');
@@ -10516,7 +10516,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 });
                                 ctx.stroke();
 
-                                // Couche 3 : Cœur de faisceau blanc intense (effet énergie pure)
+                                // Couche 3 : CÅ“ur de faisceau blanc intense (effet Ã©nergie pure)
                                 ctx.strokeStyle = '#ffffff';
                                 ctx.lineWidth = 1.2;
                                 ctx.beginPath();
@@ -10528,7 +10528,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 ctx.restore();
                             }
 
-                            // 3. Balise & Pin Départ (Festival 1 - Point A)
+                            // 3. Balise & Pin DÃ©part (Festival 1 - Point A)
                             if (posA.isVisible) {
                                 ctx.save();
                                 ctx.shadowColor = mapPinColor;
@@ -10545,8 +10545,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 ctx.arc(posA.x, posA.y, 8 + pA * 4, 0, Math.PI * 2);
                                 ctx.stroke();
 
-                                // Badge capsule départ
-                                const labelA = (mapFestivalText || 'DÉPART').toUpperCase();
+                                // Badge capsule dÃ©part
+                                const labelA = (mapFestivalText || 'DÃ‰PART').toUpperCase();
                                 ctx.font = '900 10.5px "Orbitron", sans-serif';
                                 const twA = ctx.measureText(labelA).width;
                                 const badgeW = twA + 16;
@@ -10569,7 +10569,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 ctx.restore();
                             }
 
-                            // 4. Balise & Cible Arrivée (Festival 2 - Point B)
+                            // 4. Balise & Cible ArrivÃ©e (Festival 2 - Point B)
                             if (posB.isVisible) {
                                 ctx.save();
                                 const pB = 0.5 + 0.5 * Math.sin(animTime * 8);
@@ -10611,7 +10611,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 ctx.restore();
                             }
 
-                            // 5. Navette / Tête du Laser supersonique
+                            // 5. Navette / TÃªte du Laser supersonique
                             const exactIdx = easeRel * numSteps;
                             const lowerIdx = Math.floor(exactIdx);
                             const upperIdx = Math.min(numSteps, Math.ceil(exactIdx));
@@ -10631,14 +10631,14 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 ctx.arc(shipX, shipY, 6, 0, Math.PI * 2);
                                 ctx.fill();
 
-                                // Anneau d'onde d'énergie
+                                // Anneau d'onde d'Ã©nergie
                                 ctx.strokeStyle = '#00f0ff';
                                 ctx.lineWidth = 2.5;
                                 ctx.beginPath();
                                 ctx.arc(shipX, shipY, 13, 0, Math.PI * 2);
                                 ctx.stroke();
 
-                                // Flèche supersonique orientée
+                                // FlÃ¨che supersonique orientÃ©e
                                 const angle = Math.atan2(pUp.y - pLow.y, pUp.x - pLow.x);
                                 ctx.translate(shipX, shipY);
                                 ctx.rotate(angle);
@@ -10653,20 +10653,20 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 ctx.restore();
                             }
 
-                            // 6. HUD Télémétrie en direct
+                            // 6. HUD TÃ©lÃ©mÃ©trie en direct
                             const curKm = Math.round(distKm * easeRel);
-                            drawHudTopBar(`${(mapFestivalText || 'A').toUpperCase()} ➔ ${(mapDestFestivalText || 'B').toUpperCase()}`, `${curKm.toLocaleString()} / ${distKm.toLocaleString()} KM`);
+                            drawHudTopBar(`${(mapFestivalText || 'A').toUpperCase()} âž” ${(mapDestFestivalText || 'B').toUpperCase()}`, `${curKm.toLocaleString()} / ${distKm.toLocaleString()} KM`);
                         } else if (t < 0.82) {
-                            // Phase 4 (68% à 82%) : Descente régulière et cinématique vers Event 2 (S-Curve sinusoïdale douce)
+                            // Phase 4 (68% Ã  82%) : Descente rÃ©guliÃ¨re et cinÃ©matique vers Event 2 (S-Curve sinusoÃ¯dale douce)
                             const rel = (t - 0.68) / 0.14;
                             const ease = 0.5 - 0.5 * Math.cos(rel * Math.PI);
-                            const curZ = 3.6 + ease * 14.6; // 3.6 (orbite) -> 18.2 (salle) continu sans à-coup !
+                            const curZ = 3.6 + ease * 14.6; // 3.6 (orbite) -> 18.2 (salle) continu sans Ã -coup !
                             drawMap(ctx, latB, lonB, curZ, canvas.width, canvas.height, 0, 0, false, 0, 0, 0, animTime);
                             drawHudTopBar('DESCENTE SUR DESTINATION', 'APPROCHE FINALE');
                         } else {
-                            // Phase 5 (82% à 100%) : Mode Drone FPV ultra-rapproché sur la salle Event 2
+                            // Phase 5 (82% Ã  100%) : Mode Drone FPV ultra-rapprochÃ© sur la salle Event 2
                             const rel = (t - 0.82) / 0.18;
-                            const droneZoom = 18.2 + rel * 1.4; // Glisse délicatement de 18.2 à 19.6
+                            const droneZoom = 18.2 + rel * 1.4; // Glisse dÃ©licatement de 18.2 Ã  19.6
                             const droneAngle = Math.sin(t * 2.0) * 0.025;
                             const driftX = Math.sin(t * 2.5) * 18;
                             const driftY = Math.cos(t * 2.0) * 12;
@@ -10682,21 +10682,21 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         }
 
                     } else {
-                        // MODE 2 : ZOOM TERRE ➔ LIEU DU FESTIVAL (DEEP_DIVE) - PROGRESSION CINÉMATIQUE FLUIDE & RÉGULIÈRE
+                        // MODE 2 : ZOOM TERRE âž” LIEU DU FESTIVAL (DEEP_DIVE) - PROGRESSION CINÃ‰MATIQUE FLUIDE & RÃ‰GULIÃˆRE
                         const t = progress;
 
                         if (t < 0.20) {
-                            // Phase 1 (0 à 20%) : Orbite spatiale photoréaliste - rotation douce & cible verrouillée
+                            // Phase 1 (0 Ã  20%) : Orbite spatiale photorÃ©aliste - rotation douce & cible verrouillÃ©e
                             const rel = t / 0.20;
-                            const zoom = 3.2 + rel * 0.8; // Zoom très lent et majestueux de 3.2 à 4.0
+                            const zoom = 3.2 + rel * 0.8; // Zoom trÃ¨s lent et majestueux de 3.2 Ã  4.0
                             drawMap(ctx, mapLatitude, mapLongitude, zoom, canvas.width, canvas.height, 0, 0, false, 0, 0, 0, animTime);
-                            drawHudTopBar('ORBITE SPATIALE', 'CIBLE VERROUILLÉE');
+                            drawHudTopBar('ORBITE SPATIALE', 'CIBLE VERROUILLÃ‰E');
                         } else if (t < 0.74) {
-                            // Phase 2 (20% à 74%) : Plongeon Cinématique fluide et régulier (54% du temps total pour admirer chaque niveau !)
+                            // Phase 2 (20% Ã  74%) : Plongeon CinÃ©matique fluide et rÃ©gulier (54% du temps total pour admirer chaque niveau !)
                             const rel = (t - 0.20) / 0.54;
-                            // S-Curve sinusoïdale douce (aucune accélération brutale, descente fluide et progressive)
+                            // S-Curve sinusoÃ¯dale douce (aucune accÃ©lÃ©ration brutale, descente fluide et progressive)
                             const ease = 0.5 - 0.5 * Math.cos(rel * Math.PI);
-                            const zoom = 4.0 + ease * 14.2; // 4.0 -> 18.2 continu et régulier
+                            const zoom = 4.0 + ease * 14.2; // 4.0 -> 18.2 continu et rÃ©gulier
 
                             drawMap(ctx, mapLatitude, mapLongitude, zoom, canvas.width, canvas.height, 0, 0, false, 0, 0, 0, animTime);
 
@@ -10706,12 +10706,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             else if (zoom < 13.5) altDisplay = `${Math.round(600 - (zoom - 9.5) * 120)} KM`;
                             else altDisplay = `${Math.round(2500 - (zoom - 13.5) * 450)} M`;
 
-                            drawHudTopBar('DESCENTE CINÉMATIQUE', `ALT: ${altDisplay}`);
+                            drawHudTopBar('DESCENTE CINÃ‰MATIQUE', `ALT: ${altDisplay}`);
                         } else {
-                            // Phase 3 (74% à 100%) : Mode Drone FPV ultra-proche au ras de la scène (Zoom 18.2 -> 19.6 !)
+                            // Phase 3 (74% Ã  100%) : Mode Drone FPV ultra-proche au ras de la scÃ¨ne (Zoom 18.2 -> 19.6 !)
                             const rel = (t - 0.74) / 0.26;
-                            const droneZoom = 18.2 + rel * 1.4; // Glisse délicatement de 18.2 à 19.6
-                            const droneAngle = Math.sin(t * 2.0) * 0.025; // Balancement très doux
+                            const droneZoom = 18.2 + rel * 1.4; // Glisse dÃ©licatement de 18.2 Ã  19.6
+                            const droneAngle = Math.sin(t * 2.0) * 0.025; // Balancement trÃ¨s doux
                             const driftX = Math.sin(t * 2.2) * 18;
                             const driftY = Math.cos(t * 1.8) * 12;
                             const altM = Math.round(35 - rel * 15); // 35M -> 20M
@@ -10735,7 +10735,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         ctx.font = '900 italic 30px "Montserrat", sans-serif';
                         ctx.textAlign = 'center';
                         ctx.textBaseline = 'middle';
-                        ctx.fillText('CALCUL DES COORDONNÉES SATELLITE...', canvas.width / 2, canvas.height / 2);
+                        ctx.fillText('CALCUL DES COORDONNÃ‰ES SATELLITE...', canvas.width / 2, canvas.height / 2);
                         ctx.restore();
                     }
 
@@ -10743,7 +10743,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     const isReel = effectiveTab === 'REEL';
                     const isStory = canvas.height > 1500;
 
-                    // 1. Ambiance broadcast sombre & faisceau rouge néon au centre
+                    // 1. Ambiance broadcast sombre & faisceau rouge nÃ©on au centre
                     const vig = ctx.createRadialGradient(
                         canvas.width / 2, canvas.height / 2, canvas.width * 0.15,
                         canvas.width / 2, canvas.height / 2, canvas.height * 0.75
@@ -10766,14 +10766,14 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     const effectiveTop100Badge = top100BadgeRef.current || top100Badge || 'DROPSIDERS TOP 100';
                     drawTopCapsuleBadge(effectiveTop100Badge, '#ff1241', '255, 18, 65');
 
-                    // 3. Défilement du rang : commence à 100 et roule jusqu'au rang cible
+                    // 3. DÃ©filement du rang : commence Ã  100 et roule jusqu'au rang cible
                     const parsedTarget = Math.max(1, Math.min(100, Number(top100RankRef.current ?? top100Rank) || 1));
                     const isVideoExport = isVideoRecordingRef.current;
                     const isReplaying = top100IsReplayingRef.current;
                     const animTime = isVideoExport
                         ? deterministicAnimTimeRef.current
                         : ((Date.now() - top100AnimStartRef.current) / 1000);
-                    const rollDuration = 2.5; // Déroulement de 100 jusqu'au rang cible (2.5 secondes)
+                    const rollDuration = 2.5; // DÃ©roulement de 100 jusqu'au rang cible (2.5 secondes)
                     const isLiveRolling = (isVideoExport || isReplaying) && animTime < rollDuration;
                     if (isReplaying && animTime >= rollDuration) {
                         top100IsReplayingRef.current = false;
@@ -10787,7 +10787,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     }
                     const rankStr = '#' + (currentRank < 10 ? '0' + currentRank : currentRank);
 
-                    // A) Rang géant
+                    // A) Rang gÃ©ant
                     ctx.save();
                     const rankFontSize = isStory ? 175 : 130;
                     ctx.font = `900 italic ${rankFontSize}px "Montserrat", sans-serif`;
@@ -10801,8 +10801,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.fillText(rankStr, canvas.width / 2, rankY);
                     ctx.restore();
 
-                    // B) Nom de l'artiste démasqué en grand (Montserrat 900 Black)
-                    // Visible immédiatement en mode édition statique, ou à la fin du roulement en replay/vidéo
+                    // B) Nom de l'artiste dÃ©masquÃ© en grand (Montserrat 900 Black)
+                    // Visible immÃ©diatement en mode Ã©dition statique, ou Ã  la fin du roulement en replay/vidÃ©o
                     ctx.save();
                     const postRollElapsed = isLiveRolling ? 0 : Math.max(0, animTime - rollDuration);
                     const artistProgress = isLiveRolling ? 0 : (isReplaying ? Math.min(1, postRollElapsed / 0.35) : 1.0);
@@ -10832,7 +10832,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.fillText(artistText, canvas.width / 2, artistY);
                     ctx.restore();
 
-                    // C) Capsule Catégorie / Sous-titre
+                    // C) Capsule CatÃ©gorie / Sous-titre
                     ctx.save();
                     const catAlpha = isLiveRolling ? 0 : (isReplaying ? Math.min(1, postRollElapsed / 0.35) : 1.0);
                     ctx.globalAlpha *= catAlpha;
@@ -10873,7 +10873,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     const currentTracks = (top10TracksRef.current && top10TracksRef.current.length === 10) ? top10TracksRef.current : top10Tracks;
                     const currentActiveRank = top10ActiveRankRef.current ?? top10ActiveRank;
 
-                    // Différenciation de couleur : Bleu Néon (#00F0FF) pour Artistes, Or Festival (#FFB800) pour Styles
+                    // DiffÃ©renciation de couleur : Bleu NÃ©on (#00F0FF) pour Artistes, Or Festival (#FFB800) pour Styles
                     const isStyleMode = (top10GenModeRef.current || top10GenMode) === 'style';
                     const isLabelMode = (top10GenModeRef.current || top10GenMode) === 'label';
                     const activeStyleColor = '#FFB800';
@@ -10883,12 +10883,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     const top10AccentColor = isLabelMode ? activeLabelColor : (isStyleMode ? activeStyleColor : '#00f0ff');
                     const top10AccentRgb = isLabelMode ? activeLabelRgb : (isStyleMode ? activeStyleRgb : '0, 240, 255');
 
-                    // Découpeur de titre pour illuminer en couleur néon les mots entourés d'*astérisques* (ou par défaut TOP 10 / STREAM / BEATPORT / TÉLÉCHARG...)
+                    // DÃ©coupeur de titre pour illuminer en couleur nÃ©on les mots entourÃ©s d'*astÃ©risques* (ou par dÃ©faut TOP 10 / STREAM / BEATPORT / TÃ‰LÃ‰CHARG...)
                     const parseTop10TitleSegments = (lineText: string): { text: string; isHighlighted: boolean }[] => {
                         const hasAsterisks = lineText.includes('*');
                         const regex = hasAsterisks
                             ? /(\*([^*]+)\*)/gi
-                            : /(TOP\s*10|\bSTREAM\S*|\bJOU\S*|\bT[EÉ]L[EÉ]CHARG\S*(?:\s+SUR\s+BEATPORT)?|\bBEATPORT\S*)/gi;
+                            : /(TOP\s*10|\bSTREAM\S*|\bJOU\S*|\bT[EÃ‰]L[EÃ‰]CHARG\S*(?:\s+SUR\s+BEATPORT)?|\bBEATPORT\S*)/gi;
 
                         const segs: { text: string; isHighlighted: boolean }[] = [];
                         let lastIndex = 0;
@@ -10912,15 +10912,15 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     };
 
                     if (currentActiveRank === 0) {
-                        // ══════════════════════════════════════════════════════════════════════
+                        // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
                         // SLIDE D'INTRO TOP 10 TRACKS (3.5s)
-                        // ══════════════════════════════════════════════════════════════════════
-                        // (intro de 5s à l'export : l'animation du texte joue une seule fois)
+                        // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+                        // (intro de 5s Ã  l'export : l'animation du texte joue une seule fois)
                         const introAnimTime = isVideoExport
-                            ? Math.max(0, deterministicAnimTimeRef.current) // pas de "% 3.5" : l'intro dure 5s, le modulo relançait l'anim du texte à 3.5s
+                            ? Math.max(0, deterministicAnimTimeRef.current) // pas de "% 3.5" : l'intro dure 5s, le modulo relanÃ§ait l'anim du texte Ã  3.5s
                             : Math.max(0, (Date.now() - animStartTimeRef.current) / 1000);
 
-                        // 1. Fond sombre cinématique avec la vidéo ou image
+                        // 1. Fond sombre cinÃ©matique avec la vidÃ©o ou image
                         ctx.save();
                         ctx.fillStyle = '#020306';
                         ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -10955,7 +10955,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             }
                         }
 
-                        // 2. Aura néon centrale élégante & respirante
+                        // 2. Aura nÃ©on centrale Ã©lÃ©gante & respirante
                         const auraBreath = 1.0 + Math.sin(introAnimTime * 2.2) * 0.12;
                         const auraGrad = ctx.createRadialGradient(
                             canvas.width / 2, 880, 80 * auraBreath,
@@ -10988,28 +10988,28 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         }
                         ctx.restore();
 
-                        // 4. Badge en haut à gauche
+                        // 4. Badge en haut Ã  gauche
                         drawTopCapsuleBadge((top10BadgeRef.current || top10Badge || 'TOP 10 TRACKS').toUpperCase(), top10AccentColor, top10AccentRgb);
 
                         const isStory = canvas.height > 1500;
                         const centerX = canvas.width / 2;
                         const centerY = isStory ? 960 : 540;
 
-                        // ══════════════════════════════════════════════════════════════════════
-                        // STYLE AGENDA COVER ("ON VA OÙ CE MOIS-CI ?") POUR L'INTRO TOP 10
-                        // ══════════════════════════════════════════════════════════════════════
+                        // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+                        // STYLE AGENDA COVER ("ON VA OÃ™ CE MOIS-CI ?") POUR L'INTRO TOP 10
+                        // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
-                        // B. GRAND HOOK PRINCIPAL GÉANT (Montserrat 900 Italic 104px à 118px comme dans AGENDA "ON VA OÙ CE MOIS-CI ?")
+                        // B. GRAND HOOK PRINCIPAL GÃ‰ANT (Montserrat 900 Italic 104px Ã  118px comme dans AGENDA "ON VA OÃ™ CE MOIS-CI ?")
                         ctx.save();
                         ctx.textAlign = 'center';
                         ctx.textBaseline = 'middle';
-                        const rawIntroTitle = (top10IntroTitleRef.current || top10IntroTitle || ('TOP 10 DES TRACKS LES PLUS TÉLÉCHARGÉES SUR BEATPORT')).toUpperCase().trim();
+                        const rawIntroTitle = (top10IntroTitleRef.current || top10IntroTitle || ('TOP 10 DES TRACKS LES PLUS TÃ‰LÃ‰CHARGÃ‰ES SUR BEATPORT')).toUpperCase().trim();
 
                         let titleLines: string[] = [];
                         if (rawIntroTitle.includes('\n')) {
                             titleLines = rawIntroTitle.split('\n').map(l => l.trim()).filter(Boolean);
                         } else if (rawIntroTitle.includes('BEATPORT')) {
-                            // Découpage automatique pour mettre "SUR BEATPORT" à la ligne en gros caractères
+                            // DÃ©coupage automatique pour mettre "SUR BEATPORT" Ã  la ligne en gros caractÃ¨res
                             const cleanT = rawIntroTitle.replace(/\s+/g, ' ').trim();
                             if (cleanT.includes('LES PLUS')) {
                                 const idxLP = cleanT.indexOf('LES PLUS');
@@ -11040,8 +11040,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 const mid = Math.ceil(words.length / 2);
                                 titleLines = [words.slice(0, mid).join(' '), words.slice(mid).join(' ')];
                             }
-                        } else if (rawIntroTitle.includes('TÉLÉCHARG') || rawIntroTitle.includes('TELECHARG')) {
-                            const match = rawIntroTitle.match(/^(.*?)\s+(T[EÉ]L[EÉ]CHARG\S*.*)$/i);
+                        } else if (rawIntroTitle.includes('TÃ‰LÃ‰CHARG') || rawIntroTitle.includes('TELECHARG')) {
+                            const match = rawIntroTitle.match(/^(.*?)\s+(T[EÃ‰]L[EÃ‰]CHARG\S*.*)$/i);
                             if (match && match[1] && match[2]) {
                                 titleLines = [match[1].trim(), match[2].trim()];
                             } else {
@@ -11074,7 +11074,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                         const titleLineHeight = titleFontSize * 1.15;
 
-                        // C. LOGO OFFICIEL UPLOADÉ OU NOM DE L'ARTISTE EN GROS EN BLEU NÉON
+                        // C. LOGO OFFICIEL UPLOADÃ‰ OU NOM DE L'ARTISTE EN GROS EN BLEU NÃ‰ON
                         const defaultIntroSubtitle = isStyleMode
                             ? (top10StyleSearch || 'GENRE').toUpperCase().trim()
                             : isLabelMode
@@ -11116,14 +11116,14 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             ctx.restore();
                         }
 
-                        // HAUTEURS D'ANCRAGE STRICTEMENT CONSTANTES (Garantit que le logo, le titre et le pill sont TOUJOURS à la même hauteur exacte quel que soit l'artiste)
+                        // HAUTEURS D'ANCRAGE STRICTEMENT CONSTANTES (Garantit que le logo, le titre et le pill sont TOUJOURS Ã  la mÃªme hauteur exacte quel que soit l'artiste)
                         const titleCenterY = isStory ? 730 : 410;
                         const artistCenterY = isStory ? 1040 : 585;
                         const pillY = isStory ? 1270 : 715;
 
                         const titleLine0Y = titleCenterY - (((titleLines.length - 1) * titleLineHeight) / 2);
 
-                        // Tracé des lignes du titre : "TOP 10" et "STREAMÉES" en bleu néon #00f0ff, le reste en blanc pur avec ombres 3D
+                        // TracÃ© des lignes du titre : "TOP 10" et "STREAMÃ‰ES" en bleu nÃ©on #00f0ff, le reste en blanc pur avec ombres 3D
                         titleLines.forEach((line, idx) => {
                             const lineY = titleLine0Y + idx * titleLineHeight;
                             const segments = parseTop10TitleSegments(line);
@@ -11143,7 +11143,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 const segW = ctx.measureText(seg.text).width;
                                 const color = seg.isHighlighted ? top10AccentColor : '#ffffff';
 
-                                // 1. Ombre portée profonde diffuse
+                                // 1. Ombre portÃ©e profonde diffuse
                                 ctx.save();
                                 ctx.shadowColor = 'rgba(0, 0, 0, 0.98)';
                                 ctx.shadowBlur = 24;
@@ -11163,7 +11163,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 ctx.fillText(seg.text, curX, lineY);
                                 ctx.restore();
 
-                                // 3. Lueur néon spéciale pour les mots en couleur néon (Bleu pour Artiste, Violet EDM pour Styles)
+                                // 3. Lueur nÃ©on spÃ©ciale pour les mots en couleur nÃ©on (Bleu pour Artiste, Violet EDM pour Styles)
                                 if (seg.isHighlighted) {
                                     ctx.save();
                                     ctx.shadowColor = `rgba(${top10AccentRgb}, 0.85)`;
@@ -11190,7 +11190,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         ctx.restore();
 
                         if (hasUploadedLogo && artistLogoObj) {
-                            // ➔ LE LOGO UPLOADÉ EST ANCRÉ AU CENTRE EXACT (artistCenterY)
+                            // âž” LE LOGO UPLOADÃ‰ EST ANCRÃ‰ AU CENTRE EXACT (artistCenterY)
                             const lx = (canvas.width - logoW) / 2;
                             const ly = artistCenterY - (logoH / 2);
 
@@ -11209,7 +11209,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             }
                             ctx.restore();
                         } else {
-                            // ➔ PAS DE LOGO : NOM DE L'ARTISTE / STYLE ANCRÉ AU CENTRE EXACT (artistCenterY)
+                            // âž” PAS DE LOGO : NOM DE L'ARTISTE / STYLE ANCRÃ‰ AU CENTRE EXACT (artistCenterY)
                             ctx.save();
                             if (!isStaticPngExport && textAnimation !== 'NONE') {
                                 applyTextAnimCtx(ctx, 0.20 + titleLines.length * 0.10, centerX, artistCenterY, introAnimTime);
@@ -11238,12 +11238,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             ctx.restore();
                         }
 
-                        // D. Pill cyber subtile "🔥 COUNTDOWN DU #10 AU #1"
+                        // D. Pill cyber subtile "ðŸ”¥ COUNTDOWN DU #10 AU #1"
                         ctx.save();
                         if (!isStaticPngExport && textAnimation !== 'NONE') {
                             applyTextAnimCtx(ctx, 0.45, centerX, pillY, introAnimTime);
                         }
-                        const pillLabel = '🔥 COUNTDOWN DU #10 AU #1';
+                        const pillLabel = 'ðŸ”¥ COUNTDOWN DU #10 AU #1';
                         ctx.font = '800 italic 20px "Montserrat", sans-serif';
                         if ('letterSpacing' in ctx) (ctx as any).letterSpacing = '2px';
                         const pTextW = ctx.measureText(pillLabel).width;
@@ -11270,10 +11270,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                         ctx.restore();
                     } else {
-                        // ══════════════════════════════════════════════════════════════════════
-                        // COUNTDOWN TRACKS ACTIVES (#10 ➔ #1)
-                        // ══════════════════════════════════════════════════════════════════════
-                        // Déterminer la track active (directement reliée au rang actif, en export vidéo comme en aperçu)
+                        // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+                        // COUNTDOWN TRACKS ACTIVES (#10 âž” #1)
+                        // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+                        // DÃ©terminer la track active (directement reliÃ©e au rang actif, en export vidÃ©o comme en aperÃ§u)
                         const trIdx = currentTracks.findIndex(t => Number(t.rank) === Number(currentActiveRank));
                         const currentTrackIndex = trIdx >= 0 ? trIdx : 0;
                         const activeTrack = currentTracks[currentTrackIndex] || currentTracks[0];
@@ -11290,37 +11290,37 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         trackProgress = (top10TestingRank === currentActiveRank) ? ((animTime % durPerTrack) / durPerTrack) : 0.5;
                     }
 
-                    // Temps d'animation propre à la track active (sans modulo en export pour éviter tout flash en fin de piste)
+                    // Temps d'animation propre Ã  la track active (sans modulo en export pour Ã©viter tout flash en fin de piste)
                     const trackAnimTime = isVideoExport
                         ? animTime
                         : (top10TestingRank === currentActiveRank
                             ? (animTime % durPerTrack)
                             : Math.max(0, (Date.now() - animStartTimeRef.current) / 1000));
 
-                    // Thématique couleur du rang (Podium Or, Argent, Bronze ou Cyber Néon)
+                    // ThÃ©matique couleur du rang (Podium Or, Argent, Bronze ou Cyber NÃ©on)
                     let rankColor = isLabelMode ? activeLabelColor : (isStyleMode ? activeStyleColor : '#00f0ff');
                     let rankColorRgb = isLabelMode ? activeLabelRgb : (isStyleMode ? activeStyleRgb : '0, 240, 255');
-                    let rankTitle = `N° ${activeRank}`;
+                    let rankTitle = `NÂ° ${activeRank}`;
                     let isPodium = false;
 
                     if (activeRank === 1) {
                         rankColor = '#ffd700'; // Gold
                         rankColorRgb = '255, 215, 0';
-                        rankTitle = '👑 N° 1';
+                        rankTitle = 'ðŸ‘‘ NÂ° 1';
                         isPodium = true;
                     } else if (activeRank === 2) {
                         rankColor = '#e0e0e0'; // Silver
                         rankColorRgb = '224, 224, 224';
-                        rankTitle = '🥈 N° 2';
+                        rankTitle = 'ðŸ¥ˆ NÂ° 2';
                         isPodium = true;
                     } else if (activeRank === 3) {
                         rankColor = '#cd7f32'; // Bronze
                         rankColorRgb = '205, 127, 50';
-                        rankTitle = '🥉 N° 3';
+                        rankTitle = 'ðŸ¥‰ NÂ° 3';
                         isPodium = true;
                     }
 
-                    // 0. Récupération de la Pochette UNIQUEMENT pour la track active (zéro fuite entre tracks)
+                    // 0. RÃ©cupÃ©ration de la Pochette UNIQUEMENT pour la track active (zÃ©ro fuite entre tracks)
                     const trackCoverSrc = activeTrack.cover || '';
                     let coverImg: HTMLImageElement | null = null;
                     if (trackCoverSrc) {
@@ -11347,12 +11347,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         }
                     }
 
-                    // 1. Fond Dynamique Animé Immersif (Vidéo de fond personnalisée ou Style Tomorrowland One World Radio)
+                    // 1. Fond Dynamique AnimÃ© Immersif (VidÃ©o de fond personnalisÃ©e ou Style Tomorrowland One World Radio)
                     ctx.save();
                     ctx.fillStyle = '#020306';
                     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-                    // A) Si une vidéo d'arrière-plan personnalisée a été importée par l'utilisateur
+                    // A) Si une vidÃ©o d'arriÃ¨re-plan personnalisÃ©e a Ã©tÃ© importÃ©e par l'utilisateur
                     if (bgVideo && (bgVideo.videoWidth > 0 || bgVideo.readyState >= 2)) {
                         ctx.save();
                         const vScale = Math.max(canvas.width / bgVideo.videoWidth, canvas.height / bgVideo.videoHeight);
@@ -11371,7 +11371,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         ctx.fillRect(0, 0, canvas.width, canvas.height);
                         ctx.restore();
                     } else {
-                        // Sinon dérive cinématique floutée de la pochette propre à cette track
+                        // Sinon dÃ©rive cinÃ©matique floutÃ©e de la pochette propre Ã  cette track
                         const bgSource = (coverImg && (coverImg.naturalWidth > 0 || coverImg.complete))
                             ? coverImg
                             : null;
@@ -11390,11 +11390,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 ctx.drawImage(bgSource, -canvas.width / 2 - 40, -canvas.height / 2 - 40, canvas.width + 80, canvas.height + 80);
                                 (ctx as any).filter = 'none';
                             } else {
-                                // iOS / WebKit : ctx.filter est ignoré → pochette floutée pré-calculée (flou logiciel, mise en cache)
+                                // iOS / WebKit : ctx.filter est ignorÃ© â†’ pochette floutÃ©e prÃ©-calculÃ©e (flou logiciel, mise en cache)
                                 const coverKey = `${bgSource.src || 'cover'}_${canvas.width}x${canvas.height}_top10_blur`;
                                 let blurredCover = blurredBgCacheRef.current.get(coverKey);
                                 if (!blurredCover) {
-                                    // rayon ~11px à 0.25x ≈ blur(45px) en pleine résolution
+                                    // rayon ~11px Ã  0.25x â‰ˆ blur(45px) en pleine rÃ©solution
                                     blurredCover = createCrossBrowserBlurredCanvas(bgSource, canvas.width, canvas.height, 22, 0.40, 1.45);
                                     if (blurredBgCacheRef.current.size > 24) blurredBgCacheRef.current.clear();
                                     blurredBgCacheRef.current.set(coverKey, blurredCover);
@@ -11408,7 +11408,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         }
                     }
 
-                    // B) Onde d'énergie / Aura pulsante concentrique One World Radio
+                    // B) Onde d'Ã©nergie / Aura pulsante concentrique One World Radio
                     const auraBreath = 1.0 + Math.sin(animTime * 1.8) * 0.12;
                     const auraGrad = ctx.createRadialGradient(
                         canvas.width / 2, 740, 120 * auraBreath,
@@ -11420,7 +11420,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.fillStyle = auraGrad;
                     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-                    // C) Particules & Poussières Magiques Festival (Fairy Dust Tomorrowland - Rendu groupé 60fps)
+                    // C) Particules & PoussiÃ¨res Magiques Festival (Fairy Dust Tomorrowland - Rendu groupÃ© 60fps)
                     const particleCount = 36;
                     ctx.save();
                     ctx.shadowColor = `rgba(${rankColorRgb}, 0.85)`;
@@ -11430,7 +11430,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         const speed = 32 + ((p * 31.7) % 48); // Vitesse d'ascension lente
                         const swaySpeed = 0.9 + ((p * 19.3) % 1.4);
                         const swayAmp = 15 + ((p * 27.1) % 25);
-                        const pSize = 1.5 + ((p * 37.3) % 4.0); // 1.5px à 5.5px
+                        const pSize = 1.5 + ((p * 37.3) % 4.0); // 1.5px Ã  5.5px
 
                         const totalH = canvas.height + 140;
                         const rawY = (canvas.height + 70) - ((animTime * speed + p * 89.3) % totalH);
@@ -11458,7 +11458,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     }
                     ctx.restore();
 
-                    // D) Vignette sombre cinématique haut et bas pour contraste des textes
+                    // D) Vignette sombre cinÃ©matique haut et bas pour contraste des textes
                     const topVig = ctx.createLinearGradient(0, 0, 0, 320);
                     topVig.addColorStop(0, 'rgba(2, 3, 6, 0.90)');
                     topVig.addColorStop(0.7, 'rgba(2, 3, 6, 0.60)');
@@ -11474,10 +11474,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.fillRect(0, canvas.height - 420, canvas.width, 420);
                     ctx.restore();
 
-                    // 1. Top-Left Badge Dropsiders (Effets News avec couleur néon dynamique)
+                    // 1. Top-Left Badge Dropsiders (Effets News avec couleur nÃ©on dynamique)
                     drawTopCapsuleBadge((top10BadgeRef.current || top10Badge || 'TOP 10 TRACKS').toUpperCase(), top10AccentColor, top10AccentRgb);
 
-                    // 2. Header Titre Principal (TOP 10 TRACKS par défaut, sans doublon artiste)
+                    // 2. Header Titre Principal (TOP 10 TRACKS par dÃ©faut, sans doublon artiste)
                     ctx.save();
                     ctx.textAlign = 'center';
                     ctx.textBaseline = 'middle';
@@ -11486,18 +11486,18 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     const cleanTracksTitle = rawTracksTitle.replace(/\*/g, '').trim().toUpperCase();
                     const isDefaultOrIntroTitle = !cleanTracksTitle ||
                         cleanTracksTitle === 'TOP 10 TRACKS' ||
-                        cleanTracksTitle.includes('LES PLUS STREAMÉES') ||
-                        cleanTracksTitle.includes('LES PLUS JOUÉES') ||
-                        cleanTracksTitle.includes('TÉLÉCHARG') ||
+                        cleanTracksTitle.includes('LES PLUS STREAMÃ‰ES') ||
+                        cleanTracksTitle.includes('LES PLUS JOUÃ‰ES') ||
+                        cleanTracksTitle.includes('TÃ‰LÃ‰CHARG') ||
                         cleanTracksTitle.includes('TELECHARG') ||
                         cleanTracksTitle.includes('BEATPORT') ||
                         cleanTracksTitle.startsWith('TOP 10 DES TRACKS') ||
-                        cleanTracksTitle.endsWith('• TOP 10 TRACKS') ||
-                        cleanTracksTitle === 'ARTISTE • TOP 10 TRACKS';
+                        cleanTracksTitle.endsWith('â€¢ TOP 10 TRACKS') ||
+                        cleanTracksTitle === 'ARTISTE â€¢ TOP 10 TRACKS';
 
                     const t10Title = isDefaultOrIntroTitle ? 'TOP 10 TRACKS' : rawTracksTitle.toUpperCase();
 
-                    // En mode style, le titre est centré verticalement et légèrement plus grand (sans doublon de style en dessous)
+                    // En mode style, le titre est centrÃ© verticalement et lÃ©gÃ¨rement plus grand (sans doublon de style en dessous)
                     const t10TitleY = 260;
                     let t10FontSize = 34;
                     ctx.font = `900 ${t10FontSize}px "Montserrat", sans-serif`;
@@ -11521,7 +11521,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         const segW = ctx.measureText(seg.text).width;
                         const color = seg.isHighlighted ? top10AccentColor : '#ffffff';
 
-                        // 1. Ombre portée profonde diffuse
+                        // 1. Ombre portÃ©e profonde diffuse
                         ctx.save();
                         ctx.shadowColor = 'rgba(0, 0, 0, 0.98)';
                         ctx.shadowBlur = 18;
@@ -11541,7 +11541,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         ctx.fillText(seg.text, trackCurX, t10TitleY);
                         ctx.restore();
 
-                        // 3. Lueur néon si mis en valeur (Bleu pour Artiste, Or Festival pour Style)
+                        // 3. Lueur nÃ©on si mis en valeur (Bleu pour Artiste, Or Festival pour Style)
                         if (seg.isHighlighted) {
                             ctx.save();
                             ctx.shadowColor = `rgba(${top10AccentRgb}, 0.85)`;
@@ -11562,7 +11562,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     });
                     ctx.restore();
 
-                    // 2b. Ligne 2 : Logo Officiel (ou nom stylé) de l'Artiste / Label / Genre
+                    // 2b. Ligne 2 : Logo Officiel (ou nom stylÃ©) de l'Artiste / Label / Genre
                     {
                         const countdownSubtitle = (
                             top10IntroArtistRef.current ||
@@ -11624,7 +11624,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         }
                     }
 
-                    // 3. Rank Badge au-dessus de la vidéo ("la place", descendue et stylée)
+                    // 3. Rank Badge au-dessus de la vidÃ©o ("la place", descendue et stylÃ©e)
                     ctx.save();
                     const badgeW = 320;
                     const badgeH = 70;
@@ -11655,13 +11655,13 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.fillText(rankTitle, canvas.width / 2, badgeY + badgeH / 2);
                     ctx.restore();
 
-                    // 4. Cadre Pochette Carrée 1:1 au Centre (Descendu avec espace généreux)
+                    // 4. Cadre Pochette CarrÃ©e 1:1 au Centre (Descendu avec espace gÃ©nÃ©reux)
                     const cardSize = 640;
                     const cardX = Math.round((canvas.width - cardSize) / 2); // 220px
                     const cardY = 545;
                     const cardR = 26;
 
-                    // A) Halo d'ambiance vibrant derrière la pochette
+                    // A) Halo d'ambiance vibrant derriÃ¨re la pochette
                     ctx.save();
                     const coverHalo = ctx.createRadialGradient(
                         canvas.width / 2, cardY + cardSize / 2, cardSize * 0.18,
@@ -11674,7 +11674,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.fillRect(cardX - 120, cardY - 120, cardSize + 240, cardSize + 240);
                     ctx.restore();
 
-                    // C) Ombre portée 3D réaliste (optimisé 60fps)
+                    // C) Ombre portÃ©e 3D rÃ©aliste (optimisÃ© 60fps)
                     ctx.save();
                     ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
                     ctx.shadowBlur = 24;
@@ -11695,7 +11695,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     if (coverImg && (coverImg.naturalWidth > 0 || coverImg.complete)) {
                         ctx.drawImage(coverImg, cardX, cardY, cardSize, cardSize);
                     } else {
-                        // Placeholder vinyle avec sillons gravés
+                        // Placeholder vinyle avec sillons gravÃ©s
                         const phGrad = ctx.createLinearGradient(cardX, cardY, cardX + cardSize, cardY + cardSize);
                         phGrad.addColorStop(0, '#161922');
                         phGrad.addColorStop(0.5, '#0b0d13');
@@ -11742,18 +11742,18 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.fillStyle = glassAmbient;
                     ctx.fillRect(cardX, cardY, cardSize, cardSize);
 
-                    // Biseau spéculaire supérieur ultra-fin (arête du verre taillé)
+                    // Biseau spÃ©culaire supÃ©rieur ultra-fin (arÃªte du verre taillÃ©)
                     const glassEdge = ctx.createLinearGradient(cardX, cardY, cardX, cardY + 4);
                     glassEdge.addColorStop(0, 'rgba(255, 255, 255, 0.30)');
                     glassEdge.addColorStop(1, 'rgba(255, 255, 255, 0)');
                     ctx.fillStyle = glassEdge;
                     ctx.fillRect(cardX, cardY, cardSize, 4);
 
-                    // Balayage lumineux de vitre (grande onde de lumière diffuse, zéro trait dur)
+                    // Balayage lumineux de vitre (grande onde de lumiÃ¨re diffuse, zÃ©ro trait dur)
                     const sweepTime = isVideoExport ? animTime : (Date.now() - animStartTimeRef.current) / 1000;
                     const sweepCycle = 3.4; // Cycle toutes les 3.4s
                     const sweepDuration = 1.35; // 1.35s de glisse douce
-                    const sweepDelay = 0.25; // Déclenchement 0.25s après le track
+                    const sweepDelay = 0.25; // DÃ©clenchement 0.25s aprÃ¨s le track
                     const cycleT = (sweepTime + sweepCycle - sweepDelay) % sweepCycle;
                     if (cycleT < sweepDuration) {
                         const rawP = cycleT / sweepDuration;
@@ -11764,7 +11764,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         const cY = cardY + cardSize / 2;
                         const diag = cardSize * Math.SQRT2; // ~933px
 
-                        // Large onde de reflet de vitre (440px de large, aucun trait ni arête blanche)
+                        // Large onde de reflet de vitre (440px de large, aucun trait ni arÃªte blanche)
                         const glassW = 440;
                         const beamSpan = diag + glassW + 100;
                         const curX = -diag / 2 - glassW / 2 - 50 + beamSpan * easeP;
@@ -11774,7 +11774,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         ctx.rotate(Math.PI / 4); // Diagonale coin haut-gauche -> coin bas-droit
                         ctx.globalCompositeOperation = 'screen'; // Incrustation douce et lumineuse sans aplat
 
-                        // Dégradé en cloche ultra-doux (pure réflexion de verre)
+                        // DÃ©gradÃ© en cloche ultra-doux (pure rÃ©flexion de verre)
                         const glassGrad = ctx.createLinearGradient(curX - glassW / 2, 0, curX + glassW / 2, 0);
                         glassGrad.addColorStop(0.00, 'rgba(255, 255, 255, 0)');
                         glassGrad.addColorStop(0.20, 'rgba(255, 255, 255, 0.015)');
@@ -11792,7 +11792,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                     ctx.restore();
 
-                    // E) Bordure néon & Coins cyber autour de la pochette
+                    // E) Bordure nÃ©on & Coins cyber autour de la pochette
                     ctx.save();
                     ctx.strokeStyle = rankColor;
                     ctx.lineWidth = 2.5;
@@ -11802,7 +11802,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.roundRect(cardX, cardY, cardSize, cardSize, cardR);
                     ctx.stroke();
 
-                    // Coins cyber néon
+                    // Coins cyber nÃ©on
                     const cLen = 32;
                     ctx.strokeStyle = '#ffffff';
                     ctx.lineWidth = 4;
@@ -11913,7 +11913,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     if (activeStreams) {
                         ctx.save();
                         const rawStreams = activeStreams.toUpperCase();
-                        const streamStr = (rawStreams.includes('STREAM') || rawStreams.includes('ÉCOUTE'))
+                        const streamStr = (rawStreams.includes('STREAM') || rawStreams.includes('Ã‰COUTE'))
                             ? rawStreams
                             : `${rawStreams} STREAMS`;
 
@@ -11941,7 +11941,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         ctx.shadowBlur = 10;
                         ctx.stroke();
 
-                        // Point néon
+                        // Point nÃ©on
                         const dotRadius = 4.5;
                         const dotX = pillX + 18;
                         const dotY = pillY + pillH / 2;
@@ -11962,7 +11962,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         ctx.restore();
                     }
 
-                    // 7. Visualiseur Waveform Audio Animé (rendu groupé 60fps)
+                    // 7. Visualiseur Waveform Audio AnimÃ© (rendu groupÃ© 60fps)
                     ctx.save();
                     const waveBars = 32;
                     const waveCenterY = activeStreams ? 1545 : 1485;
@@ -12004,12 +12004,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.fillStyle = topGrad;
                     ctx.fillRect(0, 0, canvas.width, 220);
 
-                    // 2. BADGE OFFICIEL DROPSIDERS "HIGHLIGHT" (avec effet noir verre fumé, néon et balayage glare comme sur les autres thèmes)
+                    // 2. BADGE OFFICIEL DROPSIDERS "HIGHLIGHT" (avec effet noir verre fumÃ©, nÃ©on et balayage glare comme sur les autres thÃ¨mes)
                     drawTopCapsuleBadge('HIGHLIGHT', '#ffffff', '255, 255, 255');
 
 
                     // 4. Safe bottom position for the 3 stacked text lines
-                    const safeBottom = canvas.height - (isReel ? 180 : 100);
+                    const safeBottom = canvas.height - (isReel ? 280 : 180);
 
                     // Animation support (if animated)
                     const animElapsed = isVideoRecordingRef.current
@@ -12092,7 +12092,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     alpha = 0;
                                     displayText = '';
                                 } else {
-                                    displayText = tLine.slice(0, charsToShow) + (charsToShow < tLine.length ? ' ▌' : '');
+                                    displayText = tLine.slice(0, charsToShow) + (charsToShow < tLine.length ? ' â–Œ' : '');
                                     alpha = 1;
                                 }
                             }
@@ -12172,7 +12172,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             ctx.scale(anim.scale, anim.scale);
                         }
 
-                        const sepStr = ' • ';
+                        const sepStr = ' â€¢ ';
                         const sepW = ctx.measureText(sepStr).width;
                         const totalW = segments.reduce((sum, seg) => sum + ctx.measureText(seg.text).width, 0) + (segments.length - 1) * sepW;
 
@@ -12211,7 +12211,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     const isCountryRed = (highlightsSlideArtists[effectiveEditorialSlide]?.colorCountry ?? highlightsColorCountry) === 'RED';
                     const isDateRed = (highlightsSlideArtists[effectiveEditorialSlide]?.colorDate ?? highlightsColorDate) === 'RED';
 
-                    // --- DONNÉES DES 3 LIGNES (ARTISTE / FESTIVAL / DATE) ---
+                    // --- DONNÃ‰ES DES 3 LIGNES (ARTISTE / FESTIVAL / DATE) ---
                     const activeDate = highlightsSlideArtists[effectiveEditorialSlide]?.date ?? highlightsDate;
                     const dateStr = (activeDate || '').trim().toUpperCase();
 
@@ -12227,7 +12227,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     const activeArtist = highlightsSlideArtists[effectiveEditorialSlide]?.artist ?? highlightsArtist;
                     const artistStr = (activeArtist || '').trim().toUpperCase();
 
-                    // Calcul précis de l'étagement vertical avec espacement aéré
+                    // Calcul prÃ©cis de l'Ã©tagement vertical avec espacement aÃ©rÃ©
                     const hasDate = Boolean(dateStr);
                     const hasFest = festParts.length > 0;
                     const hasArtist = Boolean(artistStr);
@@ -12236,7 +12236,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     const festGapFromDate = isReel ? 74 : 60;
                     const festY = hasDate ? (dateY - festGapFromDate) : safeBottom;
 
-                    // Espacement généreux et équilibré : l'artiste ne colle plus jamais au festival
+                    // Espacement gÃ©nÃ©reux et Ã©quilibrÃ© : l'artiste ne colle plus jamais au festival
                     const artistGapFromFest = isReel ? 112 : 94;
                     const artistY = hasFest ? (festY - artistGapFromFest) : (hasDate ? (dateY - festGapFromDate) : safeBottom);
 
@@ -12255,13 +12255,13 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         renderAnimLine(artistStr, 0, artistY, artistColor);
                     }
 
-                    // --- LINE 2 : FESTIVAL + VILLE + PAYS (BLANC OU ROUGE PAR ÉLÉMENT) ---
+                    // --- LINE 2 : FESTIVAL + VILLE + PAYS (BLANC OU ROUGE PAR Ã‰LÃ‰MENT) ---
                     if (festParts.length > 0) {
                         let festFontSize = isReel ? 34 : 30;
                         const maxFestW = canvas.width - (isReel ? 160 : 120);
                         ctx.font = `800 ${festFontSize}px "Montserrat", sans-serif`;
                         if ('letterSpacing' in ctx) (ctx as any).letterSpacing = '2px';
-                        const fullText = festParts.map(p => p.text).join(' • ');
+                        const fullText = festParts.map(p => p.text).join(' â€¢ ');
                         let fw = ctx.measureText(fullText).width;
                         if (fw > maxFestW) {
                             festFontSize = Math.max(18, Math.floor(festFontSize * (maxFestW / fw)));
@@ -12283,7 +12283,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                     ctx.restore();
 
-                    // 7. Mention Swipe (Chevrons en Cascade) si activée (alignée en bas à droite à la même hauteur que les autres thèmes)
+                    // 7. Mention Swipe (Chevrons en Cascade) si activÃ©e (alignÃ©e en bas Ã  droite Ã  la mÃªme hauteur que les autres thÃ¨mes)
                     if (showSwipe) {
                         drawAnimatedSwipeIndicator(
                             canvas.width - (isReel ? 80 : 60),
@@ -12293,7 +12293,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         );
                     }
 
-                    // 8. LÉGÈRE LIGNE BLANCHE TOUT EN BAS QUI SE REMPLIT AU FUR ET À MESURE DE LA VIDÉO
+                    // 8. LÃ‰GÃˆRE LIGNE BLANCHE TOUT EN BAS QUI SE REMPLIT AU FUR ET Ã€ MESURE DE LA VIDÃ‰O
                     const shouldDrawVideoProgress = Boolean(bgVideo) || isVideoRecordingRef.current || textAnimation !== 'NONE';
                     if (shouldDrawVideoProgress) {
                         let vProgress = 0;
@@ -12322,7 +12322,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         ctx.fillStyle = 'rgba(255, 255, 255, 0.22)';
                         ctx.fillRect(0, barY, canvas.width, barH);
 
-                        // Remplissage blanc lumineux au fur et à mesure de la vidéo
+                        // Remplissage blanc lumineux au fur et Ã  mesure de la vidÃ©o
                         if (vProgress > 0) {
                             ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
                             ctx.shadowColor = 'rgba(255, 255, 255, 0.8)';
@@ -12334,7 +12334,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                 } else {
 
-                    // Draw Stylized CTA Banner for Devine le Clip / Devine le Festival / Devine le DJ (Slide 2 Reveal uniquement - masqué en Slide 1)
+                    // Draw Stylized CTA Banner for Devine le Clip / Devine le Festival / Devine le DJ (Slide 2 Reveal uniquement - masquÃ© en Slide 1)
                     const shouldDrawDevinetteCta = theme === 'JEU_DJ'
                         ? (effectiveEditorialSlide === 2)
                         : ((theme === 'JEU' || theme === 'JEU_FESTIVAL') && (effectiveEditorialSlide === 2));
@@ -12346,7 +12346,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         const ctaY = canvas.height - (isReel ? 60 : 44);
                         applyTextAnimCtx(ctx, 0.35, centerX, ctaY);
                         const isRevealCta = (theme === 'JEU_DJ' && effectiveEditorialSlide === 2);
-                        const ctaText = isRevealCta ? "🏆 TU AVAIS TROUVÉ ? DIS-LE EN COMMENTAIRE !" : "💬 DEVINE EN COMMENTAIRE !";
+                        const ctaText = isRevealCta ? "ðŸ† TU AVAIS TROUVÃ‰ ? DIS-LE EN COMMENTAIRE !" : "ðŸ’¬ DEVINE EN COMMENTAIRE !";
                         ctx.font = '900 italic 24px "Montserrat", sans-serif';
                         if ('letterSpacing' in ctx) (ctx as any).letterSpacing = '3px';
                         ctx.textAlign = 'center';
@@ -12392,7 +12392,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     let badgeGrad = (theme === 'INTERVIEW') ? '255, 255, 255' : activeData.grad;
 
                     if (theme === 'JEU_DJ' && !isCurrentSlideSilhouette) {
-                        badgeLabelText = 'RÉVÉLATION DJ';
+                        badgeLabelText = 'RÃ‰VÃ‰LATION DJ';
                         themeDotColor = '#00f0ff';
                         badgeGrad = '0, 240, 255';
                     }
@@ -12426,7 +12426,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     const isDevinetteSlide1 = isDevinetteTheme && effectiveEditorialSlide === 1;
                     const shouldDrawSwipe = showSwipe || isDevinetteSlide1;
                     if (shouldDrawSwipe) {
-                        const swipeWord = isDevinetteSlide1 ? 'Swipe pour la révélation' : 'Swipe';
+                        const swipeWord = isDevinetteSlide1 ? 'Swipe pour la rÃ©vÃ©lation' : 'Swipe';
                         const swipeFontSize = isDevinetteSlide1 ? (isReel ? 18 : 16) : 24;
                         const resolvedColor = themeDotColor || (typeof themeColor === 'string' ? themeColor : themeColor?.color) || '#00ff66';
                         const swipeWidth = drawAnimatedSwipeIndicator(
@@ -12441,14 +12441,14 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                     const lineRightX = canvas.width - lineMarginX - swipeSpaceRight;
 
-                    // Animation temporelle pour les textes (jouée une seule fois au début, puis le texte reste 100% fixe)
+                    // Animation temporelle pour les textes (jouÃ©e une seule fois au dÃ©but, puis le texte reste 100% fixe)
                     const animElapsed = isVideoRecordingRef.current
                         ? deterministicAnimTimeRef.current
                         : ((bgVideo && !isDownloading) || textAnimation !== 'NONE'
                             ? (Date.now() - animStartTimeRef.current) / 1000
                             : 99.0);
 
-                    // Date centrée dans la barre blanche (avec un segment de barre blanche de chaque côté) - exclue en FOCUS REEL
+                    // Date centrÃ©e dans la barre blanche (avec un segment de barre blanche de chaque cÃ´tÃ©) - exclue en FOCUS REEL
                     const showEditorialDate = showDividerDate && ['NEWS', 'FOCUS', 'RECAP', 'INTERVIEW', 'LIVESTREAM', 'MUSIQUE', 'EVENTS', 'CONCOURS', 'REELS', 'CONSEILS', 'TOP 100 DROPSIDERS', 'JEU', 'JEU_FESTIVAL', 'JEU_DJ', 'TRACKLIST', 'CITATION'].includes(theme) && !(theme === 'FOCUS' && isReel);
 
                     if (!isFocusReelHook) {
@@ -12511,7 +12511,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 ctx.stroke();
                             }
                         } else {
-                            // Barre continue normale si le thème n'utilise pas la date
+                            // Barre continue normale si le thÃ¨me n'utilise pas la date
                             ctx.beginPath();
                             ctx.moveTo(lineMarginX, dividerY);
                             ctx.lineTo(lineRightX, dividerY);
@@ -12519,7 +12519,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         }
                         ctx.restore();
                     } else if (showEditorialDate && focusHookAlpha > 0.001 && !(theme === 'FOCUS' && isReel)) {
-                        // Date épurée centrée au-dessus du grand titre, sans barre blanche
+                        // Date Ã©purÃ©e centrÃ©e au-dessus du grand titre, sans barre blanche
                         const defaultDateText = getTodayFormattedDate();
                         const dateText = (editorialDate && editorialDate.trim()) ? editorialDate.trim().toUpperCase() : defaultDateText;
                         ctx.save();
@@ -12548,16 +12548,16 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             ? conseilsTitle
                             : (customText || ''));
 
-                    // Sur les slides 2+ des thèmes éditoriaux, possibilité de masquer le grand titre si pas de titre spécifique
+                    // Sur les slides 2+ des thÃ¨mes Ã©ditoriaux, possibilitÃ© de masquer le grand titre si pas de titre spÃ©cifique
                     if (effectiveEditorialSlide >= 2 && isEditorialCarouselTheme && !showTitleOnSlide2 && !slideCustomTitle && !isCurrentSlideSilhouette) {
                         if (theme === 'JEU_DJ') {
-                            mainTitleText = "C'ÉTAIT BIEN...";
+                            mainTitleText = "C'Ã‰TAIT BIEN...";
                         } else {
                             mainTitleText = '';
                         }
                     }
 
-                    // Récupération du bodyText pour la slide active (Slide 1 = pas de bodyText sauf MUSIQUE avec date/sous-titre si activé, Slide 2 = conseilsSubtext, Slide >= 3 = extraEditorialSlides[s - 3])
+                    // RÃ©cupÃ©ration du bodyText pour la slide active (Slide 1 = pas de bodyText sauf MUSIQUE avec date/sous-titre si activÃ©, Slide 2 = conseilsSubtext, Slide >= 3 = extraEditorialSlides[s - 3])
                     let bodyText = '';
                     if (effectiveEditorialSlide === 1 && isEditorialCarouselTheme) {
                         bodyText = (theme === 'MUSIQUE' && showMusicDate && conseilsSubtext) ? conseilsSubtext : '';
@@ -12575,7 +12575,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     const isDevinetteReveal = isDevinetteTheme && effectiveEditorialSlide === 2;
                     const isSlide1Editorial = (effectiveEditorialSlide === 1 && isEditorialCarouselTheme);
 
-                    // 1. Définition et préparation du Titre (taille standard 64px comme NEWS pour Slide 1, Révélation et thèmes éditoriaux ; Top 10 Tracks pour Focus Reel)
+                    // 1. DÃ©finition et prÃ©paration du Titre (taille standard 64px comme NEWS pour Slide 1, RÃ©vÃ©lation et thÃ¨mes Ã©ditoriaux ; Top 10 Tracks pour Focus Reel)
                     let titleFontSize = isFocusReelHook
                         ? (isReel ? 118 : 90)
                         : ((isTitleOnly || isSlide1Editorial || isDevinetteReveal) ? 64 : (isEditorialCarouselTheme ? 60 : 54));
@@ -12618,7 +12618,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     const titleLineHeight = Math.round(titleFontSize * (isFocusReelHook ? 1.15 : (isDevinetteReveal ? 1.15 : 1.18)));
                     let titleHeight = mainTitleText ? (titleLines.length * titleLineHeight) : 0;
 
-                    // 2. Définition et préparation du Sous-titre / Réponse (64px sur la Révélation pour être identique au Titre et à NEWS)
+                    // 2. DÃ©finition et prÃ©paration du Sous-titre / RÃ©ponse (64px sur la RÃ©vÃ©lation pour Ãªtre identique au Titre et Ã  NEWS)
                     const subFontWeight = isDevinetteReveal ? '900' : '400';
                     let subFontSize = isDevinetteReveal
                         ? 64
@@ -12653,14 +12653,14 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     let subHeight = bodyText ? (subLines.length * subLineHeight) : 0;
                     let totalTextHeight = titleHeight + gapBetween + subHeight;
 
-                    // Calcul dynamique de l'espace disponible : ne déplace JAMAIS le texte principal quand showArticleLink est activé
+                    // Calcul dynamique de l'espace disponible : ne dÃ©place JAMAIS le texte principal quand showArticleLink est activÃ©
                     let bottomLimit = canvas.height - (isReel ? 40 : 25);
                     if (shouldDrawDevinetteCta) {
                         bottomLimit = canvas.height - (isReel ? 60 : 44) - 26;
                     }
                     const availableSpace = Math.max(100, bottomLimit - dividerY);
 
-                    // Réduction automatique si le texte dépasse en hauteur ou en largeur
+                    // RÃ©duction automatique si le texte dÃ©passe en hauteur ou en largeur
                     if (isDevinetteReveal) {
                         while ((titleFontSize > 28 || subFontSize > 28) &&
                             (totalTextHeight > (availableSpace - 16) ||
@@ -12686,9 +12686,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         }
                     }
 
-                    // Positionnement vertical net et stable sous la barre divider (strictement identique à NEWS pour TOUS les thèmes)
-                    // Élimine le grand vide sous la date et garantit que TOUS les thèmes ont la même hauteur de texte
-                    // Espacement optimisé sous la barre date (aéré et équilibré, jamais collé à la date)
+                    // Positionnement vertical net et stable sous la barre divider (strictement identique Ã  NEWS pour TOUS les thÃ¨mes)
+                    // Ã‰limine le grand vide sous la date et garantit que TOUS les thÃ¨mes ont la mÃªme hauteur de texte
+                    // Espacement optimisÃ© sous la barre date (aÃ©rÃ© et Ã©quilibrÃ©, jamais collÃ© Ã  la date)
                     const targetTopPadding = isReel ? 86 : 46;
                     const startPadding = isDevinetteReveal
                         ? Math.max(isReel ? 28 : 22, Math.round((availableSpace - totalTextHeight) / 2))
@@ -12708,7 +12708,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         curY = Math.floor(targetCenterY - (totalTextHeight / 2) + Math.round(firstLineFontSize * 0.82));
                     }
 
-                    // Cartouche en verre dépoli stylisé (Glass Card)
+                    // Cartouche en verre dÃ©poli stylisÃ© (Glass Card)
                     if (isFocusReelHook && focusReelStyle === 'GLASS' && focusHookAlpha > 0.001) {
                         const cardPadX = lineMarginX - 20;
                         const cardW = canvas.width - (cardPadX * 2);
@@ -12813,7 +12813,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         displayText = '';
                                     } else {
                                         const visibleWords = words.slice(0, wordsToShow).join(' ');
-                                        displayText = visibleWords + (wordsToShow < words.length ? ' ▌' : '');
+                                        displayText = visibleWords + (wordsToShow < words.length ? ' â–Œ' : '');
                                         alpha = 1;
                                     }
                                 }
@@ -12969,7 +12969,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         displayText = '';
                                     } else {
                                         const visibleWords = words.slice(0, wordsToShow).join(' ');
-                                        displayText = visibleWords + (wordsToShow < words.length ? ' ▌' : '');
+                                        displayText = visibleWords + (wordsToShow < words.length ? ' â–Œ' : '');
                                         alpha = 1;
                                     }
                                 }
@@ -13053,7 +13053,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         const effectiveColorHex = (typeof themeColor === 'string' ? themeColor : themeColor?.color) || baseThemeData[theme]?.color || '#c026d3';
                         const effectiveGradRGB = (typeof themeColor === 'object' && themeColor?.grad) || baseThemeData[theme]?.grad || '192, 38, 211';
 
-                        // 1. Halo de Lueur Argentée / Platine (Silver Glow) : diffusion lumineuse argentée (rgba(215, 230, 255, 0.95), blur: 18px)
+                        // 1. Halo de Lueur ArgentÃ©e / Platine (Silver Glow) : diffusion lumineuse argentÃ©e (rgba(215, 230, 255, 0.95), blur: 18px)
                         ctx.save();
                         ctx.shadowColor = 'rgba(215, 230, 255, 0.95)';
                         ctx.shadowBlur = 18;
@@ -13061,7 +13061,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         ctx.fillText(textToDraw, lineMarginX, curIndicatorY);
                         ctx.restore();
 
-                        // 2. Ombre portée découpée : contour d'ombre noire nette pour garantir lisibilité 100% sur photos saturées ou claires
+                        // 2. Ombre portÃ©e dÃ©coupÃ©e : contour d'ombre noire nette pour garantir lisibilitÃ© 100% sur photos saturÃ©es ou claires
                         ctx.save();
                         ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
                         ctx.shadowBlur = 8;
@@ -13071,13 +13071,13 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         ctx.strokeText(textToDraw, lineMarginX, curIndicatorY);
                         ctx.restore();
 
-                        // 3. Dégradé Métallique Chromé Brossé + Nacrage nacré animé de gauche à droite :
+                        // 3. DÃ©gradÃ© MÃ©tallique ChromÃ© BrossÃ© + Nacrage nacrÃ© animÃ© de gauche Ã  droite :
                         ctx.save();
                         const textMetrics = ctx.measureText(textToDraw);
                         const textWidth = textMetrics.width;
                         const textHeight = 24;
 
-                        // Animation fluide de balayage nacré d'ouest en est (gauche vers droite, cycle doux de 3.2s)
+                        // Animation fluide de balayage nacrÃ© d'ouest en est (gauche vers droite, cycle doux de 3.2s)
                         const shimmerPhase = (animElapsed % 3.2) / 3.2;
                         const shimmerCenter = lineMarginX - textWidth * 0.3 + (textWidth * 1.6) * shimmerPhase;
                         const shimmerSpan = Math.max(80, textWidth * 0.45);
@@ -13087,13 +13087,13 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             shimmerCenter + shimmerSpan, curIndicatorY
                         );
                         silverGrad.addColorStop(0.00, '#E2E8F0'); // argent clair
-                        silverGrad.addColorStop(0.22, '#FFFFFF'); // blanc éclat argent
-                        silverGrad.addColorStop(0.50, effectiveColorHex); // nacrage intense avec la couleur du thème
-                        silverGrad.addColorStop(0.78, '#FFFFFF'); // éclat reflet nacré
+                        silverGrad.addColorStop(0.22, '#FFFFFF'); // blanc Ã©clat argent
+                        silverGrad.addColorStop(0.50, effectiveColorHex); // nacrage intense avec la couleur du thÃ¨me
+                        silverGrad.addColorStop(0.78, '#FFFFFF'); // Ã©clat reflet nacrÃ©
                         silverGrad.addColorStop(1.00, '#CBD5E1'); // chrome platine froid
 
                         ctx.fillStyle = silverGrad;
-                        // Lueur nacrée subtile qui vibre harmonieusement avec le reflet
+                        // Lueur nacrÃ©e subtile qui vibre harmonieusement avec le reflet
                         const shimmerGlow = 6 + Math.sin(shimmerPhase * Math.PI * 2) * 3;
                         ctx.shadowColor = `rgba(${effectiveGradRGB}, 0.55)`;
                         ctx.shadowBlur = shimmerGlow;
@@ -13213,7 +13213,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     const effectiveColorHex = (typeof themeColor === 'string' ? themeColor : themeColor?.color) || baseThemeData[theme]?.color || '#c026d3';
                     const effectiveGradRGB = (typeof themeColor === 'object' && themeColor?.grad) || baseThemeData[theme]?.grad || '192, 38, 211';
 
-                    // 1. Halo de Lueur Argentée / Platine (Silver Glow)
+                    // 1. Halo de Lueur ArgentÃ©e / Platine (Silver Glow)
                     ctx.save();
                     ctx.shadowColor = 'rgba(215, 230, 255, 0.95)';
                     ctx.shadowBlur = 18;
@@ -13221,7 +13221,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.fillText(textToDraw, 40, canvas.height - 20);
                     ctx.restore();
 
-                    // 2. Ombre portée découpée noire nette
+                    // 2. Ombre portÃ©e dÃ©coupÃ©e noire nette
                     ctx.save();
                     ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
                     ctx.shadowBlur = 8;
@@ -13231,7 +13231,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.strokeText(textToDraw, 40, canvas.height - 25);
                     ctx.restore();
 
-                    // 3. Dégradé Métallique Chromé Brossé + Nacrage nacré animé de gauche à droite
+                    // 3. DÃ©gradÃ© MÃ©tallique ChromÃ© BrossÃ© + Nacrage nacrÃ© animÃ© de gauche Ã  droite
                     ctx.save();
                     const fallbackMetrics = ctx.measureText(textToDraw);
                     const fallbackWidth = fallbackMetrics.width;
@@ -13244,9 +13244,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         shimmerCenterFb + shimmerSpanFb, canvas.height - 25
                     );
                     silverGrad.addColorStop(0.00, '#E2E8F0'); // argent clair
-                    silverGrad.addColorStop(0.22, '#FFFFFF'); // blanc éclat argent
-                    silverGrad.addColorStop(0.50, effectiveColorHex); // nacrage intense avec la couleur du thème
-                    silverGrad.addColorStop(0.78, '#FFFFFF'); // éclat reflet nacré
+                    silverGrad.addColorStop(0.22, '#FFFFFF'); // blanc Ã©clat argent
+                    silverGrad.addColorStop(0.50, effectiveColorHex); // nacrage intense avec la couleur du thÃ¨me
+                    silverGrad.addColorStop(0.78, '#FFFFFF'); // Ã©clat reflet nacrÃ©
                     silverGrad.addColorStop(1.00, '#CBD5E1'); // chrome platine froid
 
                     ctx.fillStyle = silverGrad;
@@ -13336,7 +13336,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
     useEffect(() => {
         let anim: number;
-        // Pendant l'export vidéo actif, la boucle de capture gère elle-même les frames pour éviter les doublons
+        // Pendant l'export vidÃ©o actif, la boucle de capture gÃ¨re elle-mÃªme les frames pour Ã©viter les doublons
         if (isVideoRecording) {
             return;
         }
@@ -13375,14 +13375,14 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         return () => cancelAnimationFrame(anim);
     }, [bgImage, bgVideo, customText, theme, showSwipe, showArticleLink, articleLinkText, showVoteLink, top5Items, currentPreviewIndex, activeTab, rotation, themeColor, isVideoRecording, transitionProgress, showText, planningDate, planningItems, agendaMonth, agendaBadgeText, agendaSlide, agendaCoverBadge, agendaCoverTitle, agendaCoverYear, agendaCoverGenres, agendaCoverCta, showAgendaCoverCta, artisteFestivalSlide, extraSpotlightSlides, spotlightSlidesData, festivalIntroTitle, eventsSlide, editorialSlide, isEditorialAfficheActive, isEditorialTweetActive, showTitleOnSlide2, showMusicDate, editorialDate, showDividerDate, citationAuthor, citationMedia, extraEditorialSlides, musicTracks, top10Tracks, top10ActiveRank, top10Title, top10IntroTitle, top10IntroArtist, top10ColoredWords, top10LogoScale, top10Subtitle, top10TrackDuration, top10TestingRank, top10GenMode, top10Badge, top10LabelSearch, top10StyleSearch, top10ArtistSearch, top100Rank, top100ArtistName, top100Category, top100Badge, top100AnimKey, calendarMonth, calendarEvents, isRetouchMode, retouchPath, isTransparent, showBottomLogo, artistLogo, festivalLogo, bgOffsetX, bgOffsetY, artistNameText, festivalNameText, isArtistLogoNegative, mapFestivalText, mapCityCountry, mapZoom, mapLatitude, mapLongitude, mapStyle, isMapLoading, mapPinColor, mapLabelText, showMapPin, showMapLabel, mapAnimMode, isMapAnimPlaying, mapScrubTime, mapAnimDuration, mapDestLatitude, mapDestLongitude, mapDestFestivalText, mapDestVenue, mapDestCity, mapDestCountry, mapDestPinColor, imgLayoutMode, quizColor1, quizColor2, showFrame, focusReelStyle, conseilsTitle, conseilsSubtext, isConseilsLargeTitle, concoursFestivalName, concoursFestivalHandle, concoursBottomColor, concoursLateralText, concoursLateralOpacity, concoursBadgeTextColor, concoursMode, concoursGTAHeadline, concoursGTATitle, concoursGTAPlatformText, concoursGTACondition1, concoursGTACondition2, concoursGTACondition3, concoursGTACondition4, afficheImage, afficheGlow, afficheBorderColor, afficheMode, afficheScale, afficheOffsetY, tweetImage, tweetScale, tweetOffsetY, tweetGlow, tweetHeadline, tweetBadge, tweetBorderColor, tweetTranslation, showTweetTranslation, tweetAnimMode, textAnimation, animReplayKey, bgAnimation, cdjPlayerRing, musicBgMotion, isCarouselPromoActive, promoCustomPhrase, promoCustomSubphrase, promoOutroStyle, isPromoAnimPlaying, promoCategory, showPromoHook, showPromoHeadline, showPromoLine1, showPromoLine2, djCutoutImage, djOriginalImage, djSilhouetteColor, djGlowIntensity, djShowQuestionMark, djAppearanceAnim, editorialSlideImages, editorialSlideCutouts, editorialSlideTitles, djSlideModes, agendaAffiches, highlightsSlideArtists, highlightsColorArtist, highlightsColorFestival, highlightsColorCity, highlightsColorCountry, highlightsColorDate, afficheImgZoom, afficheImgPanX, afficheImgPanY]);
 
-    // Rejouer l'animation de texte proprement depuis le début à chaque changement de slide, track ou de thème
+    // Rejouer l'animation de texte proprement depuis le dÃ©but Ã  chaque changement de slide, track ou de thÃ¨me
     useEffect(() => {
         pendingAnimResetRef.current = true;
         animStartTimeRef.current = Date.now();
         setAnimReplayKey(k => k + 1);
     }, [editorialSlide, agendaSlide, artisteFestivalSlide, eventsSlide, isCarouselPromoActive, isEditorialAfficheActive, isEditorialTweetActive, theme, top10ActiveRank, top10TestingRank, top100Rank, top100AnimKey, focusReelStyle]);
 
-    // Pre-charger les pochettes des tracks du thème MUSIQUE (avec contournement CORS automatique sur mobile)
+    // Pre-charger les pochettes des tracks du thÃ¨me MUSIQUE (avec contournement CORS automatique sur mobile)
     useEffect(() => {
         musicTracks.forEach(t => {
             if (t.cover && !musicCoverImgsRef.current[t.cover]) {
@@ -13399,7 +13399,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         });
     }, [musicTracks]);
 
-    // Pre-charger les pochettes des tracks du thème TOP 10 TRACKS
+    // Pre-charger les pochettes des tracks du thÃ¨me TOP 10 TRACKS
     useEffect(() => {
         if (theme !== 'TOP 10 TRACKS') return;
         top10Tracks.forEach(t => {
@@ -13417,7 +13417,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         });
     }, [theme, top10Tracks]);
 
-    // Pre-charger tous les extraits audio en mémoire RAM (zéro buffering, zéro micro-coupure)
+    // Pre-charger tous les extraits audio en mÃ©moire RAM (zÃ©ro buffering, zÃ©ro micro-coupure)
     useEffect(() => {
         if (theme === 'MUSIQUE') {
             if (musicIntroAudio && !musicIntroAudio.startsWith('blob:')) {
@@ -13431,7 +13431,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         }
     }, [theme, musicIntroAudio, musicTracks]);
 
-    // Pre-charger l'affiche de l'événement dès que son URL change (avec repli CORS mobile)
+    // Pre-charger l'affiche de l'Ã©vÃ©nement dÃ¨s que son URL change (avec repli CORS mobile)
     useEffect(() => {
         if (!afficheImage) {
             afficheImageRef.current = null;
@@ -13445,11 +13445,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 imageCacheRef.current[afficheImage] = img;
                 generateImage();
             },
-            () => console.warn("Erreur de chargement de l'affiche de l'événement:", afficheImage)
+            () => console.warn("Erreur de chargement de l'affiche de l'Ã©vÃ©nement:", afficheImage)
         );
     }, [afficheImage]);
 
-    // Pre-charger le screenshot du tweet dès que son URL change (avec repli CORS mobile)
+    // Pre-charger le screenshot du tweet dÃ¨s que son URL change (avec repli CORS mobile)
     useEffect(() => {
         if (!tweetImage) {
             tweetImageRef.current = null;
@@ -13467,7 +13467,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         );
     }, [tweetImage]);
 
-    // --- FONT LOADER (toutes graisses & italiques pour un rendu mobile 100% identique au PC sans faux-italique saccadé) ---
+    // --- FONT LOADER (toutes graisses & italiques pour un rendu mobile 100% identique au PC sans faux-italique saccadÃ©) ---
     useEffect(() => {
         const link = document.createElement('link');
         link.href = 'https://fonts.googleapis.com/css2?family=Antonio:wght@400;700;900&family=Montserrat:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,600;1,700;1,800;1,900&family=Orbitron:wght@600;700;900&display=swap';
@@ -13498,7 +13498,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         if (!file) return;
         const url = URL.createObjectURL(file);
 
-        // Si l'utilisateur est sur la Slide AFFICHE : charger strictement dans l'AFFICHE (zéro pollution de Slide 1)
+        // Si l'utilisateur est sur la Slide AFFICHE : charger strictement dans l'AFFICHE (zÃ©ro pollution de Slide 1)
         if (isEditorialAfficheActive) {
             const img = new Image();
             img.crossOrigin = "anonymous";
@@ -13524,10 +13524,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             video.volume = 1;
             video.currentTime = 0;
             
-            // Requis par Safari iOS : le composant vidéo doit être dans le DOM pour router le son vers les haut-parleurs
+            // Requis par Safari iOS : le composant vidÃ©o doit Ãªtre dans le DOM pour router le son vers les haut-parleurs
             ensureVideoMountedInDOM(video);
 
-            // On tente d'activer le son immédiatement car l'upload est un geste utilisateur direct
+            // On tente d'activer le son immÃ©diatement car l'upload est un geste utilisateur direct
             video.muted = false;
 
             const onLoaded = () => {
@@ -13536,7 +13536,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 video.play().then(() => {
                     setIsVideoAudioMuted(false);
                 }).catch(() => {
-                    // Fallback si la politique autoplay mobile bloque le son non muté au premier essai
+                    // Fallback si la politique autoplay mobile bloque le son non mutÃ© au premier essai
                     video.muted = true;
                     setIsVideoAudioMuted(true);
                     video.play().catch(() => {});
@@ -13648,9 +13648,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         const canvas = canvasRef.current;
         if (!canvas) return null;
 
-        // ── 0. DÉVERROUILLAGE AUDIO SYNCHRONE IMMÉDIAT (iOS Safari / Mobile) ─────
-        // Sur Safari iOS, AudioContext.resume() et video.play() DOIVENT être déclenchés
-        // immédiatement lors du clic utilisateur, AVANT tout appel asynchrone / await réseau.
+        // â”€â”€ 0. DÃ‰VERROUILLAGE AUDIO SYNCHRONE IMMÃ‰DIAT (iOS Safari / Mobile) â”€â”€â”€â”€â”€
+        // Sur Safari iOS, AudioContext.resume() et video.play() DOIVENT Ãªtre dÃ©clenchÃ©s
+        // immÃ©diatement lors du clic utilisateur, AVANT tout appel asynchrone / await rÃ©seau.
         const AudioCtxClass = (typeof window !== 'undefined' && ((window as any).AudioContext || (window as any).webkitAudioContext));
         if (AudioCtxClass) {
             if (!audioCtxRef.current || audioCtxRef.current.state === 'closed') {
@@ -13699,7 +13699,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         bgVideoBlob = await res.blob();
                     }
                 } catch (e) {
-                    console.warn("Préchargement bgVideoBlob échoué :", e);
+                    console.warn("PrÃ©chargement bgVideoBlob Ã©chouÃ© :", e);
                 }
                 if (!bgVideoBlob && !bgUrl.startsWith('blob:')) {
                     try {
@@ -13708,7 +13708,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             bgVideoBlob = await proxyRes.blob();
                         }
                     } catch (pe) {
-                        console.warn("Préchargement bgVideoBlob via proxy échoué :", pe);
+                        console.warn("PrÃ©chargement bgVideoBlob via proxy Ã©chouÃ© :", pe);
                     }
                 }
             }
@@ -13720,9 +13720,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         const prevAgendaSlide = agendaSlide;
         const prevEditorialSlide = editorialSlide;
 
-        const fps = exportFps || 30; // 30 FPS fluide par défaut (standard Instagram/Reels) ou 60 FPS Studio
+        const fps = exportFps || 30; // 30 FPS fluide par dÃ©faut (standard Instagram/Reels) ou 60 FPS Studio
         const frameInterval = 1000 / fps;
-        const frameDurationUs = Math.round(1_000_000 / fps); // durée d'un frame en microsecondes
+        const frameDurationUs = Math.round(1_000_000 / fps); // durÃ©e d'un frame en microsecondes
         const effectiveTab = options?.formatTab || activeTab;
         const targetWidth = 1080;
         const targetHeight = (effectiveTab === 'REEL' || combinedMode === 'TIKTOK') ? 1920 : 1350;
@@ -13735,7 +13735,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             finalizePromiseResolve = resolve;
         });
 
-        // Micro-task yield non bridé par Chrome en onglet arrière-plan (anti-lag multitâche/stream)
+        // Micro-task yield non bridÃ© par Chrome en onglet arriÃ¨re-plan (anti-lag multitÃ¢che/stream)
         const nextTick = () => new Promise<void>(resolve => {
             if (typeof MessageChannel !== 'undefined') {
                 const channel = new MessageChannel();
@@ -13750,9 +13750,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             }
         });
 
-        // ── DÉTECTION WEBCODECS (EXPORT FRAME-PAR-FRAME DÉTERMINISTE PC & MOBILE) ───
-        // WebCodecs élimine à 100% les saccades d'effets de texte sur PC ET Mobile moderne,
-        // puis Phase 2/3 muxe la piste audio stéréo AAC en copie directe (-c:v copy) sans perte.
+        // â”€â”€ DÃ‰TECTION WEBCODECS (EXPORT FRAME-PAR-FRAME DÃ‰TERMINISTE PC & MOBILE) â”€â”€â”€
+        // WebCodecs Ã©limine Ã  100% les saccades d'effets de texte sur PC ET Mobile moderne,
+        // puis Phase 2/3 muxe la piste audio stÃ©rÃ©o AAC en copie directe (-c:v copy) sans perte.
         const webCodecsAvailable = typeof window !== 'undefined'
             && typeof (window as any).VideoEncoder !== 'undefined'
             && typeof (window as any).VideoFrame !== 'undefined';
@@ -13773,7 +13773,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             ];
             for (const cand of candidates) {
                 try {
-                    // Priorité au profil temps réel séquentiel (aucun B-frame out-of-order = 100% fluide)
+                    // PrioritÃ© au profil temps rÃ©el sÃ©quentiel (aucun B-frame out-of-order = 100% fluide)
                     const realtimeCfg: any = {
                         codec: cand,
                         width: targetWidth,
@@ -13808,9 +13808,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 } catch { }
             }
         }
-        // ── iOS WebKit (Safari / Opera GX / Chrome iOS) : FORCER MediaRecorder si la vidéo a du son ──
-        // Sur iOS, la chaîne WebCodecs → extraction PCM → AudioEncoder AAC / FFmpeg WASM échoue
-        // silencieusement (AudioEncoder AAC absent, FFmpeg WASM trop lourd) → MP4 muet.
+        // â”€â”€ iOS WebKit (Safari / Opera GX / Chrome iOS) : FORCER MediaRecorder si la vidÃ©o a du son â”€â”€
+        // Sur iOS, la chaÃ®ne WebCodecs â†’ extraction PCM â†’ AudioEncoder AAC / FFmpeg WASM Ã©choue
+        // silencieusement (AudioEncoder AAC absent, FFmpeg WASM trop lourd) â†’ MP4 muet.
         // Le MediaRecorder natif d'iOS, lui, produit directement un MP4 H.264 + AAC lisible partout.
         const isIOSWebKitExport = typeof navigator !== 'undefined' && (
             /iPad|iPhone|iPod/i.test(navigator.userAgent) ||
@@ -13823,7 +13823,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             && typeof (canvas as any).captureStream === 'function';
         const iosForceMediaRecorder = isIOSWebKitExport && needsBgVideoAudio && canUseNativeRecorder;
         if (iosForceMediaRecorder) {
-            console.log('[Export iOS] Mode MediaRecorder natif forcé pour conserver la piste audio AAC.');
+            console.log('[Export iOS] Mode MediaRecorder natif forcÃ© pour conserver la piste audio AAC.');
         }
         const useWebCodecs = Boolean(chosenCodec) && !iosForceMediaRecorder;
 
@@ -13897,7 +13897,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 const timestampUs = Math.round((totalFramesEncoded * 1_000_000) / fps);
                 let frame: any = null;
                 try {
-                    // Fast path GPU direct zéro copie
+                    // Fast path GPU direct zÃ©ro copie
                     frame = new (window as any).VideoFrame(canvas, {
                         timestamp: timestampUs,
                         duration: frameDurationUs,
@@ -13919,7 +13919,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             }
         };
 
-        // ── CALCUL PRÉALABLE DE LA DURÉE TOTALE ET DES FRAMES ATTENDUES ─────────────
+        // â”€â”€ CALCUL PRÃ‰ALABLE DE LA DURÃ‰E TOTALE ET DES FRAMES ATTENDUES â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         const currentTransitionDuration = getTransitionDuration(slideTransition);
         let totalDuration = 0;
         if (combinedMode === 'PROMO_ONLY') {
@@ -13979,7 +13979,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         } else if (theme === 'TOP 10 FESTIVAL') {
             totalDuration = 4 * (16800 + 1200); // 4 slides (Cover + 3 Grid pages)
         } else if (theme === 'TOP 10 TRACKS') {
-            totalDuration = 90000; // Strictement 1 min 30 pile (90s) : Intro (5.0s) + 10 tracks × 7.8s (78s) + 7s Outro Téléphone 3D = 90s pile
+            totalDuration = 90000; // Strictement 1 min 30 pile (90s) : Intro (5.0s) + 10 tracks Ã— 7.8s (78s) + 7s Outro TÃ©lÃ©phone 3D = 90s pile
         } else {
             const isReelWithPromo = (effectiveTab === 'REEL' && combinedMode === 'NONE' && theme !== 'PROMO' && theme !== 'MUSIQUE');
             const isDevinette = ['JEU', 'JEU_FESTIVAL', 'JEU_DJ'].includes(theme);
@@ -14002,7 +14002,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             }
         }
 
-        // Mise à jour visuelle du progress basée sur le temps réel (DOM direct = zéro re-render React)
+        // Mise Ã  jour visuelle du progress basÃ©e sur le temps rÃ©el (DOM direct = zÃ©ro re-render React)
         let startTime = Date.now();
         const updateProgressUI = () => {
             const elapsed = Date.now() - startTime;
@@ -14018,7 +14018,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             if (recordingTimeLeft2Ref.current) recordingTimeLeft2Ref.current.textContent = `${timeLeft}s restantes`;
         };
 
-        // ── renderDuration : rendu déterministe (WebCodecs) ou temps réel (MediaRecorder) ───
+        // â”€â”€ renderDuration : rendu dÃ©terministe (WebCodecs) ou temps rÃ©el (MediaRecorder) â”€â”€â”€
         const renderDuration = async (durationMs: number, startOffsetSec: number = 0): Promise<void> => {
             if (useWebCodecs) {
                 const numFrames = Math.max(1, Math.round((durationMs / 1000) * fps));
@@ -14045,9 +14045,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                 for (let f = 0; f < numFrames; f++) {
                     if (cancelVideoExportRef.current) throw new Error('EXPORT_CANCELLED');
-                    // Cadence fluide en temps réel alignée sur le décodage matériel de la vidéo de fond
+                    // Cadence fluide en temps rÃ©el alignÃ©e sur le dÃ©codage matÃ©riel de la vidÃ©o de fond
                     if (hasPlayingBgVideo && bgVideo) {
-                        // Empêcher la vidéo de dévier ou de boucler à 0:00
+                        // EmpÃªcher la vidÃ©o de dÃ©vier ou de boucler Ã  0:00
                         if (bgVideo.currentTime < bgVideoStartTimeRef.current - 0.2 || bgVideo.currentTime >= (bgVideo.duration - 0.1)) {
                             bgVideo.currentTime = bgVideoStartTimeRef.current + (f / fps);
                         }
@@ -14146,7 +14146,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         };
 
         const renderTransition = async (durationMs: number, onProgress?: (p: number) => void, onSwitch?: () => void): Promise<number> => {
-            // --- Snapshot de la slide SORTANTE (avant tout changement d'état) ---
+            // --- Snapshot de la slide SORTANTE (avant tout changement d'Ã©tat) ---
             const outgoingCanvas = document.createElement('canvas');
             outgoingCanvas.width = canvas.width;
             outgoingCanvas.height = canvas.height;
@@ -14157,7 +14157,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 outCtx.drawImage(canvas, 0, 0);
             }
 
-            // Basculement vers la slide entrante (après snapshot)
+            // Basculement vers la slide entrante (aprÃ¨s snapshot)
             if (onSwitch) onSwitch();
 
             const ctx = canvas.getContext('2d');
@@ -14166,7 +14166,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 ctx.imageSmoothingQuality = 'high';
             }
 
-            // Canvas réutilisable pour le snapshot de chaque frame entrante (alloué une fois)
+            // Canvas rÃ©utilisable pour le snapshot de chaque frame entrante (allouÃ© une fois)
             const incomingSnap = document.createElement('canvas');
             incomingSnap.width = canvas.width;
             incomingSnap.height = canvas.height;
@@ -14200,7 +14200,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     if (onProgress) onProgress(progress);
 
                     const incomingElapsedSec = f / fps;
-                    deterministicAnimTimeRef.current = 0; // Le texte de la slide entrante reste au début (frame 0) pendant la transition
+                    deterministicAnimTimeRef.current = 0; // Le texte de la slide entrante reste au dÃ©but (frame 0) pendant la transition
                     deterministicTotalTimeRef.current = totalFramesEncoded / fps;
                     animStartTimeRef.current = Date.now();
                     recordingStartTimeRef.current = Date.now() - ((totalFramesEncoded / fps) * 1000);
@@ -14214,7 +14214,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                     // Composite : slide sortante fondu vers slide entrante
                     if (ctx && outCtx && inSnapCtx) {
-                        // Mise à jour du snapshot de la frame entrante (réutilise le canvas pré-alloué)
+                        // Mise Ã  jour du snapshot de la frame entrante (rÃ©utilise le canvas prÃ©-allouÃ©)
                         inSnapCtx.clearRect(0, 0, incomingSnap.width, incomingSnap.height);
                         inSnapCtx.drawImage(canvas, 0, 0);
 
@@ -14259,7 +14259,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             }
                             case 'FADE':
                             default: {
-                                // Fondu simple : slide sortante disparaît, slide entrante apparaît — aucun overlay noir
+                                // Fondu simple : slide sortante disparaÃ®t, slide entrante apparaÃ®t â€” aucun overlay noir
                                 ctx.clearRect(0, 0, canvas.width, canvas.height);
                                 ctx.save(); ctx.globalAlpha = Math.max(0, 1 - ease); ctx.drawImage(outgoingCanvas, 0, 0); ctx.restore();
                                 ctx.save(); ctx.globalAlpha = Math.min(1, ease); ctx.drawImage(incomingSnap, 0, 0); ctx.restore();
@@ -14290,8 +14290,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 if (onProgress) onProgress(1);
                 return (numFrames / fps);
             } else {
-                // Mode preview temps réel / MediaRecorder (Mobile) :
-                // Snapshot de la slide entrante à t=0 (comme sur PC) pour que l'animation d'entrée démarre proprement après la transition
+                // Mode preview temps rÃ©el / MediaRecorder (Mobile) :
+                // Snapshot de la slide entrante Ã  t=0 (comme sur PC) pour que l'animation d'entrÃ©e dÃ©marre proprement aprÃ¨s la transition
                 deterministicAnimTimeRef.current = 0;
                 isExportRenderingRef.current = true;
                 try { await generateImage(effectiveTab); } finally { isExportRenderingRef.current = false; }
@@ -14341,7 +14341,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 } else if (effectiveTrans === 'CUT') {
                                     ctx.drawImage(progress < 0.5 ? outgoingCanvas : incomingCanvas, 0, 0);
                                 } else {
-                                    // FADE : Pur fondu croisé ultra-fluide à 60 FPS
+                                    // FADE : Pur fondu croisÃ© ultra-fluide Ã  60 FPS
                                     ctx.save(); ctx.globalAlpha = Math.max(0, 1 - ease); ctx.drawImage(outgoingCanvas, 0, 0); ctx.restore();
                                     ctx.save(); ctx.globalAlpha = Math.min(1, ease); ctx.drawImage(incomingCanvas, 0, 0); ctx.restore();
                                 }
@@ -14398,7 +14398,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         let canvasStream: MediaStream | null = null;
         let combinedStream: MediaStream | null = null;
         let hasAudioTrack = false;
-        // iOS : source audio PCM décodée depuis le fichier vidéo, injectée dans le MediaRecorder
+        // iOS : source audio PCM dÃ©codÃ©e depuis le fichier vidÃ©o, injectÃ©e dans le MediaRecorder
         let iosBufferAudioSrc: AudioBufferSourceNode | null = null;
         let recorder: MediaRecorder | null = null;
         const chunks: Blob[] = [];
@@ -14421,7 +14421,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             canvasStream = (canvas as any).captureStream ? (canvas as any).captureStream(fps) : (canvas as any).mozCaptureStream ? (canvas as any).mozCaptureStream(fps) : null;
 
             if (!canvasStream) {
-                setErrorMessage("Votre navigateur ne supporte pas la capture vidéo.");
+                setErrorMessage("Votre navigateur ne supporte pas la capture vidÃ©o.");
                 isVideoRecordingRef.current = false;
                 setIsVideoRecording(false);
                 promoOutroOverrideRef.current = false;
@@ -14444,7 +14444,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             combinedStream = canvasStream;
         }
 
-        // Pré-décodage PCM MUSIQUE (avant le start pour ne pas bloquer pendant l'enregistrement)
+        // PrÃ©-dÃ©codage PCM MUSIQUE (avant le start pour ne pas bloquer pendant l'enregistrement)
         const hasAnyMusicAudio = (theme === 'MUSIQUE') && (!!musicIntroAudio || musicTracks.some(t => !!t.audio));
         if (hasAnyMusicAudio) {
             stopPreviewPlayer();
@@ -14475,17 +14475,17 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 });
                 bgVideo.loop = true;
 
-                // En mode MediaRecorder temps réel, on connecte la piste audio via Web Audio / captureStream
+                // En mode MediaRecorder temps rÃ©el, on connecte la piste audio via Web Audio / captureStream
                 if (!useWebCodecs) {
                     const isIOSWebKit = typeof navigator !== 'undefined' && (
                         /iPad|iPhone|iPod/i.test(navigator.userAgent) ||
                         (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
                     );
 
-                    // En TOP 10 TRACKS et MUSIQUE, la vidéo de fond est STRICTEMENT visuelle (b-roll muet) : le son vient uniquement des morceaux.
+                    // En TOP 10 TRACKS et MUSIQUE, la vidÃ©o de fond est STRICTEMENT visuelle (b-roll muet) : le son vient uniquement des morceaux.
                     if (theme !== 'TOP 10 TRACKS' && theme !== 'MUSIQUE') {
-                        // ── iOS : décodage PCM du fichier vidéo + AudioBufferSource → MediaStreamDestination ──
-                        // Évite createMediaElementSource / captureStream (non fiables sur WebKit iOS).
+                        // â”€â”€ iOS : dÃ©codage PCM du fichier vidÃ©o + AudioBufferSource â†’ MediaStreamDestination â”€â”€
+                        // Ã‰vite createMediaElementSource / captureStream (non fiables sur WebKit iOS).
                         if (isIOSWebKit && bgVideoBlob && canvasStream) {
                             try {
                                 const actx = audioCtxRef.current;
@@ -14493,7 +14493,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     if (actx.state === 'suspended') await actx.resume().catch(() => { });
                                     const decodedBuf = await extractAudioBufferFromBlob(bgVideoBlob, totalDuration, bgVideoStartTimeRef.current);
                                     if (decodedBuf) {
-                                        // Débrancher une éventuelle source élément vidéo pour éviter un double son
+                                        // DÃ©brancher une Ã©ventuelle source Ã©lÃ©ment vidÃ©o pour Ã©viter un double son
                                         if (audioSourceNodeRef.current) {
                                             try { audioSourceNodeRef.current.disconnect(); } catch { }
                                             try { audioSourceNodeRef.current.connect(actx.destination); } catch { }
@@ -14512,14 +14512,14 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                             iosBufferAudioSrc = src;
                                             hasAudioTrack = true;
                                             combinedStream = new MediaStream([...canvasStream.getVideoTracks(), iosTracks[0]]);
-                                            console.log(`[Export iOS] ✅ Piste audio PCM injectée dans le MediaRecorder (${decodedBuf.duration.toFixed(1)}s).`);
+                                            console.log(`[Export iOS] âœ… Piste audio PCM injectÃ©e dans le MediaRecorder (${decodedBuf.duration.toFixed(1)}s).`);
                                         }
                                     } else {
-                                        console.warn('[Export iOS] Décodage PCM impossible, repli sur la source élément vidéo.');
+                                        console.warn('[Export iOS] DÃ©codage PCM impossible, repli sur la source Ã©lÃ©ment vidÃ©o.');
                                     }
                                 }
                             } catch (iosAudioErr) {
-                                console.warn('[Export iOS] Échec injection audio PCM :', iosAudioErr);
+                                console.warn('[Export iOS] Ã‰chec injection audio PCM :', iosAudioErr);
                             }
                         }
 
@@ -14571,38 +14571,38 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         ...canvasStream.getVideoTracks(),
                                         destAudioTracks[0]
                                     ]);
-                                    console.log('[Export] ✅ Piste audio de bgVideo connectée avec succès au flux d\'enregistrement via Web Audio.');
+                                    console.log('[Export] âœ… Piste audio de bgVideo connectÃ©e avec succÃ¨s au flux d\'enregistrement via Web Audio.');
                                 }
                             }
                         } catch (audioErr) {
                             console.warn('[Export] AudioContext setup error:', audioErr);
                         }
 
-                        // Fallback captureStream si AudioContext n'a pas pu créer la track audio
+                        // Fallback captureStream si AudioContext n'a pas pu crÃ©er la track audio
                         if (!hasAudioTrack && canvasStream) {
                             const vidStream = (bgVideo as any).captureStream?.() ?? (bgVideo as any).mozCaptureStream?.() ?? null;
                             if (vidStream?.getAudioTracks().length > 0) {
                                 hasAudioTrack = true;
                                 combinedStream = new MediaStream([...canvasStream.getVideoTracks(), vidStream.getAudioTracks()[0]]);
-                                console.log('[Export] ✅ Piste audio de bgVideo connectée via captureStream.');
+                                console.log('[Export] âœ… Piste audio de bgVideo connectÃ©e via captureStream.');
                             }
                         }
                     }
                 }
 
-                // Démarrage de la lecture vidéo fluide en arrière-plan (pour WebCodecs ET MediaRecorder)
+                // DÃ©marrage de la lecture vidÃ©o fluide en arriÃ¨re-plan (pour WebCodecs ET MediaRecorder)
                 const isIOSWebKit = typeof navigator !== 'undefined' && (
                     /iPad|iPhone|iPod/i.test(navigator.userAgent) ||
                     (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
                 );
-                // Pendant l'export, la vidéo doit impérativement avoir le son actif pour que la piste audio soit capturée
-                // (sauf iOS avec piste PCM injectée : le son vient du buffer décodé, la vidéo reste visuelle)
+                // Pendant l'export, la vidÃ©o doit impÃ©rativement avoir le son actif pour que la piste audio soit capturÃ©e
+                // (sauf iOS avec piste PCM injectÃ©e : le son vient du buffer dÃ©codÃ©, la vidÃ©o reste visuelle)
                 bgVideo.muted = Boolean(iosBufferAudioSrc) || theme === 'MUSIQUE' || theme === 'TOP 10 TRACKS';
                 bgVideo.volume = 1;
                 try {
                     await bgVideo.play();
                 } catch (playErr) {
-                    console.warn('[Export] bgVideo.play() avec son échoué, essai en sourdine:', playErr);
+                    console.warn('[Export] bgVideo.play() avec son Ã©chouÃ©, essai en sourdine:', playErr);
                     bgVideo.muted = true;
                     await bgVideo.play().catch(() => { });
                 }
@@ -14613,8 +14613,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             }
         }
 
-        // ── RENDU TIMELINE AUDIO (MUSIQUE / TOP 10 TRACKS) ──────────────────────────
-        // Fonction réutilisable : appelée AVANT l'enregistrement sur iOS (injection live dans le
+        // â”€â”€ RENDU TIMELINE AUDIO (MUSIQUE / TOP 10 TRACKS) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        // Fonction rÃ©utilisable : appelÃ©e AVANT l'enregistrement sur iOS (injection live dans le
         // MediaRecorder natif) et dans finalizeRecording sur les autres plateformes.
         let iosPreRenderedTimeline: AudioBuffer | null = null;
         const renderTimelineAudioBuffer = async (): Promise<AudioBuffer | null> => {
@@ -14627,7 +14627,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                 if (theme === 'MUSIQUE' && hasAnyMusicAudio) {
                     if (combinedMode === 'EDITORIAL' || combinedMode === 'TIKTOK') {
-                        // Mode carrousel MUSIQUE : chaque slide a son extrait (durée slideDurationSec)
+                        // Mode carrousel MUSIQUE : chaque slide a son extrait (durÃ©e slideDurationSec)
                         const slideDurationSec = combinedMode === 'TIKTOK'
                             ? (getTikTokSlideTimings(1 + musicTracks.length).slideDurationMs / 1000)
                             : editorialSlide1Duration;
@@ -14643,7 +14643,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 ? (musicIntroAudio ? (musicIntroAudioStartTime || 0) : (musicTracks[0]?.audioStartTime || 0))
                                 : (musicTracks[s - 2]?.audioStartTime || 0);
                             if (audioUrl) {
-                                // Chaque extrait audio joue pendant la durée de la slide et s'arrête avant la slide promo outro
+                                // Chaque extrait audio joue pendant la durÃ©e de la slide et s'arrÃªte avant la slide promo outro
                                 audioSegments.push({
                                     url: audioUrl,
                                     startOffset: cursor,
@@ -14678,8 +14678,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         const tr = currentTracks.find(t => Number(t.rank) === Number(rank));
                         const aUrl = tr?.audioUrl || (tr?.videoUrl && tr.videoUrl.match(/\.(mp3|m4a|aac|wav|ogg)/i) ? tr.videoUrl : '');
                         if (aUrl) {
-                            // Le son du #10 démarre dès le début de l'intro (0s) et continue sur sa slide (3.5s + 4.95s = 8.45s)
-                            // Le track #1 continue sous l'outro téléphone 3D (+7.0s = 11.95s)
+                            // Le son du #10 dÃ©marre dÃ¨s le dÃ©but de l'intro (0s) et continue sur sa slide (3.5s + 4.95s = 8.45s)
+                            // Le track #1 continue sous l'outro tÃ©lÃ©phone 3D (+7.0s = 11.95s)
                             const isRank10 = (rank === 10);
                             const isRank1 = (rank === 1);
                             const startOffset = isRank10 ? 0 : (introDuration + (i * singleDur));
@@ -14702,7 +14702,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     const availableSlides = getAvailableSlideNumbers();
                     const isReelExport = effectiveTab === 'REEL' || combinedMode === 'TIKTOK';
 
-                    // Priorité au son de la Slide 1 (ou son global carrousel)
+                    // PrioritÃ© au son de la Slide 1 (ou son global carrousel)
                     const slide1OrGlobalAudio = currentSlideAudios[1]?.url
                         ? currentSlideAudios[1]
                         : (carouselAudioUrl
@@ -14710,7 +14710,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             : Object.values(currentSlideAudios).find(a => Boolean(a?.url)) || null);
 
                     if (isReelExport) {
-                        // En REEL / TikTok : le son de la Slide 1 joue en continu sur TOUTE la vidéo (toutes les slides + Outro Promo)
+                        // En REEL / TikTok : le son de la Slide 1 joue en continu sur TOUTE la vidÃ©o (toutes les slides + Outro Promo)
                         if (slide1OrGlobalAudio?.url) {
                             audioSegments.push({
                                 url: slide1OrGlobalAudio.url,
@@ -14724,7 +14724,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         const hasMultipleDistinctAudios = slidesWithSpecificAudio.length > 1;
 
                         if (hasMultipleDistinctAudios) {
-                            // Mode multi-slides POST : chaque slide joue sa musique dédiée, la dernière continue sur l'Outro Promo
+                            // Mode multi-slides POST : chaque slide joue sa musique dÃ©diÃ©e, la derniÃ¨re continue sur l'Outro Promo
                             const slideDurationSec = editorialSlide1Duration;
                             let cursor = 0;
                             let lastValidAudio = slide1OrGlobalAudio;
@@ -14748,7 +14748,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 cursor += slideDurationSec;
                             }
                         } else if (slide1OrGlobalAudio?.url) {
-                            // Une seule musique configurée (Slide 1 ou Global) : joue en continu sur tout le carrousel
+                            // Une seule musique configurÃ©e (Slide 1 ou Global) : joue en continu sur tout le carrousel
                             audioSegments.push({
                                 url: slide1OrGlobalAudio.url,
                                 startOffset: 0,
@@ -14817,14 +14817,14 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     }
                 }
             } catch (audioRenderErr) {
-                console.warn('Rendu audio offline échoué (fallback vidéo seule) :', audioRenderErr);
+                console.warn('Rendu audio offline Ã©chouÃ© (fallback vidÃ©o seule) :', audioRenderErr);
             }
             return null;
         };
 
-        // ── iOS : injection live de la timeline audio MUSIQUE / TOP 10 TRACKS / Carrousel dans le MediaRecorder ──
-        // Sur iPhone, AudioEncoder AAC et FFmpeg WASM échouent → on pré-rend toute la bande son
-        // puis on la joue dans un MediaStreamDestination enregistré en direct (MP4 AAC natif).
+        // â”€â”€ iOS : injection live de la timeline audio MUSIQUE / TOP 10 TRACKS / Carrousel dans le MediaRecorder â”€â”€
+        // Sur iPhone, AudioEncoder AAC et FFmpeg WASM Ã©chouent â†’ on prÃ©-rend toute la bande son
+        // puis on la joue dans un MediaStreamDestination enregistrÃ© en direct (MP4 AAC natif).
         if (!useWebCodecs && isIOSWebKitExport && !iosBufferAudioSrc && canvasStream && (theme === 'MUSIQUE' || theme === 'TOP 10 TRACKS' || Boolean(carouselAudioUrl) || Object.values(slideAudiosRef.current || slideAudios).some(a => Boolean(a?.url)))) {
             try {
                 const actx = audioCtxRef.current;
@@ -14847,14 +14847,14 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             iosBufferAudioSrc = tsrc;
                             hasAudioTrack = true;
                             combinedStream = new MediaStream([...canvasStream.getVideoTracks(), iosTracks[0]]);
-                            console.log(`[Export iOS] ✅ Bande son ${theme} injectée dans le MediaRecorder (${timelineBuf.duration.toFixed(1)}s).`);
+                            console.log(`[Export iOS] âœ… Bande son ${theme} injectÃ©e dans le MediaRecorder (${timelineBuf.duration.toFixed(1)}s).`);
                         }
                     } else {
                         console.warn('[Export iOS] Aucune bande son rendue pour', theme);
                     }
                 }
             } catch (iosTimelineErr) {
-                console.warn('[Export iOS] Échec injection bande son :', iosTimelineErr);
+                console.warn('[Export iOS] Ã‰chec injection bande son :', iosTimelineErr);
             }
         }
 
@@ -14891,14 +14891,14 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         await videoEncoder.flush();
                     }
                     if (totalFramesEncoded === 0 || webEncoderErrored) {
-                        throw new Error(webEncoderErrored ? "Encodeur H.264 WebCodecs en erreur sur ce GPU." : "Aucune frame vidéo encodée.");
+                        throw new Error(webEncoderErrored ? "Encodeur H.264 WebCodecs en erreur sur ce GPU." : "Aucune frame vidÃ©o encodÃ©e.");
                     }
 
                     muxer.finalize();
                     videoBlob = new Blob([muxerTarget.buffer], { type: 'video/mp4' });
                 } catch (e: any) {
                     console.error('WebCodecs finalize error:', e);
-                    setErrorMessage(`Erreur d'encodage vidéo : ${e?.message || 'Erreur codec'}`);
+                    setErrorMessage(`Erreur d'encodage vidÃ©o : ${e?.message || 'Erreur codec'}`);
                     isVideoRecordingRef.current = false;
                     setIsVideoRecording(false);
                     if (finalizePromiseResolve) finalizePromiseResolve(null);
@@ -14906,7 +14906,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 }
             } else {
                 if (chunks.length === 0) {
-                    setErrorMessage("Erreur de capture vidéo : aucune donnée reçue. Recharge la page et réessaie.");
+                    setErrorMessage("Erreur de capture vidÃ©o : aucune donnÃ©e reÃ§ue. Recharge la page et rÃ©essaie.");
                     isVideoRecordingRef.current = false;
                     setIsVideoRecording(false);
                     if (finalizePromiseResolve) finalizePromiseResolve(null);
@@ -14915,16 +14915,16 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 videoBlob = new Blob(chunks, { type: mimeType });
             }
 
-            // iOS : arrêt de la piste PCM injectée
+            // iOS : arrÃªt de la piste PCM injectÃ©e
             if (iosBufferAudioSrc) {
                 try { iosBufferAudioSrc.stop(); } catch { }
                 try { iosBufferAudioSrc.disconnect(); } catch { }
             }
 
-            // FAST-PATH iOS : le MediaRecorder natif a produit un MP4 H.264 + AAC avec le son → export direct
-            // (aucun FFmpeg WASM / AudioEncoder nécessaire, qui échouent silencieusement sur iPhone)
+            // FAST-PATH iOS : le MediaRecorder natif a produit un MP4 H.264 + AAC avec le son â†’ export direct
+            // (aucun FFmpeg WASM / AudioEncoder nÃ©cessaire, qui Ã©chouent silencieusement sur iPhone)
             if (isIOSWebKitExport && !useWebCodecs && hasAudioTrack && (videoBlob.type.includes('mp4') || videoBlob.type.includes('quicktime'))) {
-                console.log('[Export iOS] ✅ MP4 natif avec piste audio AAC, export direct.');
+                console.log('[Export iOS] âœ… MP4 natif avec piste audio AAC, export direct.');
                 isVideoRecordingRef.current = false;
                 setIsVideoRecording(false);
                 setRecordingProgress(0);
@@ -14948,7 +14948,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 return iosMp4;
             }
 
-            // S'assurer que le blob vidéo est bien disponible pour l'extraction audio
+            // S'assurer que le blob vidÃ©o est bien disponible pour l'extraction audio
             if (!bgVideoBlob && bgVideo) {
                 const bgUrl = bgVideo.currentSrc || bgVideo.src || '';
                 if (bgUrl) {
@@ -14956,33 +14956,33 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         const res = await fetch(bgUrl);
                         if (res.ok) bgVideoBlob = await res.blob();
                     } catch (e) {
-                        console.warn("Préchargement bgVideoBlob échoué :", e);
+                        console.warn("PrÃ©chargement bgVideoBlob Ã©chouÃ© :", e);
                     }
                     if (!bgVideoBlob && !bgUrl.startsWith('blob:')) {
                         try {
                             const proxyRes = await fetch(`/api/proxy-media?url=${encodeURIComponent(bgUrl)}`);
                             if (proxyRes.ok) bgVideoBlob = await proxyRes.blob();
                         } catch (pe) {
-                            console.warn("Préchargement bgVideoBlob via proxy échoué :", pe);
+                            console.warn("PrÃ©chargement bgVideoBlob via proxy Ã©chouÃ© :", pe);
                         }
                     }
                 }
             }
 
-            // Détection de présence de son dans le projet
+            // DÃ©tection de prÃ©sence de son dans le projet
             const currentTracksForAudio = (top10TracksRef.current && top10TracksRef.current.length === 10) ? top10TracksRef.current : top10Tracks;
             const hasAnyTop10Audio = theme === 'TOP 10 TRACKS' && currentTracksForAudio.some(t => Boolean(t.audioUrl || t.videoUrl));
             const currentSlideAudios = slideAudiosRef.current || slideAudios;
             const hasAnySlideAudio = Object.values(currentSlideAudios).some(a => Boolean(a?.url));
             const hasAnyCarouselAudio = Boolean(carouselAudioUrl || hasAnySlideAudio);
-            // En TOP 10 TRACKS, la vidéo d'arrière-plan bgVideo est 100% muette : on ne prend JAMAIS son son
+            // En TOP 10 TRACKS, la vidÃ©o d'arriÃ¨re-plan bgVideo est 100% muette : on ne prend JAMAIS son son
             const hasAnyAudioSource = theme === 'TOP 10 TRACKS'
                 ? hasAnyTop10Audio
                 : Boolean(bgVideoBlob || hasAnyMusicAudio || hasAnyCarouselAudio || (bgVideo && (bgVideo.currentSrc || bgVideo.src)));
 
-            // FAST-PATH MP4 : si STRICTEMENT AUCUN SON dans le projet (vidéo muette), téléchargement direct immédiat
+            // FAST-PATH MP4 : si STRICTEMENT AUCUN SON dans le projet (vidÃ©o muette), tÃ©lÃ©chargement direct immÃ©diat
             if (!hasAnyAudioSource && videoBlob.type.includes('mp4')) {
-                console.log('[Export] ✅ MP4 muet complet (aucun son requis), export direct immédiat sans conversion.');
+                console.log('[Export] âœ… MP4 muet complet (aucun son requis), export direct immÃ©diat sans conversion.');
                 isVideoRecordingRef.current = false;
                 setIsVideoRecording(false);
                 setRecordingProgress(0);
@@ -15007,10 +15007,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 return videoBlob;
             }
 
-            // Sur mobile natif sans WebCodecs : modal de prévisualisation directe WebM UNIQUEMENT s'il n'y a STRICTEMENT aucun son
+            // Sur mobile natif sans WebCodecs : modal de prÃ©visualisation directe WebM UNIQUEMENT s'il n'y a STRICTEMENT aucun son
             const isActualMobileDevice = typeof navigator !== 'undefined' && (/iPad|iPhone|iPod|Android/.test(navigator.userAgent) || ('maxTouchPoints' in navigator && navigator.maxTouchPoints > 2 && window.innerWidth < 1024));
             if (!hasAnyAudioSource && isActualMobileDevice && !useWebCodecs && videoBlob.type.includes('webm')) {
-                // Fix WebM duration pour éviter le lag (projet muet sans piste audio)
+                // Fix WebM duration pour Ã©viter le lag (projet muet sans piste audio)
                 const durationMs = totalDuration || 30000;
                 const fixedBlob = await fixWebmDuration(videoBlob, durationMs);
                 const url = URL.createObjectURL(fixedBlob);
@@ -15029,11 +15029,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             }
 
 
-            // ── PHASE 2 : RENDU AUDIO OFFLINE ──────────────────────────────────────────
-            // Construction de la timeline audio complète hors main thread via OfflineAudioContext.
-            // Chaque segment PCM est placé au timestamp exact calculé mathématiquement.
-            // Résultat : un fichier WAV parfaitement synchronisé, zéro glitch possible.
-            // ───────────────────────────────────────────────────────────────────────────
+            // â”€â”€ PHASE 2 : RENDU AUDIO OFFLINE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+            // Construction de la timeline audio complÃ¨te hors main thread via OfflineAudioContext.
+            // Chaque segment PCM est placÃ© au timestamp exact calculÃ© mathÃ©matiquement.
+            // RÃ©sultat : un fichier WAV parfaitement synchronisÃ©, zÃ©ro glitch possible.
+            // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
             let offlineWavBlob: Blob | null = null;
             let finalAudioBuffer: AudioBuffer | null = null;
             const sampleRate = 48000;
@@ -15041,23 +15041,23 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             finalAudioBuffer = iosPreRenderedTimeline || await renderTimelineAudioBuffer();
             if (finalAudioBuffer) offlineWavBlob = audioBufferToWavBlob(finalAudioBuffer);
 
-            // ── PHASE 2b : EXTRACTION AUDIO DEPUIS bgVideo (si pas de thème MUSIQUE ni TOP 10 TRACKS) ────
+            // â”€â”€ PHASE 2b : EXTRACTION AUDIO DEPUIS bgVideo (si pas de thÃ¨me MUSIQUE ni TOP 10 TRACKS) â”€â”€â”€â”€
             if (!offlineWavBlob && bgVideoBlob && theme !== 'TOP 10 TRACKS' && !(theme === 'MUSIQUE' && (isCarouselPromoActive || combinedMode === 'PROMO_ONLY'))) {
-                console.log('[Audio] Extraction haute-fidélité de la piste audio de bgVideo via Web Audio API...');
+                console.log('[Audio] Extraction haute-fidÃ©litÃ© de la piste audio de bgVideo via Web Audio API...');
                 try {
                     const extractedBuf = await extractAudioBufferFromBlob(bgVideoBlob, totalDuration, bgVideoStartTimeRef.current);
                     if (extractedBuf) {
                         finalAudioBuffer = extractedBuf;
                         offlineWavBlob = audioBufferToWavBlob(extractedBuf);
-                        console.log(`[Audio] ✅ Audio de bgVideo extrait avec succès (${Math.round(offlineWavBlob.size / 1024)} KB)`);
+                        console.log(`[Audio] âœ… Audio de bgVideo extrait avec succÃ¨s (${Math.round(offlineWavBlob.size / 1024)} KB)`);
                     } else {
-                        console.log('[Audio] Décodage direct conteneur MP4 non supporté nativement (ex: iOS Safari), bascule FFmpeg wasm...');
+                        console.log('[Audio] DÃ©codage direct conteneur MP4 non supportÃ© nativement (ex: iOS Safari), bascule FFmpeg wasm...');
                     }
                 } catch (e) {
-                    console.warn('[Audio] Échec de l\'extraction Web Audio :', e);
+                    console.warn('[Audio] Ã‰chec de l\'extraction Web Audio :', e);
                 }
 
-                // Fallback FFmpeg si Web Audio API n'a pas pu décoder directement le conteneur MP4 (cas classique Safari iOS)
+                // Fallback FFmpeg si Web Audio API n'a pas pu dÃ©coder directement le conteneur MP4 (cas classique Safari iOS)
                 if (!offlineWavBlob) {
                     try {
                         const ffmpeg = await ensureFFmpegLoaded();
@@ -15073,15 +15073,15 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         if (wavData && wavData.byteLength > 44) {
                             const rawWavBlob = new Blob([wavData], { type: 'audio/wav' });
                             offlineWavBlob = rawWavBlob;
-                            console.log(`[Audio] ✅ Audio extrait avec succès via FFmpeg et prêt pour muxage (${Math.round(offlineWavBlob.size / 1024)} KB)`);
+                            console.log(`[Audio] âœ… Audio extrait avec succÃ¨s via FFmpeg et prÃªt pour muxage (${Math.round(offlineWavBlob.size / 1024)} KB)`);
                         }
                     } catch (ffErr) {
-                        console.warn('[Audio] Extraction FFmpeg fallback échouée :', ffErr);
+                        console.warn('[Audio] Extraction FFmpeg fallback Ã©chouÃ©e :', ffErr);
                     }
                 }
             }
 
-            // ── PHASE 3a : MUXAGE NATIF WEBCODECS (AudioEncoder AAC + mp4-muxer, ZÉRO FFmpeg WASM / ZÉRO Blob Worker) ──
+            // â”€â”€ PHASE 3a : MUXAGE NATIF WEBCODECS (AudioEncoder AAC + mp4-muxer, ZÃ‰RO FFmpeg WASM / ZÃ‰RO Blob Worker) â”€â”€
             if (useWebCodecs && rawVideoChunks.length > 0 && finalAudioBuffer && typeof (window as any).AudioEncoder !== 'undefined' && typeof (window as any).AudioData !== 'undefined') {
                 try {
                     const AudioEncoderCls = (window as any).AudioEncoder;
@@ -15094,7 +15094,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     // Le codec Opus dans un conteneur MP4 est STRICTEMENT MUET sur iOS !
                     // On ne tente donc QUE le codec AAC officiel. Si le navigateur ne le supporte pas
                     // via AudioEncoder (ex: Chrome desktop), on bascule sur FFmpeg (Phase 3b) qui encode
-                    // en vrai AAC stéréo universel avec -c:v copy (ultra rapide, zéro recompression vidéo).
+                    // en vrai AAC stÃ©rÃ©o universel avec -c:v copy (ultra rapide, zÃ©ro recompression vidÃ©o).
                     const candidateAudioConfigs: Array<{ codec: string; muxerCodec: 'aac'; bitrate: number }> = [
                         { codec: 'mp4a.40.2', muxerCodec: 'aac', bitrate: 192_000 },
                         { codec: 'mp4a.40.2', muxerCodec: 'aac', bitrate: 160_000 },
@@ -15242,7 +15242,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         document.body.appendChild(a);
                         a.click();
                         document.body.removeChild(a);
-                        console.log(`[Export] ✅ MP4 + Audio (${selectedMuxerCodec.toUpperCase()}) muxé nativement via WebCodecs sans FFmpeg !`);
+                        console.log(`[Export] âœ… MP4 + Audio (${selectedMuxerCodec.toUpperCase()}) muxÃ© nativement via WebCodecs sans FFmpeg !`);
                         if (finalizePromiseResolve) finalizePromiseResolve(nativeMp4Blob);
                         return nativeMp4Blob;
                     }
@@ -15251,7 +15251,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 }
             }
 
-            // ── PHASE 3b : MUXAGE FFmpeg (repli navigateurs sans AudioEncoder AAC) ────
+            // â”€â”€ PHASE 3b : MUXAGE FFmpeg (repli navigateurs sans AudioEncoder AAC) â”€â”€â”€â”€
             try {
                 // FAST-PATH : UNIQUEMENT s'il n'y a STRICTEMENT AUCUN AUDIO dans le projet
                 const hasAudioSource = Boolean(offlineWavBlob || bgVideoBlob);
@@ -15321,7 +15321,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 '-c:a', 'aac', '-b:a', '256k', '-ar', '48000', '-avoid_negative_ts', 'make_zero', 'output.mp4'];
                         }
                     } else if (bgVideoBlob) {
-                        // Fallback FFmpeg audio extraction si decodeAudioData natif a échoué
+                        // Fallback FFmpeg audio extraction si decodeAudioData natif a Ã©chouÃ©
                         const bgExt = bgVideoBlob.type.includes('webm') ? 'webm' : (bgVideoBlob.type.includes('quicktime') ? 'mov' : 'mp4');
                         const bgFilename = `bg_source.${bgExt}`;
                         bgSourceCleanupName = bgFilename;
@@ -15332,7 +15332,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             await ffmpeg.exec([...ssArgs, '-i', bgFilename, '-vn', '-c:a', 'pcm_s16le', '-ar', '48000', '-ac', '2', 'audio.wav']);
                             hasExtracted = true;
                         } catch (e) {
-                            console.warn('[Audio] Extraction FFmpeg échouée, bg_source sans piste audio :', e);
+                            console.warn('[Audio] Extraction FFmpeg Ã©chouÃ©e, bg_source sans piste audio :', e);
                         }
                         if (hasExtracted) {
                             const targetSec = (totalDuration / 1000).toFixed(2);
@@ -15424,7 +15424,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             } catch (err) {
                 console.error("FFmpeg Error:", err);
                 setIsConverting(false);
-                setErrorMessage("Erreur intégration audio : " + (err instanceof Error ? err.message : String(err)));
+                setErrorMessage("Erreur intÃ©gration audio : " + (err instanceof Error ? err.message : String(err)));
                 if (options?.returnBlob) {
                     if (finalizePromiseResolve) finalizePromiseResolve(videoBlob);
                     return videoBlob;
@@ -15448,7 +15448,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             }
         };
 
-        // Préparation initiale de la première frame AVANT recorder.start() (évite tout décalage audio/vidéo sur mobile)
+        // PrÃ©paration initiale de la premiÃ¨re frame AVANT recorder.start() (Ã©vite tout dÃ©calage audio/vidÃ©o sur mobile)
         const savedTop10OriginalRank = top10ActiveRankRef.current ?? top10ActiveRank;
         if (theme === 'TOP 10 TRACKS' && combinedMode !== 'PROMO_ONLY') {
             const preloadTracks = (top10TracksRef.current && top10TracksRef.current.length === 10) ? top10TracksRef.current : top10Tracks;
@@ -15472,17 +15472,17 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             try { await generateImage(effectiveTab); } catch { } finally { isExportRenderingRef.current = false; }
         }
 
-        // Réinitialisation des horloges pile au démarrage réel de la capture (après tous les décodages audio)
+        // RÃ©initialisation des horloges pile au dÃ©marrage rÃ©el de la capture (aprÃ¨s tous les dÃ©codages audio)
         startTime = Date.now();
         recordingStartTimeRef.current = Date.now();
         animStartTimeRef.current = Date.now();
 
-        // Démarrage du MediaRecorder uniquement en mode fallback
+        // DÃ©marrage du MediaRecorder uniquement en mode fallback
         let progressInterval: any = null;
         if (!useWebCodecs && recorder) {
             recorder.onstop = finalizeRecording;
             recorder.start(500);
-            // iOS : démarrage de la piste PCM synchronisé avec le début de l'enregistrement
+            // iOS : dÃ©marrage de la piste PCM synchronisÃ© avec le dÃ©but de l'enregistrement
             if (iosBufferAudioSrc) {
                 try { iosBufferAudioSrc.start(); } catch (e) { console.warn('[Export iOS] start audio :', e); }
             }
@@ -15522,7 +15522,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 promoDuration = (hasVideoBg && promoOutroStyle === 'PHONE_3D') ? 7000 : (hasVideoBg ? 5000 : timings.promoDurationMs);
             }
 
-            // 1. Déroulement des slides de contenu (selon contentSlideNumbers)
+            // 1. DÃ©roulement des slides de contenu (selon contentSlideNumbers)
             for (let i = 0; i < contentSlideNumbers.length; i++) {
                 const s = contentSlideNumbers[i];
                 let slideStartOffsetSec = 0;
@@ -15537,7 +15537,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     animStartTimeRef.current = Date.now();
                 }
 
-                // Déclenchement synchronisé de l'extrait audio pour cette slide en mode MUSIQUE
+                // DÃ©clenchement synchronisÃ© de l'extrait audio pour cette slide en mode MUSIQUE
                 if (isMusicTheme && musicAudioEl) {
                     let slideAudioUrl = '';
                     let slideAudioStartTime = 0;
@@ -15556,14 +15556,14 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     }
                 }
 
-                // Rendu actif frame-par-frame avec le texte qui commence son animation dès le début de la slide
+                // Rendu actif frame-par-frame avec le texte qui commence son animation dÃ¨s le dÃ©but de la slide
                 const currentSlideDur = (s === 1 && hasVideoBg)
                     ? videoDurationMs
                     : (isDevinette && s === 2 ? 6000 : slideDuration);
                 await renderDuration(currentSlideDur, 0);
             }
 
-            // 1b. Transition vers la Slide Affiche si présente
+            // 1b. Transition vers la Slide Affiche si prÃ©sente
             if (hasAfficheSlide) {
                 await renderTransition(transitionDuration, undefined, () => {
                     editorialAfficheOverrideRef.current = true;
@@ -15574,7 +15574,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 editorialAfficheOverrideRef.current = false;
             }
 
-            // 2. Transition vers le visuel PROMO outro à la fin du Reel (composite fluide)
+            // 2. Transition vers le visuel PROMO outro Ã  la fin du Reel (composite fluide)
             if (isMusicTheme) {
                 stopMusicSegment();
             }
@@ -15584,7 +15584,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             });
             transitionProgressRef.current = 0;
 
-            // 3. Affichage du visuel promo final pendant promoDuration avec continuité (zéro relance de texte)
+            // 3. Affichage du visuel promo final pendant promoDuration avec continuitÃ© (zÃ©ro relance de texte)
             await renderDuration(promoDuration, 0);
 
         } else if (combinedMode === 'PLANNING' || (combinedMode === 'TIKTOK' && theme === 'PLANNING')) {
@@ -15610,7 +15610,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             });
             transitionProgressRef.current = 0;
 
-            // 3. Slide 2 (Lineup / Événements)
+            // 3. Slide 2 (Lineup / Ã‰vÃ©nements)
             await renderDuration(slideDuration, 0);
 
             // 4. Slides Affiches (Slide 3..N)
@@ -15624,14 +15624,14 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 await renderDuration(slideDuration, 0);
             }
 
-            // 5. Transition vers le visuel PROMO outro à la fin du Reel (composite fluide)
+            // 5. Transition vers le visuel PROMO outro Ã  la fin du Reel (composite fluide)
             const promoOffsetSec = await renderTransition(transitionDuration, undefined, () => {
                 promoOutroOverrideRef.current = true;
                 animStartTimeRef.current = Date.now();
             });
             transitionProgressRef.current = 0;
 
-            // 6. Affichage du visuel promo final pendant promoDuration dès t=0
+            // 6. Affichage du visuel promo final pendant promoDuration dÃ¨s t=0
             await renderDuration(promoDuration, 0);
 
         } else if (theme.startsWith('TOP 5')) {
@@ -15663,12 +15663,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             }
         } else if (theme === 'TOP 10 TRACKS') {
             const introDurMs = 5000; // 5.0s d'Intro
-            const singleTrackMs = 7800; // 10 tracks × 7.8s = 78.0s
+            const singleTrackMs = 7800; // 10 tracks Ã— 7.8s = 78.0s
             const originalRank = savedTop10OriginalRank;
             let prevVideo: HTMLVideoElement | null = null;
             const currentTracks = (top10TracksRef.current && top10TracksRef.current.length === 10) ? top10TracksRef.current : top10Tracks;
 
-            // Pré-charger toutes les pochettes des 10 tracks pour un rendu 100% instantané et sans micro-latence
+            // PrÃ©-charger toutes les pochettes des 10 tracks pour un rendu 100% instantanÃ© et sans micro-latence
             await Promise.all(currentTracks.map(t => {
                 const coverUrl = t.cover;
                 if (!coverUrl) return Promise.resolve();
@@ -15689,7 +15689,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             animStartTimeRef.current = Date.now();
             await renderDuration(introDurMs, 0);
 
-            // 1. DÉROULEMENT DU COUNTDOWN (#10 ➔ #1) : 49.5s
+            // 1. DÃ‰ROULEMENT DU COUNTDOWN (#10 âž” #1) : 49.5s
             for (let i = 0; i < 10; i++) {
                 const rank = 10 - i;
                 setTop10ActiveRank(rank);
@@ -15716,12 +15716,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 try { prevVideo.pause(); prevVideo.muted = true; } catch (_) { }
             }
 
-            // 2. OUTRO TÉLÉPHONE 3D AUTOMATIQUE (7.0s) : TOTAL 1 MINUTE PILE (3.5s + 49.5s + 7s = 60.0s)
+            // 2. OUTRO TÃ‰LÃ‰PHONE 3D AUTOMATIQUE (7.0s) : TOTAL 1 MINUTE PILE (3.5s + 49.5s + 7s = 60.0s)
             promoOutroOverrideRef.current = true;
             animStartTimeRef.current = Date.now();
             await renderDuration(7000, 0);
 
-            // Restaurer le rang original dans l'éditeur
+            // Restaurer le rang original dans l'Ã©diteur
             top10ActiveRankRef.current = originalRank;
             setTop10ActiveRank(originalRank);
         } else {
@@ -15752,10 +15752,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 const promoDur = promoOutroStyle === 'PHONE_3D' ? 7000 : 5000;
                 const transitionDuration = currentTransitionDuration;
 
-                // 1. Rendu du Reel / vidéo principale (ex: vidéo Highlight de 45s, Devinette max 15s)
+                // 1. Rendu du Reel / vidÃ©o principale (ex: vidÃ©o Highlight de 45s, Devinette max 15s)
                 await renderDuration(contentDur);
 
-                // 2. Transition fluide vers la slide Promo Dropsiders en fin de vidéo
+                // 2. Transition fluide vers la slide Promo Dropsiders en fin de vidÃ©o
                 const promoOffsetSec = await renderTransition(transitionDuration, undefined, () => {
                     promoOutroOverrideRef.current = true;
                     animStartTimeRef.current = Date.now();
@@ -15793,7 +15793,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             finalExportBlob = await finalizeRecording();
         }
 
-        // Nettoyage des états promo et overrides UNIQUEMENT après l'arrêt total de l'enregistrement
+        // Nettoyage des Ã©tats promo et overrides UNIQUEMENT aprÃ¨s l'arrÃªt total de l'enregistrement
         promoOutroOverrideRef.current = false;
         editorialAfficheOverrideRef.current = false;
         editorialTweetOverrideRef.current = false;
@@ -15895,7 +15895,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         const formatToUse: TabType = targetFormat || activeTab || 'PUBLICATION';
         const isStory = formatToUse === 'REEL';
 
-        // Sauvegarder l'état actuel pour le restaurer à la fin
+        // Sauvegarder l'Ã©tat actuel pour le restaurer Ã  la fin
         const prevEditorialSlide = editorialSlide;
         const prevPromoActive = isCarouselPromoActive;
 
@@ -15919,11 +15919,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             slidesToProcess.push({
                 type: 'ANNONCE',
                 slideNum: 1,
-                title: 'Slide 1 • Annonce Sortie',
+                title: 'Slide 1 â€¢ Annonce Sortie',
                 filename: `01-${cleanTheme}-annonce-${formatSuffix}.mp4`
             });
 
-            // 2. Fiches Morceaux (Slides 2 à N)
+            // 2. Fiches Morceaux (Slides 2 Ã  N)
             musicTracks.forEach((tr, idx) => {
                 const trackNum = idx + 1;
                 const slideNum = idx + 2;
@@ -15934,7 +15934,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     type: 'TRACK',
                     slideNum,
                     trackIdx: idx,
-                    title: `Track ${trackNum} • ${tr.artist ? tr.artist + ' - ' : ''}${tr.title || 'Sans titre'}`,
+                    title: `Track ${trackNum} â€¢ ${tr.artist ? tr.artist + ' - ' : ''}${tr.title || 'Sans titre'}`,
                     filename: `${String(slideNum).padStart(2, '0')}-${cleanTheme}-track-${String(trackNum).padStart(2, '0')}-${namePart}-${formatSuffix}.mp4`
                 });
             });
@@ -15944,13 +15944,13 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             slidesToProcess.push({
                 type: 'PROMO',
                 slideNum: promoSlideNum,
-                title: 'Slide Promo • Outro Dropsiders',
+                title: 'Slide Promo â€¢ Outro Dropsiders',
                 filename: `${String(promoSlideNum).padStart(2, '0')}-${cleanTheme}-outro-promo-${formatSuffix}.mp4`
             });
 
             const totalSlides = slidesToProcess.length;
 
-            // Préchargement de toutes les pochettes en mémoire pour fluidité optimale
+            // PrÃ©chargement de toutes les pochettes en mÃ©moire pour fluiditÃ© optimale
             for (const tr of musicTracks) {
                 const cUrl = tr.cover;
                 if (!cUrl) continue;
@@ -15973,7 +15973,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
             for (let i = 0; i < totalSlides; i++) {
                 if (cancelZipExportRef.current) {
-                    console.log('[Export ZIP] Annulé par l’utilisateur.');
+                    console.log('[Export ZIP] AnnulÃ© par lâ€™utilisateur.');
                     break;
                 }
 
@@ -16005,7 +16005,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     zip.file(item.filename, blob);
                 }
 
-                // Pause de récupération GPU & GC mémoire entre 2 vidéos
+                // Pause de rÃ©cupÃ©ration GPU & GC mÃ©moire entre 2 vidÃ©os
                 await new Promise(r => setTimeout(r, 250));
             }
 
@@ -16013,7 +16013,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 setZipExportProgress({
                     current: totalSlides,
                     total: totalSlides,
-                    title: 'Compression de l’archive ZIP...',
+                    title: 'Compression de lâ€™archive ZIP...',
                     stage: 'zipping'
                 });
 
@@ -16074,7 +16074,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 await (navigator as any).share({
                                     files: [file],
                                     title: 'Dropsiders Social Studio',
-                                    text: 'Visuel généré avec le Social Studio Dropsiders'
+                                    text: 'Visuel gÃ©nÃ©rÃ© avec le Social Studio Dropsiders'
                                 });
                                 setIsDownloading(false);
                                 return;
@@ -16091,7 +16091,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         document.body.removeChild(a);
                     } catch (err) {
                         console.error('Export fallback failed:', err);
-                        setErrorMessage("Erreur d'exportation. Vérifiez que les images utilisées sont accessibles (pas de blocage CORS).");
+                        setErrorMessage("Erreur d'exportation. VÃ©rifiez que les images utilisÃ©es sont accessibles (pas de blocage CORS).");
                     } finally {
                         setTimeout(() => setIsDownloading(false), 1000);
                     }
@@ -16105,7 +16105,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         await (navigator as any).share({
                             files: [file],
                             title: 'Dropsiders Social Studio',
-                            text: 'Visuel généré avec le Social Studio Dropsiders'
+                            text: 'Visuel gÃ©nÃ©rÃ© avec le Social Studio Dropsiders'
                         });
                         setIsDownloading(false);
                         return;
@@ -16223,7 +16223,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         await (navigator as any).share({
                             files: [file],
                             title: 'Dropsiders Fond Visuel',
-                            text: 'Fond visuel généré avec Dropsiders Studio'
+                            text: 'Fond visuel gÃ©nÃ©rÃ© avec Dropsiders Studio'
                         });
                         return;
                     }
@@ -16275,7 +16275,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             document.body.removeChild(a);
         } catch (e) {
             console.error(e);
-            setErrorMessage(`Erreur lors du téléchargement de la slide ${slideNumber}.`);
+            setErrorMessage(`Erreur lors du tÃ©lÃ©chargement de la slide ${slideNumber}.`);
         } finally {
             setTimeout(() => {
                 setAgendaSlide(prevSlide);
@@ -16345,7 +16345,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
     const handleSwitchSpotlightSlide = (targetSlide: number) => {
         setIsCarouselPromoActive(false);
-        // Sauvegarder les données de l'artiste actuel avant de basculer
+        // Sauvegarder les donnÃ©es de l'artiste actuel avant de basculer
         if (artisteFestivalSlide === 2) {
             setSpotlightSlidesData(prev => ({
                 ...prev,
@@ -16372,10 +16372,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             }));
         }
 
-        // Basculer vers la slide demandée
+        // Basculer vers la slide demandÃ©e
         setArtisteFestivalSlide(targetSlide);
 
-        // Charger les données de la slide cible si c'est un artiste
+        // Charger les donnÃ©es de la slide cible si c'est un artiste
         if (targetSlide === 2) {
             const d2 = spotlightSlidesData[2];
             if (d2) {
@@ -16456,7 +16456,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             document.body.removeChild(a);
         } catch (e) {
             console.error(e);
-            setErrorMessage(`Erreur lors du téléchargement de la slide ${slideNumber}.`);
+            setErrorMessage(`Erreur lors du tÃ©lÃ©chargement de la slide ${slideNumber}.`);
         } finally {
             setTimeout(() => {
                 handleSwitchSpotlightSlide(prevSlide);
@@ -16543,7 +16543,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             document.body.removeChild(a);
         } catch (e) {
             console.error(e);
-            setErrorMessage(`Erreur lors du téléchargement de la slide ${slideNumber}.`);
+            setErrorMessage(`Erreur lors du tÃ©lÃ©chargement de la slide ${slideNumber}.`);
         } finally {
             editorialAfficheOverrideRef.current = false;
             setIsEditorialAfficheActive(prevAffiche);
@@ -16576,7 +16576,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             a.click();
             document.body.removeChild(a);
 
-            // 2. Slides normales supplémentaires si ajoutées (Slide 2, 3...)
+            // 2. Slides normales supplÃ©mentaires si ajoutÃ©es (Slide 2, 3...)
             for (let i = 0; i < eventNormalSlidesCount; i++) {
                 const sNum = i + 2;
                 await new Promise(r => setTimeout(r, 350));
@@ -16645,7 +16645,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             document.body.removeChild(a);
         } catch (e) {
             console.error(e);
-            setErrorMessage(`Erreur lors du téléchargement de la slide ${slideNumber}.`);
+            setErrorMessage(`Erreur lors du tÃ©lÃ©chargement de la slide ${slideNumber}.`);
         } finally {
             setTimeout(() => {
                 setEditorialSlide(prevSlide);
@@ -16693,7 +16693,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             document.body.removeChild(a);
         } catch (e) {
             console.error(e);
-            setErrorMessage("Erreur lors du téléchargement de la slide Affiche.");
+            setErrorMessage("Erreur lors du tÃ©lÃ©chargement de la slide Affiche.");
         } finally {
             editorialAfficheOverrideRef.current = false;
             setIsEditorialAfficheActive(prevAffiche);
@@ -16852,25 +16852,25 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             setPromoCategory(newTheme);
         }
         if (newTheme === 'JEU') {
-            const defT = 'DE QUEL *CLIP* CETTE IMAGE EST-ELLE TIRÉE ?';
+            const defT = 'DE QUEL *CLIP* CETTE IMAGE EST-ELLE TIRÃ‰E ?';
             setConseilsTitle(defT);
             setCustomText(defT);
             if (!conseilsSubtext) {
-                setConseilsSubtext('RÉPONSE :\n*TITRE DU MORCEAU* — ARTISTE\nSorti en 2020. Tu avais trouvé ?');
+                setConseilsSubtext('RÃ‰PONSE :\n*TITRE DU MORCEAU* â€” ARTISTE\nSorti en 2020. Tu avais trouvÃ© ?');
             }
         } else if (newTheme === 'JEU_FESTIVAL') {
-            const defT = 'DANS QUEL *FESTIVAL* PEUT-ON VOIR CETTE SCÈNE ?';
+            const defT = 'DANS QUEL *FESTIVAL* PEUT-ON VOIR CETTE SCÃˆNE ?';
             setConseilsTitle(defT);
             setCustomText(defT);
             if (!conseilsSubtext) {
-                setConseilsSubtext('RÉPONSE :\n*TOMORROWLAND* (MAINSTAGE)\nBoom, Belgique. Tu y étais ?');
+                setConseilsSubtext('RÃ‰PONSE :\n*TOMORROWLAND* (MAINSTAGE)\nBoom, Belgique. Tu y Ã©tais ?');
             }
         } else if (newTheme === 'JEU_DJ') {
-            const defT = 'QUI SE CACHE DERRIÈRE CETTE *SILHOUETTE* ?';
+            const defT = 'QUI SE CACHE DERRIÃˆRE CETTE *SILHOUETTE* ?';
             setConseilsTitle(defT);
             setCustomText(defT);
             if (!conseilsSubtext || conseilsSubtext.includes('TOMORROWLAND') || conseilsSubtext.includes('TITRE DU MORCEAU')) {
-                setConseilsSubtext('RÉPONSE :\n*NOM DU DJ*\nTu avais reconnu sa silhouette ?');
+                setConseilsSubtext('RÃ‰PONSE :\n*NOM DU DJ*\nTu avais reconnu sa silhouette ?');
             }
         } else if (newTheme === 'TOP 100 DROPSIDERS') {
             top100AnimStartRef.current = Date.now();
@@ -16878,12 +16878,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             setTop100AnimKey(k => k + 1);
         } else if (newTheme === 'CONCOURS') {
             if (!conseilsTitle || conseilsTitle === 'LE TITRE ICI') {
-                const defT = '*1X PASS VIP 3 JOURS* À GAGNER';
+                const defT = '*1X PASS VIP 3 JOURS* Ã€ GAGNER';
                 setConseilsTitle(defT);
                 setCustomText(defT);
             }
             if (!conseilsSubtext) {
-                setConseilsSubtext('POUR PARTICIPER :\n1. *Like* ce post & *abonne-toi* à @dropsiders\n2. *Identifie 2 potes* en commentaire\n3. *Partage en story* pour doubler tes chances !\nTirage au sort le dimanche 25 octobre.');
+                setConseilsSubtext('POUR PARTICIPER :\n1. *Like* ce post & *abonne-toi* Ã  @dropsiders\n2. *Identifie 2 potes* en commentaire\n3. *Partage en story* pour doubler tes chances !\nTirage au sort le dimanche 25 octobre.');
             }
         } else if (newTheme === 'MUSIQUE') {
             if (!conseilsTitle || conseilsTitle === 'LE TITRE ICI' || conseilsTitle.includes('CLIP') || conseilsTitle.includes('FESTIVAL') || conseilsTitle.includes('PASS VIP')) {
@@ -16891,7 +16891,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 setConseilsTitle(defT);
                 setCustomText(defT);
             }
-            if (!conseilsSubtext || conseilsSubtext.includes('RÉPONSE :') || conseilsSubtext.includes('POUR PARTICIPER')) {
+            if (!conseilsSubtext || conseilsSubtext.includes('RÃ‰PONSE :') || conseilsSubtext.includes('POUR PARTICIPER')) {
                 const now = new Date();
                 const dStr = now.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
                 const cap = dStr.charAt(0).toUpperCase() + dStr.slice(1);
@@ -16915,12 +16915,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     title={bgPositionOptionsOpen ? 'Masquer le centrage' : 'Afficher le centrage'}
                 >
                     <span className="text-[9px] font-black text-gray-400 group-hover:text-white uppercase tracking-widest flex items-center gap-1.5 transition-colors truncate">
-                        🎯 Centrage Image (X / Y)
+                        ðŸŽ¯ Centrage Image (X / Y)
                     </span>
                     <span className="flex items-center gap-1.5 shrink-0">
                         <AccordionBadge
                             active={bgOffsetX !== 0 || bgOffsetY !== 0}
-                            label={bgOffsetX !== 0 || bgOffsetY !== 0 ? '● Décalé' : 'Centré'}
+                            label={bgOffsetX !== 0 || bgOffsetY !== 0 ? 'â— DÃ©calÃ©' : 'CentrÃ©'}
                         />
                         <AccordionChevron open={bgPositionOptionsOpen} />
                     </span>
@@ -16933,7 +16933,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         setTimeout(() => generateImage(), 50);
                     }}
                     className="px-2.5 py-1 bg-neon-cyan/10 border border-neon-cyan/30 rounded-xl text-[8px] font-black uppercase text-neon-cyan hover:bg-neon-cyan hover:text-black transition-all flex items-center gap-1 shadow-sm active:scale-95"
-                    title="Réinitialiser et centrer l'image au milieu"
+                    title="RÃ©initialiser et centrer l'image au milieu"
                 >
                     <RotateCcw className="w-3 h-3" /> Centrer
                 </button>
@@ -16992,30 +16992,30 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 title={animOptionsOpen ? 'Masquer les options d\'animation' : 'Afficher les options d\'animation'}
             >
                 <span className="text-[9px] font-black text-gray-400 group-hover:text-white uppercase tracking-widest flex items-center gap-1.5 transition-colors">
-                    🎬 Animation du Fond (Reels / MP4)
+                    ðŸŽ¬ Animation du Fond (Reels / MP4)
                 </span>
                 <span className="flex items-center gap-1.5">
                     <span className={`px-1.5 py-0.5 rounded-md text-[7.5px] font-black uppercase tracking-wider border ${bgAnimation !== 'NONE'
                         ? 'bg-neon-cyan/15 border-neon-cyan/40 text-neon-cyan shadow-[0_0_8px_rgba(0,240,255,0.3)]'
                         : 'bg-white/5 border-white/10 text-gray-500'
                         }`}>
-                        {bgAnimation !== 'NONE' ? '● Active' : 'Statique'}
+                        {bgAnimation !== 'NONE' ? 'â— Active' : 'Statique'}
                     </span>
-                    <span className={`text-[10px] text-gray-400 group-hover:text-white transition-transform duration-300 ${animOptionsOpen ? 'rotate-180' : ''}`}>▾</span>
+                    <span className={`text-[10px] text-gray-400 group-hover:text-white transition-transform duration-300 ${animOptionsOpen ? 'rotate-180' : ''}`}>â–¾</span>
                 </span>
             </button>
 
             {animOptionsOpen && (<>
                 <div className="grid grid-cols-4 gap-1.5">
                     {[
-                        { id: 'NONE', label: 'Statique', icon: '⏹️', activeClass: 'bg-white text-black border-white shadow-sm' },
-                        { id: 'ZOOM_IN', label: 'Zoom Lent', icon: '🔍', activeClass: 'bg-neon-red border-neon-red text-white shadow-[0_0_12px_rgba(255,0,51,0.5)]' },
-                        { id: 'ZOOM_OUT', label: 'Dézoom', icon: '🔎', activeClass: 'bg-neon-cyan border-neon-cyan text-black shadow-[0_0_12px_rgba(0,240,255,0.5)]' },
-                        { id: 'PAN_LEFT', label: 'Pan Gauche', icon: '⬅️', activeClass: 'bg-neon-purple border-neon-purple text-white shadow-[0_0_12px_rgba(176,38,255,0.5)]' },
-                        { id: 'PAN_RIGHT', label: 'Pan Droite', icon: '➡️', activeClass: 'bg-amber-400 border-amber-400 text-black shadow-[0_0_12px_rgba(251,191,36,0.5)]' },
-                        { id: 'PULSE', label: 'Pulsation', icon: '💓', activeClass: 'bg-emerald-400 border-emerald-400 text-black shadow-[0_0_12px_rgba(52,211,153,0.5)]' },
-                        { id: 'BREATHE', label: 'Flottement', icon: '🌊', activeClass: 'bg-pink-500 border-pink-500 text-white shadow-[0_0_12px_rgba(236,72,153,0.5)]' },
-                        { id: 'GLITCH', label: 'Cyber Shake', icon: '⚡', activeClass: 'bg-indigo-500 border-indigo-500 text-white shadow-[0_0_12px_rgba(99,102,241,0.5)]' },
+                        { id: 'NONE', label: 'Statique', icon: 'â¹ï¸', activeClass: 'bg-white text-black border-white shadow-sm' },
+                        { id: 'ZOOM_IN', label: 'Zoom Lent', icon: 'ðŸ”', activeClass: 'bg-neon-red border-neon-red text-white shadow-[0_0_12px_rgba(255,0,51,0.5)]' },
+                        { id: 'ZOOM_OUT', label: 'DÃ©zoom', icon: 'ðŸ”Ž', activeClass: 'bg-neon-cyan border-neon-cyan text-black shadow-[0_0_12px_rgba(0,240,255,0.5)]' },
+                        { id: 'PAN_LEFT', label: 'Pan Gauche', icon: 'â¬…ï¸', activeClass: 'bg-neon-purple border-neon-purple text-white shadow-[0_0_12px_rgba(176,38,255,0.5)]' },
+                        { id: 'PAN_RIGHT', label: 'Pan Droite', icon: 'âž¡ï¸', activeClass: 'bg-amber-400 border-amber-400 text-black shadow-[0_0_12px_rgba(251,191,36,0.5)]' },
+                        { id: 'PULSE', label: 'Pulsation', icon: 'ðŸ’“', activeClass: 'bg-emerald-400 border-emerald-400 text-black shadow-[0_0_12px_rgba(52,211,153,0.5)]' },
+                        { id: 'BREATHE', label: 'Flottement', icon: 'ðŸŒŠ', activeClass: 'bg-pink-500 border-pink-500 text-white shadow-[0_0_12px_rgba(236,72,153,0.5)]' },
+                        { id: 'GLITCH', label: 'Cyber Shake', icon: 'âš¡', activeClass: 'bg-indigo-500 border-indigo-500 text-white shadow-[0_0_12px_rgba(99,102,241,0.5)]' },
                     ].map(anim => (
                         <button
                             key={anim.id}
@@ -17043,7 +17043,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 {bgAnimation !== 'NONE' && (
                     <div className="pt-0.5">
                         <p className="text-[8px] text-gray-400 italic px-1">
-                            ✨ Animation de fond active ! Retrouvez le bouton d'export dans la section <span className="text-neon-cyan font-bold">Vidéo Animée (MP4)</span> ci-dessous.
+                            âœ¨ Animation de fond active ! Retrouvez le bouton d'export dans la section <span className="text-neon-cyan font-bold">VidÃ©o AnimÃ©e (MP4)</span> ci-dessous.
                         </p>
                     </div>
                 )}
@@ -17051,25 +17051,25 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         </div>
     );
 
-    // Shared content blocks (used in both mobile & desktop — 100% parité visuelle et fonctionnelle avec PC)
+    // Shared content blocks (used in both mobile & desktop â€” 100% paritÃ© visuelle et fonctionnelle avec PC)
     const themeButtons = (() => {
         const getMobileThemeMeta = (t: string) => {
             if (['MUSIQUE', 'TRACKLIST', 'ARTISTE FESTIVAL', 'SPOTLIGHT', 'HIGHLIGHTS', 'TOP 10 TRACKS'].includes(t)) {
-                return { category: 'MUSIC' as const, catLabel: 'Musique', icon: '🎵', color: '#00f0ff', border: 'border-cyan-400/40', bg: 'bg-cyan-500/15', text: 'text-cyan-400' };
+                return { category: 'MUSIC' as const, catLabel: 'Musique', icon: 'ðŸŽµ', color: '#00f0ff', border: 'border-cyan-400/40', bg: 'bg-cyan-500/15', text: 'text-cyan-400' };
             }
             if (['PLANNING', 'CALENDRIER', 'EVENTS', 'AFFICHE', 'MAP'].includes(t)) {
-                return { category: 'AGENDA' as const, catLabel: 'Agenda', icon: '📅', color: '#ff6700', border: 'border-[#ff6700]/40', bg: 'bg-[#ff6700]/15', text: 'text-[#ff6700]' };
+                return { category: 'AGENDA' as const, catLabel: 'Agenda', icon: 'ðŸ“…', color: '#ff6700', border: 'border-[#ff6700]/40', bg: 'bg-[#ff6700]/15', text: 'text-[#ff6700]' };
             }
             if (['JEU', 'JEU_FESTIVAL', 'JEU_DJ', 'CONCOURS', 'TOP 100 DROPSIDERS'].includes(t)) {
-                return { category: 'GAMES' as const, catLabel: 'Jeux', icon: '🎮', color: '#00f0ff', border: 'border-[#00f0ff]/40', bg: 'bg-[#00f0ff]/15', text: 'text-[#00f0ff]' };
+                return { category: 'GAMES' as const, catLabel: 'Jeux', icon: 'ðŸŽ®', color: '#00f0ff', border: 'border-[#00f0ff]/40', bg: 'bg-[#00f0ff]/15', text: 'text-[#00f0ff]' };
             }
             if (t === 'RECAP') {
-                return { category: 'EDITO' as const, catLabel: 'Édito', icon: '📰', color: '#c026d3', border: 'border-[#c026d3]/40', bg: 'bg-[#c026d3]/15', text: 'text-[#c026d3]' };
+                return { category: 'EDITO' as const, catLabel: 'Ã‰dito', icon: 'ðŸ“°', color: '#c026d3', border: 'border-[#c026d3]/40', bg: 'bg-[#c026d3]/15', text: 'text-[#c026d3]' };
             }
             if (t === 'FOCUS') {
-                return { category: 'EDITO' as const, catLabel: 'Édito', icon: '📰', color: '#ffe600', border: 'border-[#ffe600]/40', bg: 'bg-[#ffe600]/15', text: 'text-[#ffe600]' };
+                return { category: 'EDITO' as const, catLabel: 'Ã‰dito', icon: 'ðŸ“°', color: '#ffe600', border: 'border-[#ffe600]/40', bg: 'bg-[#ffe600]/15', text: 'text-[#ffe600]' };
             }
-            return { category: 'EDITO' as const, catLabel: 'Édito', icon: '📰', color: '#ff1241', border: 'border-[#ff1241]/40', bg: 'bg-[#ff1241]/15', text: 'text-neon-red' };
+            return { category: 'EDITO' as const, catLabel: 'Ã‰dito', icon: 'ðŸ“°', color: '#ff1241', border: 'border-[#ff1241]/40', bg: 'bg-[#ff1241]/15', text: 'text-neon-red' };
         };
 
         const currentMeta = getMobileThemeMeta(theme);
@@ -17078,18 +17078,18 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             : theme === 'JEU_FESTIVAL' ? 'DEVINE FESTIVAL'
                 : theme === 'JEU_DJ' ? 'DEVINE LE DJ'
                     : theme === 'JEU' ? 'DEVINE CLIP'
-                        : theme === 'RECAP' ? 'RÉCAP'
+                        : theme === 'RECAP' ? 'RÃ‰CAP'
                             : theme;
 
         const unifiedThemeList = [
-            // 📰 Éditorial
+            // ðŸ“° Ã‰ditorial
             { id: 'NEWS', label: 'NEWS', category: 'EDITO', action: () => handleSetTheme('NEWS'), active: theme === 'NEWS', style: 'bg-neon-red/20 border-neon-red text-neon-red shadow-[0_0_12px_rgba(255,18,65,0.35)]' },
             { id: 'FOCUS', label: 'FOCUS', category: 'EDITO', action: () => handleSetTheme('FOCUS'), active: theme === 'FOCUS', style: 'bg-[#ffe600]/20 border-[#ffe600] text-[#ffe600] shadow-[0_0_12px_rgba(255,230,0,0.35)]' },
-            { id: 'RECAP', label: 'RÉCAP', category: 'EDITO', action: () => handleSetTheme('RECAP'), active: theme === 'RECAP', style: 'bg-[#c026d3]/20 border-[#c026d3] text-[#c026d3] shadow-[0_0_12px_rgba(192,38,211,0.35)]' },
+            { id: 'RECAP', label: 'RÃ‰CAP', category: 'EDITO', action: () => handleSetTheme('RECAP'), active: theme === 'RECAP', style: 'bg-[#c026d3]/20 border-[#c026d3] text-[#c026d3] shadow-[0_0_12px_rgba(192,38,211,0.35)]' },
             { id: 'INTERVIEW', label: 'INTERVIEW', category: 'EDITO', action: () => handleSetTheme('INTERVIEW'), active: theme === 'INTERVIEW', style: 'bg-white/20 border-white text-white shadow-[0_0_12px_rgba(255,255,255,0.35)]' },
             { id: 'CITATION', label: 'CITATION', category: 'EDITO', action: () => handleSetTheme('CITATION'), active: theme === 'CITATION', style: 'bg-neon-red/20 border-neon-red text-neon-red shadow-[0_0_12px_rgba(255,18,65,0.35)]' },
             { id: 'LIVESTREAM', label: 'DIRECT', category: 'EDITO', action: () => handleSetTheme('LIVESTREAM'), active: theme === 'LIVESTREAM', style: 'bg-pink-500/20 border-pink-500 text-pink-500 shadow-[0_0_12px_rgba(236,72,153,0.35)]' },
-            // 🎵 Musique
+            // ðŸŽµ Musique
             ...(activeTab === 'REEL'
                 ? [
                     { id: 'TOP 10 TRACKS', label: 'TOP 10 TRACKS', category: 'MUSIC', action: () => handleSetTheme('TOP 10 TRACKS'), active: theme === 'TOP 10 TRACKS', style: 'bg-gradient-to-r from-neon-red/30 to-amber-500/20 border-neon-red text-white shadow-[0_0_15px_rgba(255,0,51,0.4)]' }
@@ -17107,15 +17107,15 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 ]),
             { id: 'TRACKLIST', label: 'TRACKLIST', category: 'MUSIC', action: () => { if (activeTab !== 'REEL') setActiveTab('REEL'); handleSetTheme('TRACKLIST'); }, active: theme === 'TRACKLIST', style: 'bg-orange-500/20 border-orange-500 text-orange-500 shadow-[0_0_12px_rgba(255,120,0,0.35)]' },
 
-            // 📅 Agenda
+            // ðŸ“… Agenda
             { id: 'PLANNING', label: 'AGENDA', category: 'AGENDA', action: () => handleSetTheme('PLANNING'), active: theme === 'PLANNING', style: 'bg-[#ff6700]/20 border-[#ff6700] text-[#ff6700] shadow-[0_0_12px_rgba(255,103,0,0.35)]' },
             { id: 'EVENTS', label: 'EVENTS', category: 'AGENDA', action: () => { handleSetTheme('EVENTS'); setEventsSlide(1); }, active: theme === 'EVENTS' || theme === 'AFFICHE', style: 'bg-[#ff6700]/20 border-[#ff6700] text-[#ff6700] shadow-[0_0_12px_rgba(255,103,0,0.35)]' },
             { id: 'MAP', label: 'CARTE (STORY)', category: 'AGENDA', action: () => { if (activeTab !== 'REEL') setActiveTab('REEL'); handleSetTheme('MAP'); }, active: theme === 'MAP', style: 'bg-neon-cyan/20 border-neon-cyan text-neon-cyan shadow-[0_0_12px_rgba(0,240,255,0.35)]' },
 
-            // 🎮 Jeux
+            // ðŸŽ® Jeux
             {
                 id: 'DEVINETTE',
-                label: theme === 'JEU_FESTIVAL' ? '🎪 DEVINE FESTIVAL' : theme === 'JEU_DJ' ? '👤 DEVINE LE DJ' : theme === 'JEU' ? '🎬 DEVINE CLIP' : 'DEVINETTE (JEU)',
+                label: theme === 'JEU_FESTIVAL' ? 'ðŸŽª DEVINE FESTIVAL' : theme === 'JEU_DJ' ? 'ðŸ‘¤ DEVINE LE DJ' : theme === 'JEU' ? 'ðŸŽ¬ DEVINE CLIP' : 'DEVINETTE (JEU)',
                 category: 'GAMES',
                 action: () => { if (theme !== 'JEU' && theme !== 'JEU_FESTIVAL' && theme !== 'JEU_DJ') handleSetTheme('JEU'); },
                 active: theme === 'JEU' || theme === 'JEU_FESTIVAL' || theme === 'JEU_DJ',
@@ -17140,17 +17140,17 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         <span className="text-white font-black text-xs tracking-tight uppercase truncate">{currentDisplayName}</span>
                         <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: currentMeta.color, boxShadow: `0 0 8px ${currentMeta.color}` }} />
                     </div>
-                    <span className="text-[8px] font-bold text-gray-500 uppercase shrink-0">{filteredMobileThemes.length} thèmes</span>
+                    <span className="text-[8px] font-bold text-gray-500 uppercase shrink-0">{filteredMobileThemes.length} thÃ¨mes</span>
                 </div>
 
-                {/* FILTRES PAR CATÉGORIE (identiques au PC) */}
+                {/* FILTRES PAR CATÃ‰GORIE (identiques au PC) */}
                 <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
                     {[
                         { key: 'ALL', label: 'Tous' },
-                        { key: 'EDITO', label: '📰 Édito' },
-                        { key: 'MUSIC', label: '🎵 Musique' },
-                        { key: 'AGENDA', label: '📅 Agenda' },
-                        { key: 'GAMES', label: '🎮 Jeux' },
+                        { key: 'EDITO', label: 'ðŸ“° Ã‰dito' },
+                        { key: 'MUSIC', label: 'ðŸŽµ Musique' },
+                        { key: 'AGENDA', label: 'ðŸ“… Agenda' },
+                        { key: 'GAMES', label: 'ðŸŽ® Jeux' },
                     ].map(cat => (
                         <button
                             key={cat.key}
@@ -17166,7 +17166,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ))}
                 </div>
 
-                {/* GRILLE DES THÈMES (100% identique au PC) */}
+                {/* GRILLE DES THÃˆMES (100% identique au PC) */}
                 <div className="grid grid-cols-3 gap-1.5">
                     {filteredMobileThemes.map(item => (
                         <button
@@ -17197,7 +17197,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
                     }`}
             >
-                🎬 Devine Clip
+                ðŸŽ¬ Devine Clip
             </button>
             <button
                 type="button"
@@ -17207,7 +17207,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
                     }`}
             >
-                🎪 Devine Festival
+                ðŸŽª Devine Festival
             </button>
             <button
                 type="button"
@@ -17217,7 +17217,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
                     }`}
             >
-                👤 Devine DJ
+                ðŸ‘¤ Devine DJ
             </button>
         </div>
     ) : null;
@@ -17319,11 +17319,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     streams: data.streams || []
                 });
             } else {
-                setErrorMessage("Aucune donnée de planning trouvée.");
+                setErrorMessage("Aucune donnÃ©e de planning trouvÃ©e.");
             }
         } catch (e) {
             console.error(e);
-            setErrorMessage("Erreur lors de la récupération du Live Takeover");
+            setErrorMessage("Erreur lors de la rÃ©cupÃ©ration du Live Takeover");
         } finally {
             setIsTakeoverLoading(false);
         }
@@ -17341,7 +17341,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             .sort((a, b) => (a.startTime || '').localeCompare(b.startTime || ''));
 
         if (filtered.length === 0) {
-            setErrorMessage(`Aucun artiste trouvé sur ${stageMatch} le ${day}`);
+            setErrorMessage(`Aucun artiste trouvÃ© sur ${stageMatch} le ${day}`);
             return;
         }
 
@@ -17382,7 +17382,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         if (rawDate) {
             const d = parseAgendaDate(rawDate);
             if (d) {
-                const MONTHS_FR = ['JANVIER', 'FÉVRIER', 'MARS', 'AVRIL', 'MAI', 'JUIN', 'JUILLET', 'AOÛT', 'SEPTEMBRE', 'OCTOBRE', 'NOVEMBRE', 'DÉCEMBRE'];
+                const MONTHS_FR = ['JANVIER', 'FÃ‰VRIER', 'MARS', 'AVRIL', 'MAI', 'JUIN', 'JUILLET', 'AOÃ›T', 'SEPTEMBRE', 'OCTOBRE', 'NOVEMBRE', 'DÃ‰CEMBRE'];
                 return MONTHS_FR[d.getMonth()] || 'OCTOBRE';
             }
         }
@@ -17397,7 +17397,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         if (!start) return 'DATE';
 
         const DAYS_SHORT = ['DIM', 'LUN', 'MAR', 'MER', 'JEU', 'VEN', 'SAM'];
-        const MONTHS_SHORT = ['JAN', 'FÉV', 'MARS', 'AVRIL', 'MAI', 'JUIN', 'JUIL', 'AOÛT', 'SEPT', 'OCT', 'NOV', 'DÉC'];
+        const MONTHS_SHORT = ['JAN', 'FÃ‰V', 'MARS', 'AVRIL', 'MAI', 'JUIN', 'JUIL', 'AOÃ›T', 'SEPT', 'OCT', 'NOV', 'DÃ‰C'];
 
         const dayName = DAYS_SHORT[start.getDay()];
         const dayNum = start.getDate();
@@ -17433,11 +17433,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     setSiteAgendaEvents(sorted);
                 }
             } else {
-                setErrorMessage("Impossible de récupérer l'agenda du site");
+                setErrorMessage("Impossible de rÃ©cupÃ©rer l'agenda du site");
             }
         } catch (e) {
             console.error('Failed to load site agenda:', e);
-            setErrorMessage("Erreur réseau lors de la récupération de l'agenda");
+            setErrorMessage("Erreur rÃ©seau lors de la rÃ©cupÃ©ration de l'agenda");
         } finally {
             setIsSiteAgendaLoading(false);
         }
@@ -17548,39 +17548,39 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     );
 
     const MONTH_OPTIONS = [
-        'JANVIER', 'FÉVRIER', 'MARS', 'AVRIL', 'MAI', 'JUIN',
-        'JUILLET', 'AOÛT', 'SEPTEMBRE', 'OCTOBRE', 'NOVEMBRE', 'DÉCEMBRE'
+        'JANVIER', 'FÃ‰VRIER', 'MARS', 'AVRIL', 'MAI', 'JUIN',
+        'JUILLET', 'AOÃ›T', 'SEPTEMBRE', 'OCTOBRE', 'NOVEMBRE', 'DÃ‰CEMBRE'
     ];
 
     const planningEditor = (
         <div className="space-y-4">
             {agendaSlide === 1 ? (
-                /* ══════════════════════════════════════════════════════════
+                /* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
                    EDITEUR SLIDE 1 : COVER (ACCROCHE INSTAGRAM)
-                   ══════════════════════════════════════════════════════════ */
+                   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
                 <div className="space-y-3.5 animate-in fade-in duration-200">
                     {/* Grand Titre d'Accroche */}
                     <div className="p-3 bg-black/40 border border-white/10 rounded-2xl space-y-2">
                         <div className="flex items-center justify-between">
                             <label className="text-[9px] font-black text-[#ff3700] uppercase tracking-wider">
-                                🔥 Grand Titre d'Accroche (Hook)
+                                ðŸ”¥ Grand Titre d'Accroche (Hook)
                             </label>
-                            <span className="text-[8px] font-bold text-gray-500 uppercase">Texte principal géant</span>
+                            <span className="text-[8px] font-bold text-gray-500 uppercase">Texte principal gÃ©ant</span>
                         </div>
                         <textarea
                             value={agendaCoverTitle}
                             onChange={e => setAgendaCoverTitle(e.target.value)}
-                            placeholder="ex: ON VA OÙ CE MOIS-CI ?"
+                            placeholder="ex: ON VA OÃ™ CE MOIS-CI ?"
                             rows={2}
                             className="w-full bg-white/10 border border-white/20 rounded-xl px-3 py-2 text-white font-black uppercase text-xs focus:border-[#ff3700] focus:outline-none resize-none"
                         />
                         <div className="flex flex-wrap gap-1 pt-1">
                             {[
-                                'ON VA OÙ CE MOIS-CI ?',
-                                'OÙ SORTIR CE MOIS-CI ?',
+                                'ON VA OÃ™ CE MOIS-CI ?',
+                                'OÃ™ SORTIR CE MOIS-CI ?',
                                 'TON AGENDA DU MOIS',
                                 'LES INCONTOURNABLES',
-                                'LE GUIDE DES SOIRÉES'
+                                'LE GUIDE DES SOIRÃ‰ES'
                             ].map(t => (
                                 <button
                                     key={t}
@@ -17605,7 +17605,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             </div>
                             <div>
                                 <span className="text-[10px] font-black text-white uppercase tracking-wider block">Agenda du Site</span>
-                                <span className="text-[8px] text-gray-400 font-medium">Importer les soirées & festivals du site</span>
+                                <span className="text-[8px] text-gray-400 font-medium">Importer les soirÃ©es & festivals du site</span>
                             </div>
                         </div>
                         <button
@@ -17622,15 +17622,15 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         </button>
                     </div>
 
-                    {/* Mois & Année (Synchronisé) */}
+                    {/* Mois & AnnÃ©e (SynchronisÃ©) */}
                     <div className="p-3 bg-black/40 border border-white/10 rounded-2xl space-y-2.5">
                         <div className="flex items-center justify-between">
                             <label className="text-[9px] font-black text-[#ff3700] uppercase tracking-wider">
-                                📅 Mois & Année de l'Agenda
+                                ðŸ“… Mois & AnnÃ©e de l'Agenda
                             </label>
-                            <span className="text-[8px] font-bold text-gray-500 uppercase">Synchronisé sur les 2 slides</span>
+                            <span className="text-[8px] font-bold text-gray-500 uppercase">SynchronisÃ© sur les 2 slides</span>
                         </div>
-                        {/* Sélecteur rapide des 12 mois */}
+                        {/* SÃ©lecteur rapide des 12 mois */}
                         <div className="grid grid-cols-6 gap-1">
                             {MONTH_OPTIONS.map(m => (
                                 <button
@@ -17651,7 +17651,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         </div>
                         <div className="grid grid-cols-2 gap-2 pt-1">
                             <div>
-                                <label className="block text-[8px] font-bold text-gray-400 uppercase mb-1">Mois écrit</label>
+                                <label className="block text-[8px] font-bold text-gray-400 uppercase mb-1">Mois Ã©crit</label>
                                 <input
                                     value={agendaMonth}
                                     onChange={e => {
@@ -17663,7 +17663,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 />
                             </div>
                             <div>
-                                <label className="block text-[8px] font-bold text-gray-400 uppercase mb-1">Année (optionnel)</label>
+                                <label className="block text-[8px] font-bold text-gray-400 uppercase mb-1">AnnÃ©e (optionnel)</label>
                                 <input
                                     value={agendaCoverYear}
                                     onChange={e => setAgendaCoverYear(e.target.value)}
@@ -17674,11 +17674,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         </div>
                     </div>
 
-                    {/* Badge en haut à gauche */}
+                    {/* Badge en haut Ã  gauche */}
                     <div className="p-3 bg-black/40 border border-white/10 rounded-2xl space-y-2">
                         <div className="flex items-center justify-between">
                             <label className="text-[9px] font-black text-[#ff3700] uppercase tracking-wider">
-                                🏷️ Badge Haut Gauche (Slide 1)
+                                ðŸ·ï¸ Badge Haut Gauche (Slide 1)
                             </label>
                             <span className="text-[8px] font-bold text-gray-500 uppercase">Capsule Cyber</span>
                         </div>
@@ -17691,11 +17691,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         <div className="flex flex-wrap gap-1 pt-1">
                             {[
                                 'AGENDA',
-                                'AGENDA FESTIVALS & SOIRÉES',
-                                'COUPS DE CŒUR DU MOIS',
-                                'SÉLECTION DU MOIS',
+                                'AGENDA FESTIVALS & SOIRÃ‰ES',
+                                'COUPS DE CÅ’UR DU MOIS',
+                                'SÃ‰LECTION DU MOIS',
                                 'AGENDA DU MOIS',
-                                'OÙ SORTIR ?'
+                                'OÃ™ SORTIR ?'
                             ].map(b => (
                                 <button
                                     key={b}
@@ -17717,22 +17717,22 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     <div className="p-3 bg-black/40 border border-white/10 rounded-2xl space-y-2">
                         <div className="flex items-center justify-between">
                             <label className="text-[9px] font-black text-[#ff3700] uppercase tracking-wider">
-                                🎧 Ambiance & Genres Musicaux
+                                ðŸŽ§ Ambiance & Genres Musicaux
                             </label>
                             <span className="text-[8px] font-bold text-gray-500 uppercase">Pilule centrale</span>
                         </div>
                         <input
                             value={agendaCoverGenres}
                             onChange={e => setAgendaCoverGenres(e.target.value)}
-                            placeholder="ex: HARD TECHNO • RAWSTYLE • MULTI-GENRES"
+                            placeholder="ex: HARD TECHNO â€¢ RAWSTYLE â€¢ MULTI-GENRES"
                             className="w-full bg-white/10 border border-white/20 rounded-xl px-3 py-2 text-white font-black uppercase text-xs focus:border-[#ff3700] focus:outline-none"
                         />
                         <div className="flex flex-wrap gap-1 pt-1">
                             {[
-                                'HARD TECHNO • RAWSTYLE • MULTI-GENRES',
-                                'TECHNO • HARD TECHNO • TRANCE',
-                                'ELECTRO • HOUSE • TECH HOUSE',
-                                'TOUS LES STYLES • TOUTES LES VILLES'
+                                'HARD TECHNO â€¢ RAWSTYLE â€¢ MULTI-GENRES',
+                                'TECHNO â€¢ HARD TECHNO â€¢ TRANCE',
+                                'ELECTRO â€¢ HOUSE â€¢ TECH HOUSE',
+                                'TOUS LES STYLES â€¢ TOUTES LES VILLES'
                             ].map(g => (
                                 <button
                                     key={g}
@@ -17753,7 +17753,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     <div className="p-3 bg-black/40 border border-white/10 rounded-2xl space-y-2">
                         <div className="flex items-center justify-between">
                             <label className="text-[9px] font-black text-[#ff3700] uppercase tracking-wider flex items-center gap-1.5">
-                                💬 PHRASE DU BAS (SLIDE 1)
+                                ðŸ’¬ PHRASE DU BAS (SLIDE 1)
                             </label>
                             <button
                                 type="button"
@@ -17764,7 +17764,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     }`}
                                 title={showAgendaCoverCta ? "Cliquer pour masquer la phrase" : "Cliquer pour afficher la phrase"}
                             >
-                                {showAgendaCoverCta ? '👁️ AFFICHÉE' : '🚫 MASQUÉE'}
+                                {showAgendaCoverCta ? 'ðŸ‘ï¸ AFFICHÃ‰E' : 'ðŸš« MASQUÃ‰E'}
                             </button>
                         </div>
                         {showAgendaCoverCta ? (
@@ -17773,7 +17773,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     <input
                                         value={agendaCoverCta}
                                         onChange={e => setAgendaCoverCta(e.target.value)}
-                                        placeholder="ex: Les meilleurs events et coups de cœur du mois rassemblés en un post ➡️"
+                                        placeholder="ex: Les meilleurs events et coups de cÅ“ur du mois rassemblÃ©s en un post âž¡ï¸"
                                         className="w-full bg-white/10 border border-white/20 rounded-xl px-3 py-2 text-white font-black text-xs focus:border-[#ff3700] focus:outline-none"
                                     />
                                     <button
@@ -17787,10 +17787,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 </div>
                                 <div className="flex flex-wrap gap-1 pt-1">
                                     {[
-                                        'Les meilleurs events et coups de cœur du mois rassemblés en un post ➡️',
-                                        'Glisse pour découvrir la sélection complète ➡️',
-                                        'Swipe pour ton agenda du mois ➡️',
-                                        'Swipe pour voir toutes les dates ➡️'
+                                        'Les meilleurs events et coups de cÅ“ur du mois rassemblÃ©s en un post âž¡ï¸',
+                                        'Glisse pour dÃ©couvrir la sÃ©lection complÃ¨te âž¡ï¸',
+                                        'Swipe pour ton agenda du mois âž¡ï¸',
+                                        'Swipe pour voir toutes les dates âž¡ï¸'
                                     ].map(cta => (
                                         <button
                                             key={cta}
@@ -17809,52 +17809,52 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         ) : (
                             <div className="flex items-center justify-between p-2.5 bg-white/[0.02] border border-white/5 rounded-xl">
                                 <span className="text-[8px] font-mono text-gray-500 italic">
-                                    La phrase au bas de l'affiche est masquée.
+                                    La phrase au bas de l'affiche est masquÃ©e.
                                 </span>
                                 <button
                                     type="button"
                                     onClick={() => setShowAgendaCoverCta(true)}
                                     className="px-2 py-1 bg-white/10 hover:bg-white/20 rounded-lg text-[8px] font-black uppercase text-white transition-all"
                                 >
-                                    Réafficher
+                                    RÃ©afficher
                                 </button>
                             </div>
                         )}
                     </div>
                 </div>
             ) : agendaSlide === 2 ? (
-                /* ══════════════════════════════════════════════════════════
-                   EDITEUR SLIDE 2 : ÉVÉNEMENTS & DATES
-                   ══════════════════════════════════════════════════════════ */
+                /* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+                   EDITEUR SLIDE 2 : Ã‰VÃ‰NEMENTS & DATES
+                   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
                 <div className="space-y-4 animate-in fade-in duration-200">
-                    {/* Header: Mois & Badge en haut à gauche */}
+                    {/* Header: Mois & Badge en haut Ã  gauche */}
                     <div className="p-3.5 bg-black/40 border border-[#ff3700]/30 rounded-2xl space-y-3 shadow-lg">
                         <div className="flex items-center justify-between">
                             <span className="text-[10px] font-black text-[#ff3700] uppercase tracking-widest flex items-center gap-1.5">
-                                🏷️ Badge & Mois de l'Agenda
+                                ðŸ·ï¸ Badge & Mois de l'Agenda
                             </span>
-                            <span className="text-[9px] font-bold text-gray-500 uppercase">En-tête visuel</span>
+                            <span className="text-[9px] font-bold text-gray-500 uppercase">En-tÃªte visuel</span>
                         </div>
 
-                        {/* Badge en haut à gauche */}
+                        {/* Badge en haut Ã  gauche */}
                         <div className="space-y-1.5 bg-black/30 p-2.5 rounded-xl border border-white/5">
                             <div className="flex items-center justify-between">
-                                <label className="block text-[8px] font-black text-[#ff3700] uppercase tracking-wider">Texte du carré en haut à gauche</label>
+                                <label className="block text-[8px] font-black text-[#ff3700] uppercase tracking-wider">Texte du carrÃ© en haut Ã  gauche</label>
                                 <span className="text-[8px] font-bold text-gray-500 uppercase">Capsule Cyber Fluo</span>
                             </div>
                             <input
                                 value={agendaBadgeText}
                                 onChange={e => setAgendaBadgeText(e.target.value)}
-                                placeholder="ex: COUPS DE CŒUR DU MOIS"
+                                placeholder="ex: COUPS DE CÅ’UR DU MOIS"
                                 className="w-full bg-white/10 border border-white/20 rounded-xl px-3 py-2 text-white font-black uppercase text-xs focus:border-[#ff3700] focus:outline-none"
                             />
                             {/* Suggestions rapides */}
                             <div className="flex flex-wrap gap-1 pt-1">
                                 {[
-                                    'COUPS DE CŒUR DU MOIS',
+                                    'COUPS DE CÅ’UR DU MOIS',
                                     'NOS EVENTS DU MOIS',
-                                    'EVENTS COUPS DE CŒUR',
-                                    'SÉLECTION DU MOIS',
+                                    'EVENTS COUPS DE CÅ’UR',
+                                    'SÃ‰LECTION DU MOIS',
                                     'AGENDA DU MOIS',
                                     'AGENDA'
                                 ].map(badge => (
@@ -17874,10 +17874,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         </div>
 
                         <div className="flex items-center justify-between pt-1">
-                            <span className="text-[9px] font-bold text-gray-400 uppercase">Mois affiché (Titre fluo creux)</span>
+                            <span className="text-[9px] font-bold text-gray-400 uppercase">Mois affichÃ© (Titre fluo creux)</span>
                         </div>
 
-                        {/* Sélecteur rapide des 12 mois */}
+                        {/* SÃ©lecteur rapide des 12 mois */}
                         <div className="grid grid-cols-6 gap-1">
                             {MONTH_OPTIONS.map(m => (
                                 <button
@@ -17897,10 +17897,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             ))}
                         </div>
 
-                        {/* Champ personnalisé pour le mois + Action vider */}
+                        {/* Champ personnalisÃ© pour le mois + Action vider */}
                         <div className="flex gap-2 items-end">
                             <div className="flex-1">
-                                <label className="block text-[8px] font-bold text-gray-400 uppercase mb-1">Mois affiché (Titre central)</label>
+                                <label className="block text-[8px] font-bold text-gray-400 uppercase mb-1">Mois affichÃ© (Titre central)</label>
                                 <input
                                     value={agendaMonth}
                                     onChange={e => {
@@ -17916,7 +17916,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     type="button"
                                     onClick={() => setPlanningItems([])}
                                     className="px-3 py-2 bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-400 rounded-xl text-[9px] font-black uppercase transition-all flex items-center gap-1.5 h-[34px]"
-                                    title="Effacer tous les événements"
+                                    title="Effacer tous les Ã©vÃ©nements"
                                 >
                                     <Eraser className="w-3.5 h-3.5" /> Tout effacer
                                 </button>
@@ -17933,7 +17933,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 </div>
                                 <div>
                                     <span className="text-[10px] font-black text-white uppercase tracking-wider block">Agenda du Site</span>
-                                    <span className="text-[8px] text-gray-400 font-medium">Prendre les soirées & festivals du site</span>
+                                    <span className="text-[8px] text-gray-400 font-medium">Prendre les soirÃ©es & festivals du site</span>
                                 </div>
                             </div>
                             <button
@@ -17961,13 +17961,13 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 className="flex items-center gap-2 px-3 py-1.5 bg-white/5 border border-white/10 rounded-lg text-[9px] font-black uppercase text-white hover:bg-white/10 transition-all"
                             >
                                 {isTakeoverLoading ? <RotateCcw className="w-3 h-3 animate-spin" /> : <Layers className="w-3 h-3" />}
-                                {takeoverData ? 'Actualiser' : 'Charger les données'}
+                                {takeoverData ? 'Actualiser' : 'Charger les donnÃ©es'}
                             </button>
                         </div>
 
                         {takeoverData && (
                             <div className="grid grid-cols-1 gap-2 p-2 bg-white/5 rounded-lg border border-white/5 animate-in fade-in slide-in-from-top-2">
-                                <p className="text-[8px] font-black text-gray-500 uppercase px-1 mb-1">Sélectionnez une stage & date :</p>
+                                <p className="text-[8px] font-black text-gray-500 uppercase px-1 mb-1">SÃ©lectionnez une stage & date :</p>
                                 <div className="max-h-[150px] overflow-y-auto space-y-1 custom-scrollbar">
                                     {Array.from(new Set(takeoverData.lineup.map(l => `${l.stage}:${l.day}`)))
                                         .sort()
@@ -17991,18 +17991,18 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         )}
                     </div>
 
-                    {/* Liste des événements de l'Agenda */}
+                    {/* Liste des Ã©vÃ©nements de l'Agenda */}
                     <div className="space-y-2.5 max-h-[380px] overflow-y-auto pr-1 custom-scrollbar">
                         <div className="flex items-center justify-between px-1">
                             <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest">
-                                Événements ({planningItems.length})
+                                Ã‰vÃ©nements ({planningItems.length})
                             </span>
                         </div>
 
                         {planningItems.length === 0 ? (
                             <div className="p-6 bg-white/[0.03] border border-dashed border-white/10 rounded-2xl text-center space-y-2.5">
-                                <p className="text-[11px] font-black text-gray-400 uppercase tracking-wider">Aucun événement pour le moment</p>
-                                <p className="text-[9px] text-gray-500 font-medium">Ajoutez un événement manuellement ou prenez ceux du site.</p>
+                                <p className="text-[11px] font-black text-gray-400 uppercase tracking-wider">Aucun Ã©vÃ©nement pour le moment</p>
+                                <p className="text-[9px] text-gray-500 font-medium">Ajoutez un Ã©vÃ©nement manuellement ou prenez ceux du site.</p>
                                 <div className="pt-1 flex flex-col sm:flex-row gap-2 justify-center">
                                     <button
                                         type="button"
@@ -18043,7 +18043,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                                 n[i].artist = e.target.value.toUpperCase();
                                                 setPlanningItems(n);
                                             }}
-                                            placeholder="TITRE ÉVÉNEMENT (ex: GODDESS RAVE)"
+                                            placeholder="TITRE Ã‰VÃ‰NEMENT (ex: GODDESS RAVE)"
                                             spellCheck="false"
                                             className="flex-1 bg-white/10 border border-white/20 rounded-lg p-2 text-[10px] text-white font-black uppercase"
                                         />
@@ -18089,7 +18089,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                                 n[i].venue = e.target.value.toUpperCase();
                                                 setPlanningItems(n);
                                             }}
-                                            placeholder="LIEU (ex: MKILOMÈTRE25)"
+                                            placeholder="LIEU (ex: MKILOMÃˆTRE25)"
                                             spellCheck="false"
                                             className="w-1/2 bg-[#ff3700]/10 border border-[#ff3700]/20 rounded-lg p-1.5 text-[9px] text-[#ff3700] font-black uppercase"
                                         />
@@ -18106,7 +18106,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         ])}
                         className="w-full py-3 bg-[#ff3700]/10 border border-dashed border-[#ff3700]/30 hover:border-[#ff3700] rounded-xl text-[9px] font-black uppercase text-[#ff3700] hover:bg-[#ff3700]/20 transition-all flex items-center justify-center gap-2"
                     >
-                        <Plus className="w-3.5 h-3.5" /> Ajouter un événement à l'Agenda
+                        <Plus className="w-3.5 h-3.5" /> Ajouter un Ã©vÃ©nement Ã  l'Agenda
                     </button>
 
                 </div>
@@ -18122,7 +18122,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 onClick={() => setAgendaSlide(1)}
                                 className="px-3 py-1.5 bg-[#ff3700] text-black text-[9px] font-black uppercase rounded-lg"
                             >
-                                Revenir à la Slide 1
+                                Revenir Ã  la Slide 1
                             </button>
                         </div>
                     );
@@ -18133,7 +18133,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         <div className="p-3.5 bg-black/40 border border-[#ff3700]/30 rounded-2xl space-y-2 shadow-lg">
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-2">
-                                    <span className="text-sm">🖼️</span>
+                                    <span className="text-sm">ðŸ–¼ï¸</span>
                                     <span className="text-[10px] font-black uppercase text-white tracking-wider">
                                         Slide {agendaSlide} : Affiche {affIdx + 1}
                                     </span>
@@ -18144,18 +18144,18 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     className="px-2 py-1 bg-red-500/10 hover:bg-red-500/25 border border-red-500/30 text-red-400 text-[8px] font-black uppercase rounded-lg transition-all flex items-center gap-1"
                                     title="Supprimer cette slide affiche"
                                 >
-                                    ✕ Supprimer
+                                    âœ• Supprimer
                                 </button>
                             </div>
                             <p className="text-[7.5px] text-gray-400">
-                                Importez l'affiche officielle du festival ou de la soirée pour l'intégrer au carrousel Agenda.
+                                Importez l'affiche officielle du festival ou de la soirÃ©e pour l'intÃ©grer au carrousel Agenda.
                             </p>
                         </div>
 
                         {/* Upload Flyer Image via Cloud R2 */}
                         <div className="p-3 bg-black/40 border border-white/10 rounded-2xl space-y-2.5">
                             <label className="text-[9px] font-black text-[#ff3700] uppercase tracking-wider block">
-                                🎨 Affiche Festival / Flyer (Cloud R2)
+                                ðŸŽ¨ Affiche Festival / Flyer (Cloud R2)
                             </label>
                             {aff.image ? (
                                 <div className="relative group rounded-xl overflow-hidden border border-white/15 bg-black/60">
@@ -18195,7 +18195,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 >
                                     <ImageIcon className="w-6 h-6 text-neon-cyan mb-2 group-hover:scale-110 transition-transform" />
                                     <span className="text-[9.5px] font-black uppercase text-white">Choisir l'affiche sur Cloud R2</span>
-                                    <span className="text-[7.5px] text-gray-400 mt-0.5">Parcourir la bibliothèque Cloud R2 Dropsiders</span>
+                                    <span className="text-[7.5px] text-gray-400 mt-0.5">Parcourir la bibliothÃ¨que Cloud R2 Dropsiders</span>
                                 </button>
                             )}
                             {aff.image && renderImageCropControls(
@@ -18207,7 +18207,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         {/* Title Input */}
                         <div className="p-3 bg-black/40 border border-white/10 rounded-2xl space-y-2">
                             <label className="text-[9px] font-black text-gray-300 uppercase tracking-wider block">
-                                ⭐ Nom de l'Événement / Festival
+                                â­ Nom de l'Ã‰vÃ©nement / Festival
                             </label>
                             <input
                                 type="text"
@@ -18221,7 +18221,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         {/* Date Input */}
                         <div className="p-3 bg-black/40 border border-white/10 rounded-2xl space-y-2">
                             <label className="text-[9px] font-black text-gray-300 uppercase tracking-wider block">
-                                📅 Date(s) de l'Événement
+                                ðŸ“… Date(s) de l'Ã‰vÃ©nement
                             </label>
                             <input
                                 type="text"
@@ -18235,13 +18235,13 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         {/* Venue Input */}
                         <div className="p-3 bg-black/40 border border-white/10 rounded-2xl space-y-2">
                             <label className="text-[9px] font-black text-gray-300 uppercase tracking-wider block">
-                                📍 Lieu & Ville
+                                ðŸ“ Lieu & Ville
                             </label>
                             <input
                                 type="text"
                                 value={aff.venue}
                                 onChange={e => updateAgendaAffiche(affIdx, 'venue', e.target.value)}
-                                placeholder="ex: LE BARCARÈS, FRANCE"
+                                placeholder="ex: LE BARCARÃˆS, FRANCE"
                                 className="w-full bg-white/5 border border-white/15 focus:border-[#ff3700] rounded-xl px-3 py-2 text-white font-bold uppercase text-xs outline-none transition-colors"
                             />
                         </div>
@@ -18273,7 +18273,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             }`}
                         title={showDividerDate ? "Masquer la date et rendre la barre blanche continue" : "Afficher la date au centre de la barre blanche"}
                     >
-                        {showDividerDate ? '👁️ Affichée' : '👁️ Masquée'}
+                        {showDividerDate ? 'ðŸ‘ï¸ AffichÃ©e' : 'ðŸ‘ï¸ MasquÃ©e'}
                     </button>
                     {editorialDate && (
                         <button
@@ -18283,9 +18283,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 setTimeout(() => generateImage(), 50);
                             }}
                             className="text-[8px] font-bold text-gray-400 hover:text-white transition-colors"
-                            title="Réinitialiser à la date d'aujourd'hui"
+                            title="RÃ©initialiser Ã  la date d'aujourd'hui"
                         >
-                            🔄 Aujourd'hui
+                            ðŸ”„ Aujourd'hui
                         </button>
                     )}
                 </div>
@@ -18345,8 +18345,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             )}
             <p className="text-[8px] text-gray-400 pl-1">
                 {showDividerDate
-                    ? "Texte centré dans la barre blanche (par défaut : date du jour). Modifiable librement ou via le calendrier."
-                    : "La barre blanche est affichée continue sans texte au milieu."}
+                    ? "Texte centrÃ© dans la barre blanche (par dÃ©faut : date du jour). Modifiable librement ou via le calendrier."
+                    : "La barre blanche est affichÃ©e continue sans texte au milieu."}
             </p>
         </div>
     ) : null;
@@ -18361,16 +18361,16 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     title={animOptionsOpen ? 'Masquer les options d\'animation' : 'Afficher les options d\'animation'}
                 >
                     <span className="text-[9px] font-black uppercase text-neon-cyan tracking-wider flex items-center gap-1.5 truncate">
-                        🎬 Animation du texte {activeTab === 'REEL' ? '(Reel 9:16)' : ''}
+                        ðŸŽ¬ Animation du texte {activeTab === 'REEL' ? '(Reel 9:16)' : ''}
                     </span>
                     <span className="flex items-center gap-1.5 shrink-0">
                         <span className={`px-1.5 py-0.5 rounded-md text-[7.5px] font-black uppercase tracking-wider border ${textAnimation !== 'NONE'
                             ? 'bg-neon-cyan/15 border-neon-cyan/40 text-neon-cyan shadow-[0_0_8px_rgba(0,240,255,0.3)]'
                             : 'bg-white/5 border-white/10 text-gray-500'
                             }`}>
-                            {textAnimation !== 'NONE' ? '● Active' : 'Statique'}
+                            {textAnimation !== 'NONE' ? 'â— Active' : 'Statique'}
                         </span>
-                        <span className={`text-[10px] text-gray-400 group-hover:text-white transition-transform duration-300 ${animOptionsOpen ? 'rotate-180' : ''}`}>▾</span>
+                        <span className={`text-[10px] text-gray-400 group-hover:text-white transition-transform duration-300 ${animOptionsOpen ? 'rotate-180' : ''}`}>â–¾</span>
                     </span>
                 </button>
                 {animOptionsOpen && textAnimation !== 'NONE' && (
@@ -18385,7 +18385,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             }
                         }}
                         className="px-2 py-0.5 bg-neon-cyan/10 border border-neon-cyan/30 rounded-lg text-[8px] font-black uppercase text-neon-cyan hover:bg-neon-cyan hover:text-black transition-all flex items-center gap-1"
-                        title="Rejouer l'animation depuis le début"
+                        title="Rejouer l'animation depuis le dÃ©but"
                     >
                         <RotateCcw className="w-2.5 h-2.5" /> Rejouer
                     </button>
@@ -18395,14 +18395,14 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             {animOptionsOpen && (
                 <div className="grid grid-cols-4 gap-1.5">
                     {[
-                        { id: 'NONE', label: 'Statique', icon: '⏹️', activeClass: 'bg-white text-black border-white shadow-sm' },
-                        { id: 'SLIDE_LEFT', label: 'Glissement', icon: '➡️', activeClass: 'bg-neon-red border-neon-red text-white shadow-[0_0_12px_rgba(255,0,51,0.5)]' },
-                        { id: 'WORD_BY_WORD', label: 'Mot / Mot', icon: '✨', activeClass: 'bg-neon-cyan border-neon-cyan text-black shadow-[0_0_12px_rgba(0,240,255,0.5)]' },
-                        { id: 'POP_UP', label: 'Pop Up', icon: '⬆️', activeClass: 'bg-neon-purple border-neon-purple text-white shadow-[0_0_12px_rgba(176,38,255,0.5)]' },
-                        { id: 'ZOOM_IMPACT', label: 'Zoom Impact', icon: '💥', activeClass: 'bg-amber-400 border-amber-400 text-black shadow-[0_0_12px_rgba(251,191,36,0.5)]' },
-                        { id: 'TYPEWRITER', label: 'Machine', icon: '⌨️', activeClass: 'bg-emerald-400 border-emerald-400 text-black shadow-[0_0_12px_rgba(52,211,153,0.5)]' },
-                        { id: 'BOUNCE', label: 'Rebond', icon: '🏀', activeClass: 'bg-pink-500 border-pink-500 text-white shadow-[0_0_12px_rgba(236,72,153,0.5)]' },
-                        { id: 'GLITCH', label: 'Glitch Cyber', icon: '⚡', activeClass: 'bg-indigo-500 border-indigo-500 text-white shadow-[0_0_12px_rgba(99,102,241,0.5)]' },
+                        { id: 'NONE', label: 'Statique', icon: 'â¹ï¸', activeClass: 'bg-white text-black border-white shadow-sm' },
+                        { id: 'SLIDE_LEFT', label: 'Glissement', icon: 'âž¡ï¸', activeClass: 'bg-neon-red border-neon-red text-white shadow-[0_0_12px_rgba(255,0,51,0.5)]' },
+                        { id: 'WORD_BY_WORD', label: 'Mot / Mot', icon: 'âœ¨', activeClass: 'bg-neon-cyan border-neon-cyan text-black shadow-[0_0_12px_rgba(0,240,255,0.5)]' },
+                        { id: 'POP_UP', label: 'Pop Up', icon: 'â¬†ï¸', activeClass: 'bg-neon-purple border-neon-purple text-white shadow-[0_0_12px_rgba(176,38,255,0.5)]' },
+                        { id: 'ZOOM_IMPACT', label: 'Zoom Impact', icon: 'ðŸ’¥', activeClass: 'bg-amber-400 border-amber-400 text-black shadow-[0_0_12px_rgba(251,191,36,0.5)]' },
+                        { id: 'TYPEWRITER', label: 'Machine', icon: 'âŒ¨ï¸', activeClass: 'bg-emerald-400 border-emerald-400 text-black shadow-[0_0_12px_rgba(52,211,153,0.5)]' },
+                        { id: 'BOUNCE', label: 'Rebond', icon: 'ðŸ€', activeClass: 'bg-pink-500 border-pink-500 text-white shadow-[0_0_12px_rgba(236,72,153,0.5)]' },
+                        { id: 'GLITCH', label: 'Glitch Cyber', icon: 'âš¡', activeClass: 'bg-indigo-500 border-indigo-500 text-white shadow-[0_0_12px_rgba(99,102,241,0.5)]' },
                     ].map(anim => (
                         <button
                             key={anim.id}
@@ -18433,7 +18433,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const promoEditor = (
         <div className="space-y-4">
 
-            {/* Toggle Principal : Phrase d'accroche (Question / Débat) */}
+            {/* Toggle Principal : Phrase d'accroche (Question / DÃ©bat) */}
             <div className="p-3 bg-white/5 border border-white/10 rounded-2xl space-y-2 shadow-sm">
                 <div className="flex items-center justify-between gap-2">
                     <div className="flex items-center gap-1.5 min-w-0">
@@ -18443,7 +18443,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
                             : 'bg-neon-cyan/20 text-neon-cyan border border-neon-cyan/30'
                             }`}>
-                            {showPromoHook ? 'Active' : 'Désactivée'}
+                            {showPromoHook ? 'Active' : 'DÃ©sactivÃ©e'}
                         </span>
                     </div>
                     <button
@@ -18457,13 +18457,13 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             : 'bg-neon-cyan/20 border-neon-cyan/40 text-neon-cyan hover:bg-neon-cyan/30 shadow-[0_0_10px_rgba(0,240,255,0.2)]'
                             }`}
                     >
-                        {showPromoHook ? '👁️ Activée' : '🚫 Désactivée'}
+                        {showPromoHook ? 'ðŸ‘ï¸ ActivÃ©e' : 'ðŸš« DÃ©sactivÃ©e'}
                     </button>
                 </div>
                 <p className="text-[8px] text-gray-400 leading-normal">
                     {showPromoHook
-                        ? 'Affiche la question débat en haut + "Donne ton avis en commentaire".'
-                        : 'Masquée : le texte en dessous est automatiquement centré au milieu du visuel.'}
+                        ? 'Affiche la question dÃ©bat en haut + "Donne ton avis en commentaire".'
+                        : 'MasquÃ©e : le texte en dessous est automatiquement centrÃ© au milieu du visuel.'}
                 </p>
             </div>
 
@@ -18475,11 +18475,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         <span>Style Visuel Promo</span>
                     </span>
                     <span className="text-[8.5px] px-2 py-0.5 rounded-full font-bold bg-[#0095f6]/20 border border-[#0095f6]/40 text-[#0095f6] flex items-center gap-1">
-                        {promoOutroStyle === 'PHONE_3D' ? '📱 Smartphone 3D (10s)' : '💳 Carte Instagram (7s)'}
+                        {promoOutroStyle === 'PHONE_3D' ? 'ðŸ“± Smartphone 3D (10s)' : 'ðŸ’³ Carte Instagram (7s)'}
                     </span>
                 </div>
 
-                {/* Sélecteur d'onglets de style */}
+                {/* SÃ©lecteur d'onglets de style */}
                 <div className="grid grid-cols-2 gap-2 p-1 bg-black/40 rounded-xl border border-white/10">
                     <button
                         type="button"
@@ -18511,19 +18511,19 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     </button>
                 </div>
 
-                {/* Contrôles & Profils Réseaux Sociaux (Instagram / TikTok / YouTube) */}
+                {/* ContrÃ´les & Profils RÃ©seaux Sociaux (Instagram / TikTok / YouTube) */}
                 <div className="p-3 bg-black/50 border border-white/10 rounded-xl space-y-3">
                     <div className="flex items-center justify-between">
                         <span className="text-[10px] font-black uppercase text-white flex items-center gap-1.5">
                             <Users className="w-3.5 h-3.5 text-[#00f0ff]" />
-                            <span>Profils Réseaux (Aperçu & Stats)</span>
+                            <span>Profils RÃ©seaux (AperÃ§u & Stats)</span>
                         </span>
                         <span className="text-[8px] font-mono text-gray-400 font-bold bg-white/5 px-2 py-0.5 rounded border border-white/10">
                             Auto-Sync R2 / KV
                         </span>
                     </div>
 
-                    {/* Onglets de sélection du réseau à prévisualiser / modifier */}
+                    {/* Onglets de sÃ©lection du rÃ©seau Ã  prÃ©visualiser / modifier */}
                     <div className="grid grid-cols-3 gap-1 p-1 bg-black/60 rounded-xl border border-white/10">
                         <button
                             type="button"
@@ -18569,18 +18569,18 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         </button>
                     </div>
 
-                    {/* Formulaire spécifique au réseau sélectionné */}
+                    {/* Formulaire spÃ©cifique au rÃ©seau sÃ©lectionnÃ© */}
                     {promoPreviewNetwork === 'INSTAGRAM' && (
                         <div className="space-y-2.5 pt-1">
-                            {/* Abonnés Instagram */}
+                            {/* AbonnÃ©s Instagram */}
                             <div className="space-y-1">
                                 <div className="flex items-center justify-between">
                                     <label className="text-[9px] font-bold text-gray-200 uppercase flex items-center gap-1">
                                         <Instagram className="w-3 h-3 text-[#E1306C]" />
-                                        <span>Abonnés Instagram</span>
+                                        <span>AbonnÃ©s Instagram</span>
                                     </label>
                                     <span className="text-[8px] font-mono text-[#00f0ff] font-bold bg-[#00f0ff]/10 px-1.5 py-0.5 rounded">
-                                        {promoFollowersCount.toLocaleString('fr-FR')} ➔ {(promoFollowersCount + 1).toLocaleString('fr-FR')} (+1)
+                                        {promoFollowersCount.toLocaleString('fr-FR')} âž” {(promoFollowersCount + 1).toLocaleString('fr-FR')} (+1)
                                     </span>
                                 </div>
                                 <div className="flex items-center gap-1.5">
@@ -18650,12 +18650,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                     {promoPreviewNetwork === 'TIKTOK' && (
                         <div className="space-y-2.5 pt-1">
-                            {/* Abonnés TikTok */}
+                            {/* AbonnÃ©s TikTok */}
                             <div className="space-y-1">
                                 <div className="flex items-center justify-between">
                                     <label className="text-[9px] font-bold text-gray-200 uppercase flex items-center gap-1">
                                         <Share2 className="w-3 h-3 text-[#25F4EE]" />
-                                        <span>Abonnés TikTok</span>
+                                        <span>AbonnÃ©s TikTok</span>
                                     </label>
                                     <span className="text-[8px] font-mono text-[#25F4EE] font-bold bg-[#25F4EE]/10 px-1.5 py-0.5 rounded">
                                         {promoTiktokFollowers >= 10000 ? (promoTiktokFollowers / 1000).toFixed(1) + 'K' : promoTiktokFollowers}
@@ -18723,12 +18723,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                     {promoPreviewNetwork === 'YOUTUBE' && (
                         <div className="space-y-2.5 pt-1">
-                            {/* Abonnés YouTube */}
+                            {/* AbonnÃ©s YouTube */}
                             <div className="space-y-1">
                                 <div className="flex items-center justify-between">
                                     <label className="text-[9px] font-bold text-gray-200 uppercase flex items-center gap-1">
                                         <Video className="w-3 h-3 text-[#FF0000]" />
-                                        <span>Abonnés YouTube</span>
+                                        <span>AbonnÃ©s YouTube</span>
                                     </label>
                                     <span className="text-[8px] font-mono text-red-400 font-bold bg-red-500/10 px-1.5 py-0.5 rounded">
                                         {promoYoutubeSubscribers >= 1000 ? (promoYoutubeSubscribers / 1000).toFixed(2) + 'K' : promoYoutubeSubscribers}
@@ -18766,11 +18766,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 </div>
                             </div>
 
-                            {/* Nombre de vidéos */}
+                            {/* Nombre de vidÃ©os */}
                             <div className="space-y-1 pt-1.5 border-t border-white/5">
                                 <div className="flex items-center justify-between">
-                                    <label className="text-[9px] font-bold text-gray-200 uppercase">Nombre de vidéos</label>
-                                    <span className="text-[8px] font-mono text-gray-400 font-bold">{promoYoutubeVideos} vidéos</span>
+                                    <label className="text-[9px] font-bold text-gray-200 uppercase">Nombre de vidÃ©os</label>
+                                    <span className="text-[8px] font-mono text-gray-400 font-bold">{promoYoutubeVideos} vidÃ©os</span>
                                 </div>
                                 <div className="flex items-center gap-1.5">
                                     <input
@@ -18793,16 +18793,16 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     )}
 
                     <div className="flex items-center justify-between pt-1 text-[7.5px] text-gray-400 italic">
-                        <span>💡 Données sauvegardées et synchronisées en temps réel.</span>
+                        <span>ðŸ’¡ DonnÃ©es sauvegardÃ©es et synchronisÃ©es en temps rÃ©el.</span>
                         <button
                             type="button"
                             onClick={() => {
                                 syncAllSocialProfiles();
-                                alert('Profils sociaux sauvegardés et synchronisés !');
+                                alert('Profils sociaux sauvegardÃ©s et synchronisÃ©s !');
                             }}
                             className="text-[#00f0ff] hover:underline font-bold not-italic"
                         >
-                            🔄 Forcer synchro R2
+                            ðŸ”„ Forcer synchro R2
                         </button>
                     </div>
                 </div>
@@ -18814,16 +18814,16 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         className="w-full py-2.5 px-3 rounded-xl bg-gradient-to-r from-[#0095f6]/25 to-[#bc1888]/25 hover:from-[#0095f6]/35 hover:to-[#bc1888]/35 border border-[#0095f6]/50 text-white text-[9.5px] font-black uppercase flex items-center justify-center gap-2 transition-all active:scale-95 shadow-md shadow-blue-500/10"
                     >
                         <Play className={`w-3.5 h-3.5 text-[#0095f6] ${isPromoAnimPlaying ? 'animate-spin' : ''}`} />
-                        {isPromoAnimPlaying ? `⏱️ Lecture animation ${promoOutroStyle === 'PHONE_3D' ? '10' : '7'}s en direct...` : `▶️ Tester l'animation ${promoOutroStyle === 'PHONE_3D' ? '10' : '7'}s dans l'aperçu`}
+                        {isPromoAnimPlaying ? `â±ï¸ Lecture animation ${promoOutroStyle === 'PHONE_3D' ? '10' : '7'}s en direct...` : `â–¶ï¸ Tester l'animation ${promoOutroStyle === 'PHONE_3D' ? '10' : '7'}s dans l'aperÃ§u`}
                     </button>
                 </div>
             </div>
 
-            {/* 3. Question / Débat de l'article (Accroche du haut) */}
+            {/* 3. Question / DÃ©bat de l'article (Accroche du haut) */}
             <div className="space-y-2 bg-white/5 border border-white/10 rounded-2xl p-3.5">
                 <div className="flex items-center justify-between">
                     <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-1.5">
-                        <MessageSquare className="w-3.5 h-3.5 text-neon-red" /> Question / Débat de l'article
+                        <MessageSquare className="w-3.5 h-3.5 text-neon-red" /> Question / DÃ©bat de l'article
                     </label>
                     <span className="text-[9px] text-gray-500 font-bold">{customText.length}/200</span>
                 </div>
@@ -18839,7 +18839,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         />
                         <div className="pt-1 space-y-1">
                             <label className="text-[8.5px] font-bold text-gray-400 uppercase tracking-wider block">
-                                💡 Suggestions rapides pour la question :
+                                ðŸ’¡ Suggestions rapides pour la question :
                             </label>
                             <select
                                 value=""
@@ -18851,19 +18851,19 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 }}
                                 className="w-full bg-black/60 border border-white/10 hover:border-neon-red/50 focus:border-neon-red rounded-xl p-2.5 text-white text-xs font-bold uppercase outline-none transition-all cursor-pointer"
                             >
-                                <option value="" disabled>-- Choisir une question suggérée --</option>
+                                <option value="" disabled>-- Choisir une question suggÃ©rÃ©e --</option>
                                 <option value="Et toi, qu'en penses-tu ?">Et toi, qu'en penses-tu ?</option>
-                                <option value="Validé ou surcoté ?">Validé ou surcoté ?</option>
-                                <option value="Tu y seras cet été ?">Tu y seras cet été ?</option>
+                                <option value="ValidÃ© ou surcotÃ© ?">ValidÃ© ou surcotÃ© ?</option>
+                                <option value="Tu y seras cet Ã©tÃ© ?">Tu y seras cet Ã©tÃ© ?</option>
                                 <option value="Dans ta playlist ou poubelle ?">Dans ta playlist ou poubelle ?</option>
                                 <option value="Tu valides ce retour ?">Tu valides ce retour ?</option>
-                                <option value="Quelle est ta collab de rêve ?">Quelle est ta collab de rêve ?</option>
+                                <option value="Quelle est ta collab de rÃªve ?">Quelle est ta collab de rÃªve ?</option>
                             </select>
                         </div>
                     </>
                 ) : (
                     <div className="p-2.5 bg-neon-cyan/10 border border-neon-cyan/20 rounded-xl text-[9px] text-neon-cyan font-bold flex items-center justify-between">
-                        <span>Accroche désactivée : Le texte d'abonnement est centré sur le visuel.</span>
+                        <span>Accroche dÃ©sactivÃ©e : Le texte d'abonnement est centrÃ© sur le visuel.</span>
                         <button
                             type="button"
                             onClick={() => {
@@ -18872,20 +18872,20 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             }}
                             className="text-[8.5px] underline hover:text-white uppercase font-black"
                         >
-                            Réactiver
+                            RÃ©activer
                         </button>
                     </div>
                 )}
             </div>
 
-            {/* Bouton d'export direct de la slide Promo Outro (Uniquement Vidéo MP4 7s) */}
+            {/* Bouton d'export direct de la slide Promo Outro (Uniquement VidÃ©o MP4 7s) */}
             <div className="p-3 bg-neon-red/10 border border-neon-red/30 rounded-2xl space-y-2 shadow-lg">
                 <div className="flex items-center justify-between">
                     <span className="text-[9.5px] font-black uppercase text-neon-red tracking-wider flex items-center gap-1.5">
-                        🎬 Exporter Slide Promo Seule
+                        ðŸŽ¬ Exporter Slide Promo Seule
                     </span>
                     <span className="text-[8px] font-mono text-[#00f0ff] font-bold">
-                        {activeTab === 'REEL' ? 'Story (9:16)' : 'Post (1:1)'} • {promoOutroStyle === 'PHONE_3D' ? '10.0' : '7.0'}s MP4
+                        {activeTab === 'REEL' ? 'Story (9:16)' : 'Post (1:1)'} â€¢ {promoOutroStyle === 'PHONE_3D' ? '10.0' : '7.0'}s MP4
                     </span>
                 </div>
                 <div>
@@ -18895,7 +18895,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         disabled={isDownloading || isVideoRecording}
                         className="w-full py-2.5 px-3 bg-gradient-to-r from-neon-red to-orange-600 hover:from-red-600 hover:to-orange-500 text-white rounded-xl text-[10px] font-black uppercase transition-all flex items-center justify-center gap-2 shadow-md shadow-red-500/20 active:scale-95 disabled:opacity-40"
                     >
-                        <Video className="w-4 h-4 text-white" /> {isVideoRecording ? 'Capture...' : `🎬 Exporter Vidéo MP4 (${promoOutroStyle === 'PHONE_3D' ? '10' : '7'}s)`}
+                        <Video className="w-4 h-4 text-white" /> {isVideoRecording ? 'Capture...' : `ðŸŽ¬ Exporter VidÃ©o MP4 (${promoOutroStyle === 'PHONE_3D' ? '10' : '7'}s)`}
                     </button>
                 </div>
             </div>
@@ -18921,7 +18921,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 className="w-full h-24 bg-white/5 border border-white/10 rounded-xl p-3 text-white text-sm font-bold italic resize-none focus:border-cyan-500 outline-none transition-all shadow-inner shadow-black font-sans uppercase break-words"
             />
             <div className="flex justify-between items-center gap-2 px-1">
-                <span className="text-[9px] text-white/40 italic">Astuce : entoure un mot de *étoiles* pour le colorer en néon (ex: *EXCLUSIF*)</span>
+                <span className="text-[9px] text-white/40 italic">Astuce : entoure un mot de *Ã©toiles* pour le colorer en nÃ©on (ex: *EXCLUSIF*)</span>
                 <button
                     onClick={() => setCustomText(fixEncoding(customText))}
                     className="flex items-center gap-1.5 px-3 py-1.5 bg-green-500/10 border border-green-500/20 rounded-lg text-green-400 text-[9px] font-black uppercase hover:bg-green-500 hover:text-white transition-all shrink-0"
@@ -19251,7 +19251,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 />
             </div>
             <div className="space-y-2">
-                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-1">Ligne 2 : Festival / Événement (Blanc)</label>
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-1">Ligne 2 : Festival / Ã‰vÃ©nement (Blanc)</label>
                 <input
                     value={customText.split('\n')[1] || ''}
                     onChange={e => {
@@ -19265,7 +19265,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 />
             </div>
             <div className="space-y-2">
-                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-1">Ligne 3 : Ville, Pays, Année (Orbitron)</label>
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-1">Ligne 3 : Ville, Pays, AnnÃ©e (Orbitron)</label>
                 <input
                     value={customText.split('\n')[2] || ''}
                     onChange={e => {
@@ -19285,11 +19285,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     onClick={() => setShowBottomLogo(!showBottomLogo)}
                     className={`w-full py-3 rounded-xl text-[9px] font-black uppercase transition-all flex items-center justify-center gap-2 ${showBottomLogo ? 'bg-white/20 text-white border border-white' : 'bg-white/5 text-gray-500 border border-white/10'}`}
                 >
-                    {showBottomLogo ? '✅ LOGO BAS ACTIVÉ (CACHÉ GRILLE)' : '❌ LOGO BAS DÉSACTIVÉ'}
+                    {showBottomLogo ? 'âœ… LOGO BAS ACTIVÃ‰ (CACHÃ‰ GRILLE)' : 'âŒ LOGO BAS DÃ‰SACTIVÃ‰'}
                 </button>
             </div>
             <p className="text-[9px] text-white/40 italic px-1 pt-1">
-                Charte Graphique V2 : Badge <strong className="text-orange-400">• TRACKLIST</strong> en haut à gauche, logo Dropsiders en haut à droite, L1 en orange, L2 en blanc, L3 en blanc Orbitron.
+                Charte Graphique V2 : Badge <strong className="text-orange-400">â€¢ TRACKLIST</strong> en haut Ã  gauche, logo Dropsiders en haut Ã  droite, L1 en orange, L2 en blanc, L3 en blanc Orbitron.
             </p>
         </div>
     );
@@ -19411,7 +19411,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         <div className="space-y-4">
             <div className="p-3.5 bg-white/5 border border-white/10 rounded-2xl space-y-3 shadow-xl">
                 <span className="text-[10px] font-black uppercase text-neon-red tracking-wider flex items-center gap-1.5">
-                    ⭐ Logos Artiste & Festival (Spotlight)
+                    â­ Logos Artiste & Festival (Spotlight)
                 </span>
                 <div className="grid grid-cols-2 gap-3">
                     <div className="space-y-2">
@@ -19451,7 +19451,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     className="w-3 h-3 accent-neon-red"
                                     id="logo-neg-toggle"
                                 />
-                                <label htmlFor="logo-neg-toggle" className="text-[8px] font-black text-gray-400 uppercase cursor-pointer">Effet Négatif (Blanc)</label>
+                                <label htmlFor="logo-neg-toggle" className="text-[8px] font-black text-gray-400 uppercase cursor-pointer">Effet NÃ©gatif (Blanc)</label>
                             </div>
                         )}
                     </div>
@@ -19516,7 +19516,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             className="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-neon-red"
                         />
                     </div>
-                    <button onClick={() => { setBgOffsetX(0); setBgOffsetY(0); }} className="w-full py-1.5 bg-white/5 border border-white/10 rounded-lg text-[8px] font-black text-gray-500 uppercase hover:text-white transition-all">Réinitialiser Position</button>
+                    <button onClick={() => { setBgOffsetX(0); setBgOffsetY(0); }} className="w-full py-1.5 bg-white/5 border border-white/10 rounded-lg text-[8px] font-black text-gray-500 uppercase hover:text-white transition-all">RÃ©initialiser Position</button>
                 </div>
             </div>
         </div>
@@ -19534,7 +19534,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         : 'text-gray-400 hover:text-white hover:bg-white/5'
                         }`}
                 >
-                    <span className="text-xs">🎪</span> Slide 1 (Intro)
+                    <span className="text-xs">ðŸŽª</span> Slide 1 (Intro)
                 </button>
                 <button
                     type="button"
@@ -19544,7 +19544,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         : 'text-gray-400 hover:text-white hover:bg-white/5'
                         }`}
                 >
-                    <span className="text-xs">⭐</span> Slide 2 (Artiste 1)
+                    <span className="text-xs">â­</span> Slide 2 (Artiste 1)
                 </button>
                 {extraSpotlightSlides.map((num, idx) => (
                     <button
@@ -19556,7 +19556,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             : 'text-gray-400 hover:text-white hover:bg-white/5'
                             }`}
                     >
-                        <span className="text-xs">⭐</span> Slide {num} (Artiste {idx + 2})
+                        <span className="text-xs">â­</span> Slide {num} (Artiste {idx + 2})
                     </button>
                 ))}
             </div>
@@ -19571,8 +19571,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             onChange={e => {
                                 const newFest = e.target.value;
                                 setFestivalNameText(newFest);
-                                if (!festivalIntroTitle || festivalIntroTitle.startsWith('LES 10 ARTISTES À VOIR LORS *')) {
-                                    setFestivalIntroTitle(`LES 10 ARTISTES À VOIR LORS *${newFest.toUpperCase() || 'FESTIVAL'}*`);
+                                if (!festivalIntroTitle || festivalIntroTitle.startsWith('LES 10 ARTISTES Ã€ VOIR LORS *')) {
+                                    setFestivalIntroTitle(`LES 10 ARTISTES Ã€ VOIR LORS *${newFest.toUpperCase() || 'FESTIVAL'}*`);
                                 }
                             }}
                             placeholder="NOM DU FESTIVAL (ex: TOMORROWLAND)"
@@ -19582,33 +19582,33 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     <div className="space-y-1">
                         <div className="flex items-center justify-between">
                             <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Titre Intro (Hook Top 10)</label>
-                            <span className="text-[8px] text-neon-red font-bold">Astérisques *...* = Rouge néon</span>
+                            <span className="text-[8px] text-neon-red font-bold">AstÃ©risques *...* = Rouge nÃ©on</span>
                         </div>
                         <input
-                            value={festivalIntroTitle || `LES 10 ARTISTES À VOIR LORS *${(festivalNameText || 'FESTIVAL').toUpperCase()}*`}
+                            value={festivalIntroTitle || `LES 10 ARTISTES Ã€ VOIR LORS *${(festivalNameText || 'FESTIVAL').toUpperCase()}*`}
                             onChange={e => setFestivalIntroTitle(e.target.value)}
-                            placeholder="LES 10 ARTISTES À VOIR LORS *FESTIVAL*"
+                            placeholder="LES 10 ARTISTES Ã€ VOIR LORS *FESTIVAL*"
                             className="w-full bg-white/10 border border-white/20 rounded-xl p-3 text-white font-black italic uppercase text-xs"
                         />
-                        <p className="text-[9px] text-gray-500 italic">Ex: LES 10 ARTISTES À VOIR LORS *TOMORROWLAND*</p>
+                        <p className="text-[9px] text-gray-500 italic">Ex: LES 10 ARTISTES Ã€ VOIR LORS *TOMORROWLAND*</p>
                     </div>
                     <div className="space-y-1">
                         <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Badge Pill / Sous-titre</label>
                         <input
-                            value={conseilsSubtext || '🎪 SÉLECTION OFFICIELLE • LINE-UP GUIDE'}
+                            value={conseilsSubtext || 'ðŸŽª SÃ‰LECTION OFFICIELLE â€¢ LINE-UP GUIDE'}
                             onChange={e => setConseilsSubtext(e.target.value)}
-                            placeholder="🎪 SÉLECTION OFFICIELLE • LINE-UP GUIDE"
+                            placeholder="ðŸŽª SÃ‰LECTION OFFICIELLE â€¢ LINE-UP GUIDE"
                             className="w-full bg-white/10 border border-white/20 rounded-xl p-3 text-white italic text-xs"
                         />
                     </div>
                 </div>
             )}
 
-            {/* Slide 2+ Content : Spotlight Artiste Centré */}
+            {/* Slide 2+ Content : Spotlight Artiste CentrÃ© */}
             {artisteFestivalSlide >= 2 && (
                 <div className="space-y-3">
                     <div className="px-1 py-1 text-[9px] font-bold text-gray-400 uppercase flex items-center justify-between">
-                        <span>Édition Spotlight de l'Artiste ({artisteFestivalSlide === 2 ? 'Artiste 1' : `Artiste ${artisteFestivalSlide - 1}`})</span>
+                        <span>Ã‰dition Spotlight de l'Artiste ({artisteFestivalSlide === 2 ? 'Artiste 1' : `Artiste ${artisteFestivalSlide - 1}`})</span>
                         <span className="text-neon-red">{activeTab === 'REEL' ? 'Story 9:16' : `Slide ${artisteFestivalSlide}`}</span>
                     </div>
                     {spotlightEditor}
@@ -19621,7 +19621,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
     const slideTransitionQuickBar = (
         <div className="flex items-center gap-1 pl-2 ml-1 border-l border-white/15">
-            <span className="text-[8px] font-black text-gray-400 uppercase tracking-wider hidden sm:inline">Enchaînement :</span>
+            <span className="text-[8px] font-black text-gray-400 uppercase tracking-wider hidden sm:inline">EnchaÃ®nement :</span>
             <div className="flex items-center bg-black/60 rounded-xl p-0.5 border border-white/10 gap-0.5">
                 {SLIDE_TRANSITIONS.map(trans => (
                     <button
@@ -19651,7 +19651,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 }}
                 disabled={isTransitioningRef.current}
                 className="px-1.5 py-1 bg-white/10 hover:bg-white/20 border border-white/15 rounded-lg text-[8px] font-black uppercase text-gray-200 transition-all flex items-center gap-0.5 active:scale-95 disabled:opacity-40"
-                title="Tester l'enchaînement en direct sur le canvas"
+                title="Tester l'enchaÃ®nement en direct sur le canvas"
             >
                 <Play className="w-2 h-2 fill-current text-neon-red" />
             </button>
@@ -19665,10 +19665,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     type="button"
                     onClick={() => setSlideTransOptionsOpen(o => !o)}
                     className="flex-1 flex items-center justify-between gap-2 group min-w-0"
-                    title={slideTransOptionsOpen ? 'Masquer les enchaînements' : 'Afficher les enchaînements'}
+                    title={slideTransOptionsOpen ? 'Masquer les enchaÃ®nements' : 'Afficher les enchaÃ®nements'}
                 >
                     <span className="text-[9px] font-black uppercase text-neon-red tracking-wider flex items-center gap-1.5 truncate">
-                        🎚️ Enchaînement des Slides
+                        ðŸŽšï¸ EnchaÃ®nement des Slides
                     </span>
                     <span className="flex items-center gap-1.5 shrink-0">
                         {(() => {
@@ -19684,7 +19684,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         onClick={() => playTransitionPreview()}
                         disabled={isTransitioningRef.current}
                         className="px-2 py-0.5 bg-neon-red/10 border border-neon-red/30 rounded-lg text-[8px] font-black uppercase text-neon-red hover:bg-neon-red hover:text-white transition-all flex items-center gap-1 active:scale-95 disabled:opacity-50"
-                        title="Tester l'enchaînement en direct sur le canvas"
+                        title="Tester l'enchaÃ®nement en direct sur le canvas"
                     >
                         <Play className="w-2.5 h-2.5 fill-current" /> Tester
                     </button>
@@ -19729,7 +19729,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 <div className="flex items-center justify-between text-[8.5px]">
                     <div className="space-y-0.5">
                         <span className="font-black uppercase text-white flex items-center gap-1">
-                            ⚡ Format Vidéo :
+                            âš¡ Format VidÃ©o :
                         </span>
                         <span className="text-gray-400 text-[8px]">
                             {skipEditorialSlide2 ? 'Slide 1 + Promo uniquement' : 'Slide 1 + Slide 2 + Promo'}
@@ -19743,14 +19743,14 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             : 'bg-white/10 border-white/20 text-gray-300 hover:text-white'
                             }`}
                     >
-                        {skipEditorialSlide2 ? '🚫 Slide 2 Masquée' : '👁️ Slide 2 Incluse'}
+                        {skipEditorialSlide2 ? 'ðŸš« Slide 2 MasquÃ©e' : 'ðŸ‘ï¸ Slide 2 Incluse'}
                     </button>
                 </div>
 
-                {/* Durée Slide 1 */}
+                {/* DurÃ©e Slide 1 */}
                 <div className="pt-2 border-t border-white/10 space-y-1">
                     <div className="flex items-center justify-between text-[8px]">
-                        <span className="text-gray-300 font-bold">⏱️ Durée Slide 1 {['JEU', 'JEU_FESTIVAL', 'JEU_DJ'].includes(theme) ? '(Max 15s)' : ''} :</span>
+                        <span className="text-gray-300 font-bold">â±ï¸ DurÃ©e Slide 1 {['JEU', 'JEU_FESTIVAL', 'JEU_DJ'].includes(theme) ? '(Max 15s)' : ''} :</span>
                         <span className="text-amber-400 font-mono font-black bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/20">
                             {editorialSlide1Duration}s
                         </span>
@@ -19772,19 +19772,19 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     </div>
                 </div>
 
-                {/* Durée Outro Promo (Verrouillée à 10s) */}
+                {/* DurÃ©e Outro Promo (VerrouillÃ©e Ã  10s) */}
                 <div className="pt-1.5 border-t border-white/10 space-y-1">
                     <div className="flex items-center justify-between text-[8px]">
-                        <span className="text-gray-300 font-bold">🔥 Durée Promo Outro :</span>
+                        <span className="text-gray-300 font-bold">ðŸ”¥ DurÃ©e Promo Outro :</span>
                         <span className="text-[#00f0ff] font-mono font-black bg-cyan-500/10 px-2 py-0.5 rounded border border-cyan-500/30 flex items-center gap-1">
-                            🔒 10.0s Fixe (Profil Instagram)
+                            ðŸ”’ 10.0s Fixe (Profil Instagram)
                         </span>
                     </div>
                 </div>
 
-                {/* Sélecteur de Fluidité (FPS) */}
+                {/* SÃ©lecteur de FluiditÃ© (FPS) */}
                 <div className="pt-1.5 border-t border-white/10 flex items-center justify-between text-[8px]">
-                    <span className="text-gray-300 font-bold">🚀 Fluidité :</span>
+                    <span className="text-gray-300 font-bold">ðŸš€ FluiditÃ© :</span>
                     <div className="flex gap-1">
                         {[60, 30].map(f => (
                             <button
@@ -19802,10 +19802,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     </div>
                 </div>
 
-                {/* Récap total */}
+                {/* RÃ©cap total */}
                 <div className="p-1.5 bg-black/50 rounded-xl border border-white/5 flex items-center justify-between text-[8px]">
-                    <span className="text-neon-cyan font-black">⏱️ Durée Totale :</span>
-                    <span className="text-white font-mono font-black">{totalSec}s ({exportFps} FPS • {activeTab === 'REEL' ? 'Reel 9:16' : 'Post 1:1'})</span>
+                    <span className="text-neon-cyan font-black">â±ï¸ DurÃ©e Totale :</span>
+                    <span className="text-white font-mono font-black">{totalSec}s ({exportFps} FPS â€¢ {activeTab === 'REEL' ? 'Reel 9:16' : 'Post 1:1'})</span>
                 </div>
             </div>
         );
@@ -19831,7 +19831,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 <div className="space-y-3 bg-white/5 border border-white/10 rounded-2xl p-4">
                     <div className="flex items-center justify-between">
                         <label className={`text-[10px] font-black ${accentTextClass} uppercase tracking-widest flex items-center gap-1.5`}>
-                            {isMusicTheme ? '💿 Cover du Track (1:1 Carré)' : (isPlanningAffiche ? `🖼️ Affiche Festival / Event (Slide ${agendaSlide})` : (theme === 'NEWS' ? '🖼️ Affiche / Visuel (NEWS)' : '🖼️ Affiche de l\'Événement'))}
+                            {isMusicTheme ? 'ðŸ’¿ Cover du Track (1:1 CarrÃ©)' : (isPlanningAffiche ? `ðŸ–¼ï¸ Affiche Festival / Event (Slide ${agendaSlide})` : (theme === 'NEWS' ? 'ðŸ–¼ï¸ Affiche / Visuel (NEWS)' : 'ðŸ–¼ï¸ Affiche de l\'Ã‰vÃ©nement'))}
                         </label>
                         {effectiveAfficheImg && (
                             <button
@@ -19881,7 +19881,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             <span className="text-[10px] font-black text-gray-300 uppercase tracking-wider group-hover:text-white transition-colors">
                                 {isMusicTheme ? 'Choisir la cover sur Cloud R2' : 'Choisir l\'affiche sur Cloud R2'}
                             </span>
-                            <span className="text-[8px] text-gray-500">Parcourir la bibliothèque Cloud R2</span>
+                            <span className="text-[8px] text-gray-500">Parcourir la bibliothÃ¨que Cloud R2</span>
                         </button>
                     )}
 
@@ -19938,7 +19938,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     updateAgendaAffiche(planningAfficheIdx, 'image', url);
                                 } else {
                                     setAfficheImage(url);
-                                    // Slide 1 isolée : ne jamais écraser editorialSlideImages[1]
+                                    // Slide 1 isolÃ©e : ne jamais Ã©craser editorialSlideImages[1]
                                     setEditorialSlideImages(prev => {
                                         if (prev[1] && prev[1] === url && bgImage && bgImage !== url) {
                                             const n = { ...prev };
@@ -19953,12 +19953,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         />
                     </div>
 
-                    {/* Mode Cover vs Contain (Dézoomé / Remplir) */}
+                    {/* Mode Cover vs Contain (DÃ©zoomÃ© / Remplir) */}
                     <div className="space-y-1.5 pt-1">
                         <div className="flex items-center justify-between text-[9px] font-black uppercase text-gray-400">
                             <span>Format d'affichage de l'affiche</span>
                             <span className="text-[8px] font-bold text-neon-cyan uppercase">
-                                {afficheMode === 'contain' ? 'Dézoomé (Entière)' : 'Rempli (Cover)'}
+                                {afficheMode === 'contain' ? 'DÃ©zoomÃ© (EntiÃ¨re)' : 'Rempli (Cover)'}
                             </span>
                         </div>
                         <div className="grid grid-cols-2 gap-1.5">
@@ -19967,19 +19967,19 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 onClick={() => { setAfficheMode('contain'); setTimeout(() => generateImage(), 50); }}
                                 className={`py-2 px-3 rounded-xl text-[8.5px] font-black uppercase border transition-all flex items-center justify-center gap-1.5 ${afficheMode === 'contain' ? 'bg-neon-cyan/20 border-neon-cyan text-white shadow-[0_0_12px_rgba(0,255,255,0.25)]' : 'bg-black/20 border-white/5 text-gray-400 hover:text-white'}`}
                             >
-                                <span>🔍 Entière (Dézoomé)</span>
+                                <span>ðŸ” EntiÃ¨re (DÃ©zoomÃ©)</span>
                             </button>
                             <button
                                 type="button"
                                 onClick={() => { setAfficheMode('cover'); setTimeout(() => generateImage(), 50); }}
                                 className={`py-2 px-3 rounded-xl text-[8.5px] font-black uppercase border transition-all flex items-center justify-center gap-1.5 ${afficheMode === 'cover' ? 'bg-white/20 border-white text-white' : 'bg-black/20 border-white/5 text-gray-400 hover:text-white'}`}
                             >
-                                <span>🔎 Remplir (Plein cadre)</span>
+                                <span>ðŸ”Ž Remplir (Plein cadre)</span>
                             </button>
                         </div>
                     </div>
 
-                    {/* Contrôles de cadrage de l'affiche importée */}
+                    {/* ContrÃ´les de cadrage de l'affiche importÃ©e */}
                     <div className="pt-2 border-t border-white/5">
                         {renderImageCropControls(
                             isPlanningAffiche ? (currentPlanningAffiche?.zoom ?? 100) : afficheImgZoom,
@@ -20001,7 +20001,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     </div>
 
                     <div className="flex items-center justify-between pt-2 border-t border-white/5">
-                        <span className="text-[9px] font-black text-gray-400 uppercase">Lueur 3D & Ombre Portée</span>
+                        <span className="text-[9px] font-black text-gray-400 uppercase">Lueur 3D & Ombre PortÃ©e</span>
                         <button
                             type="button"
                             onClick={() => {
@@ -20010,20 +20010,20 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             }}
                             className={`px-3 py-1 rounded-full text-[8px] font-black uppercase transition-all ${afficheGlow ? accentGlowBorder : 'bg-white/5 text-gray-500 border border-white/10'}`}
                         >
-                            {afficheGlow ? 'ACTIVE' : 'DÉSACTIVÉE'}
+                            {afficheGlow ? 'ACTIVE' : 'DÃ‰SACTIVÃ‰E'}
                         </button>
                     </div>
 
                 </div>
 
-                {/* 2. IMAGE DE FOND (SCÈNE / FESTIVAL / WAREHOUSE) */}
+                {/* 2. IMAGE DE FOND (SCÃˆNE / FESTIVAL / WAREHOUSE) */}
                 <div className="space-y-3 bg-white/5 border border-white/10 rounded-2xl p-4">
                     <div className="flex items-center justify-between">
                         <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-1.5">
-                            🎆 Image de Fond (Ambiance Floutée)
+                            ðŸŽ† Image de Fond (Ambiance FloutÃ©e)
                         </label>
                         <span className="text-[8px] font-bold text-neon-cyan uppercase bg-neon-cyan/10 px-2 py-0.5 rounded-full border border-neon-cyan/20">
-                            Flou auto cohérent
+                            Flou auto cohÃ©rent
                         </span>
                     </div>
                     <button
@@ -20041,7 +20041,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         onClick={() => setIsDownloaderOpen(true)}
                         className="w-full py-2 bg-white/5 border border-dashed border-white/10 rounded-xl flex items-center justify-center gap-2 text-gray-400 text-[9px] font-black uppercase hover:border-white/30 hover:text-white transition-all"
                     >
-                        <LinkIcon className="w-3.5 h-3.5 text-neon-cyan" /> Télécharger via Lien (URL)
+                        <LinkIcon className="w-3.5 h-3.5 text-neon-cyan" /> TÃ©lÃ©charger via Lien (URL)
                     </button>
                     {theme !== 'MAP' && bgAnimationControl}
                 </div>
@@ -20050,7 +20050,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 <div className="bg-white/5 border border-white/10 rounded-2xl p-4 flex items-center justify-between">
                     <div>
                         <span className="text-[9px] font-black text-white uppercase block">Swipe Studio</span>
-                        <span className="text-[8px] text-gray-500 font-medium">Afficher la mention swipe en bas à droite</span>
+                        <span className="text-[8px] text-gray-500 font-medium">Afficher la mention swipe en bas Ã  droite</span>
                     </div>
                     <button
                         type="button"
@@ -20060,7 +20060,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         }}
                         className={`px-3 py-1.5 rounded-full text-[8px] font-black uppercase transition-all ${showSwipe ? accentGlowBorder : 'bg-white/5 text-gray-500 border border-white/10'}`}
                     >
-                        {showSwipe ? 'ACTIF' : 'MASQUÉ'}
+                        {showSwipe ? 'ACTIF' : 'MASQUÃ‰'}
                     </button>
                 </div>
             </div>
@@ -20074,7 +20074,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 <div className="space-y-3 bg-white/5 border border-white/10 rounded-2xl p-4">
                     <div className="flex items-center justify-between">
                         <label className="text-[10px] font-black text-neon-cyan uppercase tracking-widest flex items-center gap-1.5">
-                            🐦 Screenshot du Tweet / Post 𝕏
+                            ðŸ¦ Screenshot du Tweet / Post ð•
                         </label>
                         {tweetImage && (
                             <button
@@ -20164,11 +20164,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     </div>
                 </div>
 
-                {/* 2. TRADUCTION AUTOMATIQUE EN FRANÇAIS DU TWEET */}
+                {/* 2. TRADUCTION AUTOMATIQUE EN FRANÃ‡AIS DU TWEET */}
                 <div className="space-y-3 bg-white/5 border border-neon-cyan/30 rounded-2xl p-4 shadow-xl">
                     <div className="flex items-center justify-between">
                         <label className="text-[10px] font-black text-neon-cyan uppercase tracking-widest flex items-center gap-1.5">
-                            🇫🇷 Traduction Française (Cadre Sous le Tweet)
+                            ðŸ‡«ðŸ‡· Traduction FranÃ§aise (Cadre Sous le Tweet)
                         </label>
                         <button
                             type="button"
@@ -20181,11 +20181,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 : 'bg-white/5 border border-white/10 text-gray-500'
                                 }`}
                         >
-                            {showTweetTranslation ? 'CADRE VISIBLE' : 'MASQUÉ'}
+                            {showTweetTranslation ? 'CADRE VISIBLE' : 'MASQUÃ‰'}
                         </button>
                     </div>
 
-                    {/* Texte original anglais (optionnel pour déclencher la traduction auto) */}
+                    {/* Texte original anglais (optionnel pour dÃ©clencher la traduction auto) */}
                     <div className="space-y-1">
                         <div className="flex items-center justify-between text-[8.5px] font-bold text-gray-400 uppercase">
                             <span>Texte original du Tweet (en anglais)</span>
@@ -20208,21 +20208,21 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         className="w-full py-2.5 bg-gradient-to-r from-neon-cyan via-blue-500 to-indigo-600 hover:brightness-110 disabled:opacity-40 text-black font-black text-[9.5px] uppercase rounded-xl transition-all flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(0,240,255,0.3)] active:scale-98"
                     >
                         {isTranslatingTweet ? (
-                            <><span>⏳</span><span>Traduction en cours...</span></>
+                            <><span>â³</span><span>Traduction en cours...</span></>
                         ) : (
-                            <><span>⚡</span><span>Traduire automatiquement en Français</span></>
+                            <><span>âš¡</span><span>Traduire automatiquement en FranÃ§ais</span></>
                         )}
                     </button>
 
-                    {/* Cadre texte traduit en français (modifiable en direct par l'utilisateur) */}
+                    {/* Cadre texte traduit en franÃ§ais (modifiable en direct par l'utilisateur) */}
                     <div className="space-y-1 pt-1">
                         <div className="flex items-center justify-between text-[8.5px] font-bold text-gray-400 uppercase">
-                            <span>Texte Traduit en Français (affiché sur le visuel)</span>
-                            <span className="text-neon-cyan">Éditable librement</span>
+                            <span>Texte Traduit en FranÃ§ais (affichÃ© sur le visuel)</span>
+                            <span className="text-neon-cyan">Ã‰ditable librement</span>
                         </div>
                         <textarea
                             rows={3}
-                            placeholder="Ex: Le management de Daft Punk a reçu une offre pour un retour final du duo pour la B.O. de GTA VI..."
+                            placeholder="Ex: Le management de Daft Punk a reÃ§u une offre pour un retour final du duo pour la B.O. de GTA VI..."
                             value={tweetTranslation}
                             onChange={e => {
                                 setTweetTranslation(e.target.value);
@@ -20237,14 +20237,14 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 {/* 3. TEXTES & ACCROCHE */}
                 <div className="space-y-3 bg-white/5 border border-white/10 rounded-2xl p-4">
                     <label className="text-[10px] font-black text-gray-300 uppercase tracking-widest block">
-                        ✍️ Accroche & Badge
+                        âœï¸ Accroche & Badge
                     </label>
 
                     <div className="space-y-1">
                         <span className="text-[8.5px] font-bold text-gray-400 uppercase">Titre / Accroche au-dessus du Tweet (Optionnel)</span>
                         <input
                             type="text"
-                            placeholder="EX: RÉVÉLATION : OU LEAK EXCLUSIF :"
+                            placeholder="EX: RÃ‰VÃ‰LATION : OU LEAK EXCLUSIF :"
                             value={tweetHeadline}
                             onChange={e => {
                                 setTweetHeadline(e.target.value);
@@ -20255,7 +20255,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     </div>
 
                     <div className="space-y-1">
-                        <span className="text-[8.5px] font-bold text-gray-400 uppercase">Texte du Badge Capsule Supérieur</span>
+                        <span className="text-[8.5px] font-bold text-gray-400 uppercase">Texte du Badge Capsule SupÃ©rieur</span>
                         <input
                             type="text"
                             placeholder="SOURCE X"
@@ -20269,18 +20269,18 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     </div>
                 </div>
 
-                {/* 4. ANIMATION DU TWEET (VIDÉO & REELS) */}
+                {/* 4. ANIMATION DU TWEET (VIDÃ‰O & REELS) */}
                 <div className="space-y-3 bg-white/5 border border-white/10 rounded-2xl p-4 shadow-xl">
                     <div className="flex items-center justify-between">
                         <label className="text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5" style={{ color: activeColor?.color || '#ff0033' }}>
-                            🎬 Animation du Tweet (Vidéo & Reels)
+                            ðŸŽ¬ Animation du Tweet (VidÃ©o & Reels)
                         </label>
                         <span className="text-[8px] font-mono" style={{ color: activeColor?.color || '#ff0033' }}>
-                            {tweetAnimMode === 'FLOAT' && '🪶 Lévitation 3D'}
-                            {tweetAnimMode === 'SCANNER' && '⚡ Scanner Cyber'}
-                            {tweetAnimMode === 'POPUP' && '📱 Pop-Up Push'}
-                            {tweetAnimMode === 'TILT' && '🎬 Tilt Caméra'}
-                            {tweetAnimMode === 'NONE' && '🛑 Fixe'}
+                            {tweetAnimMode === 'FLOAT' && 'ðŸª¶ LÃ©vitation 3D'}
+                            {tweetAnimMode === 'SCANNER' && 'âš¡ Scanner Cyber'}
+                            {tweetAnimMode === 'POPUP' && 'ðŸ“± Pop-Up Push'}
+                            {tweetAnimMode === 'TILT' && 'ðŸŽ¬ Tilt CamÃ©ra'}
+                            {tweetAnimMode === 'NONE' && 'ðŸ›‘ Fixe'}
                         </span>
                     </div>
 
@@ -20294,7 +20294,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 }`}
                             style={tweetAnimMode === 'FLOAT' ? { borderColor: activeColor?.color || '#ff0033' } : {}}
                         >
-                            <span className="text-[9.5px] font-black block uppercase">🪶 Lévitation 3D</span>
+                            <span className="text-[9.5px] font-black block uppercase">ðŸª¶ LÃ©vitation 3D</span>
                             <span className="text-[7.5px] text-gray-400 block leading-tight mt-0.5">Flottement doux + Reflet gloss oblique</span>
                         </button>
 
@@ -20307,8 +20307,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 }`}
                             style={tweetAnimMode === 'SCANNER' ? { borderColor: activeColor?.color || '#ff0033' } : {}}
                         >
-                            <span className="text-[9.5px] font-black block uppercase">⚡ Scanner Cyber</span>
-                            <span className="text-[7.5px] text-gray-400 block leading-tight mt-0.5">Faisceau laser de détection + bords néon</span>
+                            <span className="text-[9.5px] font-black block uppercase">âš¡ Scanner Cyber</span>
+                            <span className="text-[7.5px] text-gray-400 block leading-tight mt-0.5">Faisceau laser de dÃ©tection + bords nÃ©on</span>
                         </button>
 
                         <button
@@ -20320,8 +20320,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 }`}
                             style={tweetAnimMode === 'POPUP' ? { borderColor: activeColor?.color || '#ff0033' } : {}}
                         >
-                            <span className="text-[9.5px] font-black block uppercase">📱 Pop-Up Push</span>
-                            <span className="text-[7.5px] text-gray-400 block leading-tight mt-0.5">Rebond élastique notification TikTok/Reel</span>
+                            <span className="text-[9.5px] font-black block uppercase">ðŸ“± Pop-Up Push</span>
+                            <span className="text-[7.5px] text-gray-400 block leading-tight mt-0.5">Rebond Ã©lastique notification TikTok/Reel</span>
                         </button>
 
                         <button
@@ -20333,8 +20333,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 }`}
                             style={tweetAnimMode === 'TILT' ? { borderColor: activeColor?.color || '#ff0033' } : {}}
                         >
-                            <span className="text-[9.5px] font-black block uppercase">🎬 Tilt Caméra</span>
-                            <span className="text-[7.5px] text-gray-400 block leading-tight mt-0.5">Inclinaison 3D cinématique + respiration</span>
+                            <span className="text-[9.5px] font-black block uppercase">ðŸŽ¬ Tilt CamÃ©ra</span>
+                            <span className="text-[7.5px] text-gray-400 block leading-tight mt-0.5">Inclinaison 3D cinÃ©matique + respiration</span>
                         </button>
                     </div>
 
@@ -20346,14 +20346,14 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             : 'bg-black/20 border-white/10 text-gray-400 hover:text-white'
                             }`}
                     >
-                        <span>{tweetAnimMode === 'NONE' ? '🛑 Mode Fixe Actif (Pas d\'animation)' : 'Désactiver l\'animation (Mode Fixe)'}</span>
+                        <span>{tweetAnimMode === 'NONE' ? 'ðŸ›‘ Mode Fixe Actif (Pas d\'animation)' : 'DÃ©sactiver l\'animation (Mode Fixe)'}</span>
                     </button>
                 </div>
 
                 {/* 5. TAILLE, POSITION ET HALO */}
                 <div className="space-y-3 bg-white/5 border border-white/10 rounded-2xl p-4">
                     <label className="text-[10px] font-black text-gray-300 uppercase tracking-widest block">
-                        🎛️ Cadrage & Effets
+                        ðŸŽ›ï¸ Cadrage & Effets
                     </label>
 
                     <div className="space-y-1.5">
@@ -20410,8 +20410,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                     <div className="flex items-center justify-between pt-1">
                         <div>
-                            <span className="text-[9px] font-black text-white uppercase block">Halo Ambiant Néon</span>
-                            <span className="text-[8px] text-gray-500 font-medium">Lueur néon aux couleurs du thème</span>
+                            <span className="text-[9px] font-black text-white uppercase block">Halo Ambiant NÃ©on</span>
+                            <span className="text-[8px] text-gray-500 font-medium">Lueur nÃ©on aux couleurs du thÃ¨me</span>
                         </div>
                         <button
                             type="button"
@@ -20423,7 +20423,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 }`}
                             style={tweetGlow ? { borderColor: activeColor?.color || '#ff0033', backgroundColor: `rgba(${activeColor?.grad || '255, 0, 51'}, 0.25)` } : {}}
                         >
-                            {tweetGlow ? 'ACTIF' : 'DÉSACTIVÉ'}
+                            {tweetGlow ? 'ACTIF' : 'DÃ‰SACTIVÃ‰'}
                         </button>
                     </div>
                 </div>
@@ -20432,7 +20432,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 <div className="bg-white/5 border border-white/10 rounded-2xl p-4 flex items-center justify-between">
                     <div>
                         <span className="text-[9px] font-black text-white uppercase block">Swipe Studio</span>
-                        <span className="text-[8px] text-gray-500 font-medium">Afficher la mention swipe en bas à droite</span>
+                        <span className="text-[8px] text-gray-500 font-medium">Afficher la mention swipe en bas Ã  droite</span>
                     </div>
                     <button
                         type="button"
@@ -20442,7 +20442,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         }}
                         className={`px-3 py-1.5 rounded-full text-[8px] font-black uppercase transition-all ${showSwipe ? 'border-neon-cyan/40 text-neon-cyan bg-neon-cyan/20' : 'bg-white/5 text-gray-500 border border-white/10'}`}
                     >
-                        {showSwipe ? 'ACTIF' : 'MASQUÉ'}
+                        {showSwipe ? 'ACTIF' : 'MASQUÃ‰'}
                     </button>
                 </div>
             </div>
@@ -20455,7 +20455,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             <div className="space-y-3 bg-white/5 border border-[#00ff66]/30 rounded-2xl p-4 shadow-xl">
                 <div className="flex items-center justify-between">
                     <label className="text-[10px] font-black text-[#00ff66] uppercase tracking-widest flex items-center gap-1.5">
-                        💿 Cover / Visuel de Sortie (Slide 1 Annonce)
+                        ðŸ’¿ Cover / Visuel de Sortie (Slide 1 Annonce)
                     </label>
                     {currentCover && (
                         <button
@@ -20473,7 +20473,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     )}
                 </div>
 
-                {/* Aperçu de l'image */}
+                {/* AperÃ§u de l'image */}
                 {currentCover ? (
                     <div className="relative group rounded-xl overflow-hidden border border-[#00ff66]/30 bg-black/40 aspect-[4/5] max-h-48 mx-auto flex items-center justify-center shadow-lg">
                         <img src={currentCover} alt="Cover Annonce" className="w-full h-full object-cover" />
@@ -20524,7 +20524,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 {/* Recherche Beatport Cover HD 1400x1400 */}
                 <div className="space-y-1.5 pt-2 border-t border-white/10">
                     <div className="flex items-center justify-between text-[8.5px] font-bold uppercase text-gray-400">
-                        <span className="text-[#00ff66] font-black">⚡ Recherche Beatport (Cover HD 1400x1400)</span>
+                        <span className="text-[#00ff66] font-black">âš¡ Recherche Beatport (Cover HD 1400x1400)</span>
                         <span className="text-[7.5px] text-gray-400">Importe la pochette officielle en fond</span>
                     </div>
                     <div className="flex gap-1.5">
@@ -20552,7 +20552,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             disabled={isResolvingAudio}
                             className="px-3.5 py-2 bg-[#00ff66] hover:bg-[#33ff85] text-black font-black text-[9px] uppercase rounded-xl transition-all flex items-center gap-1 disabled:opacity-50 shadow-md active:scale-95 whitespace-nowrap"
                         >
-                            {isResolvingAudio ? <span className="animate-spin">⏳</span> : <span>⚡ Chercher</span>}
+                            {isResolvingAudio ? <span className="animate-spin">â³</span> : <span>âš¡ Chercher</span>}
                         </button>
                     </div>
                 </div>
@@ -20569,7 +20569,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             <div className="space-y-3 bg-white/5 border border-white/10 rounded-2xl p-4 shadow-xl">
                 <div className="flex items-center justify-between">
                     <label className="text-[10px] font-black text-[#00ff66] uppercase tracking-widest flex items-center gap-1.5">
-                        💿 Pochette du Morceau (Track {activeTrackIdx + 1} • Cover 1:1)
+                        ðŸ’¿ Pochette du Morceau (Track {activeTrackIdx + 1} â€¢ Cover 1:1)
                     </label>
                     {activeCoverUrl && (
                         <button
@@ -20618,9 +20618,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     >
                         <Upload className="w-6 h-6 text-gray-500 group-hover:text-[#00ff66] transition-colors" />
                         <span className="text-[10px] font-black text-gray-400 uppercase tracking-wider group-hover:text-white transition-colors">
-                            Importer la pochette (Carré 1:1)
+                            Importer la pochette (CarrÃ© 1:1)
                         </span>
-                        <span className="text-[8px] text-gray-500">PNG, JPG, WEBP • Pochette officielle</span>
+                        <span className="text-[8px] text-gray-500">PNG, JPG, WEBP â€¢ Pochette officielle</span>
                     </button>
                 )}
 
@@ -20674,9 +20674,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             title="Extraire la pochette officielle 1400x1400"
                         >
                             {isResolvingAudio ? (
-                                <span className="animate-spin">⏳</span>
+                                <span className="animate-spin">â³</span>
                             ) : (
-                                <span>⚡ Extraire Cover</span>
+                                <span>âš¡ Extraire Cover</span>
                             )}
                         </button>
                     </div>
@@ -20688,13 +20688,13 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 disabled={isResolvingAudio}
                                 className="text-[8px] text-[#00ff66] hover:underline font-bold"
                             >
-                                🎧 Chercher sur Beatport "{activeTrack.artist || ''} - {activeTrack.title || ''}"
+                                ðŸŽ§ Chercher sur Beatport "{activeTrack.artist || ''} - {activeTrack.title || ''}"
                             </button>
                         </div>
                     )}
                 </div>
 
-                {/* Réglages précis de taille et position de la cover */}
+                {/* RÃ©glages prÃ©cis de taille et position de la cover */}
                 <div className="space-y-2.5 pt-2.5 border-t border-white/10">
                     <div className="space-y-1">
                         <div className="flex items-center justify-between text-[9px] font-black uppercase text-gray-400">
@@ -20758,11 +20758,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         'text-[#00ff66]'
                     )}
 
-                    {/* Animations CDJ Player & Fond Animé */}
+                    {/* Animations CDJ Player & Fond AnimÃ© */}
                     <div className="pt-2.5 border-t border-white/10 space-y-2">
                         <div className="text-[9px] font-black uppercase text-gray-400 flex items-center justify-between">
                             <span>Animations CDJ & Ambiance</span>
-                            <span className="text-[8px] text-[#ff0033] font-bold">● LIVE 60 FPS</span>
+                            <span className="text-[8px] text-[#ff0033] font-bold">â— LIVE 60 FPS</span>
                         </div>
                         <div className="grid grid-cols-2 gap-2">
                             <button
@@ -20880,8 +20880,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 generateImage();
             };
         } catch (err: any) {
-            console.error('Erreur détourage silhouette IA:', err);
-            setIsolationError("Le détourage automatique n'a pas pu aboutir sur cette image. Tu peux aussi importer directement un PNG détouré du DJ !");
+            console.error('Erreur dÃ©tourage silhouette IA:', err);
+            setIsolationError("Le dÃ©tourage automatique n'a pas pu aboutir sur cette image. Tu peux aussi importer directement un PNG dÃ©tourÃ© du DJ !");
         } finally {
             setIsIsolatingSilhouette(false);
             setIsolationProgress(null);
@@ -20906,14 +20906,14 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         <div className="p-3.5 bg-gradient-to-b from-[#bd00ff]/20 via-black/50 to-black/70 border border-[#bd00ff]/50 rounded-2xl space-y-3 shadow-2xl">
             <div className="flex items-center justify-between">
                 <span className="text-[9.5px] font-black uppercase text-[#bd00ff] tracking-wider flex items-center gap-1.5">
-                    👤 DEVINETTE SILHOUETTE DJ
+                    ðŸ‘¤ DEVINETTE SILHOUETTE DJ
                 </span>
                 <span className="text-[7.5px] font-bold text-gray-400">
-                    Slide 1 : Silhouette • Slide 2 : Révélation
+                    Slide 1 : Silhouette â€¢ Slide 2 : RÃ©vÃ©lation
                 </span>
             </div>
 
-            {/* SÉLECTEUR DE SLIDES : SLIDE 1 (SILHOUETTE) vs SLIDE 2 (RÉVÉLATION) */}
+            {/* SÃ‰LECTEUR DE SLIDES : SLIDE 1 (SILHOUETTE) vs SLIDE 2 (RÃ‰VÃ‰LATION) */}
             <div className="grid grid-cols-2 gap-1.5 p-1 bg-black/60 border border-white/10 rounded-xl">
                 <button
                     type="button"
@@ -20928,7 +20928,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
                         }`}
                 >
-                    <span>👤</span>
+                    <span>ðŸ‘¤</span>
                     <span>Slide 1 : Silhouette</span>
                 </button>
                 <button
@@ -20944,22 +20944,22 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
                         }`}
                 >
-                    <span>🌈</span>
-                    <span>Slide 2 : Révélation</span>
+                    <span>ðŸŒˆ</span>
+                    <span>Slide 2 : RÃ©vÃ©lation</span>
                 </button>
             </div>
 
             {editorialSlide === 1 ? (
                 <>
-                    {/* PHOTO DU DJ À FAIRE DEVINER */}
+                    {/* PHOTO DU DJ Ã€ FAIRE DEVINER */}
                     <div className="p-3 bg-black/60 border border-[#bd00ff]/30 rounded-xl space-y-2.5">
                         <div className="flex items-center justify-between">
                             <span className="text-[9px] font-black uppercase text-white flex items-center gap-1.5">
-                                📸 PHOTO DU DJ À FAIRE DEVINER
+                                ðŸ“¸ PHOTO DU DJ Ã€ FAIRE DEVINER
                             </span>
                             {djOriginalImage && (
                                 <span className="px-2 py-0.5 rounded-full text-[7.5px] font-black uppercase bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-                                    Photo Chargée ✓
+                                    Photo ChargÃ©e âœ“
                                 </span>
                             )}
                         </div>
@@ -20972,8 +20972,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     className="w-12 h-12 object-cover rounded-lg border border-[#bd00ff]/40 shrink-0 shadow-md"
                                 />
                                 <div className="flex-1 min-w-0">
-                                    <p className="text-[8.5px] font-black text-white truncate">Photo prête pour le jeu</p>
-                                    <p className="text-[7.5px] text-gray-400">Clique sur Détourer ci-dessous</p>
+                                    <p className="text-[8.5px] font-black text-white truncate">Photo prÃªte pour le jeu</p>
+                                    <p className="text-[7.5px] text-gray-400">Clique sur DÃ©tourer ci-dessous</p>
                                 </div>
                                 <div className="flex items-center gap-1 shrink-0">
                                     <button
@@ -20999,7 +20999,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         ) : (
                             <div className="space-y-2">
                                 <p className="text-[8px] text-gray-300 leading-relaxed">
-                                    Importe la photo du DJ à faire deviner (depuis ton appareil ou Cloud R2).
+                                    Importe la photo du DJ Ã  faire deviner (depuis ton appareil ou Cloud R2).
                                 </p>
                                 <div className="grid grid-cols-2 gap-1.5">
                                     <button
@@ -21033,20 +21033,20 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         />
                     </div>
 
-                    {/* DÉTOURAGE DE LA SILHOUETTE IA */}
+                    {/* DÃ‰TOURAGE DE LA SILHOUETTE IA */}
                     <div className="p-2.5 bg-black/50 border border-white/10 rounded-xl space-y-2">
                         <div className="flex items-center justify-between">
                             <span className="text-[8.5px] font-black uppercase text-white flex items-center gap-1.5">
-                                🪄 DÉTOURAGE SILHOUETTE (IA 1-CLIC)
+                                ðŸª„ DÃ‰TOURAGE SILHOUETTE (IA 1-CLIC)
                             </span>
                             {djCutoutImage && (
                                 <span className="px-2 py-0.5 rounded-full text-[7.5px] font-black uppercase bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-                                    Silhouette Active ✓
+                                    Silhouette Active âœ“
                                 </span>
                             )}
                         </div>
                         <p className="text-[8px] text-gray-300 leading-relaxed">
-                            Retire le fond de la photo du DJ en 1 clic pour créer la silhouette noire mystère avec contour néon.
+                            Retire le fond de la photo du DJ en 1 clic pour crÃ©er la silhouette noire mystÃ¨re avec contour nÃ©on.
                         </p>
 
                         <div className="flex items-center gap-2">
@@ -21064,12 +21064,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 {isIsolatingSilhouette ? (
                                     <>
                                         <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                                        <span>Détourage IA en cours... {isolationProgress !== null ? `${isolationProgress}%` : ''}</span>
+                                        <span>DÃ©tourage IA en cours... {isolationProgress !== null ? `${isolationProgress}%` : ''}</span>
                                     </>
                                 ) : (
                                     <>
-                                        <span>🪄</span>
-                                        <span>{djCutoutImage ? 'Re-détourer la silhouette IA' : 'Détourer la silhouette (IA 1-Clic)'}</span>
+                                        <span>ðŸª„</span>
+                                        <span>{djCutoutImage ? 'Re-dÃ©tourer la silhouette IA' : 'DÃ©tourer la silhouette (IA 1-Clic)'}</span>
                                     </>
                                 )}
                             </button>
@@ -21079,37 +21079,37 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     type="button"
                                     onClick={handleResetDjSilhouette}
                                     className="py-2 px-2.5 rounded-xl text-[8px] font-black uppercase bg-white/5 hover:bg-white/10 text-gray-300 border border-white/10 transition-all"
-                                    title="Revenir à la photo originale non détourée"
+                                    title="Revenir Ã  la photo originale non dÃ©tourÃ©e"
                                 >
-                                    🔄 Reset
+                                    ðŸ”„ Reset
                                 </button>
                             )}
                         </div>
 
                         {isolationError && (
                             <div className="p-2 bg-red-500/15 border border-red-500/30 rounded-lg text-[8px] text-red-300">
-                                ⚠️ {isolationError}
+                                âš ï¸ {isolationError}
                             </div>
                         )}
 
                         <div className="text-[7.5px] text-gray-400 italic">
-                            💡 Astuce : tu peux aussi directement importer un fichier PNG transparent du DJ via les boutons ci-dessus.
+                            ðŸ’¡ Astuce : tu peux aussi directement importer un fichier PNG transparent du DJ via les boutons ci-dessus.
                         </div>
                     </div>
 
-                    {/* Option A : Personnalisation Néon Rim Light & Badge Mystère */}
+                    {/* Option A : Personnalisation NÃ©on Rim Light & Badge MystÃ¨re */}
                     <div className="p-2.5 bg-black/50 border border-white/10 rounded-xl space-y-2.5">
                         <span className="text-[8.5px] font-black uppercase text-white block">
-                            🎨 Halo & Lueur Néon (Rim Light)
+                            ðŸŽ¨ Halo & Lueur NÃ©on (Rim Light)
                         </span>
 
-                        {/* Choix couleur néon */}
+                        {/* Choix couleur nÃ©on */}
                         <div className="flex items-center gap-1.5 flex-wrap">
                             {[
                                 { label: 'Violet EDM', color: '#bd00ff' },
                                 { label: 'Cyan Laser', color: '#00f0ff' },
                                 { label: 'Or Festival', color: '#ffaa00' },
-                                { label: 'Rouge Néon', color: '#ff0033' },
+                                { label: 'Rouge NÃ©on', color: '#ff0033' },
                                 { label: 'Vert Laser', color: '#39ff14' },
                                 { label: 'Blanc Pur', color: '#ffffff' },
                             ].map(c => (
@@ -21128,10 +21128,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             ))}
                         </div>
 
-                        {/* Slider intensité lueur */}
+                        {/* Slider intensitÃ© lueur */}
                         <div className="space-y-1">
                             <div className="flex items-center justify-between text-[8px] font-bold text-gray-400 uppercase">
-                                <span>Intensité du halo néon</span>
+                                <span>IntensitÃ© du halo nÃ©on</span>
                                 <span className="text-white font-mono">{djGlowIntensity}px</span>
                             </div>
                             <input
@@ -21147,7 +21147,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         {/* Toggle Badge "?" */}
                         <div className="flex items-center justify-between pt-1 border-t border-white/10">
                             <span className="text-[8px] font-bold text-gray-300 uppercase">
-                                Badge mystère « ? » au centre
+                                Badge mystÃ¨re Â« ? Â» au centre
                             </span>
                             <button
                                 type="button"
@@ -21157,7 +21157,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     : 'bg-white/5 border-white/10 text-gray-500'
                                     }`}
                             >
-                                {djShowQuestionMark ? 'ACTIF' : 'MASQUÉ'}
+                                {djShowQuestionMark ? 'ACTIF' : 'MASQUÃ‰'}
                             </button>
                         </div>
                     </div>
@@ -21166,7 +21166,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     <div className="p-2.5 bg-black/50 border border-white/10 rounded-xl space-y-2">
                         <div className="flex items-center justify-between">
                             <span className="text-[8.5px] font-black uppercase text-white flex items-center gap-1.5">
-                                ⚡ Effet d'apparition de la silhouette
+                                âš¡ Effet d'apparition de la silhouette
                             </span>
                             <span className="text-[7.5px] font-bold text-[#bd00ff] uppercase font-mono">
                                 {djAppearanceAnim}
@@ -21175,12 +21175,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                         <div className="grid grid-cols-3 gap-1">
                             {[
-                                { id: 'STROBE', label: '⚡ Strobe Néon', desc: 'Clignotement tube néon stroboscopique' },
-                                { id: 'PULSE', label: '💓 Pulse Basse', desc: 'Pulsation au rythme de la basse (128 BPM)' },
-                                { id: 'FADE', label: '🌫️ Fondu Ombre', desc: 'Émergence douce de l\'obscurité' },
-                                { id: 'SCAN', label: '🔍 Scan Laser', desc: 'Faisceau laser vertical continu' },
-                                { id: 'IMPACT', label: '💥 Zoom Impact', desc: 'Zoom percutant EDM' },
-                                { id: 'STATIC', label: '⏸️ Statique', desc: 'Silhouette nette et lueur fixe' },
+                                { id: 'STROBE', label: 'âš¡ Strobe NÃ©on', desc: 'Clignotement tube nÃ©on stroboscopique' },
+                                { id: 'PULSE', label: 'ðŸ’“ Pulse Basse', desc: 'Pulsation au rythme de la basse (128 BPM)' },
+                                { id: 'FADE', label: 'ðŸŒ«ï¸ Fondu Ombre', desc: 'Ã‰mergence douce de l\'obscuritÃ©' },
+                                { id: 'SCAN', label: 'ðŸ” Scan Laser', desc: 'Faisceau laser vertical continu' },
+                                { id: 'IMPACT', label: 'ðŸ’¥ Zoom Impact', desc: 'Zoom percutant EDM' },
+                                { id: 'STATIC', label: 'â¸ï¸ Statique', desc: 'Silhouette nette et lueur fixe' },
                             ].map(eff => (
                                 <button
                                     key={eff.id}
@@ -21201,72 +21201,72 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         </div>
                     </div>
 
-                    {/* Modèles rapides en 1 clic */}
+                    {/* ModÃ¨les rapides en 1 clic */}
                     <div className="space-y-1.5">
                         <span className="text-[8px] font-black uppercase text-[#bd00ff] tracking-wider flex items-center gap-1.5">
-                            👤 Modèles rapides Devine le DJ en 1 clic :
+                            ðŸ‘¤ ModÃ¨les rapides Devine le DJ en 1 clic :
                         </span>
                         <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
                             <button
                                 type="button"
                                 onClick={() => {
-                                    const t = 'QUI SE CACHE DERRIÈRE CETTE *SILHOUETTE* ?';
-                                    const s = 'RÉPONSE :\n*NOM DU DJ*\nTu avais reconnu sa silhouette ?';
+                                    const t = 'QUI SE CACHE DERRIÃˆRE CETTE *SILHOUETTE* ?';
+                                    const s = 'RÃ‰PONSE :\n*NOM DU DJ*\nTu avais reconnu sa silhouette ?';
                                     setConseilsTitle(t);
                                     setCustomText(t);
                                     setConseilsSubtext(s);
-                                    setEditorialSlideTitles(prev => ({ ...prev, 2: "C'ÉTAIT BIEN..." }));
+                                    setEditorialSlideTitles(prev => ({ ...prev, 2: "C'Ã‰TAIT BIEN..." }));
                                 }}
                                 className="py-1.5 px-1 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-[8px] font-bold text-white text-center truncate transition-all"
                             >
-                                👤 Quel DJ ?
+                                ðŸ‘¤ Quel DJ ?
                             </button>
                             <button
                                 type="button"
                                 onClick={() => {
-                                    const t = 'QUEL *DUO LÉGENDAIRE* SE CACHE ICI ?';
-                                    const s = 'RÉPONSE :\n*SWEDISH HOUSE MAFIA*\nDis-nous en commentaire si tu l\'avais !';
+                                    const t = 'QUEL *DUO LÃ‰GENDAIRE* SE CACHE ICI ?';
+                                    const s = 'RÃ‰PONSE :\n*SWEDISH HOUSE MAFIA*\nDis-nous en commentaire si tu l\'avais !';
                                     setConseilsTitle(t);
                                     setCustomText(t);
                                     setConseilsSubtext(s);
-                                    setEditorialSlideTitles(prev => ({ ...prev, 2: "C'ÉTAIT BIEN..." }));
+                                    setEditorialSlideTitles(prev => ({ ...prev, 2: "C'Ã‰TAIT BIEN..." }));
                                 }}
                                 className="py-1.5 px-1 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-[8px] font-bold text-white text-center truncate transition-all"
                             >
-                                👥 Quel duo ?
+                                ðŸ‘¥ Quel duo ?
                             </button>
                             <button
                                 type="button"
                                 onClick={() => {
-                                    const t = 'SAURAS-TU RECONNAÎTRE CE *DJ MASQUÉ* ?';
-                                    const s = 'RÉPONSE :\n*BORIS BREJCHA*\nLégendaire avec son masque de Joker !';
+                                    const t = 'SAURAS-TU RECONNAÃŽTRE CE *DJ MASQUÃ‰* ?';
+                                    const s = 'RÃ‰PONSE :\n*BORIS BREJCHA*\nLÃ©gendaire avec son masque de Joker !';
                                     setConseilsTitle(t);
                                     setCustomText(t);
                                     setConseilsSubtext(s);
-                                    setEditorialSlideTitles(prev => ({ ...prev, 2: "C'ÉTAIT BIEN..." }));
+                                    setEditorialSlideTitles(prev => ({ ...prev, 2: "C'Ã‰TAIT BIEN..." }));
                                 }}
                                 className="py-1.5 px-1 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-[8px] font-bold text-white text-center truncate transition-all"
                             >
-                                🎭 DJ masqué
+                                ðŸŽ­ DJ masquÃ©
                             </button>
                             <button
                                 type="button"
                                 onClick={() => {
-                                    const t = 'QUELLE *TÊTE D\'AFFICHE* DE CET ÉTÉ EST-CE ?';
-                                    const s = 'RÉPONSE :\n*DAVID GUETTA*\nDe retour sur la Mainstage cet été !';
+                                    const t = 'QUELLE *TÃŠTE D\'AFFICHE* DE CET Ã‰TÃ‰ EST-CE ?';
+                                    const s = 'RÃ‰PONSE :\n*DAVID GUETTA*\nDe retour sur la Mainstage cet Ã©tÃ© !';
                                     setConseilsTitle(t);
                                     setCustomText(t);
                                     setConseilsSubtext(s);
-                                    setEditorialSlideTitles(prev => ({ ...prev, 2: "C'ÉTAIT BIEN..." }));
+                                    setEditorialSlideTitles(prev => ({ ...prev, 2: "C'Ã‰TAIT BIEN..." }));
                                 }}
                                 className="py-1.5 px-1 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-[8px] font-bold text-white text-center truncate transition-all"
                             >
-                                ⚡ Tête d'affiche
+                                âš¡ TÃªte d'affiche
                             </button>
                         </div>
                     </div>
 
-                    {/* BOUTON PASSER À LA SLIDE 2 RÉVÉLATION */}
+                    {/* BOUTON PASSER Ã€ LA SLIDE 2 RÃ‰VÃ‰LATION */}
                     <button
                         type="button"
                         onClick={() => {
@@ -21277,37 +21277,37 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         }}
                         className="w-full py-2.5 px-3 bg-gradient-to-r from-neon-cyan via-emerald-400 to-teal-400 hover:brightness-110 text-black font-black text-[9.5px] uppercase rounded-xl flex items-center justify-center gap-2 transition-all shadow-[0_0_15px_rgba(0,240,255,0.35)] active:scale-98"
                     >
-                        <span>Passer à la Slide 2 : Révélation</span>
-                        <span>➡️</span>
+                        <span>Passer Ã  la Slide 2 : RÃ©vÃ©lation</span>
+                        <span>âž¡ï¸</span>
                     </button>
                 </>
             ) : (
-                /* SECTION SLIDE 2 : RÉVÉLATION DU DJ */
+                /* SECTION SLIDE 2 : RÃ‰VÃ‰LATION DU DJ */
                 <div className="space-y-3">
                     <div className="p-3 bg-gradient-to-r from-neon-cyan/15 via-emerald-500/10 to-transparent border border-neon-cyan/40 rounded-xl space-y-1">
                         <div className="flex items-center justify-between">
                             <span className="text-[10px] font-black uppercase text-neon-cyan flex items-center gap-1.5">
-                                <span>🌈</span>
-                                <span>Slide 2 : Révélation du DJ</span>
+                                <span>ðŸŒˆ</span>
+                                <span>Slide 2 : RÃ©vÃ©lation du DJ</span>
                             </span>
                             <span className="px-2 py-0.5 rounded-full text-[7.5px] font-black uppercase bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-                                Photo Plein Écran Couleur
+                                Photo Plein Ã‰cran Couleur
                             </span>
                         </div>
                         <p className="text-[8px] text-gray-300 leading-relaxed">
-                            Sur cette slide finale, le DJ apparaît en grand et en couleur avec la réponse et le badge officiel de révélation.
+                            Sur cette slide finale, le DJ apparaÃ®t en grand et en couleur avec la rÃ©ponse et le badge officiel de rÃ©vÃ©lation.
                         </p>
                     </div>
 
-                    {/* PHOTO EN COULEUR DE LA RÉVÉLATION */}
+                    {/* PHOTO EN COULEUR DE LA RÃ‰VÃ‰LATION */}
                     <div className="p-3 bg-black/60 border border-white/10 rounded-xl space-y-2.5">
                         <div className="flex items-center justify-between">
                             <span className="text-[9px] font-black uppercase text-white flex items-center gap-1.5">
-                                📸 Photo du DJ en Révélation (Couleur)
+                                ðŸ“¸ Photo du DJ en RÃ©vÃ©lation (Couleur)
                             </span>
                             {(editorialSlideImages[2] || djOriginalImage || bgImage) && (
                                 <span className="px-2 py-0.5 rounded-full text-[7.5px] font-black uppercase bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-                                    Photo Prête ✓
+                                    Photo PrÃªte âœ“
                                 </span>
                             )}
                         </div>
@@ -21316,12 +21316,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             <div className="flex items-center gap-2.5 p-2 bg-white/5 rounded-xl border border-white/10">
                                 <img
                                     src={editorialSlideImages[2] || djOriginalImage || bgImage}
-                                    alt="Photo DJ Révélation"
+                                    alt="Photo DJ RÃ©vÃ©lation"
                                     className="w-12 h-12 object-cover rounded-lg border border-neon-cyan/40 shrink-0 shadow-md"
                                 />
                                 <div className="flex-1 min-w-0">
                                     <p className="text-[8.5px] font-black text-white truncate">Photo originale couleur</p>
-                                    <p className="text-[7.5px] text-gray-400">Affichée en grand pour le reveal</p>
+                                    <p className="text-[7.5px] text-gray-400">AffichÃ©e en grand pour le reveal</p>
                                 </div>
                                 <button
                                     type="button"
@@ -21333,7 +21333,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             </div>
                         ) : (
                             <p className="text-[8px] text-gray-300 leading-relaxed">
-                                Importe la photo du DJ pour la révélation (ou utilise celle de la slide 1).
+                                Importe la photo du DJ pour la rÃ©vÃ©lation (ou utilise celle de la slide 1).
                             </p>
                         )}
 
@@ -21344,7 +21344,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 className="py-2.5 px-2 bg-white/5 hover:bg-white/10 border border-white/15 hover:border-neon-cyan/50 rounded-xl flex items-center justify-center gap-1.5 text-gray-200 text-[8.5px] font-black uppercase hover:text-white transition-all shadow-sm active:scale-98"
                             >
                                 <Upload className="w-3.5 h-3.5 text-neon-cyan" />
-                                <span>Importer Photo Révélation</span>
+                                <span>Importer Photo RÃ©vÃ©lation</span>
                             </button>
                             <button
                                 type="button"
@@ -21360,36 +21360,36 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         </div>
                     </div>
 
-                    {/* TITRE DE LA RÉVÉLATION */}
+                    {/* TITRE DE LA RÃ‰VÃ‰LATION */}
                     <div className="p-3 bg-black/60 border border-white/10 rounded-xl space-y-2">
                         <div className="flex items-center justify-between">
                             <label className="text-[9px] font-black text-white uppercase flex items-center gap-1.5">
-                                <span>🏷️ Titre de la Révélation</span>
+                                <span>ðŸ·ï¸ Titre de la RÃ©vÃ©lation</span>
                                 <span className="text-[7.5px] font-bold text-gray-400">(Haut de Slide 2)</span>
                             </label>
                             <span className="text-[7.5px] text-gray-400 italic">Astuce: *mot*</span>
                         </div>
                         <input
                             type="text"
-                            value={editorialSlideTitles[2] !== undefined ? editorialSlideTitles[2] : "C'ÉTAIT BIEN..."}
+                            value={editorialSlideTitles[2] !== undefined ? editorialSlideTitles[2] : "C'Ã‰TAIT BIEN..."}
                             onChange={(e) => {
                                 const val = e.target.value;
                                 setEditorialSlideTitles(prev => ({ ...prev, 2: val }));
                                 setTimeout(() => generateImage(), 50);
                             }}
-                            placeholder="EX: C'ÉTAIT BIEN... ou RÉPONSE :"
+                            placeholder="EX: C'Ã‰TAIT BIEN... ou RÃ‰PONSE :"
                             className="w-full bg-white/5 border border-white/10 rounded-xl p-2.5 text-white text-[11px] font-bold uppercase focus:border-neon-cyan/50 outline-none transition-all"
                         />
                     </div>
 
-                    {/* TEXTE RÉPONSE & NOM DU DJ */}
+                    {/* TEXTE RÃ‰PONSE & NOM DU DJ */}
                     <div className="p-3 bg-black/60 border border-white/10 rounded-xl space-y-2">
                         <div className="flex items-center justify-between">
                             <label className="text-[9px] font-black text-emerald-400 uppercase flex items-center gap-1.5">
-                                <span>💬 Réponse & Nom du DJ</span>
+                                <span>ðŸ’¬ RÃ©ponse & Nom du DJ</span>
                                 <span className="text-[7.5px] font-bold text-gray-400">(Corps de texte Slide 2)</span>
                             </label>
-                            <span className="text-[7.5px] text-gray-400 italic">*Étoiles* = Couleur</span>
+                            <span className="text-[7.5px] text-gray-400 italic">*Ã‰toiles* = Couleur</span>
                         </div>
                         <textarea
                             rows={3}
@@ -21398,65 +21398,65 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 setConseilsSubtext(e.target.value);
                                 setTimeout(() => generateImage(), 50);
                             }}
-                            placeholder="EX: RÉPONSE :\n*DAVID GUETTA*\nTu avais reconnu sa silhouette ?"
+                            placeholder="EX: RÃ‰PONSE :\n*DAVID GUETTA*\nTu avais reconnu sa silhouette ?"
                             className="w-full bg-white/5 border border-white/10 rounded-xl p-2.5 text-white text-[11px] italic focus:border-emerald-400/50 outline-none transition-all resize-none"
                         />
 
-                        {/* Modèles rapides de réponse */}
+                        {/* ModÃ¨les rapides de rÃ©ponse */}
                         <div className="space-y-1 pt-1 border-t border-white/10">
                             <span className="text-[7.5px] font-black uppercase text-gray-400 tracking-wider block">
-                                Exemples rapides de réponse :
+                                Exemples rapides de rÃ©ponse :
                             </span>
                             <div className="grid grid-cols-2 gap-1.5">
                                 <button
                                     type="button"
                                     onClick={() => {
-                                        setEditorialSlideTitles(prev => ({ ...prev, 2: "C'ÉTAIT BIEN..." }));
-                                        setConseilsSubtext("RÉPONSE :\n*DAVID GUETTA*\nDe retour sur la Mainstage cet été !");
+                                        setEditorialSlideTitles(prev => ({ ...prev, 2: "C'Ã‰TAIT BIEN..." }));
+                                        setConseilsSubtext("RÃ‰PONSE :\n*DAVID GUETTA*\nDe retour sur la Mainstage cet Ã©tÃ© !");
                                         setTimeout(() => generateImage(), 50);
                                     }}
                                     className="py-1 px-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-[8px] font-bold text-white text-left truncate transition-all"
                                 >
-                                    ⚡ David Guetta
+                                    âš¡ David Guetta
                                 </button>
                                 <button
                                     type="button"
                                     onClick={() => {
-                                        setEditorialSlideTitles(prev => ({ ...prev, 2: "C'ÉTAIT BIEN..." }));
-                                        setConseilsSubtext("RÉPONSE :\n*SWEDISH HOUSE MAFIA*\nDis-nous en commentaire si tu l'avais !");
+                                        setEditorialSlideTitles(prev => ({ ...prev, 2: "C'Ã‰TAIT BIEN..." }));
+                                        setConseilsSubtext("RÃ‰PONSE :\n*SWEDISH HOUSE MAFIA*\nDis-nous en commentaire si tu l'avais !");
                                         setTimeout(() => generateImage(), 50);
                                     }}
                                     className="py-1 px-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-[8px] font-bold text-white text-left truncate transition-all"
                                 >
-                                    👥 Swedish House Mafia
+                                    ðŸ‘¥ Swedish House Mafia
                                 </button>
                                 <button
                                     type="button"
                                     onClick={() => {
-                                        setEditorialSlideTitles(prev => ({ ...prev, 2: "C'ÉTAIT BIEN..." }));
-                                        setConseilsSubtext("RÉPONSE :\n*BORIS BREJCHA*\nLégendaire avec son masque de Joker !");
+                                        setEditorialSlideTitles(prev => ({ ...prev, 2: "C'Ã‰TAIT BIEN..." }));
+                                        setConseilsSubtext("RÃ‰PONSE :\n*BORIS BREJCHA*\nLÃ©gendaire avec son masque de Joker !");
                                         setTimeout(() => generateImage(), 50);
                                     }}
                                     className="py-1 px-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-[8px] font-bold text-white text-left truncate transition-all"
                                 >
-                                    🎭 Boris Brejcha
+                                    ðŸŽ­ Boris Brejcha
                                 </button>
                                 <button
                                     type="button"
                                     onClick={() => {
-                                        setEditorialSlideTitles(prev => ({ ...prev, 2: "C'ÉTAIT BIEN..." }));
-                                        setConseilsSubtext("RÉPONSE :\n*MARTIN GARRIX*\nLe prodige néerlandais !");
+                                        setEditorialSlideTitles(prev => ({ ...prev, 2: "C'Ã‰TAIT BIEN..." }));
+                                        setConseilsSubtext("RÃ‰PONSE :\n*MARTIN GARRIX*\nLe prodige nÃ©erlandais !");
                                         setTimeout(() => generateImage(), 50);
                                     }}
                                     className="py-1 px-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-[8px] font-bold text-white text-left truncate transition-all"
                                 >
-                                    ✨ Martin Garrix
+                                    âœ¨ Martin Garrix
                                 </button>
                             </div>
                         </div>
                     </div>
 
-                    {/* BOUTON REVENIR À LA SLIDE 1 SILHOUETTE */}
+                    {/* BOUTON REVENIR Ã€ LA SLIDE 1 SILHOUETTE */}
                     <button
                         type="button"
                         onClick={() => {
@@ -21467,8 +21467,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         }}
                         className="w-full py-2.5 px-3 bg-white/10 hover:bg-white/15 border border-white/20 text-white font-black text-[9.5px] uppercase rounded-xl flex items-center justify-center gap-2 transition-all active:scale-98"
                     >
-                        <span>⬅️</span>
-                        <span>Revenir à la Slide 1 : Silhouette</span>
+                        <span>â¬…ï¸</span>
+                        <span>Revenir Ã  la Slide 1 : Silhouette</span>
                     </button>
                 </div>
             )}
@@ -21479,7 +21479,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         <div className="p-3 bg-black/60 border border-white/10 rounded-2xl space-y-2.5 shadow-xl">
             <div className="flex items-center justify-between">
                 <span className="text-[9px] font-black uppercase text-white flex items-center gap-1.5">
-                    🖼️ Visuel Slide {editorialSlide} sur {2 + extraEditorialSlides.length}
+                    ðŸ–¼ï¸ Visuel Slide {editorialSlide} sur {2 + extraEditorialSlides.length}
                 </span>
                 {(editorialSlide >= 3 || (editorialSlide === 2 && theme !== 'JEU_DJ')) && (
                     <button
@@ -21487,7 +21487,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         onClick={() => removeEditorialSlide(editorialSlide)}
                         className="px-2 py-0.5 text-[8px] font-black uppercase text-red-400 bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 rounded-lg transition-all"
                     >
-                        🗑️ Supprimer cette slide
+                        ðŸ—‘ï¸ Supprimer cette slide
                     </button>
                 )}
             </div>
@@ -21509,7 +21509,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     className="flex-1 py-2 px-3 border border-dashed border-white/20 hover:border-neon-cyan/50 rounded-xl bg-black/40 hover:bg-white/5 text-gray-300 hover:text-white text-[8.5px] font-black uppercase transition-all flex items-center justify-center gap-1.5"
                 >
                     <Upload className="w-3.5 h-3.5 text-neon-cyan" />
-                    {editorialSlideImages[editorialSlide] ? `Changer photo Slide ${editorialSlide}` : `Importer photo spécifique (Slide ${editorialSlide})`}
+                    {editorialSlideImages[editorialSlide] ? `Changer photo Slide ${editorialSlide}` : `Importer photo spÃ©cifique (Slide ${editorialSlide})`}
                 </button>
                 {editorialSlideImages[editorialSlide] && (
                     <button
@@ -21523,9 +21523,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             setTimeout(() => generateImage(), 50);
                         }}
                         className="py-2 px-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-gray-400 text-[8px] font-black uppercase border border-white/10"
-                        title="Réutiliser l'image globale"
+                        title="RÃ©utiliser l'image globale"
                     >
-                        🔄 Réinit
+                        ðŸ”„ RÃ©init
                     </button>
                 )}
             </div>
@@ -21546,7 +21546,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 : 'text-gray-400 hover:text-white'
                                 }`}
                         >
-                            👤 Silhouette
+                            ðŸ‘¤ Silhouette
                         </button>
                         <button
                             type="button"
@@ -21559,7 +21559,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 : 'text-gray-400 hover:text-white'
                                 }`}
                         >
-                            🌈 Reveal Couleur
+                            ðŸŒˆ Reveal Couleur
                         </button>
                     </div>
                 </div>
@@ -21676,7 +21676,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 onClick={() => downloadAfficheSlide(activeTab)}
                                 disabled={isDownloading}
                                 className="flex-1 min-w-[70px] py-1.5 bg-[#ff3700]/20 hover:bg-[#ff3700]/30 border border-[#ff3700]/40 text-[#ff3700] font-black text-[9px] uppercase rounded-lg transition-all flex items-center justify-center gap-1 shadow-sm"
-                                title="Télécharger la Slide Affiche isolée"
+                                title="TÃ©lÃ©charger la Slide Affiche isolÃ©e"
                             >
                                 <Download className="w-3.5 h-3.5 text-[#ff3700]" /> Affiche
                             </button>
@@ -21688,7 +21688,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         disabled={isDownloading}
                         className="w-full py-2.5 bg-gradient-to-r from-neon-cyan via-blue-500 to-indigo-600 hover:opacity-90 text-black font-black text-[10px] uppercase rounded-xl shadow-lg shadow-cyan-500/20 transition-all flex items-center justify-center gap-2 hover:scale-[1.01] active:scale-95"
                     >
-                        <Download className="w-4 h-4 text-black" /> Télécharger Carrousel Images ({2 + extraEditorialSlides.length + (afficheImage || isEditorialAfficheActive ? 1 : 0)} Slides)
+                        <Download className="w-4 h-4 text-black" /> TÃ©lÃ©charger Carrousel Images ({2 + extraEditorialSlides.length + (afficheImage || isEditorialAfficheActive ? 1 : 0)} Slides)
                     </button>
                 </div>
             );
@@ -21721,7 +21721,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         disabled={isDownloading}
                         className="w-full py-2.5 bg-gradient-to-r from-[#00ff66] to-[#00cc88] hover:from-[#33ff85] hover:to-[#00e699] text-black font-black text-[10px] uppercase rounded-lg shadow-lg shadow-green-500/20 transition-all flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-95"
                     >
-                        <Download className="w-4 h-4 text-black" /> Télécharger Carrousel Musique ({totalSlides} Slides)
+                        <Download className="w-4 h-4 text-black" /> TÃ©lÃ©charger Carrousel Musique ({totalSlides} Slides)
                     </button>
                 </div>
             );
@@ -21731,7 +21731,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             return (
                 <div className="p-3 bg-white/5 border border-white/10 rounded-2xl space-y-2.5 shadow-xl">
                     <div className="flex items-center justify-between text-[8px] font-bold text-gray-400 uppercase px-1">
-                        <span>Export Carrousel Événement (2 Slides)</span>
+                        <span>Export Carrousel Ã‰vÃ©nement (2 Slides)</span>
                         <span className="text-[#ff3700]">Format {activeTab === 'REEL' ? 'Story' : 'Post (4:5)'}</span>
                     </div>
                     <div className="grid grid-cols-2 gap-2">
@@ -21777,7 +21777,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         <span>Titre Principal</span>
                         <span className="text-[8px] font-bold text-gray-400">({theme === 'JEU' ? 'DEVINE LE CLIP' : theme === 'JEU_FESTIVAL' ? 'DEVINE LE FESTIVAL' : theme === 'JEU_DJ' ? 'DEVINE LE DJ' : theme})</span>
                     </label>
-                    <span className="text-[8px] font-bold text-gray-500">Astuce: entoure un mot avec *étoiles*</span>
+                    <span className="text-[8px] font-bold text-gray-500">Astuce: entoure un mot avec *Ã©toiles*</span>
                 </div>
                 <textarea
                     ref={conseilsTitleInputRef}
@@ -21819,9 +21819,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         setCustomText(updated);
                                     }}
                                     className="text-[9px] font-bold text-gray-400 hover:text-white transition-colors underline flex items-center gap-1"
-                                    title="Sélectionne du texte dans le champ ci-dessus puis clique ici"
+                                    title="SÃ©lectionne du texte dans le champ ci-dessus puis clique ici"
                                 >
-                                    Colorer sélection
+                                    Colorer sÃ©lection
                                 </button>
                             </div>
                             <div className="flex flex-wrap gap-1.5 p-2 bg-black/40 border border-white/10 rounded-xl max-h-28 overflow-y-auto">
@@ -21875,7 +21875,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 })()}
             </div>
 
-            {/* Si Slide >= 2, Cadre texte spécifique à la Slide */}
+            {/* Si Slide >= 2, Cadre texte spÃ©cifique Ã  la Slide */}
             {editorialSlide >= 2 && !isEditorialAfficheActive && (() => {
                 const currentSlideText = editorialSlide === 2 ? conseilsSubtext : (extraEditorialSlides[editorialSlide - 3] || '');
                 return (
@@ -21883,7 +21883,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         {/* Header Slide info & delete button */}
                         <div className="flex items-center justify-between">
                             <span className="text-[10px] font-black uppercase text-neon-cyan flex items-center gap-1.5">
-                                <span>📄 Contenu de la Slide {editorialSlide}</span>
+                                <span>ðŸ“„ Contenu de la Slide {editorialSlide}</span>
                                 <span className="text-[8px] font-bold text-gray-400">({editorialSlide}/{2 + extraEditorialSlides.length})</span>
                             </span>
                             {editorialSlide >= 3 && (
@@ -21892,7 +21892,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     onClick={() => removeEditorialSlide(editorialSlide)}
                                     className="px-2 py-1 text-[8.5px] font-bold text-red-400 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 rounded-lg transition-all flex items-center gap-1 active:scale-95"
                                 >
-                                    🗑️ Supprimer Slide {editorialSlide}
+                                    ðŸ—‘ï¸ Supprimer Slide {editorialSlide}
                                 </button>
                             )}
                         </div>
@@ -21903,11 +21903,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 <div className="text-[10px] font-black uppercase text-white flex items-center gap-1.5">
                                     <span>Titre principal sur Slide {editorialSlide}</span>
                                     <span className={`text-[8.5px] px-1.5 py-0.5 rounded font-bold ${showTitleOnSlide2 ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-neon-cyan/20 text-neon-cyan border border-neon-cyan/30'}`}>
-                                        {showTitleOnSlide2 ? 'Affiché' : 'Masqué (Texte Plein Écran)'}
+                                        {showTitleOnSlide2 ? 'AffichÃ©' : 'MasquÃ© (Texte Plein Ã‰cran)'}
                                     </span>
                                 </div>
                                 <p className="text-[8.5px] text-gray-400">
-                                    {showTitleOnSlide2 ? 'Le grand titre reste au-dessus.' : 'Masque le grand titre pour agrandir le texte de l\'article (38px) et libérer tout l\'espace.'}
+                                    {showTitleOnSlide2 ? 'Le grand titre reste au-dessus.' : 'Masque le grand titre pour agrandir le texte de l\'article (38px) et libÃ©rer tout l\'espace.'}
                                 </p>
                             </div>
                             <button
@@ -21918,7 +21918,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     : 'bg-white/10 border-white/20 text-white hover:bg-white/20 shadow-md'
                                     }`}
                             >
-                                {showTitleOnSlide2 ? '👁️ Titre Visible' : '🚫 Titre Masqué'}
+                                {showTitleOnSlide2 ? 'ðŸ‘ï¸ Titre Visible' : 'ðŸš« Titre MasquÃ©'}
                             </button>
                         </div>
 
@@ -21965,9 +21965,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                                     updateEditorialSlideText(editorialSlide, updated);
                                                 }}
                                                 className="text-[9px] font-bold text-gray-400 hover:text-white transition-colors underline flex items-center gap-1"
-                                                title="Sélectionne du texte dans le champ ci-dessus puis clique ici"
+                                                title="SÃ©lectionne du texte dans le champ ci-dessus puis clique ici"
                                             >
-                                                Colorer sélection
+                                                Colorer sÃ©lection
                                             </button>
                                         </div>
                                         <div className="flex flex-wrap gap-1.5 p-2 bg-black/40 border border-white/10 rounded-xl max-h-28 overflow-y-auto">
@@ -22022,7 +22022,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 );
             })()}
 
-            {/* Slide Affiche dédiée (gérée dans l'onglet Visuel) */}
+            {/* Slide Affiche dÃ©diÃ©e (gÃ©rÃ©e dans l'onglet Visuel) */}
             {isEditorialAfficheActive && (
                 <div className="p-3 bg-white/5 border border-[#ff3700]/30 rounded-2xl flex items-center justify-between gap-3 shadow-md">
                     <div className="flex items-center gap-2.5 min-w-0">
@@ -22036,7 +22036,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         <div className="min-w-0">
                             <span className="text-[9.5px] font-black text-white uppercase block truncate">Slide Affiche (Extra)</span>
                             <span className="text-[8px] text-gray-400 block truncate">
-                                {afficheImage ? 'Affiche configurée' : 'Gérer l\'affiche & visuel dans l\'onglet Visuel'}
+                                {afficheImage ? 'Affiche configurÃ©e' : 'GÃ©rer l\'affiche & visuel dans l\'onglet Visuel'}
                             </span>
                         </div>
                     </div>
@@ -22046,12 +22046,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         className="px-3 py-1.5 bg-[#ff3700] hover:bg-[#ff4400] text-white font-black text-[9px] uppercase rounded-xl transition-all flex items-center gap-1 shadow-sm active:scale-95 flex-shrink-0"
                     >
                         <Sparkles className="w-3 h-3" />
-                        <span>Gérer dans Visuel</span>
+                        <span>GÃ©rer dans Visuel</span>
                     </button>
                 </div>
             )}
 
-            {/* Slide Tweet 𝕏 dédiée (gérée dans l'onglet Visuel) */}
+            {/* Slide Tweet ð• dÃ©diÃ©e (gÃ©rÃ©e dans l'onglet Visuel) */}
             {isEditorialTweetActive && (
                 <div className="p-3 bg-white/5 border border-neon-cyan/30 rounded-2xl flex items-center justify-between gap-3 shadow-md">
                     <div className="flex items-center gap-2.5 min-w-0">
@@ -22059,13 +22059,13 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             <img src={tweetImage} alt="Tweet" className="w-12 h-10 rounded-lg object-contain bg-black/40 border border-neon-cyan/40 flex-shrink-0" />
                         ) : (
                             <div className="w-12 h-10 rounded-lg bg-black/40 border border-dashed border-white/20 flex items-center justify-center flex-shrink-0">
-                                <span className="text-[12px] font-bold text-gray-500">𝕏</span>
+                                <span className="text-[12px] font-bold text-gray-500">ð•</span>
                             </div>
                         )}
                         <div className="min-w-0">
-                            <span className="text-[9.5px] font-black text-white uppercase block truncate">Slide Tweet 𝕏 + Traduction</span>
+                            <span className="text-[9.5px] font-black text-white uppercase block truncate">Slide Tweet ð• + Traduction</span>
                             <span className="text-[8px] text-gray-400 block truncate">
-                                {tweetImage ? 'Screen configuré' : 'Gérer le screen et la traduction dans Visuel'}
+                                {tweetImage ? 'Screen configurÃ©' : 'GÃ©rer le screen et la traduction dans Visuel'}
                             </span>
                         </div>
                     </div>
@@ -22075,7 +22075,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         className="px-3 py-1.5 bg-neon-cyan hover:bg-neon-cyan/80 text-black font-black text-[9px] uppercase rounded-xl transition-all flex items-center gap-1 shadow-sm active:scale-95 flex-shrink-0"
                     >
                         <Sparkles className="w-3 h-3 text-black" />
-                        <span>Gérer dans Visuel</span>
+                        <span>GÃ©rer dans Visuel</span>
                     </button>
                 </div>
             )}
@@ -22086,26 +22086,26 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     {theme === 'CONCOURS' && (
                         <div className="p-2.5 bg-[#008cff]/10 border border-[#008cff]/20 rounded-xl space-y-1.5">
                             <span className="text-[8px] font-black uppercase text-[#008cff] tracking-wider flex items-center gap-1.5">
-                                🎁 Modèles rapides Concours en 1 clic :
+                                ðŸŽ ModÃ¨les rapides Concours en 1 clic :
                             </span>
                             <div className="grid grid-cols-3 gap-1.5">
                                 <button
                                     type="button"
                                     onClick={() => {
-                                        const t = '*1X PASS VIP 3 JOURS* À GAGNER';
-                                        const s = 'POUR PARTICIPER :\n1. *Like* ce post & *abonne-toi* à @dropsiders\n2. *Identifie 2 potes* en commentaire\n3. *Partage en story* pour doubler tes chances !\nTirage au sort dimanche prochain.';
+                                        const t = '*1X PASS VIP 3 JOURS* Ã€ GAGNER';
+                                        const s = 'POUR PARTICIPER :\n1. *Like* ce post & *abonne-toi* Ã  @dropsiders\n2. *Identifie 2 potes* en commentaire\n3. *Partage en story* pour doubler tes chances !\nTirage au sort dimanche prochain.';
                                         setConseilsTitle(t);
                                         setCustomText(t);
                                         setConseilsSubtext(s);
                                     }}
                                     className="py-1.5 px-1 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-[8px] font-bold text-white text-center truncate transition-all"
                                 >
-                                    🎟️ Pass Festival
+                                    ðŸŽŸï¸ Pass Festival
                                 </button>
                                 <button
                                     type="button"
                                     onClick={() => {
-                                        const t = '*CASQUE AUDIO SANS FIL* À GAGNER';
+                                        const t = '*CASQUE AUDIO SANS FIL* Ã€ GAGNER';
                                         const s = 'POUR PARTICIPER :\n1. *Like* ce post & *follow* @dropsiders\n2. *Tag 2 potes* qui ont besoin de bon son\n3. *Partage en story* !';
                                         setConseilsTitle(t);
                                         setCustomText(t);
@@ -22113,20 +22113,20 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     }}
                                     className="py-1.5 px-1 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-[8px] font-bold text-white text-center truncate transition-all"
                                 >
-                                    🎧 Tech / Audio
+                                    ðŸŽ§ Tech / Audio
                                 </button>
                                 <button
                                     type="button"
                                     onClick={() => {
-                                        const t = '*LE JEU DE TON CHOIX* À GAGNER';
-                                        const s = 'POUR PARTICIPER :\n1. *Like* ce post & *abonne-toi*\n2. *Commente ton jeu préféré* & identifie 1 pote\n3. *Partage en story* !';
+                                        const t = '*LE JEU DE TON CHOIX* Ã€ GAGNER';
+                                        const s = 'POUR PARTICIPER :\n1. *Like* ce post & *abonne-toi*\n2. *Commente ton jeu prÃ©fÃ©rÃ©* & identifie 1 pote\n3. *Partage en story* !';
                                         setConseilsTitle(t);
                                         setCustomText(t);
                                         setConseilsSubtext(s);
                                     }}
                                     className="py-1.5 px-1 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-[8px] font-bold text-white text-center truncate transition-all"
                                 >
-                                    🎮 Jeu Vidéo
+                                    ðŸŽ® Jeu VidÃ©o
                                 </button>
                             </div>
                         </div>
@@ -22140,47 +22140,47 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             {theme === 'JEU' && (
                                 <div className="p-2.5 bg-neon-cyan/10 border border-neon-cyan/25 rounded-xl space-y-1.5 shadow-lg">
                                     <span className="text-[8px] font-black uppercase text-neon-cyan tracking-wider flex items-center gap-1.5">
-                                        🎬 Modèles rapides Devine le Clip en 1 clic :
+                                        ðŸŽ¬ ModÃ¨les rapides Devine le Clip en 1 clic :
                                     </span>
                                     <div className="grid grid-cols-3 gap-1.5">
                                         <button
                                             type="button"
                                             onClick={() => {
-                                                const t = 'DE QUEL *CLIP* CETTE IMAGE EST-ELLE TIRÉE ?';
-                                                const s = 'RÉPONSE :\n*TITRE DU MORCEAU* — ARTISTE\nSorti en 2020. Tu avais trouvé ?';
+                                                const t = 'DE QUEL *CLIP* CETTE IMAGE EST-ELLE TIRÃ‰E ?';
+                                                const s = 'RÃ‰PONSE :\n*TITRE DU MORCEAU* â€” ARTISTE\nSorti en 2020. Tu avais trouvÃ© ?';
                                                 setConseilsTitle(t);
                                                 setCustomText(t);
                                                 setConseilsSubtext(s);
                                             }}
                                             className="py-1.5 px-1 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-[8px] font-bold text-white text-center truncate transition-all"
                                         >
-                                            🎵 Quel clip ?
+                                            ðŸŽµ Quel clip ?
                                         </button>
                                         <button
                                             type="button"
                                             onClick={() => {
-                                                const t = 'QUEL *ARTISTE* SE CACHE DERRIÈRE CE CLIP ?';
-                                                const s = 'RÉPONSE :\n*NOM DE L\'ARTISTE*\nIndice : il était en tête d\'affiche cet été !';
+                                                const t = 'QUEL *ARTISTE* SE CACHE DERRIÃˆRE CE CLIP ?';
+                                                const s = 'RÃ‰PONSE :\n*NOM DE L\'ARTISTE*\nIndice : il Ã©tait en tÃªte d\'affiche cet Ã©tÃ© !';
                                                 setConseilsTitle(t);
                                                 setCustomText(t);
                                                 setConseilsSubtext(s);
                                             }}
                                             className="py-1.5 px-1 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-[8px] font-bold text-white text-center truncate transition-all"
                                         >
-                                            🎧 Quel artiste ?
+                                            ðŸŽ§ Quel artiste ?
                                         </button>
                                         <button
                                             type="button"
                                             onClick={() => {
-                                                const t = 'EN QUELLE *ANNÉE* EST SORTI CE CLIP CULTE ?';
-                                                const s = 'RÉPONSE :\nCe banger est sorti en *2015* !\nDis-nous en commentaire si tu l\'avais !';
+                                                const t = 'EN QUELLE *ANNÃ‰E* EST SORTI CE CLIP CULTE ?';
+                                                const s = 'RÃ‰PONSE :\nCe banger est sorti en *2015* !\nDis-nous en commentaire si tu l\'avais !';
                                                 setConseilsTitle(t);
                                                 setCustomText(t);
                                                 setConseilsSubtext(s);
                                             }}
                                             className="py-1.5 px-1 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-[8px] font-bold text-white text-center truncate transition-all"
                                         >
-                                            📅 Quelle année ?
+                                            ðŸ“… Quelle annÃ©e ?
                                         </button>
                                     </div>
                                 </div>
@@ -22190,47 +22190,47 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             {theme === 'JEU_FESTIVAL' && (
                                 <div className="p-2.5 bg-[#ffaa00]/10 border border-[#ffaa00]/25 rounded-xl space-y-1.5 shadow-lg">
                                     <span className="text-[8px] font-black uppercase text-[#ffaa00] tracking-wider flex items-center gap-1.5">
-                                        🎪 Modèles rapides Devine le Festival en 1 clic :
+                                        ðŸŽª ModÃ¨les rapides Devine le Festival en 1 clic :
                                     </span>
                                     <div className="grid grid-cols-3 gap-1.5">
                                         <button
                                             type="button"
                                             onClick={() => {
-                                                const t = 'DANS QUEL *FESTIVAL* PEUT-ON VOIR CETTE SCÈNE ?';
-                                                const s = 'RÉPONSE :\n*TOMORROWLAND* (MAINSTAGE)\nBoom, Belgique. Tu y étais ?';
+                                                const t = 'DANS QUEL *FESTIVAL* PEUT-ON VOIR CETTE SCÃˆNE ?';
+                                                const s = 'RÃ‰PONSE :\n*TOMORROWLAND* (MAINSTAGE)\nBoom, Belgique. Tu y Ã©tais ?';
                                                 setConseilsTitle(t);
                                                 setCustomText(t);
                                                 setConseilsSubtext(s);
                                             }}
                                             className="py-1.5 px-1 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-[8px] font-bold text-white text-center truncate transition-all"
                                         >
-                                            🎪 Quel festival ?
+                                            ðŸŽª Quel festival ?
                                         </button>
                                         <button
                                             type="button"
                                             onClick={() => {
-                                                const t = 'DANS QUEL *PAYS* SE DÉROULE CE FESTIVAL ?';
-                                                const s = 'RÉPONSE :\nCe festival légendaire a lieu aux *PAYS-BAS* !\nDonne ta note en commentaire.';
+                                                const t = 'DANS QUEL *PAYS* SE DÃ‰ROULE CE FESTIVAL ?';
+                                                const s = 'RÃ‰PONSE :\nCe festival lÃ©gendaire a lieu aux *PAYS-BAS* !\nDonne ta note en commentaire.';
                                                 setConseilsTitle(t);
                                                 setCustomText(t);
                                                 setConseilsSubtext(s);
                                             }}
                                             className="py-1.5 px-1 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-[8px] font-bold text-white text-center truncate transition-all"
                                         >
-                                            📍 Quel pays ?
+                                            ðŸ“ Quel pays ?
                                         </button>
                                         <button
                                             type="button"
                                             onClick={() => {
                                                 const t = 'COMMENT S\'APPELLE CETTE *STAGE MYTHIQUE* ?';
-                                                const s = 'RÉPONSE :\nIl s\'agit de la mythique stage *CIRCOLOCO* !\nDis-nous en commentaire si tu avais trouvé.';
+                                                const s = 'RÃ‰PONSE :\nIl s\'agit de la mythique stage *CIRCOLOCO* !\nDis-nous en commentaire si tu avais trouvÃ©.';
                                                 setConseilsTitle(t);
                                                 setCustomText(t);
                                                 setConseilsSubtext(s);
                                             }}
                                             className="py-1.5 px-1 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-[8px] font-bold text-white text-center truncate transition-all"
                                         >
-                                            🏰 Quelle stage ?
+                                            ðŸ° Quelle stage ?
                                         </button>
                                     </div>
                                 </div>
@@ -22240,60 +22240,60 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             {theme === 'JEU_DJ' && (
                                 <div className="p-2.5 bg-[#bd00ff]/10 border border-[#bd00ff]/25 rounded-xl space-y-1.5 shadow-lg">
                                     <span className="text-[8px] font-black uppercase text-[#bd00ff] tracking-wider flex items-center gap-1.5">
-                                        👤 Modèles rapides Devine le DJ en 1 clic :
+                                        ðŸ‘¤ ModÃ¨les rapides Devine le DJ en 1 clic :
                                     </span>
                                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
                                         <button
                                             type="button"
                                             onClick={() => {
-                                                const t = 'QUI SE CACHE DERRIÈRE CETTE *SILHOUETTE* ?';
-                                                const s = 'RÉPONSE :\n*NOM DU DJ*\nTu avais reconnu sa silhouette ?';
+                                                const t = 'QUI SE CACHE DERRIÃˆRE CETTE *SILHOUETTE* ?';
+                                                const s = 'RÃ‰PONSE :\n*NOM DU DJ*\nTu avais reconnu sa silhouette ?';
                                                 setConseilsTitle(t);
                                                 setCustomText(t);
                                                 setConseilsSubtext(s);
                                             }}
                                             className="py-1.5 px-1 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-[8px] font-bold text-white text-center truncate transition-all"
                                         >
-                                            👤 Quel DJ ?
+                                            ðŸ‘¤ Quel DJ ?
                                         </button>
                                         <button
                                             type="button"
                                             onClick={() => {
-                                                const t = 'QUEL *DUO LÉGENDAIRE* SE CACHE ICI ?';
-                                                const s = 'RÉPONSE :\n*SWEDISH HOUSE MAFIA*\nDis-nous en commentaire si tu l\'avais !';
+                                                const t = 'QUEL *DUO LÃ‰GENDAIRE* SE CACHE ICI ?';
+                                                const s = 'RÃ‰PONSE :\n*SWEDISH HOUSE MAFIA*\nDis-nous en commentaire si tu l\'avais !';
                                                 setConseilsTitle(t);
                                                 setCustomText(t);
                                                 setConseilsSubtext(s);
                                             }}
                                             className="py-1.5 px-1 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-[8px] font-bold text-white text-center truncate transition-all"
                                         >
-                                            👥 Quel duo ?
+                                            ðŸ‘¥ Quel duo ?
                                         </button>
                                         <button
                                             type="button"
                                             onClick={() => {
-                                                const t = 'SAURAS-TU RECONNAÎTRE CE *DJ MASQUÉ* ?';
-                                                const s = 'RÉPONSE :\n*BORIS BREJCHA*\nLégendaire avec son masque de Joker !';
+                                                const t = 'SAURAS-TU RECONNAÃŽTRE CE *DJ MASQUÃ‰* ?';
+                                                const s = 'RÃ‰PONSE :\n*BORIS BREJCHA*\nLÃ©gendaire avec son masque de Joker !';
                                                 setConseilsTitle(t);
                                                 setCustomText(t);
                                                 setConseilsSubtext(s);
                                             }}
                                             className="py-1.5 px-1 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-[8px] font-bold text-white text-center truncate transition-all"
                                         >
-                                            🎭 DJ masqué
+                                            ðŸŽ­ DJ masquÃ©
                                         </button>
                                         <button
                                             type="button"
                                             onClick={() => {
-                                                const t = 'QUELLE *TÊTE D\'AFFICHE* DE CET ÉTÉ EST-CE ?';
-                                                const s = 'RÉPONSE :\n*DAVID GUETTA*\nDe retour sur la Mainstage cet été !';
+                                                const t = 'QUELLE *TÃŠTE D\'AFFICHE* DE CET Ã‰TÃ‰ EST-CE ?';
+                                                const s = 'RÃ‰PONSE :\n*DAVID GUETTA*\nDe retour sur la Mainstage cet Ã©tÃ© !';
                                                 setConseilsTitle(t);
                                                 setCustomText(t);
                                                 setConseilsSubtext(s);
                                             }}
                                             className="py-1.5 px-1 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-[8px] font-bold text-white text-center truncate transition-all"
                                         >
-                                            ⚡ Tête d'affiche
+                                            âš¡ TÃªte d'affiche
                                         </button>
                                     </div>
                                 </div>
@@ -22304,10 +22304,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 <div className="p-3 bg-gradient-to-r from-[#bd00ff]/15 to-purple-900/30 border border-[#bd00ff]/40 rounded-2xl flex items-center justify-between shadow-lg">
                                     <div className="space-y-0.5">
                                         <span className="text-[10px] font-black uppercase text-[#bd00ff] flex items-center gap-1.5">
-                                            <span>👤</span> Silhouette & Détourage IA
+                                            <span>ðŸ‘¤</span> Silhouette & DÃ©tourage IA
                                         </span>
                                         <p className="text-[8.5px] text-gray-300">
-                                            {djCutoutImage ? '✓ Silhouette détourée et active' : 'Photo DJ, détourage IA & lueurs néon gérés dans l\'onglet Visuel'}
+                                            {djCutoutImage ? 'âœ“ Silhouette dÃ©tourÃ©e et active' : 'Photo DJ, dÃ©tourage IA & lueurs nÃ©on gÃ©rÃ©s dans l\'onglet Visuel'}
                                         </p>
                                     </div>
                                     <button
@@ -22318,8 +22318,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         }}
                                         className="px-3 py-2 bg-[#bd00ff] hover:bg-[#d13aff] text-white rounded-xl text-[9px] font-black uppercase transition-all flex items-center gap-1.5 shadow-[0_0_12px_rgba(189,0,255,0.4)] active:scale-95 shrink-0"
                                     >
-                                        <span>Gérer dans Visuel</span>
-                                        <span>🖼️</span>
+                                        <span>GÃ©rer dans Visuel</span>
+                                        <span>ðŸ–¼ï¸</span>
                                     </button>
                                 </div>
                             )}
@@ -22336,8 +22336,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             <div className="space-y-3 p-3.5 bg-black/40 border border-white/10 rounded-2xl shadow-lg">
                 <div className="flex items-center justify-between">
                     <label className="text-[9px] font-black text-neon-red uppercase tracking-widest flex items-center gap-1.5">
-                        <span>🎯 Position / Rang</span>
-                        <span className="text-[8px] text-gray-500 font-mono">(1 à 100)</span>
+                        <span>ðŸŽ¯ Position / Rang</span>
+                        <span className="text-[8px] text-gray-500 font-mono">(1 Ã  100)</span>
                     </label>
                     <span className="text-[14px] font-black italic text-white font-mono">
                         #{top100Rank < 10 ? '0' + top100Rank : top100Rank}
@@ -22374,7 +22374,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     />
                 </div>
                 <p className="text-[8px] text-gray-400">
-                    💡 La position est appliquée <strong>immédiatement</strong>. Cliquez sur <em>Rejouer</em> pour lancer l'animation du compteur (100 ➔ #{top100Rank < 10 ? '0' + top100Rank : top100Rank}).
+                    ðŸ’¡ La position est appliquÃ©e <strong>immÃ©diatement</strong>. Cliquez sur <em>Rejouer</em> pour lancer l'animation du compteur (100 âž” #{top100Rank < 10 ? '0' + top100Rank : top100Rank}).
                 </p>
             </div>
 
@@ -22400,7 +22400,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                 <div className="space-y-1">
                     <label className="text-[9px] font-black text-gray-400 uppercase tracking-wider">
-                        Sous-titre / Catégorie
+                        Sous-titre / CatÃ©gorie
                     </label>
                     <input
                         type="text"
@@ -22418,7 +22418,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                 <div className="space-y-1">
                     <label className="text-[9px] font-black text-gray-400 uppercase tracking-wider">
-                        Badge en haut à gauche
+                        Badge en haut Ã  gauche
                     </label>
                     <input
                         type="text"
@@ -22435,7 +22435,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 </div>
             </div>
 
-            {/* BOUTON REJOUER LA RÉVÉLATION */}
+            {/* BOUTON REJOUER LA RÃ‰VÃ‰LATION */}
             <button
                 type="button"
                 onClick={() => {
@@ -22447,7 +22447,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 }}
                 className="w-full py-3 bg-neon-red text-white hover:bg-red-600 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(255,18,65,0.4)] active:scale-98"
             >
-                <Sparkles className="w-4 h-4" /> Rejouer la Révélation (100 ➔ #{top100Rank < 10 ? '0' + top100Rank : top100Rank})
+                <Sparkles className="w-4 h-4" /> Rejouer la RÃ©vÃ©lation (100 âž” #{top100Rank < 10 ? '0' + top100Rank : top100Rank})
             </button>
         </div>
     );
@@ -22458,17 +22458,17 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         const isLabelMode = top10GenMode === 'label';
         const top10CurrentAccentHex = isLabelMode ? '#B86221' : (isStyleMode ? '#FFB800' : '#00f0ff');
         const top10CurrentAccentRgb = isLabelMode ? '184, 98, 33' : (isStyleMode ? '255, 184, 0' : '0, 240, 255');
-        const top10ColorLabel = isStyleMode ? 'en or festival' : (isLabelMode ? 'en bronze cuivré' : 'en bleu néon');
+        const top10ColorLabel = isStyleMode ? 'en or festival' : (isLabelMode ? 'en bronze cuivrÃ©' : 'en bleu nÃ©on');
         const podiumColor = activeTrack.rank === 1 ? 'text-amber-400' : activeTrack.rank === 2 ? 'text-gray-300' : activeTrack.rank === 3 ? 'text-amber-600' : '';
         const podiumBorder = activeTrack.rank === 1 ? 'border-amber-400/60 shadow-[0_0_15px_rgba(255,215,0,0.3)]' : activeTrack.rank === 2 ? 'border-gray-300/60' : activeTrack.rank === 3 ? 'border-amber-600/60' : '';
 
         return (
             <div className="space-y-4">
-                {/* 1. PARAMÈTRES GLOBAUX DU TOP 10 */}
+                {/* 1. PARAMÃˆTRES GLOBAUX DU TOP 10 */}
                 <div className="p-3.5 bg-black/40 border border-white/10 rounded-2xl shadow-lg space-y-3">
                     <div className="flex items-center justify-between">
                         <span className="text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5" style={{ color: top10CurrentAccentHex }}>
-                            🔥 Configuration Générale Top 10
+                            ðŸ”¥ Configuration GÃ©nÃ©rale Top 10
                         </span>
                         <div className="flex items-center gap-2">
                             <button
@@ -22480,9 +22480,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     setTimeout(() => generateImage(), 50);
                                 }}
                                 className="px-2 py-1 bg-red-500/10 hover:bg-red-500/25 border border-red-500/30 text-red-400 hover:text-white rounded-lg text-[8.5px] font-black uppercase transition-all"
-                                title="Réinitialiser toutes les 10 pistes à vide"
+                                title="RÃ©initialiser toutes les 10 pistes Ã  vide"
                             >
-                                ✕ TOUT EFFACER (VIDER LE TOP 10)
+                                âœ• TOUT EFFACER (VIDER LE TOP 10)
                             </button>
                             <span className="text-[9px] font-bold font-mono" style={{ color: top10CurrentAccentHex }}>
                                 1 min pile (60s)
@@ -22512,7 +22512,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                     <div className="space-y-1">
                         <label className="text-[8.5px] font-black text-gray-400 uppercase tracking-wider">
-                            Titre des Tracks (Slides #10 à #1)
+                            Titre des Tracks (Slides #10 Ã  #1)
                         </label>
                         <input
                             ref={top10TracksTitleInputRef}
@@ -22559,9 +22559,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                             setTimeout(() => generateImage(), 30);
                                         }}
                                         className="text-[9px] font-bold text-gray-400 hover:text-white transition-colors underline flex items-center gap-1"
-                                        title="Sélectionne du texte dans le champ ci-dessus puis clique ici"
+                                        title="SÃ©lectionne du texte dans le champ ci-dessus puis clique ici"
                                     >
-                                        Colorer sélection
+                                        Colorer sÃ©lection
                                     </button>
                                 </div>
                                 <div className="flex flex-wrap gap-1.5 p-2 bg-black/40 border border-white/10 rounded-xl max-h-28 overflow-y-auto">
@@ -22618,7 +22618,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         );
                     })()}
 
-                    {/* Durée strictement fixe à 1 minute pile (60s) */}
+                    {/* DurÃ©e strictement fixe Ã  1 minute pile (60s) */}
                     <div 
                         className="p-3 rounded-xl space-y-1 border"
                         style={{
@@ -22628,7 +22628,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     >
                         <div className="flex items-center justify-between">
                             <span className="text-[9px] font-black uppercase tracking-wider flex items-center gap-1.5" style={{ color: top10CurrentAccentHex }}>
-                                ⏱️ Durée Totale : 1 Minute 30 Pile (90s)
+                                â±ï¸ DurÃ©e Totale : 1 Minute 30 Pile (90s)
                             </span>
                             <span 
                                 className="px-1.5 py-0.5 text-[7.5px] font-black uppercase rounded"
@@ -22637,23 +22637,23 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     color: top10CurrentAccentHex,
                                 }}
                             >
-                                Verrouillé 90s
+                                VerrouillÃ© 90s
                             </span>
                         </div>
                         <p className="text-[8px] text-gray-300 font-mono">
-                            Intro (5.0s) + 10 tracks × 7.8s (78s) + 7s Outro Téléphone 3D = 90s pile.
+                            Intro (5.0s) + 10 tracks Ã— 7.8s (78s) + 7s Outro TÃ©lÃ©phone 3D = 90s pile.
                         </p>
                     </div>
                 </div>
 
-                {/* AUTO-GÉNÉRATEUR TOP 10 100% DYNAMIQUE */}
+                {/* AUTO-GÃ‰NÃ‰RATEUR TOP 10 100% DYNAMIQUE */}
                 <div 
                     className="p-3.5 bg-gradient-to-br from-black/80 via-black/40 to-black/80 rounded-2xl shadow-xl space-y-3 border"
                     style={{ borderColor: `rgba(${top10CurrentAccentRgb}, 0.40)` }}
                 >
                     <div className="flex items-center justify-between">
                         <span className="text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5" style={{ color: top10CurrentAccentHex }}>
-                            ⚡ Auto-Générateur Top 10
+                            âš¡ Auto-GÃ©nÃ©rateur Top 10
                         </span>
                         {isAutoFillingTop10 && (
                             <span 
@@ -22664,12 +22664,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     borderColor: `rgba(${top10CurrentAccentRgb}, 0.40)`,
                                 }}
                             >
-                                ⏳ Génération en cours...
+                                â³ GÃ©nÃ©ration en cours...
                             </span>
                         )}
                     </div>
 
-                    {/* SÉLECTEUR DE MODE : TOP 10 GENRE / TOP 10 LABEL / TOP 10 ARTISTE */}
+                    {/* SÃ‰LECTEUR DE MODE : TOP 10 GENRE / TOP 10 LABEL / TOP 10 ARTISTE */}
                     <div className="grid grid-cols-3 gap-1.5 p-1 bg-black/60 border border-white/10 rounded-xl">
                         <button
                             type="button"
@@ -22677,8 +22677,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 setTop10GenMode('style');
                                 top10GenModeRef.current = 'style';
                                 if (!top10IntroTitle || top10IntroTitle.includes('STREAM')) {
-                                    setTop10IntroTitle('TOP 10 DES TRACKS LES PLUS TÉLÉCHARGÉES SUR BEATPORT');
-                                    top10IntroTitleRef.current = 'TOP 10 DES TRACKS LES PLUS TÉLÉCHARGÉES SUR BEATPORT';
+                                    setTop10IntroTitle('TOP 10 DES TRACKS LES PLUS TÃ‰LÃ‰CHARGÃ‰ES SUR BEATPORT');
+                                    top10IntroTitleRef.current = 'TOP 10 DES TRACKS LES PLUS TÃ‰LÃ‰CHARGÃ‰ES SUR BEATPORT';
                                 }
                                 generateImage();
                             }}
@@ -22687,7 +22687,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
                                 }`}
                         >
-                            <span>🎧</span>
+                            <span>ðŸŽ§</span>
                             <span>Top 10 Genre</span>
                         </button>
                         <button
@@ -22696,8 +22696,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 setTop10GenMode('label');
                                 top10GenModeRef.current = 'label';
                                 if (!top10IntroTitle || top10IntroTitle.includes('STREAM')) {
-                                    setTop10IntroTitle('TOP 10 DES TRACKS LES PLUS TÉLÉCHARGÉES SUR BEATPORT');
-                                    top10IntroTitleRef.current = 'TOP 10 DES TRACKS LES PLUS TÉLÉCHARGÉES SUR BEATPORT';
+                                    setTop10IntroTitle('TOP 10 DES TRACKS LES PLUS TÃ‰LÃ‰CHARGÃ‰ES SUR BEATPORT');
+                                    top10IntroTitleRef.current = 'TOP 10 DES TRACKS LES PLUS TÃ‰LÃ‰CHARGÃ‰ES SUR BEATPORT';
                                 }
                                 generateImage();
                             }}
@@ -22706,7 +22706,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
                                 }`}
                         >
-                            <span>🏷️</span>
+                            <span>ðŸ·ï¸</span>
                             <span>Top 10 Label</span>
                         </button>
                         <button
@@ -22714,9 +22714,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             onClick={() => {
                                 setTop10GenMode('artist');
                                 top10GenModeRef.current = 'artist';
-                                if (!top10IntroTitle || top10IntroTitle.includes('TÉLÉCHARG') || top10IntroTitle.includes('TELECHARG') || top10IntroTitle.includes('BEATPORT')) {
-                                    setTop10IntroTitle('TOP 10 DES TRACKS LES PLUS TÉLÉCHARGÉES SUR BEATPORT');
-                                    top10IntroTitleRef.current = 'TOP 10 DES TRACKS LES PLUS TÉLÉCHARGÉES SUR BEATPORT';
+                                if (!top10IntroTitle || top10IntroTitle.includes('TÃ‰LÃ‰CHARG') || top10IntroTitle.includes('TELECHARG') || top10IntroTitle.includes('BEATPORT')) {
+                                    setTop10IntroTitle('TOP 10 DES TRACKS LES PLUS TÃ‰LÃ‰CHARGÃ‰ES SUR BEATPORT');
+                                    top10IntroTitleRef.current = 'TOP 10 DES TRACKS LES PLUS TÃ‰LÃ‰CHARGÃ‰ES SUR BEATPORT';
                                 }
                                 generateImage();
                             }}
@@ -22725,17 +22725,17 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
                                 }`}
                         >
-                            <span>👤</span>
+                            <span>ðŸ‘¤</span>
                             <span>Top 10 Artiste</span>
                         </button>
                     </div>
 
                     {top10GenMode === 'style' ? (
-                        /* ─── OPTION 1 : RECHERCHE PAR GENRE (OR FESTIVAL) ─── */
+                        /* â”€â”€â”€ OPTION 1 : RECHERCHE PAR GENRE (OR FESTIVAL) â”€â”€â”€ */
                         <div className="space-y-3 p-3.5 bg-black/70 border border-[#ffb800]/40 rounded-xl shadow-lg">
                             <div className="flex items-center justify-between">
                                 <label className="text-[8.5px] font-black text-[#ffb800] uppercase tracking-wider flex items-center gap-1.5">
-                                    <span>⚡ Style / Genre Électronique :</span>
+                                    <span>âš¡ Style / Genre Ã‰lectronique :</span>
                                 </label>
                                 <span className="text-[8px] font-bold text-amber-300/80 bg-[#ffb800]/15 px-2 py-0.5 rounded-full border border-[#ffb800]/30">
                                     38 styles officiels
@@ -22743,10 +22743,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             </div>
 
                             <div className="space-y-2.5">
-                                {/* LISTE DÉROULANTE OFFICIELLE DES 38 STYLES BEATPORT */}
+                                {/* LISTE DÃ‰ROULANTE OFFICIELLE DES 38 STYLES BEATPORT */}
                                 <div className="space-y-1">
                                     <span className="text-[7.5px] font-bold text-gray-400 uppercase tracking-wide">
-                                        ▼ Sélectionner dans la liste déroulante :
+                                        â–¼ SÃ©lectionner dans la liste dÃ©roulante :
                                     </span>
                                     <select
                                         value={BEATPORT_GENRES.some(g => g.name.toLowerCase() === top10StyleSearch.toLowerCase()) ? BEATPORT_GENRES.find(g => g.name.toLowerCase() === top10StyleSearch.toLowerCase())?.name : ''}
@@ -22773,18 +22773,18 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 {/* CHIPS RACCOURCIS 1-CLIC */}
                                 <div className="space-y-1">
                                     <span className="text-[7.5px] font-bold text-gray-400 uppercase tracking-wide">
-                                        ⚡ Raccourcis rapides :
+                                        âš¡ Raccourcis rapides :
                                     </span>
                                     <div className="flex flex-wrap gap-1">
                                         {[
-                                            { label: '🥁 Drum & Bass', query: 'Drum & Bass' },
-                                            { label: '🔥 Hard Dance', query: 'Hard Dance / Hardcore / Neo Rave' },
-                                            { label: '⚡ Hard Techno', query: 'Hard Techno' },
-                                            { label: '🪩 Tech House', query: 'Tech House' },
-                                            { label: '✨ Melodic Techno', query: 'Melodic House & Techno' },
-                                            { label: '🌴 Afro House', query: 'Afro House' },
-                                            { label: '🌀 Psy-Trance', query: 'Psy-Trance' },
-                                            { label: '🚗 UK Garage', query: 'UK Garage / Bassline' }
+                                            { label: 'ðŸ¥ Drum & Bass', query: 'Drum & Bass' },
+                                            { label: 'ðŸ”¥ Hard Dance', query: 'Hard Dance / Hardcore / Neo Rave' },
+                                            { label: 'âš¡ Hard Techno', query: 'Hard Techno' },
+                                            { label: 'ðŸª© Tech House', query: 'Tech House' },
+                                            { label: 'âœ¨ Melodic Techno', query: 'Melodic House & Techno' },
+                                            { label: 'ðŸŒ´ Afro House', query: 'Afro House' },
+                                            { label: 'ðŸŒ€ Psy-Trance', query: 'Psy-Trance' },
+                                            { label: 'ðŸš— UK Garage', query: 'UK Garage / Bassline' }
                                         ].map(chip => (
                                             <button
                                                 key={chip.label}
@@ -22804,7 +22804,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 {/* RECHERCHE LIBRE PAR TEXTE */}
                                 <div className="space-y-1">
                                     <span className="text-[7.5px] font-bold text-gray-400 uppercase tracking-wide">
-                                        ✍️ Ou taper une recherche personnalisée :
+                                        âœï¸ Ou taper une recherche personnalisÃ©e :
                                     </span>
                                     <input
                                         type="text"
@@ -22830,20 +22830,20 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     onClick={() => handleAutoFetchStyleTop10(top10StyleSearch)}
                                     className="w-full py-2.5 bg-gradient-to-r from-[#ffb800] via-[#ffa500] to-[#ff8c00] hover:brightness-110 text-black font-black text-[10px] uppercase rounded-xl transition-all disabled:opacity-40 shadow-md shadow-[#ffb800]/30 active:scale-98 flex items-center justify-center gap-1.5"
                                 >
-                                    <span>{isAutoFillingTop10 ? '⏳' : '⚡'}</span>
-                                    <span>{isAutoFillingTop10 ? 'Génération du Top 10 en cours...' : 'Générer le Top 10 Genre'}</span>
+                                    <span>{isAutoFillingTop10 ? 'â³' : 'âš¡'}</span>
+                                    <span>{isAutoFillingTop10 ? 'GÃ©nÃ©ration du Top 10 en cours...' : 'GÃ©nÃ©rer le Top 10 Genre'}</span>
                                 </button>
                             </div>
 
                             <p className="text-[7.5px] text-gray-400 leading-tight">
-                                ✨ <span className="text-[#ffb800] font-bold">Or Festival = Genres</span>. Résolution en direct du classement officiel Beatport Top 100 !
+                                âœ¨ <span className="text-[#ffb800] font-bold">Or Festival = Genres</span>. RÃ©solution en direct du classement officiel Beatport Top 100 !
                             </p>
                         </div>
                     ) : top10GenMode === 'label' ? (
-                        /* ─── OPTION 2 : RECHERCHE PAR LABEL (MARRON) ─── */
+                        /* â”€â”€â”€ OPTION 2 : RECHERCHE PAR LABEL (MARRON) â”€â”€â”€ */
                         <div className="space-y-2.5 p-3 bg-black/60 border border-[#B86221]/40 rounded-xl shadow-lg">
                             <label className="text-[8.5px] font-black text-[#B86221] uppercase tracking-wider flex items-center gap-1.5">
-                                <span>🏷️ Label Électronique (Beatport) :</span>
+                                <span>ðŸ·ï¸ Label Ã‰lectronique (Beatport) :</span>
                             </label>
 
                             <div className="space-y-2">
@@ -22863,17 +22863,17 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     onClick={() => handleAutoFetchLabelTop10(top10LabelSearch)}
                                     className="w-full py-2.5 bg-gradient-to-r from-[#B86221] via-[#A05018] to-[#7B380A] hover:brightness-110 text-white font-black text-[10px] uppercase rounded-xl transition-all disabled:opacity-40 shadow-md shadow-[#B86221]/30 active:scale-98 flex items-center justify-center gap-1.5"
                                 >
-                                    <span>{isAutoFillingTop10 ? '⏳' : '🏷️'}</span>
-                                    <span>{isAutoFillingTop10 ? 'Génération du Top 10 en cours...' : 'Générer le Top 10 Label'}</span>
+                                    <span>{isAutoFillingTop10 ? 'â³' : 'ðŸ·ï¸'}</span>
+                                    <span>{isAutoFillingTop10 ? 'GÃ©nÃ©ration du Top 10 en cours...' : 'GÃ©nÃ©rer le Top 10 Label'}</span>
                                 </button>
                             </div>
 
                             <p className="text-[7.5px] text-gray-400 leading-tight">
-                                ✨ <span className="text-[#B86221] font-bold">Marron = Labels</span>. Téléchargement direct du Top 10 officiel du label avec pochettes HD 1400x1400 !
+                                âœ¨ <span className="text-[#B86221] font-bold">Marron = Labels</span>. TÃ©lÃ©chargement direct du Top 10 officiel du label avec pochettes HD 1400x1400 !
                             </p>
                         </div>
                     ) : (
-                        /* ─── OPTION 3 : RECHERCHE PAR ARTISTE (BLEU NÉON) ─── */
+                        /* â”€â”€â”€ OPTION 3 : RECHERCHE PAR ARTISTE (BLEU NÃ‰ON) â”€â”€â”€ */
                         <div className="space-y-1.5">
                             <label className="text-[8px] font-black text-gray-300 uppercase tracking-wider flex items-center justify-between">
                                 <span>Nom de l'Artiste / DJ :</span>
@@ -22896,18 +22896,18 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     onClick={() => handleAutoFetchArtistTop10(top10ArtistSearch)}
                                     className="px-3.5 py-2 bg-neon-cyan text-black font-black text-[9.5px] uppercase rounded-xl hover:bg-neon-cyan/80 transition-all disabled:opacity-40 shrink-0 shadow-md shadow-neon-cyan/20 active:scale-95"
                                 >
-                                    {isAutoFillingTop10 ? '⏳...' : '⚡ Générer'}
+                                    {isAutoFillingTop10 ? 'â³...' : 'âš¡ GÃ©nÃ©rer'}
                                 </button>
                             </div>
                         </div>
                     )}
 
-                    {/* 🎨 LOGO OFFICIEL DE L'ARTISTE (Affiché si mode artiste ou si un logo est déjà présent) */}
+                    {/* ðŸŽ¨ LOGO OFFICIEL DE L'ARTISTE (AffichÃ© si mode artiste ou si un logo est dÃ©jÃ  prÃ©sent) */}
                     {(top10GenMode === 'artist' || top10GenMode === 'label' || top10GenMode === 'style' || Boolean(artistLogo)) && (
                     <div className="p-3 bg-black/60 border border-neon-cyan/35 rounded-xl space-y-2.5">
                         <div className="flex items-center justify-between">
                             <span className="text-[9px] font-black text-white uppercase tracking-wider flex items-center gap-1.5">
-                                <span className={top10GenMode === 'label' ? "text-[#B86221]" : top10GenMode === 'style' ? "text-[#ffb800]" : "text-neon-cyan"}>🎨</span> Logo Transparent {top10GenMode === 'label' ? 'du Label' : top10GenMode === 'style' ? 'du Genre' : "de l'Artiste"}
+                                <span className={top10GenMode === 'label' ? "text-[#B86221]" : top10GenMode === 'style' ? "text-[#ffb800]" : "text-neon-cyan"}>ðŸŽ¨</span> Logo Transparent {top10GenMode === 'label' ? 'du Label' : top10GenMode === 'style' ? 'du Genre' : "de l'Artiste"}
                             </span>
                             {artistLogo && (
                                 <button
@@ -22919,12 +22919,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     }}
                                     className="text-[8px] text-red-400 hover:text-red-300 font-bold uppercase transition-colors"
                                 >
-                                    ✕ Retirer
+                                    âœ• Retirer
                                 </button>
                             )}
                         </div>
 
-                        {/* Aperçu */}
+                        {/* AperÃ§u */}
                         {artistLogo ? (
                             <div className="p-2.5 bg-black/80 border border-neon-cyan/40 rounded-xl flex items-center justify-center min-h-[64px] relative">
                                 <img
@@ -22937,7 +22937,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         ) : (
                             <div className="p-2 bg-white/5 border border-dashed border-white/10 rounded-lg text-center">
                                 <span className="text-[8px] text-gray-400">
-                                    Aucun logo chargé • Chargé auto ou recherche 1-clic ci-dessous :
+                                    Aucun logo chargÃ© â€¢ ChargÃ© auto ou recherche 1-clic ci-dessous :
                                 </span>
                             </div>
                         )}
@@ -22951,12 +22951,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 className="py-2 px-2 bg-gradient-to-r from-neon-cyan to-blue-600 hover:brightness-110 text-black text-[9px] font-black uppercase rounded-lg flex items-center justify-center gap-1.5 shadow-md shadow-neon-cyan/20 active:scale-95 disabled:opacity-40"
                             >
                                 <Search className="w-3.5 h-3.5 shrink-0" />
-                                <span>{isSearchingTop10Logo ? '⏳ Recherche...' : '🔍 Chercher Logo Web'}</span>
+                                <span>{isSearchingTop10Logo ? 'â³ Recherche...' : 'ðŸ” Chercher Logo Web'}</span>
                             </button>
 
                             <label className="py-2 px-2 bg-white/10 hover:bg-white/15 border border-white/20 rounded-lg text-[9px] font-black uppercase text-white flex items-center justify-center gap-1.5 cursor-pointer active:scale-95 text-center">
                                 <Upload className="w-3.5 h-3.5 text-neon-cyan shrink-0" />
-                                <span>📁 Uploader PNG</span>
+                                <span>ðŸ“ Uploader PNG</span>
                                 <input
                                     type="file"
                                     accept="image/*"
@@ -22966,12 +22966,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             </label>
                         </div>
 
-                        {/* Option Rendre Blanc Pur / Négatif */}
+                        {/* Option Rendre Blanc Pur / NÃ©gatif */}
                         {artistLogo && (
                             <div className="flex items-center justify-between pt-1 border-t border-white/10">
                                 <label htmlFor="gen-logo-neg" className="text-[8px] font-bold text-gray-300 uppercase cursor-pointer flex items-center gap-1.5">
-                                    <span>✨ Rendre Blanc Pur & Néon</span>
-                                    <span className="text-[7px] text-gray-500 font-normal">(Recommandé vidéo)</span>
+                                    <span>âœ¨ Rendre Blanc Pur & NÃ©on</span>
+                                    <span className="text-[7px] text-gray-500 font-normal">(RecommandÃ© vidÃ©o)</span>
                                 </label>
                                 <input
                                     type="checkbox"
@@ -22985,12 +22985,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 />
                             </div>
                         )}
-                        {/* 🪄 DÉTOURAGE FOND NOIR / BLANC (1-CLIC) */}
+                        {/* ðŸª„ DÃ‰TOURAGE FOND NOIR / BLANC (1-CLIC) */}
                         {artistLogo && (
                             <div className="pt-2 pb-1 border-t border-white/10 space-y-1.5">
                                 <div className="flex items-center justify-between text-[8px] font-black uppercase text-gray-300">
                                     <span className="flex items-center gap-1 text-white">
-                                        <span>🪄</span> Détourage Fond (1-Clic) :
+                                        <span>ðŸª„</span> DÃ©tourage Fond (1-Clic) :
                                     </span>
                                     {artistLogoOriginal && (
                                         <button
@@ -22998,7 +22998,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                             onClick={handleRestoreOriginalLogo}
                                             className="text-[7.5px] text-amber-400 hover:text-amber-300 font-bold uppercase transition-colors"
                                         >
-                                            ↺ Fond Original
+                                            â†º Fond Original
                                         </button>
                                     )}
                                 </div>
@@ -23009,7 +23009,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         className="py-1.5 px-2 bg-black/80 hover:bg-black border border-white/20 hover:border-neon-cyan/60 rounded-lg text-[8px] font-black uppercase text-white transition-all flex items-center justify-center gap-1 shadow-sm active:scale-95"
                                         title="Supprime le fond noir autour du logo"
                                     >
-                                        <span>⬛</span>
+                                        <span>â¬›</span>
                                         <span>Retirer Fond Noir</span>
                                     </button>
                                     <button
@@ -23018,7 +23018,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         className="py-1.5 px-2 bg-white/10 hover:bg-white/20 border border-white/20 hover:border-neon-cyan/60 rounded-lg text-[8px] font-black uppercase text-white transition-all flex items-center justify-center gap-1 shadow-sm active:scale-95"
                                         title="Supprime le fond blanc autour du logo"
                                     >
-                                        <span>⬜</span>
+                                        <span>â¬œ</span>
                                         <span>Retirer Fond Blanc</span>
                                     </button>
                                 </div>
@@ -23026,12 +23026,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         )}
 
 
-                        {/* Option Taille / Échelle du Logo */}
+                        {/* Option Taille / Ã‰chelle du Logo */}
                         {artistLogo && (
                             <div className="pt-2 space-y-1.5 border-t border-white/10">
                                 <div className="flex items-center justify-between text-[8.5px] font-black uppercase text-gray-300">
                                     <span className="flex items-center gap-1.5 text-neon-cyan">
-                                        <span>🔍</span> Taille du Logo : <span className="font-mono text-white">{top10LogoScale}%</span>
+                                        <span>ðŸ”</span> Taille du Logo : <span className="font-mono text-white">{top10LogoScale}%</span>
                                     </span>
                                     <div className="flex items-center gap-1">
                                         {[50, 70, 85, 100, 120].map((preset) => (
@@ -23053,9 +23053,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                                 type="button"
                                                 onClick={() => updateTop10LogoScale(100)}
                                                 className="text-[7.5px] text-gray-400 hover:text-white underline ml-1"
-                                                title="Réinitialiser à 100%"
+                                                title="RÃ©initialiser Ã  100%"
                                             >
-                                                ↺
+                                                â†º
                                             </button>
                                         )}
                                     </div>
@@ -23074,7 +23074,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     </div>
                     )}
 
-                    {/* TRIEUR MAGIQUE SPOTIFY & KWORB (Résout le mauvais tri de Spotify !) */}
+                    {/* TRIEUR MAGIQUE SPOTIFY & KWORB (RÃ©sout le mauvais tri de Spotify !) */}
                     <div className="pt-2 border-t border-white/10 space-y-2">
                         <button
                             type="button"
@@ -23082,23 +23082,23 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             className="w-full py-1.5 px-2.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-left text-gray-300 hover:text-white transition-all flex items-center justify-between group text-[8.5px] font-black uppercase tracking-wider"
                         >
                             <span className="flex items-center gap-1.5 text-neon-cyan">
-                                📋 Coller liste Spotify / Kworb (Trieur de streams auto)
+                                ðŸ“‹ Coller liste Spotify / Kworb (Trieur de streams auto)
                             </span>
                             <span className="text-gray-400 group-hover:text-white text-[10px]">
-                                {showRawTextImportModal ? '▲ Masquer' : '▼ Ouvrir'}
+                                {showRawTextImportModal ? 'â–² Masquer' : 'â–¼ Ouvrir'}
                             </span>
                         </button>
 
                         {showRawTextImportModal && (
                             <div className="p-2.5 bg-black/70 border border-neon-cyan/30 rounded-xl space-y-2 animate-fadeIn">
                                 <p className="text-[7.5px] text-gray-400 leading-tight">
-                                    💡 <strong className="text-white">Astuce Spotify mal rangé :</strong> Copiez simplement le tableau des titres depuis Spotify Desktop ou Kworb (avec les chiffres de streams) et collez-le ici. L'outil trie automatiquement du plus streamé au moins streamé, remplit les 10 positions (#10 ➔ #1), ajoute les streams et télécharge les pochettes HD !
+                                    ðŸ’¡ <strong className="text-white">Astuce Spotify mal rangÃ© :</strong> Copiez simplement le tableau des titres depuis Spotify Desktop ou Kworb (avec les chiffres de streams) et collez-le ici. L'outil trie automatiquement du plus streamÃ© au moins streamÃ©, remplit les 10 positions (#10 âž” #1), ajoute les streams et tÃ©lÃ©charge les pochettes HD !
                                 </p>
                                 <textarea
                                     value={top10RawTextImport}
                                     onChange={e => setTop10RawTextImport(e.target.value)}
                                     rows={4}
-                                    placeholder={"Collez ici vos lignes copiées de Spotify ou Kworb...\nExemple:\nIn the Name of Love\t1826620962\t3:18\nScared to Be Lonely\t1553619964\t3:40\nSummer Days\t753363223\t2:43"}
+                                    placeholder={"Collez ici vos lignes copiÃ©es de Spotify ou Kworb...\nExemple:\nIn the Name of Love\t1826620962\t3:18\nScared to Be Lonely\t1553619964\t3:40\nSummer Days\t753363223\t2:43"}
                                     className="w-full bg-black/80 border border-white/10 rounded-xl p-2 text-white text-[9.5px] font-mono focus:border-neon-cyan outline-none resize-none placeholder:text-gray-600"
                                 />
                                 <div className="flex items-center justify-between gap-2">
@@ -23115,7 +23115,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         onClick={() => handleImportAndSortRawTracks(top10RawTextImport, top10ArtistSearch)}
                                         className="py-1.5 px-3 bg-neon-cyan text-black text-[9px] font-black uppercase rounded-xl hover:bg-neon-cyan/80 transition-all disabled:opacity-40 shadow-md shadow-neon-cyan/20 active:scale-95"
                                     >
-                                        {isAutoFillingTop10 ? '⏳ Analyse en cours...' : '🚀 Trier & Remplir le Top 10'}
+                                        {isAutoFillingTop10 ? 'â³ Analyse en cours...' : 'ðŸš€ Trier & Remplir le Top 10'}
                                     </button>
                                 </div>
                             </div>
@@ -23123,14 +23123,14 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     </div>
                 </div>
 
-                {/* 2. SÉLECTEUR DE TRACKS & INTRO (#10 ➔ #1) */}
+                {/* 2. SÃ‰LECTEUR DE TRACKS & INTRO (#10 âž” #1) */}
                 <div className="p-3.5 bg-black/40 border border-white/10 rounded-2xl shadow-lg space-y-2">
                     <div className="flex items-center justify-between">
                         <label className="text-[9px] font-black text-white uppercase tracking-wider">
-                            Choisir la Slide à éditer
+                            Choisir la Slide Ã  Ã©diter
                         </label>
                         <span className="text-[8px] text-gray-400">
-                            Intro (3.5s) ➔ Tracks #10 à #1
+                            Intro (3.5s) âž” Tracks #10 Ã  #1
                         </span>
                     </div>
 
@@ -23148,7 +23148,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         } : {}}
                     >
                         <span className="flex items-center gap-2">
-                            <span className="text-[14px]">🎬</span>
+                            <span className="text-[14px]">ðŸŽ¬</span>
                             <span className="tracking-wide">Slide 1 : INTRO (3.5s)</span>
                             <span className="text-[8px] px-1.5 py-0.5 rounded bg-black/40 font-mono border" style={{ color: top10CurrentAccentHex, borderColor: `rgba(${top10CurrentAccentRgb}, 0.35)` }}>
                                 Titre + Logo {top10GenMode === 'label' ? 'Label' : top10GenMode === 'style' ? 'Genre' : 'Artiste'}
@@ -23157,7 +23157,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         <div className="flex items-center gap-1.5">
                             {artistLogo ? (
                                 <span className="px-1.5 py-0.5 rounded bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 text-[7.5px] font-bold font-mono">
-                                    ✓ Logo Prêt
+                                    âœ“ Logo PrÃªt
                                 </span>
                             ) : (
                                 <span className="px-1.5 py-0.5 rounded bg-amber-500/20 border border-amber-500/40 text-amber-300 text-[7.5px] font-bold font-mono">
@@ -23175,7 +23175,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     color: '#ffffff',
                                 }}
                             >
-                                {Number(top10ActiveRank) === 0 ? '● Active' : 'Éditer ➔'}
+                                {Number(top10ActiveRank) === 0 ? 'â— Active' : 'Ã‰diter âž”'}
                             </span>
                         </div>
                     </button>
@@ -23213,9 +23213,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     style={dynamicPillInlineStyle}
                                     className={`py-2 px-1 rounded-xl border text-[11px] font-black transition-all flex flex-col items-center justify-center gap-0.5 active:scale-95 ${pillStyle}`}
                                 >
-                                    <span>{t.rank === 1 ? '👑 #1' : `#${t.rank}`}</span>
+                                    <span>{t.rank === 1 ? 'ðŸ‘‘ #1' : `#${t.rank}`}</span>
                                     <span className="text-[7.5px] font-mono truncate max-w-full px-1">
-                                        {t.title ? (t.title.length > 7 ? t.title.slice(0, 6) + '…' : t.title) : (hasMedia ? '✓ Prêt' : 'Vide')}
+                                        {t.title ? (t.title.length > 7 ? t.title.slice(0, 6) + 'â€¦' : t.title) : (hasMedia ? 'âœ“ PrÃªt' : 'Vide')}
                                     </span>
                                 </button>
                             );
@@ -23223,7 +23223,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     </div>
                 </div>
 
-                {/* 3. ÉDITION INTRO OU TRACK ACTIVE */}
+                {/* 3. Ã‰DITION INTRO OU TRACK ACTIVE */}
                 {Number(top10ActiveRank) === 0 ? (
                     <div 
                         className="p-4 bg-gradient-to-br from-black/80 via-black/60 to-black/80 rounded-2xl shadow-xl space-y-4 border"
@@ -23231,7 +23231,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     >
                         <div className="flex items-center justify-between pb-2 border-b border-white/10">
                             <span className="text-[12px] font-black uppercase tracking-wider flex items-center gap-1.5" style={{ color: top10CurrentAccentHex }}>
-                                🎬 Configuration Slide Intro (3.5s)
+                                ðŸŽ¬ Configuration Slide Intro (3.5s)
                             </span>
                             <button
                                 type="button"
@@ -23249,7 +23249,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 }}
                             >
                                 <Play className="w-3.5 h-3.5" />
-                                {isTestingIntro ? 'Lecture 3.5s...' : '▶ Tester l\'intro (3.5s)'}
+                                {isTestingIntro ? 'Lecture 3.5s...' : 'â–¶ Tester l\'intro (3.5s)'}
                             </button>
                         </div>
 
@@ -23267,7 +23267,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     top10IntroTitleRef.current = e.target.value.toUpperCase();
                                     generateImage();
                                 }}
-                                placeholder="TOP 10 DES TRACKS LES PLUS TÉLÉCHARGÉES SUR BEATPORT"
+                                placeholder="TOP 10 DES TRACKS LES PLUS TÃ‰LÃ‰CHARGÃ‰ES SUR BEATPORT"
                                 className="w-full bg-black/60 border border-white/10 rounded-xl p-2.5 text-white font-black uppercase text-[11px] outline-none"
                             />
                         </div>
@@ -23281,7 +23281,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             const isLabelMode = top10GenMode === 'label';
                             const accentHex = isLabelMode ? '#B86221' : (isStyleMode ? '#FFB800' : '#00F0FF');
                             const accentRgb = isLabelMode ? '184, 98, 33' : (isStyleMode ? '255, 184, 0' : '0, 240, 255');
-                            const modeName = isStyleMode ? 'en or festival' : (isLabelMode ? 'en bronze cuivré' : 'en bleu néon');
+                            const modeName = isStyleMode ? 'en or festival' : (isLabelMode ? 'en bronze cuivrÃ©' : 'en bleu nÃ©on');
                             return (
                                 <div className="space-y-1.5 pt-1">
                                     <div className="flex items-center justify-between">
@@ -23308,14 +23308,14 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                                 setTimeout(() => generateImage(), 30);
                                             }}
                                             className="text-[9px] font-bold text-gray-400 hover:text-white transition-colors underline flex items-center gap-1"
-                                            title="Sélectionne du texte dans le champ ci-dessus puis clique ici"
+                                            title="SÃ©lectionne du texte dans le champ ci-dessus puis clique ici"
                                         >
-                                            Colorer sélection
+                                            Colorer sÃ©lection
                                         </button>
                                     </div>
                                     <div className="flex flex-wrap gap-1.5 p-2 bg-black/40 border border-white/10 rounded-xl max-h-28 overflow-y-auto">
                                         {rawWords.map((word, idx) => {
-                                            const isHighlighted = word.includes('*') || (!currentTitle.includes('*') && (word === 'TOP' || word === '10' || word.startsWith('STREAM') || word.startsWith('JOU') || word.startsWith('TÉLÉCHARG') || word.startsWith('TELECHARG') || word.startsWith('BEATPORT')));
+                                            const isHighlighted = word.includes('*') || (!currentTitle.includes('*') && (word === 'TOP' || word === '10' || word.startsWith('STREAM') || word.startsWith('JOU') || word.startsWith('TÃ‰LÃ‰CHARG') || word.startsWith('TELECHARG') || word.startsWith('BEATPORT')));
                                             const cleanWord = word.replace(/\*/g, '');
                                             return (
                                                 <button
@@ -23324,7 +23324,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                                     onClick={() => {
                                                         let baseTitle = currentTitle;
                                                         if (!baseTitle.includes('*')) {
-                                                            baseTitle = baseTitle.replace(/\b(TOP\s*10|TOP|10|STREAM\S*|JOU\S*|T[EÉ]L[EÉ]CHARG\S*|BEATPORT\S*)\b/gi, '*$1*');
+                                                            baseTitle = baseTitle.replace(/\b(TOP\s*10|TOP|10|STREAM\S*|JOU\S*|T[EÃ‰]L[EÃ‰]CHARG\S*|BEATPORT\S*)\b/gi, '*$1*');
                                                         }
                                                         const parts = baseTitle.split(/(\s+)/);
                                                         let curIdx = 0;
@@ -23384,11 +23384,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             />
                         </div>
 
-                        {/* LOGO DE L'ARTISTE (MÉLANGE IDÉE 1 ET 2) */}
+                        {/* LOGO DE L'ARTISTE (MÃ‰LANGE IDÃ‰E 1 ET 2) */}
                         <div className="p-3 bg-black/70 border border-white/10 rounded-xl space-y-3">
                             <div className="flex items-center justify-between">
                                 <span className="text-[9.5px] font-black text-white uppercase tracking-wider flex items-center gap-1.5">
-                                    <span>🎨</span> Logo Officiel de l'Artiste (PNG Transparent)
+                                    <span>ðŸŽ¨</span> Logo Officiel de l'Artiste (PNG Transparent)
                                 </span>
                                 {artistLogo && (
                                     <button
@@ -23400,12 +23400,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         }}
                                         className="text-[8px] text-red-400 hover:text-red-300 font-bold uppercase transition-colors"
                                     >
-                                        ✕ Supprimer Logo
+                                        âœ• Supprimer Logo
                                     </button>
                                 )}
                             </div>
 
-                            {/* Aperçu du logo ou placeholder */}
+                            {/* AperÃ§u du logo ou placeholder */}
                             {artistLogo ? (
                                 <div className="p-3 bg-black/80 border border-neon-cyan/40 rounded-xl flex items-center justify-center relative group min-h-[90px]">
                                     <img
@@ -23418,7 +23418,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             ) : (
                                 <div className="p-3 bg-black/40 border border-dashed border-white/15 rounded-xl text-center space-y-1">
                                     <p className="text-[8.5px] text-gray-400">
-                                        Aucun logo chargé. Si aucun logo n'est mis, le nom de l'artiste s'affichera en grand texte stylisé.
+                                        Aucun logo chargÃ©. Si aucun logo n'est mis, le nom de l'artiste s'affichera en grand texte stylisÃ©.
                                     </p>
                                 </div>
                             )}
@@ -23427,7 +23427,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             <div className="grid grid-cols-2 gap-2">
                                 <label className="py-2.5 px-3 bg-white/5 hover:bg-white/10 border border-white/15 rounded-xl text-[9px] font-black uppercase text-white flex items-center justify-center gap-2 cursor-pointer transition-all active:scale-95 text-center">
                                     <Upload className="w-3.5 h-3.5 text-neon-cyan shrink-0" />
-                                    <span>📁 Uploader PNG</span>
+                                    <span>ðŸ“ Uploader PNG</span>
                                     <input
                                         type="file"
                                         accept="image/*"
@@ -23443,16 +23443,16 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     className="py-2.5 px-3 bg-gradient-to-r from-neon-cyan to-blue-600 hover:brightness-110 text-black text-[9px] font-black uppercase rounded-xl flex items-center justify-center gap-2 transition-all active:scale-95 shadow-md shadow-neon-cyan/20 disabled:opacity-40"
                                 >
                                     <Search className="w-3.5 h-3.5 shrink-0" />
-                                    <span>{isSearchingTop10Logo ? '⏳ Recherche...' : '🔍 Chercher Logo Web'}</span>
+                                    <span>{isSearchingTop10Logo ? 'â³ Recherche...' : 'ðŸ” Chercher Logo Web'}</span>
                                 </button>
                             </div>
 
-                            {/* Option Forcer Blanc Pur (Négatif) */}
+                            {/* Option Forcer Blanc Pur (NÃ©gatif) */}
                             {artistLogo && (
                                 <div className="flex items-center justify-between pt-1 border-t border-white/10">
                                     <label htmlFor="top10-logo-neg" className="text-[8px] font-bold text-gray-300 uppercase cursor-pointer flex items-center gap-1.5">
-                                        <span>✨ Rendre Blanc Pur &amp; Néon</span>
-                                        <span className="text-[7px] text-gray-500 font-normal">(Recommandé sur fond vidéo)</span>
+                                        <span>âœ¨ Rendre Blanc Pur &amp; NÃ©on</span>
+                                        <span className="text-[7px] text-gray-500 font-normal">(RecommandÃ© sur fond vidÃ©o)</span>
                                     </label>
                                     <input
                                         type="checkbox"
@@ -23466,12 +23466,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     />
                                 </div>
                             )}
-                        {/* 🪄 DÉTOURAGE FOND NOIR / BLANC (1-CLIC) */}
+                        {/* ðŸª„ DÃ‰TOURAGE FOND NOIR / BLANC (1-CLIC) */}
                         {artistLogo && (
                             <div className="pt-2 pb-1 border-t border-white/10 space-y-1.5">
                                 <div className="flex items-center justify-between text-[8px] font-black uppercase text-gray-300">
                                     <span className="flex items-center gap-1 text-white">
-                                        <span>🪄</span> Détourage Fond (1-Clic) :
+                                        <span>ðŸª„</span> DÃ©tourage Fond (1-Clic) :
                                     </span>
                                     {artistLogoOriginal && (
                                         <button
@@ -23479,7 +23479,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                             onClick={handleRestoreOriginalLogo}
                                             className="text-[7.5px] text-amber-400 hover:text-amber-300 font-bold uppercase transition-colors"
                                         >
-                                            ↺ Fond Original
+                                            â†º Fond Original
                                         </button>
                                     )}
                                 </div>
@@ -23490,7 +23490,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         className="py-1.5 px-2 bg-black/80 hover:bg-black border border-white/20 hover:border-neon-cyan/60 rounded-lg text-[8px] font-black uppercase text-white transition-all flex items-center justify-center gap-1 shadow-sm active:scale-95"
                                         title="Supprime le fond noir autour du logo"
                                     >
-                                        <span>⬛</span>
+                                        <span>â¬›</span>
                                         <span>Retirer Fond Noir</span>
                                     </button>
                                     <button
@@ -23499,7 +23499,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         className="py-1.5 px-2 bg-white/10 hover:bg-white/20 border border-white/20 hover:border-neon-cyan/60 rounded-lg text-[8px] font-black uppercase text-white transition-all flex items-center justify-center gap-1 shadow-sm active:scale-95"
                                         title="Supprime le fond blanc autour du logo"
                                     >
-                                        <span>⬜</span>
+                                        <span>â¬œ</span>
                                         <span>Retirer Fond Blanc</span>
                                     </button>
                                 </div>
@@ -23507,12 +23507,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         )}
 
 
-                            {/* Option Taille / Échelle du Logo */}
+                            {/* Option Taille / Ã‰chelle du Logo */}
                             {artistLogo && (
                                 <div className="pt-2 space-y-1.5 border-t border-white/10">
                                     <div className="flex items-center justify-between text-[8.5px] font-black uppercase text-gray-300">
                                         <span className="flex items-center gap-1.5 text-neon-cyan">
-                                            <span>🔍</span> Taille du Logo : <span className="font-mono text-white">{top10LogoScale}%</span>
+                                            <span>ðŸ”</span> Taille du Logo : <span className="font-mono text-white">{top10LogoScale}%</span>
                                         </span>
                                         <div className="flex items-center gap-1">
                                             {[50, 70, 85, 100, 120].map((preset) => (
@@ -23534,9 +23534,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                                     type="button"
                                                     onClick={() => updateTop10LogoScale(100)}
                                                     className="text-[7.5px] text-gray-400 hover:text-white underline ml-1"
-                                                    title="Réinitialiser à 100%"
+                                                    title="RÃ©initialiser Ã  100%"
                                                 >
-                                                    ↺
+                                                    â†º
                                                 </button>
                                             )}
                                         </div>
@@ -23566,7 +23566,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     boxShadow: `0 0 10px ${top10CurrentAccentHex}`,
                                 }}
                             >
-                                Passer à la Track #10 →
+                                Passer Ã  la Track #10 â†’
                             </button>
                         </div>
                     </div>
@@ -23582,7 +23582,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 className={`text-[14px] font-black font-mono ${podiumColor}`}
                                 style={!podiumColor ? { color: top10CurrentAccentHex } : {}}
                             >
-                                {activeTrack.rank === 1 ? '👑 POSITION #1' : activeTrack.rank === 2 ? '🥈 POSITION #2' : activeTrack.rank === 3 ? '🥉 POSITION #3' : `POSITION #${activeTrack.rank}`}
+                                {activeTrack.rank === 1 ? 'ðŸ‘‘ POSITION #1' : activeTrack.rank === 2 ? 'ðŸ¥ˆ POSITION #2' : activeTrack.rank === 3 ? 'ðŸ¥‰ POSITION #3' : `POSITION #${activeTrack.rank}`}
                             </span>
                         </div>
                         <div className="flex items-center gap-2">
@@ -23590,9 +23590,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 type="button"
                                 onClick={() => selectTop10Track(0)}
                                 className="px-2 py-0.5 bg-cyan-950/50 hover:bg-neon-cyan/20 text-cyan-300 hover:text-white border border-cyan-500/30 hover:border-neon-cyan rounded-md text-[8px] font-black uppercase transition-all flex items-center gap-1"
-                                title="Aller à la configuration de l'Intro"
+                                title="Aller Ã  la configuration de l'Intro"
                             >
-                                <span>🎬</span> Éditer l'Intro (3.5s)
+                                <span>ðŸŽ¬</span> Ã‰diter l'Intro (3.5s)
                             </button>
                             <button
                                 type="button"
@@ -23602,7 +23602,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 className="px-2 py-0.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 hover:text-white rounded-md text-[8px] font-bold uppercase transition-colors"
                                 title="Vider cette position"
                             >
-                                ✕ Vider
+                                âœ• Vider
                             </button>
                             <span className="text-[8px] font-black uppercase tracking-wider text-gray-400">
                                 Track {11 - activeTrack.rank} / 10
@@ -23610,10 +23610,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         </div>
                     </div>
 
-                    {/* Mini réglette rapide Taille du Logo Artiste */}
+                    {/* Mini rÃ©glette rapide Taille du Logo Artiste */}
                     <div className="flex items-center justify-between px-3 py-1.5 bg-black/60 border border-neon-cyan/25 rounded-xl text-[8.5px]">
                         <span className="font-black text-gray-300 flex items-center gap-1.5">
-                            <span className="text-neon-cyan">🎨</span> Taille Logo Artiste : <span className="text-neon-cyan font-mono">{top10LogoScale}%</span>
+                            <span className="text-neon-cyan">ðŸŽ¨</span> Taille Logo Artiste : <span className="text-neon-cyan font-mono">{top10LogoScale}%</span>
                         </span>
                         <div className="flex items-center gap-2">
                             <input
@@ -23645,23 +23645,23 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         type="button"
                                         onClick={() => updateTop10LogoScale(100)}
                                         className="text-[7.5px] text-gray-400 hover:text-white underline ml-0.5"
-                                        title="Réinitialiser à 100%"
+                                        title="RÃ©initialiser Ã  100%"
                                     >
-                                        ↺
+                                        â†º
                                     </button>
                                 )}
                             </div>
                         </div>
                     </div>
 
-                    {/* 🔍 RECHERCHE UNIVERSELLE PAR TITRE & ARTISTE */}
+                    {/* ðŸ” RECHERCHE UNIVERSELLE PAR TITRE & ARTISTE */}
                     <div className="p-3 bg-neon-cyan/10 border border-neon-cyan/30 rounded-xl space-y-2">
                         <div className="flex items-center justify-between">
                             <label className="text-[9px] font-black text-neon-cyan uppercase tracking-wider flex items-center gap-1.5">
                                 <Search className="w-3.5 h-3.5 text-neon-cyan" /> Rechercher Titre & Artiste
                             </label>
                             <span className="text-[7.5px] text-gray-400 font-mono">
-                                Beatport • Spotify • Apple
+                                Beatport â€¢ Spotify â€¢ Apple
                             </span>
                         </div>
                         <div className="flex items-center gap-1.5">
@@ -23682,7 +23682,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         onClick={() => { setTop10SearchQuery(''); setTop10SearchResults([]); }}
                                         className="absolute right-2 top-2 text-gray-400 hover:text-white text-[11px]"
                                     >
-                                        ✕
+                                        âœ•
                                     </button>
                                 )}
                             </div>
@@ -23692,16 +23692,16 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 disabled={isTop10Searching || !top10SearchQuery.trim()}
                                 className="px-3.5 py-2 bg-neon-cyan text-black font-black text-[9.5px] uppercase rounded-xl hover:bg-neon-cyan/80 transition-all flex items-center gap-1 disabled:opacity-40 shrink-0 active:scale-95 shadow-md shadow-neon-cyan/20"
                             >
-                                {isTop10Searching ? '⏳...' : '🔍 Trouver'}
+                                {isTop10Searching ? 'â³...' : 'ðŸ” Trouver'}
                             </button>
                         </div>
 
-                        {/* Résultats de recherche déroulants */}
+                        {/* RÃ©sultats de recherche dÃ©roulants */}
                         {top10SearchResults.length > 0 && (
                             <div className="mt-2 space-y-1.5 max-h-56 overflow-y-auto pr-1">
                                 <div className="flex items-center justify-between">
                                     <p className="text-[7.5px] font-black text-gray-400 uppercase tracking-wider">
-                                        Résultats trouvés ({top10SearchResults.length}) :
+                                        RÃ©sultats trouvÃ©s ({top10SearchResults.length}) :
                                     </p>
                                     <button
                                         type="button"
@@ -23721,7 +23721,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                             {res.coverUrl ? (
                                                 <img src={res.coverUrl} alt="Cover" className="w-full h-full object-cover" />
                                             ) : (
-                                                <div className="w-full h-full flex items-center justify-center text-xs">💿</div>
+                                                <div className="w-full h-full flex items-center justify-center text-xs">ðŸ’¿</div>
                                             )}
                                         </div>
                                         <div className="flex-1 min-w-0">
@@ -23737,7 +23737,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                                 {res.platform}
                                             </span>
                                             <span className="text-[8.5px] text-neon-cyan font-black group-hover:translate-x-0.5 transition-transform">
-                                                ➔
+                                                âž”
                                             </span>
                                         </div>
                                     </div>
@@ -23756,7 +23756,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             type="text"
                             value={activeTrack.artist}
                             onChange={e => updateTop10Track(activeTrack.rank, { artist: e.target.value.toUpperCase() })}
-                            placeholder="EX: NOM DE L'ARTISTE (OU AUTO DÉTECTÉ)"
+                            placeholder="EX: NOM DE L'ARTISTE (OU AUTO DÃ‰TECTÃ‰)"
                             className="w-full bg-white/5 border border-white/10 rounded-xl p-2.5 text-white font-black uppercase text-[11px] tracking-wider focus:border-neon-cyan/50 outline-none"
                         />
                     </div>
@@ -23771,16 +23771,16 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             type="text"
                             value={activeTrack.title}
                             onChange={e => updateTop10Track(activeTrack.rank, { title: e.target.value.toUpperCase() })}
-                            placeholder="EX: TITRE DU MORCEAU (OU AUTO DÉTECTÉ)"
+                            placeholder="EX: TITRE DU MORCEAU (OU AUTO DÃ‰TECTÃ‰)"
                             className="w-full bg-white/5 border border-white/10 rounded-xl p-2.5 text-white font-black uppercase text-[11px] tracking-wider focus:border-neon-cyan/50 outline-none"
                         />
                     </div>
 
-                    {/* Streams (Nombre d'écoutes affiché sous le titre) */}
+                    {/* Streams (Nombre d'Ã©coutes affichÃ© sous le titre) */}
                     <div className="space-y-1">
                         <label className="text-[8.5px] font-black text-neon-cyan uppercase tracking-wider flex items-center justify-between">
                             <span className="flex items-center gap-1">
-                                📊 Streams / Écoutes (Sous le titre)
+                                ðŸ“Š Streams / Ã‰coutes (Sous le titre)
                             </span>
                             <span className="text-[7.5px] text-gray-400 font-normal">Optionnel</span>
                         </label>
@@ -23799,13 +23799,13 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     className="absolute right-2 top-2.5 text-gray-500 hover:text-white text-[11px]"
                                     title="Effacer"
                                 >
-                                    ✕
+                                    âœ•
                                 </button>
                             )}
                         </div>
                     </div>
 
-                    {/* Bouton de recherche automatique si Titre ou Artiste déjà saisi */}
+                    {/* Bouton de recherche automatique si Titre ou Artiste dÃ©jÃ  saisi */}
                     {(activeTrack.artist || activeTrack.title) && (
                         <button
                             type="button"
@@ -23817,22 +23817,22 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             className="w-full py-1.5 px-2 bg-neon-cyan/10 hover:bg-neon-cyan/20 border border-neon-cyan/30 hover:border-neon-cyan/50 rounded-xl text-[8.5px] font-bold text-neon-cyan uppercase flex items-center justify-center gap-1.5 transition-all"
                         >
                             <Search className="w-3 h-3 text-neon-cyan" />
-                            <span>Auto-compléter la pochette & le son pour « {activeTrack.artist || ''} {activeTrack.title || ''} »</span>
+                            <span>Auto-complÃ©ter la pochette & le son pour Â« {activeTrack.artist || ''} {activeTrack.title || ''} Â»</span>
                         </button>
                     )}
 
-                    {/* Pochette Carrée 1:1 (Cover) */}
+                    {/* Pochette CarrÃ©e 1:1 (Cover) */}
                     <div className="space-y-1.5 pt-1 border-t border-white/5">
                         <label className="text-[8.5px] font-black text-white uppercase tracking-wider flex items-center justify-between">
-                            <span>🖼️ Pochette du Morceau (Cover 1:1)</span>
-                            {activeTrack.cover && <span className="text-emerald-400 text-[7.5px] font-mono">✓ Pochette chargée</span>}
+                            <span>ðŸ–¼ï¸ Pochette du Morceau (Cover 1:1)</span>
+                            {activeTrack.cover && <span className="text-emerald-400 text-[7.5px] font-mono">âœ“ Pochette chargÃ©e</span>}
                         </label>
                         <div className="flex items-center gap-2">
                             <div className="w-10 h-10 rounded-xl overflow-hidden bg-black/60 border border-white/10 shrink-0 flex items-center justify-center">
                                 {activeTrack.cover ? (
                                     <img src={activeTrack.cover} alt="Cover" className="w-full h-full object-cover" />
                                 ) : (
-                                    <span className="text-[14px]">💿</span>
+                                    <span className="text-[14px]">ðŸ’¿</span>
                                 )}
                             </div>
                             <input
@@ -23848,11 +23848,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         });
                                     }
                                 }}
-                                placeholder="URL de la pochette (ou auto-détectée via le lien)..."
+                                placeholder="URL de la pochette (ou auto-dÃ©tectÃ©e via le lien)..."
                                 className="flex-1 bg-white/5 border border-white/10 rounded-xl p-2 text-white font-mono text-[10px] focus:border-neon-cyan/50 outline-none truncate"
                             />
                             <label className="px-2.5 py-2 bg-white/10 hover:bg-white/20 text-white rounded-xl text-[9px] font-black uppercase cursor-pointer transition-all shrink-0 border border-white/10 flex items-center gap-1" title="Importer une image locale">
-                                <span>📁</span>
+                                <span>ðŸ“</span>
                                 <input
                                     type="file"
                                     accept="image/*"
@@ -23887,20 +23887,20 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     setIsR2ModalOpen(true);
                                 }}
                                 className="px-2.5 py-2 bg-white/10 hover:bg-white/20 text-white rounded-xl text-[9px] font-black uppercase transition-all shrink-0 border border-white/10 flex items-center gap-1"
-                                title="Choisir dans la médiathèque Dropsiders R2"
+                                title="Choisir dans la mÃ©diathÃ¨que Dropsiders R2"
                             >
-                                <span>🖼️ R2</span>
+                                <span>ðŸ–¼ï¸ R2</span>
                             </button>
                         </div>
                     </div>
 
-                    {/* Extrait Audio / Vidéo (Spotify, Beatport, Deezer, Soundcloud, YouTube...) */}
+                    {/* Extrait Audio / VidÃ©o (Spotify, Beatport, Deezer, Soundcloud, YouTube...) */}
                     <div className="space-y-1.5 pt-1 border-t border-white/5">
                         <label className="text-[8.5px] font-black text-white uppercase tracking-wider flex items-center justify-between">
-                            <span>🎵 Extrait Audio / Vidéo (Spotify, Beatport, Deezer, YouTube...)</span>
+                            <span>ðŸŽµ Extrait Audio / VidÃ©o (Spotify, Beatport, Deezer, YouTube...)</span>
                             {(activeTrack.audioUrl || activeTrack.videoUrl) ? (
                                 <span className="text-emerald-400 text-[8px] font-mono">
-                                    ✓ Connecté ({activeTrack.audioUrl ? 'Beatport/Spotify Audio' : 'Vidéo'})
+                                    âœ“ ConnectÃ© ({activeTrack.audioUrl ? 'Beatport/Spotify Audio' : 'VidÃ©o'})
                                 </span>
                             ) : (
                                 <span className="text-gray-500 text-[7.5px]">En attente de lien</span>
@@ -23943,19 +23943,19 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 disabled={top10ResolvingRank === activeTrack.rank || (!activeTrack.sourceUrl && !activeTrack.audioUrl && !activeTrack.videoUrl)}
                                 className="px-3 py-2 bg-neon-cyan/20 border border-neon-cyan text-neon-cyan rounded-xl text-[9px] font-black uppercase hover:bg-neon-cyan hover:text-black transition-all disabled:opacity-40 disabled:pointer-events-none shrink-0"
                             >
-                                {top10ResolvingRank === activeTrack.rank ? '⏳...' : '⚡ Extraire'}
+                                {top10ResolvingRank === activeTrack.rank ? 'â³...' : 'âš¡ Extraire'}
                             </button>
                         </div>
                         <p className="text-[7.5px] text-gray-500 font-mono">
-                            💡 Chaque position possède son propre lien indépendant. Collez un lien Spotify, YouTube, Beatport ou Deezer pour remplir cette position.
+                            ðŸ’¡ Chaque position possÃ¨de son propre lien indÃ©pendant. Collez un lien Spotify, YouTube, Beatport ou Deezer pour remplir cette position.
                         </p>
                     </div>
 
-                    {/* Start Time Découpage */}
+                    {/* Start Time DÃ©coupage */}
                     <div className="space-y-1.5">
                         <div className="flex items-center justify-between">
                             <label className="text-[8.5px] font-black text-gray-300 uppercase tracking-wider">
-                                ⏱️ Début de l'extrait / Drop
+                                â±ï¸ DÃ©but de l'extrait / Drop
                             </label>
                             <span className="text-[10px] font-mono font-bold text-neon-cyan">
                                 {Math.floor((activeTrack.videoStartTime || 0) / 60)}:{(Math.floor((activeTrack.videoStartTime || 0) % 60)).toString().padStart(2, '0')} ({activeTrack.videoStartTime || 0}s)
@@ -24036,9 +24036,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 }`}
                         >
                             {top10TestingRank === activeTrack.rank ? (
-                                <>⏹ Arrêter le test</>
+                                <>â¹ ArrÃªter le test</>
                             ) : (
-                                <>▶ Écouter / Tester l'extrait ({top10TrackDuration}s)</>
+                                <>â–¶ Ã‰couter / Tester l'extrait ({top10TrackDuration}s)</>
                             )}
                         </button>
                     </div>
@@ -24051,7 +24051,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 onClick={() => selectTop10Track(activeTrack.rank + 1)}
                                 className="py-2 px-3 bg-white/5 hover:bg-white/10 text-gray-300 rounded-xl text-[9px] font-black uppercase border border-white/10"
                             >
-                                ← Track #{activeTrack.rank + 1}
+                                â† Track #{activeTrack.rank + 1}
                             </button>
                         )}
                         {activeTrack.rank > 1 && (
@@ -24060,7 +24060,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 onClick={() => selectTop10Track(activeTrack.rank - 1)}
                                 className="ml-auto py-2 px-3 bg-neon-cyan/20 hover:bg-neon-cyan text-neon-cyan hover:text-black rounded-xl text-[9px] font-black uppercase border border-neon-cyan/50 transition-all"
                             >
-                                Track #{activeTrack.rank - 1} →
+                                Track #{activeTrack.rank - 1} â†’
                             </button>
                         )}
                     </div>
@@ -24075,7 +24075,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 <div className="flex items-center gap-2">
                                     <Search className="w-4 h-4 text-neon-cyan" />
                                     <span className="text-[12px] font-black text-white uppercase tracking-wider">
-                                        Logos PNG trouvés pour : <span className="text-neon-cyan">{top10LogoSearchQuery}</span>
+                                        Logos PNG trouvÃ©s pour : <span className="text-neon-cyan">{top10LogoSearchQuery}</span>
                                     </span>
                                 </div>
                                 <button
@@ -24105,11 +24105,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     onClick={() => searchArtistLogos(top10LogoSearchQuery)}
                                     className="px-4 py-2 bg-neon-cyan text-black font-black text-[10px] uppercase rounded-xl hover:bg-neon-cyan/80 transition-all disabled:opacity-40"
                                 >
-                                    {isSearchingTop10Logo ? '⏳...' : 'Chercher'}
+                                    {isSearchingTop10Logo ? 'â³...' : 'Chercher'}
                                 </button>
                             </div>
 
-                            {/* Grille des résultats */}
+                            {/* Grille des rÃ©sultats */}
                             {isSearchingTop10Logo ? (
                                 <div className="py-12 text-center space-y-2">
                                     <div className="w-7 h-7 border-2 border-neon-cyan border-t-transparent rounded-full animate-spin mx-auto" />
@@ -24140,24 +24140,24 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 </div>
                             ) : (
                                 <div className="py-10 text-center space-y-2">
-                                    <p className="text-[10px] text-gray-400 font-mono">Aucun logo trouvé automatiquement.</p>
-                                    <p className="text-[8px] text-gray-500">Essayez un autre nom ou utilisez le bouton "📁 Uploader PNG".</p>
+                                    <p className="text-[10px] text-gray-400 font-mono">Aucun logo trouvÃ© automatiquement.</p>
+                                    <p className="text-[8px] text-gray-500">Essayez un autre nom ou utilisez le bouton "ðŸ“ Uploader PNG".</p>
                                 </div>
                             )}
                         </div>
                     </div>
                 )}
 
-                {/* 5. BOUTON EXPORT VIDÉO REEL 9:16 (1 MIN PILE / 60S) */}
+                {/* 5. BOUTON EXPORT VIDÃ‰O REEL 9:16 (1 MIN PILE / 60S) */}
                 <button
                     type="button"
                     onClick={() => startVideoRecording('NONE')}
                     className="w-full py-3.5 bg-gradient-to-r from-neon-red via-red-600 to-amber-500 hover:brightness-110 text-white rounded-2xl text-[11px] font-black uppercase tracking-wider transition-all flex items-center justify-center gap-2 shadow-[0_0_25px_rgba(255,0,51,0.4)] active:scale-98"
                 >
-                    <Sparkles className="w-4 h-4" /> 🎬 EXPORTER VIDÉO TOP 10 (9:16 - 1 MIN / 60S)
+                    <Sparkles className="w-4 h-4" /> ðŸŽ¬ EXPORTER VIDÃ‰O TOP 10 (9:16 - 1 MIN / 60S)
                 </button>
                 <p className="text-[7.5px] text-center text-gray-500 font-mono">
-                    Enchaîne l'Intro (3.5s) + les 10 tracks (#10 ➔ #1) puis l'outro interactive Téléphone 3D (60s pile)
+                    EnchaÃ®ne l'Intro (3.5s) + les 10 tracks (#10 âž” #1) puis l'outro interactive TÃ©lÃ©phone 3D (60s pile)
                 </p>
             </div>
         );
@@ -24186,7 +24186,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             : 'text-gray-400 hover:text-white hover:bg-white/5'
                             }`}
                     >
-                        🎮 Template GTA 6
+                        ðŸŽ® Template GTA 6
                     </button>
                     <button
                         type="button"
@@ -24202,7 +24202,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             : 'text-gray-400 hover:text-white hover:bg-white/5'
                             }`}
                     >
-                        🎪 Mode Festival
+                        ðŸŽª Mode Festival
                     </button>
                 </div>
             )}
@@ -24216,12 +24216,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         </label>
                         <div className="grid grid-cols-3 gap-2">
                             {[
-                                { name: '🌴 Vice City Néon', url: '/images/gta6_vice_city_hero.jpg' },
-                                { name: '🔥 Cover Officielle', url: '/images/gta6_cover.jpg' },
-                                { name: '👫 Lucia & Jason', url: '/images/gta6_lucia_jason.jpg' },
-                                { name: '🛥️ Vice City Boat', url: '/images/gta_vice_city_boat.jpg' },
-                                { name: '🏙️ Vice City Towers', url: '/images/gta_vice_city_towers.jpg' },
-                                { name: '🪧 Enseigne Vice', url: '/images/gta_vice_city_sign.jpg' },
+                                { name: 'ðŸŒ´ Vice City NÃ©on', url: '/images/gta6_vice_city_hero.jpg' },
+                                { name: 'ðŸ”¥ Cover Officielle', url: '/images/gta6_cover.jpg' },
+                                { name: 'ðŸ‘« Lucia & Jason', url: '/images/gta6_lucia_jason.jpg' },
+                                { name: 'ðŸ›¥ï¸ Vice City Boat', url: '/images/gta_vice_city_boat.jpg' },
+                                { name: 'ðŸ™ï¸ Vice City Towers', url: '/images/gta_vice_city_towers.jpg' },
+                                { name: 'ðŸª§ Enseigne Vice', url: '/images/gta_vice_city_sign.jpg' },
                             ].map((preset) => (
                                 <button
                                     key={preset.url}
@@ -24283,7 +24283,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         </div>
                     </div>
 
-                    {/* Les 4 Conditions demandées */}
+                    {/* Les 4 Conditions demandÃ©es */}
                     <div className="space-y-2">
                         <div className="flex items-center justify-between pl-1">
                             <label className="text-[9px] font-black text-neon-cyan uppercase tracking-widest">
@@ -24300,7 +24300,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 }}
                                 className="text-[9px] font-bold text-gray-400 hover:text-white underline"
                             >
-                                Réinitialiser
+                                RÃ©initialiser
                             </button>
                         </div>
                         <div className="space-y-2">
@@ -24386,7 +24386,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     </div>
 
                     <div className="space-y-2">
-                        <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest pl-1">Étapes de participation fixes</label>
+                        <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest pl-1">Ã‰tapes de participation fixes</label>
                         <div className="p-3 bg-white/5 border border-white/10 rounded-xl space-y-1.5 text-[10px] text-gray-300 font-medium">
                             <div className="flex items-center gap-2">
                                 <span className="w-4 h-4 rounded-full bg-neon-cyan/20 text-neon-cyan font-black text-[9px] flex items-center justify-center flex-shrink-0">1</span>
@@ -24411,7 +24411,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
             {/* Common Color and Badge controls */}
             <div className="space-y-2">
-                <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest pl-1">Couleur du Fondu Inférieur</label>
+                <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest pl-1">Couleur du Fondu InfÃ©rieur</label>
                 <div className="flex items-center gap-3 bg-white/5 border border-white/10 rounded-xl p-2.5">
                     <input
                         type="color"
@@ -24425,11 +24425,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     <span className="text-xs font-mono font-bold text-white uppercase">{concoursBottomColor}</span>
                     <div className="flex gap-1.5 ml-auto">
                         {[
-                            { color: '#ff007f', name: 'Vice City Rose Néon' },
-                            { color: '#7000ff', name: 'Violet Royal Électrique' },
-                            { color: '#00ffff', name: 'Cyan Néon' },
-                            { color: '#ffe600', name: 'Jaune Or Néon' },
-                            { color: '#00d26a', name: 'Émeraude' },
+                            { color: '#ff007f', name: 'Vice City Rose NÃ©on' },
+                            { color: '#7000ff', name: 'Violet Royal Ã‰lectrique' },
+                            { color: '#00ffff', name: 'Cyan NÃ©on' },
+                            { color: '#ffe600', name: 'Jaune Or NÃ©on' },
+                            { color: '#00d26a', name: 'Ã‰meraude' },
                         ].map(c => (
                             <button
                                 key={c.color}
@@ -24491,11 +24491,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     <span className="text-[11px] font-mono font-bold text-white uppercase">{concoursBadgeTextColor} (Texte Bandeau)</span>
                     <div className="flex gap-1.5 ml-auto">
                         {[
-                            { color: '#00ffff', name: 'Cyan Néon' },
+                            { color: '#00ffff', name: 'Cyan NÃ©on' },
                             { color: '#ff007f', name: 'Rose Vif' },
-                            { color: '#ffe600', name: 'Jaune Néon / Or' },
+                            { color: '#ffe600', name: 'Jaune NÃ©on / Or' },
                             { color: '#ffffff', name: 'Blanc Pur' },
-                            { color: '#00ff88', name: 'Vert Néon' }
+                            { color: '#00ff88', name: 'Vert NÃ©on' }
                         ].map(c => (
                             <button
                                 key={c.color}
@@ -24517,7 +24517,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
     const mapEditor = (
         <div className="space-y-4">
-            {/* 1. SÉLECTEUR DE MODE D'ANIMATION */}
+            {/* 1. SÃ‰LECTEUR DE MODE D'ANIMATION */}
             <div className="space-y-2 p-3 bg-white/5 border border-white/10 rounded-2xl">
                 <div className="flex items-center justify-between pl-1">
                     <label className="text-[9px] font-black text-neon-cyan uppercase tracking-widest flex items-center gap-1.5">
@@ -24541,10 +24541,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             }`}
                     >
                         <div className="text-[10px] font-black uppercase text-neon-cyan flex items-center gap-1.5">
-                            ✈️ Trajet 2 Festivals
+                            âœˆï¸ Trajet 2 Festivals
                         </div>
                         <div className="text-[7.5px] text-gray-400 font-medium mt-0.5">
-                            Vol orbital A ➔ B (Laser néon)
+                            Vol orbital A âž” B (Laser nÃ©on)
                         </div>
                     </button>
 
@@ -24562,21 +24562,21 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             }`}
                     >
                         <div className="text-[10px] font-black uppercase text-neon-cyan flex items-center gap-1.5">
-                            🚀 Zoom Terre
+                            ðŸš€ Zoom Terre
                         </div>
                         <div className="text-[7.5px] text-gray-400 font-medium mt-0.5">
-                            Espace ➔ Plongeon vers la salle
+                            Espace âž” Plongeon vers la salle
                         </div>
                     </button>
                 </div>
             </div>
 
-            {/* 2. CONTRÔLEUR DE LECTURE & TEST INSTANTANÉ */}
+            {/* 2. CONTRÃ”LEUR DE LECTURE & TEST INSTANTANÃ‰ */}
             <div className="p-3 bg-neon-cyan/5 border border-neon-cyan/30 rounded-2xl space-y-2.5">
                 <div className="flex items-center justify-between">
                     <span className="text-[8.5px] font-black uppercase text-neon-cyan tracking-wider flex items-center gap-1.5">
                         <span className="w-2 h-2 rounded-full bg-neon-cyan animate-ping" />
-                        Aperçu Vidéo & Scrubber
+                        AperÃ§u VidÃ©o & Scrubber
                     </span>
                     <div className="flex items-center gap-1.5">
                         <button
@@ -24590,7 +24590,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             }}
                             className="px-2.5 py-1 rounded-lg bg-white/10 hover:bg-white/20 border border-white/20 text-white font-black text-[8px] uppercase transition-all"
                         >
-                            {isMapAnimPlaying ? '⏸ PAUSE' : '▶ LIRE'}
+                            {isMapAnimPlaying ? 'â¸ PAUSE' : 'â–¶ LIRE'}
                         </button>
                         <button
                             onClick={() => {
@@ -24600,9 +24600,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 setTimeout(() => generateImage(), 50);
                             }}
                             className="px-2 py-1 rounded-lg bg-neon-cyan/20 hover:bg-neon-cyan/30 border border-neon-cyan/40 text-neon-cyan font-black text-[8px] uppercase transition-all"
-                            title="Recommencer depuis le début"
+                            title="Recommencer depuis le dÃ©but"
                         >
-                            🔄 REJOUER
+                            ðŸ”„ REJOUER
                         </button>
                     </div>
                 </div>
@@ -24614,7 +24614,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         <span className="text-neon-cyan font-bold">
                             {mapScrubTime !== null
                                 ? `${mapScrubTime.toFixed(1)}s / ${mapAnimDuration}s (Fige)`
-                                : 'Lecture en continu ⟳'}
+                                : 'Lecture en continu âŸ³'}
                         </span>
                     </div>
                     <input
@@ -24631,15 +24631,15 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         className="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-neon-cyan"
                     />
                     <div className="flex justify-between text-[6.5px] text-gray-500 font-bold px-0.5">
-                        <span>0s (Départ)</span>
+                        <span>0s (DÃ©part)</span>
                         <span>{Math.round(mapAnimDuration / 2)}s (Vol / Plongeon)</span>
-                        <span>{mapAnimDuration}s (Arrivée)</span>
+                        <span>{mapAnimDuration}s (ArrivÃ©e)</span>
                     </div>
                 </div>
 
-                {/* Sélecteur de Durée (12s, 15s, 18s) */}
+                {/* SÃ©lecteur de DurÃ©e (12s, 15s, 18s) */}
                 <div className="flex items-center justify-between pt-1">
-                    <span className="text-[7.5px] font-black uppercase text-gray-400">Durée du Reel</span>
+                    <span className="text-[7.5px] font-black uppercase text-gray-400">DurÃ©e du Reel</span>
                     <div className="flex gap-1.5">
                         {[12, 15, 18].map(sec => (
                             <button
@@ -24654,19 +24654,19 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     : 'bg-white/5 border-white/10 text-gray-400'
                                     }`}
                             >
-                                {sec}s {sec === 12 ? '(Rapide)' : sec === 15 ? '(Cinématique)' : '(Ultra-Fluide)'}
+                                {sec}s {sec === 12 ? '(Rapide)' : sec === 15 ? '(CinÃ©matique)' : '(Ultra-Fluide)'}
                             </button>
                         ))}
                     </div>
                 </div>
             </div>
 
-            {/* 3. ÉVÉNEMENT A (DÉPART / PRINCIPAL) */}
+            {/* 3. Ã‰VÃ‰NEMENT A (DÃ‰PART / PRINCIPAL) */}
             <div className="space-y-3 p-3 bg-white/5 border border-white/10 rounded-2xl">
                 <div className="flex items-center justify-between">
                     <span className="text-[9px] font-black text-neon-red uppercase tracking-wider flex items-center gap-1.5">
                         <span className="w-2 h-2 rounded-full bg-neon-red" />
-                        {mapAnimMode === 'FLIGHT_ROUTE' ? 'Événement 1 (Départ)' : 'Événement (Lieu du Festival)'}
+                        {mapAnimMode === 'FLIGHT_ROUTE' ? 'Ã‰vÃ©nement 1 (DÃ©part)' : 'Ã‰vÃ©nement (Lieu du Festival)'}
                     </span>
                     {isMapLoading && (
                         <div className="w-3.5 h-3.5 border-2 border-neon-red/50 border-t-neon-red rounded-full animate-spin" />
@@ -24687,7 +24687,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 </div>
 
                 <div className="space-y-1">
-                    <label className="text-[8px] font-black text-gray-500 uppercase tracking-widest pl-1">📍 Lieu / Salle (Précis)</label>
+                    <label className="text-[8px] font-black text-gray-500 uppercase tracking-widest pl-1">ðŸ“ Lieu / Salle (PrÃ©cis)</label>
                     <input
                         value={mapVenue}
                         onChange={e => setMapVenue(e.target.value)}
@@ -24724,17 +24724,17 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     onClick={handleGeocode}
                     className="w-full py-1.5 bg-neon-red/15 hover:bg-neon-red/25 border border-neon-red/30 rounded-xl text-neon-red font-black text-[8px] uppercase tracking-wider transition-all"
                 >
-                    🔍 Localiser Event 1 par GPS
+                    ðŸ” Localiser Event 1 par GPS
                 </button>
             </div>
 
-            {/* 4. ÉVÉNEMENT B (ARRIVÉE - AFFICHÉ SI MODE TRAJET 2 EVENTS) */}
+            {/* 4. Ã‰VÃ‰NEMENT B (ARRIVÃ‰E - AFFICHÃ‰ SI MODE TRAJET 2 EVENTS) */}
             {mapAnimMode === 'FLIGHT_ROUTE' && (
                 <div className="space-y-3 p-3 bg-neon-cyan/5 border border-neon-cyan/30 rounded-2xl">
                     <div className="flex items-center justify-between">
                         <span className="text-[9px] font-black text-neon-cyan uppercase tracking-wider flex items-center gap-1.5">
                             <span className="w-2 h-2 rounded-full bg-neon-cyan" />
-                            Événement 2 (Destination / Arrivée)
+                            Ã‰vÃ©nement 2 (Destination / ArrivÃ©e)
                         </span>
                         {isMapDestLoading && (
                             <div className="w-3.5 h-3.5 border-2 border-neon-cyan/50 border-t-neon-cyan rounded-full animate-spin" />
@@ -24742,7 +24742,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     </div>
 
                     <div className="space-y-1">
-                        <label className="text-[8px] font-black text-gray-500 uppercase tracking-widest pl-1">Nom du Festival Arrivée</label>
+                        <label className="text-[8px] font-black text-gray-500 uppercase tracking-widest pl-1">Nom du Festival ArrivÃ©e</label>
                         <input
                             value={mapDestFestivalText}
                             onChange={e => {
@@ -24755,7 +24755,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     </div>
 
                     <div className="space-y-1">
-                        <label className="text-[8px] font-black text-gray-500 uppercase tracking-widest pl-1">📍 Lieu / Salle Arrivée</label>
+                        <label className="text-[8px] font-black text-gray-500 uppercase tracking-widest pl-1">ðŸ“ Lieu / Salle ArrivÃ©e</label>
                         <input
                             value={mapDestVenue}
                             onChange={e => setMapDestVenue(e.target.value)}
@@ -24767,7 +24767,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                     <div className="grid grid-cols-2 gap-2">
                         <div className="space-y-1">
-                            <label className="text-[7.5px] font-black text-gray-600 uppercase tracking-widest pl-1">Ville Arrivée</label>
+                            <label className="text-[7.5px] font-black text-gray-600 uppercase tracking-widest pl-1">Ville ArrivÃ©e</label>
                             <input
                                 value={mapDestCity}
                                 onChange={e => setMapDestCity(e.target.value)}
@@ -24777,7 +24777,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             />
                         </div>
                         <div className="space-y-1">
-                            <label className="text-[7.5px] font-black text-gray-600 uppercase tracking-widest pl-1">Pays Arrivée</label>
+                            <label className="text-[7.5px] font-black text-gray-600 uppercase tracking-widest pl-1">Pays ArrivÃ©e</label>
                             <input
                                 value={mapDestCountry}
                                 onChange={e => setMapDestCountry(e.target.value)}
@@ -24792,7 +24792,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         onClick={handleGeocodeDest}
                         className="w-full py-1.5 bg-neon-cyan/15 hover:bg-neon-cyan/25 border border-neon-cyan/40 rounded-xl text-neon-cyan font-black text-[8px] uppercase tracking-wider transition-all"
                     >
-                        🔍 Localiser Event 2 par GPS
+                        ðŸ” Localiser Event 2 par GPS
                     </button>
                 </div>
             )}
@@ -24807,28 +24807,28 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         onClick={() => { setMapStyle('satellite'); setTimeout(() => generateImage(), 50); }}
                         className={`py-2 text-[9px] font-black uppercase rounded-lg border transition-all ${mapStyle === 'satellite' ? 'bg-white/10 border-white text-white font-black' : 'bg-white/5 border-white/10 text-gray-400'}`}
                     >
-                        🛰️ Satellite
+                        ðŸ›°ï¸ Satellite
                     </button>
                     <button
                         onClick={() => { setMapStyle('dark'); setTimeout(() => generateImage(), 50); }}
                         className={`py-2 text-[9px] font-black uppercase rounded-lg border transition-all ${mapStyle === 'dark' ? 'bg-white/10 border-white text-white font-black' : 'bg-white/5 border-white/10 text-gray-400'}`}
                     >
-                        🕶️ Sombre
+                        ðŸ•¶ï¸ Sombre
                     </button>
                     <button
                         onClick={() => { setMapStyle('voyager'); setTimeout(() => generateImage(), 50); }}
                         className={`py-2 text-[9px] font-black uppercase rounded-lg border transition-all ${mapStyle === 'voyager' ? 'bg-white/10 border-white text-white font-black' : 'bg-white/5 border-white/10 text-gray-400'}`}
                     >
-                        🗺️ Couleur
+                        ðŸ—ºï¸ Couleur
                     </button>
                 </div>
             </div>
 
 
 
-            {/* 8. Couleur du Marqueur Néon */}
+            {/* 8. Couleur du Marqueur NÃ©on */}
             <div className="space-y-2">
-                <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest pl-1">Couleur du Marqueur (Néon)</label>
+                <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest pl-1">Couleur du Marqueur (NÃ©on)</label>
                 <div className="flex gap-2.5 p-2 bg-white/5 border border-white/10 rounded-xl justify-around">
                     {[
                         { name: 'Cyan', hex: '#00f0ff' },
@@ -24866,7 +24866,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         <label className="text-[9px] font-black text-neon-red uppercase tracking-widest flex items-center gap-1.5">
                             <span>Texte de la Citation (Majuscules)</span>
                         </label>
-                        <span className="text-[8px] font-bold text-gray-500">Astuce : entoure un mot avec *étoiles*</span>
+                        <span className="text-[8px] font-bold text-gray-500">Astuce : entoure un mot avec *Ã©toiles*</span>
                     </div>
                     <textarea
                         ref={citationTextareaRef}
@@ -24876,7 +24876,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             setCustomText(e.target.value.toUpperCase());
                             setTimeout(() => generateImage(), 50);
                         }}
-                        placeholder="EX: LA MUSIQUE ÉLECTRONIQUE EST LE DERNIER GRAND MOUVEMENT MUSICAL DU XXE SIÈCLE"
+                        placeholder="EX: LA MUSIQUE Ã‰LECTRONIQUE EST LE DERNIER GRAND MOUVEMENT MUSICAL DU XXE SIÃˆCLE"
                         className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white font-bold uppercase focus:border-neon-red/50 outline-none transition-all shadow-md resize-none text-xs"
                     />
 
@@ -24906,9 +24906,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         setTimeout(() => generateImage(), 50);
                                     }}
                                     className="text-[9px] font-bold text-gray-400 hover:text-white transition-colors underline flex items-center gap-1"
-                                    title="Sélectionne du texte dans le champ ci-dessus puis clique ici"
+                                    title="SÃ©lectionne du texte dans le champ ci-dessus puis clique ici"
                                 >
-                                    Colorer sélection
+                                    Colorer sÃ©lection
                                 </button>
                             </div>
                             <div className="flex flex-wrap gap-1.5 p-2 bg-black/40 border border-white/10 rounded-xl max-h-28 overflow-y-auto">
@@ -24955,7 +24955,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     )}
                 </div>
 
-                {/* AUTEUR & MÉDIA */}
+                {/* AUTEUR & MÃ‰DIA */}
                 <div className="space-y-3 p-3 bg-black/40 border border-white/10 rounded-2xl shadow-lg">
                     <div className="space-y-1.5">
                         <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest pl-1">Auteur de la citation</label>
@@ -24970,7 +24970,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         />
                     </div>
                     <div className="space-y-1.5">
-                        <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest pl-1">Média / Contexte</label>
+                        <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest pl-1">MÃ©dia / Contexte</label>
                         <input
                             value={citationMedia}
                             onChange={e => {
@@ -24983,13 +24983,13 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     </div>
                 </div>
 
-                {/* OPTION SWIPE DÉDIÉE CITATION */}
+                {/* OPTION SWIPE DÃ‰DIÃ‰E CITATION */}
                 <div className="flex items-center justify-between p-3 bg-black/40 border border-white/10 rounded-2xl shadow-lg">
                     <div className="flex items-center gap-2">
                         <Layout className="w-4 h-4 text-neon-red" />
                         <div>
                             <span className="text-[9.5px] font-black text-white uppercase block">Indicateur Swipe</span>
-                            <span className="text-[8px] text-gray-400 block">Flèches animées de swipe en bas à droite</span>
+                            <span className="text-[8px] text-gray-400 block">FlÃ¨ches animÃ©es de swipe en bas Ã  droite</span>
                         </div>
                     </div>
                     <button
@@ -25003,7 +25003,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'
                             }`}
                     >
-                        {showSwipe ? '● Swipe ON' : '○ Swipe OFF'}
+                        {showSwipe ? 'â— Swipe ON' : 'â—‹ Swipe OFF'}
                     </button>
                 </div>
             </div>
@@ -25018,11 +25018,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     <span className="text-[10px] font-black uppercase text-white tracking-widest">Centre d'Exportation</span>
                 </div>
                 <span className="text-[8px] font-bold text-gray-400 uppercase bg-white/5 border border-white/10 px-2 py-0.5 rounded-full">
-                    {theme} • {activeTab === 'REEL' ? 'Story / Reel 9:16' : 'Post 1:1'}
+                    {theme} â€¢ {activeTab === 'REEL' ? 'Story / Reel 9:16' : 'Post 1:1'}
                 </span>
             </div>
 
-            {/* ACCORDION 1 : 📸 EXPORT IMAGES (PNG) */}
+            {/* ACCORDION 1 : ðŸ“¸ EXPORT IMAGES (PNG) */}
             <div className="border border-white/10 rounded-2xl overflow-hidden bg-black/40">
                 <button
                     type="button"
@@ -25035,7 +25035,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         </div>
                         <div>
                             <span className="text-[9.5px] font-black uppercase text-white block tracking-wider">
-                                📸 Export Images (PNG)
+                                ðŸ“¸ Export Images (PNG)
                             </span>
                             <span className="text-[7.5px] text-gray-400 block">
                                 Format HD Post 1:1, Story 9:16 ou Carrousel Complet
@@ -25044,7 +25044,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     </div>
                     <div className="flex items-center gap-2">
                         <span className="px-1.5 py-0.5 rounded text-[7.5px] font-black uppercase bg-neon-cyan/15 text-neon-cyan border border-neon-cyan/30">
-                            Instantané
+                            InstantanÃ©
                         </span>
                         <ChevronDown className={`w-3.5 h-3.5 text-gray-400 transition-transform duration-200 ${exportAccordion === 'image' ? 'rotate-180 text-white' : ''}`} />
                     </div>
@@ -25089,7 +25089,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     disabled={isDownloading}
                                     className="w-full py-2.5 bg-gradient-to-r from-[#ff3700] via-orange-500 to-amber-500 hover:brightness-110 text-black font-black text-[9.5px] uppercase rounded-xl transition-all flex items-center justify-center gap-2 shadow-md shadow-[#ff3700]/20"
                                 >
-                                    <Sparkles className="w-4 h-4 text-black" /> Télécharger Toutes les Slides ({2 + agendaAffiches.length})
+                                    <Sparkles className="w-4 h-4 text-black" /> TÃ©lÃ©charger Toutes les Slides ({2 + agendaAffiches.length})
                                 </button>
                             </div>
                         )}
@@ -25105,7 +25105,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     disabled={isDownloading}
                                     className="w-full py-2.5 bg-gradient-to-r from-neon-cyan via-blue-500 to-indigo-600 hover:opacity-90 text-black font-black text-[9.5px] uppercase rounded-xl shadow-md shadow-cyan-500/20 transition-all flex items-center justify-center gap-2"
                                 >
-                                    <Download className="w-4 h-4 text-black" /> Télécharger Toutes les Slides ({2 + extraEditorialSlides.length + (afficheImage || isEditorialAfficheActive ? 1 : 0)})
+                                    <Download className="w-4 h-4 text-black" /> TÃ©lÃ©charger Toutes les Slides ({2 + extraEditorialSlides.length + (afficheImage || isEditorialAfficheActive ? 1 : 0)})
                                 </button>
                             </div>
                         )}
@@ -25121,7 +25121,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     disabled={isDownloading}
                                     className="w-full py-2.5 bg-[#00ff66] hover:bg-[#33ff85] text-black font-black text-[9.5px] uppercase rounded-xl shadow-md transition-all flex items-center justify-center gap-2"
                                 >
-                                    <Download className="w-4 h-4 text-black" /> Télécharger Toutes les Slides ({1 + musicTracks.length})
+                                    <Download className="w-4 h-4 text-black" /> TÃ©lÃ©charger Toutes les Slides ({1 + musicTracks.length})
                                 </button>
                             </div>
                         )}
@@ -25129,7 +25129,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         {(theme === 'EVENTS' || theme === 'AFFICHE') && (
                             <div className="space-y-1.5 pt-1 border-t border-white/5">
                                 <span className="text-[8px] font-black text-[#ff3700] uppercase tracking-wider block">
-                                    Carrousel Événement ({2 + eventNormalSlidesCount} Slides)
+                                    Carrousel Ã‰vÃ©nement ({2 + eventNormalSlidesCount} Slides)
                                 </span>
                                 <button
                                     type="button"
@@ -25137,12 +25137,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     disabled={isDownloading}
                                     className="w-full py-2.5 bg-gradient-to-r from-[#ff3700] to-[#ff6700] text-white font-black text-[9.5px] uppercase rounded-xl shadow-md transition-all flex items-center justify-center gap-2"
                                 >
-                                    <Download className="w-4 h-4" /> Télécharger Carrousel ({2 + eventNormalSlidesCount} Slides)
+                                    <Download className="w-4 h-4" /> TÃ©lÃ©charger Carrousel ({2 + eventNormalSlidesCount} Slides)
                                 </button>
                             </div>
                         )}
 
-                        {/* Slide Affiche isolée */}
+                        {/* Slide Affiche isolÃ©e */}
                         {Boolean(afficheImage || isEditorialAfficheActive) && (
                             <div className="space-y-1 pt-1 border-t border-white/5">
                                 <button
@@ -25151,7 +25151,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     disabled={isDownloading}
                                     className="w-full py-2 bg-[#ff3700]/20 hover:bg-[#ff3700]/30 border border-[#ff3700]/40 text-[#ff3700] hover:text-white font-black text-[9px] uppercase rounded-xl transition-all flex items-center justify-center gap-1.5"
                                 >
-                                    <Download className="w-3.5 h-3.5" /> Télécharger Slide Affiche Isolée
+                                    <Download className="w-3.5 h-3.5" /> TÃ©lÃ©charger Slide Affiche IsolÃ©e
                                 </button>
                             </div>
                         )}
@@ -25159,7 +25159,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 )}
             </div>
 
-            {/* ACCORDION 2 : 🎬 EXPORT VIDÉO - SLIDE ACTUELLE (MP4) */}
+            {/* ACCORDION 2 : ðŸŽ¬ EXPORT VIDÃ‰O - SLIDE ACTUELLE (MP4) */}
             <div className="border border-white/10 rounded-2xl overflow-hidden bg-black/40">
                 <button
                     type="button"
@@ -25172,10 +25172,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         </div>
                         <div>
                             <span className="text-[9.5px] font-black uppercase text-white block tracking-wider">
-                                🎬 Export Vidéo - Slide Actuelle (MP4)
+                                ðŸŽ¬ Export VidÃ©o - Slide Actuelle (MP4)
                             </span>
                             <span className="text-[7.5px] text-gray-400 block">
-                                Vidéo 30s synchronisée avec l'audio + Promo Outro 7s
+                                VidÃ©o 30s synchronisÃ©e avec l'audio + Promo Outro 7s
                             </span>
                         </div>
                     </div>
@@ -25193,10 +25193,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         <div className="pt-2">
                             {renderCarouselAudioControlBox()}
                         </div>
-                        {/* Vidéo 30s avec musique */}
+                        {/* VidÃ©o 30s avec musique */}
                         <div className="pt-2">
                             <span className="text-[8px] font-black text-gray-400 uppercase tracking-wider block mb-1.5">
-                                Vidéo 30s synchronisée (Cover + Audio)
+                                VidÃ©o 30s synchronisÃ©e (Cover + Audio)
                             </span>
                             <div className="grid grid-cols-2 gap-2">
                                 <button
@@ -25206,7 +25206,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     className="py-2.5 px-3 bg-gradient-to-r from-[#00ff66]/20 to-[#00cc88]/20 hover:from-[#00ff66]/30 hover:to-[#00cc88]/30 border border-[#00ff66]/50 hover:border-[#00ff66] text-[#00ff66] rounded-xl text-[9px] font-black uppercase flex items-center justify-center gap-1.5 transition-all shadow-md active:scale-95 disabled:opacity-40"
                                 >
                                     <Video className="w-3.5 h-3.5 text-[#00ff66]" />
-                                    {isVideoRecording ? 'CAPTURE...' : '🎬 MP4 POST (30s)'}
+                                    {isVideoRecording ? 'CAPTURE...' : 'ðŸŽ¬ MP4 POST (30s)'}
                                 </button>
                                 <button
                                     type="button"
@@ -25215,7 +25215,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     className="py-2.5 px-3 bg-gradient-to-r from-neon-purple/20 to-pink-500/20 hover:from-neon-purple/30 hover:to-pink-500/30 border border-neon-purple/50 hover:border-neon-purple text-white rounded-xl text-[9px] font-black uppercase flex items-center justify-center gap-1.5 transition-all shadow-md active:scale-95 disabled:opacity-40"
                                 >
                                     <Video className="w-3.5 h-3.5 text-neon-purple" />
-                                    {isVideoRecording ? 'CAPTURE...' : '🎬 MP4 STORY (30s)'}
+                                    {isVideoRecording ? 'CAPTURE...' : 'ðŸŽ¬ MP4 STORY (30s)'}
                                 </button>
                             </div>
                         </div>
@@ -25223,7 +25223,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         {/* Slide Promo Outro 7s */}
                         <div className="space-y-1.5 pt-1 border-t border-white/5">
                             <span className="text-[8px] font-black text-gray-400 uppercase tracking-wider block">
-                                🔥 Slide Promo Outro (Vidéo MP4 7s)
+                                ðŸ”¥ Slide Promo Outro (VidÃ©o MP4 7s)
                             </span>
                             <div className="grid grid-cols-2 gap-2">
                                 <button
@@ -25251,7 +25251,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         {theme === 'MUSIQUE' && (
                             <div className="space-y-1.5 pt-2 border-t border-[#00ff66]/20">
                                 <span className="text-[8px] font-black text-[#00ff66] uppercase tracking-wider block">
-                                    📦 Pack Complet (Toutes les pistes en ZIP .mp4)
+                                    ðŸ“¦ Pack Complet (Toutes les pistes en ZIP .mp4)
                                 </span>
                                 <div className="grid grid-cols-2 gap-2">
                                     <button
@@ -25260,7 +25260,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         disabled={isDownloading || isVideoRecording || isExportingZip}
                                         className="py-2.5 px-3 bg-[#00ff66]/15 hover:bg-[#00ff66]/25 border border-[#00ff66]/40 hover:border-[#00ff66] text-[#00ff66] rounded-xl text-[8.5px] font-black uppercase flex items-center justify-center gap-1.5 transition-all shadow-sm active:scale-95 disabled:opacity-40"
                                     >
-                                        <span>📦</span>
+                                        <span>ðŸ“¦</span>
                                         <span>ZIP POST (4:5)</span>
                                     </button>
                                     <button
@@ -25269,7 +25269,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         disabled={isDownloading || isVideoRecording || isExportingZip}
                                         className="py-2.5 px-3 bg-neon-purple/15 hover:bg-neon-purple/25 border border-neon-purple/40 hover:border-neon-purple text-white rounded-xl text-[8.5px] font-black uppercase flex items-center justify-center gap-1.5 transition-all shadow-sm active:scale-95 disabled:opacity-40"
                                     >
-                                        <span>📦</span>
+                                        <span>ðŸ“¦</span>
                                         <span>ZIP STORY (9:16)</span>
                                     </button>
                                 </div>
@@ -25279,7 +25279,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 )}
             </div>
 
-            {/* ACCORDION 3 : 🚀 EXPORT VIDÉO - CARROUSEL COMPLET (MP4) */}
+            {/* ACCORDION 3 : ðŸš€ EXPORT VIDÃ‰O - CARROUSEL COMPLET (MP4) */}
             <div className="border border-white/10 rounded-2xl overflow-hidden bg-black/40">
                 <button
                     type="button"
@@ -25292,10 +25292,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         </div>
                         <div>
                             <span className="text-[9.5px] font-black uppercase text-white block tracking-wider">
-                                🚀 Export Vidéo - Carrousel Complet (MP4)
+                                ðŸš€ Export VidÃ©o - Carrousel Complet (MP4)
                             </span>
                             <span className="text-[7.5px] text-gray-400 block">
-                                Toutes les slides enchaînées avec transitions + Outro Promo
+                                Toutes les slides enchaÃ®nÃ©es avec transitions + Outro Promo
                             </span>
                         </div>
                     </div>
@@ -25309,7 +25309,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                 {exportAccordion === 'video_carousel' && (
                     <div className="p-3 pt-0 space-y-3 border-t border-white/5 animate-in fade-in duration-200">
-                        {/* Options et Durées */}
+                        {/* Options et DurÃ©es */}
                         <div className="pt-2">
                             {theme !== 'MUSIQUE' && editorialDurationControls}
                         </div>
@@ -25329,7 +25329,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     }`}
                             >
                                 <Video className="w-4 h-4 text-black" />
-                                {isVideoRecording ? 'CAPTURE VIDÉO EN COURS...' : `🎬 EXPORTER CARROUSEL VIDÉO COMPLET (${activeTab === 'REEL' ? 'REEL 9:16' : 'POST 1:1'} • ${2 + agendaAffiches.length} SLIDES + PROMO) • MP4`}
+                                {isVideoRecording ? 'CAPTURE VIDÃ‰O EN COURS...' : `ðŸŽ¬ EXPORTER CARROUSEL VIDÃ‰O COMPLET (${activeTab === 'REEL' ? 'REEL 9:16' : 'POST 1:1'} â€¢ ${2 + agendaAffiches.length} SLIDES + PROMO) â€¢ MP4`}
                             </button>
                         ) : ['NEWS', 'FOCUS', 'RECAP', 'MUSIQUE', 'INTERVIEW', 'LIVESTREAM', 'CONSEILS', 'REELS', 'CONCOURS', 'TOP 100 DROPSIDERS', 'JEU', 'JEU_FESTIVAL', 'JEU_DJ', 'EVENTS', 'HIGHLIGHTS'].includes(theme) ? (
                             <button
@@ -25343,12 +25343,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             >
                                 <Video className="w-4 h-4" />
                                 {isVideoRecording
-                                    ? 'CAPTURE VIDÉO EN COURS...'
+                                    ? 'CAPTURE VIDÃ‰O EN COURS...'
                                     : theme === 'MUSIQUE'
-                                        ? `🎬 EXPORTER LE CARROUSEL VIDÉO COMPLET (${activeTab === 'REEL' ? 'REEL 9:16' : 'POST 1:1'} • ${1 + musicTracks.length} TRACKS + PROMO) • MP4`
+                                        ? `ðŸŽ¬ EXPORTER LE CARROUSEL VIDÃ‰O COMPLET (${activeTab === 'REEL' ? 'REEL 9:16' : 'POST 1:1'} â€¢ ${1 + musicTracks.length} TRACKS + PROMO) â€¢ MP4`
                                         : skipEditorialSlide2
-                                            ? `🎬 EXPORTER VIDÉO (${activeTab === 'REEL' ? 'REEL 9:16' : 'POST 1:1'} • ${exportFps} FPS • SLIDE 1 [${editorialSlide1Duration}s] + PROMO [${editorialPromoDuration}s]) • MP4`
-                                            : `🎬 EXPORTER CARROUSEL VIDÉO COMPLET (${activeTab === 'REEL' ? 'REEL 9:16' : 'POST 1:1'} • ${exportFps} FPS • ${2 + extraEditorialSlides.length} SLIDES + PROMO) • MP4`}
+                                            ? `ðŸŽ¬ EXPORTER VIDÃ‰O (${activeTab === 'REEL' ? 'REEL 9:16' : 'POST 1:1'} â€¢ ${exportFps} FPS â€¢ SLIDE 1 [${editorialSlide1Duration}s] + PROMO [${editorialPromoDuration}s]) â€¢ MP4`
+                                            : `ðŸŽ¬ EXPORTER CARROUSEL VIDÃ‰O COMPLET (${activeTab === 'REEL' ? 'REEL 9:16' : 'POST 1:1'} â€¢ ${exportFps} FPS â€¢ ${2 + extraEditorialSlides.length} SLIDES + PROMO) â€¢ MP4`}
                             </button>
                         ) : theme === 'TOP 10 TRACKS' ? (
                             <button
@@ -25361,7 +25361,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     }`}
                             >
                                 <Video className="w-4 h-4 text-black" />
-                                {isVideoRecording ? 'CAPTURE TOP 10 TRACKS EN COURS...' : '🎬 EXPORTER LE REEL TOP 10 TRACKS (REEL 9:16 • 10 MORCEAUX • 90s) • MP4'}
+                                {isVideoRecording ? 'CAPTURE TOP 10 TRACKS EN COURS...' : 'ðŸŽ¬ EXPORTER LE REEL TOP 10 TRACKS (REEL 9:16 â€¢ 10 MORCEAUX â€¢ 90s) â€¢ MP4'}
                             </button>
                         ) : (
                             <button
@@ -25374,14 +25374,14 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     }`}
                             >
                                 <Video className="w-4 h-4" />
-                                {isVideoRecording ? 'CAPTURE MP4 EN COURS...' : `🎬 EXPORTER EN VIDÉO MP4 (${activeTab === 'REEL' ? 'REEL 9:16 + OUTRO PROMO' : theme})`}
+                                {isVideoRecording ? 'CAPTURE MP4 EN COURS...' : `ðŸŽ¬ EXPORTER EN VIDÃ‰O MP4 (${activeTab === 'REEL' ? 'REEL 9:16 + OUTRO PROMO' : theme})`}
                             </button>
                         )}
                     </div>
                 )}
             </div>
 
-            {/* ACCORDION 4 : 🎵 EXPORT SPÉCIAL TIKTOK (9:16 VERTICAL DYNAMIQUE) */}
+            {/* ACCORDION 4 : ðŸŽµ EXPORT SPÃ‰CIAL TIKTOK (9:16 VERTICAL DYNAMIQUE) */}
             <div className="border border-[#00f2fe]/30 hover:border-[#00f2fe]/60 rounded-2xl overflow-hidden bg-gradient-to-br from-[#010814]/90 via-black/80 to-[#15020c]/90 transition-all shadow-[0_0_20px_rgba(0,242,254,0.12)]">
                 <button
                     type="button"
@@ -25399,14 +25399,14 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         <div>
                             <div className="flex items-center gap-1.5 flex-wrap">
                                 <span className="text-[9.5px] font-black uppercase text-white tracking-wider">
-                                    🎵 Export Spécial TikTok (9:16)
+                                    ðŸŽµ Export SpÃ©cial TikTok (9:16)
                                 </span>
                                 <span className="px-1.5 py-0.2 rounded text-[7px] font-black uppercase bg-[#00f2fe]/20 text-[#00f2fe] border border-[#00f2fe]/40 animate-pulse">
                                     Auto-Fit &lt;60s
                                 </span>
                             </div>
                             <span className="text-[7.5px] text-gray-400 block">
-                                Toutes les slides enchaînées + Outro Promo • Format vertical 1080×1920
+                                Toutes les slides enchaÃ®nÃ©es + Outro Promo â€¢ Format vertical 1080Ã—1920
                             </span>
                         </div>
                     </div>
@@ -25420,10 +25420,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                 {exportAccordion === 'tiktok' && (
                     <div className="p-3 pt-0 space-y-3 border-t border-white/5 animate-in fade-in duration-200">
-                        {/* Badges récapitulatifs TikTok */}
+                        {/* Badges rÃ©capitulatifs TikTok */}
                         <div className="grid grid-cols-3 gap-2 pt-2">
                             <div className="bg-black/50 border border-white/10 rounded-xl p-2 text-center">
-                                <span className="text-[7px] font-bold text-gray-400 uppercase block">Slides Vidéo</span>
+                                <span className="text-[7px] font-bold text-gray-400 uppercase block">Slides VidÃ©o</span>
                                 <span className="text-[11px] font-black text-[#00f2fe]">{getTikTokInfo().totalSlides} slides</span>
                                 <span className="text-[6.5px] text-gray-500 block">dont outro promo</span>
                             </div>
@@ -25433,9 +25433,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 <span className="text-[6.5px] text-gray-500 block">par visuel</span>
                             </div>
                             <div className="bg-black/50 border border-[#fe0979]/30 rounded-xl p-2 text-center">
-                                <span className="text-[7px] font-bold text-gray-400 uppercase block">Durée Totale</span>
+                                <span className="text-[7px] font-bold text-gray-400 uppercase block">DurÃ©e Totale</span>
                                 <span className="text-[11px] font-black text-[#fe0979]">~{getTikTokInfo().totalDurationSec}s</span>
-                                <span className="text-[6.5px] text-[#00ff66] font-bold block">✓ &lt;60s strict</span>
+                                <span className="text-[6.5px] text-[#00ff66] font-bold block">âœ“ &lt;60s strict</span>
                             </div>
                         </div>
 
@@ -25443,8 +25443,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         <div className="bg-[#00f2fe]/5 border border-[#00f2fe]/20 rounded-xl p-2.5 flex items-start gap-2">
                             <Sparkles className="w-3.5 h-3.5 text-[#00f2fe] shrink-0 mt-0.5" />
                             <div className="text-[7.5px] text-gray-300 space-y-0.5 leading-relaxed">
-                                <p className="font-semibold text-white">✨ Rendu optimisé algorithme TikTok :</p>
-                                <p>Bascule automatique en <b className="text-[#00f2fe]">Vertical 9:16 (1080×1920)</b>, rythme dynamique selon le nombre de slides ({getTikTokInfo().slideDurationSec}s/slide), puis enchaînement fluide sur la <b className="text-[#fe0979]">Slide Promo Outro</b> ({getTikTokInfo().promoDurationSec}s) pour inciter au swipe et à l'abonnement.</p>
+                                <p className="font-semibold text-white">âœ¨ Rendu optimisÃ© algorithme TikTok :</p>
+                                <p>Bascule automatique en <b className="text-[#00f2fe]">Vertical 9:16 (1080Ã—1920)</b>, rythme dynamique selon le nombre de slides ({getTikTokInfo().slideDurationSec}s/slide), puis enchaÃ®nement fluide sur la <b className="text-[#fe0979]">Slide Promo Outro</b> ({getTikTokInfo().promoDurationSec}s) pour inciter au swipe et Ã  l'abonnement.</p>
                             </div>
                         </div>
 
@@ -25465,8 +25465,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64c.298-.002.595.042.88.13V9.4a6.33 6.33 0 0 0-1-.08A6.34 6.34 0 0 0 3 15.66a6.34 6.34 0 0 0 10.82 4.47 6.27 6.27 0 0 0 1.95-4.52V8.9a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-.95-.33z" />
                             </svg>
                             {isVideoRecording
-                                ? 'CAPTURE SPÉCIALE TIKTOK EN COURS...'
-                                : `🎬 EXPORTER EN VIDÉO TIKTOK (9:16 • ${getTikTokInfo().totalSlides} SLIDES • ~${getTikTokInfo().totalDurationSec}S) • MP4`}
+                                ? 'CAPTURE SPÃ‰CIALE TIKTOK EN COURS...'
+                                : `ðŸŽ¬ EXPORTER EN VIDÃ‰O TIKTOK (9:16 â€¢ ${getTikTokInfo().totalSlides} SLIDES â€¢ ~${getTikTokInfo().totalDurationSec}S) â€¢ MP4`}
                         </button>
                     </div>
                 )}
@@ -25479,7 +25479,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     onClick={addVisualToList}
                     className="flex-1 py-2 bg-white/5 border border-white/10 hover:bg-white/10 text-gray-300 hover:text-white rounded-xl text-[8.5px] font-black uppercase flex items-center justify-center gap-1.5 transition-all"
                 >
-                    <PlusCircle className="w-3 h-3" /> Ajouter à la liste
+                    <PlusCircle className="w-3 h-3" /> Ajouter Ã  la liste
                 </button>
                 <button
                     type="button"
@@ -25497,11 +25497,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const isEventsAfficheSelected = isEditorialAfficheActive || (eventsSlide === 2 && eventNormalSlidesCount === 0);
     const eventsEditor = (
         <div className="space-y-4">
-            {/* Affiche de l'Événement (gérée dans l'onglet Visuel) */}
+            {/* Affiche de l'Ã‰vÃ©nement (gÃ©rÃ©e dans l'onglet Visuel) */}
             {isEventsAfficheSelected ? (
                 <div className="space-y-3">
                     <div className="px-1 py-1 text-[9px] font-bold text-gray-400 uppercase flex items-center justify-between">
-                        <span>Édition Affiche de l'Événement</span>
+                        <span>Ã‰dition Affiche de l'Ã‰vÃ©nement</span>
                         <span className="text-[#ff3700]">{eventNormalSlidesCount === 0 ? 'Slide 2' : 'Slide Affiche'}</span>
                     </div>
                     <div className="p-3 bg-white/5 border border-[#ff3700]/30 rounded-2xl flex items-center justify-between gap-3 shadow-md">
@@ -25514,9 +25514,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 </div>
                             )}
                             <div className="min-w-0">
-                                <span className="text-[9.5px] font-black text-white uppercase block truncate">Affiche Événement ({eventNormalSlidesCount === 0 ? 'Slide 2' : 'Slide Affiche'})</span>
+                                <span className="text-[9.5px] font-black text-white uppercase block truncate">Affiche Ã‰vÃ©nement ({eventNormalSlidesCount === 0 ? 'Slide 2' : 'Slide Affiche'})</span>
                                 <span className="text-[8px] text-gray-400 block truncate">
-                                    {afficheImage ? 'Affiche configurée' : 'Gérer l\'affiche & visuel dans l\'onglet Visuel'}
+                                    {afficheImage ? 'Affiche configurÃ©e' : 'GÃ©rer l\'affiche & visuel dans l\'onglet Visuel'}
                                 </span>
                             </div>
                         </div>
@@ -25526,14 +25526,14 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             className="px-3 py-1.5 bg-[#ff3700] hover:bg-[#ff4400] text-white font-black text-[9px] uppercase rounded-xl transition-all flex items-center gap-1 shadow-sm active:scale-95 flex-shrink-0"
                         >
                             <Sparkles className="w-3 h-3" />
-                            <span>Gérer dans Visuel</span>
+                            <span>GÃ©rer dans Visuel</span>
                         </button>
                     </div>
                 </div>
             ) : (
                 <div className="space-y-3">
                     <div className="px-1 py-1 text-[9px] font-bold text-gray-400 uppercase flex items-center justify-between">
-                        <span>Édition Post Événement</span>
+                        <span>Ã‰dition Post Ã‰vÃ©nement</span>
                         <span className="text-[#ff3700]">Slide {editorialSlide}</span>
                     </div>
                     {conseilsEditor}
@@ -25550,14 +25550,14 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
         return (
             <div className="space-y-4">
-                {/* 1. CARROUSEL SLIDE SWITCHER (JUSQU'À 20 SLIDES EN TOUT) */}
+                {/* 1. CARROUSEL SLIDE SWITCHER (JUSQU'Ã€ 20 SLIDES EN TOUT) */}
                 <div className="p-2.5 bg-black/60 border border-[#00ff66]/30 rounded-2xl space-y-2.5 shadow-xl">
                     <div className="flex items-center justify-between text-[8.5px] font-bold text-gray-400 uppercase px-1">
                         <span className="flex items-center gap-1.5">
                             <span className="text-[#00ff66] font-black">CARROUSEL MUSIQUE</span>
                             <span>({totalSlides}/20 max)</span>
                         </span>
-                        <span className="text-[7.5px] text-gray-500">Gérer via la barre en haut ➔</span>
+                        <span className="text-[7.5px] text-gray-500">GÃ©rer via la barre en haut âž”</span>
                     </div>
 
                     <div className="flex flex-wrap gap-1.5 max-h-48 overflow-y-auto custom-scrollbar p-0.5">
@@ -25569,7 +25569,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
                                 }`}
                         >
-                            <span className="text-xs">📢</span> Slide 1 : Annonce {musicIntroAudio && <span className="text-[10px]" title="Audio attaché">🎵</span>}
+                            <span className="text-xs">ðŸ“¢</span> Slide 1 : Annonce {musicIntroAudio && <span className="text-[10px]" title="Audio attachÃ©">ðŸŽµ</span>}
                         </button>
 
                         {musicTracks.map((tr, idx) => {
@@ -25585,7 +25585,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
                                         }`}
                                 >
-                                    <span className="text-xs">💿</span> S{sNum} : {tr.title ? (tr.title.length > 10 ? tr.title.substring(0, 10) + '...' : tr.title) : `Track ${idx + 1}`} {tr.audio && <span className="text-[10px]" title="Audio attaché">🎵</span>}
+                                    <span className="text-xs">ðŸ’¿</span> S{sNum} : {tr.title ? (tr.title.length > 10 ? tr.title.substring(0, 10) + '...' : tr.title) : `Track ${idx + 1}`} {tr.audio && <span className="text-[10px]" title="Audio attachÃ©">ðŸŽµ</span>}
                                 </button>
                             );
                         })}
@@ -25602,7 +25602,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 }`}
                             title="Slide de fin d'outro promo Dropsiders"
                         >
-                            <span className="text-xs">🔥</span> Slide PROMO
+                            <span className="text-xs">ðŸ”¥</span> Slide PROMO
                         </button>
                     </div>
 
@@ -25613,10 +25613,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             onClick={() => exportMusiqueZip(activeTab || 'PUBLICATION')}
                             disabled={isExportingZip || isVideoRecording}
                             className="w-full py-2.5 px-3 rounded-xl bg-gradient-to-r from-[#00ff66]/20 via-[#00ff66]/30 to-[#00ff66]/20 hover:from-[#00ff66]/30 hover:to-[#00ff66]/40 text-[#00ff66] hover:text-white border border-[#00ff66]/50 shadow-[0_0_15px_rgba(0,255,102,0.2)] text-[10px] font-black uppercase tracking-wider flex items-center justify-center gap-2 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed group"
-                            title="Exporte toutes les slides (annonce + morceaux + promo) en vidéos MP4 empaquetées dans un fichier .ZIP"
+                            title="Exporte toutes les slides (annonce + morceaux + promo) en vidÃ©os MP4 empaquetÃ©es dans un fichier .ZIP"
                         >
-                            <span className="text-sm group-hover:scale-110 transition-transform">📦</span>
-                            <span>{isExportingZip ? 'Génération du ZIP...' : 'Exporter tout en ZIP (.mp4)'}</span>
+                            <span className="text-sm group-hover:scale-110 transition-transform">ðŸ“¦</span>
+                            <span>{isExportingZip ? 'GÃ©nÃ©ration du ZIP...' : 'Exporter tout en ZIP (.mp4)'}</span>
                             <span className="text-[8px] bg-black/50 px-1.5 py-0.5 rounded text-white/90 font-mono">
                                 {totalSlides + 1} MP4
                             </span>
@@ -25628,22 +25628,22 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 {editorialSlide === 1 && (
                     <div className="space-y-3 pt-2">
                         <div className="px-1 py-1 text-[9px] font-bold text-gray-400 uppercase flex items-center justify-between">
-                            <span>Édition Annonce Sortie Track</span>
+                            <span>Ã‰dition Annonce Sortie Track</span>
                             <span className="text-[#00ff66]">Slide 1 (Intro)</span>
                         </div>
 
                         {/* Navigation rapide vers Track 1 pour les fiches morceaux */}
                         <div className="p-2.5 bg-black/60 border border-[#00ff66]/30 rounded-xl flex items-center justify-between shadow-md">
                             <div className="text-[8.5px] text-gray-300">
-                                <span className="text-white font-black block">Slide 1 = Visuel Annonce Générale</span>
-                                <span className="text-[7.5px] text-gray-400">Pour éditer les fiches morceaux avec pochette carrée 1:1 :</span>
+                                <span className="text-white font-black block">Slide 1 = Visuel Annonce GÃ©nÃ©rale</span>
+                                <span className="text-[7.5px] text-gray-400">Pour Ã©diter les fiches morceaux avec pochette carrÃ©e 1:1 :</span>
                             </div>
                             <button
                                 type="button"
                                 onClick={() => { setIsCarouselPromoActive(false); setEditorialSlide(2); }}
                                 className="px-3 py-1.5 bg-[#00ff66] hover:bg-[#33ff85] text-black font-black text-[9px] uppercase rounded-lg transition-all active:scale-95 flex items-center gap-1 shadow-sm whitespace-nowrap"
                             >
-                                💿 Aller sur Track 1
+                                ðŸ’¿ Aller sur Track 1
                             </button>
                         </div>
 
@@ -25656,9 +25656,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         <div className="space-y-2 p-3 bg-black/40 border border-[#00ff66]/20 rounded-2xl shadow-lg">
                             <div className="flex items-center justify-between pl-1">
                                 <label className="text-[9px] font-black text-[#00ff66] uppercase tracking-widest flex items-center gap-1.5">
-                                    <span>📅 Date sous le titre (Slide 1)</span>
+                                    <span>ðŸ“… Date sous le titre (Slide 1)</span>
                                     <span className={`text-[8px] px-1.5 py-0.5 rounded font-bold ${showMusicDate ? 'bg-[#00ff66]/20 text-[#00ff66] border border-[#00ff66]/30' : 'bg-white/10 text-gray-400 border border-white/20'}`}>
-                                        {showMusicDate ? 'Affichée' : 'Masquée'}
+                                        {showMusicDate ? 'AffichÃ©e' : 'MasquÃ©e'}
                                     </span>
                                 </label>
                                 <div className="flex items-center gap-2">
@@ -25673,7 +25673,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                             : 'bg-white/10 border-white/20 text-gray-400 hover:text-white'
                                             }`}
                                     >
-                                        {showMusicDate ? '👁️ Masquer la date' : '👁️ Afficher la date'}
+                                        {showMusicDate ? 'ðŸ‘ï¸ Masquer la date' : 'ðŸ‘ï¸ Afficher la date'}
                                     </button>
                                     {showMusicDate && (
                                         <button
@@ -25687,7 +25687,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                             }}
                                             className="text-[8.5px] font-bold text-[#00ff66] hover:underline flex items-center gap-1"
                                         >
-                                            <span>🔄</span> Actualiser
+                                            <span>ðŸ”„</span> Actualiser
                                         </button>
                                     )}
                                 </div>
@@ -25705,7 +25705,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white italic text-xs focus:border-[#00ff66]/50 outline-none transition-all shadow-md"
                                     />
                                     <p className="text-[8px] text-gray-400 pl-1">
-                                        Cette date s'affiche en sous-titre élégant directement en dessous de votre titre sur la Slide 1.
+                                        Cette date s'affiche en sous-titre Ã©lÃ©gant directement en dessous de votre titre sur la Slide 1.
                                     </p>
                                 </>
                             )}
@@ -25767,7 +25767,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         className="px-3 py-2 bg-[#00ff66] hover:bg-[#33ff85] text-black font-black text-[9px] uppercase rounded-xl transition-all flex items-center gap-1 disabled:opacity-50 shadow-md active:scale-95 whitespace-nowrap"
                                         title="Rechercher le son sur Beatport"
                                     >
-                                        {isResolvingAudio ? <span className="animate-spin">⏳</span> : <span>🔍 Chercher le Son (Beatport)</span>}
+                                        {isResolvingAudio ? <span className="animate-spin">â³</span> : <span>ðŸ” Chercher le Son (Beatport)</span>}
                                     </button>
                                 </div>
                             </div>
@@ -25796,7 +25796,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 <div className="p-3 bg-black/50 border border-[#00ff66]/30 rounded-xl space-y-2.5">
                                     <div className="flex items-center justify-between text-[8.5px] font-black uppercase">
                                         <span className="text-[#00ff66] flex items-center gap-1">
-                                            <span>🔊</span> Audio Intro Chargé
+                                            <span>ðŸ”Š</span> Audio Intro ChargÃ©
                                         </span>
                                         <span className="text-gray-400 font-mono text-[7.5px]">
                                             {musicIntroAudio.startsWith('blob:') ? 'Fichier local' : 'Lien Web / R2'}
@@ -25813,15 +25813,15 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         />
                                     ) : (
                                         <div className="w-full h-8 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center text-[8.5px] font-black uppercase text-gray-400 animate-pulse">
-                                            Chargement du son en mémoire…
+                                            Chargement du son en mÃ©moireâ€¦
                                         </div>
                                     )}
 
-                                    {/* Réglage du point de départ (Milieu / Drop) */}
+                                    {/* RÃ©glage du point de dÃ©part (Milieu / Drop) */}
                                     <div className="pt-2 border-t border-white/10 space-y-2">
                                         <div className="flex items-center justify-between text-[8.5px] font-black uppercase">
                                             <span className="text-[#00ff66] flex items-center gap-1">
-                                                <Scissors className="w-3.5 h-3.5 text-[#00ff66]" /> Point de départ (Milieu / Drop) :
+                                                <Scissors className="w-3.5 h-3.5 text-[#00ff66]" /> Point de dÃ©part (Milieu / Drop) :
                                             </span>
                                             <span className="font-mono text-white bg-white/10 px-2 py-0.5 rounded border border-white/10 text-[9px] font-bold">
                                                 {formatAudioTime(musicIntroAudioStartTime)}
@@ -25837,7 +25837,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                                     : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'
                                                     }`}
                                             >
-                                                ⏮️ Début (0:00)
+                                                â®ï¸ DÃ©but (0:00)
                                             </button>
                                             <button
                                                 type="button"
@@ -25856,14 +25856,14 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                                     : 'bg-[#00ff66]/10 border-[#00ff66]/30 text-[#00ff66] hover:bg-[#00ff66]/20'
                                                     }`}
                                             >
-                                                ⚡ Drop (30s)
+                                                âš¡ Drop (30s)
                                             </button>
                                             <button
                                                 type="button"
                                                 onClick={() => playAudioPreviewFrom(musicIntroAudio, musicIntroAudioStartTime)}
                                                 className="py-1.5 bg-white/10 hover:bg-white/20 border border-white/15 text-white rounded-lg text-[8px] font-black uppercase transition-all flex items-center justify-center gap-1"
                                             >
-                                                {activeAudioPreviewSrc === musicIntroAudio ? '⏸️ Stop' : '▶️ Tester'}
+                                                {activeAudioPreviewSrc === musicIntroAudio ? 'â¸ï¸ Stop' : 'â–¶ï¸ Tester'}
                                             </button>
                                         </div>
 
@@ -25877,8 +25877,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                                         <span>0:00</span>
                                                         <span className="text-[#00ff66]">
                                                             {isShortSnippet
-                                                                ? '30s complètes (Déjà au Drop)'
-                                                                : `Démarre à ${formatAudioTime(musicIntroAudioStartTime)} (30s continues sans boucle)`}
+                                                                ? '30s complÃ¨tes (DÃ©jÃ  au Drop)'
+                                                                : `DÃ©marre Ã  ${formatAudioTime(musicIntroAudioStartTime)} (30s continues sans boucle)`}
                                                         </span>
                                                         <span>{formatAudioTime(maxStart)}</span>
                                                     </div>
@@ -25894,7 +25894,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                                         />
                                                     ) : (
                                                         <div className="text-[7.5px] text-gray-400 italic bg-white/5 px-2 py-1 rounded border border-white/10">
-                                                            ℹ️ Extrait 30s officiel complet déjà centré sur le Drop.
+                                                            â„¹ï¸ Extrait 30s officiel complet dÃ©jÃ  centrÃ© sur le Drop.
                                                         </div>
                                                     )}
                                                 </div>
@@ -25920,19 +25920,19 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     type="button"
                                     onClick={() => resetMusicTrack(activeTrackIdx)}
                                     className="px-2.5 py-1 bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-400 hover:text-red-300 rounded-lg text-[8px] font-black uppercase transition-all flex items-center gap-1 active:scale-95 shadow-sm"
-                                    title="Remettre à zéro ce morceau : effacer titre, artiste, label, pochette et audio"
+                                    title="Remettre Ã  zÃ©ro ce morceau : effacer titre, artiste, label, pochette et audio"
                                 >
-                                    <span>🔄</span> Reset Morceau
+                                    <span>ðŸ”„</span> Reset Morceau
                                 </button>
                                 <button
                                     type="button"
                                     onClick={() => exportCurrentSlideVideo()}
                                     disabled={isDownloading || isVideoRecording}
                                     className="px-2.5 py-1 bg-[#00ff66]/15 hover:bg-[#00ff66]/25 border border-[#00ff66]/40 text-[#00ff66] rounded-lg text-[8px] font-black uppercase transition-all flex items-center gap-1 active:scale-95 disabled:opacity-40"
-                                    title="Exporter ce morceau en vidéo MP4 de 30 secondes avec sa pochette 1:1 et son extrait sonore"
+                                    title="Exporter ce morceau en vidÃ©o MP4 de 30 secondes avec sa pochette 1:1 et son extrait sonore"
                                 >
                                     <Video className="w-3 h-3 text-[#00ff66]" />
-                                    {isVideoRecording ? 'Capture 30s...' : '🎬 Exporter MP4 (30s)'}
+                                    {isVideoRecording ? 'Capture 30s...' : 'ðŸŽ¬ Exporter MP4 (30s)'}
                                 </button>
                                 {musicTracks.length > 1 && (
                                     <button
@@ -25940,7 +25940,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         onClick={() => removeMusicTrack(activeTrackIdx)}
                                         className="text-[9px] font-bold text-red-400 hover:text-red-300 transition-colors uppercase flex items-center gap-1"
                                     >
-                                        🗑️ Supprimer
+                                        ðŸ—‘ï¸ Supprimer
                                     </button>
                                 )}
                             </div>
@@ -25949,7 +25949,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         {/* SECTION B : TEXTES DU SON (TITRE + ARTISTE + LABEL) */}
                         <div className="space-y-3 bg-white/5 border border-white/10 rounded-2xl p-4">
                             <label className="text-[10px] font-black text-white uppercase tracking-widest flex items-center gap-1.5">
-                                ✍️ Informations du Morceau (Slide {editorialSlide})
+                                âœï¸ Informations du Morceau (Slide {editorialSlide})
                             </label>
 
                             {/* 1. Titre du Morceau */}
@@ -26020,7 +26020,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             {/* Badges des plateformes compatibles */}
                             <div className="flex flex-wrap items-center gap-1 text-[7.5px] font-bold text-gray-400">
                                 <span className="text-[#00ff66] font-black uppercase">Source directe prioritaire :</span>
-                                <span className="px-1.5 py-0.5 rounded bg-[#00ff66]/20 text-[#00ff66] border border-[#00ff66]/40 font-black">🎧 Beatport (120s Drop)</span>
+                                <span className="px-1.5 py-0.5 rounded bg-[#00ff66]/20 text-[#00ff66] border border-[#00ff66]/40 font-black">ðŸŽ§ Beatport (120s Drop)</span>
                                 <span className="px-1.5 py-0.5 rounded bg-[#1db954]/20 text-[#1db954] border border-[#1db954]/30">Spotify</span>
                                 <span className="px-1.5 py-0.5 rounded bg-[#ff5500]/20 text-[#ff5500] border border-[#ff5500]/30">Soundcloud</span>
                                 <span className="px-1.5 py-0.5 rounded bg-[#fa243c]/20 text-[#fa243c] border border-[#fa243c]/30">Apple Music</span>
@@ -26031,7 +26031,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             <div className="space-y-1">
                                 <div className="flex items-center justify-between text-[9px] font-bold uppercase text-gray-400">
                                     <span>Recherche Beatport ou Lien Direct</span>
-                                    <span className="text-[8px] text-[#00ff66] font-bold">Extrait 120s centré sur le Drop</span>
+                                    <span className="text-[8px] text-[#00ff66] font-bold">Extrait 120s centrÃ© sur le Drop</span>
                                 </div>
                                 <div className="flex gap-1.5">
                                     <input
@@ -26060,15 +26060,15 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         title="Chercher directement sur Beatport l'extrait 120s avec le drop"
                                     >
                                         {isResolvingAudio ? (
-                                            <span className="animate-spin">⏳</span>
+                                            <span className="animate-spin">â³</span>
                                         ) : (
-                                            <span>🔍 Chercher le Son (Beatport)</span>
+                                            <span>ðŸ” Chercher le Son (Beatport)</span>
                                         )}
                                     </button>
                                 </div>
                             </div>
 
-                            {/* Recherche directe par Titre & Artiste si déjà renseignés */}
+                            {/* Recherche directe par Titre & Artiste si dÃ©jÃ  renseignÃ©s */}
                             {(activeTrack.title || activeTrack.artist) && !activeTrack.audio && (
                                 <button
                                     type="button"
@@ -26076,20 +26076,20 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     disabled={isResolvingAudio}
                                     className="w-full py-2 bg-[#00ff66]/10 hover:bg-[#00ff66]/20 border border-[#00ff66]/30 text-[#00ff66] font-black text-[9px] uppercase rounded-xl transition-all flex items-center justify-center gap-1.5 active:scale-95"
                                 >
-                                    <span>🎧</span> Chercher sur Beatport (120s Drop) pour "{activeTrack.artist || ''} - {activeTrack.title || ''}"
+                                    <span>ðŸŽ§</span> Chercher sur Beatport (120s Drop) pour "{activeTrack.artist || ''} - {activeTrack.title || ''}"
                                 </button>
                             )}
 
-                            {/* Résultat d'extraction avec proposition de pochette HD */}
+                            {/* RÃ©sultat d'extraction avec proposition de pochette HD */}
                             {musicResolveInfo && musicResolveInfo.trackIdx === activeTrackIdx && (
                                 <div className="p-3 bg-[#00ff66]/10 border border-[#00ff66]/30 rounded-xl space-y-2">
                                     <div className="flex items-center justify-between text-[9px]">
                                         <span className="font-black text-[#00ff66] uppercase flex items-center gap-1">
-                                            <span>✅</span> Extrait {musicResolveInfo.platform === 'beatport' ? '120s Drop' : 'officiel'} trouvé ({musicResolveInfo.platform.toUpperCase()})
+                                            <span>âœ…</span> Extrait {musicResolveInfo.platform === 'beatport' ? '120s Drop' : 'officiel'} trouvÃ© ({musicResolveInfo.platform.toUpperCase()})
                                         </span>
                                     </div>
                                     <div className="text-[8.5px] text-gray-300">
-                                        Morceau : <strong>{musicResolveInfo.title}</strong> • Artiste : <strong>{musicResolveInfo.artist}</strong>
+                                        Morceau : <strong>{musicResolveInfo.title}</strong> â€¢ Artiste : <strong>{musicResolveInfo.artist}</strong>
                                     </div>
                                     {musicResolveInfo.coverUrl && (
                                         <button
@@ -26101,7 +26101,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                             }}
                                             className="w-full py-1.5 bg-[#00ff66]/20 hover:bg-[#00ff66]/30 border border-[#00ff66]/40 text-[#00ff66] rounded-lg text-[8px] font-black uppercase transition-all flex items-center justify-center gap-1.5"
                                         >
-                                            <span>🖼️</span> Appliquer la Pochette Officielle HD ({musicResolveInfo.platform === 'beatport' ? '1400x1400' : '1000x1000'})
+                                            <span>ðŸ–¼ï¸</span> Appliquer la Pochette Officielle HD ({musicResolveInfo.platform === 'beatport' ? '1400x1400' : '1000x1000'})
                                         </button>
                                     )}
                                 </div>
@@ -26129,12 +26129,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 </button>
                             </div>
 
-                            {/* Lecteur de prévisualisation interactif & Réglage Drop / Milieu */}
+                            {/* Lecteur de prÃ©visualisation interactif & RÃ©glage Drop / Milieu */}
                             {activeTrack.audio ? (
                                 <div className="p-3 bg-black/50 border border-[#00ff66]/30 rounded-xl space-y-2.5">
                                     <div className="flex items-center justify-between text-[8.5px] font-black uppercase">
                                         <span className="text-[#00ff66] flex items-center gap-1">
-                                            <span>🔊</span> Extrait Audio Prêt
+                                            <span>ðŸ”Š</span> Extrait Audio PrÃªt
                                         </span>
                                         <span className="text-gray-400 font-mono text-[7.5px]">
                                             {activeTrack.audio.startsWith('blob:') ? 'Fichier local' : 'Extrait streaming HD'}
@@ -26153,11 +26153,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         />
                                     ) : (
                                         <div className="w-full h-8 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center text-[8.5px] font-black uppercase text-gray-400 animate-pulse">
-                                            Chargement du son en mémoire…
+                                            Chargement du son en mÃ©moireâ€¦
                                         </div>
                                     )}
 
-                                    {/* Bouton de capture directe du point d'écoute */}
+                                    {/* Bouton de capture directe du point d'Ã©coute */}
                                     {(() => {
                                         const dur = audioDurations[activeTrack.audio!] || 120;
                                         const maxStart = Math.max(0, Math.floor(dur - 30));
@@ -26165,29 +26165,29 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         return (
                                             <div className="flex items-center justify-between gap-2 bg-[#00ff66]/10 border border-[#00ff66]/30 px-3 py-2 rounded-xl">
                                                 <div className="flex flex-col">
-                                                    <span className="text-[7.5px] font-bold uppercase text-gray-400">Position d'écoute :</span>
+                                                    <span className="text-[7.5px] font-bold uppercase text-gray-400">Position d'Ã©coute :</span>
                                                     <span className="text-[11px] font-mono font-black text-[#00ff66]">{formatAudioTime(activeAudioCurrentTime)}</span>
                                                 </div>
                                                 <button
                                                     type="button"
                                                     onClick={() => updateMusicTrack(activeTrackIdx, { audioStartTime: currentPosSec })}
                                                     className="px-3 py-1.5 bg-[#00ff66] hover:bg-[#33ff85] text-black font-black text-[8px] uppercase rounded-lg transition-all flex items-center gap-1 active:scale-95 shadow-sm"
-                                                    title="Caler le départ des 30 secondes exactement sur la seconde où vous écoutez le lecteur"
+                                                    title="Caler le dÃ©part des 30 secondes exactement sur la seconde oÃ¹ vous Ã©coutez le lecteur"
                                                 >
-                                                    <span>🎯</span> Caler le début ici ({formatAudioTime(currentPosSec)})
+                                                    <span>ðŸŽ¯</span> Caler le dÃ©but ici ({formatAudioTime(currentPosSec)})
                                                 </button>
                                             </div>
                                         );
                                     })()}
 
-                                    {/* Réglage du point de départ (Milieu / Drop du son) */}
+                                    {/* RÃ©glage du point de dÃ©part (Milieu / Drop du son) */}
                                     <div className="pt-2 border-t border-white/10 space-y-2">
                                         <div className="flex items-center justify-between text-[8.5px] font-black uppercase">
                                             <span className="text-[#00ff66] flex items-center gap-1">
-                                                <Scissors className="w-3.5 h-3.5 text-[#00ff66]" /> Tranche sélectionnée (30s) :
+                                                <Scissors className="w-3.5 h-3.5 text-[#00ff66]" /> Tranche sÃ©lectionnÃ©e (30s) :
                                             </span>
                                             <span className="font-mono text-white bg-white/10 px-2 py-0.5 rounded border border-white/10 text-[8.5px] font-bold">
-                                                {formatAudioTime(activeTrack.audioStartTime || 0)} ➔ {formatAudioTime((activeTrack.audioStartTime || 0) + 30)}
+                                                {formatAudioTime(activeTrack.audioStartTime || 0)} âž” {formatAudioTime((activeTrack.audioStartTime || 0) + 30)}
                                             </span>
                                         </div>
 
@@ -26215,7 +26215,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                                     : 'bg-[#00ff66]/10 border-[#00ff66]/30 text-[#00ff66] hover:bg-[#00ff66]/20'
                                                     }`}
                                             >
-                                                ⚡ 0:30
+                                                âš¡ 0:30
                                             </button>
                                             <button
                                                 type="button"
@@ -26229,7 +26229,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                                     : 'bg-[#00ff66]/10 border-[#00ff66]/30 text-[#00ff66] hover:bg-[#00ff66]/20'
                                                     }`}
                                             >
-                                                🔥 0:45
+                                                ðŸ”¥ 0:45
                                             </button>
                                             <button
                                                 type="button"
@@ -26243,11 +26243,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                                     : 'bg-[#00ff66]/10 border-[#00ff66]/30 text-[#00ff66] hover:bg-[#00ff66]/20'
                                                     }`}
                                             >
-                                                💥 1:00
+                                                ðŸ’¥ 1:00
                                             </button>
                                         </div>
 
-                                        {/* Micro-ajustements précis (-5s, -1s, +1s, +5s) et bouton tester */}
+                                        {/* Micro-ajustements prÃ©cis (-5s, -1s, +1s, +5s) et bouton tester */}
                                         <div className="flex items-center justify-between gap-1.5 pt-0.5">
                                             <div className="flex items-center gap-1">
                                                 <span className="text-[7.5px] text-gray-400 font-bold uppercase mr-0.5">Ajuster:</span>
@@ -26273,7 +26273,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                                 onClick={() => playAudioPreviewFrom(activeTrack.audio!, activeTrack.audioStartTime || 0)}
                                                 className="px-2.5 py-1 bg-white/10 hover:bg-white/20 border border-white/15 text-white rounded-lg text-[8px] font-black uppercase transition-all flex items-center justify-center gap-1 active:scale-95"
                                             >
-                                                {activeAudioPreviewSrc === activeTrack.audio ? '⏸️ Stop' : '▶️ Tester 30s'}
+                                                {activeAudioPreviewSrc === activeTrack.audio ? 'â¸ï¸ Stop' : 'â–¶ï¸ Tester 30s'}
                                             </button>
                                         </div>
 
@@ -26287,8 +26287,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                                         <span>0:00</span>
                                                         <span className="text-[#00ff66]">
                                                             {isShortSnippet
-                                                                ? '30s complètes (Déjà au Drop)'
-                                                                : `Démarre à ${formatAudioTime(activeTrack.audioStartTime || 0)} (30s continues sans boucle)`}
+                                                                ? '30s complÃ¨tes (DÃ©jÃ  au Drop)'
+                                                                : `DÃ©marre Ã  ${formatAudioTime(activeTrack.audioStartTime || 0)} (30s continues sans boucle)`}
                                                         </span>
                                                         <span>{formatAudioTime(maxStart)}</span>
                                                     </div>
@@ -26304,7 +26304,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                                         />
                                                     ) : (
                                                         <div className="text-[7.5px] text-gray-400 italic bg-white/5 px-2 py-1 rounded border border-white/10">
-                                                            ℹ️ Extrait 30s officiel complet déjà centré sur le Drop.
+                                                            â„¹ï¸ Extrait 30s officiel complet dÃ©jÃ  centrÃ© sur le Drop.
                                                         </div>
                                                     )}
                                                 </div>
@@ -26313,7 +26313,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     </div>
 
                                     <p className="text-[7.5px] text-gray-400 italic">
-                                        ⏱️ Lors de l'export vidéo MP4, la musique démarrera exactement à <strong>{formatAudioTime(activeTrack.audioStartTime || 0)}</strong> et jouera 30 secondes en continu sans boucler.
+                                        â±ï¸ Lors de l'export vidÃ©o MP4, la musique dÃ©marrera exactement Ã  <strong>{formatAudioTime(activeTrack.audioStartTime || 0)}</strong> et jouera 30 secondes en continu sans boucler.
                                     </p>
                                 </div>
                             ) : (
@@ -26330,7 +26330,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         <div className="space-y-3 bg-white/5 border border-white/10 rounded-2xl p-4">
                             <div className="flex items-center justify-between">
                                 <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-1.5">
-                                    🎆 Image de Fond (Ambiance Floutée)
+                                    ðŸŽ† Image de Fond (Ambiance FloutÃ©e)
                                 </label>
                                 <span className="text-[8px] font-bold text-[#00ff66] uppercase bg-[#00ff66]/10 px-2 py-0.5 rounded-full border border-[#00ff66]/20">
                                     Flou auto DropSiders
@@ -26362,7 +26362,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 }}
                                 className={`px-3 py-1.5 rounded-full text-[8px] font-black uppercase transition-all ${showSwipe ? 'border-[#00ff66]/40 text-[#00ff66] bg-[#00ff66]/20' : 'bg-white/5 text-gray-500 border border-white/10'}`}
                             >
-                                {showSwipe ? 'ACTIF' : 'MASQUÉ'}
+                                {showSwipe ? 'ACTIF' : 'MASQUÃ‰'}
                             </button>
                         </div>
                     </div>
@@ -26418,7 +26418,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         setTimeout(() => generateImage(), 50);
                                     };
                                     video.onerror = () => { setBgImage(url); setBgVideo(null); };
-                                    // Pré-chargement automatique du Blob pour un export audio 100% garanti
+                                    // PrÃ©-chargement automatique du Blob pour un export audio 100% garanti
                                     fetch(url)
                                         .then(res => res.ok ? res.blob() : null)
                                         .then(blob => {
@@ -26493,8 +26493,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-neon-orange via-pink-500 to-neon-red" />
                         <div className="flex justify-between items-start mb-8">
                             <div>
-                                <h2 className="text-3xl font-black text-white uppercase italic tracking-tighter mb-1">Importer un <span className="text-neon-orange">Récap Écrit</span></h2>
-                                <p className="text-[10px] text-gray-500 font-black uppercase tracking-widest">Sélectionnez un article pour générer le visuel</p>
+                                <h2 className="text-3xl font-black text-white uppercase italic tracking-tighter mb-1">Importer un <span className="text-neon-orange">RÃ©cap Ã‰crit</span></h2>
+                                <p className="text-[10px] text-gray-500 font-black uppercase tracking-widest">SÃ©lectionnez un article pour gÃ©nÃ©rer le visuel</p>
                             </div>
                             <button onClick={() => setIsRecapPickerOpen(false)} className="p-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-gray-400 hover:text-white transition-all"><X className="w-5 h-5" /></button>
                         </div>
@@ -26505,7 +26505,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     <button
                                         key={recap.id}
                                         onClick={() => {
-                                            const cleanTitle = fixEncoding(recap.title).replace(/^Rcap\s*:\s*/i, '').replace(/^Rcap\s*:\s*/i, '').replace(/^Récap\s*:\s*/i, '');
+                                            const cleanTitle = fixEncoding(recap.title).replace(/^Rcap\s*:\s*/i, '').replace(/^Rcap\s*:\s*/i, '').replace(/^RÃ©cap\s*:\s*/i, '');
                                             const cleanSummary = fixEncoding(recap.summary || '').split('. ')[0] + '.';
                                             setCustomText(`${cleanTitle.toUpperCase()}\n\n${cleanSummary.toUpperCase()}`);
                                             setBgImage(recap.image);
@@ -26558,17 +26558,17 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     <Calendar className="w-3.5 h-3.5" /> Agenda Dropsiders.fr
                                 </div>
                                 <h2 className="text-xl sm:text-3xl font-black text-white uppercase italic tracking-tighter">
-                                    Importer les événements <span className="text-[#ff3700]">du Site</span>
+                                    Importer les Ã©vÃ©nements <span className="text-[#ff3700]">du Site</span>
                                 </h2>
                                 <p className="text-[10px] text-gray-400 font-medium tracking-wide">
-                                    Sélectionnez les soirées et festivals du site à intégrer dans votre visuel Rave Agenda
+                                    SÃ©lectionnez les soirÃ©es et festivals du site Ã  intÃ©grer dans votre visuel Rave Agenda
                                 </p>
                             </div>
                             <div className="flex items-center gap-2">
                                 <button
                                     onClick={fetchSiteAgenda}
                                     disabled={isSiteAgendaLoading}
-                                    title="Rafraîchir les données"
+                                    title="RafraÃ®chir les donnÃ©es"
                                     className="p-2.5 sm:p-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-gray-400 hover:text-white transition-all disabled:opacity-50"
                                 >
                                     <RotateCcw className={`w-4 h-4 ${isSiteAgendaLoading ? 'animate-spin text-[#ff3700]' : ''}`} />
@@ -26622,7 +26622,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         onClick={() => setSelectedSiteEventIds([])}
                                         className="px-3 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-[9px] font-black uppercase text-gray-400 hover:text-white transition-all whitespace-nowrap flex items-center gap-1.5"
                                     >
-                                        <Square className="w-3.5 h-3.5" /> Tout décocher
+                                        <Square className="w-3.5 h-3.5" /> Tout dÃ©cocher
                                     </button>
                                 </div>
                             </div>
@@ -26661,13 +26661,13 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             {isSiteAgendaLoading ? (
                                 <div className="h-full flex flex-col items-center justify-center gap-3 text-gray-400 py-16">
                                     <RotateCcw className="w-8 h-8 animate-spin text-[#ff3700]" />
-                                    <p className="text-xs font-black uppercase tracking-wider">Chargement des événements de l'Agenda...</p>
+                                    <p className="text-xs font-black uppercase tracking-wider">Chargement des Ã©vÃ©nements de l'Agenda...</p>
                                 </div>
                             ) : filteredSiteAgendaList.length === 0 ? (
                                 <div className="h-full flex flex-col items-center justify-center gap-2 text-gray-500 py-16">
                                     <Calendar className="w-10 h-10 stroke-[1.5] text-gray-600 mb-1" />
-                                    <p className="text-xs font-black text-gray-400 uppercase tracking-wider">Aucun événement trouvé</p>
-                                    <p className="text-[10px] text-gray-500">Essayez de modifier votre recherche ou sélectionnez un autre mois.</p>
+                                    <p className="text-xs font-black text-gray-400 uppercase tracking-wider">Aucun Ã©vÃ©nement trouvÃ©</p>
+                                    <p className="text-[10px] text-gray-500">Essayez de modifier votre recherche ou sÃ©lectionnez un autre mois.</p>
                                 </div>
                             ) : (
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5 pb-2">
@@ -26733,7 +26733,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                                     </h3>
 
                                                     <p className="text-[9px] text-gray-400 font-medium line-clamp-1">
-                                                        {event.venue ? `${event.venue} • ` : ''}{event.location || ''} {event.country ? `(${event.country})` : ''}
+                                                        {event.venue ? `${event.venue} â€¢ ` : ''}{event.location || ''} {event.country ? `(${event.country})` : ''}
                                                     </p>
                                                 </div>
 
@@ -26742,7 +26742,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                                     <button
                                                         type="button"
                                                         onClick={() => handleImportFromSiteAgenda([event], false)}
-                                                        title="Ajouter immédiatement au visuel"
+                                                        title="Ajouter immÃ©diatement au visuel"
                                                         className="px-2 py-1 bg-white/10 hover:bg-[#ff3700] hover:text-black text-white text-[8px] font-black uppercase rounded-lg transition-all"
                                                     >
                                                         + Ajouter
@@ -26754,10 +26754,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                                                 setBgImage(imgUrl);
                                                                 setBgVideo(null);
                                                             }}
-                                                            title="Mettre l'affiche de cet événement en fond"
+                                                            title="Mettre l'affiche de cet Ã©vÃ©nement en fond"
                                                             className="px-2 py-1 bg-white/5 hover:bg-white/20 text-gray-400 hover:text-white text-[8px] font-bold uppercase rounded-lg transition-all"
                                                         >
-                                                            Fond 🖼️
+                                                            Fond ðŸ–¼ï¸
                                                         </button>
                                                     )}
                                                 </div>
@@ -26773,7 +26773,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             {/* Left: Status & auto month sync */}
                             <div className="flex items-center gap-3">
                                 <span className="text-xs font-black text-white">
-                                    <span className="text-[#ff3700]">{selectedSiteEventIds.length}</span> événement{selectedSiteEventIds.length > 1 ? 's' : ''} sélectionné{selectedSiteEventIds.length > 1 ? 's' : ''}
+                                    <span className="text-[#ff3700]">{selectedSiteEventIds.length}</span> Ã©vÃ©nement{selectedSiteEventIds.length > 1 ? 's' : ''} sÃ©lectionnÃ©{selectedSiteEventIds.length > 1 ? 's' : ''}
                                 </span>
                                 <label className="flex items-center gap-1.5 cursor-pointer text-[10px] text-gray-400 select-none">
                                     <input
@@ -26822,9 +26822,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100001] bg-black/95 backdrop-blur-3xl">
 
             {!isMobile ? (
-                /* ══════════════════════════════════════════════════════════
-                    DESKTOP LAYOUT (lg+) — original two-column design
-                ══════════════════════════════════════════════════════════ */
+                /* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+                    DESKTOP LAYOUT (lg+) â€” original two-column design
+                â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
                 <div className="flex w-full h-full max-w-6xl mx-auto rounded-[40px] border border-white/10 shadow-[0_0_100px_rgba(0,0,0,0.5)] overflow-hidden bg-[#0a0a0a]">
 
                     {/* Controls Sidebar */}
@@ -26832,7 +26832,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         <div className="flex items-center justify-between">
                             <div>
                                 <h2 className="text-2xl font-black text-white italic tracking-tighter">SOCIAL STUDIO</h2>
-                                <p className="text-[8px] font-black text-gray-500 uppercase tracking-widest">ÉDITION CRÉATIVE</p>
+                                <p className="text-[8px] font-black text-gray-500 uppercase tracking-widest">Ã‰DITION CRÃ‰ATIVE</p>
                             </div>
                             <div className="flex items-center gap-2">
                                 <button onClick={() => window.location.href = '/'} className="p-3 bg-white/5 hover:bg-white/10 rounded-2xl text-gray-400 hover:text-neon-cyan transition-all flex items-center gap-2 group" title="Retour au site">
@@ -26856,7 +26856,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 type="button"
                                 onClick={() => setShowAlexRecruitModal(true)}
                                 className="w-full py-2 px-3 rounded-xl bg-gradient-to-r from-neon-red/20 via-amber-500/20 to-neon-cyan/20 border border-amber-500/40 text-amber-300 text-[10px] font-black uppercase tracking-wider flex items-center justify-center gap-2 hover:brightness-125 transition-all shadow-md shadow-amber-500/10"
-                                title="Créateur Reel Recrutement (Alex)"
+                                title="CrÃ©ateur Reel Recrutement (Alex)"
                             >
                                 <Sparkles className="w-3.5 h-3.5 text-amber-400" />
                                 <span>REEL RECRUTEMENT</span>
@@ -26873,7 +26873,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     : 'text-gray-400 hover:text-white hover:bg-white/5'
                                     }`}
                             >
-                                <span className="text-xs">✍️</span>
+                                <span className="text-xs">âœï¸</span>
                                 <span className="tracking-wider">1. Texte</span>
                             </button>
                             <button
@@ -26884,7 +26884,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     : 'text-gray-400 hover:text-white hover:bg-white/5'
                                     }`}
                             >
-                                <span className="text-xs">🖼️</span>
+                                <span className="text-xs">ðŸ–¼ï¸</span>
                                 <span className="tracking-wider">2. Visuel</span>
                             </button>
                             <button
@@ -26895,32 +26895,32 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     : 'text-gray-400 hover:text-white hover:bg-white/5'
                                     }`}
                             >
-                                <span className="text-xs">🚀</span>
+                                <span className="text-xs">ðŸš€</span>
                                 <span className="tracking-wider">3. Export</span>
                             </button>
                         </div>
 
-                        {/* ══════════════════════════════════════════════
-                            ÉTAPE 1 : ✍️ THÈME & TEXTE
-                        ══════════════════════════════════════════════ */}
+                        {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+                            Ã‰TAPE 1 : âœï¸ THÃˆME & TEXTE
+                        â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
                         {sidebarStep === 'text' && (
                             <div className="space-y-4 animate-in fade-in duration-150">
                                 <div className="space-y-1.5">
                                     {(() => {
                                         const getThemeMeta = (t: string) => {
                                             if (['MUSIQUE', 'TRACKLIST', 'ARTISTE FESTIVAL', 'SPOTLIGHT', 'HIGHLIGHTS', 'TOP 10 TRACKS'].includes(t)) {
-                                                return { category: 'MUSIC' as const, catLabel: 'Musique', icon: '🎵', color: '#00f0ff', border: 'border-cyan-400/40', bg: 'bg-cyan-500/15', text: 'text-cyan-400' };
+                                                return { category: 'MUSIC' as const, catLabel: 'Musique', icon: 'ðŸŽµ', color: '#00f0ff', border: 'border-cyan-400/40', bg: 'bg-cyan-500/15', text: 'text-cyan-400' };
                                             }
                                             if (['PLANNING', 'CALENDRIER', 'EVENTS', 'AFFICHE', 'MAP'].includes(t)) {
-                                                return { category: 'AGENDA' as const, catLabel: 'Agenda', icon: '📅', color: '#ff6700', border: 'border-[#ff6700]/40', bg: 'bg-[#ff6700]/15', text: 'text-[#ff6700]' };
+                                                return { category: 'AGENDA' as const, catLabel: 'Agenda', icon: 'ðŸ“…', color: '#ff6700', border: 'border-[#ff6700]/40', bg: 'bg-[#ff6700]/15', text: 'text-[#ff6700]' };
                                             }
                                             if (['JEU', 'JEU_FESTIVAL', 'JEU_DJ', 'CONCOURS', 'TOP 100 DROPSIDERS'].includes(t)) {
-                                                return { category: 'GAMES' as const, catLabel: 'Jeux', icon: '🎮', color: '#00f0ff', border: 'border-[#00f0ff]/40', bg: 'bg-[#00f0ff]/15', text: 'text-[#00f0ff]' };
+                                                return { category: 'GAMES' as const, catLabel: 'Jeux', icon: 'ðŸŽ®', color: '#00f0ff', border: 'border-[#00f0ff]/40', bg: 'bg-[#00f0ff]/15', text: 'text-[#00f0ff]' };
                                             }
                                             if (t === 'FOCUS') {
-                                                return { category: 'EDITO' as const, catLabel: 'Édito', icon: '📰', color: '#ffe600', border: 'border-[#ffe600]/40', bg: 'bg-[#ffe600]/15', text: 'text-[#ffe600]' };
+                                                return { category: 'EDITO' as const, catLabel: 'Ã‰dito', icon: 'ðŸ“°', color: '#ffe600', border: 'border-[#ffe600]/40', bg: 'bg-[#ffe600]/15', text: 'text-[#ffe600]' };
                                             }
-                                            return { category: 'EDITO' as const, catLabel: 'Édito', icon: '📰', color: '#ff1241', border: 'border-[#ff1241]/40', bg: 'bg-[#ff1241]/15', text: 'text-neon-red' };
+                                            return { category: 'EDITO' as const, catLabel: 'Ã‰dito', icon: 'ðŸ“°', color: '#ff1241', border: 'border-[#ff1241]/40', bg: 'bg-[#ff1241]/15', text: 'text-neon-red' };
                                         };
 
                                         const currentMeta = getThemeMeta(theme);
@@ -26932,15 +26932,15 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                                         : theme;
 
                                         const desktopThemeList = [
-                                            // 📰 Éditorial
+                                            // ðŸ“° Ã‰ditorial
                                             { id: 'NEWS', label: 'NEWS', category: 'EDITO', action: () => handleSetTheme('NEWS'), active: theme === 'NEWS', style: 'bg-neon-red/20 border-neon-red text-neon-red shadow-[0_0_12px_rgba(255,18,65,0.35)]' },
                                             { id: 'FOCUS', label: 'FOCUS', category: 'EDITO', action: () => handleSetTheme('FOCUS'), active: theme === 'FOCUS', style: 'bg-[#ffe600]/20 border-[#ffe600] text-[#ffe600] shadow-[0_0_12px_rgba(255,230,0,0.35)]' },
-                                            { id: 'RECAP', label: 'RÉCAP', category: 'EDITO', action: () => handleSetTheme('RECAP'), active: theme === 'RECAP', style: 'bg-[#c026d3]/20 border-[#c026d3] text-[#c026d3] shadow-[0_0_12px_rgba(192,38,211,0.35)]' },
+                                            { id: 'RECAP', label: 'RÃ‰CAP', category: 'EDITO', action: () => handleSetTheme('RECAP'), active: theme === 'RECAP', style: 'bg-[#c026d3]/20 border-[#c026d3] text-[#c026d3] shadow-[0_0_12px_rgba(192,38,211,0.35)]' },
                                             { id: 'INTERVIEW', label: 'INTERVIEW', category: 'EDITO', action: () => handleSetTheme('INTERVIEW'), active: theme === 'INTERVIEW', style: 'bg-white/20 border-white text-white shadow-[0_0_12px_rgba(255,255,255,0.35)]' },
                                             { id: 'CITATION', label: 'CITATION', category: 'EDITO', action: () => handleSetTheme('CITATION'), active: theme === 'CITATION', style: 'bg-neon-red/20 border-neon-red text-neon-red shadow-[0_0_12px_rgba(255,18,65,0.35)]' },
                                             { id: 'LIVESTREAM', label: 'DIRECT', category: 'EDITO', action: () => handleSetTheme('LIVESTREAM'), active: theme === 'LIVESTREAM', style: 'bg-pink-500/20 border-pink-500 text-pink-500 shadow-[0_0_12px_rgba(236,72,153,0.35)]' },
 
-                                            // 🎵 Musique
+                                            // ðŸŽµ Musique
                                             ...(activeTab === 'REEL' ? [{ id: 'TOP 10 TRACKS', label: 'TOP 10 TRACKS', category: 'MUSIC', action: () => handleSetTheme('TOP 10 TRACKS'), active: theme === 'TOP 10 TRACKS', style: 'bg-gradient-to-r from-neon-red/30 to-amber-500/20 border-neon-red text-white shadow-[0_0_15px_rgba(255,0,51,0.4)]' }] : []),
                                             { id: 'MUSIQUE', label: 'MUSIQUE', category: 'MUSIC', action: () => handleSetTheme('MUSIQUE'), active: theme === 'MUSIQUE', style: 'bg-neon-green/20 border-neon-green text-neon-green shadow-[0_0_12px_rgba(0,255,102,0.35)]' },
                                             { id: 'HIGHLIGHTS', label: 'HIGHLIGHTS', category: 'MUSIC', action: () => handleSetTheme('HIGHLIGHTS'), active: theme === 'HIGHLIGHTS', style: 'bg-white/20 border-white text-white shadow-[0_0_12px_rgba(255,255,255,0.35)]' },
@@ -26954,15 +26954,15 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                                 ]),
                                             ...(activeTab === 'REEL' ? [{ id: 'TRACKLIST', label: 'TRACKLIST', category: 'MUSIC', action: () => handleSetTheme('TRACKLIST'), active: theme === 'TRACKLIST', style: 'bg-orange-500/20 border-orange-500 text-orange-500 shadow-[0_0_12px_rgba(255,120,0,0.35)]' }] : []),
 
-                                            // 📅 Agenda
+                                            // ðŸ“… Agenda
                                             { id: 'PLANNING', label: 'AGENDA', category: 'AGENDA', action: () => handleSetTheme('PLANNING'), active: theme === 'PLANNING', style: 'bg-[#ff6700]/20 border-[#ff6700] text-[#ff6700] shadow-[0_0_12px_rgba(255,103,0,0.35)]' },
                                             { id: 'EVENTS', label: 'EVENTS', category: 'AGENDA', action: () => { handleSetTheme('EVENTS'); setEventsSlide(1); }, active: theme === 'EVENTS' || theme === 'AFFICHE', style: 'bg-[#ff6700]/20 border-[#ff6700] text-[#ff6700] shadow-[0_0_12px_rgba(255,103,0,0.35)]' },
                                             ...(activeTab === 'REEL' ? [{ id: 'MAP', label: 'CARTE (STORY)', category: 'AGENDA', action: () => handleSetTheme('MAP'), active: theme === 'MAP', style: 'bg-neon-cyan/20 border-neon-cyan text-neon-cyan shadow-[0_0_12px_rgba(0,240,255,0.35)]' }] : []),
 
-                                            // 🎮 Jeux
+                                            // ðŸŽ® Jeux
                                             {
                                                 id: 'DEVINETTE',
-                                                label: theme === 'JEU_FESTIVAL' ? '🎪 DEVINE FESTIVAL' : theme === 'JEU_DJ' ? '👤 DEVINE LE DJ' : theme === 'JEU' ? '🎬 DEVINE CLIP' : 'DEVINETTE (JEU)',
+                                                label: theme === 'JEU_FESTIVAL' ? 'ðŸŽª DEVINE FESTIVAL' : theme === 'JEU_DJ' ? 'ðŸ‘¤ DEVINE LE DJ' : theme === 'JEU' ? 'ðŸŽ¬ DEVINE CLIP' : 'DEVINETTE (JEU)',
                                                 category: 'GAMES',
                                                 action: () => { if (theme !== 'JEU' && theme !== 'JEU_FESTIVAL' && theme !== 'JEU_DJ') handleSetTheme('JEU'); },
                                                 active: theme === 'JEU' || theme === 'JEU_FESTIVAL' || theme === 'JEU_DJ',
@@ -26978,12 +26978,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                                         return (
                                             <div className="space-y-2">
-                                                {/* CARTE ACCORDÉON INTELLIGENT (SYNTHÈSE COMPACTE & DÉPLIANTE) */}
+                                                {/* CARTE ACCORDÃ‰ON INTELLIGENT (SYNTHÃˆSE COMPACTE & DÃ‰PLIANTE) */}
                                                 <div className="rounded-2xl border border-white/10 bg-gradient-to-b from-white/[0.07] to-white/[0.02] p-2.5 backdrop-blur-xl shadow-lg transition-all duration-200 hover:border-white/20">
                                                     <div
                                                         onClick={() => setIsThemeAccordionOpen(!isThemeAccordionOpen)}
                                                         className="flex items-center justify-between cursor-pointer select-none group"
-                                                        title="Cliquer pour dérouler ou replier les thèmes"
+                                                        title="Cliquer pour dÃ©rouler ou replier les thÃ¨mes"
                                                     >
                                                         <div className="flex items-center gap-2 min-w-0">
                                                             <span className={`px-2 py-0.5 rounded-full text-[8.5px] font-black uppercase tracking-wider border flex items-center gap-1 ${currentMeta.bg} ${currentMeta.border} ${currentMeta.text}`}>
@@ -27014,7 +27014,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                                         </button>
                                                     </div>
 
-                                                    {/* CONTENU DÉPLIÉ DE L'ACCORDÉON */}
+                                                    {/* CONTENU DÃ‰PLIÃ‰ DE L'ACCORDÃ‰ON */}
                                                     <AnimatePresence>
                                                         {isThemeAccordionOpen && (
                                                             <motion.div
@@ -27024,14 +27024,14 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                                                 transition={{ duration: 0.2 }}
                                                                 className="overflow-hidden pt-3 space-y-2.5 border-t border-white/10 mt-2.5"
                                                             >
-                                                                {/* FILTRES PAR CATÉGORIE */}
+                                                                {/* FILTRES PAR CATÃ‰GORIE */}
                                                                 <div className="flex items-center gap-1 overflow-x-auto pb-1 custom-scrollbar">
                                                                     {[
                                                                         { key: 'ALL', label: 'Tous' },
-                                                                        { key: 'EDITO', label: '📰 Édito' },
-                                                                        { key: 'MUSIC', label: '🎵 Musique' },
-                                                                        { key: 'AGENDA', label: '📅 Agenda' },
-                                                                        { key: 'GAMES', label: '🎮 Jeux' },
+                                                                        { key: 'EDITO', label: 'ðŸ“° Ã‰dito' },
+                                                                        { key: 'MUSIC', label: 'ðŸŽµ Musique' },
+                                                                        { key: 'AGENDA', label: 'ðŸ“… Agenda' },
+                                                                        { key: 'GAMES', label: 'ðŸŽ® Jeux' },
                                                                     ].map(cat => (
                                                                         <button
                                                                             key={cat.key}
@@ -27047,7 +27047,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                                                     ))}
                                                                 </div>
 
-                                                                {/* GRILLE DES THÈMES */}
+                                                                {/* GRILLE DES THÃˆMES */}
                                                                 <div className="grid grid-cols-3 gap-1.5 max-h-[260px] overflow-y-auto pr-1 custom-scrollbar">
                                                                     {filteredThemes.map(item => (
                                                                         <button
@@ -27067,15 +27067,15 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                                                     ))}
                                                                 </div>
 
-                                                                {/* PIED DE L'ACCORDÉON */}
+                                                                {/* PIED DE L'ACCORDÃ‰ON */}
                                                                 <div className="pt-1 flex items-center justify-between border-t border-white/5 text-[8px] text-gray-500">
-                                                                    <span>{filteredThemes.length} thème{filteredThemes.length > 1 ? 's' : ''} disponible{filteredThemes.length > 1 ? 's' : ''}</span>
+                                                                    <span>{filteredThemes.length} thÃ¨me{filteredThemes.length > 1 ? 's' : ''} disponible{filteredThemes.length > 1 ? 's' : ''}</span>
                                                                     <button
                                                                         type="button"
                                                                         onClick={() => setIsThemeAccordionOpen(false)}
                                                                         className="text-neon-cyan hover:underline uppercase font-bold flex items-center gap-1"
                                                                     >
-                                                                        <span>Replier l'accordéon</span>
+                                                                        <span>Replier l'accordÃ©on</span>
                                                                         <ChevronUp className="w-2.5 h-2.5" />
                                                                     </button>
                                                                 </div>
@@ -27094,15 +27094,15 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     })()}
                                 </div>
 
-                                {/* Texte Principal & Contenu du Thème */}
+                                {/* Texte Principal & Contenu du ThÃ¨me */}
                                 <div className="space-y-3 pt-2 border-t border-white/10">
                                     {(isCarouselPromoActive && isMultiSlideTheme) ? (
-                                        <><span className="text-[10px] font-black text-neon-red uppercase">🔥 Outro Carrousel : Question & Phrase Promo</span>{promoEditor}</>
+                                        <><span className="text-[10px] font-black text-neon-red uppercase">ðŸ”¥ Outro Carrousel : Question & Phrase Promo</span>{promoEditor}</>
                                     ) : theme === 'MAP' ? (
                                         <><span className="text-[10px] font-black text-neon-cyan uppercase">Carte & Localisation</span>{mapEditor}</>
                                     ) : theme === 'CALENDRIER' ? (
                                         <>
-                                            <span className="text-[10px] font-black text-gray-500 uppercase">Calendrier des événements</span>
+                                            <span className="text-[10px] font-black text-gray-500 uppercase">Calendrier des Ã©vÃ©nements</span>
                                             <div className="space-y-3">
                                                 <input
                                                     value={calendarMonth}
@@ -27122,34 +27122,34 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                                             <input
                                                                 value={evt.label}
                                                                 onChange={e => { const n = [...calendarEvents]; n[i].label = e.target.value; setCalendarEvents(n); }}
-                                                                placeholder="NOM DE L'ÉVÉNEMENT"
+                                                                placeholder="NOM DE L'Ã‰VÃ‰NEMENT"
                                                                 className="flex-1 bg-white/10 border border-white/20 rounded-lg p-2 text-white font-black italic uppercase text-xs"
                                                             />
-                                                            <button onClick={() => setCalendarEvents(calendarEvents.filter((_, idx) => idx !== i))} className="p-2 text-red-500 hover:bg-red-500/10 rounded-lg"><span className="text-xs">✕</span></button>
+                                                            <button onClick={() => setCalendarEvents(calendarEvents.filter((_, idx) => idx !== i))} className="p-2 text-red-500 hover:bg-red-500/10 rounded-lg"><span className="text-xs">âœ•</span></button>
                                                         </div>
                                                     ))}
-                                                    <button onClick={() => setCalendarEvents([...calendarEvents, { date: '??', label: 'NOUVEL ÉVÉNEMENT' }])} className="w-full py-3 bg-neon-orange/10 border border-dashed border-neon-orange/30 rounded-xl text-[9px] font-black uppercase text-neon-orange hover:bg-neon-orange/20 transition-all">+ Ajouter un événement</button>
+                                                    <button onClick={() => setCalendarEvents([...calendarEvents, { date: '??', label: 'NOUVEL Ã‰VÃ‰NEMENT' }])} className="w-full py-3 bg-neon-orange/10 border border-dashed border-neon-orange/30 rounded-xl text-[9px] font-black uppercase text-neon-orange hover:bg-neon-orange/20 transition-all">+ Ajouter un Ã©vÃ©nement</button>
                                                 </div>
                                             </div>
                                         </>
                                     ) : theme === 'PLANNING' ? (
-                                        <><span className="text-[10px] font-black text-[#ff3700] uppercase tracking-wider">📅 Agenda des Soirées & Festivals</span>{planningEditor}</>
+                                        <><span className="text-[10px] font-black text-[#ff3700] uppercase tracking-wider">ðŸ“… Agenda des SoirÃ©es & Festivals</span>{planningEditor}</>
                                     ) : theme.startsWith('TOP 5') ? (
-                                        <><span className="text-[10px] font-black text-gray-500 uppercase">Éléments du Top 5</span>{top5Editor}</>
+                                        <><span className="text-[10px] font-black text-gray-500 uppercase">Ã‰lÃ©ments du Top 5</span>{top5Editor}</>
                                     ) : theme === 'TRACKLIST' ? (
-                                        <><span className="text-[10px] font-black text-gray-500 uppercase">Détails Tracklist</span>{tracklistEditor}</>
+                                        <><span className="text-[10px] font-black text-gray-500 uppercase">DÃ©tails Tracklist</span>{tracklistEditor}</>
                                     ) : theme === 'SPOTLIGHT' ? (
                                         <><span className="text-[10px] font-black text-gray-500 uppercase">Infos & Textes Spotlight</span>{spotlightEditor}</>
                                     ) : theme === 'ARTISTE FESTIVAL' ? (
                                         <><span className="text-[10px] font-black text-neon-red uppercase">Artiste Festival (Carrousel)</span>{artisteFestivalEditor}</>
                                     ) : (theme === 'EVENTS' || theme === 'AFFICHE') ? (
-                                        <><span className="text-[10px] font-black text-[#ff3700] uppercase">Événements & Affiche (Carrousel)</span>{eventsEditor}</>
+                                        <><span className="text-[10px] font-black text-[#ff3700] uppercase">Ã‰vÃ©nements & Affiche (Carrousel)</span>{eventsEditor}</>
                                     ) : theme === 'MUSIQUE' ? (
                                         <><span className="text-[10px] font-black text-[#00ff66] uppercase">Musique & Morceaux (Carrousel)</span>{musiqueEditor}</>
                                     ) : theme === 'TOP 100 DROPSIDERS' ? (
-                                        <><span className="text-[10px] font-black text-neon-red uppercase">🏆 Révélation Top 100 Dropsiders</span>{top100Editor}</>
+                                        <><span className="text-[10px] font-black text-neon-red uppercase">ðŸ† RÃ©vÃ©lation Top 100 Dropsiders</span>{top100Editor}</>
                                     ) : theme === 'TOP 10 TRACKS' ? (
-                                        <><span className="text-[10px] font-black text-neon-cyan uppercase">🔥 Top 10 Countdown Tracks (#10 ➔ #1)</span>{top10TracksEditor}</>
+                                        <><span className="text-[10px] font-black text-neon-cyan uppercase">ðŸ”¥ Top 10 Countdown Tracks (#10 âž” #1)</span>{top10TracksEditor}</>
                                     ) : theme === 'HIGHLIGHTS' ? (
                                         <><span className="text-[10px] font-black text-white uppercase">Infos Highlights (Slide {editorialSlide})</span>{highlightsEditor}</>
                                     ) : ['NEWS', 'FOCUS', 'RECAP', 'INTERVIEW', 'REELS', 'CONSEILS', 'CONCOURS', 'JEU', 'JEU_FESTIVAL', 'JEU_DJ'].includes(theme) ? (
@@ -27157,7 +27157,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     ) : theme === 'CITATION' ? (
                                         <><span className="text-[10px] font-black text-neon-red uppercase">Citation & Auteur</span>{citationEditor}</>
                                     ) : theme === 'PROMO' ? (
-                                        <><span className="text-[10px] font-black text-neon-red uppercase">Question & Outro Réseaux</span>{promoEditor}</>
+                                        <><span className="text-[10px] font-black text-neon-red uppercase">Question & Outro RÃ©seaux</span>{promoEditor}</>
                                     ) : (
                                         <><span className="text-[10px] font-black text-gray-500 uppercase">Contenu Texte</span>{textEditor}</>
                                     )}
@@ -27165,12 +27165,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     {/* Option Date dans la barre blanche */}
                                     {!((isCarouselPromoActive && isMultiSlideTheme) || theme === 'PROMO') && editorialDateControl}
 
-                                    {/* Animation universelle du texte & éléments (regroupée directement sous le cadre texte) */}
+                                    {/* Animation universelle du texte & Ã©lÃ©ments (regroupÃ©e directement sous le cadre texte) */}
                                     {theme !== 'MAP' && !((isCarouselPromoActive && isMultiSlideTheme) || theme === 'PROMO') && textAnimationControl}
                                     {theme !== 'MAP' && isMultiSlideTheme && !((isCarouselPromoActive && isMultiSlideTheme) || theme === 'PROMO') && slideTransitionControl}
                                 </div>
 
-                                {/* Navigation rapide vers l'étape suivante */}
+                                {/* Navigation rapide vers l'Ã©tape suivante */}
                                 <div className="pt-3 border-t border-white/10 flex gap-2">
                                     <button
                                         type="button"
@@ -27178,15 +27178,15 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         className="flex-1 py-3 bg-neon-cyan text-black rounded-xl text-[9.5px] font-black uppercase flex items-center justify-center gap-1.5 shadow-[0_0_15px_rgba(0,255,255,0.3)] hover:brightness-110 active:scale-98 transition-all"
                                     >
                                         <span>Suivant : 2. Visuel & Fond</span>
-                                        <span>➡️</span>
+                                        <span>âž¡ï¸</span>
                                     </button>
                                 </div>
                             </div>
                         )}
 
-                        {/* ══════════════════════════════════════════════
-                            ÉTAPE 2 : 🖼️ VISUEL & FOND
-                        ══════════════════════════════════════════════ */}
+                        {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+                            Ã‰TAPE 2 : ðŸ–¼ï¸ VISUEL & FOND
+                        â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
                         {sidebarStep === 'visual' && (
                             <div className="space-y-4 animate-in fade-in duration-150">
                                 {isEditorialTweetActive ? (
@@ -27211,9 +27211,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                                         <div className="flex items-center justify-between">
                                             <span className="text-[10px] font-black text-neon-cyan uppercase tracking-widest">
-                                                {theme === 'MUSIQUE' && editorialSlide >= 2 ? 'Fond & Ambiance Arrière-Plan' : theme === 'JEU_DJ' ? 'Fond Arrière-Plan Scène / Club' : 'Fond & Médias'}
+                                                {theme === 'MUSIQUE' && editorialSlide >= 2 ? 'Fond & Ambiance ArriÃ¨re-Plan' : theme === 'JEU_DJ' ? 'Fond ArriÃ¨re-Plan ScÃ¨ne / Club' : 'Fond & MÃ©dias'}
                                             </span>
-                                            <span className="text-[8px] text-gray-400 uppercase font-bold">Image, Vidéo ou Cloud</span>
+                                            <span className="text-[8px] text-gray-400 uppercase font-bold">Image, VidÃ©o ou Cloud</span>
                                         </div>
 
                                         <div className="grid grid-cols-2 gap-2">
@@ -27239,11 +27239,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         </div>
                                         <button onClick={() => setIsDownloaderOpen(true)} className="w-full py-2.5 border border-dashed border-white/10 rounded-xl flex items-center justify-center gap-2 text-gray-400 text-[8.5px] font-black uppercase hover:border-white/30 hover:text-white transition-all bg-white/5 group">
                                             <LinkIcon className="w-3.5 h-3.5 group-hover:text-neon-cyan transition-colors" />
-                                            Télécharger Vidéo/Photo (URL)
+                                            TÃ©lÃ©charger VidÃ©o/Photo (URL)
                                         </button>
                                         <button onClick={() => setIsRecapPickerOpen(true)} className="w-full py-2.5 bg-[#c026d3]/10 border border-[#c026d3]/30 rounded-xl flex items-center justify-center gap-2 text-[#c026d3] text-[9px] font-black uppercase hover:bg-[#c026d3]/20 transition-all group">
                                             <PlusCircle className="w-3.5 h-3.5" />
-                                            Importer un RÉCAP ÉCRIT
+                                            Importer un RÃ‰CAP Ã‰CRIT
                                         </button>
 
                                         {bgPositionControls}
@@ -27296,7 +27296,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                                             bgVideo.play().catch(() => { });
                                                         }}
                                                         className="py-2 bg-neon-cyan/10 border border-neon-cyan/30 rounded-xl text-[8.5px] font-black text-neon-cyan uppercase hover:bg-neon-cyan/20 transition-all flex items-center justify-center gap-1 active:scale-95 shadow-sm"
-                                                        title={`Remettre la vidéo à ${formatVideoTime(bgVideoStartTime)} et relancer`}
+                                                        title={`Remettre la vidÃ©o Ã  ${formatVideoTime(bgVideoStartTime)} et relancer`}
                                                     >
                                                         <RotateCcw className="w-3.5 h-3.5" /> {formatVideoTime(bgVideoStartTime)}
                                                     </button>
@@ -27316,12 +27316,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                                     </button>
                                                 </div>
 
-                                                {/* Barre Scrubber / Timeline de passage vidéo */}
+                                                {/* Barre Scrubber / Timeline de passage vidÃ©o */}
                                                 <div className="bg-black/40 border border-white/10 rounded-xl p-2.5 space-y-2 mt-2">
                                                     <div className="flex justify-between items-center text-[9px] font-black uppercase text-gray-400">
                                                         <span className="flex items-center gap-1.5 text-white">
                                                             <Film className="w-3.5 h-3.5 text-neon-cyan" />
-                                                            Passage de la vidéo (Départ)
+                                                            Passage de la vidÃ©o (DÃ©part)
                                                         </span>
                                                         <span className="text-neon-cyan font-mono text-[10px] bg-neon-cyan/10 px-1.5 py-0.5 rounded border border-neon-cyan/30">
                                                             {formatVideoTime(bgVideoStartTime)} / {formatVideoTime(bgVideo.duration || 0)}
@@ -27351,7 +27351,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                                             }}
                                                             className="px-2 py-1 bg-white/5 hover:bg-white/10 border border-white/10 rounded-md transition-all active:scale-95"
                                                         >
-                                                            ⏪ 0:00
+                                                            âª 0:00
                                                         </button>
                                                         <div className="flex items-center gap-1">
                                                             <button
@@ -27381,13 +27381,13 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                                         </div>
                                                     </div>
                                                     <p className="text-[7.5px] text-neon-cyan/80 italic text-center">
-                                                        ⏱️ Le clip et l'export MP4 commenceront à {formatVideoTime(bgVideoStartTime)}
+                                                        â±ï¸ Le clip et l'export MP4 commenceront Ã  {formatVideoTime(bgVideoStartTime)}
                                                     </p>
                                                 </div>
                                             </div>
                                         )}
 
-                                        {/* Module Dédié Devine le DJ (Artiste & Silhouette Mystère) placé sous le Fond Scène / Club */}
+                                        {/* Module DÃ©diÃ© Devine le DJ (Artiste & Silhouette MystÃ¨re) placÃ© sous le Fond ScÃ¨ne / Club */}
                                         {theme === 'JEU_DJ' && (
                                             <div className="space-y-2 pt-2 border-t border-white/10">
                                                 {djSilhouetteEditor}
@@ -27403,14 +27403,14 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     </div>
                                 )}
 
-                                {/* Navigation entre étapes */}
+                                {/* Navigation entre Ã©tapes */}
                                 <div className="pt-3 border-t border-white/10 flex gap-2">
                                     <button
                                         type="button"
                                         onClick={() => setSidebarStep('text')}
                                         className="py-2.5 px-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-[9px] font-bold text-gray-300 uppercase transition-all flex items-center gap-1"
                                     >
-                                        <span>⬅️</span>
+                                        <span>â¬…ï¸</span>
                                         <span>1. Texte</span>
                                     </button>
                                     <button
@@ -27419,15 +27419,15 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         className="flex-1 py-2.5 bg-emerald-400 hover:bg-emerald-300 text-black rounded-xl text-[9.5px] font-black uppercase flex items-center justify-center gap-1.5 shadow-[0_0_15px_rgba(52,211,153,0.3)] transition-all"
                                     >
                                         <span>Suivant : 3. Export</span>
-                                        <span>🚀</span>
+                                        <span>ðŸš€</span>
                                     </button>
                                 </div>
                             </div>
                         )}
 
-                        {/* ══════════════════════════════════════════════
-                            ÉTAPE 3 : 🚀 OPTIONS & EXPORT
-                        ══════════════════════════════════════════════ */}
+                        {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+                            Ã‰TAPE 3 : ðŸš€ OPTIONS & EXPORT
+                        â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
                         {sidebarStep === 'export' && (
                             <div className="space-y-4 animate-in fade-in duration-150">
                                 {/* Options & Liens */}
@@ -27503,7 +27503,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 {/* Export */}
                                 <div className="space-y-3 pt-2 border-t border-white/10">
                                     <span className="text-[10px] font-black text-emerald-400 uppercase tracking-widest flex items-center gap-1.5">
-                                        <span>🚀</span> Téléchargement & Export
+                                        <span>ðŸš€</span> TÃ©lÃ©chargement & Export
                                     </span>
                                     {quickCarouselDownloadBar}
                                     {exportButtons}
@@ -27515,8 +27515,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         onClick={() => { setSidebarStep('visual'); setActivePanel('fond'); }}
                                         className="w-full py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-[9px] font-bold text-gray-400 hover:text-white uppercase transition-all flex items-center justify-center gap-1.5"
                                     >
-                                        <span>⬅️</span>
-                                        <span>Revenir à l'étape 2 (Visuel & Fond)</span>
+                                        <span>â¬…ï¸</span>
+                                        <span>Revenir Ã  l'Ã©tape 2 (Visuel & Fond)</span>
                                     </button>
                                 </div>
                             </div>
@@ -27536,7 +27536,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
                                         }`}
                                 >
-                                    🎪 Slide 1 (Intro)
+                                    ðŸŽª Slide 1 (Intro)
                                 </button>
                                 <button
                                     type="button"
@@ -27546,7 +27546,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
                                         }`}
                                 >
-                                    ⭐ Slide 2 (Artiste 1)
+                                    â­ Slide 2 (Artiste 1)
                                 </button>
                                 {extraSpotlightSlides.map((slideNum, idx) => (
                                     <div key={slideNum} className="flex items-center gap-0.5">
@@ -27558,7 +27558,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                                 : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
                                                 }`}
                                         >
-                                            ⭐ Slide {slideNum} (Artiste {idx + 2})
+                                            â­ Slide {slideNum} (Artiste {idx + 2})
                                         </button>
                                         <button
                                             type="button"
@@ -27593,7 +27593,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
                                         }`}
                                 >
-                                    🔥 Slide PROMO
+                                    ðŸ”¥ Slide PROMO
                                 </button>
                                 {slideTransitionQuickBar}
                             </div>
@@ -27609,7 +27609,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
                                         }`}
                                 >
-                                    📢 Slide 1 (Post)
+                                    ðŸ“¢ Slide 1 (Post)
                                 </button>
                                 <button
                                     type="button"
@@ -27619,7 +27619,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
                                         }`}
                                 >
-                                    🎨 Slide 2 (Affiche)
+                                    ðŸŽ¨ Slide 2 (Affiche)
                                 </button>
                                 <button
                                     type="button"
@@ -27632,7 +27632,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
                                         }`}
                                 >
-                                    🔥 Slide PROMO
+                                    ðŸ”¥ Slide PROMO
                                 </button>
                                 {slideTransitionQuickBar}
                             </div>
@@ -27648,7 +27648,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
                                         }`}
                                 >
-                                    🎵 Slide 1 (Annonce)
+                                    ðŸŽµ Slide 1 (Annonce)
                                 </button>
                                 {musicTracks.map((_, tIdx) => {
                                     const sNum = tIdx + 2;
@@ -27662,7 +27662,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                                 : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
                                                 }`}
                                         >
-                                            💿 S{sNum} (Track {tIdx + 1})
+                                            ðŸ’¿ S{sNum} (Track {tIdx + 1})
                                         </button>
                                     );
                                 })}
@@ -27673,7 +27673,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         className="px-2.5 py-1.5 rounded-xl text-[9px] font-black uppercase transition-all bg-[#00ff66]/15 text-[#00ff66] border border-[#00ff66]/30 hover:bg-[#00ff66]/25 flex items-center gap-1"
                                         title="Ajouter une track"
                                     >
-                                        ➕ Track
+                                        âž• Track
                                     </button>
                                 )}
                                 <button
@@ -27687,7 +27687,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
                                         }`}
                                 >
-                                    🔥 Slide PROMO
+                                    ðŸ”¥ Slide PROMO
                                 </button>
                                 {slideTransitionQuickBar}
                             </div>
@@ -27703,7 +27703,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
                                         }`}
                                 >
-                                    📌 Slide 1 (Cover)
+                                    ðŸ“Œ Slide 1 (Cover)
                                 </button>
                                 <button
                                     type="button"
@@ -27713,7 +27713,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
                                         }`}
                                 >
-                                    📋 Slide 2 (Événements)
+                                    ðŸ“‹ Slide 2 (Ã‰vÃ©nements)
                                 </button>
                                 {agendaAffiches.map((aff, idx) => {
                                     const sNum = idx + 3;
@@ -27728,7 +27728,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                                     : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
                                                     }`}
                                             >
-                                                🖼️ S{sNum} (Affiche {idx + 1})
+                                                ðŸ–¼ï¸ S{sNum} (Affiche {idx + 1})
                                             </button>
                                             <button
                                                 type="button"
@@ -27739,7 +27739,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                                 className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-red-500 hover:bg-red-600 text-white rounded-full text-[9px] font-bold flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-sm"
                                                 title={`Supprimer l'Affiche ${idx + 1}`}
                                             >
-                                                ✕
+                                                âœ•
                                             </button>
                                         </div>
                                     );
@@ -27751,7 +27751,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         className="px-2.5 py-1.5 rounded-xl text-[9px] font-black uppercase transition-all bg-[#ff3700]/15 text-[#ff3700] border border-[#ff3700]/30 hover:bg-[#ff3700]/25 flex items-center gap-1 shadow-sm active:scale-95"
                                         title="Ajouter une slide affiche festival/event (20 slides max)"
                                     >
-                                        ➕ Affiche
+                                        âž• Affiche
                                     </button>
                                 )}
                                 <button
@@ -27765,7 +27765,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
                                         }`}
                                 >
-                                    🔥 Slide PROMO
+                                    ðŸ”¥ Slide PROMO
                                 </button>
                                 {slideTransitionQuickBar}
                             </div>
@@ -27781,7 +27781,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
                                         }`}
                                 >
-                                    {theme === 'JEU_DJ' ? '👤 Slide 1 (Silhouette)' : '📌 Slide 1 (Cover)'}
+                                    {theme === 'JEU_DJ' ? 'ðŸ‘¤ Slide 1 (Silhouette)' : 'ðŸ“Œ Slide 1 (Cover)'}
                                 </button>
                                 {(!skipEditorialSlide2 || theme === 'JEU_DJ') && (
                                     <div className="relative group flex items-center rounded-xl overflow-hidden border border-white/10 bg-white/5">
@@ -27793,7 +27793,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                                 : 'text-gray-300 hover:text-white hover:bg-white/10'
                                                 }`}
                                         >
-                                            {theme === 'JEU_DJ' ? '🌈 Slide 2 (Révélation)' : '📖 Slide 2'}
+                                            {theme === 'JEU_DJ' ? 'ðŸŒˆ Slide 2 (RÃ©vÃ©lation)' : 'ðŸ“– Slide 2'}
                                         </button>
                                         {theme !== 'JEU_DJ' && (
                                             <button
@@ -27807,7 +27807,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                                 className="px-2 py-1.5 text-[9px] font-bold text-gray-500 hover:text-red-400 hover:bg-red-500/15 border-l border-white/10 transition-colors"
                                                 title="Masquer / Retirer la Slide 2"
                                             >
-                                                ✕
+                                                âœ•
                                             </button>
                                         )}
                                     </div>
@@ -27824,7 +27824,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                                     : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
                                                     }`}
                                             >
-                                                📄 Slide {sNum}
+                                                ðŸ“„ Slide {sNum}
                                             </button>
                                             <button
                                                 type="button"
@@ -27835,7 +27835,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                                 className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-red-500 hover:bg-red-600 text-white rounded-full text-[9px] font-bold flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-sm"
                                                 title={`Supprimer la Slide ${sNum}`}
                                             >
-                                                ✕
+                                                âœ•
                                             </button>
                                         </div>
                                     );
@@ -27858,7 +27858,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         className="px-2.5 py-1.5 rounded-xl text-[9px] font-black uppercase transition-all bg-neon-cyan/15 text-neon-cyan border border-neon-cyan/30 hover:bg-neon-cyan/25 flex items-center gap-1 shadow-sm active:scale-95"
                                         title="Ajouter une slide au carrousel (20 max)"
                                     >
-                                        ➕ Slide
+                                        âž• Slide
                                     </button>
                                 )}
                                 {theme !== 'HIGHLIGHTS' && (
@@ -27875,7 +27875,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                             : 'bg-[#ff3700]/10 border border-[#ff3700]/30 text-[#ff3700] hover:bg-[#ff3700]/20'
                                             }`}
                                     >
-                                        🖼️ Slide AFFICHE
+                                        ðŸ–¼ï¸ Slide AFFICHE
                                     </button>
                                 )}
                                 {theme !== 'HIGHLIGHTS' && (
@@ -27892,7 +27892,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                             : 'bg-neon-cyan/10 border border-neon-cyan/30 text-neon-cyan hover:bg-neon-cyan/20'
                                             }`}
                                     >
-                                        🐦 Slide TWEET
+                                        ðŸ¦ Slide TWEET
                                     </button>
                                 )}
                                 <button
@@ -27908,7 +27908,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
                                         }`}
                                 >
-                                    🔥 Slide PROMO
+                                    ðŸ”¥ Slide PROMO
                                 </button>
                                 {slideTransitionQuickBar}
                             </div>
@@ -27921,7 +27921,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     onClick={() => selectTop10Track(0)}
                                     className={`px-2.5 py-1 rounded-xl text-[9px] font-black uppercase transition-all ${Number(top10ActiveRank) === 0 ? 'bg-neon-cyan text-black shadow-[0_0_12px_rgba(0,240,255,0.6)]' : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'}`}
                                 >
-                                    🎬 Intro
+                                    ðŸŽ¬ Intro
                                 </button>
                                 {[10, 9, 8, 7, 6, 5, 4, 3, 2, 1].map(r => (
                                     <button
@@ -27942,11 +27942,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     <span>Focus Reel :</span>
                                 </div>
                                 {[
-                                    { id: 'CINEMATIC', label: '🎬 Cinematic', desc: 'Flou vidéo + fondu doux 4s' },
-                                    { id: 'GLASS', label: '🧊 Glass Card', desc: 'Cartouche verre dépoli givré' },
-                                    { id: 'IMPACT', label: '💥 Impact', desc: 'Punchy + sortie haute dynamique' },
-                                    { id: 'MINIMAL', label: '✨ Minimal', desc: 'Haut épuré + dégradé discret' },
-                                    { id: 'CLASSIC', label: '📄 Classique', desc: 'Fixe avec barre blanche' },
+                                    { id: 'CINEMATIC', label: 'ðŸŽ¬ Cinematic', desc: 'Flou vidÃ©o + fondu doux 4s' },
+                                    { id: 'GLASS', label: 'ðŸ§Š Glass Card', desc: 'Cartouche verre dÃ©poli givrÃ©' },
+                                    { id: 'IMPACT', label: 'ðŸ’¥ Impact', desc: 'Punchy + sortie haute dynamique' },
+                                    { id: 'MINIMAL', label: 'âœ¨ Minimal', desc: 'Haut Ã©purÃ© + dÃ©gradÃ© discret' },
+                                    { id: 'CLASSIC', label: 'ðŸ“„ Classique', desc: 'Fixe avec barre blanche' },
                                 ].map(st => (
                                     <button
                                         key={st.id}
@@ -27981,7 +27981,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         className="px-2 py-1 rounded-xl text-[9px] font-black uppercase transition-all bg-white/10 text-white hover:bg-white/20 border border-white/15 ml-1 flex items-center gap-1"
                                         title="Rejouer l'animation de 4s"
                                     >
-                                        ↻ Rejouer
+                                        â†» Rejouer
                                     </button>
                                 )}
                             </div>
@@ -28048,7 +28048,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                             ? 'bg-[#00ff66]/20 border-[#00ff66]/60 text-[#00ff66] shadow-[0_0_15px_rgba(0,255,102,0.4)]'
                                             : 'bg-black/75 border-white/20 text-white hover:bg-black/90 hover:border-white/40'
                                             }`}
-                                        title={isVideoAudioMuted ? "Activer le son de la vidéo" : "Couper le son de la vidéo"}
+                                        title={isVideoAudioMuted ? "Activer le son de la vidÃ©o" : "Couper le son de la vidÃ©o"}
                                     >
                                         {!isVideoAudioMuted ? (
                                             <>
@@ -28058,7 +28058,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         ) : (
                                             <>
                                                 <VolumeX className="w-3.5 h-3.5 text-red-400" />
-                                                <span>Son Coupé • Activer</span>
+                                                <span>Son CoupÃ© â€¢ Activer</span>
                                             </>
                                         )}
                                     </button>
@@ -28083,7 +28083,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                                 ? 'bg-[#00ff66]/25 border-[#00ff66]/70 text-[#00ff66] shadow-[0_0_15px_rgba(0,255,102,0.45)]'
                                                 : 'bg-black/75 border-[#00ff66]/40 text-[#00ff66] hover:bg-black/90'
                                                 }`}
-                                            title={isTrackPlaying ? "Couper l'extrait audio" : "Écouter l'extrait audio du morceau"}
+                                            title={isTrackPlaying ? "Couper l'extrait audio" : "Ã‰couter l'extrait audio du morceau"}
                                         >
                                             {isTrackPlaying ? (
                                                 <>
@@ -28093,7 +28093,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                             ) : (
                                                 <>
                                                     <Music className="w-3.5 h-3.5 text-[#00ff66]" />
-                                                    <span>Écouter Extrait</span>
+                                                    <span>Ã‰couter Extrait</span>
                                                 </>
                                             )}
                                         </button>
@@ -28115,7 +28115,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                                 ? 'bg-neon-cyan/25 border-neon-cyan/70 text-neon-cyan shadow-[0_0_15px_rgba(0,240,255,0.45)]'
                                                 : 'bg-black/75 border-neon-cyan/40 text-neon-cyan hover:bg-black/90'
                                                 }`}
-                                            title={isTesting ? "Couper l'extrait audio" : `Écouter l'extrait #${top10ActiveRank}`}
+                                            title={isTesting ? "Couper l'extrait audio" : `Ã‰couter l'extrait #${top10ActiveRank}`}
                                         >
                                             {isTesting ? (
                                                 <>
@@ -28125,7 +28125,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                             ) : (
                                                 <>
                                                     <Music className="w-3.5 h-3.5 text-neon-cyan" />
-                                                    <span>Écouter #{top10ActiveRank}</span>
+                                                    <span>Ã‰couter #{top10ActiveRank}</span>
                                                 </>
                                             )}
                                         </button>
@@ -28140,9 +28140,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     </div>
                 </div>
             ) : (
-                /* ══════════════════════════════════════════════════════════
-                    MOBILE LAYOUT — InShot style: full-screen + bottom bar
-                ══════════════════════════════════════════════════════════ */
+                /* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+                    MOBILE LAYOUT â€” InShot style: full-screen + bottom bar
+                â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
                 <motion.div
                     drag="y"
                     dragControls={dragControls}
@@ -28182,8 +28182,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                                 <div className="w-12 h-20 rounded-xl border-2 border-white/30 flex items-center justify-center group-hover:border-neon-red/60 transition-all" style={{ background: 'linear-gradient(180deg,#1a1a1a,#0a0a0a)' }}>
                                                     <Smartphone className="w-5 h-5 text-gray-400 group-hover:text-neon-red transition-colors" />
                                                 </div>
-                                                <span className="text-[11px] font-black text-white uppercase">Réel</span>
-                                                <span className="text-[9px] text-gray-500">1080 × 1920</span>
+                                                <span className="text-[11px] font-black text-white uppercase">RÃ©el</span>
+                                                <span className="text-[9px] text-gray-500">1080 Ã— 1920</span>
                                             </button>
                                             <button onClick={() => { unlockMobileAudioSession(); setActiveTab('PUBLICATION'); if (theme === 'REELS' || theme === 'CONSEILS' || theme === 'TRACKLIST' || theme === 'MAP' || theme === 'TOP 10 TRACKS') handleSetTheme('NEWS'); setShowFormatModal(false); }}
                                                 className="group flex flex-col items-center gap-3 p-6 rounded-3xl border-2 border-white/10 bg-white/5 hover:border-white/30 transition-all">
@@ -28191,7 +28191,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                                     <ImageIcon className="w-6 h-6 text-gray-400 group-hover:text-neon-cyan transition-colors" />
                                                 </div>
                                                 <span className="text-[11px] font-black text-white uppercase">Publication</span>
-                                                <span className="text-[9px] text-gray-500">1080 × 1350</span>
+                                                <span className="text-[9px] text-gray-500">1080 Ã— 1350</span>
                                             </button>
                                         </div>
                                         <button onClick={() => { unlockMobileAudioSession(); setShowFormatModal(false); }} className="mt-6 w-full py-3 text-[10px] font-black text-gray-500 uppercase tracking-widest hover:text-white transition-colors">Continuer sans changer</button>
@@ -28201,7 +28201,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         )}
                     </AnimatePresence>
 
-                    {/* Full-screen canvas — click to close any open panel */}
+                    {/* Full-screen canvas â€” click to close any open panel */}
                     <div
                         className="absolute inset-0 flex items-center justify-center bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-neutral-900/80 via-[#08080c] to-black"
                         onClick={() => {
@@ -28263,7 +28263,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         : 'text-gray-400'
                                         }`}
                                 >
-                                    🔥 PROMO
+                                    ðŸ”¥ PROMO
                                 </button>
                                 {slideTransitionQuickBar}
                             </div>
@@ -28298,7 +28298,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         : 'text-gray-400'
                                         }`}
                                 >
-                                    🔥 PROMO
+                                    ðŸ”¥ PROMO
                                 </button>
                                 {slideTransitionQuickBar}
                             </div>
@@ -28333,7 +28333,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         onClick={(e) => { e.stopPropagation(); addMusicTrack(); }}
                                         className="px-2 py-1 rounded-xl text-[8px] font-black uppercase transition-all shrink-0 bg-[#00ff66]/15 text-[#00ff66] border border-[#00ff66]/30"
                                     >
-                                        ➕ Track
+                                        âž• Track
                                     </button>
                                 )}
                                 <button
@@ -28348,7 +28348,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         : 'text-gray-400'
                                         }`}
                                 >
-                                    🔥 PROMO
+                                    ðŸ”¥ PROMO
                                 </button>
                                 {slideTransitionQuickBar}
                             </div>
@@ -28390,7 +28390,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                                 className="px-1.5 py-1 text-[8px] font-black text-red-400 hover:bg-red-500/20 border-l border-white/10"
                                                 title={`Supprimer l'Affiche ${idx + 1}`}
                                             >
-                                                ✕
+                                                âœ•
                                             </button>
                                         </div>
                                     );
@@ -28402,7 +28402,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         className="px-2 py-1 rounded-xl text-[8px] font-black uppercase transition-all shrink-0 bg-[#ff3700]/20 text-[#ff3700] border border-[#ff3700]/30"
                                         title="Ajouter une affiche (20 slides max)"
                                     >
-                                        ➕ Affiche
+                                        âž• Affiche
                                     </button>
                                 )}
                                 <button
@@ -28417,7 +28417,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         : 'text-gray-400'
                                         }`}
                                 >
-                                    🔥 PROMO
+                                    ðŸ”¥ PROMO
                                 </button>
                                 {slideTransitionQuickBar}
                             </div>
@@ -28440,7 +28440,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                             className={`px-2 py-1 text-[8px] font-black uppercase transition-all ${!isCarouselPromoActive && !isEditorialAfficheActive && !isEditorialTweetActive && editorialSlide === 2 ? 'bg-white text-black shadow-md' : 'text-gray-300 hover:text-white'
                                                 }`}
                                         >
-                                            {theme === 'JEU_DJ' ? 'Slide 2 (Révélation)' : 'Slide 2'}
+                                            {theme === 'JEU_DJ' ? 'Slide 2 (RÃ©vÃ©lation)' : 'Slide 2'}
                                         </button>
                                         {theme !== 'JEU_DJ' && (
                                             <button
@@ -28454,7 +28454,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                                 className="px-1.5 py-1 text-[8px] font-black text-gray-400 hover:text-red-400 border-l border-white/10"
                                                 title="Masquer Slide 2"
                                             >
-                                                ✕
+                                                âœ•
                                             </button>
                                         )}
                                     </div>
@@ -28478,7 +28478,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                                 className="px-1.5 py-1 text-[8px] font-black text-red-400 hover:bg-red-500/20 border-l border-white/10"
                                                 title={`Supprimer la Slide ${sNum}`}
                                             >
-                                                ✕
+                                                âœ•
                                             </button>
                                         </div>
                                     );
@@ -28502,7 +28502,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         className="px-2 py-1 rounded-xl text-[8px] font-black uppercase transition-all shrink-0 bg-neon-cyan/20 text-neon-cyan border border-neon-cyan/30"
                                         title="Ajouter une slide (20 max)"
                                     >
-                                        ➕ Slide
+                                        âž• Slide
                                     </button>
                                 )}
                                 {theme !== 'HIGHLIGHTS' && (
@@ -28518,7 +28518,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         className={`px-2.5 py-1 rounded-xl text-[8px] font-black uppercase transition-all shrink-0 ${!isCarouselPromoActive && isEditorialAfficheActive ? 'bg-[#ff3700] text-white shadow-md' : 'text-[#ff3700]'
                                             }`}
                                     >
-                                        🖼️ Affiche
+                                        ðŸ–¼ï¸ Affiche
                                     </button>
                                 )}
                                 {theme !== 'HIGHLIGHTS' && (
@@ -28534,7 +28534,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         className={`px-2.5 py-1 rounded-xl text-[8px] font-black uppercase transition-all shrink-0 ${!isCarouselPromoActive && isEditorialTweetActive ? 'bg-neon-cyan text-black shadow-md' : 'text-neon-cyan'
                                             }`}
                                     >
-                                        🐦 Tweet
+                                        ðŸ¦ Tweet
                                     </button>
                                 )}
                                 <button
@@ -28551,7 +28551,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         : 'text-gray-400'
                                         }`}
                                 >
-                                    🔥 PROMO
+                                    ðŸ”¥ PROMO
                                 </button>
                                 <button
                                     type="button"
@@ -28561,9 +28561,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         setVideoOptionsOpen(true);
                                     }}
                                     className="px-2.5 py-1 rounded-xl text-[8px] font-black transition-all shrink-0 bg-amber-500/15 border border-amber-500/30 text-amber-300 hover:bg-amber-500/25 flex items-center gap-1 active:scale-95 shadow-sm"
-                                    title="Modifier la durée des slides et de la promo"
+                                    title="Modifier la durÃ©e des slides et de la promo"
                                 >
-                                    <span>⏱️</span> {editorialSlide1Duration}s / {editorialPromoDuration}s
+                                    <span>â±ï¸</span> {editorialSlide1Duration}s / {editorialPromoDuration}s
                                 </button>
                                 {bgVideo && (
                                     <button
@@ -28586,7 +28586,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                                 ? 'bg-[#00ff66]/20 border-[#00ff66]/50 text-[#00ff66]'
                                                 : 'bg-red-500/20 border-red-500/50 text-red-400'
                                         }`}
-                                        title={!isVideoAudioMuted ? 'Couper le son' : 'Activer le son de la vidéo'}
+                                        title={!isVideoAudioMuted ? 'Couper le son' : 'Activer le son de la vidÃ©o'}
                                     >
                                         {!isVideoAudioMuted ? <Volume2 className="w-3 h-3" /> : <VolumeX className="w-3 h-3" />}
                                         <span>{!isVideoAudioMuted ? 'Son ON' : 'Activer le Son'}</span>
@@ -28633,7 +28633,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             }}
                             onMouseUp={() => setIsDrawing(false)}
                         />
-                        {/* Contrôles flottants rapides Mobile (Son Vidéo, Extrait Audio Track, Rejouer Animation) */}
+                        {/* ContrÃ´les flottants rapides Mobile (Son VidÃ©o, Extrait Audio Track, Rejouer Animation) */}
                         <div className={`absolute ${isMultiSlideTheme ? 'top-[104px]' : 'top-16'} inset-x-3 z-30 flex items-center justify-between gap-2 pointer-events-none`}>
                             <div className="flex items-center gap-1.5 pointer-events-auto">
                                 {!activePanel && (textAnimation !== 'NONE' || bgAnimation !== 'NONE') && (
@@ -28644,7 +28644,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                             triggerSmoothAnimReplay();
                                         }}
                                         className="px-3 py-1.5 rounded-full flex items-center gap-1.5 text-[8.5px] font-black uppercase backdrop-blur-md shadow-2xl transition-all active:scale-95 bg-black/80 border border-neon-cyan/40 text-neon-cyan"
-                                        title="Rejouer l'animation d'entrée"
+                                        title="Rejouer l'animation d'entrÃ©e"
                                     >
                                         <RotateCcw className="w-3 h-3" />
                                         <span>Rejouer Anim</span>
@@ -28672,7 +28672,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                             ? 'bg-[#00ff66]/20 border-[#00ff66]/60 text-[#00ff66] shadow-[0_0_15px_rgba(0,255,102,0.4)]'
                                             : 'bg-black/80 border-white/20 text-white hover:bg-black hover:border-white/40'
                                             }`}
-                                        title={isVideoAudioMuted ? "Activer le son de la vidéo" : "Couper le son de la vidéo"}
+                                        title={isVideoAudioMuted ? "Activer le son de la vidÃ©o" : "Couper le son de la vidÃ©o"}
                                     >
                                         {!isVideoAudioMuted ? (
                                             <>
@@ -28682,7 +28682,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         ) : (
                                             <>
                                                 <VolumeX className="w-3.5 h-3.5 text-red-400" />
-                                                <span>Son Coupé • Activer</span>
+                                                <span>Son CoupÃ© â€¢ Activer</span>
                                             </>
                                         )}
                                     </button>
@@ -28707,7 +28707,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                                 ? 'bg-[#00ff66]/25 border-[#00ff66]/70 text-[#00ff66] shadow-[0_0_15px_rgba(0,255,102,0.45)]'
                                                 : 'bg-black/85 border-[#00ff66]/45 text-[#00ff66]'
                                                 }`}
-                                            title={isTrackPlaying ? "Couper l'extrait audio" : "Écouter l'extrait audio du morceau"}
+                                            title={isTrackPlaying ? "Couper l'extrait audio" : "Ã‰couter l'extrait audio du morceau"}
                                         >
                                             {isTrackPlaying ? (
                                                 <>
@@ -28717,7 +28717,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                             ) : (
                                                 <>
                                                     <Music className="w-3.5 h-3.5 text-[#00ff66]" />
-                                                    <span>Écouter Extrait</span>
+                                                    <span>Ã‰couter Extrait</span>
                                                 </>
                                             )}
                                         </button>
@@ -28750,8 +28750,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                             </div>
                                         </div>
                                         <div className="space-y-2">
-                                            <h2 className="text-xl font-black text-white uppercase italic tracking-tighter">Capture Vidéo</h2>
-                                            <p className="text-[10px] text-white/40 font-bold uppercase tracking-widest leading-relaxed">Génération du rendu en cours<br />Ne fermez pas votre navigateur</p>
+                                            <h2 className="text-xl font-black text-white uppercase italic tracking-tighter">Capture VidÃ©o</h2>
+                                            <p className="text-[10px] text-white/40 font-bold uppercase tracking-widest leading-relaxed">GÃ©nÃ©ration du rendu en cours<br />Ne fermez pas votre navigateur</p>
                                         </div>
                                     </div>
                                 </motion.div>
@@ -28823,13 +28823,13 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                             <button onClick={() => { unlockMobileAudioSession(); setActiveTab('REEL'); setActivePanel(null); }}
                                                 className={`flex items-center gap-3 p-4 rounded-2xl border-2 transition-all ${activeTab === 'REEL' ? 'border-neon-red/60 bg-neon-red/10' : 'border-white/10 bg-white/5 hover:border-white/20'}`}>
                                                 <Smartphone className={`w-5 h-5 ${activeTab === 'REEL' ? 'text-neon-red' : 'text-gray-400'}`} />
-                                                <div className="text-left"><p className={`text-[11px] font-black uppercase ${activeTab === 'REEL' ? 'text-white' : 'text-gray-400'}`}>Réel</p><p className="text-[9px] text-gray-600">1080×1920</p></div>
+                                                <div className="text-left"><p className={`text-[11px] font-black uppercase ${activeTab === 'REEL' ? 'text-white' : 'text-gray-400'}`}>RÃ©el</p><p className="text-[9px] text-gray-600">1080Ã—1920</p></div>
                                                 {activeTab === 'REEL' && <Check className="w-4 h-4 text-neon-red ml-auto" />}
                                             </button>
                                             <button onClick={() => { unlockMobileAudioSession(); setActiveTab('PUBLICATION'); if (theme === 'REELS' || theme === 'CONSEILS' || theme === 'TRACKLIST' || theme === 'MAP' || theme === 'TOP 10 TRACKS') handleSetTheme('NEWS'); setActivePanel(null); }}
                                                 className={`flex items-center gap-3 p-4 rounded-2xl border-2 transition-all ${activeTab === 'PUBLICATION' ? 'border-neon-cyan/60 bg-neon-cyan/10' : 'border-white/10 bg-white/5 hover:border-white/20'}`}>
                                                 <ImageIcon className={`w-5 h-5 ${activeTab === 'PUBLICATION' ? 'text-neon-cyan' : 'text-gray-400'}`} />
-                                                <div className="text-left"><p className={`text-[11px] font-black uppercase ${activeTab === 'PUBLICATION' ? 'text-white' : 'text-gray-400'}`}>Publication</p><p className="text-[9px] text-gray-600">1080×1350</p></div>
+                                                <div className="text-left"><p className={`text-[11px] font-black uppercase ${activeTab === 'PUBLICATION' ? 'text-white' : 'text-gray-400'}`}>Publication</p><p className="text-[9px] text-gray-600">1080Ã—1350</p></div>
                                                 {activeTab === 'PUBLICATION' && <Check className="w-4 h-4 text-neon-cyan ml-auto" />}
                                             </button>
                                         </div>
@@ -28838,7 +28838,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                                 {activePanel === 'theme' && (
                                     <div className="px-6 pb-8 space-y-4">
-                                        <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Thème visuel</p>
+                                        <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest">ThÃ¨me visuel</p>
                                         {themeButtons}
                                         {devinetteSwitcher}
                                         {styleMusicButtons && <div className="mt-4">{styleMusicButtons}</div>}
@@ -28854,11 +28854,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                                 {calendarEvents.map((evt, i) => (
                                                     <div key={i} className="flex gap-2 items-center">
                                                         <input value={evt.date} onChange={e => { const n = [...calendarEvents]; n[i].date = e.target.value; setCalendarEvents(n); }} placeholder="JJ" className="w-14 bg-neon-orange/20 border border-neon-orange/40 rounded-lg p-2 text-neon-orange font-black uppercase text-xs text-center" />
-                                                        <input value={evt.label} onChange={e => { const n = [...calendarEvents]; n[i].label = e.target.value; setCalendarEvents(n); }} placeholder="ÉVÉNEMENT" className="flex-1 bg-white/10 border border-white/20 rounded-lg p-2 text-white font-black italic uppercase text-xs" />
-                                                        <button onClick={() => setCalendarEvents(calendarEvents.filter((_, idx) => idx !== i))} className="p-2 text-red-500 hover:bg-red-500/10 rounded-lg"><span className="text-xs">✕</span></button>
+                                                        <input value={evt.label} onChange={e => { const n = [...calendarEvents]; n[i].label = e.target.value; setCalendarEvents(n); }} placeholder="Ã‰VÃ‰NEMENT" className="flex-1 bg-white/10 border border-white/20 rounded-lg p-2 text-white font-black italic uppercase text-xs" />
+                                                        <button onClick={() => setCalendarEvents(calendarEvents.filter((_, idx) => idx !== i))} className="p-2 text-red-500 hover:bg-red-500/10 rounded-lg"><span className="text-xs">âœ•</span></button>
                                                     </div>
                                                 ))}
-                                                <button onClick={() => setCalendarEvents([...calendarEvents, { date: '??', label: 'NOUVEL ÉVÉNEMENT' }])} className="w-full py-3 bg-neon-orange/10 border border-dashed border-neon-orange/30 rounded-xl text-[9px] font-black uppercase text-neon-orange hover:bg-neon-orange/20 transition-all">+ Ajouter</button>
+                                                <button onClick={() => setCalendarEvents([...calendarEvents, { date: '??', label: 'NOUVEL Ã‰VÃ‰NEMENT' }])} className="w-full py-3 bg-neon-orange/10 border border-dashed border-neon-orange/30 rounded-xl text-[9px] font-black uppercase text-neon-orange hover:bg-neon-orange/20 transition-all">+ Ajouter</button>
                                             </div>
                                         ) : theme === 'PLANNING' ? planningEditor : theme.startsWith('TOP 5') ? top5Editor : theme === 'TRACKLIST' ? tracklistEditor : theme === 'SPOTLIGHT' ? spotlightEditor : theme === 'ARTISTE FESTIVAL' ? artisteFestivalEditor : (theme === 'EVENTS' || theme === 'AFFICHE') ? eventsEditor : theme === 'MUSIQUE' ? musiqueEditor : theme === 'TOP 100 DROPSIDERS' ? top100Editor : theme === 'TOP 10 TRACKS' ? top10TracksEditor : theme === 'HIGHLIGHTS' ? highlightsEditor : ['NEWS', 'FOCUS', 'RECAP', 'INTERVIEW', 'REELS', 'CONSEILS', 'CONCOURS', 'JEU', 'JEU_FESTIVAL', 'JEU_DJ'].includes(theme) ? conseilsEditor : theme === 'CITATION' ? citationEditor : theme === 'MAP' ? mapEditor : theme === 'PROMO' ? promoEditor : textEditor}
                                         {/* Option Date dans la barre blanche */}
@@ -28885,7 +28885,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                             </div>
                                         ) : (
                                             <div className="space-y-3">
-                                                {/* Cover pour MUSIQUE (Slide 1 Annonce ou Slide 2+ Morceaux) — placé en haut comme sur PC */}
+                                                {/* Cover pour MUSIQUE (Slide 1 Annonce ou Slide 2+ Morceaux) â€” placÃ© en haut comme sur PC */}
                                                 {theme === 'MUSIQUE' && (editorialSlide === 1 ? musicSlide1VisualEditor : musicCoverEditor)}
 
                                                 {/* Logos & Position pour SPOTLIGHT & ARTISTE FESTIVAL */}
@@ -28893,9 +28893,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                                                 <div className="flex items-center justify-between pt-1">
                                                     <span className="text-[10px] font-black text-neon-cyan uppercase tracking-widest">
-                                                        {theme === 'MUSIQUE' && editorialSlide >= 2 ? 'Fond & Ambiance Arrière-Plan' : theme === 'JEU_DJ' ? 'Fond Arrière-Plan Scène / Club' : 'Fond & Médias'}
+                                                        {theme === 'MUSIQUE' && editorialSlide >= 2 ? 'Fond & Ambiance ArriÃ¨re-Plan' : theme === 'JEU_DJ' ? 'Fond ArriÃ¨re-Plan ScÃ¨ne / Club' : 'Fond & MÃ©dias'}
                                                     </span>
-                                                    <span className="text-[8px] text-gray-400 uppercase font-bold">Image, Vidéo ou Cloud</span>
+                                                    <span className="text-[8px] text-gray-400 uppercase font-bold">Image, VidÃ©o ou Cloud</span>
                                                 </div>
 
                                                 <div className="grid grid-cols-2 gap-2">
@@ -28909,16 +28909,16 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                                     </button>
                                                 </div>
                                                 <button onClick={() => { setActivePanel(null); setIsDownloaderOpen(true); }} className="w-full py-3.5 border border-dashed border-white/10 rounded-2xl flex items-center justify-center gap-2 text-gray-400 text-[9.5px] font-black uppercase hover:border-white/30 hover:text-white transition-all bg-white/5 group">
-                                                    <LinkIcon className="w-4 h-4 group-hover:text-neon-cyan transition-colors" />Télécharger Vidéo/Photo (URL)
+                                                    <LinkIcon className="w-4 h-4 group-hover:text-neon-cyan transition-colors" />TÃ©lÃ©charger VidÃ©o/Photo (URL)
                                                 </button>
                                                 <button onClick={() => { setActivePanel(null); setIsRecapPickerOpen(true); }} className="w-full py-3.5 bg-[#c026d3]/10 border border-[#c026d3]/30 rounded-2xl flex items-center justify-center gap-2 text-[#c026d3] text-[9.5px] font-black uppercase hover:bg-[#c026d3]/20 transition-all group">
-                                                    <PlusCircle className="w-4 h-4" />Importer un RÉCAP ÉCRIT
+                                                    <PlusCircle className="w-4 h-4" />Importer un RÃ‰CAP Ã‰CRIT
                                                 </button>
 
                                                 {bgVideo && (
                                                     <div className="p-3 bg-white/5 border border-white/10 rounded-2xl space-y-2">
                                                         <div className="flex items-center justify-between text-[9px] font-black uppercase text-gray-300">
-                                                            <span className="flex items-center gap-1.5">🎬 Piste Vidéo</span>
+                                                            <span className="flex items-center gap-1.5">ðŸŽ¬ Piste VidÃ©o</span>
                                                             <span className={!isVideoAudioMuted ? 'text-[#00ff66]' : 'text-gray-400'}>{!isVideoAudioMuted ? 'Son Actif' : 'Muet'}</span>
                                                         </div>
                                                         <div className="grid grid-cols-3 gap-2">
@@ -28973,7 +28973,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                                             <div className="flex justify-between items-center text-[9px] font-black uppercase text-gray-400">
                                                                 <span className="flex items-center gap-1.5 text-white">
                                                                     <Film className="w-3.5 h-3.5 text-neon-cyan" />
-                                                                    Passage Vidéo
+                                                                    Passage VidÃ©o
                                                                 </span>
                                                                 <span className="text-neon-cyan font-mono text-[9.5px] bg-neon-cyan/10 px-1.5 py-0.5 rounded border border-neon-cyan/30">
                                                                     {formatVideoTime(bgVideoStartTime)} / {formatVideoTime(bgVideo.duration || 0)}
@@ -29003,7 +29003,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                                                     }}
                                                                     className="px-2 py-1 bg-white/5 hover:bg-white/10 border border-white/10 rounded-md transition-all active:scale-95"
                                                                 >
-                                                                    ⏪ 0:00
+                                                                    âª 0:00
                                                                 </button>
                                                                 <div className="flex items-center gap-1">
                                                                     <button
@@ -29033,7 +29033,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                                                 </div>
                                                             </div>
                                                             <p className="text-[7.5px] text-neon-cyan/80 italic text-center">
-                                                                ⏱️ L'export commencera à {formatVideoTime(bgVideoStartTime)}
+                                                                â±ï¸ L'export commencera Ã  {formatVideoTime(bgVideoStartTime)}
                                                             </p>
                                                         </div>
                                                     </div>
@@ -29054,12 +29054,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                                         </div>
                                                         <input type="range" min="10" max="100" value={brushSize} onChange={e => setBrushSize(parseInt(e.target.value))} className="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-neon-cyan" />
                                                         <div className="flex gap-2 pt-2">
-                                                            <button onClick={() => setRetouchPath([])} className="flex-1 py-3 bg-white/5 border border-white/10 rounded-xl text-[9px] font-black uppercase text-gray-400 hover:text-white transition-all flex items-center justify-center gap-1.5"><RotateCcw className="w-3.5 h-3.5" /> Réinitialiser</button>
+                                                            <button onClick={() => setRetouchPath([])} className="flex-1 py-3 bg-white/5 border border-white/10 rounded-xl text-[9px] font-black uppercase text-gray-400 hover:text-white transition-all flex items-center justify-center gap-1.5"><RotateCcw className="w-3.5 h-3.5" /> RÃ©initialiser</button>
                                                             <button onClick={applyMagicErase} className="flex-[2] py-3 bg-neon-cyan text-black rounded-xl text-[9px] font-black uppercase shadow-[0_0_15px_rgba(0,255,255,0.4)] hover:scale-[1.02] transition-all flex items-center justify-center gap-1.5"><Sparkles className="w-3.5 h-3.5" /> Appliquer</button>
                                                         </div>
                                                     </div>
                                                 )}
-                                                {/* Module Dédié Devine le DJ (Artiste & Silhouette Mystère) placé sous le Fond Scène / Club */}
+                                                {/* Module DÃ©diÃ© Devine le DJ (Artiste & Silhouette MystÃ¨re) placÃ© sous le Fond ScÃ¨ne / Club */}
                                                 {theme === 'JEU_DJ' && djSilhouetteEditor}
                                                 {theme !== 'MAP' && bgAnimationControl}
                                                 <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*,video/*" />
@@ -29136,7 +29136,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         <div className="flex items-center justify-around px-2 pointer-events-auto">
                             {[
                                 { id: 'format', icon: <Layers className="w-5 h-5" />, label: 'Format' },
-                                { id: 'theme', icon: <Palette className="w-5 h-5" />, label: 'Thème' },
+                                { id: 'theme', icon: <Palette className="w-5 h-5" />, label: 'ThÃ¨me' },
                                 { id: 'texte', icon: <Type className="w-5 h-5" />, label: 'Texte' },
                                 { id: 'fond', icon: <ImageIcon className="w-5 h-5" />, label: 'Fond' },
                                 { id: 'export', icon: <Film className="w-5 h-5" />, label: 'Export' },
@@ -29166,8 +29166,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 readyUrl={readyVideoUrl}
                 filename={`dropsiders-${theme.toLowerCase().replace(/\s+/g, '-')}.${readyVideoBlob?.type.includes('mp4') ? 'mp4' : (readyVideoBlob?.type.includes('quicktime') ? 'mov' : 'mp4')}`}
                 type="video"
-                title="VIDÉO PRÊTE !"
-                subtitle="Enregistrez-la pour vos réseaux"
+                title="VIDÃ‰O PRÃŠTE !"
+                subtitle="Enregistrez-la pour vos rÃ©seaux"
             />
 
             {/* Shared downloader modal (visible on both) */}
@@ -29237,7 +29237,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             {isConverting
                                 ? "Conversion en format MOV (H.264) compatible iPhone. Merci de patienter."
                                 : isTransparent && !(bgImage || bgVideo)
-                                    ? `Capture avec transparence activée. Finalisation...`
+                                    ? `Capture avec transparence activÃ©e. Finalisation...`
                                     : <><span ref={recordingTimeLeft2Ref}>0s restantes</span>. Ne pas quitter.</>}
                         </p>
 
@@ -29247,7 +29247,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             onClick={handleCancelVideoRecording}
                             className="px-6 py-2.5 rounded-xl bg-white/10 hover:bg-red-500/25 text-gray-300 hover:text-red-400 border border-white/15 hover:border-red-500/40 text-[10px] font-black uppercase tracking-wider transition-all active:scale-95 shadow-lg flex items-center gap-2 group cursor-pointer"
                         >
-                            <span className="text-red-400 group-hover:scale-110 transition-transform font-bold">✕</span>
+                            <span className="text-red-400 group-hover:scale-110 transition-transform font-bold">âœ•</span>
                             <span>Annuler l'enregistrement</span>
                         </button>
                     </motion.div>
@@ -29290,13 +29290,13 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         </div>
 
                         <h3 className="text-2xl font-black text-white italic uppercase mb-2">
-                            {zipExportProgress?.stage === 'zipping' ? 'CRÉATION DU ZIP...' : 'EXPORT PACK MP4...'}
+                            {zipExportProgress?.stage === 'zipping' ? 'CRÃ‰ATION DU ZIP...' : 'EXPORT PACK MP4...'}
                         </h3>
                         <p className="text-xs font-bold text-[#00ff66] uppercase tracking-wider mb-2">
                             {zipExportProgress?.title || 'Initialisation...'}
                         </p>
                         <p className="text-[10px] text-gray-500 font-black uppercase tracking-[0.25em] max-w-[320px] leading-relaxed mb-6">
-                            Chaque slide est exportée en vidéo MP4 synchronisée avec son audio et le CDJ jog ring. Ne pas quitter cette page.
+                            Chaque slide est exportÃ©e en vidÃ©o MP4 synchronisÃ©e avec son audio et le CDJ jog ring. Ne pas quitter cette page.
                         </p>
 
                         <button
@@ -29307,7 +29307,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             }}
                             className="px-5 py-2.5 rounded-xl bg-white/10 hover:bg-red-500/20 text-gray-300 hover:text-red-400 border border-white/10 hover:border-red-500/30 text-[10px] font-black uppercase tracking-wider transition-all active:scale-95 shadow-md"
                         >
-                            ✕ Annuler l'export
+                            âœ• Annuler l'export
                         </button>
                     </motion.div>
                 )}
@@ -29384,7 +29384,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             img.onload = () => {
                                 imageCacheRef.current[finalUrl] = img;
                                 if (isEditorialAfficheActive) {
-                                    // Si l'utilisateur a choisi un visuel en étant sur l'affiche, ne toucher qu'à l'affiche
+                                    // Si l'utilisateur a choisi un visuel en Ã©tant sur l'affiche, ne toucher qu'Ã  l'affiche
                                     setAfficheImage(finalUrl);
                                     afficheImageRef.current = img;
                                 } else {
@@ -29474,7 +29474,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             };
                             img.src = finalUrl;
                             setAfficheImage(finalUrl);
-                            // Slide 1 isolée : ne jamais écraser editorialSlideImages[1] avec l'affiche
+                            // Slide 1 isolÃ©e : ne jamais Ã©craser editorialSlideImages[1] avec l'affiche
                             setEditorialSlideImages(prev => {
                                 if (prev[1] && prev[1] === finalUrl && bgImage && bgImage !== finalUrl) {
                                     const n = { ...prev };
@@ -29511,3 +29511,4 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 }
 
 // Sync Heartbeat: 2026-03-06T16:32:00Z
+
