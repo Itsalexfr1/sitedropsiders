@@ -130,13 +130,14 @@
     "mail_enabled": true,
     "username": "Thx",
     "pseudo": "Thx",
-    "role": "RÉDACTEUR",
+    "role": "RÉDACTEUR & PHOTOGRAPHE & VIDÉASTE",
     "permissions": [
       "news_focus",
       "musique_releases",
       "interviews_video",
       "recaps_festivals",
-      "social_studio"
+      "social_studio",
+      "messages_contact"
     ],
     "created": "2026-11-09T21:37:31.261Z",
     "verified": true
