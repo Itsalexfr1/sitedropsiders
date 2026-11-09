@@ -8703,11 +8703,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                         // Données de la slide active
                         const slideData = spotlightSlidesData[artisteFestivalSlide];
-                        const curArtistName = (slideData?.artistName !== undefined ? slideData.artistName : artistNameText) || '';
+                        const curArtistName = ((slideData?.artistName !== undefined ? slideData.artistName : artistNameText) || '').toUpperCase();
                         const lines = customText ? customText.split('\n').map(l => l.trim().toUpperCase()) : [];
-                        const stageName = (slideData?.stage !== undefined ? slideData.stage : (lines[1] || '')) || '';
-                        const dayName = (slideData?.day !== undefined ? slideData.day : (lines[2] || '')) || '';
-                        const hourName = (slideData?.hour !== undefined ? slideData.hour : (lines[4] || '')) || '';
+                        const stageName = ((slideData?.stage !== undefined ? slideData.stage : (lines[1] || '')) || '').toUpperCase();
+                        const dayName = ((slideData?.day !== undefined ? slideData.day : (lines[2] || '')) || '').toUpperCase();
+                        const hourName = ((slideData?.hour !== undefined ? slideData.hour : (lines[4] || '')) || '').toUpperCase();
 
                         // Calcul des positions Y verticalement CENTRÉES
                         // En Story 1920: bloc s'étend de Y=480 à Y=1320 (centre ~900)

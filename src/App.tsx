@@ -8,6 +8,7 @@ import { CookieConsent } from './components/ui/CookieConsent';
 import { GoogleAdSense } from './components/analytics/GoogleAdSense';
 import { ScrollToTop } from './components/utils/ScrollToTop';
 import { useRegisterSW } from 'virtual:pwa-register/react';
+import { AuthPage } from './pages/AuthPage';
 import { lazyRetry } from './utils/lazyRetry';
 
 import { UserProvider } from './context/UserContext';
@@ -82,7 +83,6 @@ const BlindTestPage = lazyRetry(() => import('./pages/BlindTestPage').then(m => 
 const CallGeneratorPage = lazyRetry(() => import('./pages/CallGeneratorPage').then(m => m.CallGeneratorPage));
 const LiveChatPopoutPage = lazyRetry(() => import('./pages/LiveChatPopoutPage').then(m => m.LiveChatPopoutPage));
 const ModViewPage = lazyRetry(() => import('./pages/ModViewPage').then(m => m.ModViewPage));
-const AuthPage = lazyRetry(() => import('./pages/AuthPage').then(m => m.AuthPage));
 
 
 function ErrorFallback() {
