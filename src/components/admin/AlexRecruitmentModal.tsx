@@ -1,4 +1,4 @@
-﻿import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { X, Play, Pause, RotateCcw, Upload, Volume2, VolumeX, Video, Download, Sparkles, Check, Film, Settings2, Clock, Image as ImageIcon, Save, Music, Search } from 'lucide-react';
 // @ts-ignore
 import { Muxer, ArrayBufferTarget } from 'mp4-muxer';
@@ -1057,7 +1057,6 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
             const centerY = height * 0.48;
             ctx.save();
             ctx.translate(width / 2, centerY);
-
             // Dimensions agrandies du cadre logo officiel (820px)
             const boxW = 820;
             const boxH = 256;
@@ -1171,11 +1170,16 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
                             c.shadowOffsetX = 0;
                             c.shadowOffsetY = 0;
                         }
-                        c.beginPath();
-                        c.rect(-lw / 2, -lh / 2, revealW, lh);
-                        c.clip();
-                        // Tranches arrière rendues instantanément via buffer offscreen dark (0 lag GPU !)
-                        c.drawImage(isFront ? pureImg : (darkImg || pureImg), -lw / 2, -lh / 2, lw, lh);
+                        const srcImg = isFront ? pureImg : (darkImg || pureImg);
+                        const natW = 'naturalWidth' in srcImg ? srcImg.naturalWidth : srcImg.width;
+                        const natH = 'naturalHeight' in srcImg ? srcImg.naturalHeight : srcImg.height;
+                        const srcCropW = Math.max(1, Math.round(natW * (lettersVisible / totalLetters)));
+
+                        c.drawImage(
+                            srcImg,
+                            0, 0, srcCropW, natH,
+                            -lw / 2, -lh / 2, revealW, lh
+                        );
                         c.restore();
 
                         // Curseur lumineux d'écriture à la dernière lettre révélée (sur la face avant uniquement)
@@ -1204,10 +1208,15 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
                             c.shadowOffsetX = 0;
                             c.shadowOffsetY = 0;
                         }
-                        c.beginPath();
-                        c.rect(-lw / 2, -lh / 2, revealW, lh * 0.72);
-                        c.clip();
-                        c.drawImage(fallbackImg, -lw / 2, -lh / 2, lw, lh);
+                        const natW = fallbackImg.naturalWidth;
+                        const natH = fallbackImg.naturalHeight;
+                        const srcCropW = Math.max(1, Math.round(natW * (lettersVisible / totalLetters)));
+
+                        c.drawImage(
+                            fallbackImg,
+                            0, 0, srcCropW, natH * 0.72,
+                            -lw / 2, -lh / 2, revealW, lh * 0.72
+                        );
                         c.restore();
                     }
                 }
@@ -1265,7 +1274,7 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
             ctx.restore();
 
             // ── 2. TRANCHES 3D VOLUMÉTRIQUES EXTRUDÉES (Acier / Titane sombre comme Animated3DLogo, 60 FPS garanti) ──
-            const sliceCount = 8;
+            const sliceCount = 6;
             const maxDepth = 20;
             for (let idx = 0; idx < sliceCount; idx++) {
                 const i = sliceCount - idx;
@@ -1299,8 +1308,6 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
             );
             ctx.globalAlpha = 1.0;
             renderLogoSlice(ctx, true, 1.0);
-            ctx.restore();
-
             ctx.restore();
 
             ctx.restore();
@@ -1652,9 +1659,11 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
         for (let f = 0; f < totalFrames; f++) {
             const frameTimeSec = f / fps;
 
-            if (hasBgVideo && vid) {
-                if (vid.currentTime < bgVideoStartTimeRef.current - 0.2 || vid.currentTime >= (vid.duration - 0.1)) {
-                    vid.currentTime = bgVideoStartTimeRef.current + frameTimeSec;
+            if (hasBgVideo && vid && vid.duration > 0) {
+                const videoPlayDuration = Math.max(0.5, vid.duration - bgVideoStartTimeRef.current);
+                const loopTime = bgVideoStartTimeRef.current + (frameTimeSec % videoPlayDuration);
+                if (vid.currentTime < bgVideoStartTimeRef.current - 0.2 || vid.currentTime >= (vid.duration - 0.1) || Math.abs(vid.currentTime - loopTime) > 0.3) {
+                    vid.currentTime = loopTime;
                 }
                 const targetMs = f * frameIntervalMs;
                 const elapsed = performance.now() - segmentStartTime;
