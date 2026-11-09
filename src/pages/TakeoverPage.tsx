@@ -158,9 +158,15 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
 
     // DB Settings shifted to Context
 
-    const isPopout = new URLSearchParams(window.location.search).get('popout') === 'true';
+    const isPopout = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('popout') === 'true';
 
-    const [activeStage, setActiveStage] = useState<string>('stage1');
+    const [activeStage, setActiveStage] = useState<string>(() => {
+        if (typeof window !== 'undefined') {
+            const pStage = new URLSearchParams(window.location.search).get('stage');
+            if (pStage) return pStage;
+        }
+        return 'stage1';
+    });
     const [viewMode, setViewMode] = useState<'single' | 'grid'>('single');
     const [gridCount, setGridCount] = useState<number>(4);
     const [viewerGridSelection, setViewerGridSelection] = useState<string[]>([]);
@@ -168,6 +174,11 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
 
     const [currentTime, setCurrentTime] = useState(new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }));
     const [accentColor, setAccentColor] = useState(localStorage.getItem('chat_accent_color') || '#ff0033');
+
+    // Nom et index du stage actif pour cloisonner le chat par stage
+    const activeStageIdx = parseInt(activeStage.replace('stage', '')) - 1;
+    const activeStreamItem = (settings.streams && !isNaN(activeStageIdx)) ? settings.streams[activeStageIdx] : null;
+    const activeStageLabel = activeStreamItem?.name || `Stage ${activeStageIdx >= 0 ? activeStageIdx + 1 : 1}`;
     const [isModChat, setIsModChat] = useState(false);
     const [activePoll, setActivePoll] = useState<any>(null);
     const [userVoted, setUserVoted] = useState(false);
@@ -1393,6 +1404,7 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                     time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
                     country: 'TWITCH',
                     isTwitch: true,
+                    stage: activeStage,
                     profileBorder: 'solid 2px #9146FF',
                     avatar: twitchAvatarCache[pseudo] !== 'loading' ? twitchAvatarCache[pseudo] : undefined
                 }];
@@ -3148,10 +3160,17 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                 <div className={`${isCinemaMode ? 'hidden' : 'w-full lg:w-[40%] flex-1 lg:h-full'} bg-black/60 backdrop-blur-2xl flex flex-col relative border-l border-white/5 shadow-2xl z-10 min-h-0 overflow-hidden`}>
                     {/* Chat Tabs */}
                     <div className="p-2 lg:p-4 border-b border-white/10 flex items-center justify-between bg-white/[0.02]">
-                        <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-2.5 sm:gap-4 flex-wrap">
                             <div className="flex items-center gap-1.5">
                                 <MessageSquare className="w-3 h-3 text-neon-red" />
                                 <h3 className="text-[10px] md:text-2xl font-black text-white uppercase italic tracking-tighter">LIVE CHAT</h3>
+                            </div>
+                            {/* Badge du stage dédié au chat */}
+                            <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-lg bg-neon-red/15 border border-neon-red/30 shadow-[0_0_10px_rgba(255,0,51,0.2)]">
+                                <span className="w-1.5 h-1.5 rounded-full bg-neon-red animate-pulse" />
+                                <span className="text-[9px] font-black uppercase text-neon-red tracking-wider">
+                                    {activeStageLabel}
+                                </span>
                             </div>
                             {settings.showSponsorBanner && settings.sponsorText && (
                                 <div className="hidden sm:flex items-center gap-2">
@@ -4166,11 +4185,11 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                                     )}
                                     <input
                                         type="text"
-                                        value={isUserBanned ? "VOUS ÃŠTES BANNI" : newMessage}
+                                        value={isUserBanned ? "VOUS ÊTES BANNI" : newMessage}
                                         onChange={e => setNewMessage(e.target.value)}
                                         disabled={isUserBanned}
                                         onKeyDown={e => e.key === 'Enter' && handleSendMessage(newMessage)}
-                                        placeholder={isUserBanned ? "ACCÈS REFUSÉ..." : slowModeEnabled && !isMod ? "MODE LENT ACTIF..." : "VOTRE MESSAGE..."}
+                                        placeholder={isUserBanned ? "ACCÈS REFUSÉ..." : slowModeEnabled && !isMod ? "MODE LENT ACTIF..." : `MESSAGE SUR ${activeStageLabel.toUpperCase()}...`}
                                         className={`flex-1 bg-transparent text-xs font-bold outline-none uppercase tracking-wider ${isUserBanned ? 'text-red-500' : 'text-white placeholder:text-gray-600'}`}
                                     />
                                     <button onClick={() => setShowGifPicker(!showGifPicker)} className="p-2 text-gray-500 hover:text-white transition-all">
@@ -4179,7 +4198,14 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                                     <button onClick={() => setIsHighlightChecked(!isHighlightChecked)} className={`p-2 rounded-lg transition-all ${isHighlightChecked ? 'bg-amber-500 text-black shadow-[0_0_10px_rgba(245,158,11,0.4)]' : 'text-gray-500 hover:text-white hover:bg-white/5'}`}>
                                         <Zap className="w-4 h-4" />
                                     </button>
-                                    <button onClick={() => window.open(window.location.href + (window.location.href.includes('?') ? '&' : '?') + 'popout=true', 'Chat', 'width=400,height=800')} className="p-2 text-gray-500 hover:text-white transition-all" title="Détacher le chat">
+                                    <button 
+                                        onClick={() => {
+                                            const popoutUrl = `${window.location.pathname}?popout=true&stage=${encodeURIComponent(activeStage)}`;
+                                            window.open(popoutUrl, `Chat_${activeStage}`, 'width=420,height=820');
+                                        }} 
+                                        className="p-2 text-gray-500 hover:text-white transition-all" 
+                                        title={`Détacher le chat de ${activeStageLabel}`}
+                                    >
                                         <Maximize2 className="w-4 h-4" />
                                     </button>
                                     <button onClick={() => handleSendMessage(newMessage)} className="p-2 text-white rounded-xl shadow-lg hover:scale-105 active:scale-95 transition-all" style={{ backgroundColor: accentColor }}>
