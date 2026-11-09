@@ -1994,8 +1994,11 @@ export default {
                 }
 
                 // 11. Live Takeover
-                if (path === '/api/takeover-settings' && request.method === 'POST' && !hasAll && !userPermissions.includes('live') && !userPermissions.includes('takeover') && !userPermissions.includes('takeover_modo')) {
-                    return new Response(JSON.stringify({ error: 'Permission refusée : live' }), { status: 403, headers });
+                if (path === '/api/takeover-settings' && request.method === 'POST') {
+                    const isAlex = requestUsername === 'alex' || requestUsername === 'alexf' || requestUsername === 'itsalexfr1' || requestUsername === 'contact@dropsiders.fr' || requestUsername === 'alexflex30@gmail.com';
+                    if (!isAlex && !hasAll && !userPermissions.includes('live') && !userPermissions.includes('takeover') && !userPermissions.includes('takeover_modo')) {
+                        return new Response(JSON.stringify({ error: 'Permission refusée : live' }), { status: 403, headers });
+                    }
                 }
 
                 // 13. Dashboard Actions (restricted to Super Admins)
@@ -6495,10 +6498,24 @@ ${urls.map(u => `  <url>
 
         if ((path === '/api/settings/takeover' || path === '/api/takeover-settings') && request.method === 'GET') {
             const SETTINGS_PATH = 'src/data/settings.json';
-            const file = await fetchGitHubFile(SETTINGS_PATH, gitConfig);
-            if (!file || !file.content.takeover) return new Response(JSON.stringify({ enabled: false, status: 'off' }), { status: 200, headers });
-            
-            const takeover = file.content.takeover;
+
+            // 1. Lire d'abord depuis Cloudflare KV Edge pour un état 0ms
+            let kvTakeover: any = null;
+            if (env.CHAT_KV) {
+                try {
+                    const raw = await env.CHAT_KV.get('site_settings_dynamic');
+                    if (raw) {
+                        const parsed = JSON.parse(raw);
+                        if (parsed.takeover) kvTakeover = parsed.takeover;
+                    }
+                } catch (e) {
+                    console.error('KV takeover read error:', e);
+                }
+            }
+
+            const file = await fetchGitHubFile(SETTINGS_PATH, { ...gitConfig, bypassCache: true });
+            const ghTakeover = file?.content?.takeover || { enabled: false, status: 'off' };
+            const takeover = kvTakeover ? { ...ghTakeover, ...kvTakeover } : ghTakeover;
             
             // Logique Auto-Live
             if (takeover.startDate && takeover.endDate && takeover.status !== 'off') {
@@ -6520,7 +6537,7 @@ ${urls.map(u => `  <url>
 
         if (path === '/api/takeover-settings' && request.method === 'POST') {
             const takeoverData = await request.json();
-            const file = await fetchGitHubFile(SETTINGS_PATH, gitConfig);
+            const file = await fetchGitHubFile(SETTINGS_PATH, { ...gitConfig, bypassCache: true });
             if (!file) return new Response(JSON.stringify({ error: 'Could not fetch current settings for update' }), { status: 500, headers });
             
             file.content.takeover = {

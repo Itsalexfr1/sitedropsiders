@@ -7380,6 +7380,30 @@ export function AdminDashboard() {
                     </button>
 
                     <Link
+                      to="/live?edit=true"
+                      onClick={() => setIsAccueilModalOpen(false)}
+                      className="w-full p-6 bg-white/5 border border-white/10 rounded-3xl flex items-center gap-6 hover:bg-neon-red/10 hover:border-neon-red/50 transition-all group"
+                    >
+                      <div className="w-12 h-12 bg-neon-red/20 rounded-2xl flex items-center justify-center border border-neon-red/30 group-hover:scale-110 transition-transform flex-shrink-0">
+                        <Radio className="w-6 h-6 text-neon-red" />
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <h3 className="text-xl font-bold text-white uppercase italic">
+                            Édition Live Takeover
+                          </h3>
+                          <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-neon-red/20 text-neon-red border border-neon-red/30">
+                            Studio Direct
+                          </span>
+                        </div>
+                        <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">
+                          Gérer le flux live, les scènes multicam et le planning
+                        </p>
+                      </div>
+                      <ChevronRight className="w-5 h-5 text-gray-500 group-hover:text-white group-hover:translate-x-1 transition-all" />
+                    </Link>
+
+                    <Link
                       to="/admin/home"
                       onClick={() => setIsAccueilModalOpen(false)}
                       className="w-full p-6 bg-white/5 border border-white/10 rounded-3xl flex items-center gap-6 hover:bg-neon-blue/10 hover:border-neon-blue/50 transition-all group"

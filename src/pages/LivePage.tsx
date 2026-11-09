@@ -29,13 +29,20 @@ export function LivePage() {
         fetchTakeover();
     }, []);
 
+    const searchParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+    const isEditMode = searchParams?.get('edit') === 'true' || searchParams?.get('admin') === 'true';
+
     const adminUser = (typeof window !== 'undefined' ? localStorage.getItem('admin_user') || '' : '').toLowerCase().trim();
     const isAdmin = (typeof window !== 'undefined' && localStorage.getItem('admin_auth_v2') === 'true') ||
         isSuperAdmin(adminUser) ||
         adminUser === 'alex' ||
         adminUser === 'alexf' ||
         adminUser === 'itsalexfr1' ||
+        adminUser === 'contact@dropsiders.fr' ||
+        adminUser === 'alexflex30@gmail.com' ||
         adminUser.startsWith('alex');
+
+    const canAccessStudio = isAdmin || isEditMode;
 
     if (loading) {
         return (
@@ -55,8 +62,8 @@ export function LivePage() {
 
     const status = takeover?.status || (takeover?.enabled ? 'live' : 'off');
 
-    // Case: Off
-    if (status === 'off' || !takeover || (!takeover.enabled && !isAdmin)) {
+    // Case: Off (visiteurs non-admin uniquement)
+    if (!canAccessStudio && (status === 'off' || !takeover || !takeover.enabled)) {
         return (
             <div className="min-h-screen bg-dark-bg flex flex-col items-center justify-center p-4 relative">
                 {/* Background Ambient Glows */}
@@ -77,8 +84,8 @@ export function LivePage() {
         );
     }
 
-    // Case: Edit mode (Preparation)
-    if (status === 'edit' && !isAdmin) {
+    // Case: Edit mode (Preparation) pour les visiteurs non-admin
+    if (!canAccessStudio && status === 'edit') {
         return (
             <div className="min-h-screen bg-dark-bg flex flex-col items-center justify-center p-4 relative">
                 {/* Background Ambient Glows */}

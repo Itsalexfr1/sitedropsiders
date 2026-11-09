@@ -306,8 +306,15 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
 
 
     useEffect(() => {
-        if (settings.streams && settings.streams.length > 0 && viewerGridSelection.length === 0) {
-            setViewerGridSelection(settings.streams.map((s: any) => s.id));
+        const currentStreams = settings.streams;
+        if (currentStreams && currentStreams.length > 0) {
+            setViewerGridSelection(prev => {
+                const allIds = currentStreams.map((s: any) => s.id);
+                if (prev.length === 0) return allIds;
+                const newIds = allIds.filter((id: string) => !prev.includes(id));
+                if (newIds.length > 0) return [...prev, ...newIds];
+                return prev;
+            });
         }
     }, [settings.streams]);
 
@@ -2820,7 +2827,7 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                     <div className="absolute inset-0 z-0">
                         {viewMode === 'single' ? (
                             (() => {
-                                const activeStreamRaw = settings.streams?.find((s: any) => s.id === settings.activeStreamId);
+                                const activeStreamRaw = settings.streams?.find((s: any) => s.id === settings.activeStreamId) || settings.streams?.[0];
                                 const activeStream = resolveStreamInfo(activeStreamRaw);
                                 const activeYtId = activeStream?.youtubeId || settings.youtubeId;
                                 const isExternal = activeStream?.isExternalLink;

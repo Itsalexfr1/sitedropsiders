@@ -132,11 +132,20 @@ export function AdminPanel() {
                 showNotification?.(`Info : ${missing.length} artiste(s) sans photo dans le planning.`, 'info');
             }
 
+            const activeStream = editStreams.find(s => s.id === editActiveStreamId) || editStreams[0];
+            const resolvedYtId = activeStream?.youtubeId || settings.youtubeId || '';
+            const resolvedTwitch = activeStream?.twitchChannel || editTwitchChannel || settings.twitchChannel || '';
+            const resolvedSource = activeStream?.streamSource || editStreamSource || settings.streamSource || 'youtube';
+
             const updated = {
                 ...settings,
                 title: editTitle,
                 streams: editStreams,
-                activeStreamId: editActiveStreamId,
+                activeStreamId: editActiveStreamId || activeStream?.id || '',
+                youtubeId: resolvedYtId,
+                twitchChannel: resolvedTwitch,
+                streamSource: resolvedSource,
+                enabled: true,
                 tickerText: editAnnText,
                 showTickerBanner: editAnnEnabled,
                 tickerMode: editTickerMode,
@@ -153,8 +162,6 @@ export function AdminPanel() {
                 sponsorLink: editSponsorLink,
                 showSponsorBanner: editShowSponsorBanner,
                 festivalLogo: editFestivalLogo,
-                twitchChannel: editTwitchChannel,
-                streamSource: editStreamSource,
                 lineup: JSON.stringify(editLineup),
                 twitchBotAutoMessage: editTwitchBotAutoMessage,
                 twitchBotAutoMessageInterval: editTwitchBotAutoMessageInterval
@@ -253,11 +260,20 @@ export function AdminPanel() {
                                     </div>
                                     <button 
                                         onClick={() => {
-                                            const newStream: StreamItem = { id: Math.random().toString(36).substr(2, 9), name: `STAGE ${editStreams.length + 1}`, youtubeId: '' };
-                                            setEditStreams([...editStreams, newStream]);
-                                            if (!editActiveStreamId) setEditActiveStreamId(newStream.id);
+                                            const nextId = 'stream_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4);
+                                            const newStream: StreamItem = {
+                                                id: nextId,
+                                                name: `STAGE ${editStreams.length + 1}`,
+                                                youtubeId: '',
+                                                streamSource: 'youtube',
+                                                isExternalLink: false,
+                                                enabledInGrid: true
+                                            };
+                                            const nextList = [...editStreams, newStream];
+                                            setEditStreams(nextList);
+                                            if (!editActiveStreamId) setEditActiveStreamId(nextId);
                                         }}
-                                        className="flex items-center gap-2 px-4 py-2 bg-neon-blue/20 text-neon-blue border border-neon-blue/30 rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-neon-blue/30 transition-all"
+                                        className="flex items-center gap-2 px-4 py-2 bg-neon-blue/20 text-neon-blue border border-neon-blue/30 rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-neon-blue/30 transition-all cursor-pointer"
                                     >
                                         <Plus className="w-4 h-4" />
                                         Ajouter un flux
@@ -275,9 +291,8 @@ export function AdminPanel() {
                                                             type="text" 
                                                             value={stream.name} 
                                                             onChange={e => {
-                                                                const ns = [...editStreams];
-                                                                ns[idx].name = e.target.value.toUpperCase();
-                                                                setEditStreams(ns);
+                                                                const val = e.target.value.toUpperCase();
+                                                                setEditStreams(prev => prev.map((s, i) => i === idx ? { ...s, name: val } : s));
                                                             }}
                                                             className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white font-black uppercase outline-none focus:border-neon-blue"
                                                             placeholder="EX: MAIN STAGE"
@@ -287,20 +302,18 @@ export function AdminPanel() {
                                                         <label className="text-[8px] font-black text-gray-500 uppercase ml-1">Source du Flux</label>
                                                         <div className="flex gap-2 p-1 bg-black/40 rounded-xl border border-white/5">
                                                             <button 
+                                                                type="button"
                                                                 onClick={() => {
-                                                                    const ns = [...editStreams];
-                                                                    ns[idx].streamSource = 'youtube';
-                                                                    setEditStreams(ns);
+                                                                    setEditStreams(prev => prev.map((s, i) => i === idx ? { ...s, streamSource: 'youtube' } : s));
                                                                 }}
                                                                 className={`flex-1 py-1.5 rounded-lg text-[7px] font-black uppercase transition-all ${stream.streamSource === 'youtube' || !stream.streamSource ? 'bg-red-600 text-white' : 'text-gray-500 hover:text-white'}`}
                                                             >
                                                                 YouTube
                                                             </button>
                                                             <button 
+                                                                type="button"
                                                                 onClick={() => {
-                                                                    const ns = [...editStreams];
-                                                                    ns[idx].streamSource = 'twitch';
-                                                                    setEditStreams(ns);
+                                                                    setEditStreams(prev => prev.map((s, i) => i === idx ? { ...s, streamSource: 'twitch' } : s));
                                                                 }}
                                                                 className={`flex-1 py-1.5 rounded-lg text-[7px] font-black uppercase transition-all ${stream.streamSource === 'twitch' ? 'bg-purple-600 text-white' : 'text-gray-500 hover:text-white'}`}
                                                             >
@@ -317,21 +330,24 @@ export function AdminPanel() {
                                                             value={stream.streamSource === 'twitch' ? (stream.twitchChannel || '') : (stream.youtubeId || '')} 
                                                             onChange={e => {
                                                                 const val = e.target.value;
-                                                                const ns = [...editStreams];
-                                                                if (val.includes('twitch.tv/')) {
-                                                                    ns[idx].streamSource = 'twitch';
-                                                                    ns[idx].twitchChannel = extractTwitchChannel(val);
-                                                                } else if (val.includes('youtube.com/') || val.includes('youtu.be/')) {
-                                                                    ns[idx].streamSource = 'youtube';
-                                                                    ns[idx].youtubeId = extractYoutubeId(val);
-                                                                } else if (stream.streamSource === 'twitch') {
-                                                                    ns[idx].twitchChannel = val.trim();
-                                                                } else if (stream.isExternalLink || val.startsWith('http://') || val.startsWith('https://')) {
-                                                                    ns[idx].youtubeId = val.trim();
-                                                                } else {
-                                                                    ns[idx].youtubeId = extractYoutubeId(val);
-                                                                }
-                                                                setEditStreams(ns);
+                                                                setEditStreams(prev => prev.map((s, i) => {
+                                                                    if (i !== idx) return s;
+                                                                    const updated = { ...s };
+                                                                    if (val.includes('twitch.tv/')) {
+                                                                        updated.streamSource = 'twitch';
+                                                                        updated.twitchChannel = extractTwitchChannel(val);
+                                                                    } else if (val.includes('youtube.com/') || val.includes('youtu.be/')) {
+                                                                        updated.streamSource = 'youtube';
+                                                                        updated.youtubeId = extractYoutubeId(val);
+                                                                    } else if (updated.streamSource === 'twitch') {
+                                                                        updated.twitchChannel = val.trim();
+                                                                    } else if (updated.isExternalLink || val.startsWith('http://') || val.startsWith('https://')) {
+                                                                        updated.youtubeId = val.trim();
+                                                                    } else {
+                                                                        updated.youtubeId = extractYoutubeId(val);
+                                                                    }
+                                                                    return updated;
+                                                                }));
                                                             }}
                                                             className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white outline-none focus:border-neon-blue font-mono"
                                                             placeholder={stream.streamSource === 'twitch' ? "Lien ou nom Twitch" : stream.isExternalLink ? "https://..." : "Lien ou ID YouTube"}
@@ -343,9 +359,8 @@ export function AdminPanel() {
                                                             type="date" 
                                                             value={stream.day || ''} 
                                                             onChange={e => {
-                                                                const ns = [...editStreams];
-                                                                ns[idx].day = e.target.value;
-                                                                setEditStreams(ns);
+                                                                const val = e.target.value;
+                                                                setEditStreams(prev => prev.map((s, i) => i === idx ? { ...s, day: val } : s));
                                                             }}
                                                             className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white outline-none focus:border-amber-500/50"
                                                             style={{ colorScheme: 'dark' }}
@@ -357,9 +372,8 @@ export function AdminPanel() {
                                                             type="text" 
                                                             value={stream.startTime || ''} 
                                                             onChange={e => {
-                                                                const ns = [...editStreams];
-                                                                ns[idx].startTime = e.target.value;
-                                                                setEditStreams(ns);
+                                                                const val = e.target.value;
+                                                                setEditStreams(prev => prev.map((s, i) => i === idx ? { ...s, startTime: val } : s));
                                                             }}
                                                             className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white outline-none focus:border-amber-500/50"
                                                             placeholder="HH:mm"
@@ -369,24 +383,25 @@ export function AdminPanel() {
 
                                                 <div className="flex flex-wrap items-center gap-4 pt-4 md:pt-0">
                                                     <button 
+                                                        type="button"
                                                         onClick={() => {
-                                                            const ns = [...editStreams];
-                                                            ns[idx].isExternalLink = !ns[idx].isExternalLink;
-                                                            setEditStreams(ns);
+                                                            setEditStreams(prev => prev.map((s, i) => i === idx ? { ...s, isExternalLink: !s.isExternalLink } : s));
                                                         }}
                                                         className={`px-4 py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${stream.isExternalLink ? 'bg-amber-500/10 border-amber-500/30 text-amber-500' : 'bg-white/5 border-white/10 text-gray-500 hover:text-white'}`}
                                                     >
                                                         Mode Externe
                                                     </button>
                                                     <button 
+                                                        type="button"
                                                         onClick={() => {
                                                             setEditActiveStreamId(stream.id);
                                                         }}
-                                                        className={`px-4 py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${editActiveStreamId === stream.id ? 'bg-neon-blue text-black border-neon-blue' : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'}`}
+                                                        className={`px-4 py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${editActiveStreamId === stream.id ? 'bg-neon-blue text-black border-neon-blue font-black' : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'}`}
                                                     >
-                                                        Actif
+                                                        {editActiveStreamId === stream.id ? '★ Actif' : 'Actif'}
                                                     </button>
                                                     <button 
+                                                        type="button"
                                                         onClick={() => setExpandedOverrides(expandedOverrides === stream.id ? null : stream.id)}
                                                         className={`p-3 rounded-xl border transition-all ${expandedOverrides === stream.id ? 'bg-amber-500/20 border-amber-500 text-amber-500 shadow-[0_0_15px_rgba(245,158,11,0.2)]' : 'bg-white/5 border-white/10 text-gray-500 hover:text-white'}`}
                                                         title="Gérer la programmation détaillée"
@@ -394,11 +409,12 @@ export function AdminPanel() {
                                                         <Calendar className="w-4 h-4" />
                                                     </button>
                                                     <button 
+                                                        type="button"
                                                         onClick={() => {
-                                                            const ns = editStreams.filter(s => s.id !== stream.id);
-                                                            setEditStreams(ns);
+                                                            const remaining = editStreams.filter(s => s.id !== stream.id);
+                                                            setEditStreams(remaining);
                                                             if (editActiveStreamId === stream.id) {
-                                                                setEditActiveStreamId(ns[0]?.id || '');
+                                                                setEditActiveStreamId(remaining[0]?.id || '');
                                                             }
                                                         }}
                                                         className="p-3 bg-red-500/10 text-red-500 border border-red-500/20 rounded-xl hover:bg-red-500 transition-all hover:text-white"

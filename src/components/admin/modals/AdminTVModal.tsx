@@ -1768,13 +1768,13 @@ export function AdminTVModal({
                                     </a>
                                 )}
                                 <a
-                                    href="/live"
+                                    href="/live?edit=true"
                                     target="_blank"
                                     rel="noreferrer"
                                     className="px-2.5 py-1.5 rounded-lg bg-neon-purple/10 hover:bg-neon-purple/20 border border-neon-purple/30 text-[9px] font-black uppercase tracking-widest text-neon-purple transition-all flex items-center gap-1.5"
                                 >
                                     <Radio className="w-3 h-3" />
-                                    Voir le Live
+                                    Studio Live Takeover
                                 </a>
 
                                 {/* Plein Écran */}
