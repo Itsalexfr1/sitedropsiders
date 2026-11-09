@@ -89,5 +89,18 @@
     "email": "justinche17@yahoo.com",
     "dropsiders_email": "justin@crew.dropsiders.fr",
     "mail_enabled": true
+  },
+  {
+    "id": 1794260434930,
+    "name": "Timeo",
+    "role": "RÉDACTEUR & PHOTOGRAPHE & VIDÉASTE",
+    "image": "/uploads/uploads/9db1c089a4a648a2-capture_d__cran_2026_11_09_215.png",
+    "socials": {
+      "instagram": "https://www.instagram.com/timeoharoux?",
+      "tiktok": ""
+    },
+    "email": "harouxtimeo@gmail.com",
+    "dropsiders_email": "thx@crew.dropsiders.fr",
+    "mail_enabled": true
   }
 ]
