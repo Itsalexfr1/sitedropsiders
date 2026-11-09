@@ -199,18 +199,6 @@ const DEFAULT_DASHBOARD_ACTIONS = (Array.isArray(dashboardActionsData) && dashbo
       columns: 1,
     },
     {
-      title: "Concours GTA 6",
-      description: "Paramètres, tirage & menu",
-      icon: "Gamepad2",
-      category: "STUDIO",
-      link: "#GTA_CONTEST_MODAL",
-      color: "border-[#ff007f]/40 hover:border-[#ff007f]",
-      bg: "bg-[#ff007f]/10",
-      permission: "all",
-      baseColor: "pink",
-      columns: 1,
-    },
-    {
       title: "Fichiers Cloudflare",
       description: "Images, Vidéos, MP3",
       icon: "HardDrive",
@@ -3000,18 +2988,6 @@ export function AdminDashboard() {
       columns: 1,
     },
     {
-      title: "Concours GTA 6",
-      description: "Paramètres, tirage & menu",
-      icon: "Gamepad2",
-      category: "STUDIO",
-      link: "#GTA_CONTEST_MODAL",
-      color: "border-[#ff007f]/40 hover:border-[#ff007f]",
-      bg: "bg-[#ff007f]/10",
-      permission: "all",
-      baseColor: "pink",
-      columns: 1,
-    },
-    {
       title: "Fichiers Cloudflare",
       description: "Images, Vidéos, MP3",
       icon: "HardDrive",
@@ -4378,65 +4354,67 @@ export function AdminDashboard() {
             </div>
           ) : dashboardTab === "COMMUNAUTÉ" ? (
             <div className="space-y-16 pb-20">
-              {/* CONTESTS SECTION */}
+              {/* CONTESTS SECTION (Masqué) */}
               <div className="pt-16 border-t border-white/5 space-y-12">
-                <div className="bg-white/5 border border-white/10 rounded-[2.5rem] p-10 flex flex-col md:flex-row justify-between items-center gap-10 relative overflow-hidden">
-                  <div className="absolute top-0 right-0 w-64 h-64 bg-neon-red/5 blur-[100px] pointer-events-none" />
-                  <div className="relative z-10 text-center md:text-left">
-                    <div className="flex items-center justify-center md:justify-start gap-4 mb-4">
-                      <div
-                        className={`p-3 rounded-2xl border ${isContestModeEnabled ? "bg-neon-red/20 border-neon-red/40 animate-pulse" : "bg-white/10 border-white/20"}`}
+                {false && (
+                  <div className="bg-white/5 border border-white/10 rounded-[2.5rem] p-10 flex flex-col md:flex-row justify-between items-center gap-10 relative overflow-hidden">
+                    <div className="absolute top-0 right-0 w-64 h-64 bg-neon-red/5 blur-[100px] pointer-events-none" />
+                    <div className="relative z-10 text-center md:text-left">
+                      <div className="flex items-center justify-center md:justify-start gap-4 mb-4">
+                        <div
+                          className={`p-3 rounded-2xl border ${isContestModeEnabled ? "bg-neon-red/20 border-neon-red/40 animate-pulse" : "bg-white/10 border-white/20"}`}
+                        >
+                          <Gamepad2
+                            className={`w-8 h-8 ${isContestModeEnabled ? "text-neon-red" : "text-gray-500"}`}
+                          />
+                        </div>
+                        <h2 className="text-4xl font-display font-black text-white uppercase italic tracking-tighter">
+                          Concours{" "}
+                          <span className="text-neon-red">Instagram</span>
+                        </h2>
+                      </div>
+                      <div className="flex flex-wrap items-center justify-center md:justify-start gap-6 mt-4">
+                        <div className="flex flex-col">
+                          <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">
+                            Inscrits Concours
+                          </span>
+                          <span className="text-2xl font-display font-black text-white italic">
+                            {contestResults.length}
+                          </span>
+                        </div>
+                        <div className="w-px h-8 bg-white/10" />
+                        <div className="flex flex-col">
+                          <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">
+                            Participation Instagram
+                          </span>
+                          <span className="text-2xl font-display font-black text-neon-red italic">
+                            {instagramParticipants.length}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-6 relative z-10 w-full md:w-auto">
+                      <button
+                        onClick={toggleContestMode}
+                        className={`flex-1 md:flex-none px-10 py-5 rounded-2xl font-black uppercase tracking-[0.2em] transition-all transform hover:scale-105 active:scale-95 ${isContestModeEnabled
+                            ? "bg-neon-red text-white shadow-2xl shadow-neon-red/40 border border-neon-red/50"
+                            : "bg-white/5 border border-white/10 text-gray-500 hover:text-white hover:bg-white/10"
+                          }`}
                       >
-                        <Gamepad2
-                          className={`w-8 h-8 ${isContestModeEnabled ? "text-neon-red" : "text-gray-500"}`}
-                        />
-                      </div>
-                      <h2 className="text-4xl font-display font-black text-white uppercase italic tracking-tighter">
-                        Concours{" "}
-                        <span className="text-neon-red">Instagram</span>
-                      </h2>
-                    </div>
-                    <div className="flex flex-wrap items-center justify-center md:justify-start gap-6 mt-4">
-                      <div className="flex flex-col">
-                        <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">
-                          Inscrits Concours
-                        </span>
-                        <span className="text-2xl font-display font-black text-white italic">
-                          {contestResults.length}
-                        </span>
-                      </div>
-                      <div className="w-px h-8 bg-white/10" />
-                      <div className="flex flex-col">
-                        <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">
-                          Participation Instagram
-                        </span>
-                        <span className="text-2xl font-display font-black text-neon-red italic">
-                          {instagramParticipants.length}
-                        </span>
-                      </div>
+                        {isContestModeEnabled
+                          ? "CONCOURS ACTIF"
+                          : "ACTIVER CONCOURS"}
+                      </button>
+                      <button
+                        onClick={handleResetContest}
+                        title="Réinitialiser les scores"
+                        className="p-5 bg-white/5 border border-white/10 text-gray-500 hover:text-white rounded-2xl transition-all hover:bg-white/10 hover:border-white/20"
+                      >
+                        <RotateCcw className="w-6 h-6" />
+                      </button>
                     </div>
                   </div>
-                  <div className="flex items-center gap-6 relative z-10 w-full md:w-auto">
-                    <button
-                      onClick={toggleContestMode}
-                      className={`flex-1 md:flex-none px-10 py-5 rounded-2xl font-black uppercase tracking-[0.2em] transition-all transform hover:scale-105 active:scale-95 ${isContestModeEnabled
-                          ? "bg-neon-red text-white shadow-2xl shadow-neon-red/40 border border-neon-red/50"
-                          : "bg-white/5 border border-white/10 text-gray-500 hover:text-white hover:bg-white/10"
-                        }`}
-                    >
-                      {isContestModeEnabled
-                        ? "CONCOURS ACTIF"
-                        : "ACTIVER CONCOURS"}
-                    </button>
-                    <button
-                      onClick={handleResetContest}
-                      title="Réinitialiser les scores"
-                      className="p-5 bg-white/5 border border-white/10 text-gray-500 hover:text-white rounded-2xl transition-all hover:bg-white/10 hover:border-white/20"
-                    >
-                      <RotateCcw className="w-6 h-6" />
-                    </button>
-                  </div>
-                </div>
+                )}
 
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
                   {/* PARTICIPANTS LIST */}

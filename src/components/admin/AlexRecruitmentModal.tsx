@@ -51,9 +51,9 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
     // Scène 6 : Outro Finale Logo
     const [logoDuration, setLogoDuration] = useState(4.0); // Augmenté de 2.8s à 4.0s
 
-    // ── Fond Visuel (Image Festival par défaut, ou Vidéo / Image Uploadée) ──
-    const [bgType, setBgType] = useState<'image' | 'video' | 'lasers'>('image');
-    const [bgImageSrc, setBgImageSrc] = useState<string>('/images/festival_recrutement_bg.jpg');
+    // ── Fond Visuel (Vidéo de Fond, Lasers de Concert ou Image Uploadée) ──
+    const [bgType, setBgType] = useState<'video' | 'image' | 'lasers'>('video');
+    const [bgImageSrc, setBgImageSrc] = useState<string>('');
     const [bgVideoSrc, setBgVideoSrc] = useState<string>('');
     const [bgVideoStartTime, setBgVideoStartTime] = useState<number>(0);
     const [bgVideoDuration, setBgVideoDuration] = useState<number>(0);
@@ -96,8 +96,12 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
         bgVideoStartTimeRef.current = bgVideoStartTime;
     }, [bgVideoStartTime]);
 
-    // Charger l'image de fond festival par défaut
+    // Charger l'image de fond si l'utilisateur en uploade une
     useEffect(() => {
+        if (!bgImageSrc) {
+            bgImgRef.current = null;
+            return;
+        }
         const img = new Image();
         img.crossOrigin = 'anonymous';
         img.src = bgImageSrc;
@@ -121,7 +125,7 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
         const file = e.target.files?.[0];
         if (!file) return;
 
-        const isVid = file.type.startsWith('video/');
+        const isVid = file.type.startsWith('video/') || /\.(mp4|mov|webm|m4v|avi|mkv)$/i.test(file.name);
         const blobUrl = URL.createObjectURL(file);
 
         if (isVid) {
@@ -133,7 +137,10 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
 
             if (videoRef.current) {
                 videoRef.current.src = blobUrl;
+                videoRef.current.muted = true;
+                videoRef.current.defaultMuted = true;
                 videoRef.current.currentTime = 0;
+                videoRef.current.load();
                 videoRef.current.onloadedmetadata = () => {
                     if (videoRef.current) {
                         setBgVideoDuration(videoRef.current.duration || 0);
@@ -258,13 +265,13 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
     const drawFrame = useCallback((ctx: CanvasRenderingContext2D, width: number, height: number, time: number) => {
         ctx.clearRect(0, 0, width, height);
 
-        // 1. FOND VISUEL (Vidéo / Image Festival / Lasers de concert)
+        // 1. FOND VISUEL (Vidéo / Image / Lasers EDM)
         let hasCustomBg = false;
 
         // A. Cas Vidéo
         if (bgType === 'video') {
             const vid = videoRef.current;
-            if (vid && vid.readyState >= 2 && !isNaN(vid.videoWidth) && vid.videoWidth > 0) {
+            if (vid && !isNaN(vid.videoWidth) && vid.videoWidth > 0) {
                 const scale = Math.max(width / vid.videoWidth, height / vid.videoHeight);
                 const vw = vid.videoWidth * scale;
                 const vh = vid.videoHeight * scale;
@@ -275,8 +282,8 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
             }
         }
 
-        // B. Cas Image de fond Festival (par défaut ou uploadée)
-        if (!hasCustomBg && (bgType === 'image' || bgImgRef.current)) {
+        // B. Cas Image de fond (UNIQUEMENT si l'utilisateur a choisi et importé une image)
+        if (!hasCustomBg && bgType === 'image' && bgImgRef.current) {
             const img = bgImgRef.current;
             if (img && img.complete && img.naturalWidth > 0) {
                 // Effet Ken Burns très subtil (zoom lent 1.00 -> 1.06)
@@ -291,7 +298,7 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
             }
         }
 
-        // C. Cas Fond Lasers Synthwave / EDM par défaut si aucune image/vidéo
+        // C. Cas Fond Lasers Synthwave / EDM par défaut (si aucun média ou bgType === 'lasers')
         if (!hasCustomBg) {
             const grad = ctx.createLinearGradient(0, 0, width, height);
             grad.addColorStop(0, '#0a0208');
@@ -856,9 +863,16 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
                 const targetTime = (bgVideoStartTimeRef.current + frameTimeSec) % vid.duration;
                 vid.currentTime = targetTime;
                 await new Promise<void>(res => {
-                    const onSeek = () => { vid.removeEventListener('seeked', onSeek); res(); };
+                    let resolved = false;
+                    const onSeek = () => {
+                        if (!resolved) {
+                            resolved = true;
+                            vid.removeEventListener('seeked', onSeek);
+                            res();
+                        }
+                    };
                     vid.addEventListener('seeked', onSeek, { once: true });
-                    setTimeout(res, 60);
+                    setTimeout(onSeek, 80);
                 });
             }
 
@@ -969,7 +983,7 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
                                 className="w-full h-full object-contain"
                             />
 
-                            {/* Élément vidéo invisible servant de texture au canvas (jamais display: none pour décodage continu) */}
+                            {/* Élément vidéo servant de source de décodage GPU directe (maintenu dans le DOM pour performance maximale) */}
                             <video
                                 ref={videoRef}
                                 src={bgVideoSrc}
@@ -977,16 +991,7 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
                                 crossOrigin="anonymous"
                                 muted={isVideoAudioMuted}
                                 loop
-                                style={{
-                                    position: 'fixed',
-                                    top: -9999,
-                                    left: -9999,
-                                    width: 320,
-                                    height: 180,
-                                    opacity: 0.001,
-                                    pointerEvents: 'none',
-                                    zIndex: -1
-                                }}
+                                className="absolute inset-0 w-full h-full object-cover pointer-events-none -z-10 opacity-0"
                             />
 
                             {/* Badge Timeline HUD */}
@@ -1126,21 +1131,11 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
                     {/* Contenu de l'onglet actif */}
                     <div className="flex-1 overflow-y-auto p-4 space-y-4">
                         
-                        {/* ONGLET 1 : FOND VISUEL (VIDÉO OU IMAGE FESTIVAL) */}
+                        {/* ONGLET 1 : FOND VISUEL (VIDÉO OU LASERS CONCERT) */}
                         {activeTab === 'fond' && (
                             <div className="space-y-4">
                                 {/* Sélecteur de type de fond */}
                                 <div className="grid grid-cols-3 gap-2">
-                                    <button
-                                        type="button"
-                                        onClick={() => setBgType('image')}
-                                        className={`p-2.5 rounded-xl border text-xs font-black uppercase flex flex-col items-center gap-1 transition ${
-                                            bgType === 'image' ? 'bg-amber-500/20 border-amber-500 text-amber-300' : 'bg-white/5 border-white/10 text-gray-400'
-                                        }`}
-                                    >
-                                        <ImageIcon className="w-4 h-4" />
-                                        <span>Image Festival</span>
-                                    </button>
                                     <button
                                         type="button"
                                         onClick={() => setBgType('video')}
@@ -1161,6 +1156,16 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
                                         <Sparkles className="w-4 h-4" />
                                         <span>Lasers Concert</span>
                                     </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setBgType('image')}
+                                        className={`p-2.5 rounded-xl border text-xs font-black uppercase flex flex-col items-center gap-1 transition ${
+                                            bgType === 'image' ? 'bg-amber-500/20 border-amber-500 text-amber-300' : 'bg-white/5 border-white/10 text-gray-400'
+                                        }`}
+                                    >
+                                        <ImageIcon className="w-4 h-4" />
+                                        <span>Image Custom</span>
+                                    </button>
                                 </div>
 
                                 {/* Uploader Vidéo ou Image */}
@@ -1172,7 +1177,7 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
                                         </span>
                                         {bgType === 'image' && bgImageSrc && (
                                             <span className="text-[10px] font-mono text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">
-                                                ✓ Fond Festival Actif
+                                                ✓ Image Custom Active
                                             </span>
                                         )}
                                         {bgType === 'video' && bgVideoSrc && (
