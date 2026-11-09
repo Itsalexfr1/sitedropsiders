@@ -8073,8 +8073,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         drawTopCapsuleBadge('AGENDA', monthColor, monthGrad);
 
                         // 3. Dimensions exactes de la carte affiche "comme partout" (ne dépasse JAMAIS sous le logo)
-                        const baseCardW = 800;
-                        const baseCardH = 980;
+                        const baseCardW = isStory ? 920 : 800;
+                        const baseCardH = isStory ? 1130 : 980;
                         const baseCardY = isStory ? Math.round((canvas.height - baseCardH) / 2) + 15 : 210;
 
                         const scale = (afficheScale || 100) / 100;
@@ -9035,8 +9035,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     drawTopCapsuleBadge(badgeLabel, badgeColor, badgeGrad);
 
                     // 3. Dimensions de la carte d'affiche
-                    const baseCardW = 800;
-                    const baseCardH = 980;
+                    const baseCardW = isStory ? 920 : 800;
+                    const baseCardH = isStory ? 1130 : 980;
                     const baseCardY = isStory ? Math.round((canvas.height - baseCardH) / 2) + 15 : 210;
 
                     const scale = (afficheScale || 100) / 100;
