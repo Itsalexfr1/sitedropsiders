@@ -210,14 +210,30 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
         } catch {}
     };
 
+    // Ref pour l'état audio afin d'éviter les pièges de capture et les désynchronisations
+    const isVideoAudioMutedRef = useRef<boolean>(isVideoAudioMuted);
+
+    // Débloquer le son au premier clic utilisateur dans la modal (politique autoplay navigateur)
+    const handleUserInteractionUnlockAudio = () => {
+        const vid = videoRef.current;
+        if (vid && !isVideoAudioMutedRef.current && vid.muted) {
+            vid.muted = false;
+            vid.volume = 1.0;
+            vid.play().catch(() => {});
+        }
+    };
+
     // Basculer l'état audio (Muet / Son Actif)
-    const toggleAudio = () => {
+    const toggleAudio = (e?: React.MouseEvent) => {
+        if (e) e.stopPropagation();
         const next = !isVideoAudioMuted;
         setIsVideoAudioMuted(next);
+        isVideoAudioMutedRef.current = next;
         const vid = videoRef.current;
         if (vid) {
             vid.muted = next;
-            if (!next && isPlaying) {
+            vid.volume = 1.0;
+            if (!next) {
                 vid.play().catch(() => {});
             }
         }
@@ -292,6 +308,19 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
         }
     };
 
+    // Synchroniser l'état audio et volume sans recharger la vidéo
+    useEffect(() => {
+        isVideoAudioMutedRef.current = isVideoAudioMuted;
+        const vid = videoRef.current;
+        if (vid) {
+            vid.muted = isVideoAudioMuted;
+            vid.volume = 1.0;
+            if (!isVideoAudioMuted && isPlaying) {
+                vid.play().catch(() => {});
+            }
+        }
+    }, [isVideoAudioMuted, isPlaying]);
+
     // Chargement automatique et persistant de la vidéo de fond uploadée
     useEffect(() => {
         if (!bgVideoSrc) return;
@@ -299,15 +328,17 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
         if (!vid) return;
 
         vid.src = bgVideoSrc;
-        vid.muted = isVideoAudioMuted;
+        vid.muted = isVideoAudioMutedRef.current;
+        vid.volume = 1.0;
         vid.currentTime = bgVideoStartTimeRef.current;
-        vid.load();
 
         const handleMetadata = () => {
             setBgVideoDuration(vid.duration || 0);
-            vid.muted = isVideoAudioMuted;
+            vid.muted = isVideoAudioMutedRef.current;
+            vid.volume = 1.0;
             if (isPlayingRef.current) {
                 vid.play().catch(() => {
+                    // Si autoplay avec son est bloqué par la politique navigateur sans interaction
                     vid.muted = true;
                     vid.play().catch(() => {});
                 });
@@ -315,10 +346,11 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
         };
 
         vid.addEventListener('loadedmetadata', handleMetadata);
+        vid.load();
         return () => {
             vid.removeEventListener('loadedmetadata', handleMetadata);
         };
-    }, [bgVideoSrc, isVideoAudioMuted]);
+    }, [bgVideoSrc]);
 
     // Helper: Dessiner du texte multiligne centré
     const drawCenteredWrappedText = (
@@ -823,13 +855,20 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
                 // 1. Tracé dynamique des lignes du cadre
                 if (frameProgress > 0) {
                     c.save();
-                    c.lineWidth = isFront ? 9 : 8;
+                    c.lineWidth = isFront ? 10 : 9;
                     c.strokeStyle = isFront ? '#ffffff' : '#a0a5b5';
                     c.lineCap = 'square';
                     c.lineJoin = 'miter';
                     if (isFront) {
-                        c.shadowColor = 'rgba(255, 255, 255, 0.35)';
-                        c.shadowBlur = 8;
+                        c.shadowColor = 'rgba(0, 0, 0, 0.95)';
+                        c.shadowOffsetX = -Math.sin(rotY) * 6;
+                        c.shadowOffsetY = 6;
+                        c.shadowBlur = 10;
+                    } else {
+                        c.shadowColor = 'transparent';
+                        c.shadowBlur = 0;
+                        c.shadowOffsetX = 0;
+                        c.shadowOffsetY = 0;
                     }
 
                     const perimeterHalf = halfW + boxH + halfW;
@@ -878,6 +917,17 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
                         const revealW = (lettersVisible / totalLetters) * lw;
 
                         c.save();
+                        if (isFront) {
+                            c.shadowColor = 'rgba(0, 0, 0, 0.95)';
+                            c.shadowOffsetX = -Math.sin(rotY) * 6;
+                            c.shadowOffsetY = 6;
+                            c.shadowBlur = 10;
+                        } else {
+                            c.shadowColor = 'transparent';
+                            c.shadowBlur = 0;
+                            c.shadowOffsetX = 0;
+                            c.shadowOffsetY = 0;
+                        }
                         c.beginPath();
                         c.rect(-lw / 2, -lh / 2, revealW, lh);
                         c.clip();
@@ -899,6 +949,17 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
                         const revealW = (lettersVisible / totalLetters) * lw;
 
                         c.save();
+                        if (isFront) {
+                            c.shadowColor = 'rgba(0, 0, 0, 0.95)';
+                            c.shadowOffsetX = -Math.sin(rotY) * 6;
+                            c.shadowOffsetY = 6;
+                            c.shadowBlur = 10;
+                        } else {
+                            c.shadowColor = 'transparent';
+                            c.shadowBlur = 0;
+                            c.shadowOffsetX = 0;
+                            c.shadowOffsetY = 0;
+                        }
                         c.beginPath();
                         c.rect(-lw / 2, -lh / 2, revealW, lh * 0.72);
                         c.clip();
@@ -916,8 +977,14 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
                     c.fillStyle = isFront ? '#ffffff' : '#777d8c';
                     if (isFront) {
                         c.shadowColor = 'rgba(0, 0, 0, 0.95)';
-                        c.shadowBlur = 20;
-                        c.shadowOffsetY = 3;
+                        c.shadowOffsetX = -Math.sin(rotY) * 6;
+                        c.shadowOffsetY = 6;
+                        c.shadowBlur = 10;
+                    } else {
+                        c.shadowColor = 'transparent';
+                        c.shadowBlur = 0;
+                        c.shadowOffsetX = 0;
+                        c.shadowOffsetY = 0;
                     }
                     c.fillText(visibleSub, 0, halfH + 70);
 
@@ -935,29 +1002,29 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
 
             // ── 1. OMBRE PORTÉE PROFONDE DE CONTACT (TranslateZ arrière) ──
             ctx.save();
-            const shadowZ = -22;
+            const shadowZ = -34;
             ctx.transform(
                 Math.cos(rotY),
                 Math.sin(rotX) * Math.sin(rotY),
                 0,
                 Math.cos(rotX),
                 -Math.sin(rotY) * shadowZ,
-                Math.sin(rotX) * shadowZ + 12
+                Math.sin(rotX) * shadowZ + 16
             );
-            if ('filter' in ctx) ctx.filter = 'blur(14px) brightness(0)';
-            ctx.globalAlpha = 0.65;
+            if ('filter' in ctx) ctx.filter = 'blur(18px) brightness(0)';
+            ctx.globalAlpha = 0.75;
             renderLogoSlice(ctx, false);
             ctx.restore();
 
             // ── 2. TRANCHES 3D VOLUMÉTRIQUES EXTRUDÉES (Acier / Titane sombre comme Animated3DLogo) ──
-            const sliceCount = 8;
-            const maxDepth = 15;
+            const sliceCount = 14;
+            const maxDepth = 26;
             for (let idx = 0; idx < sliceCount; idx++) {
                 const i = sliceCount - idx;
                 const z = -((i / sliceCount) * maxDepth);
                 const ratio = 1 - (i / sliceCount);
-                // Nuance d'acier : de 0.16 (tréfonds) à 0.58 (bord avant)
-                const shade = 0.16 + ratio * 0.42;
+                // Nuance d'acier brossé profond : de 0.12 (fond) à 0.65 (face)
+                const shade = 0.12 + ratio * 0.53;
 
                 ctx.save();
                 ctx.transform(
@@ -968,13 +1035,29 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
                     -Math.sin(rotY) * z,
                     Math.sin(rotX) * z
                 );
-                if ('filter' in ctx) ctx.filter = `brightness(${shade.toFixed(2)})`;
-                ctx.globalAlpha = 0.95;
+                if ('filter' in ctx) ctx.filter = `brightness(${shade.toFixed(2)}) contrast(1.15)`;
+                ctx.globalAlpha = 0.96;
                 renderLogoSlice(ctx, false);
                 ctx.restore();
             }
 
-            // ── 3. FACE AVANT 3D (Blanc pur éclatant + relief biseau) ──
+            // ── 2.5 BISEAU CHISÉLÉ ET CONTRASTE (Tranche de transition haute définition) ──
+            ctx.save();
+            const bevelZ = -1.5;
+            ctx.transform(
+                Math.cos(rotY),
+                Math.sin(rotX) * Math.sin(rotY),
+                0,
+                Math.cos(rotX),
+                -Math.sin(rotY) * bevelZ,
+                Math.sin(rotX) * bevelZ
+            );
+            if ('filter' in ctx) ctx.filter = 'brightness(0.80)';
+            ctx.globalAlpha = 1.0;
+            renderLogoSlice(ctx, false);
+            ctx.restore();
+
+            // ── 3. FACE AVANT 3D (Blanc pur éclatant + relief biseauté sans barre blanche) ──
             ctx.save();
             ctx.transform(
                 Math.cos(rotY),
@@ -987,20 +1070,6 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
             if ('filter' in ctx) ctx.filter = 'none';
             ctx.globalAlpha = 1.0;
             renderLogoSlice(ctx, true);
-
-            // ── 4. BALAYAGE LUMINEUX MÉTALLIQUE / NACRÉ SUR LA FACE AVANT ──
-            const sheenPhase = Math.sin(sceneTime * swingSpeed);
-            const sheenX = sheenPhase * (boxW * 0.50);
-            ctx.save();
-            ctx.globalCompositeOperation = 'source-atop';
-            const sheenGrad = ctx.createLinearGradient(sheenX - 120, 0, sheenX + 120, 0);
-            sheenGrad.addColorStop(0, 'rgba(255, 255, 255, 0)');
-            sheenGrad.addColorStop(0.35, 'rgba(255, 255, 255, 0.20)');
-            sheenGrad.addColorStop(0.5, 'rgba(255, 255, 255, 0.75)');
-            sheenGrad.addColorStop(0.65, 'rgba(255, 255, 255, 0.20)');
-            sheenGrad.addColorStop(1, 'rgba(255, 255, 255, 0)');
-            ctx.fillStyle = sheenGrad;
-            ctx.fillRect(-boxW / 2 - 20, -boxH / 2 - 20, boxW + 40, boxH + 130);
             ctx.restore();
 
             ctx.restore();
@@ -1338,7 +1407,10 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
     if (!isOpen || !isAlex) return null;
 
     return (
-        <div className="fixed inset-0 z-[100] bg-black/92 backdrop-blur-2xl flex flex-col overflow-hidden text-white font-sans animate-in fade-in duration-200">
+        <div
+            onPointerDownCapture={handleUserInteractionUnlockAudio}
+            className="fixed inset-0 z-[100] bg-black/92 backdrop-blur-2xl flex flex-col overflow-hidden text-white font-sans animate-in fade-in duration-200"
+        >
             
             {/* ── BARRE D'EN-TÊTE ── */}
             <header className="h-14 border-b border-white/10 px-4 sm:px-6 flex items-center justify-between bg-black/60">
@@ -1411,7 +1483,6 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
                                 ref={videoRef}
                                 playsInline
                                 crossOrigin="anonymous"
-                                muted={isVideoAudioMuted}
                                 autoPlay
                                 loop
                                 className={`absolute inset-0 w-full h-full object-cover z-0 pointer-events-none transition-opacity duration-300 ${
