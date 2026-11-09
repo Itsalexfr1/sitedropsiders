@@ -297,7 +297,7 @@ interface AdminTVModalProps {
     onClose: () => void;
     takeoverState?: TakeoverStatePartial;
     onUpdateLiveStatus?: (status: 'off' | 'edit' | 'live') => Promise<void>;
-    onSaveTakeover?: () => Promise<void>;
+    onSaveTakeover?: (updated?: TakeoverStatePartial) => Promise<void>;
     onTakeoverChange?: (updated: TakeoverStatePartial) => void;
     isUpdatingTakeover?: boolean;
 }
@@ -1848,7 +1848,7 @@ export function AdminTVModal({
                                 }`}
                             >
                                 <Radio className="w-3.5 h-3.5 text-white" />
-                                Live Takeover {takeoverState?.status === 'live' ? '🔴' : takeoverState?.status === 'edit' ? '🟠' : ''}
+                                Prise d'antenne Live {takeoverState?.status === 'live' ? '🔴 (ONLINE)' : '⚫ (OFFLINE)'}
                             </button>
                         </div>
 

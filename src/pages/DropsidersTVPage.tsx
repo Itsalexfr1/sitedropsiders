@@ -3,7 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Tv, Volume2, VolumeX, Volume1, Play, Pause, Maximize2, Minimize2, Radio, Film, Settings, X, ListMusic, Home, Clock, CalendarDays, ChevronRight, Shuffle, Share2, Sparkles, MessageSquare, ExternalLink } from 'lucide-react';
 import { SEO } from '../components/utils/SEO';
-import { apiFetch } from '../utils/auth';
+import { apiFetch, getAuthHeaders } from '../utils/auth';
 import { AdminTVModal } from '../components/admin/modals/AdminTVModal';
 import { TVShareScheduleModal } from '../components/tv/TVShareScheduleModal';
 import type { TVScheduleBlock, TVVideoCategory } from '../utils/tvSchedule';
@@ -492,6 +492,61 @@ export function DropsidersTVPage() {
     const takeoverYtId = activeTakeoverStream?.youtubeId || liveSettings?.youtubeId;
     const takeoverTwitch = activeTakeoverStream?.twitchChannel || liveSettings?.twitchChannel;
     const takeoverSource = activeTakeoverStream?.streamSource || liveSettings?.streamSource || (takeoverTwitch ? 'twitch' : 'youtube');
+
+    const extractYouTubeId = useCallback((urlOrId?: string): string => {
+        if (!urlOrId) return '';
+        const trimmed = urlOrId.trim();
+        if (/^[a-zA-Z0-9_-]{11}$/.test(trimmed)) return trimmed;
+        try {
+            const u = new URL(trimmed);
+            if (u.hostname === 'youtu.be') return u.pathname.slice(1).split('?')[0] || trimmed;
+            if (u.hostname.includes('youtube.com')) {
+                const v = u.searchParams.get('v');
+                if (v) return v;
+                const m = u.pathname.match(/\/embed\/([a-zA-Z0-9_-]{11})/);
+                if (m) return m[1];
+                const liveMatch = u.pathname.match(/\/live\/([a-zA-Z0-9_-]{11})/);
+                if (liveMatch) return liveMatch[1];
+            }
+        } catch {}
+        return trimmed;
+    }, []);
+
+    const cleanTakeoverYtId = useMemo(() => extractYouTubeId(takeoverYtId), [takeoverYtId, extractYouTubeId]);
+
+    const [isUpdatingLiveStatus, setIsUpdatingLiveStatus] = useState(false);
+
+    const handleToggleLiveStatus = useCallback(async () => {
+        if (isUpdatingLiveStatus) return;
+        setIsUpdatingLiveStatus(true);
+        const nextStatus = isTakeoverActive ? 'off' : 'live';
+        const updatedTakeover = {
+            ...(liveSettings || {}),
+            status: nextStatus,
+            enabled: nextStatus === 'live'
+        };
+        setLiveSettings(updatedTakeover);
+
+        try {
+            const res = await apiFetch('/api/settings', {
+                headers: getAuthHeaders()
+            });
+            const data = res.ok ? await res.json() : {};
+            const newSettings = {
+                ...data,
+                takeover: updatedTakeover
+            };
+            await apiFetch('/api/settings/update', {
+                method: 'POST',
+                headers: getAuthHeaders(),
+                body: JSON.stringify(newSettings)
+            });
+        } catch (e) {
+            console.error("Failed to update live status from TV", e);
+        } finally {
+            setIsUpdatingLiveStatus(false);
+        }
+    }, [isTakeoverActive, liveSettings, isUpdatingLiveStatus]);
 
     const [searchParams, setSearchParams] = useSearchParams();
     const hasAdminParam = searchParams.get('admin') === 'true';
@@ -1451,32 +1506,6 @@ export function DropsidersTVPage() {
             >
                 {/* Main Video & Controls Column */}
                 <div className="relative flex-1 h-full min-w-0 flex flex-col justify-between overflow-hidden bg-black">
-                    {/* Live Takeover Banner Override */}
-                    {isTakeoverActive && (
-                        <motion.div
-                            initial={{ y: -50, opacity: 0 }}
-                            animate={{ y: 0, opacity: 1 }}
-                            className="absolute top-0 left-0 w-full z-50 bg-gradient-to-r from-neon-red via-neon-purple to-neon-cyan px-4 py-2.5 flex items-center justify-between shadow-2xl backdrop-blur-md"
-                        >
-                            <div className="flex items-center gap-3">
-                                <span className="flex h-3 w-3 relative">
-                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
-                                    <span className="relative inline-flex rounded-full h-3 w-3 bg-white"></span>
-                                </span>
-                                <span className="text-white font-black text-xs uppercase tracking-wider flex items-center gap-2">
-                                    <Radio className="w-4 h-4" />
-                                    FESTIVAL EN DIRECT : {liveSettings.title || 'FESTIVAL LIVE'}
-                                </span>
-                            </div>
-                            <a
-                                href="/live"
-                                className="px-3.5 py-1 rounded-full bg-white text-black font-black text-[11px] uppercase tracking-wider hover:scale-105 transition-transform"
-                            >
-                                Basculer sur le Live â†’
-                            </a>
-                        </motion.div>
-                    )}
-
                     {/* Top Channel Header Bar */}
                     <AnimatePresence>
                         {showControls && !isAdminTVModalOpen && (
@@ -1485,7 +1514,7 @@ export function DropsidersTVPage() {
                                 animate={{ opacity: 1, y: 0 }}
                                 exit={{ opacity: 0, y: -20 }}
                                 transition={{ duration: 0.2 }}
-                                className={`absolute ${isTakeoverActive ? 'top-14' : 'top-0'} left-0 w-full z-40 p-4 md:p-6 flex items-center justify-between bg-gradient-to-b from-black/80 via-black/40 to-transparent pointer-events-auto`}
+                                className="absolute top-0 left-0 w-full z-40 p-4 md:p-6 flex items-center justify-between bg-gradient-to-b from-black/80 via-black/40 to-transparent pointer-events-auto"
                             >
                                 <div className="flex items-center gap-3 flex-wrap">
                                     <div className="flex flex-col px-3.5 py-1.5 rounded-2xl bg-black/70 backdrop-blur-md border border-white/10 shadow-xl">
@@ -1601,7 +1630,7 @@ export function DropsidersTVPage() {
                                 />
                             ) : takeoverYtId ? (
                                 <iframe
-                                    src={`https://www.youtube-nocookie.com/embed/${takeoverYtId}?autoplay=1&playsinline=1&rel=0`}
+                                    src={`https://www.youtube-nocookie.com/embed/${cleanTakeoverYtId || takeoverYtId}?autoplay=1&playsinline=1&rel=0`}
                                     className="w-full h-full border-0"
                                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                                     allowFullScreen
@@ -2010,6 +2039,43 @@ export function DropsidersTVPage() {
                     onClose={closeAdminModal}
                     takeoverState={liveSettings}
                     onTakeoverChange={(updated) => setLiveSettings(updated)}
+                    onUpdateLiveStatus={async (status) => {
+                        const updated = {
+                            ...(liveSettings || {}),
+                            status,
+                            enabled: status !== 'off'
+                        };
+                        setLiveSettings(updated);
+                        try {
+                            const res = await apiFetch('/api/settings', { headers: getAuthHeaders() });
+                            const data = res.ok ? await res.json() : {};
+                            await apiFetch('/api/settings/update', {
+                                method: 'POST',
+                                headers: getAuthHeaders(),
+                                body: JSON.stringify({ ...data, takeover: updated })
+                            });
+                        } catch (e) {
+                            console.error('Failed to update live status', e);
+                        }
+                    }}
+                    onSaveTakeover={async (newSettings) => {
+                        const updated = {
+                            ...(liveSettings || {}),
+                            ...(newSettings || {})
+                        };
+                        setLiveSettings(updated);
+                        try {
+                            const res = await apiFetch('/api/settings', { headers: getAuthHeaders() });
+                            const data = res.ok ? await res.json() : {};
+                            await apiFetch('/api/settings/update', {
+                                method: 'POST',
+                                headers: getAuthHeaders(),
+                                body: JSON.stringify({ ...data, takeover: updated })
+                            });
+                        } catch (e) {
+                            console.error('Failed to save takeover settings', e);
+                        }
+                    }}
                 />
 
                 {/* Modal: Partager le Programme du Jour (Vraies durÃ©es des sets) */}
