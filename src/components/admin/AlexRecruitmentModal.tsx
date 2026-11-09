@@ -88,6 +88,8 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
     const [bgImageSrc, setBgImageSrc] = useState<string>('');
     const [bgVideoSrc, setBgVideoSrc] = useState<string>('');
     const [bgAudioSrc, setBgAudioSrc] = useState<string>('');
+    const [bgAudioStartTime, setBgAudioStartTime] = useState<number>(0);
+    const [bgAudioDuration, setBgAudioDuration] = useState<number>(0);
     const [bgVideoStartTime, setBgVideoStartTime] = useState<number>(0);
     const [bgVideoDuration, setBgVideoDuration] = useState<number>(0);
     const [isVideoAudioMuted, setIsVideoAudioMuted] = useState<boolean>(false);
@@ -121,6 +123,7 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
     const isPlayingRef = useRef<boolean>(true);
     const isExportingRef = useRef<boolean>(false);
     const bgVideoStartTimeRef = useRef<number>(0);
+    const bgAudioStartTimeRef = useRef<number>(0);
     const lastUiUpdateRef = useRef<number>(0);
 
     const totalDuration = introDuration + vibeDuration + p1Duration + p2Duration + contactDuration + logoDuration;
@@ -293,12 +296,17 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
         const blobUrl = URL.createObjectURL(file);
         bgAudioBlobRef.current = file;
         setBgAudioSrc(blobUrl);
+        setBgAudioStartTime(0);
+        bgAudioStartTimeRef.current = 0;
         const aud = audioRef.current;
         if (aud) {
             aud.src = blobUrl;
             aud.muted = false;
             aud.volume = 1.0;
             aud.currentTime = 0;
+            aud.onloadedmetadata = () => {
+                setBgAudioDuration(aud.duration || 0);
+            };
             aud.play().then(() => {
                 setIsVideoAudioMuted(false);
                 isVideoAudioMutedRef.current = false;
@@ -314,6 +322,20 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
     useEffect(() => {
         bgVideoStartTimeRef.current = bgVideoStartTime;
     }, [bgVideoStartTime]);
+
+    useEffect(() => {
+        bgAudioStartTimeRef.current = bgAudioStartTime;
+    }, [bgAudioStartTime]);
+
+    useEffect(() => {
+        const aud = audioRef.current;
+        if (!aud || !bgAudioSrc) return;
+        const handleMeta = () => {
+            setBgAudioDuration(aud.duration || 0);
+        };
+        aud.addEventListener('loadedmetadata', handleMeta);
+        return () => aud.removeEventListener('loadedmetadata', handleMeta);
+    }, [bgAudioSrc]);
 
     // Charger l'image de fond si l'utilisateur en uploade une
     useEffect(() => {
@@ -1207,7 +1229,7 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
                         videoRef.current.currentTime = bgVideoStartTimeRef.current;
                     }
                     if (audioRef.current && audioRef.current.src) {
-                        audioRef.current.currentTime = 0;
+                        audioRef.current.currentTime = bgAudioStartTimeRef.current;
                     }
                 }
             }
@@ -1318,7 +1340,7 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
                 if (hasDedicatedAudio) {
                     const audioBlob = bgAudioBlobRef.current || (bgAudioSrc ? await fetch(bgAudioSrc).then(r => r.blob()).catch(() => null) : null);
                     if (audioBlob) {
-                        audioBuf = await extractAudioBuffer(audioBlob, totalDuration, 0);
+                        audioBuf = await extractAudioBuffer(audioBlob, totalDuration, bgAudioStartTimeRef.current);
                     }
                 } else if (hasBgVideo) {
                     const blob = bgVideoBlobRef.current || (bgVideoSrc ? await fetch(bgVideoSrc).then(r => r.blob()).catch(() => null) : null);
@@ -1717,7 +1739,7 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
                                         videoRef.current.currentTime = bgVideoStartTimeRef.current + val;
                                     }
                                     if (audioRef.current && audioRef.current.src) {
-                                        audioRef.current.currentTime = val % (audioRef.current.duration || totalDuration);
+                                        audioRef.current.currentTime = bgAudioStartTimeRef.current + val;
                                     }
                                 }}
                                 className="flex-1 h-1.5 bg-white/15 rounded-lg appearance-none cursor-pointer accent-[#ff0033]"
@@ -1748,7 +1770,7 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
                                             videoRef.current.currentTime = bgVideoStartTimeRef.current;
                                         }
                                         if (audioRef.current && audioRef.current.src) {
-                                            audioRef.current.currentTime = 0;
+                                            audioRef.current.currentTime = bgAudioStartTimeRef.current;
                                         }
                                     }}
                                     className="px-2.5 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-gray-300 font-bold text-xs uppercase transition active:scale-95"
@@ -1791,7 +1813,7 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
                                                 videoRef.current.currentTime = bgVideoStartTimeRef.current + sc.time;
                                             }
                                             if (audioRef.current && audioRef.current.src) {
-                                                audioRef.current.currentTime = sc.time % (audioRef.current.duration || totalDuration);
+                                                audioRef.current.currentTime = bgAudioStartTimeRef.current + sc.time;
                                             }
                                         }}
                                         className="px-1.5 py-1 rounded-lg bg-white/5 hover:bg-white/15 border border-white/10 text-[8px] font-black uppercase text-gray-300"
@@ -2010,21 +2032,85 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
                                         <input type="file" accept="audio/*,.mp3,.wav,.m4a,.ogg" onChange={handleAudioUpload} className="hidden" />
                                     </label>
                                     {bgAudioSrc && (
-                                        <div className="flex items-center justify-between pt-0.5">
-                                            <span className="text-[10px] text-gray-400">Piste synchronisée avec le Reel</span>
-                                            <button
-                                                type="button"
-                                                onClick={() => {
-                                                    setBgAudioSrc('');
-                                                    bgAudioBlobRef.current = null;
-                                                    if (audioRef.current) {
-                                                        audioRef.current.src = '';
-                                                    }
+                                        <div className="space-y-3 pt-2 border-t border-white/10">
+                                            {/* Sélecteur de départ de la musique */}
+                                            <div className="flex justify-between items-center text-xs font-black uppercase text-gray-300">
+                                                <span className="flex items-center gap-1.5">
+                                                    <Clock className="w-3.5 h-3.5 text-[#00f0ff]" />
+                                                    Départ de la musique :
+                                                </span>
+                                                <span className="text-[#00f0ff] font-mono font-bold bg-[#00f0ff]/10 px-2 py-0.5 rounded border border-[#00f0ff]/30">
+                                                    {bgAudioStartTime.toFixed(1)}s / {bgAudioDuration.toFixed(1)}s
+                                                </span>
+                                            </div>
+                                            <input
+                                                type="range"
+                                                min={0}
+                                                max={Math.max(0, bgAudioDuration - 5)}
+                                                step={0.5}
+                                                value={bgAudioStartTime}
+                                                onChange={(e) => {
+                                                    const val = parseFloat(e.target.value);
+                                                    setBgAudioStartTime(val);
+                                                    if (audioRef.current) audioRef.current.currentTime = val + currentTimeRef.current;
                                                 }}
-                                                className="text-[10px] font-bold text-red-400 hover:text-red-300 transition underline"
-                                            >
-                                                Supprimer la piste audio
-                                            </button>
+                                                className="w-full h-1.5 bg-white/15 rounded-lg appearance-none cursor-pointer accent-[#00f0ff]"
+                                            />
+                                            <div className="flex items-center justify-between text-[10px] font-black uppercase text-gray-400">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        setBgAudioStartTime(0);
+                                                        if (audioRef.current) audioRef.current.currentTime = 0;
+                                                    }}
+                                                    className="px-2 py-1 bg-white/5 hover:bg-white/10 border border-white/10 rounded-md"
+                                                >
+                                                    ⏪ 0:00
+                                                </button>
+                                                <div className="flex gap-1.5">
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => {
+                                                            const n = Math.max(0, bgAudioStartTime - 5);
+                                                            setBgAudioStartTime(n);
+                                                            if (audioRef.current) audioRef.current.currentTime = n;
+                                                        }}
+                                                        className="px-2 py-1 bg-white/5 hover:bg-white/10 border border-white/10 rounded-md"
+                                                    >
+                                                        -5s
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => {
+                                                            const n = Math.min(bgAudioDuration - 5, bgAudioStartTime + 5);
+                                                            setBgAudioStartTime(n);
+                                                            if (audioRef.current) audioRef.current.currentTime = n;
+                                                        }}
+                                                        className="px-2 py-1 bg-white/5 hover:bg-white/10 border border-white/10 rounded-md"
+                                                    >
+                                                        +5s
+                                                    </button>
+                                                </div>
+                                            </div>
+
+                                            <div className="flex items-center justify-between pt-1">
+                                                <span className="text-[10px] text-gray-400">Piste synchronisée avec le Reel</span>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        setBgAudioSrc('');
+                                                        bgAudioBlobRef.current = null;
+                                                        setBgAudioStartTime(0);
+                                                        setBgAudioDuration(0);
+                                                        if (audioRef.current) {
+                                                            audioRef.current.src = '';
+                                                        }
+                                                    }}
+                                                    className="text-[10px] font-bold text-red-400 hover:text-red-300 transition underline"
+                                                >
+                                                    Supprimer la musique
+                                                </button>
+                                            </div>
                                         </div>
                                     )}
                                 </div>
