@@ -5817,9 +5817,15 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     }
 
                     // Mode statique (export PNG) vs animé (REEL & POST dans le studio, export vidéo)
-                    const isStatic = isStaticPngExport || animElapsed >= 90.0;
+                    const isStatic = isStaticPngExport;
                     const speed = 4.2; // Même vitesse d'oscillation que la navbar
-                    const t = isStatic ? 0.0 : (animElapsed % speed);
+                    // Temps d'animation continu :
+                    // - En export vidéo : deterministicTotalTimeRef.current (temps continu de 0 à 60s sans reset par position)
+                    // - En preview direct : performance.now() / 1000 pour que le logo oscille sans jamais sauter ni repartir de zéro
+                    const logoAnimTime = isVideoRecordingRef.current
+                        ? (deterministicTotalTimeRef.current || animElapsed)
+                        : (typeof performance !== 'undefined' ? performance.now() / 1000 : animElapsed);
+                    const t = isStatic ? 0.0 : (logoAnimTime % speed);
                     // Cycle pendulaire cubic-bezier lissé (oscillation gauche/droite 3D)
                     const phase = isStatic ? 0.0 : Math.sin((t / speed) * Math.PI * 2);
                     const maxAngleY = 22 * (Math.PI / 180); // Exactement ±22° comme la navbar

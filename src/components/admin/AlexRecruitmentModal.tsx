@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { X, Play, Pause, RotateCcw, Upload, Volume2, VolumeX, Video, Download, Sparkles, Check, Film, Settings2, Clock, Image as ImageIcon, Save } from 'lucide-react';
+import { X, Play, Pause, RotateCcw, Upload, Volume2, VolumeX, Video, Download, Sparkles, Check, Film, Settings2, Clock, Image as ImageIcon, Save, Music } from 'lucide-react';
 // @ts-ignore
 import { Muxer, ArrayBufferTarget } from 'mp4-muxer';
 import { isSuperAdmin } from '../../utils/auth';
@@ -87,9 +87,10 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
     const [bgType, setBgType] = useState<'video' | 'image' | 'lasers'>('video');
     const [bgImageSrc, setBgImageSrc] = useState<string>('');
     const [bgVideoSrc, setBgVideoSrc] = useState<string>('');
+    const [bgAudioSrc, setBgAudioSrc] = useState<string>('');
     const [bgVideoStartTime, setBgVideoStartTime] = useState<number>(0);
     const [bgVideoDuration, setBgVideoDuration] = useState<number>(0);
-    const [isVideoAudioMuted, setIsVideoAudioMuted] = useState<boolean>(false); // SON ACTIF par défaut comme demandé !
+    const [isVideoAudioMuted, setIsVideoAudioMuted] = useState<boolean>(false);
     const [bgOverlayOpacity, setBgOverlayOpacity] = useState<number>(0.50);
 
     // ── Contrôles Lecture Haute Fluidité (60 FPS) ──
@@ -106,11 +107,13 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
     // Refs
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
     const videoRef = useRef<HTMLVideoElement | null>(null);
+    const audioRef = useRef<HTMLAudioElement | null>(null);
     const bgImgRef = useRef<HTMLImageElement | null>(null);
     const logoImgRef = useRef<HTMLImageElement | null>(null);
     const logoPureImgRef = useRef<HTMLImageElement | null>(null);
     const darkLogoCanvasRef = useRef<HTMLCanvasElement | null>(null);
     const bgVideoBlobRef = useRef<Blob | null>(null);
+    const bgAudioBlobRef = useRef<Blob | null>(null);
 
     // Time Tracking Ref pour 60 FPS fluide sans React re-render
     const currentTimeRef = useRef<number>(0);
@@ -214,29 +217,92 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
     // Ref pour l'état audio afin d'éviter les pièges de capture et les désynchronisations
     const isVideoAudioMutedRef = useRef<boolean>(isVideoAudioMuted);
 
-    // Débloquer le son au premier clic utilisateur dans la modal (politique autoplay navigateur)
+    // Débloquer le son dès le moindre clic utilisateur dans la modal (politique autoplay navigateur)
     const handleUserInteractionUnlockAudio = () => {
         const vid = videoRef.current;
-        if (vid && !isVideoAudioMutedRef.current && vid.muted) {
-            vid.muted = false;
-            vid.volume = 1.0;
-            vid.play().catch(() => {});
+        const aud = audioRef.current;
+        if (!isVideoAudioMutedRef.current) {
+            if (vid && vid.muted) {
+                vid.muted = false;
+                vid.volume = 1.0;
+                vid.play().catch(() => {});
+            }
+            if (aud && aud.muted) {
+                aud.muted = false;
+                aud.volume = 1.0;
+                aud.play().catch(() => {});
+            }
         }
     };
 
-    // Basculer l'état audio (Muet / Son Actif)
-    const toggleAudio = (e?: React.MouseEvent) => {
-        if (e) e.stopPropagation();
-        const next = !isVideoAudioMuted;
-        setIsVideoAudioMuted(next);
-        isVideoAudioMutedRef.current = next;
+    // Basculer l'état audio (Muet / Son Actif) avec déverrouillage forcé AudioContext
+    const toggleAudio = async (e?: React.MouseEvent) => {
+        if (e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
         const vid = videoRef.current;
-        if (vid) {
-            vid.muted = next;
-            vid.volume = 1.0;
-            if (!next) {
-                vid.play().catch(() => {});
+        const aud = audioRef.current;
+
+        // Déterminer si on doit activer le son
+        const willUnmute = isVideoAudioMuted || (vid && vid.muted) || (aud && aud.muted);
+
+        if (willUnmute) {
+            setIsVideoAudioMuted(false);
+            isVideoAudioMutedRef.current = false;
+
+            if (vid) {
+                vid.muted = false;
+                vid.volume = 1.0;
+                try {
+                    await vid.play();
+                } catch (err) {
+                    console.warn("Direct play unmuted error, attempting AudioContext resume:", err);
+                    try {
+                        const AudioCtx = (window as any).AudioContext || (window as any).webkitAudioContext;
+                        if (AudioCtx) {
+                            const actx = new AudioCtx();
+                            await actx.resume();
+                        }
+                        vid.muted = false;
+                        vid.volume = 1.0;
+                        await vid.play();
+                    } catch (e2) {
+                        console.warn("Audio unlock failed:", e2);
+                    }
+                }
             }
+
+            if (aud) {
+                aud.muted = false;
+                aud.volume = 1.0;
+                aud.play().catch(() => {});
+            }
+        } else {
+            setIsVideoAudioMuted(true);
+            isVideoAudioMutedRef.current = true;
+            if (vid) vid.muted = true;
+            if (aud) aud.muted = true;
+        }
+    };
+
+    // Upload d'une piste audio MP3 dédiée pour le reel
+    const handleAudioUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        const blobUrl = URL.createObjectURL(file);
+        bgAudioBlobRef.current = file;
+        setBgAudioSrc(blobUrl);
+        const aud = audioRef.current;
+        if (aud) {
+            aud.src = blobUrl;
+            aud.muted = false;
+            aud.volume = 1.0;
+            aud.currentTime = 0;
+            aud.play().then(() => {
+                setIsVideoAudioMuted(false);
+                isVideoAudioMutedRef.current = false;
+            }).catch(() => {});
         }
     };
 
@@ -310,6 +376,24 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
             bgVideoStartTimeRef.current = 0;
             currentTimeRef.current = 0;
             setUiDisplayTime(0);
+
+            // Immédiatement lancer avec son dans le contexte direct de ce clic utilisateur
+            const vid = videoRef.current;
+            if (vid) {
+                vid.src = blobUrl;
+                vid.muted = false;
+                vid.volume = 1.0;
+                vid.currentTime = 0;
+                vid.play().then(() => {
+                    setIsVideoAudioMuted(false);
+                    isVideoAudioMutedRef.current = false;
+                }).catch(() => {
+                    vid.muted = true;
+                    setIsVideoAudioMuted(true);
+                    isVideoAudioMutedRef.current = true;
+                    vid.play().catch(() => {});
+                });
+            }
         } else {
             // Image
             setBgType('image');
@@ -327,11 +411,19 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
     useEffect(() => {
         isVideoAudioMutedRef.current = isVideoAudioMuted;
         const vid = videoRef.current;
+        const aud = audioRef.current;
         if (vid) {
             vid.muted = isVideoAudioMuted;
             vid.volume = 1.0;
             if (!isVideoAudioMuted && isPlaying) {
                 vid.play().catch(() => {});
+            }
+        }
+        if (aud) {
+            aud.muted = isVideoAudioMuted;
+            aud.volume = 1.0;
+            if (!isVideoAudioMuted && isPlaying) {
+                aud.play().catch(() => {});
             }
         }
     }, [isVideoAudioMuted, isPlaying]);
@@ -343,18 +435,19 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
         if (!vid) return;
 
         vid.src = bgVideoSrc;
-        vid.muted = isVideoAudioMutedRef.current;
         vid.volume = 1.0;
         vid.currentTime = bgVideoStartTimeRef.current;
 
         const handleMetadata = () => {
             setBgVideoDuration(vid.duration || 0);
-            vid.muted = isVideoAudioMutedRef.current;
             vid.volume = 1.0;
             if (isPlayingRef.current) {
+                vid.muted = isVideoAudioMutedRef.current;
                 vid.play().catch(() => {
                     // Si autoplay avec son est bloqué par la politique navigateur sans interaction
                     vid.muted = true;
+                    setIsVideoAudioMuted(true);
+                    isVideoAudioMutedRef.current = true;
                     vid.play().catch(() => {});
                 });
             }
@@ -1113,6 +1206,9 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
                     if (videoRef.current && !isNaN(videoRef.current.duration)) {
                         videoRef.current.currentTime = bgVideoStartTimeRef.current;
                     }
+                    if (audioRef.current && audioRef.current.src) {
+                        audioRef.current.currentTime = 0;
+                    }
                 }
             }
 
@@ -1141,15 +1237,20 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
         return () => cancelAnimationFrame(frameId);
     }, [isOpen, totalDuration, drawFrame]);
 
-    // Gestion propre de la lecture/pause de la vidéo de fond
+    // Gestion propre de la lecture/pause de la vidéo de fond et de la musique
     useEffect(() => {
         const vid = videoRef.current;
-        if (!vid || isNaN(vid.duration) || vid.duration <= 0) return;
-
+        const aud = audioRef.current;
         if (isPlaying) {
-            vid.play().catch(() => {});
+            if (vid && !isNaN(vid.duration) && vid.duration > 0) {
+                vid.play().catch(() => {});
+            }
+            if (aud && aud.src) {
+                aud.play().catch(() => {});
+            }
         } else {
-            vid.pause();
+            if (vid) vid.pause();
+            if (aud) aud.pause();
         }
     }, [isPlaying]);
 
@@ -1203,19 +1304,27 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
         exportCanvas.height = targetHeight;
         const exportCtx = exportCanvas.getContext('2d')!;
 
-        // Extraction audio si la vidéo a du son
+        // Extraction audio si la vidéo a du son ou si une piste audio dédiée a été importée
         const vid = videoRef.current;
         const hasBgVideo = bgType === 'video' && Boolean(vid && !isNaN(vid.duration) && vid.duration > 0);
+        const hasDedicatedAudio = Boolean(bgAudioBlobRef.current || bgAudioSrc);
         let audioBuf: AudioBuffer | null = null;
         const AudioEncoderCls = (window as any).AudioEncoder;
         const AudioDataCls = (window as any).AudioData;
         const canEncodeAudio = typeof AudioEncoderCls !== 'undefined' && typeof AudioDataCls !== 'undefined';
 
-        if (hasBgVideo && !isVideoAudioMuted && canEncodeAudio) {
+        if ((hasDedicatedAudio || hasBgVideo) && !isVideoAudioMuted && canEncodeAudio) {
             try {
-                const blob = bgVideoBlobRef.current || (bgVideoSrc ? await fetch(bgVideoSrc).then(r => r.blob()).catch(() => null) : null);
-                if (blob) {
-                    audioBuf = await extractAudioBuffer(blob, totalDuration, bgVideoStartTimeRef.current);
+                if (hasDedicatedAudio) {
+                    const audioBlob = bgAudioBlobRef.current || (bgAudioSrc ? await fetch(bgAudioSrc).then(r => r.blob()).catch(() => null) : null);
+                    if (audioBlob) {
+                        audioBuf = await extractAudioBuffer(audioBlob, totalDuration, 0);
+                    }
+                } else if (hasBgVideo) {
+                    const blob = bgVideoBlobRef.current || (bgVideoSrc ? await fetch(bgVideoSrc).then(r => r.blob()).catch(() => null) : null);
+                    if (blob) {
+                        audioBuf = await extractAudioBuffer(blob, totalDuration, bgVideoStartTimeRef.current);
+                    }
                 }
             } catch (err) {
                 console.warn("Extraction audio ignorée :", err);
@@ -1489,11 +1598,18 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
                                 ref={videoRef}
                                 playsInline
                                 crossOrigin="anonymous"
-                                autoPlay
                                 loop
                                 className={`absolute inset-0 w-full h-full object-cover z-0 pointer-events-none transition-opacity duration-300 ${
                                     bgType === 'video' && bgVideoSrc ? 'opacity-100' : 'opacity-0'
                                 }`}
+                            />
+
+                            {/* Piste audio dédiée (MP3 ou son importé) */}
+                            <audio
+                                ref={audioRef}
+                                playsInline
+                                loop
+                                className="hidden"
                             />
 
                             {/* Image de fond en preview si mode image */}
@@ -1528,16 +1644,37 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
                             <button
                                 type="button"
                                 onClick={toggleAudio}
-                                className={`absolute top-3 right-3 px-2.5 py-1 rounded-full border text-[10px] font-black uppercase flex items-center gap-1.5 backdrop-blur-md z-30 transition-all active:scale-95 ${
+                                className={`absolute top-3 right-3 px-3 py-1.5 rounded-full border text-[11px] font-black uppercase flex items-center gap-1.5 backdrop-blur-md z-30 transition-all active:scale-95 shadow-lg ${
                                     !isVideoAudioMuted
-                                        ? 'bg-emerald-500/85 text-white border-emerald-400 shadow-[0_0_12px_rgba(16,185,129,0.5)]'
-                                        : 'bg-black/75 text-gray-300 border-white/20 hover:text-white'
+                                        ? 'bg-emerald-500/90 text-white border-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.5)]'
+                                        : 'bg-amber-500 hover:bg-amber-400 text-black border-amber-300 shadow-[0_0_20px_rgba(245,158,11,0.6)] animate-pulse'
                                 }`}
-                                title={!isVideoAudioMuted ? "Couper le son" : "Activer le son"}
+                                title={!isVideoAudioMuted ? "Couper le son" : "Cliquer pour ACTIVER le son"}
                             >
-                                {!isVideoAudioMuted ? <Volume2 className="w-3.5 h-3.5 text-white animate-pulse" /> : <VolumeX className="w-3.5 h-3.5 text-red-400" />}
-                                <span>{!isVideoAudioMuted ? 'SON ACTIF' : 'SON COUPÉ'}</span>
+                                {!isVideoAudioMuted ? (
+                                    <>
+                                        <Volume2 className="w-3.5 h-3.5 text-white animate-pulse" />
+                                        <span>SON ACTIF</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <VolumeX className="w-3.5 h-3.5 text-black" />
+                                        <span>ACTIVER LE SON 🔊</span>
+                                    </>
+                                )}
                             </button>
+
+                            {/* Bannière flottante interactive si son coupé pendant la lecture */}
+                            {isVideoAudioMuted && isPlaying && (
+                                <button
+                                    type="button"
+                                    onClick={toggleAudio}
+                                    className="absolute bottom-6 left-1/2 -translate-x-1/2 z-30 px-3.5 py-1.5 rounded-full bg-black/90 hover:bg-black text-amber-300 border border-amber-400/70 backdrop-blur-md text-[10px] font-extrabold uppercase flex items-center gap-1.5 shadow-2xl active:scale-95 transition"
+                                >
+                                    <Volume2 className="w-3.5 h-3.5 text-amber-400 animate-pulse" />
+                                    <span>Son en sourdine • Clique pour activer 🔊</span>
+                                </button>
+                            )}
 
                             {/* Overlay d'exportation MP4 fluide sans freeze de la preview */}
                             {isExporting && (
@@ -1579,6 +1716,9 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
                                     if (videoRef.current && !isNaN(videoRef.current.duration)) {
                                         videoRef.current.currentTime = bgVideoStartTimeRef.current + val;
                                     }
+                                    if (audioRef.current && audioRef.current.src) {
+                                        audioRef.current.currentTime = val % (audioRef.current.duration || totalDuration);
+                                    }
                                 }}
                                 className="flex-1 h-1.5 bg-white/15 rounded-lg appearance-none cursor-pointer accent-[#ff0033]"
                             />
@@ -1606,6 +1746,9 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
                                         setUiDisplayTime(0);
                                         if (videoRef.current && !isNaN(videoRef.current.duration)) {
                                             videoRef.current.currentTime = bgVideoStartTimeRef.current;
+                                        }
+                                        if (audioRef.current && audioRef.current.src) {
+                                            audioRef.current.currentTime = 0;
                                         }
                                     }}
                                     className="px-2.5 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-gray-300 font-bold text-xs uppercase transition active:scale-95"
@@ -1646,6 +1789,9 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
                                             setUiDisplayTime(sc.time);
                                             if (videoRef.current && !isNaN(videoRef.current.duration)) {
                                                 videoRef.current.currentTime = bgVideoStartTimeRef.current + sc.time;
+                                            }
+                                            if (audioRef.current && audioRef.current.src) {
+                                                audioRef.current.currentTime = sc.time % (audioRef.current.duration || totalDuration);
                                             }
                                         }}
                                         className="px-1.5 py-1 rounded-lg bg-white/5 hover:bg-white/15 border border-white/10 text-[8px] font-black uppercase text-gray-300"
@@ -1841,6 +1987,47 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
                                         </div>
                                     </div>
                                 )}
+
+                                {/* Piste Audio / Musique MP3 Dédiée */}
+                                <div className="p-3.5 rounded-2xl bg-white/5 border border-white/10 space-y-3">
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-xs font-black uppercase text-gray-300 flex items-center gap-1.5">
+                                            <Music className="w-4 h-4 text-[#00f0ff]" />
+                                            Piste Audio / Musique MP3 (Optionnelle)
+                                        </span>
+                                        {bgAudioSrc && (
+                                            <span className="text-[10px] font-mono text-cyan-400 bg-cyan-500/10 px-2 py-0.5 rounded border border-cyan-500/20">
+                                                ✓ Musique Active
+                                            </span>
+                                        )}
+                                    </div>
+                                    <label className="flex flex-col items-center justify-center p-3.5 border-2 border-dashed border-white/20 hover:border-[#00f0ff] rounded-2xl cursor-pointer bg-black/40 transition group">
+                                        <Music className="w-5 h-5 text-gray-400 group-hover:text-[#00f0ff] mb-1 transition" />
+                                        <span className="text-xs font-bold text-gray-200">
+                                            {bgAudioSrc ? "Remplacer la musique MP3" : "Importer un son ou musique de fond"}
+                                        </span>
+                                        <span className="text-[10px] text-gray-500 mt-0.5">MP3, WAV, M4A, OGG (Idéal si ta vidéo n'a pas de musique)</span>
+                                        <input type="file" accept="audio/*,.mp3,.wav,.m4a,.ogg" onChange={handleAudioUpload} className="hidden" />
+                                    </label>
+                                    {bgAudioSrc && (
+                                        <div className="flex items-center justify-between pt-0.5">
+                                            <span className="text-[10px] text-gray-400">Piste synchronisée avec le Reel</span>
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    setBgAudioSrc('');
+                                                    bgAudioBlobRef.current = null;
+                                                    if (audioRef.current) {
+                                                        audioRef.current.src = '';
+                                                    }
+                                                }}
+                                                className="text-[10px] font-bold text-red-400 hover:text-red-300 transition underline"
+                                            >
+                                                Supprimer la piste audio
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
 
                                 {/* Réglage du Voile Sombre pour lisibilité */}
                                 <div className="p-3 rounded-2xl bg-white/5 border border-white/10 space-y-1.5">
