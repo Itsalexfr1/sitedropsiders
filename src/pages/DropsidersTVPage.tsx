@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+﻿import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Tv, Volume2, VolumeX, Volume1, Play, Pause, Maximize2, Minimize2, Radio, Film, Settings, X, ListMusic, Home, Clock, CalendarDays, ChevronRight, Shuffle, Share2, Sparkles, MessageSquare, ExternalLink } from 'lucide-react';
@@ -83,7 +83,7 @@ export interface TVVideo {
     category?: TVVideoCategory;
 }
 
-// ── EPG / 5 Time Blocks ──────────────────────────────────────────────────
+// â”€â”€ EPG / 5 Time Blocks â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export type { TVScheduleBlock };
 
 function formatMins(secs: number): string {
@@ -107,140 +107,140 @@ const DEFAULT_MAIN_PLAYLIST: TVVideo[] = [
     {
         id: 'tv_1789417248675',
         title: 'Wiley Live @ Lost Lands 2025 - Full Set',
-        description: 'Diffusé sur DropsidersTV',
+        description: 'DiffusÃ© sur DropsidersTV',
         youtubeId: '8YbWq5urfww',
         duration: 3600
     },
     {
         id: 'tv_1789421420308',
         title: 'Fisher WE2 | Tomorrowland 2026',
-        description: 'Diffusé sur DropsidersTV',
+        description: 'DiffusÃ© sur DropsidersTV',
         youtubeId: 'DuXXMZLfAkQ',
         duration: 4500
     },
     {
         id: 'tv_1789421482764',
         title: 'The Chainsmokers Live at EDC Las Vegas 2026 (Official Full Set)',
-        description: 'Diffusé sur DropsidersTV',
+        description: 'DiffusÃ© sur DropsidersTV',
         youtubeId: '3AQ_Srbe1lQ',
         duration: 4200
     },
     {
         id: 'tv_1789421504931',
-        title: 'RÜFÜS DU SOL (DJ SET) - Mayan Warrior - Burning Man 2024',
-        description: 'Diffusé sur DropsidersTV',
+        title: 'RÃœFÃœS DU SOL (DJ SET) - Mayan Warrior - Burning Man 2024',
+        description: 'DiffusÃ© sur DropsidersTV',
         youtubeId: 'eQ-OVsdK-hM',
         duration: 5400
     },
     {
         id: 'tv_1789421516069',
         title: 'D-Block & S-te-Fan | Defqon.1 2026',
-        description: 'Diffusé sur DropsidersTV',
+        description: 'DiffusÃ© sur DropsidersTV',
         youtubeId: 'IEJUg98lIHs',
         duration: 3600
     },
     {
         id: 'tv_1789421527830',
         title: 'TOMAN | Awakenings Festival 2026',
-        description: 'Diffusé sur DropsidersTV',
+        description: 'DiffusÃ© sur DropsidersTV',
         youtubeId: '5hj5UTZR_Ss',
         duration: 5400
     },
     {
         id: 'tv_1789421557683',
         title: 'JOHN SUMMIT LIVE @ ULTRA MIAMI MAIN STAGE 2026',
-        description: 'Diffusé sur DropsidersTV',
+        description: 'DiffusÃ© sur DropsidersTV',
         youtubeId: 'aloPGSlq31Y',
         duration: 4500
     },
     {
         id: 'tv_1789422346501',
         title: 'Ray Volpe Live @ Lost Lands 2025 - Full Set',
-        description: 'Diffusé sur DropsidersTV',
+        description: 'DiffusÃ© sur DropsidersTV',
         youtubeId: 'nyaGV-jeST8',
         duration: 3600
     },
     {
         id: 'tv_1789422358781',
         title: 'Dimitri Vegas B2B Nico Moreno WE2 | Tomorrowland 2026',
-        description: 'Diffusé sur DropsidersTV',
+        description: 'DiffusÃ© sur DropsidersTV',
         youtubeId: 'OTKgBZS8if0',
         duration: 3600
     },
     {
         id: 'tv_1789422374723',
         title: 'Kaskade Live at EDC Las Vegas 2026',
-        description: 'Diffusé sur DropsidersTV',
+        description: 'DiffusÃ© sur DropsidersTV',
         youtubeId: 'l5wro3bMZWc',
         duration: 4500
     },
     {
         id: 'tv_1789422388915',
         title: 'ERIC PRYDZ LIVE @ ULTRA MUSIC FESTIVAL MIAMI 2026 |',
-        description: 'Diffusé sur DropsidersTV',
+        description: 'DiffusÃ© sur DropsidersTV',
         youtubeId: 'hU-z3iV0LOg',
         duration: 4500
     },
     {
         id: 'tv_1789422401109',
         title: 'Joris Voorn x Kevin de Vries | Awakenings Festival 2026',
-        description: 'Diffusé sur DropsidersTV',
+        description: 'DiffusÃ© sur DropsidersTV',
         youtubeId: '_MqFasX6Fas',
         duration: 5400
     },
     {
         id: 'tv_1789422409939',
         title: 'Ran-D & Adaro | Defqon.1 2026',
-        description: 'Diffusé sur DropsidersTV',
+        description: 'DiffusÃ© sur DropsidersTV',
         youtubeId: 'w4QJvock5Rk',
         duration: 3600
     },
     {
         id: 'tv_1789422422115',
         title: 'Mita Gami & Meir Briskman Orchestra Set - Mayan Warrior - Burning Man 2024',
-        description: 'Diffusé sur DropsidersTV',
+        description: 'DiffusÃ© sur DropsidersTV',
         youtubeId: 'm8EAmSvzgAQ',
         duration: 5400
     },
     {
         id: 'tv_1789422704818',
         title: 'Tomorrowland Belgium 2026 | Official Aftermovie',
-        description: 'Diffusé sur DropsidersTV',
+        description: 'DiffusÃ© sur DropsidersTV',
         youtubeId: 'k5yQBhDnrvM',
         duration: 1200
     },
     {
         id: 'tv_1789422726963',
         title: 'Laidback Luke B2B Chuckie Live at EDC Las Vegas 2026',
-        description: 'Diffusé sur DropsidersTV',
+        description: 'DiffusÃ© sur DropsidersTV',
         youtubeId: 'IzsShRhd5cw',
         duration: 4500
     },
     {
         id: 'tv_1789422747707',
         title: 'WORSHIP @ ULTRA MUSIC FESTIVAL MIAMI 2026 | UMF',
-        description: 'Diffusé sur DropsidersTV',
+        description: 'DiffusÃ© sur DropsidersTV',
         youtubeId: 'V2lD_pq5c3M',
         duration: 3600
     },
     {
         id: 'tv_1789422759691',
         title: 'Mau P | Awakenings Festival 2026',
-        description: 'Diffusé sur DropsidersTV',
+        description: 'DiffusÃ© sur DropsidersTV',
         youtubeId: 'CNGB66x4ygk',
         duration: 5400
     },
     {
         id: 'tv_1789422770591',
         title: 'Coone | Defqon.1 2026',
-        description: 'Diffusé sur DropsidersTV',
+        description: 'DiffusÃ© sur DropsidersTV',
         youtubeId: 'fsHgYLT_FCc',
         duration: 3600
     },
     {
         id: 'tv_1789422784155',
         title: 'Keinemusik (&ME, Rampa, Adam Port) - Mayan Warrior - Burning Man 2022',
-        description: 'Diffusé sur DropsidersTV',
+        description: 'DiffusÃ© sur DropsidersTV',
         youtubeId: '2ECWX8GdDvA',
         duration: 6300
     }
@@ -510,15 +510,15 @@ export function DropsidersTVPage() {
     volumeRef.current = volume;
     const currentLoadedVideoIdRef = useRef<string | null>(null);
 
-    // ── Fix: always hold the latest handleVideoEnded in a ref so the YT
+    // â”€â”€ Fix: always hold the latest handleVideoEnded in a ref so the YT
     //    onStateChange closure never captures a stale version of the function.
-    //    Without this, transitioning from promo → next video required F5.
+    //    Without this, transitioning from promo â†’ next video required F5.
     const handleVideoEndedRef = useRef<() => void>(() => {});
 
     // Overlay to hide YouTube end-screen suggestions immediately when video ends
     const [showEndscreenOverlay, setShowEndscreenOverlay] = useState(false);
 
-    // Twitch Chat Sidebar State (Canal dropsiderstv) - Masqué par défaut pour garantir 0 lag
+    // Twitch Chat Sidebar State (Canal dropsiderstv) - MasquÃ© par dÃ©faut pour garantir 0 lag
     const [isChatOpen, setIsChatOpen] = useState(() => {
         try {
             const saved = localStorage.getItem('dropsiders_tv_chat_open');
@@ -707,7 +707,7 @@ export function DropsidersTVPage() {
     const playerRef = useRef<any>(null);
     const ytReadyRef = useRef(false);
 
-    // ── EPG / Time Block State ─────────────────────────────────────────────
+    // â”€â”€ EPG / Time Block State â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     const [showEPG, setShowEPG] = useState(false);
     const [epgTimeRemaining, setEpgTimeRemaining] = useState<number | null>(null);
 
@@ -812,7 +812,7 @@ export function DropsidersTVPage() {
                     }
                 }
             } catch (err) {
-                console.error("Erreur vérification live festival / TV settings:", err);
+                console.error("Erreur vÃ©rification live festival / TV settings:", err);
             } finally {
                 setLoadingLive(false);
             }
@@ -899,7 +899,7 @@ export function DropsidersTVPage() {
         ? currentPromo.title
         : currentMainVideo?.title;
 
-    // Diffusion de l'état en direct de Dropsiders TV pour PreMiD / Discord RPC
+    // Diffusion de l'Ã©tat en direct de Dropsiders TV pour PreMiD / Discord RPC
     useEffect(() => {
         const detail = {
             isPlaying,
@@ -926,7 +926,7 @@ export function DropsidersTVPage() {
         return () => window.removeEventListener('dropsiders_tv_query_state', onQuery);
     }, [isPlaying, currentDisplayTitle, activeScheduleBlock?.title, isPlayingPromo, currentMainVideo?.category]);
 
-    // Next main video (skipping promos entirely) — used for the "À suivre" banner
+    // Next main video (skipping promos entirely) â€” used for the "Ã€ suivre" banner
     const nextMainIndex = (currentIndex + 1) % (activeBlockVideos.length || 1);
     const nextMainVideo = activeBlockVideos[nextMainIndex] || null;
 
@@ -1435,8 +1435,8 @@ export function DropsidersTVPage() {
     return (
         <>
             <SEO
-                title="DropsidersTV – La Chaîne Live Non-Stop des Festivals Électro"
-                description="Diffusion continue des meilleurs sets, recaps et moments forts des plus grands festivals électro du monde."
+                title="DropsidersTV â€“ La ChaÃ®ne Live Non-Stop des Festivals Ã‰lectro"
+                description="Diffusion continue des meilleurs sets, recaps et moments forts des plus grands festivals Ã©lectro du monde."
                 image="https://img.youtube.com/vi/H5QLyGiDr_0/maxresdefault.jpg"
             />
 
@@ -1452,7 +1452,7 @@ export function DropsidersTVPage() {
                 {/* Main Video & Controls Column */}
                 <div className="relative flex-1 h-full min-w-0 flex flex-col justify-between overflow-hidden bg-black">
                     {/* Live Takeover Banner Override */}
-                    {liveSettings?.enabled && (
+                    {isTakeoverActive && (
                         <motion.div
                             initial={{ y: -50, opacity: 0 }}
                             animate={{ y: 0, opacity: 1 }}
@@ -1472,7 +1472,7 @@ export function DropsidersTVPage() {
                                 href="/live"
                                 className="px-3.5 py-1 rounded-full bg-white text-black font-black text-[11px] uppercase tracking-wider hover:scale-105 transition-transform"
                             >
-                                Basculer sur le Live →
+                                Basculer sur le Live â†’
                             </a>
                         </motion.div>
                     )}
@@ -1485,7 +1485,7 @@ export function DropsidersTVPage() {
                                 animate={{ opacity: 1, y: 0 }}
                                 exit={{ opacity: 0, y: -20 }}
                                 transition={{ duration: 0.2 }}
-                                className={`absolute ${liveSettings?.enabled ? 'top-14' : 'top-0'} left-0 w-full z-40 p-4 md:p-6 flex items-center justify-between bg-gradient-to-b from-black/80 via-black/40 to-transparent pointer-events-auto`}
+                                className={`absolute ${isTakeoverActive ? 'top-14' : 'top-0'} left-0 w-full z-40 p-4 md:p-6 flex items-center justify-between bg-gradient-to-b from-black/80 via-black/40 to-transparent pointer-events-auto`}
                             >
                                 <div className="flex items-center gap-3 flex-wrap">
                                     <div className="flex flex-col px-3.5 py-1.5 rounded-2xl bg-black/70 backdrop-blur-md border border-white/10 shadow-xl">
@@ -1497,7 +1497,7 @@ export function DropsidersTVPage() {
                                             )}
                                             <span className="text-white font-display font-black text-sm uppercase tracking-tight leading-none">
                                                 DROPSIDERS <span className="text-neon-red">TV</span>
-                                                {isTakeoverActive && <span className="text-neon-cyan text-xs ml-1.5 font-sans">· LIVE TAKEOVER</span>}
+                                                {isTakeoverActive && <span className="text-neon-cyan text-xs ml-1.5 font-sans">Â· LIVE TAKEOVER</span>}
                                             </span>
                                         </div>
                                         <span
@@ -1512,7 +1512,7 @@ export function DropsidersTVPage() {
                                     <button
                                         onClick={() => setIsShareScheduleOpen(true)}
                                         className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest text-white hover:text-white bg-gradient-to-r from-neon-red/30 to-neon-purple/30 hover:from-neon-red/50 hover:to-neon-purple/50 border border-neon-red/40 backdrop-blur-md transition-all active:scale-95 cursor-pointer pointer-events-auto shadow-[0_0_15px_rgba(255,18,65,0.2)] hover:shadow-[0_0_20px_rgba(255,18,65,0.4)]"
-                                        title="Partager le programme du jour avec la vraie durée des sets"
+                                        title="Partager le programme du jour avec la vraie durÃ©e des sets"
                                     >
                                         <Sparkles className="w-3 h-3 text-neon-cyan animate-pulse" />
                                         <span className="hidden xs:inline">Partager le programme</span>
@@ -1524,7 +1524,7 @@ export function DropsidersTVPage() {
                                         <button
                                             onClick={() => setShowSchedule(true)}
                                             className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest text-white/80 hover:text-white bg-white/10 hover:bg-white/20 border border-white/20 backdrop-blur-md transition-all active:scale-95 cursor-pointer pointer-events-auto shadow-lg"
-                                            title="Voir toute la programmation continue (vidéos + promos)"
+                                            title="Voir toute la programmation continue (vidÃ©os + promos)"
                                         >
                                             <ListMusic className="w-3 h-3 text-neon-red" />
                                             <span>Programmation ({allSegments.length})</span>
@@ -1553,7 +1553,7 @@ export function DropsidersTVPage() {
                                         <button
                                             onClick={openAdminModal}
                                             className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 text-white text-[11px] font-black uppercase tracking-wider backdrop-blur-md transition-all active:scale-95 cursor-pointer pointer-events-auto"
-                                            title="Gérer la programmation Dropsiders TV & Live"
+                                            title="GÃ©rer la programmation Dropsiders TV & Live"
                                         >
                                             <Settings className="w-3.5 h-3.5 text-neon-red" />
                                             <span className="hidden sm:inline">Gestion TV</span>
@@ -1638,7 +1638,7 @@ export function DropsidersTVPage() {
                         </div>
                     )}
 
-                    {/* ── End-Screen Interstitial ───────────────────────────────────────────
+                    {/* â”€â”€ End-Screen Interstitial â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
                          Replaces the plain black overlay: shows upcoming sets + social cards.
                          pointer-events-auto makes social links clickable.                  */}
                     {showEndscreenOverlay && (
@@ -1672,17 +1672,17 @@ export function DropsidersTVPage() {
                                         </span>
                                     </div>
                                     <p className="text-gray-400 text-xs font-bold uppercase tracking-widest">
-                                        Chargement de la suite du programme…
+                                        Chargement de la suite du programmeâ€¦
                                     </p>
                                 </div>
 
                                 <div className="flex flex-col lg:flex-row gap-5">
 
-                                    {/* ── Upcoming Sets Column ── */}
+                                    {/* â”€â”€ Upcoming Sets Column â”€â”€ */}
                                     <div className="flex-1 min-w-0">
                                         <p className="text-[10px] font-black uppercase tracking-widest text-neon-cyan mb-3 flex items-center gap-1.5">
                                             <ListMusic className="w-3.5 h-3.5" />
-                                            À suivre sur DropsidersTV
+                                            Ã€ suivre sur DropsidersTV
                                         </p>
                                         <div className="flex flex-col gap-2">
                                             {/* Next video (highlighted) */}
@@ -1698,7 +1698,7 @@ export function DropsidersTVPage() {
                                                         <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-neon-red" />
                                                     </div>
                                                     <div className="flex-1 min-w-0">
-                                                        <p className="text-[9px] font-black text-neon-red uppercase tracking-widest mb-0.5">▶ Juste après</p>
+                                                        <p className="text-[9px] font-black text-neon-red uppercase tracking-widest mb-0.5">â–¶ Juste aprÃ¨s</p>
                                                         <p className="text-white text-xs font-bold leading-tight line-clamp-2">{nextMainVideo.title}</p>
                                                     </div>
                                                 </div>
@@ -1725,16 +1725,16 @@ export function DropsidersTVPage() {
                                                 ))
                                             }
                                             {activeBlockVideos.length === 0 && (
-                                                <p className="text-gray-500 text-xs text-center py-4">Programme en cours de chargement…</p>
+                                                <p className="text-gray-500 text-xs text-center py-4">Programme en cours de chargementâ€¦</p>
                                             )}
                                         </div>
                                     </div>
 
-                                    {/* ── Social Media Column ── */}
+                                    {/* â”€â”€ Social Media Column â”€â”€ */}
                                     <div className="lg:w-64 shrink-0">
                                         <p className="text-[10px] font-black uppercase tracking-widest text-neon-purple mb-3 flex items-center gap-1.5">
                                             <Sparkles className="w-3.5 h-3.5" />
-                                            Rejoins la communauté
+                                            Rejoins la communautÃ©
                                         </p>
                                         <div className="flex flex-col gap-3">
 
@@ -1778,7 +1778,7 @@ export function DropsidersTVPage() {
                                                 <div className="flex-1 min-w-0">
                                                     <p className="text-white font-black text-sm leading-none">TikTok</p>
                                                     <p className="text-cyan-400 text-xs font-bold mt-1">@dropsiders.fr</p>
-                                                    <p className="text-gray-400 text-[10px] mt-1 leading-tight">Clips courts & moments épiques</p>
+                                                    <p className="text-gray-400 text-[10px] mt-1 leading-tight">Clips courts & moments Ã©piques</p>
                                                 </div>
                                                 <ChevronRight className="w-4 h-4 text-cyan-400 group-hover:translate-x-1 transition-transform shrink-0" />
                                             </a>
@@ -1787,7 +1787,7 @@ export function DropsidersTVPage() {
                                         {/* Dropsiders branding */}
                                         <div className="mt-4 text-center">
                                             <p className="text-gray-600 text-[9px] uppercase tracking-widest font-bold">
-                                                dropsiders.fr • Votre univers électro
+                                                dropsiders.fr â€¢ Votre univers Ã©lectro
                                             </p>
                                         </div>
                                     </div>
@@ -1803,7 +1803,7 @@ export function DropsidersTVPage() {
                         onTouchEnd={handleShieldClick}
                         onDoubleClick={toggleFullscreen}
                         className="absolute inset-0 z-10 cursor-pointer"
-                        title={isMuted ? "Cliquer pour activer le son · Double-clic pour plein écran" : "Double-clic pour plein écran"}
+                        title={isMuted ? "Cliquer pour activer le son Â· Double-clic pour plein Ã©cran" : "Double-clic pour plein Ã©cran"}
                     />
 
                     {/* Prominent Play Overlay when playback is not active (essential for mobile browser autoplay policy) */}
@@ -1853,7 +1853,7 @@ export function DropsidersTVPage() {
                                         {currentDisplayTitle}
                                     </h2>
 
-                                    {/* À suivre — next main set preview (promos skipped) */}
+                                    {/* Ã€ suivre â€” next main set preview (promos skipped) */}
                                     {nextMainVideo && !isAdminTVModalOpen && (
                                         <motion.div
                                             initial={{ opacity: 0, x: -8 }}
@@ -1861,7 +1861,7 @@ export function DropsidersTVPage() {
                                             transition={{ duration: 0.4, delay: 0.15 }}
                                             className="mt-2 flex items-center gap-2.5 group"
                                         >
-                                            <span className="text-[9px] font-black uppercase tracking-[0.2em] text-white/35 shrink-0">À suivre</span>
+                                            <span className="text-[9px] font-black uppercase tracking-[0.2em] text-white/35 shrink-0">Ã€ suivre</span>
                                             <div className="flex items-center gap-2 px-2.5 py-1 rounded-full bg-white/5 border border-white/10 backdrop-blur-md overflow-hidden max-w-[260px] md:max-w-[400px]">
                                                 <div className="w-9 h-6 rounded-md overflow-hidden shrink-0 border border-white/10">
                                                     <img
@@ -1940,7 +1940,7 @@ export function DropsidersTVPage() {
                                         </button>
                                         <button
                                             onClick={toggleFullscreen}
-                                            title="Plein écran (F)"
+                                            title="Plein Ã©cran (F)"
                                             className="w-11 h-11 rounded-full flex items-center justify-center bg-white/10 hover:bg-white/20 border border-white/10 transition-all active:scale-95 text-white cursor-pointer"
                                         >
                                             {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
@@ -1986,7 +1986,7 @@ export function DropsidersTVPage() {
                                 : 'relative z-30'
                         } h-full shrink-0 flex flex-col bg-[#0b0c10] border-l border-white/10 shadow-2xl overflow-hidden`}
                     >
-                        {/* Resize handle — drag left/right to resize chat */}
+                        {/* Resize handle â€” drag left/right to resize chat */}
                         {!isMobileScreen && (
                             <div
                                 onMouseDown={startChatResize}
@@ -2012,7 +2012,7 @@ export function DropsidersTVPage() {
                     onTakeoverChange={(updated) => setLiveSettings(updated)}
                 />
 
-                {/* Modal: Partager le Programme du Jour (Vraies durées des sets) */}
+                {/* Modal: Partager le Programme du Jour (Vraies durÃ©es des sets) */}
                 <TVShareScheduleModal
                     isOpen={isShareScheduleOpen}
                     onClose={() => setIsShareScheduleOpen(false)}
@@ -2021,7 +2021,7 @@ export function DropsidersTVPage() {
                     promos={promos}
                 />
 
-                {/* Modal: Programmation Complète (Vidéos + Promos) */}
+                {/* Modal: Programmation ComplÃ¨te (VidÃ©os + Promos) */}
                 <AnimatePresence>
                     {showSchedule && (
                         <div className="fixed inset-0 z-[150] flex items-center justify-center p-3 sm:p-6 bg-black/85 backdrop-blur-xl">
@@ -2044,7 +2044,7 @@ export function DropsidersTVPage() {
                                                 PROGRAMMATION <span className="text-neon-red">TV</span> ({allSegments.length})
                                             </h3>
                                             <p className="text-[10px] text-white/50 font-bold uppercase tracking-wider">
-                                                Grille continue · Sets principaux & Promos intercalées
+                                                Grille continue Â· Sets principaux & Promos intercalÃ©es
                                             </p>
                                         </div>
                                     </div>
@@ -2113,7 +2113,7 @@ export function DropsidersTVPage() {
                                                     <div className="text-[10px] text-white/40 font-mono mt-0.5 flex items-center gap-3">
                                                         <span>ID: {seg.video.youtubeId}</span>
                                                         {seg.duration > 0 && (
-                                                            <span>Durée : {Math.floor(seg.duration / 60)}m {seg.duration % 60}s</span>
+                                                            <span>DurÃ©e : {Math.floor(seg.duration / 60)}m {seg.duration % 60}s</span>
                                                         )}
                                                     </div>
                                                 </div>
@@ -2151,7 +2151,7 @@ export function DropsidersTVPage() {
                                     <div>
                                         <h3 className="text-white font-display font-black text-lg uppercase italic tracking-tight">Guide des Programmes</h3>
                                         <p className="text-white/35 text-[10px] uppercase tracking-widest mt-0.5">
-                                            DropsidersTV · {DAYS_OF_WEEK.find(d => d.value === epgSelectedDay)?.label || 'Semaine'} {epgSelectedDay === currentDayState ? '(Aujourd\'hui)' : ''}
+                                            DropsidersTV Â· {DAYS_OF_WEEK.find(d => d.value === epgSelectedDay)?.label || 'Semaine'} {epgSelectedDay === currentDayState ? '(Aujourd\'hui)' : ''}
                                         </p>
                                     </div>
                                     <button
@@ -2219,7 +2219,7 @@ export function DropsidersTVPage() {
                                                             : 'text-gray-400 hover:text-white'
                                                     }`}
                                                 >
-                                                    <span>🎪</span>
+                                                    <span>ðŸŽª</span>
                                                     <span>Liveset</span>
                                                 </button>
                                                 <button
@@ -2231,7 +2231,7 @@ export function DropsidersTVPage() {
                                                             : 'text-gray-400 hover:text-white'
                                                     }`}
                                                 >
-                                                    <span>🎬</span>
+                                                    <span>ðŸŽ¬</span>
                                                     <span>Clip</span>
                                                 </button>
                                                 <button
@@ -2243,7 +2243,7 @@ export function DropsidersTVPage() {
                                                             : 'text-gray-400 hover:text-white'
                                                     }`}
                                                 >
-                                                    <span>🎙️</span>
+                                                    <span>ðŸŽ™ï¸</span>
                                                     <span>Interview</span>
                                                 </button>
                                             </div>
@@ -2252,7 +2252,7 @@ export function DropsidersTVPage() {
                                             <div className="flex gap-2 mb-4 overflow-x-auto pb-1 shrink-0 custom-scrollbar">
                                                 {epgDayBlocks.length === 0 && (
                                                     <div className="py-2 text-white/40 text-xs italic">
-                                                        Aucune émission programmée ce jour.
+                                                        Aucune Ã©mission programmÃ©e ce jour.
                                                     </div>
                                                 )}
                                                 {epgDayBlocks.map(block => {
@@ -2295,7 +2295,7 @@ export function DropsidersTVPage() {
                                                         <div className="flex items-center gap-2 mb-1">
                                                             <span className="text-xs">{activeScheduleBlock.emoji}</span>
                                                             <span className="text-[9px] font-black uppercase tracking-widest" style={{ color: activeScheduleBlock.color }}>
-                                                                {activeScheduleBlock.name} · {activeScheduleBlock.title} ({activeScheduleBlock.timeSlot})
+                                                                {activeScheduleBlock.name} Â· {activeScheduleBlock.title} ({activeScheduleBlock.timeSlot})
                                                             </span>
                                                             <span className="ml-auto flex items-center gap-1.5">
                                                                 <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: activeScheduleBlock.color }} />
@@ -2312,15 +2312,15 @@ export function DropsidersTVPage() {
                                                     <div className="overflow-y-auto flex-1 space-y-1.5 pr-0.5 custom-scrollbar">
                                                         <div className="flex items-center justify-between mb-2">
                                                             <p className="text-white/25 text-[9px] font-black uppercase tracking-widest">
-                                                                À venir aujourd'hui {selectedCategory !== 'all' ? `(${selectedCategory})` : ''}
+                                                                Ã€ venir aujourd'hui {selectedCategory !== 'all' ? `(${selectedCategory})` : ''}
                                                             </p>
                                                             <span className="text-[8px] font-mono text-white/30">
-                                                                {filteredUpcomingSets.length} vidéo(s)
+                                                                {filteredUpcomingSets.length} vidÃ©o(s)
                                                             </span>
                                                         </div>
                                                         {filteredUpcomingSets.length === 0 && (
                                                             <p className="text-white/25 text-xs text-center py-6">
-                                                                Aucun élément trouvé pour cette catégorie dans la file d'attente immédiate.
+                                                                Aucun Ã©lÃ©ment trouvÃ© pour cette catÃ©gorie dans la file d'attente immÃ©diate.
                                                             </p>
                                                         )}
                                                         {filteredUpcomingSets.map(({ video, startAt }, i) => {
@@ -2355,7 +2355,7 @@ export function DropsidersTVPage() {
                                                                                 ? 'bg-neon-purple/15 text-neon-purple border-neon-purple/30'
                                                                                 : 'bg-neon-cyan/15 text-neon-cyan border-neon-cyan/30'
                                                                         }`}>
-                                                                            {videoCat === 'interview' ? '🎙️ Interview' : videoCat === 'clip' ? '🎬 Clip' : '🎪 Liveset'}
+                                                                            {videoCat === 'interview' ? 'ðŸŽ™ï¸ Interview' : videoCat === 'clip' ? 'ðŸŽ¬ Clip' : 'ðŸŽª Liveset'}
                                                                         </span>
                                                                     </div>
                                                                     {video.duration && (
@@ -2371,12 +2371,12 @@ export function DropsidersTVPage() {
                                                 <div className="overflow-y-auto flex-1 space-y-2 pr-0.5 custom-scrollbar">
                                                     <div className="flex items-center justify-between text-white/30 text-[9px] font-black uppercase tracking-widest pb-1 border-b border-white/5">
                                                         <span>Grille du {DAYS_OF_WEEK.find(d => d.value === epgSelectedDay)?.label}</span>
-                                                        <span>{epgDayBlocks.length} émission(s)</span>
+                                                        <span>{epgDayBlocks.length} Ã©mission(s)</span>
                                                     </div>
 
                                                     {epgDayBlocks.length === 0 ? (
                                                         <div className="py-8 text-center text-white/40 text-xs">
-                                                            Aucune émission configurée pour ce jour.
+                                                            Aucune Ã©mission configurÃ©e pour ce jour.
                                                         </div>
                                                     ) : (
                                                         epgDayBlocks.map((blk) => (
@@ -2395,14 +2395,14 @@ export function DropsidersTVPage() {
                                                                             </span>
                                                                         </div>
                                                                         <p className="text-[10px] text-white/40 truncate mt-0.5">
-                                                                            {blk.name} · {blk.videos?.length || 0} vidéo(s) dans la rotation
+                                                                            {blk.name} Â· {blk.videos?.length || 0} vidÃ©o(s) dans la rotation
                                                                         </p>
                                                                     </div>
                                                                 </div>
 
                                                                 <div className="text-right shrink-0">
                                                                     <span className="text-[9px] font-mono text-white/50 block">
-                                                                        {blk.randomize === false ? 'Ordre fixe' : 'Aléatoire'}
+                                                                        {blk.randomize === false ? 'Ordre fixe' : 'AlÃ©atoire'}
                                                                     </span>
                                                                     <span className="text-[8px] font-bold text-white/30 uppercase">
                                                                         {formatBlockDays(blk.days)}
@@ -2419,7 +2419,7 @@ export function DropsidersTVPage() {
 
                                 {/* Footer shortcut hint */}
                                 <div className="mt-4 pt-3 border-t border-white/[0.06] text-center shrink-0">
-                                    <span className="text-white/20 text-[9px] uppercase tracking-widest">Touche G pour fermer · Mis à jour toutes les 5s</span>
+                                    <span className="text-white/20 text-[9px] uppercase tracking-widest">Touche G pour fermer Â· Mis Ã  jour toutes les 5s</span>
                                 </div>
                             </motion.div>
                         </div>
@@ -2429,3 +2429,5 @@ export function DropsidersTVPage() {
         </>
     );
 }
+
+
