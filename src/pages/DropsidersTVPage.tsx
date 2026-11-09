@@ -487,6 +487,12 @@ export function DropsidersTVPage() {
     const [liveSettings, setLiveSettings] = useState<any>(null);
     const [, setLoadingLive] = useState(true);
 
+    const isTakeoverActive = Boolean(liveSettings?.enabled && liveSettings?.status !== 'off');
+    const activeTakeoverStream = liveSettings?.streams?.find((s: any) => s.id === liveSettings?.activeStreamId) || liveSettings?.streams?.[0];
+    const takeoverYtId = activeTakeoverStream?.youtubeId || liveSettings?.youtubeId;
+    const takeoverTwitch = activeTakeoverStream?.twitchChannel || liveSettings?.twitchChannel;
+    const takeoverSource = activeTakeoverStream?.streamSource || liveSettings?.streamSource || (takeoverTwitch ? 'twitch' : 'youtube');
+
     const [searchParams, setSearchParams] = useSearchParams();
     const hasAdminParam = searchParams.get('admin') === 'true';
 
@@ -1484,16 +1490,21 @@ export function DropsidersTVPage() {
                                 <div className="flex items-center gap-3 flex-wrap">
                                     <div className="flex flex-col px-3.5 py-1.5 rounded-2xl bg-black/70 backdrop-blur-md border border-white/10 shadow-xl">
                                         <div className="flex items-center gap-2">
-                                            <Tv className="w-3.5 h-3.5 text-neon-red animate-pulse" />
+                                            {isTakeoverActive ? (
+                                                <Radio className="w-3.5 h-3.5 text-neon-red animate-ping" />
+                                            ) : (
+                                                <Tv className="w-3.5 h-3.5 text-neon-red animate-pulse" />
+                                            )}
                                             <span className="text-white font-display font-black text-sm uppercase tracking-tight leading-none">
                                                 DROPSIDERS <span className="text-neon-red">TV</span>
+                                                {isTakeoverActive && <span className="text-neon-cyan text-xs ml-1.5 font-sans">· LIVE TAKEOVER</span>}
                                             </span>
                                         </div>
                                         <span
                                             className="text-[10px] font-black uppercase tracking-wider mt-1 leading-none"
-                                            style={{ color: activeScheduleBlock?.color || '#00f0ff' }}
+                                            style={{ color: isTakeoverActive ? '#00f0ff' : (activeScheduleBlock?.color || '#00f0ff') }}
                                         >
-                                            {isPlayingPromo ? 'Promo Dropsiders' : activeScheduleBlock?.title}
+                                            {isTakeoverActive ? (liveSettings?.title || 'FESTIVAL EN DIRECT') : (isPlayingPromo ? 'Promo Dropsiders' : activeScheduleBlock?.title)}
                                         </span>
                                     </div>
 
@@ -1579,23 +1590,53 @@ export function DropsidersTVPage() {
 
                 {/* Video Player Area */}
                 <div className="relative w-full h-full flex items-center justify-center overflow-hidden bg-black">
-                    {/* Outer wrapper with zoom & blur effects managed by React */}
-                    <div
-                        className="w-full h-full pointer-events-none"
-                        style={{
-                            transform: isAdminTVModalOpen
-                                ? 'scale(1.3) translateY(-4%)'
-                                : 'scale(1.12) translateY(-3.5%)',
-                            transformOrigin: 'center center',
-                            filter: isAdminTVModalOpen ? 'blur(20px) brightness(0.35)' : 'none',
-                            transition: 'transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), filter 0.5s ease'
-                        }}
-                    >
-                        {/* Dedicated slot for YouTube iframe - React won't re-create or diff changing styles on this element */}
-                        <div id="tv-yt-player-slot" className="w-full h-full">
-                            <div id="tv-yt-player" className="w-full h-full" />
+                    {/* Prise d'antenne Live Takeover direct sur la TV */}
+                    {isTakeoverActive ? (
+                        <div className="absolute inset-0 w-full h-full z-20 bg-black flex items-center justify-center">
+                            {takeoverSource === 'twitch' && takeoverTwitch ? (
+                                <iframe
+                                    src={`https://player.twitch.tv/?channel=${takeoverTwitch}&parent=${typeof window !== 'undefined' ? window.location.hostname : 'dropsiders.fr'}&autoplay=true&muted=false`}
+                                    className="w-full h-full border-0"
+                                    allowFullScreen
+                                />
+                            ) : takeoverYtId ? (
+                                <iframe
+                                    src={`https://www.youtube-nocookie.com/embed/${takeoverYtId}?autoplay=1&playsinline=1&rel=0`}
+                                    className="w-full h-full border-0"
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                    allowFullScreen
+                                />
+                            ) : (
+                                <div className="text-center p-8 space-y-3">
+                                    <Radio className="w-12 h-12 text-neon-red animate-pulse mx-auto" />
+                                    <h3 className="text-xl font-black text-white uppercase italic">
+                                        PRISE D'ANTENNE LIVE EN DIRECT
+                                    </h3>
+                                    <p className="text-xs text-neon-cyan font-bold uppercase tracking-widest">
+                                        {liveSettings?.title || 'FESTIVAL LIVE TAKEOVER'}
+                                    </p>
+                                </div>
+                            )}
                         </div>
-                    </div>
+                    ) : (
+                        /* Outer wrapper with zoom & blur effects managed by React */
+                        <div
+                            className="w-full h-full pointer-events-none"
+                            style={{
+                                transform: isAdminTVModalOpen
+                                    ? 'scale(1.3) translateY(-4%)'
+                                    : 'scale(1.12) translateY(-3.5%)',
+                                transformOrigin: 'center center',
+                                filter: isAdminTVModalOpen ? 'blur(20px) brightness(0.35)' : 'none',
+                                transition: 'transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), filter 0.5s ease'
+                            }}
+                        >
+                            {/* Dedicated slot for YouTube iframe - React won't re-create or diff changing styles on this element */}
+                            <div id="tv-yt-player-slot" className="w-full h-full">
+                                <div id="tv-yt-player" className="w-full h-full" />
+                            </div>
+                        </div>
+                    )}
 
                     {/* ── End-Screen Interstitial ───────────────────────────────────────────
                          Replaces the plain black overlay: shows upcoming sets + social cards.

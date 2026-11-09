@@ -3655,7 +3655,8 @@ export function AdminDashboard() {
                       Mode Édition
                     </button>
                   )}
-                  {isAlex && (
+                  {/* Bouton Mettre en ligne masqué sur demande */}
+                  {false && isAlex && (
                     <button
                       onClick={() => {
                         if (deployStep === "confirm") {
@@ -3715,8 +3716,8 @@ export function AdminDashboard() {
                 <span className="hidden md:inline">Actualiser</span>
               </button>
 
-              {/* Contest Mode Global Status */}
-              {(isAdminAcc || hasPermission("messages")) && (
+              {/* Contest Mode Global Status (Masqué sur demande) */}
+              {false && (isAdminAcc || hasPermission("messages")) && (
                 <button
                   onClick={toggleContestMode}
                   title={
@@ -3760,8 +3761,8 @@ export function AdminDashboard() {
                     <span className="hidden md:inline">R2 Cloud Manager</span>
                   </button>
 
-                  {/* RESET VOTES MUSIC */}
-                  {isAlex && (
+                  {/* RESET VOTES MUSIC (Masqué sur demande) */}
+                  {false && isAlex && (
                     <button
                       disabled={isResettingVotes}
                       onClick={() => setIsResetMusicConfirmOpen(true)}
@@ -4430,20 +4431,24 @@ export function AdminDashboard() {
                         </h3>
                       </div>
                       <div className="flex items-center gap-2">
-                        <button
-                          onClick={() => setIsGTAContestModalOpen(true)}
-                          className="px-4 py-2 bg-gradient-to-r from-[#ff007f]/30 to-[#00f0ff]/30 border border-[#ff007f]/40 rounded-xl text-[9px] font-black uppercase text-white hover:from-[#ff007f] hover:to-[#00f0ff] transition-all flex items-center gap-2 shadow-[0_0_15px_rgba(255,0,127,0.3)]"
-                        >
-                          <Gamepad2 className="w-3 h-3 text-[#00f0ff]" />
-                          CONCOURS GTA 6
-                        </button>
-                        <button
-                          onClick={() => setIsGiveawayModalOpen(true)}
-                          className="px-4 py-2 bg-neon-red/10 border border-neon-red/20 rounded-xl text-[9px] font-black uppercase text-neon-red hover:bg-neon-red hover:text-white transition-all flex items-center gap-2"
-                        >
-                          <Instagram className="w-3 h-3" />
-                          CONCOURS INSTA
-                        </button>
+                        {false && (
+                          <>
+                            <button
+                              onClick={() => setIsGTAContestModalOpen(true)}
+                              className="px-4 py-2 bg-gradient-to-r from-[#ff007f]/30 to-[#00f0ff]/30 border border-[#ff007f]/40 rounded-xl text-[9px] font-black uppercase text-white hover:from-[#ff007f] hover:to-[#00f0ff] transition-all flex items-center gap-2 shadow-[0_0_15px_rgba(255,0,127,0.3)]"
+                            >
+                              <Gamepad2 className="w-3 h-3 text-[#00f0ff]" />
+                              CONCOURS GTA 6
+                            </button>
+                            <button
+                              onClick={() => setIsGiveawayModalOpen(true)}
+                              className="px-4 py-2 bg-neon-red/10 border border-neon-red/20 rounded-xl text-[9px] font-black uppercase text-neon-red hover:bg-neon-red hover:text-white transition-all flex items-center gap-2"
+                            >
+                              <Instagram className="w-3 h-3" />
+                              CONCOURS INSTA
+                            </button>
+                          </>
+                        )}
                         <button
                           onClick={() => setIsLiveInteractivityModalOpen(true)}
                           className="px-4 py-2 bg-neon-cyan/10 border border-neon-cyan/20 rounded-xl text-[9px] font-black uppercase text-neon-cyan hover:bg-neon-cyan hover:text-white transition-all flex items-center gap-2"

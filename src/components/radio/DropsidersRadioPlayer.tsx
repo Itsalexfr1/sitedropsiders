@@ -2892,18 +2892,22 @@ export function DropsidersRadioPlayer() {
 
     const isMixPage = location.pathname.startsWith('/mix');
     const isMixActive = !!activeTrack || isMixPage;
+    const isTvOrLivePage =
+        location.pathname.startsWith('/tv') ||
+        location.pathname.startsWith('/live') ||
+        location.pathname.startsWith('/live-takeover');
 
     // Masquer sur les pages studio (générateurs)
     const isStudioPage = STUDIO_ROUTES.some(route => location.pathname.startsWith(route));
 
-    // Quand un mix est lancé ou sur Websiders, couper la radio
+    // Quand un mix est lancé ou sur TV / Live / Websiders, couper la radio
     useEffect(() => {
-        if ((isMixActive || location.pathname.startsWith('/websiders')) && audio.isPlaying) {
+        if ((isMixActive || isTvOrLivePage || location.pathname.startsWith('/websiders')) && audio.isPlaying) {
             audio.handleStop();
         }
-    }, [isMixActive, location.pathname, audio.isPlaying]);
+    }, [isMixActive, isTvOrLivePage, location.pathname, audio.isPlaying]);
 
-    if (location.pathname === '/tv' || location.pathname.startsWith('/websiders')) return null;
+    if (isTvOrLivePage || location.pathname.startsWith('/websiders')) return null;
 
     return (
         <>

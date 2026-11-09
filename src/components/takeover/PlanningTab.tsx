@@ -5,7 +5,7 @@ import {
     Plus, Trash2, Calendar, Clock, Instagram, 
     Image as ImageIcon, Zap, Check, Star, Flame, Sun, Map as MapIcon,
     Music, Home, MapPin, Globe, RefreshCcw, Camera, Scan, ArrowRight,
-    ChevronDown, ToggleLeft, ToggleRight, BookOpen
+    ChevronDown, ToggleLeft, ToggleRight, BookOpen, Save
 } from 'lucide-react';
 import { useTakeover } from '../../context/TakeoverContext';
 import type { LineupItem } from '../../context/TakeoverContext';
@@ -77,6 +77,7 @@ export function PlanningTab({ editLineup, setEditLineup }: PlanningTabProps) {
     const [showUploadModal, setShowUploadModal] = useState(false);
     const [uploadTargetId, setUploadTargetId] = useState<string | null>(null);
     const [isCleaning, setIsCleaning] = useState(false);
+    const [isSavingPlanning, setIsSavingPlanning] = useState(false);
     const [showCleanConfirm, setShowCleanConfirm] = useState(false);
     const [pendingCleanItems, setPendingCleanItems] = useState<LineupItem[]>([]);
 
@@ -492,9 +493,31 @@ export function PlanningTab({ editLineup, setEditLineup }: PlanningTabProps) {
                         </button>
                         <button 
                             onClick={addLineupItem}
-                            className="h-11 px-10 bg-neon-cyan text-black text-[10px] font-black uppercase tracking-widest rounded-xl shadow-xl shadow-neon-cyan/20 hover:scale-[1.03] active:scale-95 transition-all"
+                            className="h-11 px-8 bg-neon-cyan text-black text-[10px] font-black uppercase tracking-widest rounded-xl shadow-xl shadow-neon-cyan/20 hover:scale-[1.03] active:scale-95 transition-all"
                         >
                             ➕ AJOUTER UN ARTISTE
+                        </button>
+                        <button 
+                            onClick={async () => {
+                                setIsSavingPlanning(true);
+                                try {
+                                    if (handleGlobalSave && settings) {
+                                        await handleGlobalSave({
+                                            ...settings,
+                                            lineup: JSON.stringify(editLineup)
+                                        });
+                                    }
+                                } catch (e: any) {
+                                    showNotification?.(e.message || 'Erreur sauvegarde', 'error');
+                                } finally {
+                                    setIsSavingPlanning(false);
+                                }
+                            }}
+                            disabled={isSavingPlanning}
+                            className="h-11 px-8 bg-gradient-to-r from-neon-red via-rose-500 to-amber-500 hover:brightness-110 text-white text-[10px] font-black uppercase tracking-widest rounded-xl shadow-xl shadow-neon-red/20 hover:scale-[1.03] active:scale-95 transition-all flex items-center gap-2 cursor-pointer"
+                        >
+                            <Save className={`w-3.5 h-3.5 ${isSavingPlanning ? 'animate-spin' : ''}`} />
+                            <span>{isSavingPlanning ? 'ENREGISTREMENT...' : '💾 SAUVEGARDER PLANNING'}</span>
                         </button>
                     </div>
                 </div>
@@ -658,11 +681,25 @@ export function PlanningTab({ editLineup, setEditLineup }: PlanningTabProps) {
                 isOpen={showUploadModal}
                 onClose={() => setShowUploadModal(false)}
                 initialImage={uploadTargetId ? editLineup.find(i => i.id === uploadTargetId)?.image : undefined}
-                onUploadSuccess={(url) => {
+                onUploadSuccess={async (url) => {
                     const finalUrl = Array.isArray(url) ? url[0] : url;
                     if (uploadTargetId && finalUrl) {
-                        updateItem(uploadTargetId, { image: finalUrl });
-                        showNotification('Photo mise à jour !', 'success');
+                        const updated = editLineup.map(item => item.id === uploadTargetId ? { ...item, image: finalUrl } : item);
+                        setEditLineup(updated);
+                        // Sauvegarde immédiate sur le serveur pour ne jamais perdre les photos
+                        if (handleGlobalSave && settings) {
+                            try {
+                                await handleGlobalSave({
+                                    ...settings,
+                                    lineup: JSON.stringify(updated)
+                                });
+                                showNotification?.('Photo uploadée et planning sauvegardé avec succès !', 'success');
+                            } catch (e: any) {
+                                showNotification?.(e.message || 'Photo uploadée !', 'info');
+                            }
+                        } else {
+                            showNotification?.('Photo mise à jour !', 'success');
+                        }
                     }
                     setShowUploadModal(false);
                 }}

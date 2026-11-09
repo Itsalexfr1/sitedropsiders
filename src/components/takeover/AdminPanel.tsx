@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { 
     X, Settings, Zap, Edit3, ChevronLeft, Save, Timer, 
@@ -78,6 +78,7 @@ export function AdminPanel() {
     const [editLineup, setEditLineup] = useState<LineupItem[]>(() => {
         try { return JSON.parse(settings.lineup || '[]'); } catch (e) { return []; }
     });
+    const lastLoadedLineupRef = useRef<string>(settings?.lineup || '');
 
     // Synchroniser les buffers d'édition quand settings est mis à jour
     useEffect(() => {
@@ -103,7 +104,8 @@ export function AdminPanel() {
         if (settings.sponsorText !== undefined) setEditSponsorText(settings.sponsorText || '');
         if (settings.sponsorLink !== undefined) setEditSponsorLink(settings.sponsorLink || '');
         if (settings.showSponsorBanner !== undefined) setEditShowSponsorBanner(settings.showSponsorBanner);
-        if (settings.lineup) {
+        if (settings.lineup && settings.lineup !== lastLoadedLineupRef.current) {
+            lastLoadedLineupRef.current = settings.lineup;
             try { setEditLineup(JSON.parse(settings.lineup)); } catch (e) {}
         }
     }, [settings]);

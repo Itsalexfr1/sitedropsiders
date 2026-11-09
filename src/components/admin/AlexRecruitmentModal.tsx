@@ -132,22 +132,9 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
             setBgType('video');
             setBgVideoSrc(blobUrl);
             setBgVideoStartTime(0);
+            bgVideoStartTimeRef.current = 0;
             currentTimeRef.current = 0;
             setUiDisplayTime(0);
-
-            if (videoRef.current) {
-                videoRef.current.src = blobUrl;
-                videoRef.current.muted = true;
-                videoRef.current.defaultMuted = true;
-                videoRef.current.currentTime = 0;
-                videoRef.current.load();
-                videoRef.current.onloadedmetadata = () => {
-                    if (videoRef.current) {
-                        setBgVideoDuration(videoRef.current.duration || 0);
-                        videoRef.current.play().catch(() => {});
-                    }
-                };
-            }
         } else {
             // Image
             setBgType('image');
@@ -160,6 +147,30 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
             };
         }
     };
+
+    // Chargement automatique et persistant de la vidéo de fond uploadée
+    useEffect(() => {
+        if (!bgVideoSrc) return;
+        const vid = videoRef.current;
+        if (!vid) return;
+
+        vid.src = bgVideoSrc;
+        vid.muted = isVideoAudioMuted;
+        vid.currentTime = bgVideoStartTimeRef.current;
+        vid.load();
+
+        const handleMetadata = () => {
+            setBgVideoDuration(vid.duration || 0);
+            if (isPlayingRef.current) {
+                vid.play().catch(() => {});
+            }
+        };
+
+        vid.addEventListener('loadedmetadata', handleMetadata);
+        return () => {
+            vid.removeEventListener('loadedmetadata', handleMetadata);
+        };
+    }, [bgVideoSrc, isVideoAudioMuted]);
 
     // Helper: Dessiner du texte multiligne centré
     const drawCenteredWrappedText = (
@@ -262,14 +273,13 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
     };
 
     // ── Dessin de la frame sur le Canvas (1080x1920) ──
-    const drawFrame = useCallback((ctx: CanvasRenderingContext2D, width: number, height: number, time: number) => {
+    const drawFrame = useCallback((ctx: CanvasRenderingContext2D, width: number, height: number, time: number, isExport: boolean = false) => {
         ctx.clearRect(0, 0, width, height);
 
-        // 1. FOND VISUEL (Vidéo / Image / Lasers EDM)
+        // 1. FOND VISUEL (En export MP4 ou si Image : dessiné sur canvas. En live preview : la balise vidéo joue en direct)
         let hasCustomBg = false;
 
-        // A. Cas Vidéo
-        if (bgType === 'video') {
+        if (isExport && bgType === 'video') {
             const vid = videoRef.current;
             if (vid && !isNaN(vid.videoWidth) && vid.videoWidth > 0) {
                 const scale = Math.max(width / vid.videoWidth, height / vid.videoHeight);
@@ -280,14 +290,10 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
                 ctx.drawImage(vid, vx, vy, vw, vh);
                 hasCustomBg = true;
             }
-        }
-
-        // B. Cas Image de fond (UNIQUEMENT si l'utilisateur a choisi et importé une image)
-        if (!hasCustomBg && bgType === 'image' && bgImgRef.current) {
+        } else if (bgType === 'image' && bgImgRef.current) {
             const img = bgImgRef.current;
             if (img && img.complete && img.naturalWidth > 0) {
-                // Effet Ken Burns très subtil (zoom lent 1.00 -> 1.06)
-                const zoomFactor = 1.0 + (Math.sin(time * 0.15) * 0.5 + 0.5) * 0.06;
+                const zoomFactor = 1.0 + (Math.sin(time * 0.15) * 0.5 + 0.5) * 0.04;
                 const baseScale = Math.max(width / img.naturalWidth, height / img.naturalHeight) * zoomFactor;
                 const iw = img.naturalWidth * baseScale;
                 const ih = img.naturalHeight * baseScale;
@@ -298,53 +304,21 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
             }
         }
 
-        // C. Cas Fond Lasers Synthwave / EDM par défaut (si aucun média ou bgType === 'lasers')
-        if (!hasCustomBg) {
-            const grad = ctx.createLinearGradient(0, 0, width, height);
-            grad.addColorStop(0, '#0a0208');
-            grad.addColorStop(0.5, '#12041a');
-            grad.addColorStop(1, '#02050e');
-            ctx.fillStyle = grad;
+        // Si aucun fond custom en export ou si mode minimal
+        if (isExport && !hasCustomBg) {
+            ctx.fillStyle = '#050608';
             ctx.fillRect(0, 0, width, height);
         }
 
-        // Faisceaux laser d'ambiance festival (toujours en surimpression subtile pour donner du dynamisme)
-        ctx.save();
-        const beamX = width / 2;
-        const beamY = height * 0.42;
-        for (let i = -3; i <= 3; i++) {
-            const angle = (i * 0.22) + Math.sin(time * 1.8 + i) * 0.18;
-            ctx.beginPath();
-            ctx.moveTo(beamX, beamY);
-            ctx.lineTo(beamX + Math.sin(angle) * (height * 1.1), beamY - Math.cos(angle) * (height * 1.1));
-            ctx.strokeStyle = i % 2 === 0 ? 'rgba(0, 240, 255, 0.22)' : 'rgba(255, 0, 51, 0.28)';
-            ctx.lineWidth = 3.5;
-            ctx.shadowColor = ctx.strokeStyle;
-            ctx.shadowBlur = 20;
-            ctx.stroke();
-        }
-
-        // Particules flottantes d'étincelles dorées
-        for (let p = 0; p < 18; p++) {
-            const px = ((Math.sin(p * 99 + time * 0.4) * 0.5 + 0.5) * width);
-            const py = ((Math.cos(p * 33 + time * 0.6) * 0.5 + 0.5) * height);
-            const pSize = 2 + (p % 4);
-            ctx.fillStyle = p % 2 === 0 ? 'rgba(255, 230, 0, 0.4)' : 'rgba(255, 51, 85, 0.35)';
-            ctx.beginPath();
-            ctx.arc(px, py, pSize, 0, Math.PI * 2);
-            ctx.fill();
-        }
-        ctx.restore();
-
-        // 2. VOILE SOMBRE ÉLÉGANT POUR 100% DE LISIBILITÉ DU TEXTE
+        // 2. VOILE SOMBRE ÉLÉGANT POUR 100% DE LISIBILITÉ DU TEXTE (AUCUN LASER)
         ctx.save();
         ctx.fillStyle = `rgba(0, 0, 0, ${bgOverlayOpacity})`;
         ctx.fillRect(0, 0, width, height);
 
-        // Vignetage cinématographique
+        // Vignetage cinématographique doux
         const centerShade = ctx.createRadialGradient(width / 2, height / 2, 120, width / 2, height / 2, width * 0.95);
-        centerShade.addColorStop(0, 'rgba(0,0,0,0.3)');
-        centerShade.addColorStop(1, 'rgba(0,0,0,0.85)');
+        centerShade.addColorStop(0, 'rgba(0,0,0,0.15)');
+        centerShade.addColorStop(1, 'rgba(0,0,0,0.75)');
         ctx.fillStyle = centerShade;
         ctx.fillRect(0, 0, width, height);
         ctx.restore();
@@ -877,7 +851,7 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
             }
 
             // Dessin
-            drawFrame(exportCtx, targetWidth, targetHeight, frameTimeSec);
+            drawFrame(exportCtx, targetWidth, targetHeight, frameTimeSec, true);
 
             // Création frame WebCodecs
             const frameBitmap = await createImageBitmap(exportCanvas);
@@ -975,23 +949,25 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
                     <div className="relative w-full max-w-[320px] sm:max-w-[350px] aspect-[9/16] bg-black rounded-[42px] p-2.5 shadow-[0_0_50px_rgba(255,0,51,0.25),0_20px_50px_rgba(0,0,0,0.9)] border-[3px] border-white/20 overflow-hidden flex flex-col">
                         <div className="relative w-full h-full rounded-[34px] overflow-hidden bg-black flex items-center justify-center">
                             
+                            {/* Élément vidéo natif en direct sous le canvas (accélération GPU 100% fluide, 0 lag) */}
+                            <video
+                                ref={videoRef}
+                                playsInline
+                                crossOrigin="anonymous"
+                                muted={isVideoAudioMuted}
+                                autoPlay
+                                loop
+                                className={`absolute inset-0 w-full h-full object-cover z-0 pointer-events-none transition-opacity duration-300 ${
+                                    bgType === 'video' && bgVideoSrc ? 'opacity-100' : 'opacity-0'
+                                }`}
+                            />
+
                             {/* Canvas 1080x1920 réel */}
                             <canvas
                                 ref={canvasRef}
                                 width={1080}
                                 height={1920}
-                                className="w-full h-full object-contain"
-                            />
-
-                            {/* Élément vidéo servant de source de décodage GPU directe (maintenu dans le DOM pour performance maximale) */}
-                            <video
-                                ref={videoRef}
-                                src={bgVideoSrc}
-                                playsInline
-                                crossOrigin="anonymous"
-                                muted={isVideoAudioMuted}
-                                loop
-                                className="absolute inset-0 w-full h-full object-cover pointer-events-none -z-10 opacity-0"
+                                className="w-full h-full object-contain relative z-10 pointer-events-none"
                             />
 
                             {/* Badge Timeline HUD */}
@@ -1131,7 +1107,7 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
                     {/* Contenu de l'onglet actif */}
                     <div className="flex-1 overflow-y-auto p-4 space-y-4">
                         
-                        {/* ONGLET 1 : FOND VISUEL (VIDÉO OU LASERS CONCERT) */}
+                        {/* ONGLET 1 : FOND VISUEL (VIDÉO OU IMAGE) */}
                         {activeTab === 'fond' && (
                             <div className="space-y-4">
                                 {/* Sélecteur de type de fond */}
@@ -1148,16 +1124,6 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
                                     </button>
                                     <button
                                         type="button"
-                                        onClick={() => setBgType('lasers')}
-                                        className={`p-2.5 rounded-xl border text-xs font-black uppercase flex flex-col items-center gap-1 transition ${
-                                            bgType === 'lasers' ? 'bg-[#00f0ff]/20 border-[#00f0ff] text-[#00f0ff]' : 'bg-white/5 border-white/10 text-gray-400'
-                                        }`}
-                                    >
-                                        <Sparkles className="w-4 h-4" />
-                                        <span>Lasers Concert</span>
-                                    </button>
-                                    <button
-                                        type="button"
                                         onClick={() => setBgType('image')}
                                         className={`p-2.5 rounded-xl border text-xs font-black uppercase flex flex-col items-center gap-1 transition ${
                                             bgType === 'image' ? 'bg-amber-500/20 border-amber-500 text-amber-300' : 'bg-white/5 border-white/10 text-gray-400'
@@ -1165,6 +1131,16 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
                                     >
                                         <ImageIcon className="w-4 h-4" />
                                         <span>Image Custom</span>
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setBgType('lasers')}
+                                        className={`p-2.5 rounded-xl border text-xs font-black uppercase flex flex-col items-center gap-1 transition ${
+                                            bgType === 'lasers' ? 'bg-white/20 border-white/40 text-white' : 'bg-white/5 border-white/10 text-gray-400'
+                                        }`}
+                                    >
+                                        <Sparkles className="w-4 h-4" />
+                                        <span>Fond Noir Épuré</span>
                                     </button>
                                 </div>
 
