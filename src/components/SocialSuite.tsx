@@ -575,7 +575,19 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const [exportFps, setExportFps] = useState<number>(30); // Fluidité vidéo : 30 FPS fluide par défaut (standard Instagram/Reels) ou 60 FPS Studio
     const [exportAccordion, setExportAccordion] = useState<'image' | 'video_slide' | 'video_carousel' | 'tiktok' | null>('image');
 
-    // ── BANDE SON CARROUSEL VIDÉO COMPLET (MP3 Upload & Beatport) ──
+    // ── BANDE SON CARROUSEL VIDÉO & SLIDES INDIVIDUELLES (MP3 Upload & Beatport) ──
+    type SlideAudioItem = {
+        url: string;
+        title: string;
+        artist: string;
+        cover: string;
+        startTime: number;
+        duration: number;
+    };
+    const [slideAudios, setSlideAudios] = useState<Record<number, SlideAudioItem>>({});
+    const slideAudiosRef = useRef<Record<number, SlideAudioItem>>({});
+    const [audioTargetSlide, setAudioTargetSlide] = useState<'global' | number>('global');
+
     const [carouselAudioUrl, setCarouselAudioUrl] = useState<string>('');
     const [carouselAudioTitle, setCarouselAudioTitle] = useState<string>('');
     const [carouselAudioArtist, setCarouselAudioArtist] = useState<string>('');
@@ -591,8 +603,18 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const [isPlayingCarouselPreview, setIsPlayingCarouselPreview] = useState<boolean>(false);
 
     useEffect(() => {
+        slideAudiosRef.current = slideAudios;
+    }, [slideAudios]);
+
+    useEffect(() => {
         carouselAudioStartTimeRef.current = carouselAudioStartTime;
     }, [carouselAudioStartTime]);
+
+    useEffect(() => {
+        if (exportAccordion === 'video_slide') {
+            setAudioTargetSlide(editorialSlide);
+        }
+    }, [exportAccordion, editorialSlide]);
 
     useEffect(() => {
         return () => {
@@ -603,19 +625,82 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         };
     }, []);
 
+    const getAvailableSlideNumbers = () => {
+        if (theme === 'PLANNING') {
+            const list = [1, 2];
+            for (let i = 0; i < agendaAffiches.length; i++) list.push(i + 3);
+            return list;
+        }
+        const list = [1];
+        if (!skipEditorialSlide2 || theme === 'JEU_DJ') list.push(2);
+        for (let i = 0; i < extraEditorialSlides.length; i++) {
+            list.push(i + 3);
+        }
+        return list;
+    };
+
+    const getActiveAudioData = (): SlideAudioItem => {
+        if (audioTargetSlide === 'global') {
+            return {
+                url: carouselAudioUrl,
+                title: carouselAudioTitle,
+                artist: carouselAudioArtist,
+                cover: carouselAudioCover,
+                startTime: carouselAudioStartTime,
+                duration: carouselAudioDuration
+            };
+        } else {
+            return slideAudios[audioTargetSlide] || { url: '', title: '', artist: '', cover: '', startTime: 0, duration: 0 };
+        }
+    };
+
+    const updateActiveAudioData = (updater: (prev: SlideAudioItem) => SlideAudioItem) => {
+        if (audioTargetSlide === 'global') {
+            const prev: SlideAudioItem = {
+                url: carouselAudioUrl,
+                title: carouselAudioTitle,
+                artist: carouselAudioArtist,
+                cover: carouselAudioCover,
+                startTime: carouselAudioStartTime,
+                duration: carouselAudioDuration
+            };
+            const next = updater(prev);
+            setCarouselAudioUrl(next.url);
+            setCarouselAudioTitle(next.title);
+            setCarouselAudioArtist(next.artist);
+            setCarouselAudioCover(next.cover);
+            setCarouselAudioStartTime(next.startTime);
+            carouselAudioStartTimeRef.current = next.startTime;
+            setCarouselAudioDuration(next.duration);
+        } else {
+            const s = audioTargetSlide;
+            setSlideAudios(prev => {
+                const current = prev[s] || { url: '', title: '', artist: '', cover: '', startTime: 0, duration: 0 };
+                return {
+                    ...prev,
+                    [s]: updater(current)
+                };
+            });
+        }
+    };
+
     const handleCarouselAudioUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
         const blobUrl = URL.createObjectURL(file);
-        setCarouselAudioUrl(blobUrl);
-        setCarouselAudioTitle(file.name.replace(/\.[^/.]+$/, ''));
-        setCarouselAudioArtist('Fichier local');
-        setCarouselAudioCover('');
-        setCarouselAudioStartTime(0);
-        carouselAudioStartTimeRef.current = 0;
+        const title = file.name.replace(/\.[^/.]+$/, '');
         const tempAudio = new Audio(blobUrl);
         tempAudio.addEventListener('loadedmetadata', () => {
-            setCarouselAudioDuration(tempAudio.duration || 60);
+            const duration = tempAudio.duration || 60;
+            updateActiveAudioData(prev => ({
+                ...prev,
+                url: blobUrl,
+                title: title,
+                artist: 'Fichier local',
+                cover: '',
+                startTime: 0,
+                duration: duration
+            }));
         });
     };
 
@@ -633,19 +718,22 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     };
 
     const handleSelectCarouselBeatportTrack = (item: ResolvedMusicData) => {
-        setCarouselAudioUrl(item.audioUrl);
-        setCarouselAudioTitle(item.title || '');
-        setCarouselAudioArtist(item.artist || 'Beatport');
-        setCarouselAudioCover(item.coverUrl || '');
-        setCarouselAudioStartTime(0);
-        carouselAudioStartTimeRef.current = 0;
-        setCarouselAudioDuration(item.duration || 120);
+        updateActiveAudioData(prev => ({
+            ...prev,
+            url: item.audioUrl,
+            title: item.title || '',
+            artist: item.artist || 'Beatport',
+            cover: item.coverUrl || '',
+            startTime: 0,
+            duration: item.duration || 120
+        }));
         setIsCarouselBeatportSearchOpen(false);
         setCarouselBeatportResults([]);
     };
 
     const toggleCarouselAudioPreview = () => {
-        if (!carouselAudioUrl) return;
+        const activeData = getActiveAudioData();
+        if (!activeData.url) return;
         let aud = carouselAudioElementRef.current;
         if (!aud) {
             aud = new Audio();
@@ -656,8 +744,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             aud.pause();
             setIsPlayingCarouselPreview(false);
         } else {
-            aud.src = carouselAudioUrl;
-            aud.currentTime = carouselAudioStartTime;
+            aud.src = activeData.url;
+            aud.currentTime = activeData.startTime;
             aud.volume = 1.0;
             aud.play().then(() => {
                 setIsPlayingCarouselPreview(true);
@@ -671,31 +759,83 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             carouselAudioElementRef.current.src = '';
         }
         setIsPlayingCarouselPreview(false);
-        setCarouselAudioUrl('');
-        setCarouselAudioTitle('');
-        setCarouselAudioArtist('');
-        setCarouselAudioCover('');
-        setCarouselAudioDuration(0);
-        setCarouselAudioStartTime(0);
-        carouselAudioStartTimeRef.current = 0;
+        updateActiveAudioData(() => ({
+            url: '',
+            title: '',
+            artist: '',
+            cover: '',
+            startTime: 0,
+            duration: 0
+        }));
+    };
+
+    const switchAudioTarget = (target: 'global' | number) => {
+        if (carouselAudioElementRef.current && isPlayingCarouselPreview) {
+            carouselAudioElementRef.current.pause();
+            setIsPlayingCarouselPreview(false);
+        }
+        setAudioTargetSlide(target);
+        if (typeof target === 'number' && target !== editorialSlide) {
+            setEditorialSlide(target);
+        }
     };
 
     const renderCarouselAudioControlBox = () => {
         if (theme === 'MUSIQUE' || theme === 'TOP 10 TRACKS') return null;
+        const availableSlides = getAvailableSlideNumbers();
+        const activeData = getActiveAudioData();
+        const isGlobal = audioTargetSlide === 'global';
+        const targetLabel = isGlobal ? 'Tout le Carrousel (Piste Continue)' : `Slide ${audioTargetSlide}`;
+
         return (
             <div className="p-3 rounded-2xl bg-white/[0.04] border border-white/10 space-y-3">
                 <div className="flex items-center justify-between">
                     <span className="text-[10px] font-black uppercase text-gray-300 flex items-center gap-1.5">
                         <Music className="w-3.5 h-3.5 text-[#00f0ff]" />
-                        Musique de Fond Carrousel (MP3 ou Beatport)
+                        Musique (MP3 ou Beatport) : <span className="text-[#00f0ff]">{targetLabel}</span>
                     </span>
-                    {carouselAudioUrl ? (
+                    {activeData.url ? (
                         <span className="text-[9px] font-mono text-[#00f0ff] bg-[#00f0ff]/10 px-2 py-0.5 rounded border border-[#00f0ff]/30">
-                            ✓ Piste Active
+                            ✓ Active
                         </span>
                     ) : (
                         <span className="text-[9px] text-gray-500 font-medium">Optionnelle</span>
                     )}
+                </div>
+
+                {/* Sélecteur de Cible : Carrousel Global OU Slide par Slide */}
+                <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-[9px] no-scrollbar">
+                    <button
+                        type="button"
+                        onClick={() => switchAudioTarget('global')}
+                        className={`px-2.5 py-1 rounded-lg font-black uppercase transition-all whitespace-nowrap flex items-center gap-1.5 shrink-0 ${
+                            isGlobal
+                                ? 'bg-[#00f0ff] text-black shadow-[0_0_10px_rgba(0,240,255,0.4)]'
+                                : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
+                        }`}
+                    >
+                        🌐 Tout le Carrousel
+                        {carouselAudioUrl && <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>}
+                    </button>
+                    {availableSlides.map(s => {
+                        const hasAudio = Boolean(slideAudios[s]?.url);
+                        const isSelected = audioTargetSlide === s;
+                        return (
+                            <button
+                                key={s}
+                                type="button"
+                                onClick={() => switchAudioTarget(s)}
+                                className={`px-2.5 py-1 rounded-lg font-black uppercase transition-all whitespace-nowrap flex items-center gap-1.5 shrink-0 ${
+                                    isSelected
+                                        ? 'bg-[#00f0ff] text-black shadow-[0_0_10px_rgba(0,240,255,0.4)]'
+                                        : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
+                                }`}
+                            >
+                                {s === 1 ? '📌 Slide 1' : s === 2 ? '📖 Slide 2' : `📄 Slide ${s}`}
+                                {hasAudio && <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>}
+                            </button>
+                        );
+                    })}
                 </div>
 
                 {/* 2 Choix : Upload MP3 OU Beatport */}
@@ -703,7 +843,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     <label className="flex flex-col items-center justify-center p-2.5 border-2 border-dashed border-white/15 hover:border-[#00f0ff] rounded-xl cursor-pointer bg-black/40 hover:bg-black/60 transition group text-center">
                         <Upload className="w-4 h-4 text-gray-400 group-hover:text-[#00f0ff] mb-1 transition" />
                         <span className="text-[10px] font-bold text-gray-200">1. Importer MP3</span>
-                        <span className="text-[8px] text-gray-500">Fichier local audio</span>
+                        <span className="text-[8px] text-gray-500">Pour {isGlobal ? 'tout le carrousel' : `Slide ${audioTargetSlide}`}</span>
                         <input type="file" accept="audio/*,.mp3,.wav,.m4a,.ogg" onChange={handleCarouselAudioUpload} className="hidden" />
                     </label>
 
@@ -723,7 +863,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     <div className="p-2.5 bg-black/70 rounded-xl border border-emerald-500/30 space-y-2 animate-fadeIn">
                         <div className="text-[10px] font-black uppercase text-emerald-400 flex items-center gap-1.5">
                             <Sparkles className="w-3 h-3" />
-                            Recherche de track Beatport (Preview 120s)
+                            Recherche de track Beatport (Preview 120s) pour {targetLabel}
                         </div>
                         <div className="flex gap-1.5">
                             <input
@@ -775,11 +915,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 )}
 
                 {/* Morceau sélectionné */}
-                {carouselAudioUrl && (
+                {activeData.url && (
                     <div className="space-y-2.5 pt-2 border-t border-white/10">
                         <div className="flex items-center gap-2 p-2 rounded-xl bg-black/50 border border-white/10">
-                            {carouselAudioCover ? (
-                                <img src={carouselAudioCover} alt="Cover" className="w-9 h-9 rounded-lg object-cover border border-white/10 flex-shrink-0" />
+                            {activeData.cover ? (
+                                <img src={activeData.cover} alt="Cover" className="w-9 h-9 rounded-lg object-cover border border-white/10 flex-shrink-0" />
                             ) : (
                                 <div className="w-9 h-9 rounded-lg bg-[#00f0ff]/10 border border-[#00f0ff]/30 flex items-center justify-center text-[#00f0ff] flex-shrink-0">
                                     <Music className="w-4 h-4" />
@@ -787,10 +927,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             )}
                             <div className="flex-1 min-w-0">
                                 <p className="text-xs font-bold text-white truncate">
-                                    {carouselAudioTitle || 'Morceau Carrousel'}
+                                    {activeData.title || `Piste ${targetLabel}`}
                                 </p>
                                 <p className="text-[9.5px] text-gray-400 truncate">
-                                    {carouselAudioArtist || 'Audio synchronisé'}
+                                    {activeData.artist || 'Audio synchronisé'}
                                 </p>
                             </div>
                             <button
@@ -812,21 +952,21 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         <div className="flex justify-between items-center text-[10px] font-black uppercase text-gray-300">
                             <span className="flex items-center gap-1.5">
                                 <Clock className="w-3 h-3 text-[#00f0ff]" />
-                                Départ de la musique :
+                                Départ de la musique ({targetLabel}) :
                             </span>
                             <span className="text-[#00f0ff] font-mono font-bold bg-[#00f0ff]/10 px-2 py-0.5 rounded border border-[#00f0ff]/30">
-                                {carouselAudioStartTime.toFixed(1)}s / {carouselAudioDuration > 0 ? `${carouselAudioDuration.toFixed(1)}s` : 'Max'}
+                                {activeData.startTime.toFixed(1)}s / {activeData.duration > 0 ? `${activeData.duration.toFixed(1)}s` : 'Max'}
                             </span>
                         </div>
                         <input
                             type="range"
                             min={0}
-                            max={Math.max(10, carouselAudioDuration > 5 ? carouselAudioDuration - 5 : 120)}
+                            max={Math.max(10, activeData.duration > 5 ? activeData.duration - 5 : 120)}
                             step={0.5}
-                            value={carouselAudioStartTime}
+                            value={activeData.startTime}
                             onChange={(e) => {
                                 const val = parseFloat(e.target.value);
-                                setCarouselAudioStartTime(val);
+                                updateActiveAudioData(prev => ({ ...prev, startTime: val }));
                                 if (carouselAudioElementRef.current && isPlayingCarouselPreview) {
                                     carouselAudioElementRef.current.currentTime = val;
                                 }
@@ -837,7 +977,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             <button
                                 type="button"
                                 onClick={() => {
-                                    setCarouselAudioStartTime(0);
+                                    updateActiveAudioData(prev => ({ ...prev, startTime: 0 }));
                                     if (carouselAudioElementRef.current && isPlayingCarouselPreview) carouselAudioElementRef.current.currentTime = 0;
                                 }}
                                 className="px-2 py-0.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded"
@@ -848,8 +988,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 <button
                                     type="button"
                                     onClick={() => {
-                                        const n = Math.max(0, carouselAudioStartTime - 5);
-                                        setCarouselAudioStartTime(n);
+                                        const n = Math.max(0, activeData.startTime - 5);
+                                        updateActiveAudioData(prev => ({ ...prev, startTime: n }));
                                         if (carouselAudioElementRef.current && isPlayingCarouselPreview) carouselAudioElementRef.current.currentTime = n;
                                     }}
                                     className="px-2 py-0.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded"
@@ -859,9 +999,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 <button
                                     type="button"
                                     onClick={() => {
-                                        const maxD = Math.max(10, carouselAudioDuration > 5 ? carouselAudioDuration - 5 : 120);
-                                        const n = Math.min(maxD, carouselAudioStartTime + 5);
-                                        setCarouselAudioStartTime(n);
+                                        const maxD = Math.max(10, activeData.duration > 5 ? activeData.duration - 5 : 120);
+                                        const n = Math.min(maxD, activeData.startTime + 5);
+                                        updateActiveAudioData(prev => ({ ...prev, startTime: n }));
                                         if (carouselAudioElementRef.current && isPlayingCarouselPreview) carouselAudioElementRef.current.currentTime = n;
                                     }}
                                     className="px-2 py-0.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded"
@@ -872,7 +1012,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         </div>
 
                         <div className="flex items-center justify-between pt-1">
-                            <span className="text-[9px] text-gray-400">Piste synchronisée sur tout le carrousel</span>
+                            <span className="text-[9px] text-gray-400">
+                                {isGlobal ? 'Piste synchronisée sur tout le carrousel' : `Piste synchronisée sur Slide ${audioTargetSlide}`}
+                            </span>
                             <button
                                 type="button"
                                 onClick={handleRemoveCarouselAudio}
@@ -14543,13 +14685,65 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     }
                 }
 
-                if (carouselAudioUrl && theme !== 'MUSIQUE' && theme !== 'TOP 10 TRACKS') {
-                    audioSegments.push({
-                        url: carouselAudioUrl,
-                        startOffset: 0,
-                        sourceOffset: carouselAudioStartTimeRef.current || carouselAudioStartTime || 0,
-                        duration: totalDuration / 1000
-                    });
+                if (theme !== 'MUSIQUE' && theme !== 'TOP 10 TRACKS') {
+                    const currentSlideAudios = slideAudiosRef.current || slideAudios;
+                    const availableSlides = getAvailableSlideNumbers();
+                    const hasAnySlideSpecificAudio = availableSlides.some(s => Boolean(currentSlideAudios[s]?.url));
+
+                    if (combinedMode === 'EDITORIAL' || combinedMode === 'TIKTOK' || combinedMode === 'PLANNING') {
+                        if (hasAnySlideSpecificAudio) {
+                            // Mode multi-slides : chaque slide joue sa musique dédiée pendant sa durée
+                            const slideDurationSec = combinedMode === 'TIKTOK'
+                                ? (getTikTokSlideTimings(availableSlides.length).slideDurationMs / 1000)
+                                : editorialSlide1Duration;
+                            let cursor = 0;
+                            for (let i = 0; i < availableSlides.length; i++) {
+                                const s = availableSlides[i];
+                                if (i > 0) cursor += transitionDurationSec;
+                                const sAudio = currentSlideAudios[s]?.url
+                                    ? currentSlideAudios[s]
+                                    : (carouselAudioUrl ? { url: carouselAudioUrl, startTime: carouselAudioStartTimeRef.current || carouselAudioStartTime || 0 } : null);
+                                if (sAudio?.url) {
+                                    audioSegments.push({
+                                        url: sAudio.url,
+                                        startOffset: cursor,
+                                        sourceOffset: sAudio.startTime || 0,
+                                        duration: slideDurationSec
+                                    });
+                                }
+                                cursor += slideDurationSec;
+                            }
+                        } else if (carouselAudioUrl) {
+                            // Mode continu : une seule musique continue pour tout le carrousel
+                            audioSegments.push({
+                                url: carouselAudioUrl,
+                                startOffset: 0,
+                                sourceOffset: carouselAudioStartTimeRef.current || carouselAudioStartTime || 0,
+                                duration: totalDuration / 1000
+                            });
+                        }
+                    } else if (combinedMode === 'NONE') {
+                        // Export d'une slide unique (MP4 30s)
+                        const effectiveSlide = editorialSlideOverrideRef.current !== null ? editorialSlideOverrideRef.current : editorialSlide;
+                        const sAudio = currentSlideAudios[effectiveSlide]?.url
+                            ? currentSlideAudios[effectiveSlide]
+                            : (carouselAudioUrl ? { url: carouselAudioUrl, startTime: carouselAudioStartTimeRef.current || carouselAudioStartTime || 0 } : null);
+                        if (sAudio?.url) {
+                            audioSegments.push({
+                                url: sAudio.url,
+                                startOffset: 0,
+                                sourceOffset: sAudio.startTime || 0,
+                                duration: totalDuration / 1000
+                            });
+                        }
+                    } else if (carouselAudioUrl) {
+                        audioSegments.push({
+                            url: carouselAudioUrl,
+                            startOffset: 0,
+                            sourceOffset: carouselAudioStartTimeRef.current || carouselAudioStartTime || 0,
+                            duration: totalDuration / 1000
+                        });
+                    }
                 }
 
                 if (audioSegments.length > 0) {
@@ -14594,7 +14788,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         // ── iOS : injection live de la timeline audio MUSIQUE / TOP 10 TRACKS / Carrousel dans le MediaRecorder ──
         // Sur iPhone, AudioEncoder AAC et FFmpeg WASM échouent → on pré-rend toute la bande son
         // puis on la joue dans un MediaStreamDestination enregistré en direct (MP4 AAC natif).
-        if (!useWebCodecs && isIOSWebKitExport && !iosBufferAudioSrc && canvasStream && (theme === 'MUSIQUE' || theme === 'TOP 10 TRACKS' || Boolean(carouselAudioUrl))) {
+        if (!useWebCodecs && isIOSWebKitExport && !iosBufferAudioSrc && canvasStream && (theme === 'MUSIQUE' || theme === 'TOP 10 TRACKS' || Boolean(carouselAudioUrl) || Object.values(slideAudiosRef.current || slideAudios).some(a => Boolean(a?.url)))) {
             try {
                 const actx = audioCtxRef.current;
                 if (actx && actx.state !== 'closed') {
@@ -14741,7 +14935,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             // Détection de présence de son dans le projet
             const currentTracksForAudio = (top10TracksRef.current && top10TracksRef.current.length === 10) ? top10TracksRef.current : top10Tracks;
             const hasAnyTop10Audio = theme === 'TOP 10 TRACKS' && currentTracksForAudio.some(t => Boolean(t.audioUrl || t.videoUrl));
-            const hasAnyCarouselAudio = Boolean(carouselAudioUrl);
+            const currentSlideAudios = slideAudiosRef.current || slideAudios;
+            const hasAnySlideAudio = Object.values(currentSlideAudios).some(a => Boolean(a?.url));
+            const hasAnyCarouselAudio = Boolean(carouselAudioUrl || hasAnySlideAudio);
             // En TOP 10 TRACKS, la vidéo d'arrière-plan bgVideo est 100% muette : on ne prend JAMAIS son son
             const hasAnyAudioSource = theme === 'TOP 10 TRACKS'
                 ? hasAnyTop10Audio
@@ -24956,6 +25152,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                 {exportAccordion === 'video_slide' && (
                     <div className="p-3 pt-0 space-y-2.5 border-t border-white/5 animate-in fade-in duration-200">
+                        {/* Musique pour la Slide Actuelle / Carrousel (MP3 ou Beatport) */}
+                        <div className="pt-2">
+                            {renderCarouselAudioControlBox()}
+                        </div>
                         {/* Vidéo 30s avec musique */}
                         <div className="pt-2">
                             <span className="text-[8px] font-black text-gray-400 uppercase tracking-wider block mb-1.5">
