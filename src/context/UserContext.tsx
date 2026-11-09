@@ -376,13 +376,29 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
                     const res = await fetch(`/api/admin/check-permissions?email=${encodeURIComponent(user.email)}`);
                     if (res.ok) {
                         const data = await res.json();
-                        if (data.success) {
+                        if (data.success && data.permissions && data.permissions.length > 0) {
                             localStorage.setItem('admin_auth_v2', 'true');
                             localStorage.setItem('admin_user', user.email);
                             localStorage.setItem('admin_permissions', JSON.stringify(data.permissions || []));
                             localStorage.setItem('admin_session_id', data.sessionId || '');
                             localStorage.setItem('admin_provider', user.provider || 'email');
+                        } else {
+                            // Rights were revoked or removed
+                            localStorage.removeItem('admin_auth_v2');
+                            localStorage.removeItem('admin_user');
+                            localStorage.removeItem('admin_permissions');
+                            localStorage.removeItem('admin_session_id');
+                            localStorage.removeItem('admin_provider');
+                            window.dispatchEvent(new Event('admin-logout'));
                         }
+                    } else if (res.status === 403 || res.status === 401) {
+                        // User is not an admin
+                        localStorage.removeItem('admin_auth_v2');
+                        localStorage.removeItem('admin_user');
+                        localStorage.removeItem('admin_permissions');
+                        localStorage.removeItem('admin_session_id');
+                        localStorage.removeItem('admin_provider');
+                        window.dispatchEvent(new Event('admin-logout'));
                     }
                 } catch (e) { console.error('Failed to sync admin status', e); }
             };
@@ -575,7 +591,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
             fetch(`/api/admin/check-permissions?email=${encodeURIComponent(newUser.email)}`)
                 .then(res => res.json())
                 .then(data => {
-                    if (data.success) {
+                    if (data.success && data.permissions && data.permissions.length > 0) {
                         console.log('[AUTH] Syncing admin status for', newUser.email);
                         localStorage.setItem('admin_auth_v2', 'true');
                         localStorage.setItem('admin_user', newUser.email);
@@ -587,6 +603,15 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
                         
                         // Notify other components if needed
                         window.dispatchEvent(new Event('admin-login'));
+                    } else {
+                        // User is not an admin or rights were removed
+                        localStorage.removeItem('admin_auth_v2');
+                        localStorage.removeItem('admin_user');
+                        localStorage.removeItem('admin_permissions');
+                        localStorage.removeItem('admin_session_id');
+                        localStorage.removeItem('admin_provider');
+                        localStorage.removeItem('admin_password');
+                        window.dispatchEvent(new Event('admin-logout'));
                     }
                 })
                 .catch(err => console.error('[AUTH] Admin check failed', err));

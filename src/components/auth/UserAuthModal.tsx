@@ -9,9 +9,10 @@ import axios from 'axios';
 interface UserAuthModalProps {
     isOpen: boolean;
     onClose: () => void;
+    initialMode?: 'login' | 'register';
 }
 
-export function UserAuthModal({ isOpen, onClose }: UserAuthModalProps) {
+export function UserAuthModal({ isOpen, onClose, initialMode = 'login' }: UserAuthModalProps) {
     const { user, isLoggedIn, logout, loginSocial } = useUser();
     const [username, setUsername] = useState('');
     const [email, setEmail] = useState('');
@@ -19,9 +20,15 @@ export function UserAuthModal({ isOpen, onClose }: UserAuthModalProps) {
     const [isSocialLoading, setIsSocialLoading] = useState(false);
     const [discordLoading, setDiscordLoading] = useState(false);
     const [isAuthLoading, setIsAuthLoading] = useState(false);
-    const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
+    const [authMode, setAuthMode] = useState<'login' | 'register'>(initialMode);
     const [error, setError] = useState<string | null>(null);
     const [subscribeNewsletter, setSubscribeNewsletter] = useState(true);
+
+    React.useEffect(() => {
+        if (isOpen && initialMode) {
+            setAuthMode(initialMode);
+        }
+    }, [isOpen, initialMode]);
 
     // Authentification Google via redirection OAuth universelle (sécurisée)
     // Nous bypassons totalement les SDK iframe de Google car les bloqueurs de cookies (Safari ITP, Brave, Incognito) 
@@ -146,9 +153,28 @@ export function UserAuthModal({ isOpen, onClose }: UserAuthModalProps) {
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) {
+            // Compress avatar to 300x300 JPEG (ultra light, uploads instantly even on weak mobile networks)
             const reader = new FileReader();
-            reader.onloadend = () => {
-                setAvatar(reader.result as string);
+            reader.onload = (event) => {
+                const img = new Image();
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    const size = 300;
+                    canvas.width = size;
+                    canvas.height = size;
+                    const ctx = canvas.getContext('2d');
+                    if (ctx) {
+                        const minDim = Math.min(img.width, img.height);
+                        const sx = (img.width - minDim) / 2;
+                        const sy = (img.height - minDim) / 2;
+                        ctx.drawImage(img, sx, sy, minDim, minDim, 0, 0, size, size);
+                        const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.85);
+                        setAvatar(compressedDataUrl);
+                    } else {
+                        setAvatar(event.target?.result as string);
+                    }
+                };
+                img.src = event.target?.result as string;
             };
             reader.readAsDataURL(file);
         }
@@ -164,36 +190,43 @@ export function UserAuthModal({ isOpen, onClose }: UserAuthModalProps) {
         setIsAuthLoading(true);
         let finalAvatar = avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(username.trim())}`;
 
-        try {
-            // If there's a new local avatar, upload it to R2 in 'membre' folder
-            if (avatar && avatar.startsWith('data:image')) {
+        // Attempt avatar upload to R2, but NEVER let upload failure block account creation
+        if (avatar && avatar.startsWith('data:image')) {
+            try {
                 const response = await fetch('/api/upload', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        filename: `avatar_${username.toLowerCase().replace(/[^a-z0-9]/g, '_')}.jpg`,
+                        filename: `avatar_${username.toLowerCase().replace(/[^a-z0-9]/g, '_')}_${Date.now()}.jpg`,
                         content: avatar,
                         type: 'image/jpeg',
                         path: 'membre'
                     })
                 });
 
-                const data = await response.json();
-                if (data.success && data.url) {
-                    finalAvatar = data.url;
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.success && data.url) {
+                        finalAvatar = data.url;
+                    }
                 }
+            } catch (err) {
+                console.warn('Avatar upload failed, continuing with generated avatar', err);
             }
+        }
 
+        try {
             loginSocial({
-                username,
-                email,
+                username: username.trim(),
+                email: email.trim(),
                 avatar: finalAvatar || undefined,
                 provider: 'email',
                 newsletter: authMode === 'register' ? subscribeNewsletter : undefined
             });
             onClose();
         } catch (error) {
-            console.error('Auth/Upload failed', error);
+            console.error('Auth/Login failed', error);
+            setError('Une erreur est survenue lors de la connexion.');
         } finally {
             setIsAuthLoading(false);
         }

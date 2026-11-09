@@ -5179,10 +5179,10 @@ ${urls.map(u => `  <url>
             const editorsFile = await fetchGitHubFile('src/data/editors.json', gitConfig);
             if (editorsFile && editorsFile.content) {
                 const editor = editorsFile.content.find((e: any) => e.email?.toLowerCase() === cleanEmail);
-                if (editor) {
+                if (editor && Array.isArray(editor.permissions) && editor.permissions.length > 0) {
                     return new Response(JSON.stringify({ 
                         success: true, 
-                        permissions: editor.permissions || [], 
+                        permissions: editor.permissions, 
                         sessionId: editor.session_id || 'editor-initial-id' 
                     }), { status: 200, headers });
                 }

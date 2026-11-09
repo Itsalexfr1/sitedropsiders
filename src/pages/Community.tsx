@@ -447,6 +447,7 @@ export function Community() {
     const [advisorTip, setAdvisorTip] = useState<{ name: string, tip: string, avatar: string } | null>(null);
     const [posterStyle, setPosterStyle] = useState<'ULTRA' | 'TOMORROWLAND' | 'EDC'>('ULTRA');
     const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+    const [authModalMode, setAuthModalMode] = useState<'login' | 'register'>('login');
     const [showAlert, setShowAlert] = useState<{ isOpen: boolean, title: string, message: string }>({ isOpen: false, title: '', message: '' });
 
 
@@ -2255,13 +2256,19 @@ export function Community() {
 
                             <div className="pt-6 space-y-4">
                                 <button
-                                    onClick={() => setIsAuthModalOpen(true)}
+                                    onClick={() => {
+                                        setAuthModalMode('register');
+                                        setIsAuthModalOpen(true);
+                                    }}
                                     className="w-full py-6 bg-white text-black rounded-2xl font-black text-xs uppercase tracking-[0.3em] hover:bg-neon-cyan hover:text-white transition-all duration-500 shadow-[0_15px_40px_rgba(0,0,0,0.5)]"
                                 >
                                     Créer mon compte
                                 </button>
                                 <button
-                                    onClick={() => setIsAuthModalOpen(true)}
+                                    onClick={() => {
+                                        setAuthModalMode('login');
+                                        setIsAuthModalOpen(true);
+                                    }}
                                     className="w-full py-4 bg-transparent text-white/40 hover:text-white rounded-2xl font-black text-[9px] uppercase tracking-[0.3em] transition-all"
                                 >
                                     Déjà membre ? Me connecter
@@ -2284,6 +2291,7 @@ export function Community() {
             <UserAuthModal 
                 isOpen={isAuthModalOpen} 
                 onClose={() => setIsAuthModalOpen(false)} 
+                initialMode={authModalMode}
             />
 
 

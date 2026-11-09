@@ -629,7 +629,7 @@ export function AdminTeam() {
 
         setIsSaving(true);
         try {
-            const perms = person.permissions.length > 0 ? person.permissions : ['all'];
+            const perms = person.permissions || [];
             const res = await apiFetch('/api/editors/update-permissions', {
                 method: 'POST',
                 headers: getAuthHeaders(),
@@ -719,7 +719,7 @@ export function AdminTeam() {
 
             // 2. Synchronize Editor permissions (for /api/editors/update-permissions)
             if (editingPerson.hasAdminAccess && editingPerson.email.trim()) {
-                const permsToSave = editingPerson.permissions.length > 0 ? editingPerson.permissions : ['all'];
+                const permsToSave = editingPerson.permissions || [];
                 await apiFetch('/api/editors/update-permissions', {
                     method: 'POST',
                     headers: getAuthHeaders(),
@@ -743,29 +743,16 @@ export function AdminTeam() {
                         body: JSON.stringify({ email: editingPerson.originalEmail })
                     });
                 }
-            } else if (editingPerson.email.trim() && editingPerson.mailEnabled !== false) {
-                // Member without admin access, but with mail routing active
-                await apiFetch('/api/editors/update-permissions', {
-                    method: 'POST',
-                    headers: getAuthHeaders(),
-                    body: JSON.stringify({
-                        email: editingPerson.email.trim(),
-                        pseudo: editingPerson.name.trim(),
-                        role: editingPerson.role.trim(),
-                        permissions: [],
-                        isInvite: false,
-                        verified: true,
-                        dropsiders_email: resolvedDropsidersEmail,
-                        mail_enabled: true
-                    })
-                });
-            } else if (!editingPerson.hasAdminAccess && editingPerson.originalEmail) {
-                // Admin access and mail were removed: delete editor from backend
-                await apiFetch('/api/editors/delete', {
-                    method: 'POST',
-                    headers: getAuthHeaders(),
-                    body: JSON.stringify({ email: editingPerson.originalEmail })
-                });
+            } else if (!editingPerson.hasAdminAccess) {
+                // Admin access was revoked: completely remove from editors.json so they cannot access admin
+                const emailToDelete = editingPerson.email?.trim() || editingPerson.originalEmail;
+                if (emailToDelete) {
+                    await apiFetch('/api/editors/delete', {
+                        method: 'POST',
+                        headers: getAuthHeaders(),
+                        body: JSON.stringify({ email: emailToDelete })
+                    });
+                }
             }
 
             setIsModalOpen(false);
