@@ -1,8 +1,9 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { X, Play, Pause, RotateCcw, Upload, Volume2, VolumeX, Video, Download, Sparkles, Check, Film, Settings2, Clock, Image as ImageIcon, Save, Music } from 'lucide-react';
+import { X, Play, Pause, RotateCcw, Upload, Volume2, VolumeX, Video, Download, Sparkles, Check, Film, Settings2, Clock, Image as ImageIcon, Save, Music, Search } from 'lucide-react';
 // @ts-ignore
 import { Muxer, ArrayBufferTarget } from 'mp4-muxer';
 import { isSuperAdmin } from '../../utils/auth';
+import { searchMusicTracksList, type ResolvedMusicData } from '../../utils/musicResolver';
 
 interface AlexRecruitmentModalProps {
     isOpen: boolean;
@@ -90,6 +91,13 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
     const [bgAudioSrc, setBgAudioSrc] = useState<string>('');
     const [bgAudioStartTime, setBgAudioStartTime] = useState<number>(0);
     const [bgAudioDuration, setBgAudioDuration] = useState<number>(0);
+    const [bgAudioTitle, setBgAudioTitle] = useState<string>('');
+    const [bgAudioArtist, setBgAudioArtist] = useState<string>('');
+    const [bgAudioCover, setBgAudioCover] = useState<string>('');
+    const [isBeatportSearchOpen, setIsBeatportSearchOpen] = useState<boolean>(false);
+    const [beatportQuery, setBeatportQuery] = useState<string>('');
+    const [beatportResults, setBeatportResults] = useState<ResolvedMusicData[]>([]);
+    const [isSearchingBeatport, setIsSearchingBeatport] = useState<boolean>(false);
     const [bgVideoStartTime, setBgVideoStartTime] = useState<number>(0);
     const [bgVideoDuration, setBgVideoDuration] = useState<number>(0);
     const [isVideoAudioMuted, setIsVideoAudioMuted] = useState<boolean>(false);
@@ -296,6 +304,9 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
         const blobUrl = URL.createObjectURL(file);
         bgAudioBlobRef.current = file;
         setBgAudioSrc(blobUrl);
+        setBgAudioTitle(file.name.replace(/\.[^/.]+$/, ''));
+        setBgAudioArtist('Fichier Audio MP3');
+        setBgAudioCover('');
         setBgAudioStartTime(0);
         bgAudioStartTimeRef.current = 0;
         const aud = audioRef.current;
@@ -307,6 +318,47 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
             aud.onloadedmetadata = () => {
                 setBgAudioDuration(aud.duration || 0);
             };
+            aud.play().then(() => {
+                setIsVideoAudioMuted(false);
+                isVideoAudioMutedRef.current = false;
+            }).catch(() => {});
+        }
+    };
+
+    // Recherche de tracks Beatport officielles (120s Drop)
+    const handleBeatportSearch = async () => {
+        const q = beatportQuery.trim();
+        if (!q) return;
+        setIsSearchingBeatport(true);
+        setBeatportResults([]);
+        try {
+            const results = await searchMusicTracksList(q, 6);
+            setBeatportResults(results);
+        } catch (e) {
+            console.warn("Erreur recherche Beatport Reel :", e);
+        } finally {
+            setIsSearchingBeatport(false);
+        }
+    };
+
+    // Sélection d'un son Beatport
+    const handleSelectBeatportTrack = (item: ResolvedMusicData) => {
+        setBgAudioSrc(item.audioUrl);
+        bgAudioBlobRef.current = null;
+        setBgAudioTitle(item.title || '');
+        setBgAudioArtist(item.artist || 'Beatport');
+        setBgAudioCover(item.coverUrl || '');
+        setBgAudioStartTime(0);
+        bgAudioStartTimeRef.current = 0;
+        setBgAudioDuration(item.duration || 120);
+        setIsBeatportSearchOpen(false);
+        setBeatportResults([]);
+        const aud = audioRef.current;
+        if (aud) {
+            aud.src = item.audioUrl;
+            aud.muted = false;
+            aud.volume = 1.0;
+            aud.currentTime = 0;
             aud.play().then(() => {
                 setIsVideoAudioMuted(false);
                 isVideoAudioMutedRef.current = false;
@@ -2010,12 +2062,12 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
                                     </div>
                                 )}
 
-                                {/* Piste Audio / Musique MP3 Dédiée */}
+                                {/* Piste Audio / Musique de Fond (MP3 ou Beatport) */}
                                 <div className="p-3.5 rounded-2xl bg-white/5 border border-white/10 space-y-3">
                                     <div className="flex items-center justify-between">
                                         <span className="text-xs font-black uppercase text-gray-300 flex items-center gap-1.5">
                                             <Music className="w-4 h-4 text-[#00f0ff]" />
-                                            Piste Audio / Musique MP3 (Optionnelle)
+                                            Musique de Fond (MP3 ou Beatport)
                                         </span>
                                         {bgAudioSrc && (
                                             <span className="text-[10px] font-mono text-cyan-400 bg-cyan-500/10 px-2 py-0.5 rounded border border-cyan-500/20">
@@ -2023,16 +2075,122 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
                                             </span>
                                         )}
                                     </div>
-                                    <label className="flex flex-col items-center justify-center p-3.5 border-2 border-dashed border-white/20 hover:border-[#00f0ff] rounded-2xl cursor-pointer bg-black/40 transition group">
-                                        <Music className="w-5 h-5 text-gray-400 group-hover:text-[#00f0ff] mb-1 transition" />
-                                        <span className="text-xs font-bold text-gray-200">
-                                            {bgAudioSrc ? "Remplacer la musique MP3" : "Importer un son ou musique de fond"}
-                                        </span>
-                                        <span className="text-[10px] text-gray-500 mt-0.5">MP3, WAV, M4A, OGG (Idéal si ta vidéo n'a pas de musique)</span>
-                                        <input type="file" accept="audio/*,.mp3,.wav,.m4a,.ogg" onChange={handleAudioUpload} className="hidden" />
-                                    </label>
+
+                                    {/* 2 Choix : Importer un MP3 OU Rechercher sur Beatport */}
+                                    <div className="grid grid-cols-2 gap-2">
+                                        <label className="flex flex-col items-center justify-center p-3 border-2 border-dashed border-white/20 hover:border-[#00f0ff] rounded-xl cursor-pointer bg-black/40 transition group text-center">
+                                            <Upload className="w-4 h-4 text-gray-400 group-hover:text-[#00f0ff] mb-1 transition" />
+                                            <span className="text-[11px] font-bold text-gray-200">1. Importer MP3</span>
+                                            <span className="text-[9px] text-gray-500">Fichier local audio</span>
+                                            <input type="file" accept="audio/*,.mp3,.wav,.m4a,.ogg" onChange={handleAudioUpload} className="hidden" />
+                                        </label>
+
+                                        <button
+                                            type="button"
+                                            onClick={() => setIsBeatportSearchOpen(!isBeatportSearchOpen)}
+                                            className="flex flex-col items-center justify-center p-3 border-2 border-dashed border-emerald-500/30 hover:border-emerald-400 rounded-xl bg-emerald-950/20 hover:bg-emerald-900/30 transition text-center group"
+                                        >
+                                            <Search className="w-4 h-4 text-emerald-400 group-hover:scale-110 mb-1 transition" />
+                                            <span className="text-[11px] font-bold text-emerald-300">2. Via Beatport</span>
+                                            <span className="text-[9px] text-emerald-500/80">Recherche catalogue</span>
+                                        </button>
+                                    </div>
+
+                                    {/* Tiroir de recherche Beatport */}
+                                    {isBeatportSearchOpen && (
+                                        <div className="p-3 bg-black/60 rounded-xl border border-emerald-500/30 space-y-2.5 animate-fadeIn">
+                                            <div className="text-[11px] font-black uppercase text-emerald-400 flex items-center gap-1.5">
+                                                <Sparkles className="w-3.5 h-3.5" />
+                                                Recherche de track Beatport (Preview 120s)
+                                            </div>
+                                            <div className="flex gap-2">
+                                                <input
+                                                    type="text"
+                                                    value={beatportQuery}
+                                                    onChange={(e) => setBeatportQuery(e.target.value)}
+                                                    onKeyDown={(e) => e.key === 'Enter' && handleBeatportSearch()}
+                                                    placeholder="Artiste, titre ou mot clé..."
+                                                    className="flex-1 bg-white/10 border border-white/20 rounded-lg px-2.5 py-1.5 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-emerald-400"
+                                                />
+                                                <button
+                                                    type="button"
+                                                    onClick={handleBeatportSearch}
+                                                    disabled={isSearchingBeatport || !beatportQuery.trim()}
+                                                    className="px-3 py-1.5 bg-emerald-500 hover:bg-emerald-400 disabled:opacity-50 text-black font-black text-xs rounded-lg uppercase transition"
+                                                >
+                                                    {isSearchingBeatport ? '...' : 'Chercher'}
+                                                </button>
+                                            </div>
+
+                                            {/* Résultats Beatport */}
+                                            {beatportResults.length > 0 && (
+                                                <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
+                                                    {beatportResults.map((item, idx) => (
+                                                        <div
+                                                            key={idx}
+                                                            onClick={() => handleSelectBeatportTrack(item)}
+                                                            className="flex items-center gap-2.5 p-2 bg-white/5 hover:bg-emerald-500/10 border border-white/5 hover:border-emerald-500/30 rounded-lg cursor-pointer transition text-left"
+                                                        >
+                                                            {item.coverUrl ? (
+                                                                <img src={item.coverUrl} alt={item.title} className="w-9 h-9 rounded object-cover border border-white/10 flex-shrink-0" />
+                                                            ) : (
+                                                                <div className="w-9 h-9 rounded bg-emerald-900/50 flex items-center justify-center text-emerald-300 flex-shrink-0">
+                                                                    <Music className="w-4 h-4" />
+                                                                </div>
+                                                            )}
+                                                            <div className="flex-1 min-w-0">
+                                                                <p className="text-xs font-bold text-white truncate">{item.title}</p>
+                                                                <p className="text-[10px] text-gray-400 truncate">{item.artist}</p>
+                                                            </div>
+                                                            <span className="text-[10px] text-emerald-400 font-mono bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20 flex-shrink-0">
+                                                                Choisir
+                                                            </span>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+
+                                    {/* Piste sélectionnée active (MP3 ou Beatport) */}
                                     {bgAudioSrc && (
                                         <div className="space-y-3 pt-2 border-t border-white/10">
+                                            {/* Détails du morceau */}
+                                            <div className="flex items-center gap-2.5 p-2 rounded-xl bg-black/40 border border-white/10">
+                                                {bgAudioCover ? (
+                                                    <img src={bgAudioCover} alt="Cover" className="w-10 h-10 rounded-lg object-cover border border-white/10 flex-shrink-0" />
+                                                ) : (
+                                                    <div className="w-10 h-10 rounded-lg bg-[#00f0ff]/10 border border-[#00f0ff]/30 flex items-center justify-center text-[#00f0ff] flex-shrink-0">
+                                                        <Music className="w-5 h-5" />
+                                                    </div>
+                                                )}
+                                                <div className="flex-1 min-w-0">
+                                                    <p className="text-xs font-bold text-white truncate">
+                                                        {bgAudioTitle || (bgAudioBlobRef.current ? "Fichier MP3 Local" : "Piste Audio")}
+                                                    </p>
+                                                    <p className="text-[10px] text-gray-400 truncate">
+                                                        {bgAudioArtist || (bgAudioBlobRef.current ? "Fichier importé" : "Audio synchronisé")}
+                                                    </p>
+                                                </div>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        const aud = audioRef.current;
+                                                        if (aud) {
+                                                            if (aud.paused) {
+                                                                aud.currentTime = bgAudioStartTime;
+                                                                aud.play().catch(() => {});
+                                                            } else {
+                                                                aud.pause();
+                                                            }
+                                                        }
+                                                    }}
+                                                    className="px-2 py-1 bg-white/10 hover:bg-white/20 text-white rounded text-[10px] font-bold flex items-center gap-1 flex-shrink-0"
+                                                >
+                                                    <Play className="w-3 h-3 text-[#00f0ff]" /> Test
+                                                </button>
+                                            </div>
+
                                             {/* Sélecteur de départ de la musique */}
                                             <div className="flex justify-between items-center text-xs font-black uppercase text-gray-300">
                                                 <span className="flex items-center gap-1.5">
@@ -2100,6 +2258,9 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
                                                     onClick={() => {
                                                         setBgAudioSrc('');
                                                         bgAudioBlobRef.current = null;
+                                                        setBgAudioTitle('');
+                                                        setBgAudioArtist('');
+                                                        setBgAudioCover('');
                                                         setBgAudioStartTime(0);
                                                         setBgAudioDuration(0);
                                                         if (audioRef.current) {

@@ -38,7 +38,8 @@ import {
     ChevronUp,
     Instagram,
     Users,
-    Share2
+    Share2,
+    Clock
 } from 'lucide-react';
 import { ExportSuccessModal } from './ExportSuccessModal';
 import { AlexRecruitmentModal } from './admin/AlexRecruitmentModal';
@@ -573,6 +574,318 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const [editorialPromoDuration, setEditorialPromoDuration] = useState<number>(7); // Durée Promo (en secondes, fixée à 7s pour l'animation Instagram)
     const [exportFps, setExportFps] = useState<number>(30); // Fluidité vidéo : 30 FPS fluide par défaut (standard Instagram/Reels) ou 60 FPS Studio
     const [exportAccordion, setExportAccordion] = useState<'image' | 'video_slide' | 'video_carousel' | 'tiktok' | null>('image');
+
+    // ── BANDE SON CARROUSEL VIDÉO COMPLET (MP3 Upload & Beatport) ──
+    const [carouselAudioUrl, setCarouselAudioUrl] = useState<string>('');
+    const [carouselAudioTitle, setCarouselAudioTitle] = useState<string>('');
+    const [carouselAudioArtist, setCarouselAudioArtist] = useState<string>('');
+    const [carouselAudioCover, setCarouselAudioCover] = useState<string>('');
+    const [carouselAudioDuration, setCarouselAudioDuration] = useState<number>(0);
+    const [carouselAudioStartTime, setCarouselAudioStartTime] = useState<number>(0);
+    const carouselAudioStartTimeRef = useRef<number>(0);
+    const [isCarouselBeatportSearchOpen, setIsCarouselBeatportSearchOpen] = useState<boolean>(false);
+    const [carouselBeatportQuery, setCarouselBeatportQuery] = useState<string>('');
+    const [carouselBeatportResults, setCarouselBeatportResults] = useState<ResolvedMusicData[]>([]);
+    const [isSearchingCarouselBeatport, setIsSearchingCarouselBeatport] = useState<boolean>(false);
+    const carouselAudioElementRef = useRef<HTMLAudioElement | null>(null);
+    const [isPlayingCarouselPreview, setIsPlayingCarouselPreview] = useState<boolean>(false);
+
+    useEffect(() => {
+        carouselAudioStartTimeRef.current = carouselAudioStartTime;
+    }, [carouselAudioStartTime]);
+
+    useEffect(() => {
+        return () => {
+            if (carouselAudioElementRef.current) {
+                carouselAudioElementRef.current.pause();
+                carouselAudioElementRef.current.src = '';
+            }
+        };
+    }, []);
+
+    const handleCarouselAudioUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        const blobUrl = URL.createObjectURL(file);
+        setCarouselAudioUrl(blobUrl);
+        setCarouselAudioTitle(file.name.replace(/\.[^/.]+$/, ''));
+        setCarouselAudioArtist('Fichier local');
+        setCarouselAudioCover('');
+        setCarouselAudioStartTime(0);
+        carouselAudioStartTimeRef.current = 0;
+        const tempAudio = new Audio(blobUrl);
+        tempAudio.addEventListener('loadedmetadata', () => {
+            setCarouselAudioDuration(tempAudio.duration || 60);
+        });
+    };
+
+    const handleCarouselBeatportSearch = async () => {
+        if (!carouselBeatportQuery.trim()) return;
+        setIsSearchingCarouselBeatport(true);
+        try {
+            const results = await searchMusicTracksList(carouselBeatportQuery.trim(), 8);
+            setCarouselBeatportResults(results);
+        } catch (err) {
+            console.warn('Erreur recherche Beatport carrousel :', err);
+        } finally {
+            setIsSearchingCarouselBeatport(false);
+        }
+    };
+
+    const handleSelectCarouselBeatportTrack = (item: ResolvedMusicData) => {
+        setCarouselAudioUrl(item.audioUrl);
+        setCarouselAudioTitle(item.title || '');
+        setCarouselAudioArtist(item.artist || 'Beatport');
+        setCarouselAudioCover(item.coverUrl || '');
+        setCarouselAudioStartTime(0);
+        carouselAudioStartTimeRef.current = 0;
+        setCarouselAudioDuration(item.duration || 120);
+        setIsCarouselBeatportSearchOpen(false);
+        setCarouselBeatportResults([]);
+    };
+
+    const toggleCarouselAudioPreview = () => {
+        if (!carouselAudioUrl) return;
+        let aud = carouselAudioElementRef.current;
+        if (!aud) {
+            aud = new Audio();
+            carouselAudioElementRef.current = aud;
+            aud.onended = () => setIsPlayingCarouselPreview(false);
+        }
+        if (isPlayingCarouselPreview) {
+            aud.pause();
+            setIsPlayingCarouselPreview(false);
+        } else {
+            aud.src = carouselAudioUrl;
+            aud.currentTime = carouselAudioStartTime;
+            aud.volume = 1.0;
+            aud.play().then(() => {
+                setIsPlayingCarouselPreview(true);
+            }).catch(e => console.warn("Audio preview play failed", e));
+        }
+    };
+
+    const handleRemoveCarouselAudio = () => {
+        if (carouselAudioElementRef.current) {
+            carouselAudioElementRef.current.pause();
+            carouselAudioElementRef.current.src = '';
+        }
+        setIsPlayingCarouselPreview(false);
+        setCarouselAudioUrl('');
+        setCarouselAudioTitle('');
+        setCarouselAudioArtist('');
+        setCarouselAudioCover('');
+        setCarouselAudioDuration(0);
+        setCarouselAudioStartTime(0);
+        carouselAudioStartTimeRef.current = 0;
+    };
+
+    const renderCarouselAudioControlBox = () => {
+        if (theme === 'MUSIQUE' || theme === 'TOP 10 TRACKS') return null;
+        return (
+            <div className="p-3 rounded-2xl bg-white/[0.04] border border-white/10 space-y-3">
+                <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-black uppercase text-gray-300 flex items-center gap-1.5">
+                        <Music className="w-3.5 h-3.5 text-[#00f0ff]" />
+                        Musique de Fond Carrousel (MP3 ou Beatport)
+                    </span>
+                    {carouselAudioUrl ? (
+                        <span className="text-[9px] font-mono text-[#00f0ff] bg-[#00f0ff]/10 px-2 py-0.5 rounded border border-[#00f0ff]/30">
+                            ✓ Piste Active
+                        </span>
+                    ) : (
+                        <span className="text-[9px] text-gray-500 font-medium">Optionnelle</span>
+                    )}
+                </div>
+
+                {/* 2 Choix : Upload MP3 OU Beatport */}
+                <div className="grid grid-cols-2 gap-2">
+                    <label className="flex flex-col items-center justify-center p-2.5 border-2 border-dashed border-white/15 hover:border-[#00f0ff] rounded-xl cursor-pointer bg-black/40 hover:bg-black/60 transition group text-center">
+                        <Upload className="w-4 h-4 text-gray-400 group-hover:text-[#00f0ff] mb-1 transition" />
+                        <span className="text-[10px] font-bold text-gray-200">1. Importer MP3</span>
+                        <span className="text-[8px] text-gray-500">Fichier local audio</span>
+                        <input type="file" accept="audio/*,.mp3,.wav,.m4a,.ogg" onChange={handleCarouselAudioUpload} className="hidden" />
+                    </label>
+
+                    <button
+                        type="button"
+                        onClick={() => setIsCarouselBeatportSearchOpen(!isCarouselBeatportSearchOpen)}
+                        className="flex flex-col items-center justify-center p-2.5 border-2 border-dashed border-emerald-500/30 hover:border-emerald-400 rounded-xl bg-emerald-950/20 hover:bg-emerald-900/30 transition text-center group"
+                    >
+                        <Search className="w-4 h-4 text-emerald-400 group-hover:scale-110 mb-1 transition" />
+                        <span className="text-[10px] font-bold text-emerald-300">2. Via Beatport</span>
+                        <span className="text-[8px] text-emerald-500/80">Recherche catalogue</span>
+                    </button>
+                </div>
+
+                {/* Tiroir de recherche Beatport */}
+                {isCarouselBeatportSearchOpen && (
+                    <div className="p-2.5 bg-black/70 rounded-xl border border-emerald-500/30 space-y-2 animate-fadeIn">
+                        <div className="text-[10px] font-black uppercase text-emerald-400 flex items-center gap-1.5">
+                            <Sparkles className="w-3 h-3" />
+                            Recherche de track Beatport (Preview 120s)
+                        </div>
+                        <div className="flex gap-1.5">
+                            <input
+                                type="text"
+                                value={carouselBeatportQuery}
+                                onChange={(e) => setCarouselBeatportQuery(e.target.value)}
+                                onKeyDown={(e) => e.key === 'Enter' && handleCarouselBeatportSearch()}
+                                placeholder="Artiste, titre ou mot clé..."
+                                className="flex-1 bg-white/10 border border-white/20 rounded-lg px-2 py-1 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-emerald-400"
+                            />
+                            <button
+                                type="button"
+                                onClick={handleCarouselBeatportSearch}
+                                disabled={isSearchingCarouselBeatport || !carouselBeatportQuery.trim()}
+                                className="px-2.5 py-1 bg-emerald-500 hover:bg-emerald-400 disabled:opacity-50 text-black font-black text-[10px] rounded-lg uppercase transition"
+                            >
+                                {isSearchingCarouselBeatport ? '...' : 'Chercher'}
+                            </button>
+                        </div>
+
+                        {/* Résultats Beatport */}
+                        {carouselBeatportResults.length > 0 && (
+                            <div className="space-y-1 max-h-40 overflow-y-auto pr-1">
+                                {carouselBeatportResults.map((item, idx) => (
+                                    <div
+                                        key={idx}
+                                        onClick={() => handleSelectCarouselBeatportTrack(item)}
+                                        className="flex items-center gap-2 p-1.5 bg-white/5 hover:bg-emerald-500/10 border border-white/5 hover:border-emerald-500/30 rounded-lg cursor-pointer transition text-left"
+                                    >
+                                        {item.coverUrl ? (
+                                            <img src={item.coverUrl} alt={item.title} className="w-8 h-8 rounded object-cover border border-white/10 flex-shrink-0" />
+                                        ) : (
+                                            <div className="w-8 h-8 rounded bg-emerald-900/50 flex items-center justify-center text-emerald-300 flex-shrink-0">
+                                                <Music className="w-3.5 h-3.5" />
+                                            </div>
+                                        )}
+                                        <div className="flex-1 min-w-0">
+                                            <p className="text-[11px] font-bold text-white truncate">{item.title}</p>
+                                            <p className="text-[9px] text-gray-400 truncate">{item.artist}</p>
+                                        </div>
+                                        <span className="text-[9px] text-emerald-400 font-mono bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20 flex-shrink-0">
+                                            Choisir
+                                        </span>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                )}
+
+                {/* Morceau sélectionné */}
+                {carouselAudioUrl && (
+                    <div className="space-y-2.5 pt-2 border-t border-white/10">
+                        <div className="flex items-center gap-2 p-2 rounded-xl bg-black/50 border border-white/10">
+                            {carouselAudioCover ? (
+                                <img src={carouselAudioCover} alt="Cover" className="w-9 h-9 rounded-lg object-cover border border-white/10 flex-shrink-0" />
+                            ) : (
+                                <div className="w-9 h-9 rounded-lg bg-[#00f0ff]/10 border border-[#00f0ff]/30 flex items-center justify-center text-[#00f0ff] flex-shrink-0">
+                                    <Music className="w-4 h-4" />
+                                </div>
+                            )}
+                            <div className="flex-1 min-w-0">
+                                <p className="text-xs font-bold text-white truncate">
+                                    {carouselAudioTitle || 'Morceau Carrousel'}
+                                </p>
+                                <p className="text-[9.5px] text-gray-400 truncate">
+                                    {carouselAudioArtist || 'Audio synchronisé'}
+                                </p>
+                            </div>
+                            <button
+                                type="button"
+                                onClick={toggleCarouselAudioPreview}
+                                className={`px-2 py-1 rounded text-[9.5px] font-black uppercase flex items-center gap-1 flex-shrink-0 transition ${
+                                    isPlayingCarouselPreview ? 'bg-[#00f0ff] text-black shadow-[0_0_10px_rgba(0,240,255,0.4)]' : 'bg-white/10 hover:bg-white/20 text-white'
+                                }`}
+                            >
+                                {isPlayingCarouselPreview ? (
+                                    <>Pause</>
+                                ) : (
+                                    <><Play className="w-3 h-3 text-[#00f0ff]" /> Écouter</>
+                                )}
+                            </button>
+                        </div>
+
+                        {/* Départ du morceau */}
+                        <div className="flex justify-between items-center text-[10px] font-black uppercase text-gray-300">
+                            <span className="flex items-center gap-1.5">
+                                <Clock className="w-3 h-3 text-[#00f0ff]" />
+                                Départ de la musique :
+                            </span>
+                            <span className="text-[#00f0ff] font-mono font-bold bg-[#00f0ff]/10 px-2 py-0.5 rounded border border-[#00f0ff]/30">
+                                {carouselAudioStartTime.toFixed(1)}s / {carouselAudioDuration > 0 ? `${carouselAudioDuration.toFixed(1)}s` : 'Max'}
+                            </span>
+                        </div>
+                        <input
+                            type="range"
+                            min={0}
+                            max={Math.max(10, carouselAudioDuration > 5 ? carouselAudioDuration - 5 : 120)}
+                            step={0.5}
+                            value={carouselAudioStartTime}
+                            onChange={(e) => {
+                                const val = parseFloat(e.target.value);
+                                setCarouselAudioStartTime(val);
+                                if (carouselAudioElementRef.current && isPlayingCarouselPreview) {
+                                    carouselAudioElementRef.current.currentTime = val;
+                                }
+                            }}
+                            className="w-full h-1.5 bg-white/15 rounded-lg appearance-none cursor-pointer accent-[#00f0ff]"
+                        />
+                        <div className="flex items-center justify-between text-[9px] font-black uppercase text-gray-400">
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setCarouselAudioStartTime(0);
+                                    if (carouselAudioElementRef.current && isPlayingCarouselPreview) carouselAudioElementRef.current.currentTime = 0;
+                                }}
+                                className="px-2 py-0.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded"
+                            >
+                                ⏪ 0:00
+                            </button>
+                            <div className="flex gap-1.5">
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        const n = Math.max(0, carouselAudioStartTime - 5);
+                                        setCarouselAudioStartTime(n);
+                                        if (carouselAudioElementRef.current && isPlayingCarouselPreview) carouselAudioElementRef.current.currentTime = n;
+                                    }}
+                                    className="px-2 py-0.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded"
+                                >
+                                    -5s
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        const maxD = Math.max(10, carouselAudioDuration > 5 ? carouselAudioDuration - 5 : 120);
+                                        const n = Math.min(maxD, carouselAudioStartTime + 5);
+                                        setCarouselAudioStartTime(n);
+                                        if (carouselAudioElementRef.current && isPlayingCarouselPreview) carouselAudioElementRef.current.currentTime = n;
+                                    }}
+                                    className="px-2 py-0.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded"
+                                >
+                                    +5s
+                                </button>
+                            </div>
+                        </div>
+
+                        <div className="flex items-center justify-between pt-1">
+                            <span className="text-[9px] text-gray-400">Piste synchronisée sur tout le carrousel</span>
+                            <button
+                                type="button"
+                                onClick={handleRemoveCarouselAudio}
+                                className="text-[9.5px] font-bold text-red-400 hover:text-red-300 transition underline"
+                            >
+                                Supprimer la musique
+                            </button>
+                        </div>
+                    </div>
+                )}
+            </div>
+        );
+    };
 
     // ── CALCUL DYNAMIQUE DU RYTHME SPÉCIAL TIKTOK (<60s MAX, SWEET SPOT 15-30s) ───
     const getTikTokSlideTimings = (numSlides: number) => {
@@ -14230,6 +14543,15 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     }
                 }
 
+                if (carouselAudioUrl && theme !== 'MUSIQUE' && theme !== 'TOP 10 TRACKS') {
+                    audioSegments.push({
+                        url: carouselAudioUrl,
+                        startOffset: 0,
+                        sourceOffset: carouselAudioStartTimeRef.current || carouselAudioStartTime || 0,
+                        duration: totalDuration / 1000
+                    });
+                }
+
                 if (audioSegments.length > 0) {
                     const totalSec = totalDuration / 1000;
                     const totalSamples = Math.ceil(totalSec * sampleRate);
@@ -14269,10 +14591,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             return null;
         };
 
-        // ── iOS : injection live de la timeline audio MUSIQUE / TOP 10 TRACKS dans le MediaRecorder ──
+        // ── iOS : injection live de la timeline audio MUSIQUE / TOP 10 TRACKS / Carrousel dans le MediaRecorder ──
         // Sur iPhone, AudioEncoder AAC et FFmpeg WASM échouent → on pré-rend toute la bande son
         // puis on la joue dans un MediaStreamDestination enregistré en direct (MP4 AAC natif).
-        if (!useWebCodecs && isIOSWebKitExport && !iosBufferAudioSrc && canvasStream && (theme === 'MUSIQUE' || theme === 'TOP 10 TRACKS')) {
+        if (!useWebCodecs && isIOSWebKitExport && !iosBufferAudioSrc && canvasStream && (theme === 'MUSIQUE' || theme === 'TOP 10 TRACKS' || Boolean(carouselAudioUrl))) {
             try {
                 const actx = audioCtxRef.current;
                 if (actx && actx.state !== 'closed') {
@@ -14419,10 +14741,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             // Détection de présence de son dans le projet
             const currentTracksForAudio = (top10TracksRef.current && top10TracksRef.current.length === 10) ? top10TracksRef.current : top10Tracks;
             const hasAnyTop10Audio = theme === 'TOP 10 TRACKS' && currentTracksForAudio.some(t => Boolean(t.audioUrl || t.videoUrl));
+            const hasAnyCarouselAudio = Boolean(carouselAudioUrl);
             // En TOP 10 TRACKS, la vidéo d'arrière-plan bgVideo est 100% muette : on ne prend JAMAIS son son
             const hasAnyAudioSource = theme === 'TOP 10 TRACKS'
                 ? hasAnyTop10Audio
-                : Boolean(bgVideoBlob || hasAnyMusicAudio || (bgVideo && (bgVideo.currentSrc || bgVideo.src)));
+                : Boolean(bgVideoBlob || hasAnyMusicAudio || hasAnyCarouselAudio || (bgVideo && (bgVideo.currentSrc || bgVideo.src)));
 
             // FAST-PATH MP4 : si STRICTEMENT AUCUN SON dans le projet (vidéo muette), téléchargement direct immédiat
             if (!hasAnyAudioSource && videoBlob.type.includes('mp4')) {
@@ -24754,6 +25077,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             {theme !== 'MUSIQUE' && editorialDurationControls}
                         </div>
 
+                        {/* Musique de Fond Carrousel (MP3 Upload & Beatport) */}
+                        {renderCarouselAudioControlBox()}
+
                         {/* Grand Bouton d'Export */}
                         {theme === 'PLANNING' ? (
                             <button
@@ -24884,6 +25210,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 <p>Bascule automatique en <b className="text-[#00f2fe]">Vertical 9:16 (1080×1920)</b>, rythme dynamique selon le nombre de slides ({getTikTokInfo().slideDurationSec}s/slide), puis enchaînement fluide sur la <b className="text-[#fe0979]">Slide Promo Outro</b> ({getTikTokInfo().promoDurationSec}s) pour inciter au swipe et à l'abonnement.</p>
                             </div>
                         </div>
+
+                        {/* Musique de Fond Carrousel (MP3 Upload & Beatport) */}
+                        {renderCarouselAudioControlBox()}
 
                         {/* Grand Bouton TikTok */}
                         <button
