@@ -1144,9 +1144,20 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             if (theme === 'TOP 10 TRACKS') {
                 updateTop10Track(top10ActiveRank, { cover: url });
             } else {
-                setEditorialSlideImages(prev => ({ ...prev, [editorialSlide]: url }));
-                if (editorialSlide === 1) {
-                    setBgImage(url);
+                if ((theme === 'SPOTLIGHT' || theme === 'ARTISTE FESTIVAL') && artisteFestivalSlide >= 2) {
+                    setEditorialSlideImages(prev => ({ ...prev, [artisteFestivalSlide]: url }));
+                    setSpotlightSlidesData(prev => ({
+                        ...prev,
+                        [artisteFestivalSlide]: {
+                            ...(prev[artisteFestivalSlide] || { artistName: artistNameText, stage: customText.split('\n')[1] || '', day: customText.split('\n')[2] || '', hour: customText.split('\n')[4] || '', artistLogo: artistLogo }),
+                            bgImage: url,
+                        }
+                    }));
+                } else {
+                    setEditorialSlideImages(prev => ({ ...prev, [editorialSlide]: url }));
+                    if (editorialSlide === 1) {
+                        setBgImage(url);
+                    }
                 }
             }
             const imgObj = new Image();
@@ -5147,8 +5158,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ? (agendaAffiches[effectiveAgendaSlide - 3]?.image || '')
                     : (afficheImage || '');
 
+                const isSpotlightArtistSlide = (theme === 'SPOTLIGHT' || theme === 'ARTISTE FESTIVAL') && artisteFestivalSlide >= 2;
                 const activeSlideImgSrc = isCurrentSlideAffiche
                     ? (currentSlideAfficheUrl || bgImage)
+                    : isSpotlightArtistSlide
+                        ? (spotlightSlidesData[artisteFestivalSlide]?.bgImage || editorialSlideImages[artisteFestivalSlide] || '')
                     : (theme === 'JEU_DJ' && effectiveEditorialSlide === 2 && (!editorialSlideImages[2] || editorialSlideImages[2] === djOriginalImage))
                         ? (editorialSlideImages[1] || bgImage)
                         : isMusiqueTrackSlide
@@ -13576,8 +13590,17 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 imageCacheRef.current[url] = img;
                 if (theme === 'TOP 10 TRACKS') {
                     updateTop10Track(top10ActiveRank, { cover: url });
+                } else if ((theme === 'SPOTLIGHT' || theme === 'ARTISTE FESTIVAL') && artisteFestivalSlide >= 2) {
+                    setEditorialSlideImages(prev => ({ ...prev, [artisteFestivalSlide]: url }));
+                    setSpotlightSlidesData(prev => ({
+                        ...prev,
+                        [artisteFestivalSlide]: {
+                            ...(prev[artisteFestivalSlide] || { artistName: artistNameText, stage: customText.split('\n')[1] || '', day: customText.split('\n')[2] || '', hour: customText.split('\n')[4] || '', artistLogo: artistLogo }),
+                            bgImage: url,
+                        }
+                    }));
                 } else {
-                    setBgImage(url);
+                    if (editorialSlide === 1) setBgImage(url);
                     if (theme !== 'JEU_DJ') {
                         setDjOriginalImage(url);
                         setEditorialSlideImages(prev => ({ ...prev, [editorialSlide]: url }));
@@ -16332,7 +16355,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     day: customText.split('\n')[2] || '',
                     hour: customText.split('\n')[4] || '',
                     artistLogo: artistLogo,
-                    bgImage: editorialSlideImages[2] || bgImage,
+                    bgImage: prev[2]?.bgImage || editorialSlideImages[2] || '',
                 }
             }));
         } else if (artisteFestivalSlide >= 3) {
@@ -16344,7 +16367,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     day: customText.split('\n')[2] || '',
                     hour: customText.split('\n')[4] || '',
                     artistLogo: artistLogo,
-                    bgImage: editorialSlideImages[artisteFestivalSlide] || '',
+                    bgImage: prev[artisteFestivalSlide]?.bgImage || editorialSlideImages[artisteFestivalSlide] || '',
                 }
             }));
         }
@@ -26427,11 +26450,22 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                             setAfficheImage(url);
                                             afficheImageRef.current = img;
                                         } else {
-                                            setBgImage(url);
                                             setBgVideo(null);
-                                            if (theme !== 'JEU_DJ') {
-                                                setDjOriginalImage(url);
-                                                setEditorialSlideImages(prev => ({ ...prev, [editorialSlide]: url }));
+                                            if ((theme === 'SPOTLIGHT' || theme === 'ARTISTE FESTIVAL') && artisteFestivalSlide >= 2) {
+                                                setEditorialSlideImages(prev => ({ ...prev, [artisteFestivalSlide]: url }));
+                                                setSpotlightSlidesData(prev => ({
+                                                    ...prev,
+                                                    [artisteFestivalSlide]: {
+                                                        ...(prev[artisteFestivalSlide] || { artistName: artistNameText, stage: customText.split('\n')[1] || '', day: customText.split('\n')[2] || '', hour: customText.split('\n')[4] || '', artistLogo: artistLogo }),
+                                                        bgImage: url,
+                                                    }
+                                                }));
+                                            } else {
+                                                if (editorialSlide === 1) setBgImage(url);
+                                                if (theme !== 'JEU_DJ') {
+                                                    setDjOriginalImage(url);
+                                                    setEditorialSlideImages(prev => ({ ...prev, [editorialSlide]: url }));
+                                                }
                                             }
                                             if (theme === 'TOP 10 TRACKS') {
                                                 updateTop10Track(top10ActiveRank, { cover: url });
@@ -29354,11 +29388,22 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     setAfficheImage(finalUrl);
                                     afficheImageRef.current = img;
                                 } else {
-                                    setBgImage(finalUrl);
                                     setBgVideo(null);
-                                    if (theme !== 'JEU_DJ') {
-                                        setDjOriginalImage(finalUrl);
-                                        setEditorialSlideImages(prev => ({ ...prev, [editorialSlide]: finalUrl }));
+                                    if ((theme === 'SPOTLIGHT' || theme === 'ARTISTE FESTIVAL') && artisteFestivalSlide >= 2) {
+                                        setEditorialSlideImages(prev => ({ ...prev, [artisteFestivalSlide]: finalUrl }));
+                                        setSpotlightSlidesData(prev => ({
+                                            ...prev,
+                                            [artisteFestivalSlide]: {
+                                                ...(prev[artisteFestivalSlide] || { artistName: artistNameText, stage: customText.split('\n')[1] || '', day: customText.split('\n')[2] || '', hour: customText.split('\n')[4] || '', artistLogo: artistLogo }),
+                                                bgImage: finalUrl,
+                                            }
+                                        }));
+                                    } else {
+                                        if (editorialSlide === 1) setBgImage(finalUrl);
+                                        if (theme !== 'JEU_DJ') {
+                                            setDjOriginalImage(finalUrl);
+                                            setEditorialSlideImages(prev => ({ ...prev, [editorialSlide]: finalUrl }));
+                                        }
                                     }
                                     if (theme === 'AFFICHE' || (theme === 'EVENTS' && eventsSlide === 2 && eventNormalSlidesCount === 0)) {
                                         setAfficheImage(finalUrl);
