@@ -573,7 +573,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const [editorialSlide1Duration, setEditorialSlide1Duration] = useState<number>(20); // Durée Slide 1 par défaut : 20 secondes
     const [editorialPromoDuration, setEditorialPromoDuration] = useState<number>(7); // Durée Promo (en secondes, fixée à 7s pour l'animation Instagram)
     const [exportFps, setExportFps] = useState<number>(30); // Fluidité vidéo : 30 FPS fluide par défaut (standard Instagram/Reels) ou 60 FPS Studio
-    const [exportAccordion, setExportAccordion] = useState<'image' | 'video_slide' | 'video_carousel' | 'tiktok' | null>('image');
+    const [exportAccordion, setExportAccordion] = useState<'image' | 'video_slide' | 'video_carousel' | 'tiktok' | null>(null);
 
     // ── BANDE SON CARROUSEL VIDÉO & SLIDES INDIVIDUELLES (MP3 Upload & Beatport) ──
     type SlideAudioItem = {
