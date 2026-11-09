@@ -41,6 +41,8 @@ import {
     Share2
 } from 'lucide-react';
 import { ExportSuccessModal } from './ExportSuccessModal';
+import { AlexRecruitmentModal } from './admin/AlexRecruitmentModal';
+import { isSuperAdmin } from '../utils/auth';
 import { fixEncoding } from '../utils/standardizer';
 import { Downloader } from '../pages/Downloader';
 import { ImageUploadModal } from './ImageUploadModal';
@@ -287,6 +289,9 @@ function getRoundRectPerimeterPoint(x: number, y: number, w: number, h: number, 
 }
 
 export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab, onGeneratePromo, isGeneratingPromo }: SocialSuiteProps) {
+    const currentUser = (typeof window !== 'undefined' ? localStorage.getItem('admin_user') || '' : '').toLowerCase().trim();
+    const isAlex = isSuperAdmin(currentUser) || currentUser === 'alex' || currentUser === 'alexf' || currentUser === 'itsalexfr1' || currentUser.startsWith('alex');
+    const [showAlexRecruitModal, setShowAlexRecruitModal] = useState<boolean>(false);
     const [activeTab, setActiveTab] = useState<TabType>(initialTab || 'PUBLICATION');
     const [theme, setTheme] = useState<ThemeType>(() => {
         if (initialTheme) {
@@ -26262,6 +26267,19 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             <button onClick={() => { setActiveTab('PUBLICATION'); if (theme === 'REELS' || theme === 'CONSEILS' || theme === 'TRACKLIST' || theme === 'MAP' || theme === 'TOP 10 TRACKS') handleSetTheme('NEWS'); }} className={`flex-1 py-2 rounded-lg text-[9px] font-black uppercase flex items-center justify-center gap-2 transition-all ${activeTab === 'PUBLICATION' ? 'bg-white text-black' : 'text-gray-400 hover:text-white'}`}><ImageIcon className="w-3.5 h-3.5" /> POST</button>
                         </div>
 
+                        {/* BOUTON REEL RECRUTEMENT ALEX */}
+                        {isAlex && (
+                            <button
+                                type="button"
+                                onClick={() => setShowAlexRecruitModal(true)}
+                                className="w-full py-2 px-3 rounded-xl bg-gradient-to-r from-neon-red/20 via-amber-500/20 to-neon-cyan/20 border border-amber-500/40 text-amber-300 text-[10px] font-black uppercase tracking-wider flex items-center justify-center gap-2 hover:brightness-125 transition-all shadow-md shadow-amber-500/10"
+                                title="Créateur Reel Recrutement (Alex)"
+                            >
+                                <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                                <span>REEL RECRUTEMENT</span>
+                            </button>
+                        )}
+
                         {/* LES 3 ONGLETS DU WORKFLOW UNIVERSEL */}
                         <div className="grid grid-cols-3 gap-1 p-1 bg-black/60 rounded-2xl border border-white/15 shadow-inner">
                             <button
@@ -28181,7 +28199,19 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         >
                             <X className="w-5 h-5" />
                         </button>
-                        <span className="text-[11px] font-black text-white/50 uppercase tracking-[0.2em] italic">SOCIAL STUDIO</span>
+                        <div className="flex items-center gap-2 pointer-events-auto">
+                            <span className="text-[11px] font-black text-white/50 uppercase tracking-[0.2em] italic">SOCIAL STUDIO</span>
+                            {isAlex && (
+                                <button
+                                    onClick={() => setShowAlexRecruitModal(true)}
+                                    className="p-1 px-2 rounded-lg bg-amber-500/20 border border-amber-500/40 text-amber-300 text-[9px] font-black uppercase flex items-center gap-1 active:scale-95 shadow-sm"
+                                    title="Recrutement Alex"
+                                >
+                                    <Sparkles className="w-3 h-3 text-amber-400" />
+                                    <span>RECRUT</span>
+                                </button>
+                            )}
+                        </div>
                         <button onClick={onClose} className="p-2.5 rounded-2xl text-white/70 hover:text-white hover:bg-white/10 transition-all active:scale-95 pointer-events-auto"><Home className="w-5 h-5" /></button>
                     </div>
 
@@ -28876,6 +28906,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     setR2TargetIdx(null);
                     setR2TargetType(null);
                 }}
+            />
+
+            {/* Modal exclusif Alex Recrutement */}
+            <AlexRecruitmentModal
+                isOpen={showAlexRecruitModal}
+                onClose={() => setShowAlexRecruitModal(false)}
             />
         </motion.div>,
         document.body

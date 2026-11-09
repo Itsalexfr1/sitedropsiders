@@ -112,6 +112,7 @@ import { ScanMenuModal } from "../components/admin/modals/ScanMenuModal";
 import { R2PhotosMenuModal } from "../components/admin/modals/R2PhotosMenuModal";
 import { R2Explorer } from "../components/admin/R2Explorer";
 import { CreatorStudioMenuModal } from "../components/admin/modals/CreatorStudioMenuModal";
+import { AlexRecruitmentModal } from "../components/admin/AlexRecruitmentModal";
 import { useUser } from "../context/UserContext";
 import { Downloader } from "./Downloader";
 import { WikiWidget } from "../components/widgets/WikiWidget";
@@ -565,6 +566,7 @@ export function AdminDashboard() {
   const [isResettingVotes, setIsResettingVotes] = useState(false);
   const [isResetMusicConfirmOpen, setIsResetMusicConfirmOpen] = useState(false);
   const [isR2PhotosModalOpen, setIsR2PhotosModalOpen] = useState(false);
+  const [isAlexRecruitModalOpen, setIsAlexRecruitModalOpen] = useState(false);
   const [isScanMenuOpen, setIsScanMenuOpen] = useState(false);
   const [maintenanceLoading, setMaintenanceLoading] = useState(false);
   const [bulkYearShift, setBulkYearShift] = useState({
@@ -3799,6 +3801,18 @@ export function AdminDashboard() {
                       <span className="hidden md:inline">
                         {isResettingVotes ? "MÉLANGE..." : "Reset & Mixer"}
                       </span>
+                    </button>
+                  )}
+
+                  {/* REEL RECRUTEMENT ALEX */}
+                  {isAlex && (
+                    <button
+                      onClick={() => setIsAlexRecruitModalOpen(true)}
+                      title="Créateur Reel Recrutement Dropsiders (Alex)"
+                      className="w-10 h-10 md:w-auto md:px-6 md:py-2 flex items-center justify-center rounded-xl md:rounded-full bg-gradient-to-r from-neon-red/20 via-amber-500/20 to-neon-cyan/20 border border-amber-500/50 text-amber-300 hover:brightness-125 text-xs font-black uppercase tracking-widest transition-all gap-2 shadow-lg shadow-amber-500/15"
+                    >
+                      <Sparkles className="w-4 h-4 text-amber-400" />
+                      <span className="hidden md:inline">Reel Recrutement</span>
                     </button>
                   )}
                 </>
@@ -14017,6 +14031,11 @@ export function AdminDashboard() {
           <R2PhotosMenuModal
             isOpen={isR2PhotosModalOpen}
             onClose={() => setIsR2PhotosModalOpen(false)}
+          />
+
+          <AlexRecruitmentModal
+            isOpen={isAlexRecruitModalOpen}
+            onClose={() => setIsAlexRecruitModalOpen(false)}
           />
 
           {/* Premium Global Alert Modal */}
