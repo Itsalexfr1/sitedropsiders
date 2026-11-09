@@ -79,6 +79,35 @@ export function AdminPanel() {
         try { return JSON.parse(settings.lineup || '[]'); } catch (e) { return []; }
     });
 
+    // Synchroniser les buffers d'édition quand settings est mis à jour
+    useEffect(() => {
+        if (!settings) return;
+        if (settings.title !== undefined) setEditTitle(settings.title || '');
+        if (settings.streams !== undefined) setEditStreams(settings.streams || []);
+        if (settings.activeStreamId !== undefined) setEditActiveStreamId(settings.activeStreamId || '');
+        if (settings.twitchChannel !== undefined) setEditTwitchChannel(settings.twitchChannel || '');
+        if (settings.streamSource !== undefined) setEditStreamSource(settings.streamSource || 'youtube');
+        if (settings.tickerText !== undefined) setEditAnnText(settings.tickerText || '');
+        if (settings.showTickerBanner !== undefined) setEditAnnEnabled(settings.showTickerBanner);
+        if (settings.tickerMode !== undefined) setEditTickerMode(settings.tickerMode || 'news');
+        if (settings.status !== undefined) setEditStatus(settings.status || 'live');
+        if (settings.startDate !== undefined) setEditStartDate(settings.startDate || '');
+        if (settings.endDate !== undefined) setEditEndDate(settings.endDate || '');
+        if (settings.tickerBgColor !== undefined) setEditTickerBg(settings.tickerBgColor || '#ff0033');
+        if (settings.tickerTextColor !== undefined) setEditTickerTextC(settings.tickerTextColor || '#ffffff');
+        if (settings.instagramLink !== undefined) setEditInsta(settings.instagramLink || '');
+        if (settings.tiktokLink !== undefined) setEditTiktok(settings.tiktokLink || '');
+        if (settings.youtubeLink !== undefined) setEditYoutube(settings.youtubeLink || '');
+        if (settings.twitterLink !== undefined) setEditX(settings.twitterLink || '');
+        if (settings.festivalLogo !== undefined) setEditFestivalLogo(settings.festivalLogo || '');
+        if (settings.sponsorText !== undefined) setEditSponsorText(settings.sponsorText || '');
+        if (settings.sponsorLink !== undefined) setEditSponsorLink(settings.sponsorLink || '');
+        if (settings.showSponsorBanner !== undefined) setEditShowSponsorBanner(settings.showSponsorBanner);
+        if (settings.lineup) {
+            try { setEditLineup(JSON.parse(settings.lineup)); } catch (e) {}
+        }
+    }, [settings]);
+
     const extractTwitchChannel = (input: string) => {
         if (!input) return '';
         const match = input.match(/(?:https?:\/\/)?(?:www\.)?twitch\.tv\/([a-zA-Z0-9_]{4,25})/i);
@@ -87,51 +116,59 @@ export function AdminPanel() {
 
     const extractYoutubeId = (url: string) => {
         if (!url) return '';
-        const match = url.match(/(?:https?:)?\/\/(?:www\.|m\.)?(?:youtube\.com|youtu\.be)\/(?:watch\?v=|embed\/|v\/|shorts\/|live\/)?([\w-]{11})/);
-        if (match) return match[1];
-        return url.trim();
+        const clean = url.trim();
+        const match = clean.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=|shorts\/|live\/))([\w-]{11})/i);
+        if (match && match[1]) return match[1];
+        if (/^[\w-]{11}$/.test(clean)) return clean;
+        return clean;
     };
 
     const onSave = async () => {
-        // VALIDATION: Check for missing images in lineup
-        const missing = editLineup.filter(item => !item.image);
-        if (missing.length > 0) {
-            showNotification(`SAUVEGARDE IMPOSSIBLE : ${missing.length} artistes n'ont pas de photo !`, 'error');
-            setAdminActiveTab('planning'); // Switch to planning to show where the issue is
-            return;
-        }
-
         setIsSaving(true);
-        const updated = {
-            ...settings,
-            title: editTitle,
-            streams: editStreams,
-            activeStreamId: editActiveStreamId,
-            tickerText: editAnnText,
-            showTickerBanner: editAnnEnabled,
-            tickerMode: editTickerMode,
-            status: editStatus,
-            startDate: editStartDate,
-            endDate: editEndDate,
-            tickerBgColor: editTickerBg,
-            tickerTextColor: editTickerTextC,
-            instagramLink: editInsta,
-            tiktokLink: editTiktok,
-            youtubeLink: editYoutube,
-            twitterLink: editX,
-            sponsorText: editSponsorText,
-            sponsorLink: editSponsorLink,
-            showSponsorBanner: editShowSponsorBanner,
-            festivalLogo: editFestivalLogo,
-            twitchChannel: editTwitchChannel,
-            streamSource: editStreamSource,
-            lineup: JSON.stringify(editLineup),
-            twitchBotAutoMessage: editTwitchBotAutoMessage,
-            twitchBotAutoMessageInterval: editTwitchBotAutoMessageInterval
-        };
-        setSettings(updated);
-        await handleGlobalSave(updated);
-        setIsSaving(false);
+        try {
+            // Avertissement non-bloquant si certains artistes n'ont pas de photo
+            const missing = editLineup.filter(item => !item.image);
+            if (missing.length > 0) {
+                showNotification?.(`Info : ${missing.length} artiste(s) sans photo dans le planning.`, 'info');
+            }
+
+            const updated = {
+                ...settings,
+                title: editTitle,
+                streams: editStreams,
+                activeStreamId: editActiveStreamId,
+                tickerText: editAnnText,
+                showTickerBanner: editAnnEnabled,
+                tickerMode: editTickerMode,
+                status: editStatus,
+                startDate: editStartDate,
+                endDate: editEndDate,
+                tickerBgColor: editTickerBg,
+                tickerTextColor: editTickerTextC,
+                instagramLink: editInsta,
+                tiktokLink: editTiktok,
+                youtubeLink: editYoutube,
+                twitterLink: editX,
+                sponsorText: editSponsorText,
+                sponsorLink: editSponsorLink,
+                showSponsorBanner: editShowSponsorBanner,
+                festivalLogo: editFestivalLogo,
+                twitchChannel: editTwitchChannel,
+                streamSource: editStreamSource,
+                lineup: JSON.stringify(editLineup),
+                twitchBotAutoMessage: editTwitchBotAutoMessage,
+                twitchBotAutoMessageInterval: editTwitchBotAutoMessageInterval
+            };
+            if (setSettings) setSettings(updated);
+            if (handleGlobalSave) {
+                await handleGlobalSave(updated);
+            }
+        } catch (err: any) {
+            console.error('onSave error:', err);
+            showNotification?.(err.message || 'Erreur lors de la sauvegarde', 'error');
+        } finally {
+            setIsSaving(false);
+        }
     };
 
     if (!showAdminPanel) return null;
@@ -272,21 +309,32 @@ export function AdminPanel() {
                                                         </div>
                                                     </div>
                                                     <div className="space-y-1">
-                                                        <label className="text-[8px] font-black text-gray-500 uppercase ml-1">{stream.streamSource === 'twitch' ? 'Chaîne Twitch' : 'ID YouTube'}</label>
+                                                        <label className="text-[8px] font-black text-gray-500 uppercase ml-1">
+                                                            {stream.streamSource === 'twitch' ? 'Chaîne / Lien Twitch' : stream.isExternalLink ? 'Lien Externe (Web / YouTube)' : 'Lien ou ID YouTube'}
+                                                        </label>
                                                         <input 
                                                             type="text" 
-                                                            value={stream.streamSource === 'twitch' ? (stream.twitchChannel || '') : stream.youtubeId} 
+                                                            value={stream.streamSource === 'twitch' ? (stream.twitchChannel || '') : (stream.youtubeId || '')} 
                                                             onChange={e => {
+                                                                const val = e.target.value;
                                                                 const ns = [...editStreams];
-                                                                if (stream.streamSource === 'twitch') {
-                                                                    ns[idx].twitchChannel = extractTwitchChannel(e.target.value);
+                                                                if (val.includes('twitch.tv/')) {
+                                                                    ns[idx].streamSource = 'twitch';
+                                                                    ns[idx].twitchChannel = extractTwitchChannel(val);
+                                                                } else if (val.includes('youtube.com/') || val.includes('youtu.be/')) {
+                                                                    ns[idx].streamSource = 'youtube';
+                                                                    ns[idx].youtubeId = extractYoutubeId(val);
+                                                                } else if (stream.streamSource === 'twitch') {
+                                                                    ns[idx].twitchChannel = val.trim();
+                                                                } else if (stream.isExternalLink || val.startsWith('http://') || val.startsWith('https://')) {
+                                                                    ns[idx].youtubeId = val.trim();
                                                                 } else {
-                                                                    ns[idx].youtubeId = extractYoutubeId(e.target.value);
+                                                                    ns[idx].youtubeId = extractYoutubeId(val);
                                                                 }
                                                                 setEditStreams(ns);
                                                             }}
-                                                            className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white outline-none focus:border-neon-blue"
-                                                            placeholder={stream.streamSource === 'twitch' ? "Lien ou Nom Twitch" : "Lien ou ID YouTube"}
+                                                            className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white outline-none focus:border-neon-blue font-mono"
+                                                            placeholder={stream.streamSource === 'twitch' ? "Lien ou nom Twitch" : stream.isExternalLink ? "https://..." : "Lien ou ID YouTube"}
                                                         />
                                                     </div>
                                                     <div className="space-y-1">

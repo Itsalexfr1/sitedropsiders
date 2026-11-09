@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useMemo, useCallback } from 'react';
-
+import { apiFetch, getAuthHeaders } from '../utils/auth';
 import { useUser } from './UserContext';
 
 
@@ -170,12 +170,13 @@ export const TakeoverContext = createContext<TakeoverContextType | undefined>(un
 export const TakeoverProvider: React.FC<{ children: React.ReactNode, initialSettings?: any }> = ({ children, initialSettings }) => {
 
     const localIsAdmin = localStorage.getItem('admin_auth_v2') === 'true';
-    const adminUser = localStorage.getItem('admin_user');
-    const storedPseudo = localStorage.getItem('chat_pseudo');
+    const adminUser = (localStorage.getItem('admin_user') || '').toLowerCase().trim();
+    const storedPseudo = (localStorage.getItem('chat_pseudo') || '').toLowerCase().trim();
     
     const isSpecialAdmin = useMemo(() => {
-        return !!(storedPseudo && ['alex', 'alexf', 'itsalexfr1', 'contact@dropsiders.fr'].includes(storedPseudo.toLowerCase()));
-    }, [storedPseudo]);
+        const specialUsers = ['alex', 'alexf', 'itsalexfr1', 'contact@dropsiders.fr', 'alexflex30@gmail.com'];
+        return specialUsers.includes(adminUser) || specialUsers.includes(storedPseudo) || adminUser.startsWith('alex') || storedPseudo.startsWith('alex');
+    }, [adminUser, storedPseudo]);
 
     const userRole: 'admin' | 'mod' | 'user' = (localIsAdmin || isSpecialAdmin) ? 'admin' : 'user';
 
@@ -183,7 +184,22 @@ export const TakeoverProvider: React.FC<{ children: React.ReactNode, initialSett
     const [moderators, setModerators] = useState<string[]>([]);
     const [bannedPseudos, setBannedPseudos] = useState<string[]>([]);
     const [isBanned, setIsBanned] = useState(false);
-    const [showAdminPanel, setShowAdminPanel] = useState(false);
+    const [showAdminPanel, setShowAdminPanel] = useState(() => {
+        if (typeof window !== 'undefined') {
+            const params = new URLSearchParams(window.location.search);
+            return params.get('edit') === 'true' || params.get('admin') === 'true';
+        }
+        return false;
+    });
+
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            const params = new URLSearchParams(window.location.search);
+            if (params.get('edit') === 'true' || params.get('admin') === 'true') {
+                setShowAdminPanel(true);
+            }
+        }
+    }, []);
     const [activeChatTab, setActiveChatTab] = useState('chat');
     const [isConnected, setIsConnected] = useState(!!localStorage.getItem('chat_pseudo'));
     const [activeStage, setActiveStage] = useState<string>('stage1');
@@ -283,16 +299,19 @@ export const TakeoverProvider: React.FC<{ children: React.ReactNode, initialSett
     const handleGlobalSave = async (data?: TakeoverSettings) => {
         try {
             const toSave = data || settings;
-            const res = await fetch('/api/takeover-settings', {
+            const res = await apiFetch('/api/takeover-settings', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: getAuthHeaders('application/json'),
                 body: JSON.stringify(toSave)
             });
-            if (!res.ok) throw new Error('Failed to save');
-            showNotification('Configuration enregistrée sur le serveur !', 'success');
-        } catch (e) {
+            if (!res.ok) {
+                const errData = await res.json().catch(() => ({}));
+                throw new Error(errData.error || 'Erreur lors de la sauvegarde');
+            }
+            showNotification('Configuration du Live enregistrée sur le serveur !', 'success');
+        } catch (e: any) {
             console.error('Save failed', e);
-            showNotification('Erreur de sauvegarde serveur', 'error');
+            showNotification(e.message || 'Erreur de sauvegarde serveur', 'error');
         }
     };
 

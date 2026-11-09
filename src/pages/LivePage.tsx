@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { TakeoverPage } from './TakeoverPage';
-import { apiFetch } from '../utils/auth';
+import { apiFetch, isSuperAdmin } from '../utils/auth';
 import { EqualizerLoader } from '../components/ui/EqualizerLoader';
 import { useLanguage } from '../context/LanguageContext';
 
@@ -29,7 +29,13 @@ export function LivePage() {
         fetchTakeover();
     }, []);
 
-    const isAdmin = localStorage.getItem('admin_auth_v2') === 'true';
+    const adminUser = (typeof window !== 'undefined' ? localStorage.getItem('admin_user') || '' : '').toLowerCase().trim();
+    const isAdmin = (typeof window !== 'undefined' && localStorage.getItem('admin_auth_v2') === 'true') ||
+        isSuperAdmin(adminUser) ||
+        adminUser === 'alex' ||
+        adminUser === 'alexf' ||
+        adminUser === 'itsalexfr1' ||
+        adminUser.startsWith('alex');
 
     if (loading) {
         return (

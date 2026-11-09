@@ -9,7 +9,7 @@ import {
     Trophy, Stars, Heart, Timer, ShieldAlert, Calendar, Edit2, Edit3,
     Languages, Instagram, MapPin, Square, Sparkles,
     Search, ChevronUp, ChevronDown, ChevronLeft, ChevronRight, Camera, Check, Coins, Shield,
-    Scan, Wand2, Globe, Volume2, VolumeX, Vote, Disc, Lock, Radio
+    Scan, Wand2, Globe, Volume2, VolumeX, Vote, Disc, Lock, Radio, ExternalLink
 } from 'lucide-react';
 import { useUser } from '../context/UserContext';
 import { UserAuthModal } from '../components/auth/UserAuthModal';
@@ -20,6 +20,7 @@ import { FlagIcon } from '../components/ui/FlagIcon';
 import { ModerationModal } from '../components/admin/ModerationModal';
 import { ImageCropper } from '../components/ImageCropper';
 import { resolveImageUrl } from '../utils/image';
+import { apiFetch, getAuthHeaders } from '../utils/auth';
 import settingsData from '../data/settings.json';
 import * as tmi from 'tmi.js';
 
@@ -1020,9 +1021,9 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                         ...settings,
                         lineup: JSON.stringify(cleanedLineup)
                     };
-                    await fetch('/api/takeover-settings', {
+                    await apiFetch('/api/takeover-settings', {
                         method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
+                        headers: getAuthHeaders('application/json'),
                         body: JSON.stringify(currentSettings)
                     });
                     setSettings(currentSettings);
@@ -1040,10 +1041,11 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
 
     const extractYoutubeId = (url: string) => {
         if (!url) return '';
-        const match = url.match(/(?:https?:)?\/\/(?:www\.|m\.)?(?:youtube\.com|youtu\.be)\/(?:watch\?v=|embed\/|v\/|shorts\/|live\/)?([\w-]{11})/);
-        if (match) return match[1];
-        const trimmed = url.trim();
-        return (trimmed.length === 11) ? trimmed : trimmed;
+        const clean = url.trim();
+        const match = clean.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=|shorts\/|live\/))([\w-]{11})/i);
+        if (match && match[1]) return match[1];
+        if (/^[\w-]{11}$/.test(clean)) return clean;
+        return clean;
     };
 
     const resolveStreamInfo = (stream: any) => {
@@ -1658,9 +1660,9 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
         if (isMod) {
             const updated = { ...settings, tracklist: JSON.stringify(newList) };
             try {
-                await fetch('/api/takeover-settings', {
+                await apiFetch('/api/takeover-settings', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: getAuthHeaders('application/json'),
                     body: JSON.stringify(updated)
                 });
                 setSettings(updated);
@@ -1718,9 +1720,9 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
         // 2. Persist to Backend JSON (Proxy) - NO isMod check to allow all viewers
         try {
             const updated = { ...settings, tracklist: JSON.stringify(newList) };
-            await fetch('/api/takeover-settings', {
+            await apiFetch('/api/takeover-settings', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: getAuthHeaders('application/json'),
                 body: JSON.stringify(updated)
             });
             setSettings(updated);
@@ -2824,34 +2826,39 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                                 const isExternal = activeStream?.isExternalLink;
 
                                 if (isExternal && activeYtId) {
-                                    const videoId = extractYoutubeId(activeYtId);
+                                    const isYt = activeYtId.includes('youtu') || (/^[\w-]{11}$/.test(activeYtId.trim()) && !activeYtId.startsWith('http'));
+                                    const videoId = isYt ? extractYoutubeId(activeYtId) : null;
+                                    const targetUrl = isYt ? `https://www.youtube.com/watch?v=${videoId}` : (activeYtId.startsWith('http') ? activeYtId : `https://${activeYtId}`);
                                     return (
                                         <div className="w-full h-full bg-black flex flex-col items-center justify-center p-8 text-center bg-gradient-to-b from-black via-zinc-900 to-black">
-                                            <div className="relative group cursor-pointer max-w-2xl w-full" onClick={() => window.open(`https://www.youtube.com/watch?v=${videoId}`, '_blank')}>
+                                            <div className="relative group cursor-pointer max-w-2xl w-full" onClick={() => window.open(targetUrl, '_blank')}>
                                                 <div className="absolute inset-0 bg-neon-red/20 blur-3xl opacity-50 group-hover:opacity-100 transition-opacity" />
-                                                <div className="relative aspect-video rounded-3xl overflow-hidden border border-white/10 shadow-2xl">
-                                                    <img 
-                                                        src={`https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`} 
-                                                        className="w-full h-full object-cover grayscale opacity-50 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-700 scale-105 group-hover:scale-100" 
-                                                        alt="YouTube Preview"
-                                                    />
+                                                <div className="relative aspect-video rounded-3xl overflow-hidden border border-white/10 shadow-2xl bg-zinc-900 flex items-center justify-center">
+                                                    {videoId ? (
+                                                        <img 
+                                                            src={`https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`} 
+                                                            className="w-full h-full object-cover grayscale opacity-50 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-700 scale-105 group-hover:scale-100" 
+                                                            alt="Preview"
+                                                            onError={(e: any) => { e.target.style.display = 'none'; }}
+                                                        />
+                                                    ) : null}
                                                     <div className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center gap-6 group-hover:bg-black/40 transition-colors">
                                                         <div className="w-20 h-20 rounded-full bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center group-hover:bg-neon-red group-hover:border-neon-red transition-all duration-500 shadow-[0_0_30px_rgba(255,0,51,0)] group-hover:shadow-[0_0_50px_rgba(255,0,51,0.5)]">
-                                                            <svg className="w-8 h-8 text-white fill-current translate-x-1" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg>
+                                                            <ExternalLink className="w-8 h-8 text-white translate-x-0.5" />
                                                         </div>
                                                         <div className="space-y-2">
                                                             <h3 className="text-xl font-display font-black text-white italic tracking-tighter uppercase whitespace-pre-wrap">{activeStreamRaw?.name || settings.title}</h3>
-                                                            <p className="text-gray-400 text-[10px] font-black uppercase tracking-[0.3em]">FLUX RÉSERVÉ À YOUTUBE</p>
+                                                            <p className="text-gray-400 text-[10px] font-black uppercase tracking-[0.3em]">FLUX SUR SITE EXTERNE</p>
                                                         </div>
                                                     </div>
                                                 </div>
                                             </div>
                                             <button 
-                                                onClick={() => window.open(`https://www.youtube.com/watch?v=${videoId}`, '_blank')}
+                                                onClick={() => window.open(targetUrl, '_blank')}
                                                 className="mt-12 px-8 py-4 bg-neon-red rounded-2xl flex items-center gap-4 text-white font-black italic tracking-tighter hover:bg-white hover:text-black transition-all duration-300 shadow-[0_0_30px_rgba(255,0,51,0.3)]"
                                             >
-                                                <span className="text-lg">REGARDER SUR YOUTUBE</span>
-                                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+                                                <span className="text-lg">OUVRIR LE FLUX EN DIRECT</span>
+                                                <ExternalLink className="w-5 h-5" />
                                             </button>
                                         </div>
                                     );

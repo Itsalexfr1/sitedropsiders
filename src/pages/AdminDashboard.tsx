@@ -138,151 +138,151 @@ const MEDALS = ["🥇", "🥈", "🥉"];
 const DEFAULT_DASHBOARD_ACTIONS = (Array.isArray(dashboardActionsData) && dashboardActionsData.length > 0)
   ? (dashboardActionsData as any[])
   : [
-  {
-    title: "Contenu",
-    description: "News, Musique, Interviews, Agenda...",
-    icon: "Music2",
-    category: "NEWS",
-    link: "#",
-    color: "border-neon-cyan/20 hover:border-neon-cyan",
-    bg: "bg-neon-cyan/5",
-    permission: "news_focus",
-    baseColor: "cyan",
-    columns: 2,
-  },
-  {
-    title: "Communauté",
-    description: "Modération, Jeux & Membres",
-    icon: "MessageSquare",
-    category: "COMMUNAUTÉ",
-    link: "#",
-    color: "border-neon-purple/20 hover:border-neon-purple",
-    bg: "bg-neon-purple/5",
-    permission: "community_mod",
-    baseColor: "purple",
-    columns: 2,
-  },
-  {
-    title: "Radio & TV",
-    description: "TV en direct · Radio Dropsiders",
-    icon: "Radio",
-    category: "DROPSIDERS_TV",
-    link: "#DROPSIDERS_TV_RADIO",
-    color: "border-neon-cyan/30 hover:border-neon-cyan",
-    bg: "bg-neon-cyan/5",
-    permission: "tv_schedule",
-    baseColor: "cyan",
-    columns: 2,
-  },
-  {
-    title: "Statistiques",
-    description: "Analyse Audience",
-    icon: "BarChart3",
-    category: "STUDIO",
-    link: "/admin/stats",
-    color: "border-neon-cyan/20 hover:border-neon-cyan",
-    bg: "bg-neon-cyan/5",
-    permission: "stats_analytics",
-    baseColor: "cyan",
-    columns: 1,
-  },
-  {
-    title: "Générateurs",
-    description: "Studio de création visuelle",
-    icon: "Sparkles",
-    category: "STUDIO",
-    link: "#GENERATORS",
-    color: "border-neon-purple/20 hover:border-neon-purple",
-    bg: "bg-neon-purple/5",
-    permission: "social_studio",
-    baseColor: "purple",
-    columns: 1,
-  },
-  {
-    title: "Concours GTA 6",
-    description: "Paramètres, tirage & menu",
-    icon: "Gamepad2",
-    category: "STUDIO",
-    link: "#GTA_CONTEST_MODAL",
-    color: "border-[#ff007f]/40 hover:border-[#ff007f]",
-    bg: "bg-[#ff007f]/10",
-    permission: "all",
-    baseColor: "pink",
-    columns: 1,
-  },
-  {
-    title: "Fichiers Cloudflare",
-    description: "Images, Vidéos, MP3",
-    icon: "HardDrive",
-    category: "STUDIO",
-    link: "#CLOUDFLARE_R2",
-    color: "border-neon-red/20 hover:border-neon-red",
-    bg: "bg-neon-red/5",
-    permission: "studio_upload",
-    baseColor: "red",
-    columns: 1,
-  },
-  {
-    title: "Boutique",
-    description: "Ventes & Produits",
-    icon: "ShoppingBag",
-    category: "SHOP",
-    link: "#",
-    color: "border-neon-red/20 hover:border-neon-red",
-    bg: "bg-neon-red/5",
-    permission: "shop",
-    baseColor: "pink",
-    columns: 2,
-  },
-  {
-    title: "Messagerie & Newsletter",
-    description: "Emails, Contact & Newsletter",
-    icon: "Mail",
-    category: "SHOP",
-    link: "#",
-    color: "border-neon-orange/20 hover:border-neon-orange",
-    bg: "bg-neon-orange/5",
-    permission: "messages_contact",
-    baseColor: "orange",
-    columns: 1,
-  },
-  {
-    title: "Signatures Mail",
-    description: "Créateur iPhone & Webmail",
-    icon: "PenTool",
-    category: "SHOP",
-    link: "/admin/signatures",
-    color: "border-neon-orange/20 hover:border-neon-orange",
-    bg: "bg-neon-orange/5",
-    permission: "messages_contact",
-    baseColor: "orange",
-    columns: 1,
-  },
-  {
-    title: "TEAM & DROITS",
-    description: "Équipe & Accès Admin",
-    icon: "Users",
-    category: "TEAM",
-    link: "/admin/team",
-    color: "border-neon-purple/20 hover:border-neon-purple",
-    bg: "bg-neon-purple/5",
-    permission: "all",
-    baseColor: "purple",
-    columns: 1,
-  },
-  {
-    title: "Accueil",
-    description: "Sections & Vues",
-    icon: "Home",
-    category: "ALL",
-    link: "#",
-    color: "border-neon-cyan/20 hover:border-neon-cyan",
-    bg: "bg-neon-cyan/5",
-    permission: "superadmin",
-    baseColor: "cyan",
-    columns: 1,
-  },
-];
+    {
+      title: "Contenu",
+      description: "News, Musique, Interviews, Agenda...",
+      icon: "Music2",
+      category: "NEWS",
+      link: "#",
+      color: "border-neon-cyan/20 hover:border-neon-cyan",
+      bg: "bg-neon-cyan/5",
+      permission: "news_focus",
+      baseColor: "cyan",
+      columns: 2,
+    },
+    {
+      title: "Communauté",
+      description: "Modération, Jeux & Membres",
+      icon: "MessageSquare",
+      category: "COMMUNAUTÉ",
+      link: "#",
+      color: "border-neon-purple/20 hover:border-neon-purple",
+      bg: "bg-neon-purple/5",
+      permission: "community_mod",
+      baseColor: "purple",
+      columns: 2,
+    },
+    {
+      title: "Radio & TV",
+      description: "TV en direct · Radio Dropsiders",
+      icon: "Radio",
+      category: "DROPSIDERS_TV",
+      link: "#DROPSIDERS_TV_RADIO",
+      color: "border-neon-cyan/30 hover:border-neon-cyan",
+      bg: "bg-neon-cyan/5",
+      permission: "tv_schedule",
+      baseColor: "cyan",
+      columns: 2,
+    },
+    {
+      title: "Statistiques",
+      description: "Analyse Audience",
+      icon: "BarChart3",
+      category: "STUDIO",
+      link: "/admin/stats",
+      color: "border-neon-cyan/20 hover:border-neon-cyan",
+      bg: "bg-neon-cyan/5",
+      permission: "stats_analytics",
+      baseColor: "cyan",
+      columns: 1,
+    },
+    {
+      title: "Générateurs",
+      description: "Studio de création visuelle",
+      icon: "Sparkles",
+      category: "STUDIO",
+      link: "#GENERATORS",
+      color: "border-neon-purple/20 hover:border-neon-purple",
+      bg: "bg-neon-purple/5",
+      permission: "social_studio",
+      baseColor: "purple",
+      columns: 1,
+    },
+    {
+      title: "Concours GTA 6",
+      description: "Paramètres, tirage & menu",
+      icon: "Gamepad2",
+      category: "STUDIO",
+      link: "#GTA_CONTEST_MODAL",
+      color: "border-[#ff007f]/40 hover:border-[#ff007f]",
+      bg: "bg-[#ff007f]/10",
+      permission: "all",
+      baseColor: "pink",
+      columns: 1,
+    },
+    {
+      title: "Fichiers Cloudflare",
+      description: "Images, Vidéos, MP3",
+      icon: "HardDrive",
+      category: "STUDIO",
+      link: "#CLOUDFLARE_R2",
+      color: "border-neon-red/20 hover:border-neon-red",
+      bg: "bg-neon-red/5",
+      permission: "studio_upload",
+      baseColor: "red",
+      columns: 1,
+    },
+    {
+      title: "Boutique",
+      description: "Ventes & Produits",
+      icon: "ShoppingBag",
+      category: "SHOP",
+      link: "#",
+      color: "border-neon-red/20 hover:border-neon-red",
+      bg: "bg-neon-red/5",
+      permission: "shop",
+      baseColor: "pink",
+      columns: 2,
+    },
+    {
+      title: "Messagerie & Newsletter",
+      description: "Emails, Contact & Newsletter",
+      icon: "Mail",
+      category: "SHOP",
+      link: "#",
+      color: "border-neon-orange/20 hover:border-neon-orange",
+      bg: "bg-neon-orange/5",
+      permission: "messages_contact",
+      baseColor: "orange",
+      columns: 1,
+    },
+    {
+      title: "Signatures Mail",
+      description: "Créateur iPhone & Webmail",
+      icon: "PenTool",
+      category: "SHOP",
+      link: "/admin/signatures",
+      color: "border-neon-orange/20 hover:border-neon-orange",
+      bg: "bg-neon-orange/5",
+      permission: "messages_contact",
+      baseColor: "orange",
+      columns: 1,
+    },
+    {
+      title: "TEAM & DROITS",
+      description: "Équipe & Accès Admin",
+      icon: "Users",
+      category: "TEAM",
+      link: "/admin/team",
+      color: "border-neon-purple/20 hover:border-neon-purple",
+      bg: "bg-neon-purple/5",
+      permission: "all",
+      baseColor: "purple",
+      columns: 1,
+    },
+    {
+      title: "Accueil",
+      description: "Sections & Vues",
+      icon: "Home",
+      category: "ALL",
+      link: "#",
+      color: "border-neon-cyan/20 hover:border-neon-cyan",
+      bg: "bg-neon-cyan/5",
+      permission: "superadmin",
+      baseColor: "cyan",
+      columns: 1,
+    },
+  ];
 
 export function AdminDashboard() {
   const navigate = useNavigate();
@@ -299,7 +299,7 @@ export function AdminDashboard() {
         const parsed = JSON.parse(cached);
         if (Array.isArray(parsed) && parsed.length > 0) return parsed;
       }
-    } catch (e) {}
+    } catch (e) { }
     if (Array.isArray(dashboardActionsData) && dashboardActionsData.length > 0) {
       return dashboardActionsData as any[];
     }
@@ -535,7 +535,7 @@ export function AdminDashboard() {
     title: "",
     message: "",
     defaultValue: "",
-    onConfirm: (val: string) => {},
+    onConfirm: (val: string) => { },
   });
 
   const [selectedKeys, setSelectedKeys] = useState<string[]>([]);
@@ -947,7 +947,7 @@ export function AdminDashboard() {
         setResidencesList((prev) =>
           prev.map((r) =>
             r.title === editingResidence.title &&
-            r.location === editingResidence.location
+              r.location === editingResidence.location
               ? { ...r, image: newUrl }
               : r,
           ),
@@ -1059,8 +1059,8 @@ export function AdminDashboard() {
       const res = await apiFetch("/api/extension/push", {
         method: "POST",
         headers: {
-            ...getAuthHeaders(),
-            'Content-Type': 'application/json'
+          ...getAuthHeaders(),
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify(extensionNotifData),
       });
@@ -1070,9 +1070,9 @@ export function AdminDashboard() {
         setIsExtensionNotifModalOpen(false);
       } else {
         const errorData = await res.json().catch(() => ({}));
-        setGlobalAlert({ 
-          message: `Erreur lors de l'envoi : ${errorData.error || res.statusText}`, 
-          type: "danger" 
+        setGlobalAlert({
+          message: `Erreur lors de l'envoi : ${errorData.error || res.statusText}`,
+          type: "danger"
         });
       }
     } catch (e: any) {
@@ -1090,7 +1090,7 @@ export function AdminDashboard() {
       if (extensionNotifData.targetType === "agenda") endpoint = "/api/agenda";
       if (extensionNotifData.targetType === "recaps") endpoint = "/api/recaps";
       if (extensionNotifData.targetType === "interviews") endpoint = "/api/wiki/list?type=djs"; // Interviews are in djs wiki usually or dedicated
-      
+
       const res = await apiFetch(endpoint);
       if (res.ok) {
         const data = await res.json();
@@ -1451,7 +1451,7 @@ export function AdminDashboard() {
           };
         }
       }
-    } catch {}
+    } catch { }
     return { sets: 14, clips: 8 };
   });
 
@@ -1469,7 +1469,7 @@ export function AdminDashboard() {
             return;
           }
         }
-      } catch {}
+      } catch { }
     };
     window.addEventListener('dropsiders_radio_tracks_updated', handleRadioTracksUpdated);
     window.addEventListener('storage', handleRadioTracksUpdated);
@@ -1496,7 +1496,7 @@ export function AdminDashboard() {
         headers: { 'Content-Type': 'application/json', 'X-Admin-Password': adminPass },
         body: JSON.stringify({ radio_enabled: next })
       });
-    } catch {}
+    } catch { }
   };
 
   const DASHBOARD_TABS = [
@@ -1514,7 +1514,7 @@ export function AdminDashboard() {
     isOpen: false,
     title: "",
     message: "",
-    onConfirm: () => {},
+    onConfirm: () => { },
     type: "danger",
   });
 
@@ -1838,10 +1838,10 @@ export function AdminDashboard() {
             : [];
           const galerie = Array.isArray(galerieData)
             ? galerieData.map((g: any) => ({
-                ...g,
-                image: g.cover || g.image,
-                category: g.category || "galerie",
-              }))
+              ...g,
+              image: g.cover || g.image,
+              category: g.category || "galerie",
+            }))
             : [];
           const merged = [...news, ...recaps, ...galerie].sort((a, b) => {
             const da = new Date(b.date || b.pubDate || 0).getTime();
@@ -2095,7 +2095,7 @@ export function AdminDashboard() {
           setIsContestModeEnabled(data.contest_mode);
         }
       }
-    } catch (e: any) {}
+    } catch (e: any) { }
   };
 
   /* Contest mode toggled via Live Dashboard only */
@@ -2184,7 +2184,7 @@ export function AdminDashboard() {
       if (response.ok) {
         // Data fetched successfully
       }
-    } catch (e) {}
+    } catch (e) { }
   };
 
   const fetchTeam = async () => {
@@ -2617,7 +2617,7 @@ export function AdminDashboard() {
         const data = await r.json();
         pCount = Array.isArray(data) ? data.length : 0;
       }
-    } catch (e) {}
+    } catch (e) { }
 
     try {
       const [djsRes, clubsRes, festsRes] = await Promise.all([
@@ -2915,7 +2915,7 @@ export function AdminDashboard() {
           setActions(resultActions);
           try {
             localStorage.setItem("dropsiders_dashboard_actions", JSON.stringify(resultActions));
-          } catch (e) {}
+          } catch (e) { }
         } else {
           setActions(getFallbackActions());
         }
@@ -2960,8 +2960,8 @@ export function AdminDashboard() {
     // DROPSIDERS TV & RADIO
     {
       title: "Radio & TV",
-      description: isRadioActive 
-        ? `TV en direct · Radio En Ligne (${radioStats.sets} Sets)` 
+      description: isRadioActive
+        ? `TV en direct · Radio En Ligne (${radioStats.sets} Sets)`
         : `TV en direct · Radio Privée (${radioStats.sets} Sets)`,
       icon: "Radio",
       category: "DROPSIDERS_TV",
@@ -3367,7 +3367,7 @@ export function AdminDashboard() {
       });
       try {
         localStorage.setItem("dropsiders_dashboard_actions", JSON.stringify(actions));
-      } catch (e) {}
+      } catch (e) { }
 
       setHasChanges(false);
       setEditMode(false);
@@ -3690,11 +3690,10 @@ export function AdminDashboard() {
                         }
                       }}
                       disabled={isDeploying}
-                      className={`px-6 py-2 border rounded-xl text-[10px] font-black uppercase transition-all flex items-center gap-2 shadow-lg group active:scale-95 disabled:opacity-50 ${
-                        deployStep === "confirm"
+                      className={`px-6 py-2 border rounded-xl text-[10px] font-black uppercase transition-all flex items-center gap-2 shadow-lg group active:scale-95 disabled:opacity-50 ${deployStep === "confirm"
                           ? "bg-neon-orange border-neon-orange shadow-neon-orange/20 text-white animate-pulse"
                           : "bg-neon-red/10 border-neon-red/30 text-neon-red hover:bg-neon-red hover:text-white shadow-neon-red/10"
-                      }`}
+                        }`}
                     >
                       <Zap
                         className={`w-3.5 h-3.5 ${isDeploying ? "animate-pulse" : "group-hover:scale-125 transition-transform"}`}
@@ -3769,8 +3768,8 @@ export function AdminDashboard() {
                     <span className="hidden md:inline">Bandeau</span>
                   </button>
                   <Link
-                    to="/live"
-                    title="Accès Live"
+                    to="/live?edit=true"
+                    title="Édition Live Takeover"
                     className={`w-10 h-10 md:w-auto md:px-6 md:py-2 flex items-center justify-center rounded-xl md:rounded-full text-xs font-black uppercase tracking-widest transition-all gap-2 border ${takeoverState.enabled ? "bg-neon-red/10 border-neon-red/40 text-neon-red hover:bg-neon-red hover:text-white" : "bg-white/5 border-white/10 text-gray-400 hover:text-white"}`}
                   >
                     <Youtube className="w-4 h-4" />
@@ -3840,23 +3839,21 @@ export function AdminDashboard() {
                       <div className="flex items-center gap-3">
                         {sbCredits !== null && (
                           <span
-                            className={`text-[10px] font-black uppercase tracking-widest flex items-center gap-1 px-2 py-0.5 rounded-full border ${
-                              sbCredits.max - sbCredits.used <= 50
+                            className={`text-[10px] font-black uppercase tracking-widest flex items-center gap-1 px-2 py-0.5 rounded-full border ${sbCredits.max - sbCredits.used <= 50
                                 ? "text-neon-red border-neon-red/30 bg-neon-red/10 animate-pulse"
                                 : sbCredits.max - sbCredits.used <= 100
                                   ? "text-neon-yellow border-neon-yellow/30 bg-neon-yellow/10"
                                   : "text-neon-green border-neon-green/30 bg-neon-green/10"
-                            }`}
+                              }`}
                             title={`ScrapingBee — Renouvellement : ${new Date(sbCredits.renewal).toLocaleDateString("fr-FR")}`}
                           >
                             🐝 {sbCredits.max - sbCredits.used} crédits
                           </span>
                         )}
-                        <span className={`text-[10px] font-black uppercase tracking-widest ${
-                          (r2Stats.limit - r2Stats.used) <= 1024 * 1024 * 1024
+                        <span className={`text-[10px] font-black uppercase tracking-widest ${(r2Stats.limit - r2Stats.used) <= 1024 * 1024 * 1024
                             ? "text-neon-red animate-pulse flex items-center gap-1"
                             : "text-white/60"
-                        }`}>
+                          }`}>
                           {(r2Stats.limit - r2Stats.used) <= 1024 * 1024 * 1024 && (
                             <ShieldAlert className="w-3 h-3 text-neon-red inline" />
                           )}
@@ -3898,7 +3895,7 @@ export function AdminDashboard() {
                       {r2Stats.objectCount.toLocaleString()}
                     </span>
                   </div>
-                                                                        {r2Stats.backup && (
+                  {r2Stats.backup && (
                     <>
                       <div className="w-px h-8 bg-white/10 mx-1" />
                       <div className="flex flex-col text-left">
@@ -4017,11 +4014,10 @@ export function AdminDashboard() {
                     }
                     setDashboardTab(tab.id as any);
                   }}
-                  className={`px-6 py-3 rounded-xl font-bold uppercase tracking-widest text-[10px] transition-all whitespace-nowrap ${
-                    isActive
+                  className={`px-6 py-3 rounded-xl font-bold uppercase tracking-widest text-[10px] transition-all whitespace-nowrap ${isActive
                       ? "bg-white/10 text-white border border-white/20 shadow-lg"
                       : "text-gray-500 hover:text-gray-300"
-                  }`}
+                    }`}
                 >
                   {tab.label}
                 </button>
@@ -4042,7 +4038,7 @@ export function AdminDashboard() {
               <p className="text-gray-400 max-w-lg mx-auto mb-8 font-medium leading-relaxed text-sm">
                 Ajoutez vos liens YouTube pour alimenter la chaîne TV continue du site. Les vidéos s'enchaînent automatiquement sans barre de progression ni avance manuelle.
               </p>
-              
+
               <div className="flex flex-col sm:flex-row items-center gap-4">
                 <button
                   onClick={() => navigate('/tv?admin=true')}
@@ -4073,7 +4069,7 @@ export function AdminDashboard() {
               <p className="text-gray-400 max-w-lg mx-auto mb-8 font-medium leading-relaxed text-sm">
                 Gérez en toute simplicité l'équipe affichée sur le site public et attribuez les rôles et permissions d'administration en un clic.
               </p>
-              
+
               <div className="flex flex-col sm:flex-row items-center gap-4">
                 <button
                   onClick={() => navigate("/admin/team")}
@@ -4090,7 +4086,7 @@ export function AdminDashboard() {
                   Membres & Demandes Studio
                 </button>
               </div>
-              
+
               <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-4xl">
                 {[
                   { title: "ÉQUIPE PUBLIQUE", desc: "Présentation sur la page /team", icon: Globe, color: "text-emerald-400" },
@@ -4423,11 +4419,10 @@ export function AdminDashboard() {
                   <div className="flex items-center gap-6 relative z-10 w-full md:w-auto">
                     <button
                       onClick={toggleContestMode}
-                      className={`flex-1 md:flex-none px-10 py-5 rounded-2xl font-black uppercase tracking-[0.2em] transition-all transform hover:scale-105 active:scale-95 ${
-                        isContestModeEnabled
+                      className={`flex-1 md:flex-none px-10 py-5 rounded-2xl font-black uppercase tracking-[0.2em] transition-all transform hover:scale-105 active:scale-95 ${isContestModeEnabled
                           ? "bg-neon-red text-white shadow-2xl shadow-neon-red/40 border border-neon-red/50"
                           : "bg-white/5 border border-white/10 text-gray-500 hover:text-white hover:bg-white/10"
-                      }`}
+                        }`}
                     >
                       {isContestModeEnabled
                         ? "CONCOURS ACTIF"
@@ -4787,7 +4782,7 @@ export function AdminDashboard() {
                     try {
                       return JSON.parse(
                         localStorage.getItem("dropsiders_votes_festivals") ||
-                          "[]",
+                        "[]",
                       );
                     } catch {
                       return [];
@@ -4957,15 +4952,14 @@ export function AdminDashboard() {
                           stiffness: 400,
                           damping: 40,
                         }}
-                        className={`relative group ${editMode ? (openMenu === action.title ? "z-50" : "z-20") : "z-10"} ${
-                          action.columns === 2
+                        className={`relative group ${editMode ? (openMenu === action.title ? "z-50" : "z-20") : "z-10"} ${action.columns === 2
                             ? "md:col-span-2"
                             : action.columns === 3
                               ? "md:col-span-2 lg:col-span-3"
                               : action.columns === 4
                                 ? "md:col-span-2 lg:col-span-4"
                                 : "col-span-1"
-                        }`}
+                          }`}
                       >
                         {editMode && (
                           <>
@@ -5396,13 +5390,13 @@ export function AdminDashboard() {
                                     )}
                                     {(pendingMessagesCount > 0 ||
                                       pendingQuizzesCount > 0) && (
-                                      <div className="w-5 h-5 bg-neon-cyan rounded-full flex items-center justify-center border-2 border-[#050505] shadow-lg">
-                                        <span className="text-[9px] font-black text-white">
-                                          {pendingMessagesCount +
-                                            (pendingQuizzesCount > 0 ? 1 : 0)}
-                                        </span>
-                                      </div>
-                                    )}
+                                        <div className="w-5 h-5 bg-neon-cyan rounded-full flex items-center justify-center border-2 border-[#050505] shadow-lg">
+                                          <span className="text-[9px] font-black text-white">
+                                            {pendingMessagesCount +
+                                              (pendingQuizzesCount > 0 ? 1 : 0)}
+                                          </span>
+                                        </div>
+                                      )}
                                   </div>
                                 )}
                             </div>
@@ -5428,11 +5422,10 @@ export function AdminDashboard() {
                                 <button
                                   type="button"
                                   onClick={toggleRadioActive}
-                                  className={`px-3.5 py-1.5 rounded-xl font-black text-[10px] uppercase tracking-wider transition-all cursor-pointer shadow-lg active:scale-95 ${
-                                    isRadioActive
+                                  className={`px-3.5 py-1.5 rounded-xl font-black text-[10px] uppercase tracking-wider transition-all cursor-pointer shadow-lg active:scale-95 ${isRadioActive
                                       ? 'bg-neon-cyan text-black hover:bg-white'
                                       : 'bg-white/10 hover:bg-neon-cyan hover:text-black text-white border border-white/15'
-                                  }`}
+                                    }`}
                                 >
                                   {isRadioActive ? 'DÉSACTIVER' : 'ACTIVER'}
                                 </button>
@@ -6790,17 +6783,17 @@ export function AdminDashboard() {
                             key={article.id}
                             onClick={() => {
                               setSelectedSocialArticle(article);
-                              
+
                               // Auto-map category to Social Studio theme
                               const cat = (article.category || "").toLowerCase();
                               let theme: any = "NEWS";
-                              
+
                               if (article.isFocus) theme = "FOCUS";
                               else if (cat.includes("musique") || cat.includes("music")) theme = "MUSIQUE";
                               else if (cat.includes("interview")) theme = "INTERVIEW";
                               else if (cat.includes("recap")) theme = "RECAP";
                               else if (cat.includes("focus")) theme = "FOCUS";
-                              
+
                               setSelectedSocialTheme(theme);
                               setIsSocialModalOpen(false);
                             }}
@@ -6948,11 +6941,10 @@ export function AdminDashboard() {
                         </div>
                         <div className="flex items-center gap-2 mb-2">
                           <span
-                            className={`px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider border ${
-                              isRadioActive
+                            className={`px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider border ${isRadioActive
                                 ? "bg-neon-cyan/20 border-neon-cyan/40 text-neon-cyan"
                                 : "bg-white/10 border-white/20 text-gray-400"
-                            }`}
+                              }`}
                           >
                             {isRadioActive ? "● En Ligne" : "○ Privée"}
                           </span>
@@ -7587,11 +7579,10 @@ export function AdminDashboard() {
                         <button
                           type="button"
                           onClick={() => setHeroVideoType("youtube")}
-                          className={`py-3 px-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center justify-center gap-2 ${
-                            heroVideoType === "youtube"
+                          className={`py-3 px-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center justify-center gap-2 ${heroVideoType === "youtube"
                               ? "bg-neon-red text-white shadow-lg shadow-neon-red/30"
                               : "text-gray-400 hover:text-white hover:bg-white/5"
-                          }`}
+                            }`}
                         >
                           <Youtube className="w-4 h-4 shrink-0" />
                           <span>YouTube</span>
@@ -7599,11 +7590,10 @@ export function AdminDashboard() {
                         <button
                           type="button"
                           onClick={() => setHeroVideoType("direct")}
-                          className={`py-3 px-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center justify-center gap-2 ${
-                            heroVideoType === "direct"
+                          className={`py-3 px-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center justify-center gap-2 ${heroVideoType === "direct"
                               ? "bg-neon-cyan text-black shadow-lg shadow-neon-cyan/30"
                               : "text-gray-400 hover:text-white hover:bg-white/5"
-                          }`}
+                            }`}
                         >
                           <Video className="w-4 h-4 shrink-0" />
                           <span>Vidéo MP4</span>
@@ -7611,11 +7601,10 @@ export function AdminDashboard() {
                         <button
                           type="button"
                           onClick={() => setHeroVideoType("image")}
-                          className={`py-3 px-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center justify-center gap-2 ${
-                            heroVideoType === "image"
+                          className={`py-3 px-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center justify-center gap-2 ${heroVideoType === "image"
                               ? "bg-neon-purple text-white shadow-lg shadow-neon-purple/30"
                               : "text-gray-400 hover:text-white hover:bg-white/5"
-                          }`}
+                            }`}
                         >
                           <ImageIcon className="w-4 h-4 shrink-0" />
                           <span>Photo</span>
@@ -8684,7 +8673,7 @@ export function AdminDashboard() {
                                 let path = `/${extensionNotifData.targetType}/${item.id}`;
                                 if (extensionNotifData.targetType === 'interviews') path = `/wiki/dj/${item.id}`;
                                 if (extensionNotifData.targetType === 'recaps') path = `/recap/${item.id}`;
-                                
+
                                 setExtensionNotifData({
                                   ...extensionNotifData,
                                   title: item.title || item.name || "NOUVEAUTÉ !",
@@ -8714,8 +8703,8 @@ export function AdminDashboard() {
                     <div className="pt-2 border-t border-white/5">
                       <div className="bg-black/40 border border-white/5 rounded-xl p-2.5 space-y-2">
                         <div className="flex justify-between items-center mb-1">
-                           <span className="text-[7px] font-black text-gray-500 uppercase tracking-widest">Aperçu du Push</span>
-                           <div className="text-[7px] text-neon-red font-mono truncate max-w-[150px]">{extensionNotifData.url}</div>
+                          <span className="text-[7px] font-black text-gray-500 uppercase tracking-widest">Aperçu du Push</span>
+                          <div className="text-[7px] text-neon-red font-mono truncate max-w-[150px]">{extensionNotifData.url}</div>
                         </div>
                         <input
                           type="text"
@@ -9048,7 +9037,7 @@ export function AdminDashboard() {
                       </p>
                     </div>
                     <button
-                      onClick={() => {}}
+                      onClick={() => { }}
                       className="p-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-gray-400 hover:text-white transition-all shadow-xl"
                     >
                       <X className="w-6 h-6" />
@@ -9349,12 +9338,12 @@ export function AdminDashboard() {
 
                             {(!takeoverState.channels ||
                               takeoverState.channels.trim() === "") && (
-                              <div className="p-4 bg-black/20 border border-dashed border-white/10 rounded-xl text-center">
-                                <p className="text-[8px] text-gray-600 font-bold uppercase tracking-widest italic">
-                                  Aucune caméra configurée
-                                </p>
-                              </div>
-                            )}
+                                <div className="p-4 bg-black/20 border border-dashed border-white/10 rounded-xl text-center">
+                                  <p className="text-[8px] text-gray-600 font-bold uppercase tracking-widest italic">
+                                    Aucune caméra configurée
+                                  </p>
+                                </div>
+                              )}
                           </div>
                         </div>
                         <div className="space-y-4 bg-white/[0.02] p-5 rounded-2xl border border-white/5">
@@ -9985,12 +9974,12 @@ export function AdminDashboard() {
 
                           {(!takeoverState.lineup ||
                             takeoverState.lineup.trim() === "") && (
-                            <div className="text-center py-6 bg-white/5 border border-white/5 rounded-2xl">
-                              <p className="text-gray-500 text-[10px] font-black uppercase tracking-widest italic">
-                                Aucun programme configuré
-                              </p>
-                            </div>
-                          )}
+                              <div className="text-center py-6 bg-white/5 border border-white/5 rounded-2xl">
+                                <p className="text-gray-500 text-[10px] font-black uppercase tracking-widest italic">
+                                  Aucun programme configuré
+                                </p>
+                              </div>
+                            )}
                         </div>
 
                         <div className="p-4 bg-neon-red/5 border border-neon-red/10 rounded-2xl">
@@ -10245,12 +10234,12 @@ export function AdminDashboard() {
 
                           {(!takeoverState.customCommands ||
                             takeoverState.customCommands.trim() === "") && (
-                            <div className="text-center py-10 bg-white/5 border border-white/5 rounded-3xl">
-                              <p className="text-gray-500 text-[10px] font-black uppercase tracking-widest italic">
-                                Aucune commande personnalisée
-                              </p>
-                            </div>
-                          )}
+                              <div className="text-center py-10 bg-white/5 border border-white/5 rounded-3xl">
+                                <p className="text-gray-500 text-[10px] font-black uppercase tracking-widest italic">
+                                  Aucune commande personnalisée
+                                </p>
+                              </div>
+                            )}
                         </div>
                       </div>
                     )}
@@ -10371,7 +10360,7 @@ export function AdminDashboard() {
                                       },
                                       body: JSON.stringify({ pseudo: user }),
                                     });
-                                  } catch (e: any) {}
+                                  } catch (e: any) { }
                                 }}
                                 className="px-4 py-2 bg-white/5 hover:bg-green-500 text-gray-400 hover:text-white rounded-lg text-[9px] font-black uppercase tracking-widest transition-all"
                               >
@@ -10500,9 +10489,8 @@ export function AdminDashboard() {
                         type="button"
                         onClick={handleSendManualPush}
                         disabled={isSendingManualPush || !pushCustomTitle || !pushCustomBody}
-                        className={`w-full py-4 rounded-xl font-black uppercase tracking-widest text-[9px] transition-all flex items-center justify-center gap-3 relative overflow-hidden group/push ${
-                          isSendingManualPush ? "bg-white/10 text-gray-500 cursor-not-allowed" : "bg-white text-black hover:bg-neon-red hover:text-white shadow-xl"
-                        }`}
+                        className={`w-full py-4 rounded-xl font-black uppercase tracking-widest text-[9px] transition-all flex items-center justify-center gap-3 relative overflow-hidden group/push ${isSendingManualPush ? "bg-white/10 text-gray-500 cursor-not-allowed" : "bg-white text-black hover:bg-neon-red hover:text-white shadow-xl"
+                          }`}
                       >
                         {isSendingManualPush ? (
                           <Loader2 className="w-4 h-4 animate-spin" />
@@ -11010,24 +10998,24 @@ export function AdminDashboard() {
                                       </button>
                                       <button
                                         onClick={async () => {
-                                        setConfirmModal({
-                                          isOpen: true,
-                                          title: "Suppression",
-                                          message: "Voulez-vous vraiment supprimer cette question ?",
-                                          type: "danger",
-                                          onConfirm: async () => {
-                                            try {
-                                              const res = await apiFetch("/api/quiz/delete", {
-                                                method: "POST",
-                                                headers: getAuthHeaders(),
-                                                body: JSON.stringify({ id: quiz.id }),
-                                              });
-                                              if (res.ok) fetchQuizzes();
-                                            } catch (err) {
-                                              console.error("Delete error:", err);
+                                          setConfirmModal({
+                                            isOpen: true,
+                                            title: "Suppression",
+                                            message: "Voulez-vous vraiment supprimer cette question ?",
+                                            type: "danger",
+                                            onConfirm: async () => {
+                                              try {
+                                                const res = await apiFetch("/api/quiz/delete", {
+                                                  method: "POST",
+                                                  headers: getAuthHeaders(),
+                                                  body: JSON.stringify({ id: quiz.id }),
+                                                });
+                                                if (res.ok) fetchQuizzes();
+                                              } catch (err) {
+                                                console.error("Delete error:", err);
+                                              }
                                             }
-                                          }
-                                        });
+                                          });
                                         }}
                                         className="p-3 bg-neon-red/20 text-neon-red border border-neon-red/30 rounded-2xl hover:bg-neon-red hover:text-white transition-all shadow-xl shadow-neon-red/10"
                                         title="Supprimer"
@@ -11143,351 +11131,351 @@ export function AdminDashboard() {
                     {/* BLIND TEST / VIDEO SPECIFIC (Spotify / YouTube) */}
                     {(quizToEdit.type === "BLIND_TEST" ||
                       quizToEdit.type === "VIDEO") && (
-                      <div className="p-4 bg-white/[0.02] border border-white/5 rounded-2xl space-y-4">
-                        {/* OPTION MP3 DIRECT (LE PLUS FIABLE) */}
-                        <div>
-                          <label className="text-[10px] font-black text-neon-cyan uppercase tracking-widest block mb-1.5 flex items-center gap-2">
-                            <span className="w-1.5 h-1.5 rounded-full bg-neon-cyan animate-pulse" />{" "}
-                            Fichier MP3 (Le plus fiable pour le son)
-                          </label>
-                          <div className="flex gap-2">
-                            <input
-                              type="text"
-                              value={quizToEdit.audioUrl || ""}
-                              onChange={(e) =>
-                                setQuizToEdit({
-                                  ...quizToEdit,
-                                  audioUrl: e.target.value,
-                                })
-                              }
-                              placeholder="URL MP3 ou Upload..."
-                              className="flex-1 bg-black border border-neon-cyan/20 rounded-xl p-3 text-white focus:border-neon-cyan outline-none text-[10px]"
-                            />
-                            <label className="cursor-pointer px-4 bg-neon-cyan/10 border border-neon-cyan/30 rounded-xl flex items-center justify-center hover:bg-neon-cyan hover:text-black transition-all group">
-                              <Upload className="w-4 h-4 group-hover:scale-110 transition-transform" />
-                              <input
-                                type="file"
-                                accept="audio/*"
-                                multiple
-                                className="hidden"
-                                onChange={async (e) => {
-                                  const files = e.target.files;
-                                  if (!files || files.length === 0) return;
-
-                                  setIsSaving(true);
-
-                                  const getDuration = (
-                                    file: File,
-                                  ): Promise<number> => {
-                                    return new Promise((resolve) => {
-                                      const audio = new Audio();
-                                      audio.preload = "metadata";
-                                      const objectUrl =
-                                        URL.createObjectURL(file);
-                                      audio.src = objectUrl;
-                                      audio.onloadedmetadata = () => {
-                                        URL.revokeObjectURL(objectUrl);
-                                        resolve(audio.duration || 0);
-                                      };
-                                      audio.onerror = () => {
-                                        URL.revokeObjectURL(objectUrl);
-                                        resolve(0);
-                                      };
-                                      // Fallback if metadata takes too long
-                                      setTimeout(() => resolve(0), 5000);
-                                    });
-                                  };
-
-                                  const createQuizDirect = async (
-                                    data: any,
-                                  ) => {
-                                    try {
-                                      const res = await apiFetch(
-                                        "/api/quiz/submit",
-                                        {
-                                          method: "POST",
-                                          headers: getAuthHeaders(),
-                                          body: JSON.stringify(data),
-                                        },
-                                      );
-                                      return res.ok;
-                                    } catch (e) {
-                                      console.error("Bulk create error:", e);
-                                      return false;
-                                    }
-                                  };
-
-                                  try {
-                                    for (let i = 0; i < files.length; i++) {
-                                      const file = files[i];
-                                      const rawName = file.name.replace(
-                                        /\.[^/.]+$/,
-                                        "",
-                                      );
-
-                                      // Build a dynamic pool from existing quizzes to have variety
-                                      const existingTitles = [
-                                        ...allActiveQuizzes,
-                                        ...allPendingQuizzes,
-                                      ]
-                                        .filter(
-                                          (q) =>
-                                            q.type === "BLIND_TEST" &&
-                                            q.correctAnswer,
-                                        )
-                                        .map((q) => q.correctAnswer);
-
-                                      const fallbackPool = [
-                                        "Carl Cox - I Want You",
-                                        "Nina Kraviz - Ghetto Kraviz",
-                                        "Amelie Lens - Follow",
-                                        "Charlotte de Witte - Sgadi Li Mi",
-                                        "Adam Beyer - Your Mind",
-                                        "Skrillex - Bangarang",
-                                        "SVDDEN DEATH - Behemoth",
-                                        "Excision - Throwin' Elbows",
-                                        "Subtronics - Griztronics",
-                                        "Boris Brejcha - Gravity",
-                                        "Laurent Garnier - The Man With The Red Face",
-                                        "Jeff Mills - The Bells",
-                                        "Derrick May - Strings of Life",
-                                        "Carl Craig - Sandstorms",
-                                        "Ummet Ozcan - Xanadu",
-                                        "David Guetta - Titanium",
-                                        "Martin Garrix - Animals",
-                                        "Swedish House Mafia - One",
-                                        "Avicii - Levels",
-                                        "Tiësto - The Business",
-                                        "Fisher - Losing It",
-                                        "Fred again.. - Marea (We’ve Lost Dancing)",
-                                        "Meduza - Piece Of Your Heart",
-                                        "Zurb - Mwaki",
-                                        "James Hype - Ferrari",
-                                        "Mau P - Drugs From Amsterdam",
-                                        "Peggy Gou - (It Goes Like) Nanana",
-                                        "Anyma - Eternity",
-                                        "Tale Of Us - Afterlife",
-                                        "Chris Lake - Turn Off The Lights",
-                                        "Dom Dolla - Rhyme Dust",
-                                        "John Summit - Where You Are",
-                                        "Mochakk - Jealous",
-                                        "Hugel - Morenita",
-                                        "Vintage Culture - Deep Down",
-                                        "Alok - Hear Me Now",
-                                        "Don Diablo - Cutting Shapes",
-                                        "Oliver Heldens - Gecko",
-                                        "Tchami - Adieu",
-                                        "Malaa - Notorious",
-                                        "DJ Snake - Turn Down For What",
-                                        "Kungs - This Girl",
-                                        "Justice - D.A.N.C.E.",
-                                        "Daft Punk - One More Time",
-                                        "The Chemical Brothers - Hey Boy Hey Girl",
-                                        "Fatboy Slim - Right Here, Right Now",
-                                        "Moby - Porcelain",
-                                        "Eric Prydz - Pjanoo",
-                                        "Deadmau5 - Strobe",
-                                        "Kaskade - It's You, It's Me",
-                                        "Above & Beyond - Sun & Moon",
-                                        "Armin van Buuren - Blah Blah Blah",
-                                        "Marshmello - Alone",
-                                        "Kygo - Firestone",
-                                        "Alan Walker - Faded",
-                                        "Zedd - Clarity",
-                                        "Calvin Harris - Summer",
-                                        "Disclosure - Latch",
-                                        "Flume - Never Be Like You",
-                                        "Kaytranada - Be Your Girl",
-                                        "Peggy Gou - Starry Night",
-                                        "Bicep - Glue",
-                                        "The Blessed Madonna - Marea",
-                                        "Fred again.. - Jungle",
-                                        "Honey Dijon - Work",
-                                        "The Martinez Brothers - H Is For House",
-                                        "Kevin de Vries - Metro",
-                                        "Cassian - Landa",
-                                        "Anyma - Syren",
-                                        "Mau P - Gimme That Bounce",
-                                        "John Summit - Shiver",
-                                        "Dom Dolla - Saving Up",
-                                        "Adam Port - Move",
-                                        "Meduza - Bad Memories",
-                                        "CamelPhat - Cola",
-                                        "Solomun - Friends",
-                                        "ARTBAT - Horizon",
-                                        "Adriatique - Home",
-                                        "Innellea - It's Us",
-                                        "Monolink - Return to Oz",
-                                      ];
-
-                                      // Merged pool for variety
-                                      const musicTitlesPool = Array.from(
-                                        new Set([
-                                          ...existingTitles,
-                                          ...fallbackPool,
-                                        ]),
-                                      );
-
-                                      const clean = (str: string) => {
-                                        return str
-                                          .replace(/^\d+[\s.-]+/, "")
-                                          .replace(
-                                            /(\[|\()(Original|Extended|Radio|Club|Vocal|Main|Dub|Instrumental)?\s*(Mix|Edit|Version).*?(\]|\))/gi,
-                                            "",
-                                          )
-                                          .replace(
-                                            /\s+(Original|Extended|Radio|Club|Vocal|Main|Dub|Instrumental)\s+(Mix|Edit|Version).*?$/gi,
-                                            "",
-                                          )
-                                          .replace(
-                                            /\[(FREE DOWNLOAD|OUT NOW|OFFICIAL|HQ|AUDIO)\]/gi,
-                                            "",
-                                          )
-                                          .replace(
-                                            /\(?Official Music Video\)?/gi,
-                                            "",
-                                          )
-                                          .replace(/\(?Lyric Video\)?/gi, "")
-                                          .replace(/\s+/g, " ")
-                                          .trim();
-                                      };
-
-                                      // Identification Shazam
-                                      let identifiedLabel = null;
-                                      try {
-                                        const idFormData = new FormData();
-                                        idFormData.append(
-                                          "audio",
-                                          file.slice(0, 3 * 1024 * 1024),
-                                        );
-                                        const idRes = await fetch(
-                                          "/api/shazam/identify",
-                                          { method: "POST", body: idFormData },
-                                        );
-                                        if (idRes.ok) {
-                                          const idData = await idRes.json();
-                                          if (
-                                            idData.status === "success" &&
-                                            idData.metadata
-                                          ) {
-                                            identifiedLabel = `${idData.metadata.artist} - ${idData.metadata.title}`;
-                                          }
-                                        }
-                                      } catch (e) {
-                                        console.error("ID error:", e);
-                                      }
-
-                                      const cleanName =
-                                        identifiedLabel || clean(rawName);
-                                      let artist = "";
-                                      let title = cleanName;
-                                      if (cleanName.includes(" - ")) {
-                                        const parts = cleanName.split(" - ");
-                                        artist = parts[0].trim();
-                                        title = parts[1].trim();
-                                      }
-                                      const fullLabel = artist
-                                        ? `${artist} - ${title}`
-                                        : title;
-
-                                      const distractors = musicTitlesPool
-                                        .filter(
-                                          (t) =>
-                                            t.toLowerCase() !==
-                                            fullLabel.toLowerCase(),
-                                        )
-                                        .sort(() => 0.5 - Math.random())
-                                        .slice(0, 3);
-
-                                      // Sequential waits
-                                      const [url, duration] = await Promise.all(
-                                        [uploadFile(file), getDuration(file)],
-                                      );
-
-                                      const mid =
-                                        duration > 30
-                                          ? Math.floor(duration / 2) - 15
-                                          : 0;
-
-                                      const quizData = {
-                                        ...quizToEdit,
-                                        type: "BLIND_TEST",
-                                        audioUrl: url,
-                                        question: "Quel est ce morceau ?",
-                                        correctAnswer: fullLabel,
-                                        options: [
-                                          fullLabel,
-                                          ...distractors,
-                                        ].sort(() => 0.5 - Math.random()),
-                                        startTime: Math.max(0, mid),
-                                        approved: true,
-                                        category: "Blind Test",
-                                      };
-
-                                      if (i === 0) {
-                                        setQuizToEdit(quizData);
-                                      } else {
-                                        const { id, ...bulkData } = quizData;
-                                        await createQuizDirect(bulkData);
-                                      }
-                                    }
-                                    fetchQuizzes();
-                                    if (files.length > 1) {
-                                      setGlobalAlert({
-                                        message: `${files.length} fichiers ont été traités ! Les morceaux ont été calés au milieu automatiquement.`,
-                                        type: "info",
-                                      });
-                                    }
-                                  } catch (err) {
-                                    setGlobalAlert({
-                                      message:
-                                        "Une erreur est survenue lors du traitement massif des fichiers.",
-                                      type: "danger",
-                                    });
-                                  } finally {
-                                    setIsSaving(false);
-                                  }
-                                }}
-                              />
-                            </label>
-                          </div>
-                        </div>
-
-                        {/* Waveform Selector */}
-                        {quizToEdit.audioUrl && (
-                          <AudioWaveformSelector
-                            audioUrl={quizToEdit.audioUrl}
-                            startTime={quizToEdit.startTime || 0}
-                            duration={30}
-                            onChange={(newStart: number) =>
-                              setQuizToEdit((prev: any) =>
-                                prev ? { ...prev, startTime: newStart } : null,
-                              )
-                            }
-                          />
-                        )}
-
-                        {/* Fallback manual input when no audio */}
-                        {!quizToEdit.audioUrl && (
+                        <div className="p-4 bg-white/[0.02] border border-white/5 rounded-2xl space-y-4">
+                          {/* OPTION MP3 DIRECT (LE PLUS FIABLE) */}
                           <div>
-                            <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest block mb-1.5 font-display italic">
-                              Début de l'extrait (Sec)
+                            <label className="text-[10px] font-black text-neon-cyan uppercase tracking-widest block mb-1.5 flex items-center gap-2">
+                              <span className="w-1.5 h-1.5 rounded-full bg-neon-cyan animate-pulse" />{" "}
+                              Fichier MP3 (Le plus fiable pour le son)
                             </label>
-                            <input
-                              type="number"
-                              value={quizToEdit.startTime || 0}
-                              onChange={(e) =>
-                                setQuizToEdit({
-                                  ...quizToEdit,
-                                  startTime: parseInt(e.target.value) || 0,
-                                })
-                              }
-                              className="w-full bg-black border border-neon-cyan/20 rounded-xl p-3 text-white focus:border-neon-cyan outline-none text-[10px] font-black"
-                            />
+                            <div className="flex gap-2">
+                              <input
+                                type="text"
+                                value={quizToEdit.audioUrl || ""}
+                                onChange={(e) =>
+                                  setQuizToEdit({
+                                    ...quizToEdit,
+                                    audioUrl: e.target.value,
+                                  })
+                                }
+                                placeholder="URL MP3 ou Upload..."
+                                className="flex-1 bg-black border border-neon-cyan/20 rounded-xl p-3 text-white focus:border-neon-cyan outline-none text-[10px]"
+                              />
+                              <label className="cursor-pointer px-4 bg-neon-cyan/10 border border-neon-cyan/30 rounded-xl flex items-center justify-center hover:bg-neon-cyan hover:text-black transition-all group">
+                                <Upload className="w-4 h-4 group-hover:scale-110 transition-transform" />
+                                <input
+                                  type="file"
+                                  accept="audio/*"
+                                  multiple
+                                  className="hidden"
+                                  onChange={async (e) => {
+                                    const files = e.target.files;
+                                    if (!files || files.length === 0) return;
+
+                                    setIsSaving(true);
+
+                                    const getDuration = (
+                                      file: File,
+                                    ): Promise<number> => {
+                                      return new Promise((resolve) => {
+                                        const audio = new Audio();
+                                        audio.preload = "metadata";
+                                        const objectUrl =
+                                          URL.createObjectURL(file);
+                                        audio.src = objectUrl;
+                                        audio.onloadedmetadata = () => {
+                                          URL.revokeObjectURL(objectUrl);
+                                          resolve(audio.duration || 0);
+                                        };
+                                        audio.onerror = () => {
+                                          URL.revokeObjectURL(objectUrl);
+                                          resolve(0);
+                                        };
+                                        // Fallback if metadata takes too long
+                                        setTimeout(() => resolve(0), 5000);
+                                      });
+                                    };
+
+                                    const createQuizDirect = async (
+                                      data: any,
+                                    ) => {
+                                      try {
+                                        const res = await apiFetch(
+                                          "/api/quiz/submit",
+                                          {
+                                            method: "POST",
+                                            headers: getAuthHeaders(),
+                                            body: JSON.stringify(data),
+                                          },
+                                        );
+                                        return res.ok;
+                                      } catch (e) {
+                                        console.error("Bulk create error:", e);
+                                        return false;
+                                      }
+                                    };
+
+                                    try {
+                                      for (let i = 0; i < files.length; i++) {
+                                        const file = files[i];
+                                        const rawName = file.name.replace(
+                                          /\.[^/.]+$/,
+                                          "",
+                                        );
+
+                                        // Build a dynamic pool from existing quizzes to have variety
+                                        const existingTitles = [
+                                          ...allActiveQuizzes,
+                                          ...allPendingQuizzes,
+                                        ]
+                                          .filter(
+                                            (q) =>
+                                              q.type === "BLIND_TEST" &&
+                                              q.correctAnswer,
+                                          )
+                                          .map((q) => q.correctAnswer);
+
+                                        const fallbackPool = [
+                                          "Carl Cox - I Want You",
+                                          "Nina Kraviz - Ghetto Kraviz",
+                                          "Amelie Lens - Follow",
+                                          "Charlotte de Witte - Sgadi Li Mi",
+                                          "Adam Beyer - Your Mind",
+                                          "Skrillex - Bangarang",
+                                          "SVDDEN DEATH - Behemoth",
+                                          "Excision - Throwin' Elbows",
+                                          "Subtronics - Griztronics",
+                                          "Boris Brejcha - Gravity",
+                                          "Laurent Garnier - The Man With The Red Face",
+                                          "Jeff Mills - The Bells",
+                                          "Derrick May - Strings of Life",
+                                          "Carl Craig - Sandstorms",
+                                          "Ummet Ozcan - Xanadu",
+                                          "David Guetta - Titanium",
+                                          "Martin Garrix - Animals",
+                                          "Swedish House Mafia - One",
+                                          "Avicii - Levels",
+                                          "Tiësto - The Business",
+                                          "Fisher - Losing It",
+                                          "Fred again.. - Marea (We’ve Lost Dancing)",
+                                          "Meduza - Piece Of Your Heart",
+                                          "Zurb - Mwaki",
+                                          "James Hype - Ferrari",
+                                          "Mau P - Drugs From Amsterdam",
+                                          "Peggy Gou - (It Goes Like) Nanana",
+                                          "Anyma - Eternity",
+                                          "Tale Of Us - Afterlife",
+                                          "Chris Lake - Turn Off The Lights",
+                                          "Dom Dolla - Rhyme Dust",
+                                          "John Summit - Where You Are",
+                                          "Mochakk - Jealous",
+                                          "Hugel - Morenita",
+                                          "Vintage Culture - Deep Down",
+                                          "Alok - Hear Me Now",
+                                          "Don Diablo - Cutting Shapes",
+                                          "Oliver Heldens - Gecko",
+                                          "Tchami - Adieu",
+                                          "Malaa - Notorious",
+                                          "DJ Snake - Turn Down For What",
+                                          "Kungs - This Girl",
+                                          "Justice - D.A.N.C.E.",
+                                          "Daft Punk - One More Time",
+                                          "The Chemical Brothers - Hey Boy Hey Girl",
+                                          "Fatboy Slim - Right Here, Right Now",
+                                          "Moby - Porcelain",
+                                          "Eric Prydz - Pjanoo",
+                                          "Deadmau5 - Strobe",
+                                          "Kaskade - It's You, It's Me",
+                                          "Above & Beyond - Sun & Moon",
+                                          "Armin van Buuren - Blah Blah Blah",
+                                          "Marshmello - Alone",
+                                          "Kygo - Firestone",
+                                          "Alan Walker - Faded",
+                                          "Zedd - Clarity",
+                                          "Calvin Harris - Summer",
+                                          "Disclosure - Latch",
+                                          "Flume - Never Be Like You",
+                                          "Kaytranada - Be Your Girl",
+                                          "Peggy Gou - Starry Night",
+                                          "Bicep - Glue",
+                                          "The Blessed Madonna - Marea",
+                                          "Fred again.. - Jungle",
+                                          "Honey Dijon - Work",
+                                          "The Martinez Brothers - H Is For House",
+                                          "Kevin de Vries - Metro",
+                                          "Cassian - Landa",
+                                          "Anyma - Syren",
+                                          "Mau P - Gimme That Bounce",
+                                          "John Summit - Shiver",
+                                          "Dom Dolla - Saving Up",
+                                          "Adam Port - Move",
+                                          "Meduza - Bad Memories",
+                                          "CamelPhat - Cola",
+                                          "Solomun - Friends",
+                                          "ARTBAT - Horizon",
+                                          "Adriatique - Home",
+                                          "Innellea - It's Us",
+                                          "Monolink - Return to Oz",
+                                        ];
+
+                                        // Merged pool for variety
+                                        const musicTitlesPool = Array.from(
+                                          new Set([
+                                            ...existingTitles,
+                                            ...fallbackPool,
+                                          ]),
+                                        );
+
+                                        const clean = (str: string) => {
+                                          return str
+                                            .replace(/^\d+[\s.-]+/, "")
+                                            .replace(
+                                              /(\[|\()(Original|Extended|Radio|Club|Vocal|Main|Dub|Instrumental)?\s*(Mix|Edit|Version).*?(\]|\))/gi,
+                                              "",
+                                            )
+                                            .replace(
+                                              /\s+(Original|Extended|Radio|Club|Vocal|Main|Dub|Instrumental)\s+(Mix|Edit|Version).*?$/gi,
+                                              "",
+                                            )
+                                            .replace(
+                                              /\[(FREE DOWNLOAD|OUT NOW|OFFICIAL|HQ|AUDIO)\]/gi,
+                                              "",
+                                            )
+                                            .replace(
+                                              /\(?Official Music Video\)?/gi,
+                                              "",
+                                            )
+                                            .replace(/\(?Lyric Video\)?/gi, "")
+                                            .replace(/\s+/g, " ")
+                                            .trim();
+                                        };
+
+                                        // Identification Shazam
+                                        let identifiedLabel = null;
+                                        try {
+                                          const idFormData = new FormData();
+                                          idFormData.append(
+                                            "audio",
+                                            file.slice(0, 3 * 1024 * 1024),
+                                          );
+                                          const idRes = await fetch(
+                                            "/api/shazam/identify",
+                                            { method: "POST", body: idFormData },
+                                          );
+                                          if (idRes.ok) {
+                                            const idData = await idRes.json();
+                                            if (
+                                              idData.status === "success" &&
+                                              idData.metadata
+                                            ) {
+                                              identifiedLabel = `${idData.metadata.artist} - ${idData.metadata.title}`;
+                                            }
+                                          }
+                                        } catch (e) {
+                                          console.error("ID error:", e);
+                                        }
+
+                                        const cleanName =
+                                          identifiedLabel || clean(rawName);
+                                        let artist = "";
+                                        let title = cleanName;
+                                        if (cleanName.includes(" - ")) {
+                                          const parts = cleanName.split(" - ");
+                                          artist = parts[0].trim();
+                                          title = parts[1].trim();
+                                        }
+                                        const fullLabel = artist
+                                          ? `${artist} - ${title}`
+                                          : title;
+
+                                        const distractors = musicTitlesPool
+                                          .filter(
+                                            (t) =>
+                                              t.toLowerCase() !==
+                                              fullLabel.toLowerCase(),
+                                          )
+                                          .sort(() => 0.5 - Math.random())
+                                          .slice(0, 3);
+
+                                        // Sequential waits
+                                        const [url, duration] = await Promise.all(
+                                          [uploadFile(file), getDuration(file)],
+                                        );
+
+                                        const mid =
+                                          duration > 30
+                                            ? Math.floor(duration / 2) - 15
+                                            : 0;
+
+                                        const quizData = {
+                                          ...quizToEdit,
+                                          type: "BLIND_TEST",
+                                          audioUrl: url,
+                                          question: "Quel est ce morceau ?",
+                                          correctAnswer: fullLabel,
+                                          options: [
+                                            fullLabel,
+                                            ...distractors,
+                                          ].sort(() => 0.5 - Math.random()),
+                                          startTime: Math.max(0, mid),
+                                          approved: true,
+                                          category: "Blind Test",
+                                        };
+
+                                        if (i === 0) {
+                                          setQuizToEdit(quizData);
+                                        } else {
+                                          const { id, ...bulkData } = quizData;
+                                          await createQuizDirect(bulkData);
+                                        }
+                                      }
+                                      fetchQuizzes();
+                                      if (files.length > 1) {
+                                        setGlobalAlert({
+                                          message: `${files.length} fichiers ont été traités ! Les morceaux ont été calés au milieu automatiquement.`,
+                                          type: "info",
+                                        });
+                                      }
+                                    } catch (err) {
+                                      setGlobalAlert({
+                                        message:
+                                          "Une erreur est survenue lors du traitement massif des fichiers.",
+                                        type: "danger",
+                                      });
+                                    } finally {
+                                      setIsSaving(false);
+                                    }
+                                  }}
+                                />
+                              </label>
+                            </div>
                           </div>
-                        )}
-                      </div>
-                    )}
+
+                          {/* Waveform Selector */}
+                          {quizToEdit.audioUrl && (
+                            <AudioWaveformSelector
+                              audioUrl={quizToEdit.audioUrl}
+                              startTime={quizToEdit.startTime || 0}
+                              duration={30}
+                              onChange={(newStart: number) =>
+                                setQuizToEdit((prev: any) =>
+                                  prev ? { ...prev, startTime: newStart } : null,
+                                )
+                              }
+                            />
+                          )}
+
+                          {/* Fallback manual input when no audio */}
+                          {!quizToEdit.audioUrl && (
+                            <div>
+                              <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest block mb-1.5 font-display italic">
+                                Début de l'extrait (Sec)
+                              </label>
+                              <input
+                                type="number"
+                                value={quizToEdit.startTime || 0}
+                                onChange={(e) =>
+                                  setQuizToEdit({
+                                    ...quizToEdit,
+                                    startTime: parseInt(e.target.value) || 0,
+                                  })
+                                }
+                                className="w-full bg-black border border-neon-cyan/20 rounded-xl p-3 text-white focus:border-neon-cyan outline-none text-[10px] font-black"
+                              />
+                            </div>
+                          )}
+                        </div>
+                      )}
 
                     <div>
                       <label className="text-[10px] font-black text-neon-red uppercase tracking-widest block mb-2">
@@ -11559,7 +11547,7 @@ export function AdminDashboard() {
                                       setQuizToEdit((prev: any) =>
                                         prev ? { ...prev, imageUrl: u } : null,
                                       );
-                                    } catch (err) {}
+                                    } catch (err) { }
                                   }
                                 }}
                               />
@@ -11578,9 +11566,9 @@ export function AdminDashboard() {
                                 setQuizToEdit((prev: any) =>
                                   prev
                                     ? {
-                                        ...prev,
-                                        imageType: e.target.value as any,
-                                      }
+                                      ...prev,
+                                      imageType: e.target.value as any,
+                                    }
                                     : null,
                                 )
                               }
@@ -12502,22 +12490,20 @@ export function AdminDashboard() {
                         <button
                           type="button"
                           onClick={() => setDuplicateFilter('all')}
-                          className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-wider transition-all ${
-                            duplicateFilter === 'all'
+                          className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-wider transition-all ${duplicateFilter === 'all'
                               ? 'bg-neon-cyan text-black shadow-[0_0_15px_rgba(0,240,255,0.4)]'
                               : 'text-gray-400 hover:text-white'
-                          }`}
+                            }`}
                         >
                           Tous ({duplicateSets.length})
                         </button>
                         <button
                           type="button"
                           onClick={() => setDuplicateFilter('photo')}
-                          className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-wider transition-all flex items-center gap-1.5 ${
-                            duplicateFilter === 'photo'
+                          className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-wider transition-all flex items-center gap-1.5 ${duplicateFilter === 'photo'
                               ? 'bg-neon-cyan text-black shadow-[0_0_15px_rgba(0,240,255,0.4)]'
                               : 'text-gray-400 hover:text-white'
-                          }`}
+                            }`}
                         >
                           <ImageIcon className="w-3 h-3" />
                           Photos ({photoDuplicateSets.length})
@@ -12525,11 +12511,10 @@ export function AdminDashboard() {
                         <button
                           type="button"
                           onClick={() => setDuplicateFilter('video')}
-                          className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-wider transition-all flex items-center gap-1.5 ${
-                            duplicateFilter === 'video'
+                          className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-wider transition-all flex items-center gap-1.5 ${duplicateFilter === 'video'
                               ? 'bg-purple-500 text-white shadow-[0_0_15px_rgba(168,85,247,0.4)]'
                               : 'text-gray-400 hover:text-white'
-                          }`}
+                            }`}
                         >
                           <Film className="w-3 h-3" />
                           Vidéos ({videoDuplicateSets.length})
@@ -12537,11 +12522,10 @@ export function AdminDashboard() {
                         <button
                           type="button"
                           onClick={() => setDuplicateFilter('audio')}
-                          className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-wider transition-all flex items-center gap-1.5 ${
-                            duplicateFilter === 'audio'
+                          className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-wider transition-all flex items-center gap-1.5 ${duplicateFilter === 'audio'
                               ? 'bg-neon-green text-black shadow-[0_0_15px_rgba(0,255,102,0.4)]'
                               : 'text-gray-400 hover:text-white'
-                          }`}
+                            }`}
                         >
                           <Music className="w-3 h-3" />
                           Audio ({audioDuplicateSets.length})
@@ -12634,34 +12618,33 @@ export function AdminDashboard() {
                                     item.cloud === 'videos'
                                       ? 'Cloud Vidéos'
                                       : item.cloud === 'audio'
-                                      ? 'Cloud Audio'
-                                      : item.cloud === 'photos'
-                                      ? 'Cloud Photos'
-                                      : item.cloud === 'backup'
-                                      ? 'Secours'
-                                      : 'R2 Principal';
+                                        ? 'Cloud Audio'
+                                        : item.cloud === 'photos'
+                                          ? 'Cloud Photos'
+                                          : item.cloud === 'backup'
+                                            ? 'Secours'
+                                            : 'R2 Principal';
 
                                   const cloudStyle =
                                     item.cloud === 'videos'
                                       ? 'text-purple-400 bg-purple-500/10 border-purple-500/30'
                                       : item.cloud === 'audio'
-                                      ? 'text-neon-green bg-neon-green/10 border-neon-green/30'
-                                      : item.cloud === 'photos'
-                                      ? 'text-neon-cyan bg-neon-cyan/10 border-neon-cyan/30'
-                                      : item.cloud === 'backup'
-                                      ? 'text-amber-400 bg-amber-500/10 border-amber-500/30'
-                                      : 'text-blue-400 bg-blue-500/10 border-blue-500/30';
+                                        ? 'text-neon-green bg-neon-green/10 border-neon-green/30'
+                                        : item.cloud === 'photos'
+                                          ? 'text-neon-cyan bg-neon-cyan/10 border-neon-cyan/30'
+                                          : item.cloud === 'backup'
+                                            ? 'text-amber-400 bg-amber-500/10 border-amber-500/30'
+                                            : 'text-blue-400 bg-blue-500/10 border-blue-500/30';
 
                                   const itemUrl = resolveImageUrl(item.url || item.key);
 
                                   return (
                                     <div key={item.key} className="group relative">
                                       <div
-                                        className={`aspect-square bg-zinc-900 rounded-2xl border transition-all overflow-hidden relative cursor-pointer ${
-                                          selectedKeys.includes(item.key)
+                                        className={`aspect-square bg-zinc-900 rounded-2xl border transition-all overflow-hidden relative cursor-pointer ${selectedKeys.includes(item.key)
                                             ? "border-neon-red ring-2 ring-neon-red/20 scale-[0.98]"
                                             : "border-white/10 hover:border-white/25"
-                                        }`}
+                                          }`}
                                         onClick={() => toggleSelection(item.key)}
                                       >
                                         {/* Video Preview */}
@@ -12669,9 +12652,8 @@ export function AdminDashboard() {
                                           <div className="w-full h-full relative bg-zinc-950 flex items-center justify-center">
                                             <video
                                               src={itemUrl}
-                                              className={`w-full h-full object-cover transition-opacity ${
-                                                selectedKeys.includes(item.key) ? 'opacity-40' : 'opacity-80 group-hover:opacity-100'
-                                              }`}
+                                              className={`w-full h-full object-cover transition-opacity ${selectedKeys.includes(item.key) ? 'opacity-40' : 'opacity-80 group-hover:opacity-100'
+                                                }`}
                                               preload="metadata"
                                               muted
                                             />
@@ -12711,20 +12693,18 @@ export function AdminDashboard() {
                                           <img
                                             src={itemUrl}
                                             alt=""
-                                            className={`w-full h-full object-cover transition-opacity ${
-                                              selectedKeys.includes(item.key) ? 'opacity-40' : 'opacity-80 group-hover:opacity-100'
-                                            }`}
+                                            className={`w-full h-full object-cover transition-opacity ${selectedKeys.includes(item.key) ? 'opacity-40' : 'opacity-80 group-hover:opacity-100'
+                                              }`}
                                             loading="lazy"
                                           />
                                         )}
 
                                         {/* Selection Checkbox */}
                                         <div
-                                          className={`absolute top-2 left-2 w-5 h-5 rounded-lg border flex items-center justify-center transition-all z-10 ${
-                                            selectedKeys.includes(item.key)
+                                          className={`absolute top-2 left-2 w-5 h-5 rounded-lg border flex items-center justify-center transition-all z-10 ${selectedKeys.includes(item.key)
                                               ? 'bg-neon-red border-neon-red shadow-[0_0_10px_rgba(255,0,51,0.5)]'
                                               : 'bg-black/60 border-white/20 hover:border-white/50'
-                                          }`}
+                                            }`}
                                         >
                                           {selectedKeys.includes(item.key) && (
                                             <Check className="w-3 h-3 text-white" />
@@ -13218,10 +13198,10 @@ export function AdminDashboard() {
               currentBrokenImageToFix
                 ? currentBrokenImageToFix.entityName
                   ? currentBrokenImageToFix.entityName
-                      .normalize("NFD")
-                      .replace(/[\\u0300-\\u036f]/g, "")
-                      .toLowerCase()
-                      .replace(/[^a-z0-9]+/g, "-") + ".jpg"
+                    .normalize("NFD")
+                    .replace(/[\\u0300-\\u036f]/g, "")
+                    .toLowerCase()
+                    .replace(/[^a-z0-9]+/g, "-") + ".jpg"
                   : currentBrokenImageToFix.key?.split("/").pop()
                 : undefined
             }
@@ -13244,16 +13224,16 @@ export function AdminDashboard() {
             forceFilename={
               wikiUploadTarget === "EDIT"
                 ? editingWikiEntry?.name
+                  .normalize("NFD")
+                  .replace(/[\u0300-\u036f]/g, "")
+                  .toLowerCase()
+                  .replace(/[^a-z0-9]+/g, "-") + ".jpg"
+                : newWikiEntry.name
+                  ? newWikiEntry.name
                     .normalize("NFD")
                     .replace(/[\u0300-\u036f]/g, "")
                     .toLowerCase()
                     .replace(/[^a-z0-9]+/g, "-") + ".jpg"
-                : newWikiEntry.name
-                  ? newWikiEntry.name
-                      .normalize("NFD")
-                      .replace(/[\u0300-\u036f]/g, "")
-                      .toLowerCase()
-                      .replace(/[^a-z0-9]+/g, "-") + ".jpg"
                   : undefined
             }
             onUploadSuccess={(urls) => {
@@ -13274,10 +13254,10 @@ export function AdminDashboard() {
             forceFilename={
               editingTeamMember?.name
                 ? editingTeamMember.name
-                    .normalize("NFD")
-                    .replace(/[\u0300-\u036f]/g, "")
-                    .toLowerCase()
-                    .replace(/[^a-z0-9]+/g, "-") + ".jpg"
+                  .normalize("NFD")
+                  .replace(/[\u0300-\u036f]/g, "")
+                  .toLowerCase()
+                  .replace(/[^a-z0-9]+/g, "-") + ".jpg"
                 : undefined
             }
             onUploadSuccess={(urls) => {
@@ -13522,18 +13502,16 @@ export function AdminDashboard() {
                                 mail_enabled: !(editingTeamMember.mail_enabled !== false),
                               })
                             }
-                            className={`w-12 h-7 rounded-full p-1 transition-all border ${
-                              editingTeamMember.mail_enabled !== false
+                            className={`w-12 h-7 rounded-full p-1 transition-all border ${editingTeamMember.mail_enabled !== false
                                 ? "bg-neon-cyan border-neon-cyan shadow-[0_0_12px_rgba(0,242,254,0.4)]"
                                 : "bg-black/60 border-white/20"
-                            }`}
+                              }`}
                           >
                             <div
-                              className={`w-5 h-5 rounded-full bg-white transition-transform ${
-                                editingTeamMember.mail_enabled !== false
+                              className={`w-5 h-5 rounded-full bg-white transition-transform ${editingTeamMember.mail_enabled !== false
                                   ? "translate-x-5"
                                   : "translate-x-0"
-                              }`}
+                                }`}
                             />
                           </button>
                         </div>
@@ -14056,24 +14034,22 @@ export function AdminDashboard() {
                   className="relative w-full max-w-md bg-[#0a0a0a] border border-white/10 rounded-[3rem] overflow-hidden shadow-2xl"
                 >
                   <div
-                    className={`h-1.5 w-full bg-gradient-to-r ${
-                      globalAlert.type === "danger"
+                    className={`h-1.5 w-full bg-gradient-to-r ${globalAlert.type === "danger"
                         ? "from-neon-red to-red-600"
                         : globalAlert.type === "warning"
                           ? "from-neon-orange to-orange-500"
                           : "from-neon-cyan to-blue-500"
-                    }`}
+                      }`}
                   />
 
                   <div className="p-8 text-center sm:p-10">
                     <div
-                      className={`mx-auto w-16 h-16 rounded-2xl flex items-center justify-center mb-6 ${
-                        globalAlert.type === "danger"
+                      className={`mx-auto w-16 h-16 rounded-2xl flex items-center justify-center mb-6 ${globalAlert.type === "danger"
                           ? "bg-neon-red/10"
                           : globalAlert.type === "warning"
                             ? "bg-neon-orange/10"
                             : "bg-neon-cyan/10"
-                      }`}
+                        }`}
                     >
                       {globalAlert.type === "danger" ? (
                         <ShieldAlert className="w-8 h-8 text-neon-red" />
@@ -14093,13 +14069,12 @@ export function AdminDashboard() {
 
                     <button
                       onClick={() => setGlobalAlert(null)}
-                      className={`w-full py-4 rounded-2xl font-black uppercase italic tracking-widest text-[11px] transition-all ${
-                        globalAlert.type === "danger"
+                      className={`w-full py-4 rounded-2xl font-black uppercase italic tracking-widest text-[11px] transition-all ${globalAlert.type === "danger"
                           ? "bg-neon-red text-white shadow-[0_0_20px_rgba(255,0,0,0.3)]"
                           : globalAlert.type === "warning"
                             ? "bg-neon-orange text-black"
                             : "bg-neon-cyan text-black shadow-[0_0_20px_rgba(34,211,238,0.3)]"
-                      }`}
+                        }`}
                     >
                       COMPRIS
                     </button>
@@ -14279,23 +14254,22 @@ export function AdminDashboard() {
                         {[
                           { id: "MEMBERS", label: "MEMBRES", icon: Users, color: "neon-cyan" },
                           { id: "TEAM", label: "TEAM", icon: ShieldCheck, color: "neon-purple" },
-                          { 
-                            id: "REQUESTS", 
-                            label: "DEMANDES", 
-                            icon: Bell, 
-                            color: "neon-yellow", 
-                            badge: pendingMixCount > 0 ? pendingMixCount : null 
+                          {
+                            id: "REQUESTS",
+                            label: "DEMANDES",
+                            icon: Bell,
+                            color: "neon-yellow",
+                            badge: pendingMixCount > 0 ? pendingMixCount : null
                           },
                           { id: "EDITORS", label: "ÉDITEURS", icon: Shield, color: "neon-red" },
                         ].map((t) => (
                           <button
                             key={t.id}
                             onClick={() => setTeamModalTab(t.id as any)}
-                            className={`px-6 py-3 rounded-xl font-black uppercase tracking-widest text-[10px] transition-all flex items-center gap-2 relative ${
-                              teamModalTab === t.id
+                            className={`px-6 py-3 rounded-xl font-black uppercase tracking-widest text-[10px] transition-all flex items-center gap-2 relative ${teamModalTab === t.id
                                 ? `bg-${t.color} text-white shadow-lg`
                                 : "text-gray-500 hover:text-gray-300"
-                            }`}
+                              }`}
                           >
                             <t.icon className="w-3.5 h-3.5" />
                             {t.label}
@@ -14378,7 +14352,7 @@ export function AdminDashboard() {
                               Ajouter Membre
                             </button>
                           </div>
-                          
+
                           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
                             {teamMembers.map((member) => (
                               <motion.div
@@ -14463,8 +14437,8 @@ export function AdminDashboard() {
                               </p>
                             </div>
                           </div>
-                          <AdminMembersList 
-                            authHeaders={getAuthHeaders()} 
+                          <AdminMembersList
+                            authHeaders={getAuthHeaders()}
                             filterStatus="pending"
                             onStatusChange={() => fetchPendingMixRequests()}
                           />
@@ -14535,7 +14509,7 @@ export function AdminDashboard() {
                                             method: "POST",
                                             headers: getAuthHeaders(),
                                             body: JSON.stringify({ email: editor.email }),
-                                            }).then(r => { if (r.ok) fetchEditors(); });
+                                          }).then(r => { if (r.ok) fetchEditors(); });
                                         }
                                       });
                                     }}
@@ -14575,11 +14549,11 @@ export function AdminDashboard() {
                   className="relative w-full max-w-7xl max-h-[90vh] bg-[#0a0a0a] rounded-[2.5rem] border border-white/10 z-10 overflow-y-auto custom-scrollbar p-10"
                 >
                   <div className="flex justify-between items-center mb-4">
-                     <h2 className="text-2xl font-black text-white italic uppercase tracking-tighter">Générateur Top 100</h2>
-                     <button onClick={() => setIsTop100GeneratorModalOpen(false)} className="p-2 bg-white/5 hover:bg-white/10 rounded-xl text-gray-400 hover:text-white transition-all"><X className="w-6 h-6" /></button>
+                    <h2 className="text-2xl font-black text-white italic uppercase tracking-tighter">Générateur Top 100</h2>
+                    <button onClick={() => setIsTop100GeneratorModalOpen(false)} className="p-2 bg-white/5 hover:bg-white/10 rounded-xl text-gray-400 hover:text-white transition-all"><X className="w-6 h-6" /></button>
                   </div>
                   <div className="space-y-8">
-{/* INLINE TOP 100 GENERATOR (MOVED TO TOP) */}
+                    {/* INLINE TOP 100 GENERATOR (MOVED TO TOP) */}
                     <div className="bg-white/5 border border-white/10 rounded-[2.5rem] p-10 relative overflow-hidden">
                       <div className="absolute top-0 right-0 w-64 h-64 bg-neon-red/5 blur-[100px] pointer-events-none" />
                       <div className="relative z-10">
@@ -15139,7 +15113,7 @@ export function AdminDashboard() {
                                             img,
                                             padX + (photoW - img.width * s) / 2,
                                             photoY +
-                                              (photoH - img.height * s) / 2,
+                                            (photoH - img.height * s) / 2,
                                             img.width * s,
                                             img.height * s,
                                           );
@@ -15231,7 +15205,7 @@ export function AdminDashboard() {
                                       ctx.measureText(
                                         artItem.name.toUpperCase(),
                                       ).width >
-                                        W - (padX * 2 + 250) &&
+                                      W - (padX * 2 + 250) &&
                                       fs > 40
                                     ) {
                                       fs -= 4;
@@ -15501,13 +15475,13 @@ export function AdminDashboard() {
                             </div>
                           </div>
                         </div>
-                        )}
-                      </div>
+                      )}
                     </div>
-                  </motion.div>
-                </div>
-              )}
-            </AnimatePresence>
+                  </div>
+                </motion.div>
+              </div>
+            )}
+          </AnimatePresence>
 
 
           {/* MODAL RANDOMIZER (fixed nesting) */}

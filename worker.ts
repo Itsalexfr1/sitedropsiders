@@ -1994,7 +1994,7 @@ export default {
                 }
 
                 // 11. Live Takeover
-                if (path === '/api/takeover-settings' && request.method === 'POST' && !hasAll && !userPermissions.includes('live')) {
+                if (path === '/api/takeover-settings' && request.method === 'POST' && !hasAll && !userPermissions.includes('live') && !userPermissions.includes('takeover') && !userPermissions.includes('takeover_modo')) {
                     return new Response(JSON.stringify({ error: 'Permission refusée : live' }), { status: 403, headers });
                 }
 
@@ -6528,8 +6528,22 @@ ${urls.map(u => `  <url>
                 ...takeoverData,
                 auddToken: '0707d622c51645acc2e4fa26ed64538d'
             };
+
+            // Instant KV edge persistence (0ms propagation across all Cloudflare nodes)
+            if (env.CHAT_KV) {
+                try {
+                    let kvOverrides: any = {};
+                    const raw = await env.CHAT_KV.get('site_settings_dynamic');
+                    if (raw) kvOverrides = JSON.parse(raw);
+                    kvOverrides.takeover = file.content.takeover;
+                    await env.CHAT_KV.put('site_settings_dynamic', JSON.stringify(kvOverrides));
+                } catch (e) {
+                    console.error('KV takeover write error:', e);
+                }
+            }
+
             const saved = await saveGitHubFile(SETTINGS_PATH, file.content, `Update takeover settings`, file.sha, gitConfig);
-            return new Response(JSON.stringify({ success: saved.ok, error: saved.error }), { status: saved.ok ? 200 : 500, headers });
+            return new Response(JSON.stringify({ success: saved.ok, error: saved.error, takeover: file.content.takeover }), { status: saved.ok ? 200 : 500, headers });
         }
 
         if (path === '/api/settings/update' && request.method === 'POST') {
