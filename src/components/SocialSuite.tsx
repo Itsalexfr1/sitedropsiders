@@ -611,10 +611,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     }, [carouselAudioStartTime]);
 
     useEffect(() => {
-        if (exportAccordion === 'video_slide') {
-            setAudioTargetSlide(editorialSlide);
-        }
-    }, [exportAccordion, editorialSlide]);
+        setAudioTargetSlide(editorialSlide);
+    }, [editorialSlide]);
 
     useEffect(() => {
         return () => {
@@ -14688,37 +14686,59 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 if (theme !== 'MUSIQUE' && theme !== 'TOP 10 TRACKS') {
                     const currentSlideAudios = slideAudiosRef.current || slideAudios;
                     const availableSlides = getAvailableSlideNumbers();
-                    const hasAnySlideSpecificAudio = availableSlides.some(s => Boolean(currentSlideAudios[s]?.url));
+                    const isReelExport = effectiveTab === 'REEL' || combinedMode === 'TIKTOK';
 
-                    if (combinedMode === 'EDITORIAL' || combinedMode === 'TIKTOK' || combinedMode === 'PLANNING') {
-                        if (hasAnySlideSpecificAudio) {
-                            // Mode multi-slides : chaque slide joue sa musique dédiée pendant sa durée
-                            const slideDurationSec = combinedMode === 'TIKTOK'
-                                ? (getTikTokSlideTimings(availableSlides.length).slideDurationMs / 1000)
-                                : editorialSlide1Duration;
+                    // Priorité au son de la Slide 1 (ou son global carrousel)
+                    const slide1OrGlobalAudio = currentSlideAudios[1]?.url
+                        ? currentSlideAudios[1]
+                        : (carouselAudioUrl
+                            ? { url: carouselAudioUrl, startTime: carouselAudioStartTimeRef.current || carouselAudioStartTime || 0 }
+                            : Object.values(currentSlideAudios).find(a => Boolean(a?.url)) || null);
+
+                    if (isReelExport) {
+                        // En REEL / TikTok : le son de la Slide 1 joue en continu sur TOUTE la vidéo (toutes les slides + Outro Promo)
+                        if (slide1OrGlobalAudio?.url) {
+                            audioSegments.push({
+                                url: slide1OrGlobalAudio.url,
+                                startOffset: 0,
+                                sourceOffset: slide1OrGlobalAudio.startTime || 0,
+                                duration: totalDuration / 1000
+                            });
+                        }
+                    } else if (combinedMode === 'EDITORIAL' || combinedMode === 'PLANNING') {
+                        const slidesWithSpecificAudio = availableSlides.filter(s => Boolean(currentSlideAudios[s]?.url));
+                        const hasMultipleDistinctAudios = slidesWithSpecificAudio.length > 1;
+
+                        if (hasMultipleDistinctAudios) {
+                            // Mode multi-slides POST : chaque slide joue sa musique dédiée, la dernière continue sur l'Outro Promo
+                            const slideDurationSec = editorialSlide1Duration;
                             let cursor = 0;
+                            let lastValidAudio = slide1OrGlobalAudio;
                             for (let i = 0; i < availableSlides.length; i++) {
                                 const s = availableSlides[i];
                                 if (i > 0) cursor += transitionDurationSec;
-                                const sAudio = currentSlideAudios[s]?.url
-                                    ? currentSlideAudios[s]
-                                    : (carouselAudioUrl ? { url: carouselAudioUrl, startTime: carouselAudioStartTimeRef.current || carouselAudioStartTime || 0 } : null);
+                                const sAudio = currentSlideAudios[s]?.url ? currentSlideAudios[s] : lastValidAudio;
                                 if (sAudio?.url) {
+                                    lastValidAudio = sAudio;
+                                    const isLastSlide = (i === availableSlides.length - 1);
+                                    const segDuration = isLastSlide
+                                        ? Math.max(slideDurationSec, (totalDuration / 1000) - cursor)
+                                        : slideDurationSec;
                                     audioSegments.push({
                                         url: sAudio.url,
                                         startOffset: cursor,
                                         sourceOffset: sAudio.startTime || 0,
-                                        duration: slideDurationSec
+                                        duration: segDuration
                                     });
                                 }
                                 cursor += slideDurationSec;
                             }
-                        } else if (carouselAudioUrl) {
-                            // Mode continu : une seule musique continue pour tout le carrousel
+                        } else if (slide1OrGlobalAudio?.url) {
+                            // Une seule musique configurée (Slide 1 ou Global) : joue en continu sur tout le carrousel
                             audioSegments.push({
-                                url: carouselAudioUrl,
+                                url: slide1OrGlobalAudio.url,
                                 startOffset: 0,
-                                sourceOffset: carouselAudioStartTimeRef.current || carouselAudioStartTime || 0,
+                                sourceOffset: slide1OrGlobalAudio.startTime || 0,
                                 duration: totalDuration / 1000
                             });
                         }
@@ -14727,7 +14747,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         const effectiveSlide = editorialSlideOverrideRef.current !== null ? editorialSlideOverrideRef.current : editorialSlide;
                         const sAudio = currentSlideAudios[effectiveSlide]?.url
                             ? currentSlideAudios[effectiveSlide]
-                            : (carouselAudioUrl ? { url: carouselAudioUrl, startTime: carouselAudioStartTimeRef.current || carouselAudioStartTime || 0 } : null);
+                            : slide1OrGlobalAudio;
                         if (sAudio?.url) {
                             audioSegments.push({
                                 url: sAudio.url,
@@ -14736,11 +14756,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 duration: totalDuration / 1000
                             });
                         }
-                    } else if (carouselAudioUrl) {
+                    } else if (slide1OrGlobalAudio?.url) {
                         audioSegments.push({
-                            url: carouselAudioUrl,
+                            url: slide1OrGlobalAudio.url,
                             startOffset: 0,
-                            sourceOffset: carouselAudioStartTimeRef.current || carouselAudioStartTime || 0,
+                            sourceOffset: slide1OrGlobalAudio.startTime || 0,
                             duration: totalDuration / 1000
                         });
                     }
@@ -14770,6 +14790,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         gain.gain.setValueAtTime(1, Math.max(t0 + 0.05, tEnd - 0.08));
                         gain.gain.linearRampToValueAtTime(0, tEnd);
 
+                        if (buf.duration - offset < segDur) {
+                            src.loop = true;
+                        }
                         src.connect(gain);
                         gain.connect(offCtx.destination);
                         src.start(t0, offset, segDur);
@@ -27346,8 +27369,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                             </div>
                                         )}
 
-                                        {/* Choix de musique MP3 / Beatport (par slide ou carrousel complet) */}
-                                        {renderCarouselAudioControlBox()}
+                                        
 
                                         {/* Export du fond visuel + Option pour animer le fond */}
                                         <div className="pt-2 border-t border-white/10 space-y-2">
@@ -29014,7 +29036,6 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                                 )}
                                                 {/* Module Dédié Devine le DJ (Artiste & Silhouette Mystère) placé sous le Fond Scène / Club */}
                                                 {theme === 'JEU_DJ' && djSilhouetteEditor}
-                                                {renderCarouselAudioControlBox()}
                                                 {theme !== 'MAP' && bgAnimationControl}
                                                 <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*,video/*" />
                                             </div>
