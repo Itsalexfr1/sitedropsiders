@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { X, Play, Pause, RotateCcw, Upload, Volume2, VolumeX, Video, Download, Sparkles, Check, Film, Settings2, Clock, Image as ImageIcon } from 'lucide-react';
+import { X, Play, Pause, RotateCcw, Upload, Volume2, VolumeX, Video, Download, Sparkles, Check, Film, Settings2, Clock, Image as ImageIcon, Save } from 'lucide-react';
 // @ts-ignore
 import { Muxer, ArrayBufferTarget } from 'mp4-muxer';
 import { isSuperAdmin } from '../../utils/auth';
@@ -9,47 +9,79 @@ interface AlexRecruitmentModalProps {
     onClose: () => void;
 }
 
+const STORAGE_KEY = 'dropsiders_reel_recrutement_config_v1';
+
+const DEFAULT_RECRUITMENT_TEXTS = {
+    introTitle: 'DROPSIDERS',
+    introSubtitle: 'RECRUTE',
+    introBadge: 'SAISON 2026',
+    introDuration: 4.5,
+    vibeLine1: 'TU VIBRES AU SON DE LA MUSIQUE ÉLECTRONIQUE ?',
+    vibeLine2: 'TU RÊVES DE DÉCOUVRIR LES BACKSTAGES DES MEILLEURS EVENTS DU MONDE ?',
+    vibeCta: '⚡ REJOINS-NOUS ! ⚡',
+    vibeDuration: 6.0,
+    p1Tag: 'PROFIL RECHERCHÉ #1',
+    p1Title: 'RÉDACTEURS & JOURNALISTES',
+    p1Desc: "Passionné(e) d'électro, capable d'écrire des articles de fond, réaliser des interviews d'artistes et couvrir les plus gros festivals.",
+    p1Badge: '🇬🇧 PARLER ANGLAIS EST UN VRAI PLUS',
+    p1Duration: 5.5,
+    p2Tag: 'PROFIL RECHERCHÉ #2',
+    p2Title: 'CRÉATEURS DE CONTENU',
+    p2Sub: 'TIKTOK & INSTAGRAM',
+    p2Desc: "À l'aise face caméra ou caméra au poing, pour capturer l'énergie des scènes, interviewer le public et produire du contenu viral.",
+    p2Badge: '🇬🇧 ANGLAIS APPRÉCIÉ POUR LES INTERVIEWS',
+    p2Duration: 5.5,
+    contactHeadline: 'PRÊT(E) À VIVRE LES FESTIVALS DE L\'INTÉRIEUR ?',
+    contactEmail: 'contact@dropsiders.fr',
+    contactSite: 'dropsiders.fr',
+    contactDuration: 5.0,
+    logoDuration: 5.5,
+};
+
 export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOpen, onClose }) => {
     // ── Vérification stricte Alex ──
     const currentUser = (typeof window !== 'undefined' ? localStorage.getItem('admin_user') || '' : '').toLowerCase().trim();
     const isAlex = isSuperAdmin(currentUser) || currentUser === 'alex' || currentUser === 'alexf' || currentUser === 'itsalexfr1' || currentUser.startsWith('alex');
 
-    // ── Configuration des Durées (Augmentées pour un visionnage confortable) ──
+    // ── Configuration des Textes et Durées ──
     // Scène 1 : DROPSIDERS RECRUTE
-    const [introTitle, setIntroTitle] = useState('DROPSIDERS');
-    const [introSubtitle, setIntroSubtitle] = useState('RECRUTE');
-    const [introBadge, setIntroBadge] = useState('SAISON 2026');
-    const [introDuration, setIntroDuration] = useState(4.5); // Augmenté de 2.8s à 4.5s
+    const [introTitle, setIntroTitle] = useState(DEFAULT_RECRUITMENT_TEXTS.introTitle);
+    const [introSubtitle, setIntroSubtitle] = useState(DEFAULT_RECRUITMENT_TEXTS.introSubtitle);
+    const [introBadge, setIntroBadge] = useState(DEFAULT_RECRUITMENT_TEXTS.introBadge);
+    const [introDuration, setIntroDuration] = useState(DEFAULT_RECRUITMENT_TEXTS.introDuration);
 
     // Scène 2 : Accroche Vibe / Backstages / REJOINS-NOUS
-    const [vibeLine1, setVibeLine1] = useState('TU VIBRES AU SON DE LA MUSIQUE ÉLECTRONIQUE ?');
-    const [vibeLine2, setVibeLine2] = useState('TU RÊVES DE DÉCOUVRIR LES BACKSTAGES DES MEILLEURS EVENTS DU MONDE ?');
-    const [vibeCta, setVibeCta] = useState('⚡ REJOINS-NOUS ! ⚡');
-    const [vibeDuration, setVibeDuration] = useState(6.0); // Augmenté de 3.5s à 6.0s (beaucoup de texte)
+    const [vibeLine1, setVibeLine1] = useState(DEFAULT_RECRUITMENT_TEXTS.vibeLine1);
+    const [vibeLine2, setVibeLine2] = useState(DEFAULT_RECRUITMENT_TEXTS.vibeLine2);
+    const [vibeCta, setVibeCta] = useState(DEFAULT_RECRUITMENT_TEXTS.vibeCta);
+    const [vibeDuration, setVibeDuration] = useState(DEFAULT_RECRUITMENT_TEXTS.vibeDuration);
 
     // Scène 3 : Profil 1 (Rédacteurs & Journalistes)
-    const [p1Tag, setP1Tag] = useState('PROFIL RECHERCHÉ #1');
-    const [p1Title, setP1Title] = useState('RÉDACTEURS & JOURNALISTES');
-    const [p1Desc, setP1Desc] = useState("Passionné(e) d'électro, capable d'écrire des articles de fond, réaliser des interviews d'artistes et couvrir les plus gros festivals.");
-    const [p1Badge, setP1Badge] = useState('🇬🇧 PARLER ANGLAIS EST UN VRAI PLUS');
-    const [p1Duration, setP1Duration] = useState(5.5); // Augmenté de 3.5s à 5.5s
+    const [p1Tag, setP1Tag] = useState(DEFAULT_RECRUITMENT_TEXTS.p1Tag);
+    const [p1Title, setP1Title] = useState(DEFAULT_RECRUITMENT_TEXTS.p1Title);
+    const [p1Desc, setP1Desc] = useState(DEFAULT_RECRUITMENT_TEXTS.p1Desc);
+    const [p1Badge, setP1Badge] = useState(DEFAULT_RECRUITMENT_TEXTS.p1Badge);
+    const [p1Duration, setP1Duration] = useState(DEFAULT_RECRUITMENT_TEXTS.p1Duration);
 
     // Scène 4 : Profil 2 (Créateurs de Contenu)
-    const [p2Tag, setP2Tag] = useState('PROFIL RECHERCHÉ #2');
-    const [p2Title, setP2Title] = useState('CRÉATEURS DE CONTENU');
-    const [p2Sub, setP2Sub] = useState('TIKTOK & INSTAGRAM');
-    const [p2Desc, setP2Desc] = useState("À l'aise face caméra ou caméra au poing, pour capturer l'énergie des scènes, interviewer le public et produire du contenu viral.");
-    const [p2Badge, setP2Badge] = useState('🇬🇧 ANGLAIS APPRÉCIÉ POUR LES INTERVIEWS');
-    const [p2Duration, setP2Duration] = useState(5.5); // Augmenté de 3.5s à 5.5s
+    const [p2Tag, setP2Tag] = useState(DEFAULT_RECRUITMENT_TEXTS.p2Tag);
+    const [p2Title, setP2Title] = useState(DEFAULT_RECRUITMENT_TEXTS.p2Title);
+    const [p2Sub, setP2Sub] = useState(DEFAULT_RECRUITMENT_TEXTS.p2Sub);
+    const [p2Desc, setP2Desc] = useState(DEFAULT_RECRUITMENT_TEXTS.p2Desc);
+    const [p2Badge, setP2Badge] = useState(DEFAULT_RECRUITMENT_TEXTS.p2Badge);
+    const [p2Duration, setP2Duration] = useState(DEFAULT_RECRUITMENT_TEXTS.p2Duration);
 
     // Scène 5 : Contact
-    const [contactHeadline, setContactHeadline] = useState('PRÊT(E) À VIVRE LES FESTIVALS DE L\'INTÉRIEUR ?');
-    const [contactEmail, setContactEmail] = useState('contact@dropsiders.fr');
-    const [contactSite, setContactSite] = useState('dropsiders.fr');
-    const [contactDuration, setContactDuration] = useState(5.0); // Augmenté de 3.2s à 5.0s
+    const [contactHeadline, setContactHeadline] = useState(DEFAULT_RECRUITMENT_TEXTS.contactHeadline);
+    const [contactEmail, setContactEmail] = useState(DEFAULT_RECRUITMENT_TEXTS.contactEmail);
+    const [contactSite, setContactSite] = useState(DEFAULT_RECRUITMENT_TEXTS.contactSite);
+    const [contactDuration, setContactDuration] = useState(DEFAULT_RECRUITMENT_TEXTS.contactDuration);
 
-    // Scène 6 : Outro Finale Logo
-    const [logoDuration, setLogoDuration] = useState(4.0); // Augmenté de 2.8s à 4.0s
+    // Scène 6 : Outro Finale Logo (Durée confortable 5.5s pour apprécier l'animation ralentie)
+    const [logoDuration, setLogoDuration] = useState(DEFAULT_RECRUITMENT_TEXTS.logoDuration);
+
+    // Feedback Sauvegarde
+    const [isSavedJustNow, setIsSavedJustNow] = useState<boolean>(false);
 
     // ── Fond Visuel (Vidéo de Fond, Lasers de Concert ou Image Uploadée) ──
     const [bgType, setBgType] = useState<'video' | 'image' | 'lasers'>('video');
@@ -57,7 +89,7 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
     const [bgVideoSrc, setBgVideoSrc] = useState<string>('');
     const [bgVideoStartTime, setBgVideoStartTime] = useState<number>(0);
     const [bgVideoDuration, setBgVideoDuration] = useState<number>(0);
-    const [isVideoAudioMuted, setIsVideoAudioMuted] = useState<boolean>(true); // Muted par défaut pour autoplay navigateur
+    const [isVideoAudioMuted, setIsVideoAudioMuted] = useState<boolean>(false); // SON ACTIF par défaut comme demandé !
     const [bgOverlayOpacity, setBgOverlayOpacity] = useState<number>(0.50);
 
     // ── Contrôles Lecture Haute Fluidité (60 FPS) ──
@@ -77,6 +109,7 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
     const bgImgRef = useRef<HTMLImageElement | null>(null);
     const logoImgRef = useRef<HTMLImageElement | null>(null);
     const logoPureImgRef = useRef<HTMLImageElement | null>(null);
+    const bgVideoBlobRef = useRef<Blob | null>(null);
 
     // Time Tracking Ref pour 60 FPS fluide sans React re-render
     const currentTimeRef = useRef<number>(0);
@@ -87,6 +120,108 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
     const lastUiUpdateRef = useRef<number>(0);
 
     const totalDuration = introDuration + vibeDuration + p1Duration + p2Duration + contactDuration + logoDuration;
+
+    // Charger les textes sauvegardés au démarrage
+    useEffect(() => {
+        try {
+            const raw = localStorage.getItem(STORAGE_KEY);
+            if (raw) {
+                const p = JSON.parse(raw);
+                if (p.introTitle !== undefined) setIntroTitle(p.introTitle);
+                if (p.introSubtitle !== undefined) setIntroSubtitle(p.introSubtitle);
+                if (p.introBadge !== undefined) setIntroBadge(p.introBadge);
+                if (p.introDuration !== undefined) setIntroDuration(p.introDuration);
+                if (p.vibeLine1 !== undefined) setVibeLine1(p.vibeLine1);
+                if (p.vibeLine2 !== undefined) setVibeLine2(p.vibeLine2);
+                if (p.vibeCta !== undefined) setVibeCta(p.vibeCta);
+                if (p.vibeDuration !== undefined) setVibeDuration(p.vibeDuration);
+                if (p.p1Tag !== undefined) setP1Tag(p.p1Tag);
+                if (p.p1Title !== undefined) setP1Title(p.p1Title);
+                if (p.p1Desc !== undefined) setP1Desc(p.p1Desc);
+                if (p.p1Badge !== undefined) setP1Badge(p.p1Badge);
+                if (p.p1Duration !== undefined) setP1Duration(p.p1Duration);
+                if (p.p2Tag !== undefined) setP2Tag(p.p2Tag);
+                if (p.p2Title !== undefined) setP2Title(p.p2Title);
+                if (p.p2Sub !== undefined) setP2Sub(p.p2Sub);
+                if (p.p2Desc !== undefined) setP2Desc(p.p2Desc);
+                if (p.p2Badge !== undefined) setP2Badge(p.p2Badge);
+                if (p.p2Duration !== undefined) setP2Duration(p.p2Duration);
+                if (p.contactHeadline !== undefined) setContactHeadline(p.contactHeadline);
+                if (p.contactEmail !== undefined) setContactEmail(p.contactEmail);
+                if (p.contactSite !== undefined) setContactSite(p.contactSite);
+                if (p.contactDuration !== undefined) setContactDuration(p.contactDuration);
+                if (p.logoDuration !== undefined) setLogoDuration(p.logoDuration);
+            }
+        } catch (e) {
+            console.warn("Could not load saved recruitment reel config:", e);
+        }
+    }, []);
+
+    // Sauvegarder la configuration des textes
+    const handleSaveConfig = () => {
+        const config = {
+            introTitle, introSubtitle, introBadge, introDuration,
+            vibeLine1, vibeLine2, vibeCta, vibeDuration,
+            p1Tag, p1Title, p1Desc, p1Badge, p1Duration,
+            p2Tag, p2Title, p2Sub, p2Desc, p2Badge, p2Duration,
+            contactHeadline, contactEmail, contactSite, contactDuration,
+            logoDuration
+        };
+        try {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(config));
+            setIsSavedJustNow(true);
+            setTimeout(() => setIsSavedJustNow(false), 2500);
+        } catch (e) {
+            console.error("Save config error:", e);
+        }
+    };
+
+    // Rétablir les textes par défaut
+    const handleResetDefaults = () => {
+        if (!confirm("Rétablir les textes et durées par défaut du Reel Recrutement ?")) return;
+        setIntroTitle(DEFAULT_RECRUITMENT_TEXTS.introTitle);
+        setIntroSubtitle(DEFAULT_RECRUITMENT_TEXTS.introSubtitle);
+        setIntroBadge(DEFAULT_RECRUITMENT_TEXTS.introBadge);
+        setIntroDuration(DEFAULT_RECRUITMENT_TEXTS.introDuration);
+        setVibeLine1(DEFAULT_RECRUITMENT_TEXTS.vibeLine1);
+        setVibeLine2(DEFAULT_RECRUITMENT_TEXTS.vibeLine2);
+        setVibeCta(DEFAULT_RECRUITMENT_TEXTS.vibeCta);
+        setVibeDuration(DEFAULT_RECRUITMENT_TEXTS.vibeDuration);
+        setP1Tag(DEFAULT_RECRUITMENT_TEXTS.p1Tag);
+        setP1Title(DEFAULT_RECRUITMENT_TEXTS.p1Title);
+        setP1Desc(DEFAULT_RECRUITMENT_TEXTS.p1Desc);
+        setP1Badge(DEFAULT_RECRUITMENT_TEXTS.p1Badge);
+        setP1Duration(DEFAULT_RECRUITMENT_TEXTS.p1Duration);
+        setP2Tag(DEFAULT_RECRUITMENT_TEXTS.p2Tag);
+        setP2Title(DEFAULT_RECRUITMENT_TEXTS.p2Title);
+        setP2Sub(DEFAULT_RECRUITMENT_TEXTS.p2Sub);
+        setP2Desc(DEFAULT_RECRUITMENT_TEXTS.p2Desc);
+        setP2Badge(DEFAULT_RECRUITMENT_TEXTS.p2Badge);
+        setP2Duration(DEFAULT_RECRUITMENT_TEXTS.p2Duration);
+        setContactHeadline(DEFAULT_RECRUITMENT_TEXTS.contactHeadline);
+        setContactEmail(DEFAULT_RECRUITMENT_TEXTS.contactEmail);
+        setContactSite(DEFAULT_RECRUITMENT_TEXTS.contactSite);
+        setContactDuration(DEFAULT_RECRUITMENT_TEXTS.contactDuration);
+        setLogoDuration(DEFAULT_RECRUITMENT_TEXTS.logoDuration);
+        try {
+            localStorage.removeItem(STORAGE_KEY);
+            setIsSavedJustNow(true);
+            setTimeout(() => setIsSavedJustNow(false), 2500);
+        } catch {}
+    };
+
+    // Basculer l'état audio (Muet / Son Actif)
+    const toggleAudio = () => {
+        const next = !isVideoAudioMuted;
+        setIsVideoAudioMuted(next);
+        const vid = videoRef.current;
+        if (vid) {
+            vid.muted = next;
+            if (!next && isPlaying) {
+                vid.play().catch(() => {});
+            }
+        }
+    };
 
     // Synchroniser refs
     useEffect(() => {
@@ -137,6 +272,7 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
         const blobUrl = URL.createObjectURL(file);
 
         if (isVid) {
+            bgVideoBlobRef.current = file;
             setBgType('video');
             setBgVideoSrc(blobUrl);
             setBgVideoStartTime(0);
@@ -169,8 +305,12 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
 
         const handleMetadata = () => {
             setBgVideoDuration(vid.duration || 0);
+            vid.muted = isVideoAudioMuted;
             if (isPlayingRef.current) {
-                vid.play().catch(() => {});
+                vid.play().catch(() => {
+                    vid.muted = true;
+                    vid.play().catch(() => {});
+                });
             }
         };
 
@@ -653,8 +793,8 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
             const halfW = boxW / 2;
             const halfH = boxH / 2;
 
-            // 1. DESSIN PROGRESSIF DES LIGNES DU CADRE EN DIRECT ("comme s'il se dessinait")
-            const strokeDuration = 0.8;
+            // 1. DESSIN PROGRESSIF DES LIGNES DU CADRE EN DIRECT (Vitesse ralentie pour un rendu plus majestueux)
+            const strokeDuration = 1.25;
             const frameProgress = Math.min(1, Math.max(0, sceneTime / strokeDuration));
             const perimeterHalf = halfW + boxH + halfW;
             const currentDist = frameProgress * perimeterHalf;
@@ -698,12 +838,12 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
             ctx.stroke();
             ctx.restore();
 
-            // 2. APPARITION DES LETTRES DU VRAI LOGO UNE PAR UNE (VRAIE POLICE OFFICIELLE CONDENSÉE)
+            // 2. APPARITION DES LETTRES DU VRAI LOGO UNE PAR UNE (Vitesse ralentie, 0.11s par lettre)
             const pureImg = logoPureImgRef.current;
             if (pureImg && pureImg.complete && pureImg.naturalWidth > 0) {
-                const textStart = 0.25;
+                const textStart = 0.45;
                 const totalLetters = 13; // D-R-O-P-S-I-D-E-R-S-.-F-R
-                const letterDuration = 0.065;
+                const letterDuration = 0.11;
                 const elapsed = Math.max(0, sceneTime - textStart);
                 const lettersVisible = Math.min(totalLetters, Math.floor(elapsed / letterDuration));
 
@@ -733,9 +873,9 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
             } else if (logoImgRef.current && logoImgRef.current.complete && logoImgRef.current.naturalWidth > 0) {
                 // Fallback avec logo_white.png si logo_dropsiders_brand_pure pas encore prêt
                 const img = logoImgRef.current;
-                const textStart = 0.25;
+                const textStart = 0.45;
                 const totalLetters = 13;
-                const letterDuration = 0.065;
+                const letterDuration = 0.11;
                 const elapsed = Math.max(0, sceneTime - textStart);
                 const lettersVisible = Math.min(totalLetters, Math.floor(elapsed / letterDuration));
                 const lw = 820;
@@ -752,10 +892,10 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
                 }
             }
 
-            // 3. SOUS-TITRE WWW.DROPSIDERS.FR (Apparaît lettre par lettre)
+            // 3. SOUS-TITRE WWW.DROPSIDERS.FR (Apparaît lettre par lettre après le logo principal)
             const subText = "WWW.DROPSIDERS.FR";
-            const subStart = 1.15;
-            const subSpeed = 0.045;
+            const subStart = 2.0;
+            const subSpeed = 0.065;
             const elapsedForSub = Math.max(0, sceneTime - subStart);
             const numSubVisible = Math.min(subText.length, Math.floor(elapsedForSub / subSpeed));
             const visibleSub = subText.slice(0, numSubVisible);
@@ -854,7 +994,37 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
         }
     }, [isPlaying]);
 
-    // ── MOTEUR D'EXPORTATION MP4 (1080x1920, 60 ou 30 FPS) ──
+    // Helper : extraction et bouclage audio pour l'export MP4
+    const extractAudioBuffer = async (blob: Blob, durationSec: number, startSec: number = 0): Promise<AudioBuffer | null> => {
+        try {
+            const arr = await blob.arrayBuffer();
+            const AudioCtxCls = (window as any).AudioContext || (window as any).webkitAudioContext;
+            if (!AudioCtxCls) return null;
+            const tempCtx = new AudioCtxCls();
+            const fullBuf = await tempCtx.decodeAudioData(arr.slice(0));
+            tempCtx.close().catch(() => {});
+
+            if (!fullBuf || fullBuf.numberOfChannels === 0 || fullBuf.length === 0) return null;
+
+            const sr = fullBuf.sampleRate;
+            const targetLen = Math.max(1, Math.round(durationSec * sr));
+            const OfflineCtxCls = (window as any).OfflineAudioContext || (window as any).webkitOfflineAudioContext;
+            const offline = new OfflineCtxCls(fullBuf.numberOfChannels, targetLen, sr);
+            const source = offline.createBufferSource();
+            source.buffer = fullBuf;
+            source.loop = true;
+            source.loopStart = 0;
+            source.loopEnd = fullBuf.duration;
+            source.start(0, startSec % fullBuf.duration);
+
+            return await offline.startRendering();
+        } catch (e) {
+            console.warn("Extraction audio impossible (vidéo muette ou format non décodable) :", e);
+            return null;
+        }
+    };
+
+    // ── MOTEUR D'EXPORTATION MP4 (1080x1920, 60 ou 30 FPS avec Audio) ──
     const handleExportMp4 = async () => {
         if (isExporting) return;
         setIsExporting(true);
@@ -874,9 +1044,28 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
         exportCanvas.height = targetHeight;
         const exportCtx = exportCanvas.getContext('2d')!;
 
-        // Initialisation Muxer MP4
+        // Extraction audio si la vidéo a du son
+        const vid = videoRef.current;
+        const hasBgVideo = bgType === 'video' && Boolean(vid && !isNaN(vid.duration) && vid.duration > 0);
+        let audioBuf: AudioBuffer | null = null;
+        const AudioEncoderCls = (window as any).AudioEncoder;
+        const AudioDataCls = (window as any).AudioData;
+        const canEncodeAudio = typeof AudioEncoderCls !== 'undefined' && typeof AudioDataCls !== 'undefined';
+
+        if (hasBgVideo && !isVideoAudioMuted && canEncodeAudio) {
+            try {
+                const blob = bgVideoBlobRef.current || (bgVideoSrc ? await fetch(bgVideoSrc).then(r => r.blob()).catch(() => null) : null);
+                if (blob) {
+                    audioBuf = await extractAudioBuffer(blob, totalDuration, bgVideoStartTimeRef.current);
+                }
+            } catch (err) {
+                console.warn("Extraction audio ignorée :", err);
+            }
+        }
+
+        // Initialisation Muxer MP4 (Vidéo + Piste Audio synchronisée si présente)
         const muxerTarget = new ArrayBufferTarget();
-        const muxer = new Muxer({
+        const muxerConfig: any = {
             target: muxerTarget,
             video: {
                 codec: 'avc',
@@ -884,7 +1073,17 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
                 height: targetHeight
             },
             fastStart: 'in-memory'
-        });
+        };
+
+        if (audioBuf && audioBuf.numberOfChannels > 0) {
+            muxerConfig.audio = {
+                codec: 'aac',
+                numberOfChannels: audioBuf.numberOfChannels,
+                sampleRate: audioBuf.sampleRate
+            };
+        }
+
+        const muxer = new Muxer(muxerConfig);
 
         // Encodeur WebCodecs
         const VideoEncoderCls = (window as any).VideoEncoder;
@@ -916,9 +1115,6 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
         });
 
         // Utilisation de la vidéo de fond pour l'export (lecture continue matérielle GPU sans seek saccadé, identique à Social Suite)
-        const vid = videoRef.current;
-        const hasBgVideo = bgType === 'video' && Boolean(vid && !isNaN(vid.duration) && vid.duration > 0);
-
         if (hasBgVideo && vid) {
             vid.pause();
             vid.currentTime = bgVideoStartTimeRef.current;
@@ -988,6 +1184,57 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
         }
 
         await encoder.flush();
+
+        // Encodage audio WebCodecs AAC si piste audio présente
+        if (audioBuf && canEncodeAudio) {
+            try {
+                const audioEncoder = new AudioEncoderCls({
+                    output: (chunk: any, meta: any) => {
+                        const rawBytes = new Uint8Array(chunk.byteLength);
+                        chunk.copyTo(rawBytes);
+                        muxer.addAudioChunkRaw(rawBytes, chunk.type === 'key' ? 'key' : 'delta', chunk.timestamp, chunk.duration, meta);
+                    },
+                    error: (e: any) => console.error("WebCodecs audio error:", e)
+                });
+
+                await audioEncoder.configure({
+                    codec: 'mp4a.40.2',
+                    numberOfChannels: audioBuf.numberOfChannels,
+                    sampleRate: audioBuf.sampleRate,
+                    bitrate: 192_000
+                });
+
+                const chunkFrames = 1024;
+                const totalSamples = audioBuf.length;
+                const chArrays: Float32Array[] = [];
+                for (let ch = 0; ch < audioBuf.numberOfChannels; ch++) {
+                    chArrays.push(audioBuf.getChannelData(ch));
+                }
+
+                for (let offset = 0; offset < totalSamples; offset += chunkFrames) {
+                    const frameCount = Math.min(chunkFrames, totalSamples - offset);
+                    const planar = new Float32Array(frameCount * audioBuf.numberOfChannels);
+                    for (let ch = 0; ch < audioBuf.numberOfChannels; ch++) {
+                        planar.set(chArrays[ch].subarray(offset, offset + frameCount), ch * frameCount);
+                    }
+                    const ad = new AudioDataCls({
+                        format: 'f32-planar',
+                        sampleRate: audioBuf.sampleRate,
+                        numberOfFrames: frameCount,
+                        numberOfChannels: audioBuf.numberOfChannels,
+                        timestamp: Math.round((offset / audioBuf.sampleRate) * 1_000_000),
+                        data: planar
+                    });
+                    audioEncoder.encode(ad);
+                    ad.close();
+                }
+
+                await audioEncoder.flush();
+            } catch (aErr) {
+                console.warn("Audio encoding skipped, fallback video only:", aErr);
+            }
+        }
+
         muxer.finalize();
 
         const mp4Blob = new Blob([muxerTarget.buffer], { type: 'video/mp4' });
@@ -1029,6 +1276,19 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
                 </div>
 
                 <div className="flex items-center gap-3">
+                    <button
+                        type="button"
+                        onClick={handleSaveConfig}
+                        className={`px-3.5 py-2 rounded-xl font-black text-xs uppercase flex items-center gap-2 transition-all shadow-lg active:scale-95 ${
+                            isSavedJustNow
+                                ? 'bg-emerald-500 text-black border border-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.5)]'
+                                : 'bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-black border border-amber-300 shadow-[0_0_15px_rgba(245,158,11,0.3)]'
+                        }`}
+                        title="Sauvegarder les modifications des textes et réglages"
+                    >
+                        {isSavedJustNow ? <Check className="w-4 h-4" /> : <Save className="w-4 h-4" />}
+                        <span>{isSavedJustNow ? 'Textes Sauvegardés !' : 'Sauvegarder'}</span>
+                    </button>
                     <button
                         type="button"
                         onClick={handleExportMp4}
@@ -1103,6 +1363,21 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
                                 {uiDisplayTime.toFixed(1)}s / {totalDuration.toFixed(1)}s
                             </div>
 
+                            {/* Badge Son Direct sur Player */}
+                            <button
+                                type="button"
+                                onClick={toggleAudio}
+                                className={`absolute top-3 right-3 px-2.5 py-1 rounded-full border text-[10px] font-black uppercase flex items-center gap-1.5 backdrop-blur-md z-30 transition-all active:scale-95 ${
+                                    !isVideoAudioMuted
+                                        ? 'bg-emerald-500/85 text-white border-emerald-400 shadow-[0_0_12px_rgba(16,185,129,0.5)]'
+                                        : 'bg-black/75 text-gray-300 border-white/20 hover:text-white'
+                                }`}
+                                title={!isVideoAudioMuted ? "Couper le son" : "Activer le son"}
+                            >
+                                {!isVideoAudioMuted ? <Volume2 className="w-3.5 h-3.5 text-white animate-pulse" /> : <VolumeX className="w-3.5 h-3.5 text-red-400" />}
+                                <span>{!isVideoAudioMuted ? 'SON ACTIF' : 'SON COUPÉ'}</span>
+                            </button>
+
                             {/* Overlay d'exportation MP4 fluide sans freeze de la preview */}
                             {isExporting && (
                                 <div className="absolute inset-0 z-40 bg-black/85 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center gap-3">
@@ -1176,6 +1451,19 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
                                     title="Recommencer"
                                 >
                                     <RotateCcw className="w-3.5 h-3.5" />
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={toggleAudio}
+                                    className={`px-2.5 py-1.5 rounded-xl border font-bold text-xs uppercase flex items-center gap-1.5 transition active:scale-95 ${
+                                        !isVideoAudioMuted
+                                            ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40 shadow-[0_0_10px_rgba(16,185,129,0.3)]'
+                                            : 'bg-white/5 text-gray-400 border-white/10 hover:text-white'
+                                    }`}
+                                    title={!isVideoAudioMuted ? 'Couper le son' : 'Activer le son'}
+                                >
+                                    {!isVideoAudioMuted ? <Volume2 className="w-3.5 h-3.5 text-emerald-400" /> : <VolumeX className="w-3.5 h-3.5 text-gray-400" />}
+                                    <span>{!isVideoAudioMuted ? 'Son Actif' : 'Son Coupé'}</span>
                                 </button>
                             </div>
 
@@ -1381,13 +1669,13 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
                                         <div className="pt-2">
                                             <button
                                                 type="button"
-                                                onClick={() => setIsVideoAudioMuted(!isVideoAudioMuted)}
-                                                className={`w-full py-2 px-3 rounded-xl border text-xs font-black uppercase flex items-center justify-center gap-1.5 transition ${
-                                                    !isVideoAudioMuted ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40' : 'bg-white/5 text-gray-400 border-white/10'
+                                                onClick={toggleAudio}
+                                                className={`w-full py-2.5 px-3 rounded-xl border text-xs font-black uppercase flex items-center justify-center gap-2 transition ${
+                                                    !isVideoAudioMuted ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40 shadow-[0_0_12px_rgba(16,185,129,0.2)]' : 'bg-white/5 text-gray-400 border-white/10'
                                                 }`}
                                             >
-                                                {!isVideoAudioMuted ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
-                                                <span>{!isVideoAudioMuted ? 'Son Vidéo Actif' : 'En Sourdine'}</span>
+                                                {!isVideoAudioMuted ? <Volume2 className="w-4 h-4 text-emerald-400" /> : <VolumeX className="w-4 h-4" />}
+                                                <span>{!isVideoAudioMuted ? 'Son Vidéo Actif (Non-Mute)' : 'Son Vidéo en Sourdine (Mute)'}</span>
                                             </button>
                                         </div>
                                     </div>
@@ -1552,6 +1840,41 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
                         {/* ONGLET 3 : TEXTES DES 6 SCÈNES (SANS CADRE) */}
                         {activeTab === 'textes' && (
                             <div className="space-y-3.5">
+                                
+                                {/* Bannière Sauvegarder en haut du formulaire */}
+                                <div className="sticky top-0 z-20 p-3 rounded-2xl bg-[#0d0f14]/95 border border-amber-500/40 backdrop-blur-xl flex items-center justify-between shadow-2xl">
+                                    <div className="flex items-center gap-2">
+                                        <div className="w-7 h-7 rounded-lg bg-amber-500/20 flex items-center justify-center text-amber-400">
+                                            <Save className="w-4 h-4" />
+                                        </div>
+                                        <div className="text-left">
+                                            <div className="text-xs font-black uppercase text-amber-300">Textes du Reel Recrutement</div>
+                                            <div className="text-[10px] text-gray-400">Modifie les phrases puis clique sur Sauvegarder</div>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <button
+                                            type="button"
+                                            onClick={handleResetDefaults}
+                                            className="px-2.5 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-[10px] font-bold text-gray-300 hover:text-white uppercase transition"
+                                            title="Rétablir les textes et durées par défaut"
+                                        >
+                                            Reset
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={handleSaveConfig}
+                                            className={`px-3.5 py-1.5 rounded-xl border text-xs font-black uppercase flex items-center gap-1.5 shadow-md transition-all active:scale-95 ${
+                                                isSavedJustNow
+                                                    ? 'bg-emerald-500 text-black border-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.5)]'
+                                                    : 'bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-black border-amber-300 shadow-[0_0_12px_rgba(245,158,11,0.4)]'
+                                            }`}
+                                        >
+                                            {isSavedJustNow ? <Check className="w-3.5 h-3.5" /> : <Save className="w-3.5 h-3.5" />}
+                                            <span>{isSavedJustNow ? 'Sauvegardé !' : 'Sauvegarder'}</span>
+                                        </button>
+                                    </div>
+                                </div>
                                 
                                 {/* Scène 1 : Intro Plein Écran */}
                                 <div className="p-3 rounded-2xl bg-black/40 border border-red-500/30 space-y-2">
@@ -1721,7 +2044,23 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
                                         <span>6. Outro Finale Logo Dropsiders</span>
                                         <span className="text-gray-400 font-mono text-[10px]">Durée : {logoDuration.toFixed(1)}s</span>
                                     </div>
-                                    <p className="text-[11px] text-gray-400">Le logo officiel Dropsiders apparaît en plein centre avec pulsation néon sans aucun cadre.</p>
+                                    <p className="text-[11px] text-gray-400">Le logo officiel Dropsiders apparaît en plein centre avec son tracé dynamique et l'apparition progressive des lettres.</p>
+                                </div>
+
+                                {/* Bouton Sauvegarder en bas */}
+                                <div className="pt-2">
+                                    <button
+                                        type="button"
+                                        onClick={handleSaveConfig}
+                                        className={`w-full py-3.5 rounded-2xl border text-xs font-black uppercase flex items-center justify-center gap-2 shadow-xl transition-all active:scale-95 ${
+                                            isSavedJustNow
+                                                ? 'bg-emerald-500 text-black border-emerald-400 shadow-[0_0_20px_rgba(16,185,129,0.5)]'
+                                                : 'bg-gradient-to-r from-amber-500 via-orange-500 to-[#ff0033] hover:brightness-110 text-black border-amber-300 shadow-[0_0_20px_rgba(245,158,11,0.4)]'
+                                        }`}
+                                    >
+                                        {isSavedJustNow ? <Check className="w-4 h-4" /> : <Save className="w-4 h-4" />}
+                                        <span>{isSavedJustNow ? '✓ Tous les Textes ont été Sauvegardés !' : '💾 Sauvegarder les Textes du Reel'}</span>
+                                    </button>
                                 </div>
 
                             </div>
