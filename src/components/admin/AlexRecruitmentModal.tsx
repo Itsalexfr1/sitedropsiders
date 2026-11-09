@@ -76,6 +76,7 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
     const videoRef = useRef<HTMLVideoElement | null>(null);
     const bgImgRef = useRef<HTMLImageElement | null>(null);
     const logoImgRef = useRef<HTMLImageElement | null>(null);
+    const logoPureImgRef = useRef<HTMLImageElement | null>(null);
 
     // Time Tracking Ref pour 60 FPS fluide sans React re-render
     const currentTimeRef = useRef<number>(0);
@@ -110,13 +111,20 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
         };
     }, [bgImageSrc]);
 
-    // Charger le logo Dropsiders officiel
+    // Charger le logo Dropsiders officiel (version complète et version pure typographie)
     useEffect(() => {
         const img = new Image();
         img.crossOrigin = 'anonymous';
         img.src = '/logo_white.png';
         img.onload = () => {
             logoImgRef.current = img;
+        };
+
+        const pureImg = new Image();
+        pureImg.crossOrigin = 'anonymous';
+        pureImg.src = '/logo_dropsiders_brand_pure.png';
+        pureImg.onload = () => {
+            logoPureImgRef.current = pureImg;
         };
     }, []);
 
@@ -629,7 +637,7 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
         }
 
         // ─────────────────────────────────────────────────────────────
-        // SCÈNE 6 : APPARITION DU LOGO AVEC TRACÉ DU CADRE & LETTRES UNE PAR UNE
+        // SCÈNE 6 : APPARITION DU VRAI LOGO DROPSIDERS OFFICIEL
         // ─────────────────────────────────────────────────────────────
         else if (sceneIdx === 6) {
             ctx.textAlign = 'center';
@@ -639,26 +647,25 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
             ctx.save();
             ctx.translate(width / 2, centerY);
 
-            // Dimensions agrandies du cadre logo (agrandi comme demandé)
+            // Dimensions agrandies du cadre logo officiel (820px)
             const boxW = 820;
-            const boxH = 240;
+            const boxH = 256;
             const halfW = boxW / 2;
             const halfH = boxH / 2;
 
-            // 1. DESSIN PROGRESSIF DES LIGNES DU CADRE ("comme s'il se dessinait")
-            // Le cadre se trace de manière symétrique depuis le haut-centre jusqu'au bas-centre
-            const strokeDuration = 0.9;
+            // 1. DESSIN PROGRESSIF DES LIGNES DU CADRE EN DIRECT ("comme s'il se dessinait")
+            const strokeDuration = 0.8;
             const frameProgress = Math.min(1, Math.max(0, sceneTime / strokeDuration));
             const perimeterHalf = halfW + boxH + halfW;
             const currentDist = frameProgress * perimeterHalf;
 
             ctx.save();
-            ctx.lineWidth = 10;
+            ctx.lineWidth = 9;
             ctx.strokeStyle = '#ffffff';
             ctx.lineCap = 'square';
             ctx.lineJoin = 'miter';
-            ctx.shadowColor = 'rgba(255, 255, 255, 0.4)';
-            ctx.shadowBlur = 12;
+            ctx.shadowColor = 'rgba(255, 255, 255, 0.3)';
+            ctx.shadowBlur = 8;
 
             // Côté Droit : Haut-centre -> Coin haut-droit -> Coin bas-droit -> Bas-centre
             ctx.beginPath();
@@ -691,39 +698,63 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
             ctx.stroke();
             ctx.restore();
 
-            // 2. APPARITION DES LETTRES UNE PAR UNE ("DROPSIDERS.FR")
-            const fullText = "DROPSIDERS.FR";
-            const textStart = 0.25;
-            const letterSpeed = 0.065;
-            const elapsedForText = Math.max(0, sceneTime - textStart);
-            const numLettersVisible = Math.min(fullText.length, Math.floor(elapsedForText / letterSpeed));
-            const visibleText = fullText.slice(0, numLettersVisible);
+            // 2. APPARITION DES LETTRES DU VRAI LOGO UNE PAR UNE (VRAIE POLICE OFFICIELLE CONDENSÉE)
+            const pureImg = logoPureImgRef.current;
+            if (pureImg && pureImg.complete && pureImg.naturalWidth > 0) {
+                const textStart = 0.25;
+                const totalLetters = 13; // D-R-O-P-S-I-D-E-R-S-.-F-R
+                const letterDuration = 0.065;
+                const elapsed = Math.max(0, sceneTime - textStart);
+                const lettersVisible = Math.min(totalLetters, Math.floor(elapsed / letterDuration));
 
-            if (visibleText.length > 0) {
-                ctx.save();
-                ctx.font = '900 110px "Montserrat", sans-serif';
-                (ctx as any).letterSpacing = '6px';
-                ctx.fillStyle = '#ffffff';
-                ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
-                ctx.shadowBlur = 30;
-                ctx.shadowOffsetY = 4;
-                ctx.fillText(visibleText, 0, 6);
+                const lw = 760;
+                const lh = Math.round(lw * (pureImg.naturalHeight / pureImg.naturalWidth));
 
-                // Curseur d'écriture dynamique
-                if (numLettersVisible < fullText.length) {
-                    const metrics = ctx.measureText(visibleText);
-                    const cursorX = metrics.width / 2 + 12;
-                    ctx.fillStyle = '#ff0033';
-                    ctx.shadowColor = '#ff0033';
-                    ctx.shadowBlur = 15;
-                    ctx.fillRect(cursorX, -45, 8, 90);
+                if (lettersVisible > 0) {
+                    const revealW = (lettersVisible / totalLetters) * lw;
+
+                    ctx.save();
+                    ctx.beginPath();
+                    ctx.rect(-lw / 2, -lh / 2, revealW, lh);
+                    ctx.clip();
+                    ctx.drawImage(pureImg, -lw / 2, -lh / 2, lw, lh);
+                    ctx.restore();
+
+                    // Curseur lumineux d'écriture à la dernière lettre révélée
+                    if (lettersVisible < totalLetters) {
+                        ctx.save();
+                        ctx.fillStyle = '#ff0033';
+                        ctx.shadowColor = '#ff0033';
+                        ctx.shadowBlur = 12;
+                        ctx.fillRect(-lw / 2 + revealW - 2, -lh / 2 + 10, 6, lh - 20);
+                        ctx.restore();
+                    }
                 }
-                ctx.restore();
+            } else if (logoImgRef.current && logoImgRef.current.complete && logoImgRef.current.naturalWidth > 0) {
+                // Fallback avec logo_white.png si logo_dropsiders_brand_pure pas encore prêt
+                const img = logoImgRef.current;
+                const textStart = 0.25;
+                const totalLetters = 13;
+                const letterDuration = 0.065;
+                const elapsed = Math.max(0, sceneTime - textStart);
+                const lettersVisible = Math.min(totalLetters, Math.floor(elapsed / letterDuration));
+                const lw = 820;
+                const lh = Math.round(lw * (img.naturalHeight / img.naturalWidth));
+
+                if (lettersVisible > 0) {
+                    const revealW = (lettersVisible / totalLetters) * lw;
+                    ctx.save();
+                    ctx.beginPath();
+                    ctx.rect(-lw / 2, -lh / 2, revealW, lh * 0.72);
+                    ctx.clip();
+                    ctx.drawImage(img, -lw / 2, -lh / 2, lw, lh);
+                    ctx.restore();
+                }
             }
 
             // 3. SOUS-TITRE WWW.DROPSIDERS.FR (Apparaît lettre par lettre)
             const subText = "WWW.DROPSIDERS.FR";
-            const subStart = 1.25;
+            const subStart = 1.15;
             const subSpeed = 0.045;
             const elapsedForSub = Math.max(0, sceneTime - subStart);
             const numSubVisible = Math.min(subText.length, Math.floor(elapsedForSub / subSpeed));
@@ -731,13 +762,22 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
 
             if (visibleSub.length > 0) {
                 ctx.save();
-                ctx.font = '900 40px "Montserrat", sans-serif';
+                ctx.font = '900 42px "Montserrat", sans-serif';
                 (ctx as any).letterSpacing = '8px';
                 ctx.fillStyle = '#ffffff';
                 ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
                 ctx.shadowBlur = 20;
                 ctx.shadowOffsetY = 3;
-                ctx.fillText(visibleSub, 0, halfH + 65);
+                ctx.fillText(visibleSub, 0, halfH + 70);
+
+                if (numSubVisible < subText.length) {
+                    const metrics = ctx.measureText(visibleSub);
+                    const curX = metrics.width / 2 + 8;
+                    ctx.fillStyle = '#ff0033';
+                    ctx.shadowColor = '#ff0033';
+                    ctx.shadowBlur = 10;
+                    ctx.fillRect(curX, halfH + 50, 4, 38);
+                }
                 ctx.restore();
             }
 
@@ -875,48 +915,51 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
             framerate: fps
         });
 
-        // Vidéo de fond dédiée pour l'export (ne touche JAMAIS au lecteur de preview visible pour 0 lag)
-        let exportVid: HTMLVideoElement | null = null;
-        if (bgType === 'video' && bgVideoSrc) {
-            exportVid = document.createElement('video');
-            exportVid.src = bgVideoSrc;
-            exportVid.muted = true;
-            exportVid.playsInline = true;
-            exportVid.crossOrigin = 'anonymous';
-            exportVid.currentTime = bgVideoStartTimeRef.current;
-            await new Promise<void>(res => {
-                const onLoaded = () => { exportVid?.removeEventListener('loadeddata', onLoaded); res(); };
-                exportVid?.addEventListener('loadeddata', onLoaded, { once: true });
-                setTimeout(res, 250);
+        // Utilisation de la vidéo de fond pour l'export (lecture continue matérielle GPU sans seek saccadé, identique à Social Suite)
+        const vid = videoRef.current;
+        const hasBgVideo = bgType === 'video' && Boolean(vid && !isNaN(vid.duration) && vid.duration > 0);
+
+        if (hasBgVideo && vid) {
+            vid.pause();
+            vid.currentTime = bgVideoStartTimeRef.current;
+            await new Promise<void>((resolve) => {
+                let done = false;
+                const onSeeked = () => {
+                    if (done) return;
+                    done = true;
+                    vid.removeEventListener('seeked', onSeeked);
+                    resolve();
+                };
+                vid.addEventListener('seeked', onSeeked, { once: true });
+                setTimeout(onSeeked, 300);
             });
+            await vid.play().catch(() => {});
         }
 
+        const segmentStartTime = performance.now();
+        const frameIntervalMs = 1000 / fps;
         const frameDurationUs = Math.round(1_000_000 / fps);
 
-        // Boucle déterministe d'encodage frame par frame
+        // Boucle d'encodage temps réel ultra-fluide identique à Social Suite
         for (let f = 0; f < totalFrames; f++) {
             const frameTimeSec = f / fps;
 
-            // Recaler la vidéo d'export sur le timestamp exact et attendre le décodage réel de la frame
-            if (exportVid && !isNaN(exportVid.duration) && exportVid.duration > 0) {
-                const targetTime = (bgVideoStartTimeRef.current + frameTimeSec) % exportVid.duration;
-                exportVid.currentTime = targetTime;
-                await new Promise<void>(res => {
-                    let resolved = false;
-                    const onSeek = () => {
-                        if (!resolved) {
-                            resolved = true;
-                            exportVid?.removeEventListener('seeked', onSeek);
-                            res();
-                        }
-                    };
-                    exportVid?.addEventListener('seeked', onSeek, { once: true });
-                    setTimeout(onSeek, 60);
-                });
+            // Cadence fluide en temps réel alignée sur le décodage matériel GPU de la vidéo de fond
+            if (hasBgVideo && vid) {
+                // Empêcher la vidéo de dévier ou de boucler
+                if (vid.currentTime < bgVideoStartTimeRef.current - 0.2 || vid.currentTime >= (vid.duration - 0.1)) {
+                    vid.currentTime = bgVideoStartTimeRef.current + frameTimeSec;
+                }
+                const targetMs = f * frameIntervalMs;
+                const elapsed = performance.now() - segmentStartTime;
+                const delay = targetMs - elapsed;
+                if (delay > 2) {
+                    await new Promise(r => setTimeout(r, delay));
+                }
             }
 
-            // Dessin sur le canvas d'export avec la vidéo dédiée
-            drawFrame(exportCtx, targetWidth, targetHeight, frameTimeSec, true, exportVid);
+            // Dessin sur le canvas d'export avec la vidéo fluide
+            drawFrame(exportCtx, targetWidth, targetHeight, frameTimeSec, true, vid);
 
             // Création frame WebCodecs
             const frameBitmap = await createImageBitmap(exportCanvas);
@@ -937,6 +980,11 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
             if (f % 5 === 0) {
                 await new Promise(r => setTimeout(r, 0));
             }
+        }
+
+        if (hasBgVideo && vid) {
+            vid.pause();
+            vid.currentTime = bgVideoStartTimeRef.current;
         }
 
         await encoder.flush();
