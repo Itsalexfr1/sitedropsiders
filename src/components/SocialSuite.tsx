@@ -27346,8 +27346,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                             </div>
                                         )}
 
-                                        {/* Visuel spécifique de la Slide active (Photo, Silhouette, etc.) */}
-                                        {slideVisualEditor}
+                                        {/* Choix de musique MP3 / Beatport (par slide ou carrousel complet) */}
+                                        {renderCarouselAudioControlBox()}
 
                                         {/* Export du fond visuel + Option pour animer le fond */}
                                         <div className="pt-2 border-t border-white/10 space-y-2">
@@ -29014,7 +29014,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                                 )}
                                                 {/* Module Dédié Devine le DJ (Artiste & Silhouette Mystère) placé sous le Fond Scène / Club */}
                                                 {theme === 'JEU_DJ' && djSilhouetteEditor}
-                                                {slideVisualEditor}
+                                                {renderCarouselAudioControlBox()}
                                                 {theme !== 'MAP' && bgAnimationControl}
                                                 <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*,video/*" />
                                             </div>
