@@ -8463,8 +8463,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                         // 1. Fond sombre & Aura néon rouge centrale
                         const auraGrad = ctx.createRadialGradient(centerX, centerY, 50, centerX, centerY, canvas.width * 0.75);
-                        auraGrad.addColorStop(0, 'rgba(255, 0, 51, 0.28)');
-                        auraGrad.addColorStop(0.45, 'rgba(255, 0, 51, 0.08)');
+                        auraGrad.addColorStop(0, 'rgba(0, 0, 0, 0.15)');
+                        auraGrad.addColorStop(0.45, 'rgba(0, 0, 0, 0.35)');
                         auraGrad.addColorStop(1, 'rgba(0, 0, 0, 0.75)');
                         ctx.fillStyle = auraGrad;
                         ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -8579,16 +8579,6 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 ctx.fillText(seg.text, curX, lineY);
                                 ctx.restore();
 
-                                // Lueur néon intense pour les segments entre astérisques
-                                if (seg.isHighlighted) {
-                                    ctx.save();
-                                    ctx.shadowColor = 'rgba(255, 0, 51, 0.9)';
-                                    ctx.shadowBlur = 26;
-                                    ctx.fillStyle = '#ff0033';
-                                    ctx.fillText(seg.text, curX, lineY);
-                                    ctx.restore();
-                                }
-
                                 // Face avant propre
                                 ctx.save();
                                 ctx.fillStyle = color;
@@ -8617,8 +8607,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                             ctx.save();
                             applyTextAnimCtx(ctx, 0.35, centerX, festCenterY);
-                            ctx.shadowColor = 'rgba(255, 0, 51, 0.85)';
-                            ctx.shadowBlur = 30;
+                            ctx.shadowColor = 'rgba(0, 0, 0, 0.85)';
+                            ctx.shadowBlur = 24;
+                            ctx.shadowOffsetY = 6;
                             ctx.drawImage(festLogoObj, lx, ly, lw, lh);
                             ctx.restore();
                         } else {
@@ -8643,8 +8634,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             ctx.fillStyle = '#ffffff';
                             ctx.fillText(effectiveFestName, centerX, festCenterY);
 
-                            ctx.shadowColor = 'rgba(255, 0, 51, 0.9)';
-                            ctx.shadowBlur = 24;
+                            ctx.shadowColor = 'transparent';
+                            ctx.shadowBlur = 0;
                             ctx.fillStyle = '#ff0033';
                             ctx.fillText(effectiveFestName, centerX, festCenterY);
                             ctx.restore();
