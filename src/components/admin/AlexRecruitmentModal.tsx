@@ -2,8 +2,29 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { X, Play, Pause, RotateCcw, Upload, Volume2, VolumeX, Video, Download, Sparkles, Check, Film, Settings2, Clock, Image as ImageIcon, Save, Music, Search } from 'lucide-react';
 // @ts-ignore
 import { Muxer, ArrayBufferTarget } from 'mp4-muxer';
+// @ts-ignore
+import { FFmpeg } from '@ffmpeg/ffmpeg';
+// @ts-ignore
+import { fetchFile } from '@ffmpeg/util';
 import { isSuperAdmin } from '../../utils/auth';
 import { searchMusicTracksList, type ResolvedMusicData } from '../../utils/musicResolver';
+
+const FFMPEG_CORE_CDNS = [
+    'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.9/dist/esm',
+    'https://unpkg.com/@ffmpeg/core@0.12.9/dist/esm',
+];
+
+const safeFetchToBlobURL = async (url: string, mimeType: string): Promise<string> => {
+    const resp = await fetch(url, { mode: 'cors' });
+    if (!resp.ok) {
+        throw new Error(`HTTP ${resp.status} sur ${url}`);
+    }
+    const buf = await resp.arrayBuffer();
+    if (buf.byteLength < 1024) {
+        throw new Error(`Réponse invalide (${buf.byteLength} octets) sur ${url}`);
+    }
+    return URL.createObjectURL(new Blob([buf], { type: mimeType }));
+};
 
 interface AlexRecruitmentModalProps {
     isOpen: boolean;
@@ -341,9 +362,10 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
         }
     };
 
-    // Sélection d'un son Beatport
-    const handleSelectBeatportTrack = (item: ResolvedMusicData) => {
-        setBgAudioSrc(item.audioUrl);
+    // Sélection d'un son Beatport (avec préchargement Blob sans CORS via proxy-media si nécessaire)
+    const handleSelectBeatportTrack = async (item: ResolvedMusicData) => {
+        const rawUrl = item.audioUrl;
+        setBgAudioSrc(rawUrl);
         bgAudioBlobRef.current = null;
         setBgAudioTitle(item.title || '');
         setBgAudioArtist(item.artist || 'Beatport');
@@ -353,16 +375,47 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
         setBgAudioDuration(item.duration || 120);
         setIsBeatportSearchOpen(false);
         setBeatportResults([]);
+        setIsVideoAudioMuted(false);
+        isVideoAudioMutedRef.current = false;
+
+        if (videoRef.current) {
+            videoRef.current.muted = true;
+        }
+
         const aud = audioRef.current;
         if (aud) {
-            aud.src = item.audioUrl;
+            aud.src = rawUrl;
             aud.muted = false;
             aud.volume = 1.0;
             aud.currentTime = 0;
-            aud.play().then(() => {
-                setIsVideoAudioMuted(false);
-                isVideoAudioMutedRef.current = false;
-            }).catch(() => {});
+            aud.play().catch(() => {});
+        }
+
+        try {
+            let res = await fetch(rawUrl).catch(() => null);
+            if ((!res || !res.ok) && /^https?:\/\//i.test(rawUrl) && !rawUrl.includes('/api/proxy-media')) {
+                res = await fetch(`/api/proxy-media?url=${encodeURIComponent(rawUrl)}`).catch(() => null);
+            }
+            if (res && res.ok) {
+                const blob = await res.blob();
+                if (blob && blob.size > 0) {
+                    bgAudioBlobRef.current = blob;
+                    const blobUrl = URL.createObjectURL(blob);
+                    setBgAudioSrc(blobUrl);
+                    if (audioRef.current) {
+                        const curT = audioRef.current.currentTime || 0;
+                        audioRef.current.src = blobUrl;
+                        audioRef.current.muted = isVideoAudioMutedRef.current;
+                        audioRef.current.volume = 1.0;
+                        audioRef.current.currentTime = curT;
+                        if (isPlayingRef.current) {
+                            audioRef.current.play().catch(() => {});
+                        }
+                    }
+                }
+            }
+        } catch (err) {
+            console.warn('Beatport audio preload fallback:', err);
         }
     };
 
@@ -383,7 +436,9 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
         const aud = audioRef.current;
         if (!aud || !bgAudioSrc) return;
         const handleMeta = () => {
-            setBgAudioDuration(aud.duration || 0);
+            if (aud.duration && isFinite(aud.duration)) {
+                setBgAudioDuration(aud.duration);
+            }
         };
         aud.addEventListener('loadedmetadata', handleMeta);
         return () => aud.removeEventListener('loadedmetadata', handleMeta);
@@ -450,21 +505,19 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
             bgVideoStartTimeRef.current = 0;
             currentTimeRef.current = 0;
             setUiDisplayTime(0);
+            setIsVideoAudioMuted(false);
+            isVideoAudioMutedRef.current = false;
 
             // Immédiatement lancer avec son dans le contexte direct de ce clic utilisateur
             const vid = videoRef.current;
             if (vid) {
                 vid.src = blobUrl;
-                vid.muted = false;
+                vid.muted = Boolean(bgAudioSrc);
                 vid.volume = 1.0;
                 vid.currentTime = 0;
-                vid.play().then(() => {
-                    setIsVideoAudioMuted(false);
-                    isVideoAudioMutedRef.current = false;
-                }).catch(() => {
+                vid.play().catch((err) => {
+                    if (err?.name === 'AbortError') return;
                     vid.muted = true;
-                    setIsVideoAudioMuted(true);
-                    isVideoAudioMutedRef.current = true;
                     vid.play().catch(() => {});
                 });
             }
@@ -486,49 +539,52 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
         isVideoAudioMutedRef.current = isVideoAudioMuted;
         const vid = videoRef.current;
         const aud = audioRef.current;
+        const hasMusicTrack = Boolean(bgAudioSrc);
         if (vid) {
-            vid.muted = isVideoAudioMuted;
+            vid.muted = hasMusicTrack ? true : isVideoAudioMuted;
             vid.volume = 1.0;
-            if (!isVideoAudioMuted && isPlaying) {
+            if (!isVideoAudioMuted && isPlaying && bgVideoSrc) {
                 vid.play().catch(() => {});
             }
         }
         if (aud) {
             aud.muted = isVideoAudioMuted;
             aud.volume = 1.0;
-            if (!isVideoAudioMuted && isPlaying) {
+            if (!isVideoAudioMuted && isPlaying && hasMusicTrack) {
                 aud.play().catch(() => {});
             }
         }
-    }, [isVideoAudioMuted, isPlaying]);
+    }, [isVideoAudioMuted, isPlaying, bgAudioSrc, bgVideoSrc]);
 
-    // Chargement automatique et persistant de la vidéo de fond uploadée
+    // Chargement automatique et persistant de la vidéo de fond uploadée (sans interrompre un play() déjà lancé)
     useEffect(() => {
         if (!bgVideoSrc) return;
         const vid = videoRef.current;
         if (!vid) return;
 
-        vid.src = bgVideoSrc;
-        vid.volume = 1.0;
-        vid.currentTime = bgVideoStartTimeRef.current;
-
         const handleMetadata = () => {
-            setBgVideoDuration(vid.duration || 0);
+            if (vid.duration && !isNaN(vid.duration)) {
+                setBgVideoDuration(vid.duration);
+            }
             vid.volume = 1.0;
             if (isPlayingRef.current) {
-                vid.muted = isVideoAudioMutedRef.current;
-                vid.play().catch(() => {
-                    // Si autoplay avec son est bloqué par la politique navigateur sans interaction
+                vid.muted = Boolean(bgAudioSrc) ? true : isVideoAudioMutedRef.current;
+                vid.play().catch((err) => {
+                    if (err?.name === 'AbortError') return;
                     vid.muted = true;
-                    setIsVideoAudioMuted(true);
-                    isVideoAudioMutedRef.current = true;
                     vid.play().catch(() => {});
                 });
             }
         };
 
         vid.addEventListener('loadedmetadata', handleMetadata);
-        vid.load();
+        if (vid.src !== bgVideoSrc) {
+            vid.src = bgVideoSrc;
+            vid.currentTime = bgVideoStartTimeRef.current;
+            vid.load();
+        } else if (vid.readyState >= 1) {
+            handleMetadata();
+        }
         return () => {
             vid.removeEventListener('loadedmetadata', handleMetadata);
         };
@@ -1328,37 +1384,131 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
         }
     }, [isPlaying]);
 
+    const ffmpegRef = useRef<any>(null);
+    const ensureFFmpegLoaded = async (): Promise<any> => {
+        if (ffmpegRef.current && ffmpegRef.current.loaded) {
+            return ffmpegRef.current;
+        }
+        if (ffmpegRef.current) {
+            try { ffmpegRef.current.terminate(); } catch {}
+            ffmpegRef.current = null;
+        }
+        let lastErr: unknown = null;
+        for (const baseURL of FFMPEG_CORE_CDNS) {
+            const instance = new FFmpeg();
+            try {
+                await instance.load({
+                    coreURL: `${baseURL}/ffmpeg-core.js`,
+                    wasmURL: `${baseURL}/ffmpeg-core.wasm`,
+                });
+                ffmpegRef.current = instance;
+                return instance;
+            } catch (err) {
+                lastErr = err;
+                try { instance.terminate(); } catch {}
+            }
+        }
+        for (const baseURL of FFMPEG_CORE_CDNS) {
+            const instance = new FFmpeg();
+            try {
+                const coreBlobUrl = await safeFetchToBlobURL(`${baseURL}/ffmpeg-core.js`, 'text/javascript');
+                const wasmBlobUrl = await safeFetchToBlobURL(`${baseURL}/ffmpeg-core.wasm`, 'application/wasm');
+                await instance.load({ coreURL: coreBlobUrl, wasmURL: wasmBlobUrl });
+                ffmpegRef.current = instance;
+                return instance;
+            } catch (err) {
+                lastErr = err;
+                try { instance.terminate(); } catch {}
+            }
+        }
+        throw lastErr || new Error('Impossible de charger FFmpeg');
+    };
+
+    const audioBufferToWavBlob = (renderedBuffer: AudioBuffer): Blob => {
+        const numCh = renderedBuffer.numberOfChannels;
+        const numSamples = renderedBuffer.length;
+        const sr = renderedBuffer.sampleRate;
+        const wavBuffer = new ArrayBuffer(44 + numSamples * numCh * 2);
+        const view = new DataView(wavBuffer);
+        const writeStr = (off: number, str: string) => {
+            for (let i = 0; i < str.length; i++) view.setUint8(off + i, str.charCodeAt(i));
+        };
+        writeStr(0, 'RIFF');
+        view.setUint32(4, 36 + numSamples * numCh * 2, true);
+        writeStr(8, 'WAVE');
+        writeStr(12, 'fmt ');
+        view.setUint32(16, 16, true);
+        view.setUint16(20, 1, true);
+        view.setUint16(22, numCh, true);
+        view.setUint32(24, sr, true);
+        view.setUint32(28, sr * numCh * 2, true);
+        view.setUint16(32, numCh * 2, true);
+        view.setUint16(34, 16, true);
+        writeStr(36, 'data');
+        view.setUint32(40, numSamples * numCh * 2, true);
+        let offset2 = 44;
+        const chData: Float32Array[] = [];
+        for (let ch = 0; ch < numCh; ch++) chData.push(renderedBuffer.getChannelData(ch));
+        for (let i = 0; i < numSamples; i++) {
+            for (let ch = 0; ch < numCh; ch++) {
+                const sample = Math.max(-1, Math.min(1, chData[ch][i]));
+                view.setInt16(offset2, sample < 0 ? sample * 32768 : sample * 32767, true);
+                offset2 += 2;
+            }
+        }
+        return new Blob([wavBuffer], { type: 'audio/wav' });
+    };
+
     // Helper : extraction et bouclage audio pour l'export MP4
     const extractAudioBuffer = async (blob: Blob, durationSec: number, startSec: number = 0): Promise<AudioBuffer | null> => {
         try {
             const arr = await blob.arrayBuffer();
-            const AudioCtxCls = (window as any).AudioContext || (window as any).webkitAudioContext;
-            if (!AudioCtxCls) return null;
-            const tempCtx = new AudioCtxCls();
-            const fullBuf = await tempCtx.decodeAudioData(arr.slice(0));
-            tempCtx.close().catch(() => {});
-
-            if (!fullBuf || fullBuf.numberOfChannels === 0 || fullBuf.length === 0) return null;
-
-            const sr = fullBuf.sampleRate;
-            const targetLen = Math.max(1, Math.round(durationSec * sr));
+            if (!arr || arr.byteLength === 0) return null;
             const OfflineCtxCls = (window as any).OfflineAudioContext || (window as any).webkitOfflineAudioContext;
-            const offline = new OfflineCtxCls(fullBuf.numberOfChannels, targetLen, sr);
+            const AudioCtxCls = (window as any).AudioContext || (window as any).webkitAudioContext || OfflineCtxCls;
+            if (!AudioCtxCls || !OfflineCtxCls) return null;
+            const tempCtx = AudioCtxCls === OfflineCtxCls ? new OfflineCtxCls(2, 1, 48000) : new AudioCtxCls();
+            if (tempCtx.state === 'suspended' && typeof tempCtx.resume === 'function') {
+                await tempCtx.resume().catch(() => {});
+            }
+            const fullBuf = await new Promise<AudioBuffer>((resolve, reject) => {
+                let settled = false;
+                const onOk = (b: AudioBuffer) => { if (!settled) { settled = true; resolve(b); } };
+                const onErr = (e: any) => { if (!settled) { settled = true; reject(e); } };
+                try {
+                    const p = tempCtx.decodeAudioData(arr.slice(0), onOk, onErr);
+                    if (p && typeof p.then === 'function') p.then(onOk, onErr).catch(onErr);
+                } catch (err) {
+                    onErr(err);
+                }
+            });
+            if (typeof tempCtx.close === 'function') {
+                tempCtx.close().catch(() => {});
+            }
+
+            if (!fullBuf || fullBuf.numberOfChannels === 0 || fullBuf.length === 0 || fullBuf.duration <= 0) return null;
+
+            const sr = 48000;
+            const outChannels = Math.min(2, Math.max(1, fullBuf.numberOfChannels));
+            const targetLen = Math.max(1, Math.round(durationSec * sr));
+            const offline = new OfflineCtxCls(outChannels, targetLen, sr);
             const source = offline.createBufferSource();
             source.buffer = fullBuf;
             source.loop = true;
             source.loopStart = 0;
             source.loopEnd = fullBuf.duration;
-            source.start(0, startSec % fullBuf.duration);
+            const safeStart = Math.max(0, startSec) % fullBuf.duration;
+            source.start(0, isFinite(safeStart) ? safeStart : 0);
+            source.connect(offline.destination);
 
             return await offline.startRendering();
         } catch (e) {
-            console.warn("Extraction audio impossible (vidéo muette ou format non décodable) :", e);
+            console.warn("Extraction audio impossible via WebAudio (repli FFmpeg possible) :", e);
             return null;
         }
     };
 
-    // ── MOTEUR D'EXPORTATION MP4 (1080x1920, 60 ou 30 FPS avec Audio) ──
+    // ── MOTEUR D'EXPORTATION MP4 (1080x1920, 60 ou 30 FPS avec Audio garanti) ──
     const handleExportMp4 = async () => {
         if (isExporting) return;
         setIsExporting(true);
@@ -1366,6 +1516,10 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
         setIsPlaying(false);
         isPlayingRef.current = false;
         setExportProgress(0);
+
+        if (audioRef.current) {
+            audioRef.current.pause();
+        }
 
         const targetWidth = 1080;
         const targetHeight = 1920;
@@ -1378,56 +1532,49 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
         exportCanvas.height = targetHeight;
         const exportCtx = exportCanvas.getContext('2d')!;
 
-        // Extraction audio si la vidéo a du son ou si une piste audio dédiée a été importée
+        // Extraction audio : priorité à la musique dédiée (MP3/Beatport), sinon son de la vidéo de fond
+        // On n'ignore JAMAIS le son à l'export à cause du mute de la preview !
         const vid = videoRef.current;
-        const hasBgVideo = bgType === 'video' && Boolean(vid && !isNaN(vid.duration) && vid.duration > 0);
+        const hasBgVideo = bgType === 'video' && Boolean((vid && !isNaN(vid.duration) && vid.duration > 0) || bgVideoBlobRef.current || bgVideoSrc);
         const hasDedicatedAudio = Boolean(bgAudioBlobRef.current || bgAudioSrc);
         let audioBuf: AudioBuffer | null = null;
+        let resolvedBgVideoBlob: Blob | null = bgVideoBlobRef.current;
         const AudioEncoderCls = (window as any).AudioEncoder;
         const AudioDataCls = (window as any).AudioData;
         const canEncodeAudio = typeof AudioEncoderCls !== 'undefined' && typeof AudioDataCls !== 'undefined';
 
-        if ((hasDedicatedAudio || hasBgVideo) && !isVideoAudioMuted && canEncodeAudio) {
-            try {
-                if (hasDedicatedAudio) {
-                    const audioBlob = bgAudioBlobRef.current || (bgAudioSrc ? await fetch(bgAudioSrc).then(r => r.blob()).catch(() => null) : null);
-                    if (audioBlob) {
-                        audioBuf = await extractAudioBuffer(audioBlob, totalDuration, bgAudioStartTimeRef.current);
-                    }
-                } else if (hasBgVideo) {
-                    const blob = bgVideoBlobRef.current || (bgVideoSrc ? await fetch(bgVideoSrc).then(r => r.blob()).catch(() => null) : null);
-                    if (blob) {
-                        audioBuf = await extractAudioBuffer(blob, totalDuration, bgVideoStartTimeRef.current);
-                    }
-                }
-            } catch (err) {
-                console.warn("Extraction audio ignorée :", err);
+        const fetchBlobWithProxyFallback = async (url: string): Promise<Blob | null> => {
+            if (!url) return null;
+            let res = await fetch(url).catch(() => null);
+            if ((!res || !res.ok) && /^https?:\/\//i.test(url) && !url.includes('/api/proxy-media')) {
+                res = await fetch(`/api/proxy-media?url=${encodeURIComponent(url)}`).catch(() => null);
             }
-        }
-
-        // Initialisation Muxer MP4 (Vidéo + Piste Audio synchronisée si présente)
-        const muxerTarget = new ArrayBufferTarget();
-        const muxerConfig: any = {
-            target: muxerTarget,
-            video: {
-                codec: 'avc',
-                width: targetWidth,
-                height: targetHeight
-            },
-            fastStart: 'in-memory'
+            if (res && res.ok) {
+                return await res.blob().catch(() => null);
+            }
+            return null;
         };
 
-        if (audioBuf && audioBuf.numberOfChannels > 0) {
-            muxerConfig.audio = {
-                codec: 'aac',
-                numberOfChannels: audioBuf.numberOfChannels,
-                sampleRate: audioBuf.sampleRate
-            };
+        try {
+            if (hasDedicatedAudio) {
+                const audioBlob = bgAudioBlobRef.current || (bgAudioSrc ? await fetchBlobWithProxyFallback(bgAudioSrc) : null);
+                if (audioBlob) {
+                    bgAudioBlobRef.current = audioBlob;
+                    audioBuf = await extractAudioBuffer(audioBlob, totalDuration, bgAudioStartTimeRef.current);
+                }
+            } else if (hasBgVideo) {
+                const blob = bgVideoBlobRef.current || (bgVideoSrc ? await fetchBlobWithProxyFallback(bgVideoSrc) : null);
+                if (blob) {
+                    resolvedBgVideoBlob = blob;
+                    bgVideoBlobRef.current = blob;
+                    audioBuf = await extractAudioBuffer(blob, totalDuration, bgVideoStartTimeRef.current);
+                }
+            }
+        } catch (err) {
+            console.warn("Extraction audio WebAudio ignorée :", err);
         }
 
-        const muxer = new Muxer(muxerConfig);
-
-        // Encodeur WebCodecs
+        // Encodeur WebCodecs Vidéo
         const VideoEncoderCls = (window as any).VideoEncoder;
         const VideoFrameCls = (window as any).VideoFrame;
         const hasWebCodecs = typeof VideoEncoderCls !== 'undefined' && typeof VideoFrameCls !== 'undefined';
@@ -1439,11 +1586,32 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
             return;
         }
 
+        const rawVideoChunks: Array<{ data: Uint8Array; type: 'key' | 'delta'; timestamp: number; duration: number; meta: any }> = [];
+        const videoOnlyTarget = new ArrayBufferTarget();
+        const videoOnlyMuxer = new Muxer({
+            target: videoOnlyTarget,
+            video: {
+                codec: 'avc',
+                width: targetWidth,
+                height: targetHeight
+            },
+            fastStart: 'in-memory',
+            firstTimestampBehavior: 'offset'
+        });
+
         const encoder = new VideoEncoderCls({
             output: (chunk: any, meta: any) => {
                 const rawBytes = new Uint8Array(chunk.byteLength);
                 chunk.copyTo(rawBytes);
-                muxer.addVideoChunkRaw(rawBytes, chunk.type === 'key' ? 'key' : 'delta', chunk.timestamp, chunk.duration, meta);
+                const cType: 'key' | 'delta' = chunk.type === 'key' ? 'key' : 'delta';
+                rawVideoChunks.push({
+                    data: rawBytes,
+                    type: cType,
+                    timestamp: chunk.timestamp,
+                    duration: chunk.duration,
+                    meta
+                });
+                videoOnlyMuxer.addVideoChunkRaw(rawBytes, cType, chunk.timestamp, chunk.duration, meta);
             },
             error: (e: any) => console.error("WebCodecs export error:", e)
         });
@@ -1456,9 +1624,11 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
             framerate: fps
         });
 
-        // Utilisation de la vidéo de fond pour l'export (lecture continue matérielle GPU sans seek saccadé, identique à Social Suite)
+        // Utilisation de la vidéo de fond pour l'export (lecture continue matérielle GPU en muet pour éviter tout blocage autoplay)
+        const prevVidMuted = vid ? vid.muted : false;
         if (hasBgVideo && vid) {
             vid.pause();
+            vid.muted = true;
             vid.currentTime = bgVideoStartTimeRef.current;
             await new Promise<void>((resolve) => {
                 let done = false;
@@ -1482,9 +1652,7 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
         for (let f = 0; f < totalFrames; f++) {
             const frameTimeSec = f / fps;
 
-            // Cadence fluide en temps réel alignée sur le décodage matériel GPU de la vidéo de fond
             if (hasBgVideo && vid) {
-                // Empêcher la vidéo de dévier ou de boucler
                 if (vid.currentTime < bgVideoStartTimeRef.current - 0.2 || vid.currentTime >= (vid.duration - 0.1)) {
                     vid.currentTime = bgVideoStartTimeRef.current + frameTimeSec;
                 }
@@ -1496,10 +1664,8 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
                 }
             }
 
-            // Dessin sur le canvas d'export avec la vidéo fluide
             drawFrame(exportCtx, targetWidth, targetHeight, frameTimeSec, true, vid);
 
-            // Création frame WebCodecs
             const frameBitmap = await createImageBitmap(exportCanvas);
             const videoFrame = new VideoFrameCls(frameBitmap, {
                 timestamp: Math.round(f * frameDurationUs),
@@ -1511,7 +1677,7 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
             videoFrame.close();
             frameBitmap.close();
 
-            const p = Math.round(((f + 1) / totalFrames) * 100);
+            const p = Math.round(((f + 1) / totalFrames) * 90);
             setExportProgress(p);
             setExportTimeLeft(Math.max(0, Math.ceil((totalFrames - (f + 1)) / fps)));
 
@@ -1522,65 +1688,193 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
 
         if (hasBgVideo && vid) {
             vid.pause();
+            vid.muted = prevVidMuted;
             vid.currentTime = bgVideoStartTimeRef.current;
         }
 
         await encoder.flush();
+        videoOnlyMuxer.finalize();
+        let finalMp4Blob = new Blob([videoOnlyTarget.buffer], { type: 'video/mp4' });
+        let audioMuxedSuccess = false;
 
-        // Encodage audio WebCodecs AAC si piste audio présente
-        if (audioBuf && canEncodeAudio) {
+        // ── PHASE 1 : Encodage audio natif WebCodecs AAC si supporté ──
+        if (audioBuf && canEncodeAudio && typeof AudioEncoderCls.isConfigSupported === 'function') {
             try {
-                const audioEncoder = new AudioEncoderCls({
-                    output: (chunk: any, meta: any) => {
-                        const rawBytes = new Uint8Array(chunk.byteLength);
-                        chunk.copyTo(rawBytes);
-                        muxer.addAudioChunkRaw(rawBytes, chunk.type === 'key' ? 'key' : 'delta', chunk.timestamp, chunk.duration, meta);
-                    },
-                    error: (e: any) => console.error("WebCodecs audio error:", e)
-                });
+                const audioSr = audioBuf.sampleRate;
+                const audioCh = Math.min(2, Math.max(1, audioBuf.numberOfChannels));
+                const candidateBitrates = [192_000, 160_000, 128_000, 96_000];
+                let selectedAudioCfg: any = null;
 
-                await audioEncoder.configure({
-                    codec: 'mp4a.40.2',
-                    numberOfChannels: audioBuf.numberOfChannels,
-                    sampleRate: audioBuf.sampleRate,
-                    bitrate: 192_000
-                });
-
-                const chunkFrames = 1024;
-                const totalSamples = audioBuf.length;
-                const chArrays: Float32Array[] = [];
-                for (let ch = 0; ch < audioBuf.numberOfChannels; ch++) {
-                    chArrays.push(audioBuf.getChannelData(ch));
+                for (const br of candidateBitrates) {
+                    try {
+                        const res = await AudioEncoderCls.isConfigSupported({
+                            codec: 'mp4a.40.2',
+                            sampleRate: audioSr,
+                            numberOfChannels: audioCh,
+                            bitrate: br
+                        });
+                        if (res?.supported) {
+                            selectedAudioCfg = res.config || {
+                                codec: 'mp4a.40.2',
+                                sampleRate: audioSr,
+                                numberOfChannels: audioCh,
+                                bitrate: br
+                            };
+                            break;
+                        }
+                    } catch {}
                 }
 
-                for (let offset = 0; offset < totalSamples; offset += chunkFrames) {
-                    const frameCount = Math.min(chunkFrames, totalSamples - offset);
-                    const planar = new Float32Array(frameCount * audioBuf.numberOfChannels);
-                    for (let ch = 0; ch < audioBuf.numberOfChannels; ch++) {
-                        planar.set(chArrays[ch].subarray(offset, offset + frameCount), ch * frameCount);
-                    }
-                    const ad = new AudioDataCls({
-                        format: 'f32-planar',
-                        sampleRate: audioBuf.sampleRate,
-                        numberOfFrames: frameCount,
-                        numberOfChannels: audioBuf.numberOfChannels,
-                        timestamp: Math.round((offset / audioBuf.sampleRate) * 1_000_000),
-                        data: planar
+                if (selectedAudioCfg) {
+                    const avTarget = new ArrayBufferTarget();
+                    const avMuxer = new Muxer({
+                        target: avTarget,
+                        video: {
+                            codec: 'avc',
+                            width: targetWidth,
+                            height: targetHeight
+                        },
+                        audio: {
+                            codec: 'aac',
+                            numberOfChannels: audioCh,
+                            sampleRate: audioSr
+                        },
+                        fastStart: 'in-memory',
+                        firstTimestampBehavior: 'offset'
                     });
-                    audioEncoder.encode(ad);
-                    ad.close();
-                }
 
-                await audioEncoder.flush();
+                    for (const vc of rawVideoChunks) {
+                        avMuxer.addVideoChunkRaw(vc.data, vc.type, vc.timestamp, vc.duration, vc.meta);
+                    }
+
+                    let audioEncErr: any = null;
+                    let fallbackAudioTs = 0;
+                    const defaultChunkDurUs = Math.round((1024 / audioSr) * 1_000_000);
+
+                    const audioEncoder = new AudioEncoderCls({
+                        output: (chunk: any, meta: any) => {
+                            try {
+                                const rawBytes = new Uint8Array(chunk.byteLength);
+                                chunk.copyTo(rawBytes);
+                                const safeTs = (typeof chunk.timestamp === 'number' && Number.isFinite(chunk.timestamp) && chunk.timestamp >= 0)
+                                    ? chunk.timestamp
+                                    : fallbackAudioTs;
+                                const safeDur = (typeof chunk.duration === 'number' && Number.isFinite(chunk.duration) && chunk.duration >= 0)
+                                    ? chunk.duration
+                                    : defaultChunkDurUs;
+                                fallbackAudioTs = safeTs + safeDur;
+                                avMuxer.addAudioChunkRaw(rawBytes, chunk.type === 'delta' ? 'delta' : 'key', safeTs, safeDur, meta);
+                            } catch (mErr) {
+                                audioEncErr = mErr;
+                            }
+                        },
+                        error: (e: any) => {
+                            audioEncErr = e;
+                        }
+                    });
+
+                    audioEncoder.configure(selectedAudioCfg);
+
+                    const chunkFrames = 1024;
+                    const totalSamples = audioBuf.length;
+                    const chArrays: Float32Array[] = [];
+                    for (let ch = 0; ch < audioCh; ch++) {
+                        chArrays.push(audioBuf.getChannelData(ch));
+                    }
+
+                    for (let offset = 0; offset < totalSamples; offset += chunkFrames) {
+                        if (audioEncErr) break;
+                        while (audioEncoder.encodeQueueSize > 24) {
+                            await new Promise(r => setTimeout(r, 2));
+                        }
+                        const frameCount = Math.min(chunkFrames, totalSamples - offset);
+                        const planar = new Float32Array(frameCount * audioCh);
+                        for (let ch = 0; ch < audioCh; ch++) {
+                            planar.set(chArrays[ch].subarray(offset, offset + frameCount), ch * frameCount);
+                        }
+                        const ad = new AudioDataCls({
+                            format: 'f32-planar',
+                            sampleRate: audioSr,
+                            numberOfFrames: frameCount,
+                            numberOfChannels: audioCh,
+                            timestamp: Math.round((offset / audioSr) * 1_000_000),
+                            data: planar
+                        });
+                        audioEncoder.encode(ad);
+                        ad.close();
+                    }
+
+                    if (!audioEncErr && audioEncoder.state === 'configured') {
+                        await audioEncoder.flush();
+                    }
+                    try { audioEncoder.close(); } catch {}
+
+                    if (audioEncErr) throw audioEncErr;
+
+                    avMuxer.finalize();
+                    finalMp4Blob = new Blob([avTarget.buffer], { type: 'video/mp4' });
+                    audioMuxedSuccess = true;
+                }
             } catch (aErr) {
-                console.warn("Audio encoding skipped, fallback video only:", aErr);
+                console.warn("WebCodecs AAC non supporté ou échoué, bascule sur FFmpeg :", aErr);
             }
         }
 
-        muxer.finalize();
+        // ── PHASE 2 : Repli universel FFmpeg AAC (-c:v copy, ultra rapide) si WebCodecs AAC n'a pas muxé l'audio ──
+        if (!audioMuxedSuccess && (audioBuf || (!hasDedicatedAudio && resolvedBgVideoBlob))) {
+            try {
+                setExportProgress(94);
+                const ffmpeg = await ensureFFmpegLoaded();
+                try { await ffmpeg.deleteFile('input.mp4'); } catch {}
+                try { await ffmpeg.deleteFile('audio.wav'); } catch {}
+                try { await ffmpeg.deleteFile('output.mp4'); } catch {}
 
-        const mp4Blob = new Blob([muxerTarget.buffer], { type: 'video/mp4' });
-        const downloadUrl = URL.createObjectURL(mp4Blob);
+                await ffmpeg.writeFile('input.mp4', await fetchFile(finalMp4Blob));
+                let hasWav = false;
+
+                if (audioBuf) {
+                    const wavBlob = audioBufferToWavBlob(audioBuf);
+                    await ffmpeg.writeFile('audio.wav', await fetchFile(wavBlob));
+                    hasWav = true;
+                } else if (resolvedBgVideoBlob) {
+                    const ext = resolvedBgVideoBlob.type.includes('webm') ? 'webm' : (resolvedBgVideoBlob.type.includes('quicktime') ? 'mov' : 'mp4');
+                    const srcName = `bg_src.${ext}`;
+                    await ffmpeg.writeFile(srcName, await fetchFile(resolvedBgVideoBlob));
+                    try {
+                        const ssArgs = bgVideoStartTimeRef.current > 0 ? ['-ss', String(bgVideoStartTimeRef.current)] : [];
+                        await ffmpeg.exec([...ssArgs, '-i', srcName, '-vn', '-c:a', 'pcm_s16le', '-ar', '48000', '-ac', '2', 'audio.wav']);
+                        hasWav = true;
+                    } catch (extErr) {
+                        console.warn('Extraction FFmpeg bg_src échouée :', extErr);
+                    }
+                    try { await ffmpeg.deleteFile(srcName); } catch {}
+                }
+
+                if (hasWav) {
+                    const targetSec = totalDuration.toFixed(2);
+                    await ffmpeg.exec([
+                        '-i', 'input.mp4', '-i', 'audio.wav',
+                        '-map', '0:v:0', '-map', '1:a:0',
+                        '-c:v', 'copy', '-c:a', 'aac', '-b:a', '192k', '-ar', '48000',
+                        '-t', targetSec, '-movflags', '+faststart', 'output.mp4'
+                    ]);
+                    const outData: any = await ffmpeg.readFile('output.mp4');
+                    const safeBytes = outData instanceof Uint8Array ? new Uint8Array(outData) : outData;
+                    if (safeBytes && safeBytes.byteLength > 1024) {
+                        finalMp4Blob = new Blob([safeBytes], { type: 'video/mp4' });
+                        audioMuxedSuccess = true;
+                    }
+                }
+
+                try { await ffmpeg.deleteFile('input.mp4'); } catch {}
+                try { await ffmpeg.deleteFile('audio.wav'); } catch {}
+                try { await ffmpeg.deleteFile('output.mp4'); } catch {}
+            } catch (ffErr) {
+                console.warn('Muxage FFmpeg de secours échoué :', ffErr);
+            }
+        }
+
+        const downloadUrl = URL.createObjectURL(finalMp4Blob);
         const a = document.createElement('a');
         a.href = downloadUrl;
         a.download = `DROPSIDERS_RECRUTEMENT_REEL_2026.mp4`;
