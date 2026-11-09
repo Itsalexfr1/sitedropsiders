@@ -273,14 +273,21 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
     };
 
     // ── Dessin de la frame sur le Canvas (1080x1920) ──
-    const drawFrame = useCallback((ctx: CanvasRenderingContext2D, width: number, height: number, time: number, isExport: boolean = false) => {
+    const drawFrame = useCallback((
+        ctx: CanvasRenderingContext2D,
+        width: number,
+        height: number,
+        time: number,
+        isExport: boolean = false,
+        customVideoElem?: HTMLVideoElement | null
+    ) => {
         ctx.clearRect(0, 0, width, height);
 
         // 1. FOND VISUEL (En export MP4 ou si Image : dessiné sur canvas. En live preview : la balise vidéo joue en direct)
         let hasCustomBg = false;
 
         if (isExport && bgType === 'video') {
-            const vid = videoRef.current;
+            const vid = customVideoElem || videoRef.current;
             if (vid && !isNaN(vid.videoWidth) && vid.videoWidth > 0) {
                 const scale = Math.max(width / vid.videoWidth, height / vid.videoHeight);
                 const vw = vid.videoWidth * scale;
@@ -310,18 +317,13 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
             ctx.fillRect(0, 0, width, height);
         }
 
-        // 2. VOILE SOMBRE ÉLÉGANT POUR 100% DE LISIBILITÉ DU TEXTE (AUCUN LASER)
-        ctx.save();
-        ctx.fillStyle = `rgba(0, 0, 0, ${bgOverlayOpacity})`;
-        ctx.fillRect(0, 0, width, height);
-
-        // Vignetage cinématographique doux
-        const centerShade = ctx.createRadialGradient(width / 2, height / 2, 120, width / 2, height / 2, width * 0.95);
-        centerShade.addColorStop(0, 'rgba(0,0,0,0.15)');
-        centerShade.addColorStop(1, 'rgba(0,0,0,0.75)');
-        ctx.fillStyle = centerShade;
-        ctx.fillRect(0, 0, width, height);
-        ctx.restore();
+        // 2. VOILE SOMBRE 100% UNIFORME SUR TOUTE LA SURFACE (AUCUNE BANDE CLAIRE EN HAUT/BAS)
+        if (isExport) {
+            ctx.save();
+            ctx.fillStyle = `rgba(0, 0, 0, ${bgOverlayOpacity})`;
+            ctx.fillRect(0, 0, width, height);
+            ctx.restore();
+        }
 
         // 3. SCÈNE ACTIVE & ANIMATION DU TEXTE (SANS CADRE)
         const { sceneIdx, sceneTime, alpha, translateY, textScale } = getSceneState(time);
@@ -627,59 +629,118 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
         }
 
         // ─────────────────────────────────────────────────────────────
-        // SCÈNE 6 : APPARITION DU LOGO OFFICIEL DROPSIDERS FINAL
+        // SCÈNE 6 : APPARITION DU LOGO AVEC TRACÉ DU CADRE & LETTRES UNE PAR UNE
         // ─────────────────────────────────────────────────────────────
         else if (sceneIdx === 6) {
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
 
-            // Pulsation du logo
-            const pump = 1.0 + Math.sin(sceneTime * 5) * 0.03;
+            const centerY = height * 0.48;
             ctx.save();
-            ctx.translate(width / 2, height * 0.48);
-            ctx.scale(pump, pump);
+            ctx.translate(width / 2, centerY);
 
-            // Halo radiant derrière le logo
-            const halo = ctx.createRadialGradient(0, 0, 50, 0, 0, 400);
-            halo.addColorStop(0, 'rgba(255, 0, 51, 0.55)');
-            halo.addColorStop(0.5, 'rgba(255, 204, 0, 0.25)');
-            halo.addColorStop(1, 'transparent');
-            ctx.fillStyle = halo;
+            // Dimensions agrandies du cadre logo (agrandi comme demandé)
+            const boxW = 820;
+            const boxH = 240;
+            const halfW = boxW / 2;
+            const halfH = boxH / 2;
+
+            // 1. DESSIN PROGRESSIF DES LIGNES DU CADRE ("comme s'il se dessinait")
+            // Le cadre se trace de manière symétrique depuis le haut-centre jusqu'au bas-centre
+            const strokeDuration = 0.9;
+            const frameProgress = Math.min(1, Math.max(0, sceneTime / strokeDuration));
+            const perimeterHalf = halfW + boxH + halfW;
+            const currentDist = frameProgress * perimeterHalf;
+
+            ctx.save();
+            ctx.lineWidth = 10;
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineCap = 'square';
+            ctx.lineJoin = 'miter';
+            ctx.shadowColor = 'rgba(255, 255, 255, 0.4)';
+            ctx.shadowBlur = 12;
+
+            // Côté Droit : Haut-centre -> Coin haut-droit -> Coin bas-droit -> Bas-centre
             ctx.beginPath();
-            ctx.arc(0, 0, 400, 0, Math.PI * 2);
-            ctx.fill();
-
-            // Logo image officiel
-            if (logoImgRef.current && logoImgRef.current.complete && logoImgRef.current.naturalWidth > 0) {
-                const img = logoImgRef.current;
-                const maxDim = 480;
-                const aspect = img.naturalWidth / img.naturalHeight;
-                let lw = maxDim;
-                let lh = maxDim / aspect;
-                if (lh > 230) {
-                    lh = 230;
-                    lw = lh * aspect;
-                }
-                ctx.shadowColor = 'rgba(255, 0, 51, 0.85)';
-                ctx.shadowBlur = 40;
-                ctx.drawImage(img, -lw / 2, -lh / 2, lw, lh);
+            ctx.moveTo(0, -halfH);
+            if (currentDist <= halfW) {
+                ctx.lineTo(currentDist, -halfH);
+            } else if (currentDist <= halfW + boxH) {
+                ctx.lineTo(halfW, -halfH);
+                ctx.lineTo(halfW, -halfH + (currentDist - halfW));
             } else {
-                ctx.font = '900 72px "Montserrat", sans-serif';
-                ctx.fillStyle = '#ffffff';
-                ctx.shadowColor = '#ff0033';
-                ctx.shadowBlur = 35;
-                ctx.fillText('DROPSIDERS.FR', 0, 0);
+                ctx.lineTo(halfW, -halfH);
+                ctx.lineTo(halfW, halfH);
+                ctx.lineTo(halfW - (currentDist - (halfW + boxH)), halfH);
             }
+            ctx.stroke();
+
+            // Côté Gauche : Haut-centre -> Coin haut-gauche -> Coin bas-gauche -> Bas-centre
+            ctx.beginPath();
+            ctx.moveTo(0, -halfH);
+            if (currentDist <= halfW) {
+                ctx.lineTo(-currentDist, -halfH);
+            } else if (currentDist <= halfW + boxH) {
+                ctx.lineTo(-halfW, -halfH);
+                ctx.lineTo(-halfW, -halfH + (currentDist - halfW));
+            } else {
+                ctx.lineTo(-halfW, -halfH);
+                ctx.lineTo(-halfW, halfH);
+                ctx.lineTo(-halfW + (currentDist - (halfW + boxH)), halfH);
+            }
+            ctx.stroke();
             ctx.restore();
 
-            // Texte bas sous le logo
-            ctx.save();
-            ctx.font = '900 36px "Montserrat", sans-serif';
-            ctx.fillStyle = '#ffffff';
-            ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
-            ctx.shadowBlur = 20;
-            ctx.shadowOffsetY = 4;
-            ctx.fillText('WWW.DROPSIDERS.FR', width / 2, height * 0.66);
+            // 2. APPARITION DES LETTRES UNE PAR UNE ("DROPSIDERS.FR")
+            const fullText = "DROPSIDERS.FR";
+            const textStart = 0.25;
+            const letterSpeed = 0.065;
+            const elapsedForText = Math.max(0, sceneTime - textStart);
+            const numLettersVisible = Math.min(fullText.length, Math.floor(elapsedForText / letterSpeed));
+            const visibleText = fullText.slice(0, numLettersVisible);
+
+            if (visibleText.length > 0) {
+                ctx.save();
+                ctx.font = '900 110px "Montserrat", sans-serif';
+                (ctx as any).letterSpacing = '6px';
+                ctx.fillStyle = '#ffffff';
+                ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
+                ctx.shadowBlur = 30;
+                ctx.shadowOffsetY = 4;
+                ctx.fillText(visibleText, 0, 6);
+
+                // Curseur d'écriture dynamique
+                if (numLettersVisible < fullText.length) {
+                    const metrics = ctx.measureText(visibleText);
+                    const cursorX = metrics.width / 2 + 12;
+                    ctx.fillStyle = '#ff0033';
+                    ctx.shadowColor = '#ff0033';
+                    ctx.shadowBlur = 15;
+                    ctx.fillRect(cursorX, -45, 8, 90);
+                }
+                ctx.restore();
+            }
+
+            // 3. SOUS-TITRE WWW.DROPSIDERS.FR (Apparaît lettre par lettre)
+            const subText = "WWW.DROPSIDERS.FR";
+            const subStart = 1.25;
+            const subSpeed = 0.045;
+            const elapsedForSub = Math.max(0, sceneTime - subStart);
+            const numSubVisible = Math.min(subText.length, Math.floor(elapsedForSub / subSpeed));
+            const visibleSub = subText.slice(0, numSubVisible);
+
+            if (visibleSub.length > 0) {
+                ctx.save();
+                ctx.font = '900 40px "Montserrat", sans-serif';
+                (ctx as any).letterSpacing = '8px';
+                ctx.fillStyle = '#ffffff';
+                ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
+                ctx.shadowBlur = 20;
+                ctx.shadowOffsetY = 3;
+                ctx.fillText(visibleSub, 0, halfH + 65);
+                ctx.restore();
+            }
+
             ctx.restore();
         }
 
@@ -716,8 +777,8 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
                 }
             }
 
-            // Dessiner immédiatement sur le canvas sans attendre React
-            if (canvasRef.current) {
+            // Dessiner immédiatement sur le canvas sans attendre React (sauf pendant l'export pour 100% de fluidité)
+            if (canvasRef.current && !isExportingRef.current) {
                 const ctx = canvasRef.current.getContext('2d');
                 if (ctx) {
                     drawFrame(ctx, 1080, 1920, currentTimeRef.current);
@@ -814,15 +875,19 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
             framerate: fps
         });
 
-        // Vidéo de fond : calage précis à bgVideoStartTime
-        const vid = videoRef.current;
-        if (vid && bgType === 'video') {
-            vid.pause();
-            vid.currentTime = bgVideoStartTimeRef.current;
+        // Vidéo de fond dédiée pour l'export (ne touche JAMAIS au lecteur de preview visible pour 0 lag)
+        let exportVid: HTMLVideoElement | null = null;
+        if (bgType === 'video' && bgVideoSrc) {
+            exportVid = document.createElement('video');
+            exportVid.src = bgVideoSrc;
+            exportVid.muted = true;
+            exportVid.playsInline = true;
+            exportVid.crossOrigin = 'anonymous';
+            exportVid.currentTime = bgVideoStartTimeRef.current;
             await new Promise<void>(res => {
-                const onSeek = () => { vid.removeEventListener('seeked', onSeek); res(); };
-                vid.addEventListener('seeked', onSeek, { once: true });
-                setTimeout(res, 200);
+                const onLoaded = () => { exportVid?.removeEventListener('loadeddata', onLoaded); res(); };
+                exportVid?.addEventListener('loadeddata', onLoaded, { once: true });
+                setTimeout(res, 250);
             });
         }
 
@@ -832,26 +897,26 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
         for (let f = 0; f < totalFrames; f++) {
             const frameTimeSec = f / fps;
 
-            // Recaler la vidéo sur le timestamp exact et attendre le décodage réel de la frame
-            if (vid && bgType === 'video' && !isNaN(vid.duration) && vid.duration > 0) {
-                const targetTime = (bgVideoStartTimeRef.current + frameTimeSec) % vid.duration;
-                vid.currentTime = targetTime;
+            // Recaler la vidéo d'export sur le timestamp exact et attendre le décodage réel de la frame
+            if (exportVid && !isNaN(exportVid.duration) && exportVid.duration > 0) {
+                const targetTime = (bgVideoStartTimeRef.current + frameTimeSec) % exportVid.duration;
+                exportVid.currentTime = targetTime;
                 await new Promise<void>(res => {
                     let resolved = false;
                     const onSeek = () => {
                         if (!resolved) {
                             resolved = true;
-                            vid.removeEventListener('seeked', onSeek);
+                            exportVid?.removeEventListener('seeked', onSeek);
                             res();
                         }
                     };
-                    vid.addEventListener('seeked', onSeek, { once: true });
-                    setTimeout(onSeek, 80);
+                    exportVid?.addEventListener('seeked', onSeek, { once: true });
+                    setTimeout(onSeek, 60);
                 });
             }
 
-            // Dessin
-            drawFrame(exportCtx, targetWidth, targetHeight, frameTimeSec, true);
+            // Dessin sur le canvas d'export avec la vidéo dédiée
+            drawFrame(exportCtx, targetWidth, targetHeight, frameTimeSec, true, exportVid);
 
             // Création frame WebCodecs
             const frameBitmap = await createImageBitmap(exportCanvas);
@@ -962,18 +1027,53 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
                                 }`}
                             />
 
-                            {/* Canvas 1080x1920 réel */}
+                            {/* Image de fond en preview si mode image */}
+                            {bgType === 'image' && bgImageSrc && (
+                                <img
+                                    src={bgImageSrc}
+                                    alt="Fond"
+                                    className="absolute inset-0 w-full h-full object-cover z-0 pointer-events-none"
+                                />
+                            )}
+
+                            {/* Voile sombre 100% couvrant et uniforme sur tout l'écran (élimine les bandes plus claires en haut et en bas) */}
+                            <div
+                                className="absolute inset-0 z-[5] pointer-events-none transition-colors"
+                                style={{ backgroundColor: `rgba(0, 0, 0, ${bgOverlayOpacity})` }}
+                            />
+
+                            {/* Canvas 1080x1920 réel couvrant 100% de la zone sans bordure letterbox */}
                             <canvas
                                 ref={canvasRef}
                                 width={1080}
                                 height={1920}
-                                className="w-full h-full object-contain relative z-10 pointer-events-none"
+                                className="absolute inset-0 w-full h-full object-cover z-10 pointer-events-none"
                             />
 
                             {/* Badge Timeline HUD */}
                             <div className="absolute top-3 left-3 px-2 py-0.5 rounded-full bg-black/70 border border-white/15 text-[9px] font-mono text-gray-300 backdrop-blur-md z-30">
                                 {uiDisplayTime.toFixed(1)}s / {totalDuration.toFixed(1)}s
                             </div>
+
+                            {/* Overlay d'exportation MP4 fluide sans freeze de la preview */}
+                            {isExporting && (
+                                <div className="absolute inset-0 z-40 bg-black/85 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center gap-3">
+                                    <div className="w-14 h-14 rounded-full border-3 border-[#ff0033]/30 border-t-[#ff0033] animate-spin flex items-center justify-center">
+                                        <Download className="w-5 h-5 text-white animate-pulse" />
+                                    </div>
+                                    <div>
+                                        <h4 className="text-xs font-black text-white uppercase tracking-wider">Exportation MP4 60 FPS</h4>
+                                        <p className="text-[10px] text-gray-400 mt-0.5">Encodage vidéo en arrière-plan • {exportProgress}%</p>
+                                    </div>
+                                    <div className="w-44 h-2 bg-white/10 rounded-full overflow-hidden border border-white/10 mt-1">
+                                        <div
+                                            className="h-full bg-gradient-to-r from-[#ff0033] via-amber-400 to-[#00f0ff] transition-all duration-150"
+                                            style={{ width: `${exportProgress}%` }}
+                                        />
+                                    </div>
+                                    <span className="text-[9px] font-mono text-gray-400">~{exportTimeLeft}s restantes</span>
+                                </div>
+                            )}
                         </div>
                     </div>
 
