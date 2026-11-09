@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+﻿import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { X, Play, Pause, RotateCcw, Upload, Volume2, VolumeX, Video, Download, Sparkles, Check, Film, Settings2, Clock, Image as ImageIcon, Save, Music, Search } from 'lucide-react';
 // @ts-ignore
 import { Muxer, ArrayBufferTarget } from 'mp4-muxer';
@@ -462,23 +462,24 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
     useEffect(() => {
         const img = new Image();
         img.crossOrigin = 'anonymous';
+        img.src = '/logo_white.png';
         img.onload = () => {
             logoImgRef.current = img;
         };
-        img.src = '/logo_white.png';
-        if (img.complete && img.naturalWidth > 0) {
-            logoImgRef.current = img;
-        }
 
-        const createDarkLogo = (loadedPureImg: HTMLImageElement) => {
-            logoPureImgRef.current = loadedPureImg;
+        const pureImg = new Image();
+        pureImg.crossOrigin = 'anonymous';
+        pureImg.src = '/logo_dropsiders_brand_pure.png';
+        pureImg.onload = () => {
+            logoPureImgRef.current = pureImg;
+            // Pré-générer la version 3D sombre offscreen (0 lag, 60 FPS sans aucun ctx.filter)
             try {
                 const off = document.createElement('canvas');
-                off.width = loadedPureImg.naturalWidth;
-                off.height = loadedPureImg.naturalHeight;
+                off.width = pureImg.naturalWidth;
+                off.height = pureImg.naturalHeight;
                 const octx = off.getContext('2d');
                 if (octx) {
-                    octx.drawImage(loadedPureImg, 0, 0);
+                    octx.drawImage(pureImg, 0, 0);
                     octx.globalCompositeOperation = 'source-in';
                     octx.fillStyle = '#2d3340'; // Acier sombre brossé
                     octx.fillRect(0, 0, off.width, off.height);
@@ -486,16 +487,6 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
                 }
             } catch {}
         };
-
-        const pureImg = new Image();
-        pureImg.crossOrigin = 'anonymous';
-        pureImg.onload = () => {
-            createDarkLogo(pureImg);
-        };
-        pureImg.src = '/logo_dropsiders_brand_pure.png';
-        if (pureImg.complete && pureImg.naturalWidth > 0) {
-            createDarkLogo(pureImg);
-        }
     }, []);
 
     // ── Gestionnaire d'Upload Médias (Vidéo ou Image) ──
@@ -1095,7 +1086,7 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
             const rotY = Math.sin(sceneTime * swingSpeed) * (0.32 * swingProgress); // Balancement ~18°
             const rotX = 0.07 * swingProgress; // Inclinaison 4°
 
-            // Helper de tracé ultra-optimisé des éléments du logo (0 lag GPU, sans clip lourd ni recalculs de police)
+            // Helper de tracé des éléments du logo pour chaque tranche 3D (0 lag, 60 FPS fluide sans ctx.filter)
             const renderLogoSlice = (
                 c: CanvasRenderingContext2D,
                 isFront: boolean,
@@ -1116,6 +1107,8 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
                         c.strokeStyle = `rgb(${val}, ${val + 5}, ${val + 15})`;
                         c.shadowColor = 'transparent';
                         c.shadowBlur = 0;
+                        c.shadowOffsetX = 0;
+                        c.shadowOffsetY = 0;
                     }
                     c.lineCap = 'square';
                     c.lineJoin = 'miter';
@@ -1155,34 +1148,35 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
                     c.restore();
                 }
 
-                // 2. Lettres du logo officiel DROPSIDERS.FR (découpage source direct matériel sans aucun c.clip)
+                // 2. Lettres du vrai logo officiel DROPSIDERS.FR
                 if (lettersVisible > 0) {
                     const pureImg = logoPureImgRef.current;
                     const fallbackImg = logoImgRef.current;
                     const darkImg = darkLogoCanvasRef.current;
-                    const letterRatio = lettersVisible / totalLetters;
 
                     if (pureImg && pureImg.complete && pureImg.naturalWidth > 0) {
                         const lw = 760;
                         const lh = Math.round(lw * (pureImg.naturalHeight / pureImg.naturalWidth));
-                        const revealW = letterRatio * lw;
-                        const srcCropW = Math.max(1, Math.round(letterRatio * pureImg.naturalWidth));
+                        const revealW = (lettersVisible / totalLetters) * lw;
 
+                        c.save();
                         if (isFront) {
-                            c.save();
                             c.shadowColor = 'rgba(0, 0, 0, 0.95)';
                             c.shadowOffsetX = -Math.sin(rotY) * 6;
                             c.shadowOffsetY = 6;
                             c.shadowBlur = 10;
+                        } else {
+                            c.shadowColor = 'transparent';
+                            c.shadowBlur = 0;
+                            c.shadowOffsetX = 0;
+                            c.shadowOffsetY = 0;
                         }
-                        c.drawImage(
-                            isFront ? pureImg : (darkImg || pureImg),
-                            0, 0, srcCropW, pureImg.naturalHeight,
-                            -lw / 2, -lh / 2, revealW, lh
-                        );
-                        if (isFront) {
-                            c.restore();
-                        }
+                        c.beginPath();
+                        c.rect(-lw / 2, -lh / 2, revealW, lh);
+                        c.clip();
+                        // Tranches arrière rendues instantanément via buffer offscreen dark (0 lag GPU !)
+                        c.drawImage(isFront ? pureImg : (darkImg || pureImg), -lw / 2, -lh / 2, lw, lh);
+                        c.restore();
 
                         // Curseur lumineux d'écriture à la dernière lettre révélée (sur la face avant uniquement)
                         if (isFront && lettersVisible < totalLetters) {
@@ -1196,28 +1190,29 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
                     } else if (fallbackImg && fallbackImg.complete && fallbackImg.naturalWidth > 0) {
                         const lw = 820;
                         const lh = Math.round(lw * (fallbackImg.naturalHeight / fallbackImg.naturalWidth));
-                        const revealW = letterRatio * lw;
-                        const srcCropW = Math.max(1, Math.round(letterRatio * fallbackImg.naturalWidth));
+                        const revealW = (lettersVisible / totalLetters) * lw;
 
+                        c.save();
                         if (isFront) {
-                            c.save();
                             c.shadowColor = 'rgba(0, 0, 0, 0.95)';
                             c.shadowOffsetX = -Math.sin(rotY) * 6;
                             c.shadowOffsetY = 6;
                             c.shadowBlur = 10;
+                        } else {
+                            c.shadowColor = 'transparent';
+                            c.shadowBlur = 0;
+                            c.shadowOffsetX = 0;
+                            c.shadowOffsetY = 0;
                         }
-                        c.drawImage(
-                            fallbackImg,
-                            0, 0, srcCropW, Math.round(fallbackImg.naturalHeight * 0.72),
-                            -lw / 2, -lh / 2, revealW, lh * 0.72
-                        );
-                        if (isFront) {
-                            c.restore();
-                        }
+                        c.beginPath();
+                        c.rect(-lw / 2, -lh / 2, revealW, lh * 0.72);
+                        c.clip();
+                        c.drawImage(fallbackImg, -lw / 2, -lh / 2, lw, lh);
+                        c.restore();
                     }
                 }
 
-                // 3. Sous-titre WWW.DROPSIDERS.FR (Police moderne Syncopate / Orbitron)
+                // 3. Sous-titre WWW.DROPSIDERS.FR (Police moderne Syncopate / Orbitron avec espacement racé)
                 if (numSubVisible > 0) {
                     const visibleSub = subText.slice(0, numSubVisible);
                     c.save();
@@ -1234,6 +1229,8 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
                         c.fillStyle = `rgb(${val}, ${val + 5}, ${val + 12})`;
                         c.shadowColor = 'transparent';
                         c.shadowBlur = 0;
+                        c.shadowOffsetX = 0;
+                        c.shadowOffsetY = 0;
                     }
                     c.fillText(visibleSub, 0, halfH + 68);
 
@@ -1249,7 +1246,7 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
                 }
             };
 
-            // ── 1. OMBRE PORTÉE DE CONTACT (0 lag, ombre matérielle fluide) ──
+            // ── 1. OMBRE PORTÉE DE CONTACT (0 lag, ombre matérielle ultra fluide) ──
             ctx.save();
             const shadowZ = -22;
             ctx.transform(
@@ -1260,12 +1257,15 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
                 -Math.sin(rotY) * shadowZ,
                 Math.sin(rotX) * shadowZ + 12
             );
-            ctx.globalAlpha = 0.35;
-            renderLogoSlice(ctx, false, 0.05);
+            ctx.globalAlpha = 0.50;
+            ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
+            ctx.shadowBlur = 20;
+            ctx.shadowOffsetY = 8;
+            renderLogoSlice(ctx, false, 0.1);
             ctx.restore();
 
-            // ── 2. TRANCHES 3D VOLUMÉTRIQUES EXTRUDÉES (Acier / Titane sombre comme Animated3DLogo, 60 FPS fluide garanti) ──
-            const sliceCount = 5;
+            // ── 2. TRANCHES 3D VOLUMÉTRIQUES EXTRUDÉES (Acier / Titane sombre comme Animated3DLogo, 60 FPS garanti) ──
+            const sliceCount = 8;
             const maxDepth = 20;
             for (let idx = 0; idx < sliceCount; idx++) {
                 const i = sliceCount - idx;
@@ -1299,6 +1299,8 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
             );
             ctx.globalAlpha = 1.0;
             renderLogoSlice(ctx, true, 1.0);
+            ctx.restore();
+
             ctx.restore();
 
             ctx.restore();
@@ -1646,27 +1648,14 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
         const frameIntervalMs = 1000 / fps;
         const frameDurationUs = Math.round(1_000_000 / fps);
 
-        // Boucle d'encodage temps réel ultra-fluide à 60 FPS garantis
+        // Boucle d'encodage temps réel ultra-fluide identique à Social Suite
         for (let f = 0; f < totalFrames; f++) {
             const frameTimeSec = f / fps;
 
             if (hasBgVideo && vid) {
-                const vidDur = vid.duration;
-                const startOffset = bgVideoStartTimeRef.current || 0;
-                if (!isNaN(vidDur) && vidDur > startOffset + 0.3) {
-                    const playableDur = vidDur - startOffset;
-                    const expectedOffset = frameTimeSec % playableDur;
-                    const expectedTime = startOffset + expectedOffset;
-
-                    // Si la vidéo a atteint la fin ou si le décalage dépasse 0.35s
-                    if (vid.ended || vid.currentTime >= (vidDur - 0.1) || Math.abs(vid.currentTime - expectedTime) > 0.35) {
-                        vid.currentTime = expectedTime;
-                        if (vid.paused) {
-                            await vid.play().catch(() => {});
-                        }
-                    }
+                if (vid.currentTime < bgVideoStartTimeRef.current - 0.2 || vid.currentTime >= (vid.duration - 0.1)) {
+                    vid.currentTime = bgVideoStartTimeRef.current + frameTimeSec;
                 }
-
                 const targetMs = f * frameIntervalMs;
                 const elapsed = performance.now() - segmentStartTime;
                 const delay = targetMs - elapsed;
@@ -1687,11 +1676,6 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
             encoder.encode(videoFrame, { keyFrame: isKeyFrame });
             videoFrame.close();
             frameBitmap.close();
-
-            // Régulation de la file d'attente WebCodecs pour éviter toute saturation GPU / drop de frames
-            while (encoder.encodeQueueSize > 8) {
-                await new Promise(r => setTimeout(r, 4));
-            }
 
             const p = Math.round(((f + 1) / totalFrames) * 90);
             setExportProgress(p);
