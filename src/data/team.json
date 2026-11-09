@@ -7,7 +7,10 @@
     "socials": {
       "instagram": "https://www.instagram.com/itsalex.fr1/",
       "tiktok": "#"
-    }
+    },
+    "email": "alexflex30@gmail.com",
+    "dropsiders_email": "alex@dropsiders.fr",
+    "mail_enabled": true
   },
   {
     "id": 3,
@@ -17,7 +20,10 @@
     "socials": {
       "instagram": "https://www.instagram.com/tiffdreamgarrix",
       "tiktok": "#"
-    }
+    },
+    "email": "tiffany.tournier@hotmail.com",
+    "dropsiders_email": "tiffany@dropsiders.fr",
+    "mail_enabled": true
   },
   {
     "id": 4,
@@ -27,7 +33,10 @@
     "socials": {
       "instagram": "https://www.instagram.com/julien_b68",
       "tiktok": "#"
-    }
+    },
+    "email": "baechlejulien@gmail.com",
+    "dropsiders_email": "julien@dropsiders.fr",
+    "mail_enabled": true
   },
   {
     "id": 5,
@@ -37,7 +46,10 @@
     "socials": {
       "instagram": "https://www.instagram.com/tanguy_pllt",
       "tiktok": "#"
-    }
+    },
+    "email": "tanguypollet98@gmail.com",
+    "dropsiders_email": "tanguy@dropsiders.fr",
+    "mail_enabled": true
   },
   {
     "id": 6,
@@ -47,7 +59,10 @@
     "socials": {
       "instagram": "https://www.instagram.com/guiyoome",
       "tiktok": "#"
-    }
+    },
+    "email": "guillaume.chery.naumont@gmail.com",
+    "dropsiders_email": "guillaume@dropsiders.fr",
+    "mail_enabled": true
   },
   {
     "id": 1790179052527,
@@ -57,7 +72,10 @@
     "socials": {
       "instagram": "https://www.instagram.com/maoorid?utm_source=ig_web_button_share_sheet&stkn=ZDNlZDc0MzIxNw==",
       "tiktok": ""
-    }
+    },
+    "email": "maori.dechaine@gmail.com",
+    "dropsiders_email": "maori@dropsiders.fr",
+    "mail_enabled": true
   },
   {
     "id": 1790631442064,
@@ -67,6 +85,9 @@
     "socials": {
       "instagram": "https://www.instagram.com/justin_chvr?",
       "tiktok": ""
-    }
+    },
+    "email": "justinche17@yahoo.com",
+    "dropsiders_email": "justin@crew.dropsiders.fr",
+    "mail_enabled": true
   }
 ]
