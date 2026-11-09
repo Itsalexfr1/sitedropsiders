@@ -777,7 +777,7 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
         }
 
         // ─────────────────────────────────────────────────────────────
-        // SCÈNE 6 : APPARITION DU VRAI LOGO DROPSIDERS OFFICIEL
+        // SCÈNE 6 : APPARITION DU VRAI LOGO DROPSIDERS 3D VOLUMÉTRIQUE (EFFET HOMEPAGE ANIMATED3DLOGO)
         // ─────────────────────────────────────────────────────────────
         else if (sceneIdx === 6) {
             ctx.textAlign = 'center';
@@ -793,133 +793,217 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
             const halfW = boxW / 2;
             const halfH = boxH / 2;
 
-            // 1. DESSIN PROGRESSIF DES LIGNES DU CADRE EN DIRECT (Vitesse ralentie pour un rendu plus majestueux)
+            // ── Chronologie d'apparition ralentie & cinématographique ──
             const strokeDuration = 1.25;
             const frameProgress = Math.min(1, Math.max(0, sceneTime / strokeDuration));
-            const perimeterHalf = halfW + boxH + halfW;
-            const currentDist = frameProgress * perimeterHalf;
 
-            ctx.save();
-            ctx.lineWidth = 9;
-            ctx.strokeStyle = '#ffffff';
-            ctx.lineCap = 'square';
-            ctx.lineJoin = 'miter';
-            ctx.shadowColor = 'rgba(255, 255, 255, 0.3)';
-            ctx.shadowBlur = 8;
+            const textStart = 0.45;
+            const totalLetters = 13; // D-R-O-P-S-I-D-E-R-S-.-F-R
+            const letterDuration = 0.11;
+            const elapsedForText = Math.max(0, sceneTime - textStart);
+            const lettersVisible = Math.min(totalLetters, Math.floor(elapsedForText / letterDuration));
 
-            // Côté Droit : Haut-centre -> Coin haut-droit -> Coin bas-droit -> Bas-centre
-            ctx.beginPath();
-            ctx.moveTo(0, -halfH);
-            if (currentDist <= halfW) {
-                ctx.lineTo(currentDist, -halfH);
-            } else if (currentDist <= halfW + boxH) {
-                ctx.lineTo(halfW, -halfH);
-                ctx.lineTo(halfW, -halfH + (currentDist - halfW));
-            } else {
-                ctx.lineTo(halfW, -halfH);
-                ctx.lineTo(halfW, halfH);
-                ctx.lineTo(halfW - (currentDist - (halfW + boxH)), halfH);
-            }
-            ctx.stroke();
-
-            // Côté Gauche : Haut-centre -> Coin haut-gauche -> Coin bas-gauche -> Bas-centre
-            ctx.beginPath();
-            ctx.moveTo(0, -halfH);
-            if (currentDist <= halfW) {
-                ctx.lineTo(-currentDist, -halfH);
-            } else if (currentDist <= halfW + boxH) {
-                ctx.lineTo(-halfW, -halfH);
-                ctx.lineTo(-halfW, -halfH + (currentDist - halfW));
-            } else {
-                ctx.lineTo(-halfW, -halfH);
-                ctx.lineTo(-halfW, halfH);
-                ctx.lineTo(-halfW + (currentDist - (halfW + boxH)), halfH);
-            }
-            ctx.stroke();
-            ctx.restore();
-
-            // 2. APPARITION DES LETTRES DU VRAI LOGO UNE PAR UNE (Vitesse ralentie, 0.11s par lettre)
-            const pureImg = logoPureImgRef.current;
-            if (pureImg && pureImg.complete && pureImg.naturalWidth > 0) {
-                const textStart = 0.45;
-                const totalLetters = 13; // D-R-O-P-S-I-D-E-R-S-.-F-R
-                const letterDuration = 0.11;
-                const elapsed = Math.max(0, sceneTime - textStart);
-                const lettersVisible = Math.min(totalLetters, Math.floor(elapsed / letterDuration));
-
-                const lw = 760;
-                const lh = Math.round(lw * (pureImg.naturalHeight / pureImg.naturalWidth));
-
-                if (lettersVisible > 0) {
-                    const revealW = (lettersVisible / totalLetters) * lw;
-
-                    ctx.save();
-                    ctx.beginPath();
-                    ctx.rect(-lw / 2, -lh / 2, revealW, lh);
-                    ctx.clip();
-                    ctx.drawImage(pureImg, -lw / 2, -lh / 2, lw, lh);
-                    ctx.restore();
-
-                    // Curseur lumineux d'écriture à la dernière lettre révélée
-                    if (lettersVisible < totalLetters) {
-                        ctx.save();
-                        ctx.fillStyle = '#ff0033';
-                        ctx.shadowColor = '#ff0033';
-                        ctx.shadowBlur = 12;
-                        ctx.fillRect(-lw / 2 + revealW - 2, -lh / 2 + 10, 6, lh - 20);
-                        ctx.restore();
-                    }
-                }
-            } else if (logoImgRef.current && logoImgRef.current.complete && logoImgRef.current.naturalWidth > 0) {
-                // Fallback avec logo_white.png si logo_dropsiders_brand_pure pas encore prêt
-                const img = logoImgRef.current;
-                const textStart = 0.45;
-                const totalLetters = 13;
-                const letterDuration = 0.11;
-                const elapsed = Math.max(0, sceneTime - textStart);
-                const lettersVisible = Math.min(totalLetters, Math.floor(elapsed / letterDuration));
-                const lw = 820;
-                const lh = Math.round(lw * (img.naturalHeight / img.naturalWidth));
-
-                if (lettersVisible > 0) {
-                    const revealW = (lettersVisible / totalLetters) * lw;
-                    ctx.save();
-                    ctx.beginPath();
-                    ctx.rect(-lw / 2, -lh / 2, revealW, lh * 0.72);
-                    ctx.clip();
-                    ctx.drawImage(img, -lw / 2, -lh / 2, lw, lh);
-                    ctx.restore();
-                }
-            }
-
-            // 3. SOUS-TITRE WWW.DROPSIDERS.FR (Apparaît lettre par lettre après le logo principal)
             const subText = "WWW.DROPSIDERS.FR";
             const subStart = 2.0;
             const subSpeed = 0.065;
             const elapsedForSub = Math.max(0, sceneTime - subStart);
             const numSubVisible = Math.min(subText.length, Math.floor(elapsedForSub / subSpeed));
-            const visibleSub = subText.slice(0, numSubVisible);
 
-            if (visibleSub.length > 0) {
-                ctx.save();
-                ctx.font = '900 42px "Montserrat", sans-serif';
-                (ctx as any).letterSpacing = '8px';
-                ctx.fillStyle = '#ffffff';
-                ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
-                ctx.shadowBlur = 20;
-                ctx.shadowOffsetY = 3;
-                ctx.fillText(visibleSub, 0, halfH + 70);
+            // ── Mouvement de Pendule 3D (Identique à Animated3DLogo.tsx de l'accueil) ──
+            const swingSpeed = (2 * Math.PI) / 4.2; // Période exacte de 4.2s
+            const swingProgress = Math.min(1, Math.max(0, sceneTime / 0.8));
+            const rotY = Math.sin(sceneTime * swingSpeed) * (0.32 * swingProgress); // Balancement ~18°
+            const rotX = 0.07 * swingProgress; // Inclinaison 4°
 
-                if (numSubVisible < subText.length) {
-                    const metrics = ctx.measureText(visibleSub);
-                    const curX = metrics.width / 2 + 8;
-                    ctx.fillStyle = '#ff0033';
-                    ctx.shadowColor = '#ff0033';
-                    ctx.shadowBlur = 10;
-                    ctx.fillRect(curX, halfH + 50, 4, 38);
+            // Helper de tracé des éléments du logo pour chaque tranche 3D
+            const renderLogoSlice = (
+                c: CanvasRenderingContext2D,
+                isFront: boolean
+            ) => {
+                // 1. Tracé dynamique des lignes du cadre
+                if (frameProgress > 0) {
+                    c.save();
+                    c.lineWidth = isFront ? 9 : 8;
+                    c.strokeStyle = isFront ? '#ffffff' : '#a0a5b5';
+                    c.lineCap = 'square';
+                    c.lineJoin = 'miter';
+                    if (isFront) {
+                        c.shadowColor = 'rgba(255, 255, 255, 0.35)';
+                        c.shadowBlur = 8;
+                    }
+
+                    const perimeterHalf = halfW + boxH + halfW;
+                    const currentDist = frameProgress * perimeterHalf;
+
+                    // Côté Droit : Haut-centre -> Coin haut-droit -> Coin bas-droit -> Bas-centre
+                    c.beginPath();
+                    c.moveTo(0, -halfH);
+                    if (currentDist <= halfW) {
+                        c.lineTo(currentDist, -halfH);
+                    } else if (currentDist <= halfW + boxH) {
+                        c.lineTo(halfW, -halfH);
+                        c.lineTo(halfW, -halfH + (currentDist - halfW));
+                    } else {
+                        c.lineTo(halfW, -halfH);
+                        c.lineTo(halfW, halfH);
+                        c.lineTo(halfW - (currentDist - (halfW + boxH)), halfH);
+                    }
+                    c.stroke();
+
+                    // Côté Gauche : Haut-centre -> Coin haut-gauche -> Coin bas-gauche -> Bas-centre
+                    c.beginPath();
+                    c.moveTo(0, -halfH);
+                    if (currentDist <= halfW) {
+                        c.lineTo(-currentDist, -halfH);
+                    } else if (currentDist <= halfW + boxH) {
+                        c.lineTo(-halfW, -halfH);
+                        c.lineTo(-halfW, -halfH + (currentDist - halfW));
+                    } else {
+                        c.lineTo(-halfW, -halfH);
+                        c.lineTo(-halfW, halfH);
+                        c.lineTo(-halfW + (currentDist - (halfW + boxH)), halfH);
+                    }
+                    c.stroke();
+                    c.restore();
                 }
+
+                // 2. Lettres du vrai logo officiel DROPSIDERS.FR
+                if (lettersVisible > 0) {
+                    const pureImg = logoPureImgRef.current;
+                    const fallbackImg = logoImgRef.current;
+
+                    if (pureImg && pureImg.complete && pureImg.naturalWidth > 0) {
+                        const lw = 760;
+                        const lh = Math.round(lw * (pureImg.naturalHeight / pureImg.naturalWidth));
+                        const revealW = (lettersVisible / totalLetters) * lw;
+
+                        c.save();
+                        c.beginPath();
+                        c.rect(-lw / 2, -lh / 2, revealW, lh);
+                        c.clip();
+                        c.drawImage(pureImg, -lw / 2, -lh / 2, lw, lh);
+                        c.restore();
+
+                        // Curseur lumineux d'écriture à la dernière lettre révélée (sur la face avant uniquement)
+                        if (isFront && lettersVisible < totalLetters) {
+                            c.save();
+                            c.fillStyle = '#ff0033';
+                            c.shadowColor = '#ff0033';
+                            c.shadowBlur = 12;
+                            c.fillRect(-lw / 2 + revealW - 2, -lh / 2 + 10, 6, lh - 20);
+                            c.restore();
+                        }
+                    } else if (fallbackImg && fallbackImg.complete && fallbackImg.naturalWidth > 0) {
+                        const lw = 820;
+                        const lh = Math.round(lw * (fallbackImg.naturalHeight / fallbackImg.naturalWidth));
+                        const revealW = (lettersVisible / totalLetters) * lw;
+
+                        c.save();
+                        c.beginPath();
+                        c.rect(-lw / 2, -lh / 2, revealW, lh * 0.72);
+                        c.clip();
+                        c.drawImage(fallbackImg, -lw / 2, -lh / 2, lw, lh);
+                        c.restore();
+                    }
+                }
+
+                // 3. Sous-titre WWW.DROPSIDERS.FR
+                if (numSubVisible > 0) {
+                    const visibleSub = subText.slice(0, numSubVisible);
+                    c.save();
+                    c.font = '900 42px "Montserrat", sans-serif';
+                    (c as any).letterSpacing = '8px';
+                    c.fillStyle = isFront ? '#ffffff' : '#777d8c';
+                    if (isFront) {
+                        c.shadowColor = 'rgba(0, 0, 0, 0.95)';
+                        c.shadowBlur = 20;
+                        c.shadowOffsetY = 3;
+                    }
+                    c.fillText(visibleSub, 0, halfH + 70);
+
+                    if (isFront && numSubVisible < subText.length) {
+                        const metrics = c.measureText(visibleSub);
+                        const curX = metrics.width / 2 + 8;
+                        c.fillStyle = '#ff0033';
+                        c.shadowColor = '#ff0033';
+                        c.shadowBlur = 10;
+                        c.fillRect(curX, halfH + 50, 4, 38);
+                    }
+                    c.restore();
+                }
+            };
+
+            // ── 1. OMBRE PORTÉE PROFONDE DE CONTACT (TranslateZ arrière) ──
+            ctx.save();
+            const shadowZ = -22;
+            ctx.transform(
+                Math.cos(rotY),
+                Math.sin(rotX) * Math.sin(rotY),
+                0,
+                Math.cos(rotX),
+                -Math.sin(rotY) * shadowZ,
+                Math.sin(rotX) * shadowZ + 12
+            );
+            if ('filter' in ctx) ctx.filter = 'blur(14px) brightness(0)';
+            ctx.globalAlpha = 0.65;
+            renderLogoSlice(ctx, false);
+            ctx.restore();
+
+            // ── 2. TRANCHES 3D VOLUMÉTRIQUES EXTRUDÉES (Acier / Titane sombre comme Animated3DLogo) ──
+            const sliceCount = 8;
+            const maxDepth = 15;
+            for (let idx = 0; idx < sliceCount; idx++) {
+                const i = sliceCount - idx;
+                const z = -((i / sliceCount) * maxDepth);
+                const ratio = 1 - (i / sliceCount);
+                // Nuance d'acier : de 0.16 (tréfonds) à 0.58 (bord avant)
+                const shade = 0.16 + ratio * 0.42;
+
+                ctx.save();
+                ctx.transform(
+                    Math.cos(rotY),
+                    Math.sin(rotX) * Math.sin(rotY),
+                    0,
+                    Math.cos(rotX),
+                    -Math.sin(rotY) * z,
+                    Math.sin(rotX) * z
+                );
+                if ('filter' in ctx) ctx.filter = `brightness(${shade.toFixed(2)})`;
+                ctx.globalAlpha = 0.95;
+                renderLogoSlice(ctx, false);
                 ctx.restore();
             }
+
+            // ── 3. FACE AVANT 3D (Blanc pur éclatant + relief biseau) ──
+            ctx.save();
+            ctx.transform(
+                Math.cos(rotY),
+                Math.sin(rotX) * Math.sin(rotY),
+                0,
+                Math.cos(rotX),
+                0,
+                0
+            );
+            if ('filter' in ctx) ctx.filter = 'none';
+            ctx.globalAlpha = 1.0;
+            renderLogoSlice(ctx, true);
+
+            // ── 4. BALAYAGE LUMINEUX MÉTALLIQUE / NACRÉ SUR LA FACE AVANT ──
+            const sheenPhase = Math.sin(sceneTime * swingSpeed);
+            const sheenX = sheenPhase * (boxW * 0.50);
+            ctx.save();
+            ctx.globalCompositeOperation = 'source-atop';
+            const sheenGrad = ctx.createLinearGradient(sheenX - 120, 0, sheenX + 120, 0);
+            sheenGrad.addColorStop(0, 'rgba(255, 255, 255, 0)');
+            sheenGrad.addColorStop(0.35, 'rgba(255, 255, 255, 0.20)');
+            sheenGrad.addColorStop(0.5, 'rgba(255, 255, 255, 0.75)');
+            sheenGrad.addColorStop(0.65, 'rgba(255, 255, 255, 0.20)');
+            sheenGrad.addColorStop(1, 'rgba(255, 255, 255, 0)');
+            ctx.fillStyle = sheenGrad;
+            ctx.fillRect(-boxW / 2 - 20, -boxH / 2 - 20, boxW + 40, boxH + 130);
+            ctx.restore();
+
+            ctx.restore();
 
             ctx.restore();
         }
