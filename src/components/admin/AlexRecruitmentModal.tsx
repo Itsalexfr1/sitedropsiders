@@ -12,30 +12,44 @@ interface AlexRecruitmentModalProps {
 export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOpen, onClose }) => {
     // ── Vérification stricte Alex ──
     const currentUser = (typeof window !== 'undefined' ? localStorage.getItem('admin_user') || '' : '').toLowerCase().trim();
-    const isAlex = isSuperAdmin(currentUser) || currentUser === 'alex' || currentUser === 'alexf' || currentUser === 'itsalexfr1';
+    const isAlex = isSuperAdmin(currentUser) || currentUser === 'alex' || currentUser === 'alexf' || currentUser === 'itsalexfr1' || currentUser.startsWith('alex');
 
-    // ── Configuration des 5 Scènes ──
+    // ── Configuration des 6 Scènes ──
+    // Scène 1 : DROPSIDERS RECRUTE
     const [introTitle, setIntroTitle] = useState('DROPSIDERS');
     const [introSubtitle, setIntroSubtitle] = useState('RECRUTE');
     const [introBadge, setIntroBadge] = useState('SAISON 2026');
-    const [introDuration, setIntroDuration] = useState(3.0); // 3.0s
+    const [introDuration, setIntroDuration] = useState(2.8);
 
+    // Scène 2 : NOUVELLE SCÈNE (Accroche Vibe / Backstages / REJOINS-NOUS)
+    const [vibeLine1, setVibeLine1] = useState('TU VIBRES AU SON DE LA MUSIQUE ÉLECTRONIQUE ?');
+    const [vibeLine2, setVibeLine2] = useState('TU RÊVES DE DÉCOUVRIR LES BACKSTAGES DES MEILLEURS EVENTS DU MONDE ?');
+    const [vibeCta, setVibeCta] = useState('⚡ REJOINS-NOUS ! ⚡');
+    const [vibeDuration, setVibeDuration] = useState(3.5);
+
+    // Scène 3 : Profil 1 (Rédacteurs & Journalistes)
+    const [p1Tag, setP1Tag] = useState('PROFIL RECHERCHÉ #1');
     const [p1Title, setP1Title] = useState('RÉDACTEURS & JOURNALISTES');
     const [p1Desc, setP1Desc] = useState("Passionné(e) d'électro, capable d'écrire des articles de fond, réaliser des interviews d'artistes et couvrir les plus gros festivals.");
     const [p1Badge, setP1Badge] = useState('🇬🇧 PARLER ANGLAIS EST UN VRAI PLUS');
-    const [p1Duration, setP1Duration] = useState(3.5); // 3.5s
+    const [p1Duration, setP1Duration] = useState(3.5);
 
-    const [p2Title, setP2Title] = useState('CRÉATEURS DE CONTENU (TIKTOK / INSTA)');
+    // Scène 4 : Profil 2 (Créateurs de Contenu)
+    const [p2Tag, setP2Tag] = useState('PROFIL RECHERCHÉ #2');
+    const [p2Title, setP2Title] = useState('CRÉATEURS DE CONTENU');
+    const [p2Sub, setP2Sub] = useState('TIKTOK & INSTAGRAM');
     const [p2Desc, setP2Desc] = useState("À l'aise face caméra ou caméra au poing, pour capturer l'énergie des scènes, interviewer le public et produire du contenu viral.");
     const [p2Badge, setP2Badge] = useState('🇬🇧 ANGLAIS APPRÉCIÉ POUR LES INTERVIEWS');
-    const [p2Duration, setP2Duration] = useState(3.5); // 3.5s
+    const [p2Duration, setP2Duration] = useState(3.5);
 
+    // Scène 5 : Contact
     const [contactHeadline, setContactHeadline] = useState('PRÊT(E) À VIVRE LES FESTIVALS DE L\'INTÉRIEUR ?');
     const [contactEmail, setContactEmail] = useState('contact@dropsiders.fr');
     const [contactSite, setContactSite] = useState('dropsiders.fr');
-    const [contactDuration, setContactDuration] = useState(3.0); // 3.0s
+    const [contactDuration, setContactDuration] = useState(3.2);
 
-    const [logoDuration, setLogoDuration] = useState(3.0); // 3.0s
+    // Scène 6 : Outro Finale Logo
+    const [logoDuration, setLogoDuration] = useState(2.8);
 
     // ── Vidéo de fond ──
     const [bgVideoBlob, setBgVideoBlob] = useState<Blob | null>(null);
@@ -43,12 +57,12 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
     const [bgVideoStartTime, setBgVideoStartTime] = useState<number>(0);
     const [bgVideoDuration, setBgVideoDuration] = useState<number>(0);
     const [isVideoAudioMuted, setIsVideoAudioMuted] = useState<boolean>(false);
-    const [bgOverlayOpacity, setBgOverlayOpacity] = useState<number>(0.50);
+    const [bgOverlayOpacity, setBgOverlayOpacity] = useState<number>(0.45);
 
     // ── Contrôles Lecture ──
     const [isPlaying, setIsPlaying] = useState<boolean>(true);
     const [currentTime, setCurrentTime] = useState<number>(0);
-    const [activeTab, setActiveTab] = useState<'video' | 'textes' | 'export'>('video');
+    const [activeTab, setActiveTab] = useState<'video' | 'textes' | 'export'>('textes');
 
     // ── Export MP4 ──
     const [isExporting, setIsExporting] = useState<boolean>(false);
@@ -65,13 +79,13 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
     const bgVideoStartTimeRef = useRef<number>(0);
     const logoImgRef = useRef<HTMLImageElement | null>(null);
 
-    const totalDuration = introDuration + p1Duration + p2Duration + contactDuration + logoDuration;
+    const totalDuration = introDuration + vibeDuration + p1Duration + p2Duration + contactDuration + logoDuration;
 
     useEffect(() => {
         bgVideoStartTimeRef.current = bgVideoStartTime;
     }, [bgVideoStartTime]);
 
-    // Charger le logo Dropsiders
+    // Charger le logo Dropsiders officiel
     useEffect(() => {
         const img = new Image();
         img.crossOrigin = 'anonymous';
@@ -101,15 +115,46 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
         }
     };
 
+    // Helper: Dessiner du texte multiligne centré
+    const drawCenteredWrappedText = (
+        ctx: CanvasRenderingContext2D,
+        text: string,
+        centerX: number,
+        startY: number,
+        maxWidth: number,
+        lineHeight: number
+    ): number => {
+        const words = text.split(' ');
+        let line = '';
+        const lines: string[] = [];
+        for (let n = 0; n < words.length; n++) {
+            const testLine = line + words[n] + ' ';
+            const metrics = ctx.measureText(testLine);
+            if (metrics.width > maxWidth && n > 0) {
+                lines.push(line.trim());
+                line = words[n] + ' ';
+            } else {
+                line = testLine;
+            }
+        }
+        lines.push(line.trim());
+
+        for (let i = 0; i < lines.length; i++) {
+            ctx.fillText(lines[i], centerX, startY + i * lineHeight);
+        }
+        return startY + lines.length * lineHeight;
+    };
+
     // Calcul de la scène active et de son opacité de transition
     const getSceneState = (t: number) => {
         const t1 = introDuration;
-        const t2 = t1 + p1Duration;
-        const t3 = t2 + p2Duration;
-        const t4 = t3 + contactDuration;
-        const t5 = t4 + logoDuration;
+        const t2 = t1 + vibeDuration;
+        const t3 = t2 + p1Duration;
+        const t4 = t3 + p2Duration;
+        const t5 = t4 + contactDuration;
+        const t6 = t5 + logoDuration;
 
-        let sceneIdx = 0;
+        let sceneIdx = 1;
         let sceneTime = 0;
         let sceneDur = 0;
 
@@ -120,18 +165,22 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
         } else if (t < t2) {
             sceneIdx = 2;
             sceneTime = t - t1;
-            sceneDur = p1Duration;
+            sceneDur = vibeDuration;
         } else if (t < t3) {
             sceneIdx = 3;
             sceneTime = t - t2;
-            sceneDur = p2Duration;
+            sceneDur = p1Duration;
         } else if (t < t4) {
             sceneIdx = 4;
             sceneTime = t - t3;
-            sceneDur = contactDuration;
-        } else {
+            sceneDur = p2Duration;
+        } else if (t < t5) {
             sceneIdx = 5;
             sceneTime = t - t4;
+            sceneDur = contactDuration;
+        } else {
+            sceneIdx = 6;
+            sceneTime = t - t5;
             sceneDur = logoDuration;
         }
 
@@ -144,13 +193,16 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
             alpha = Math.min(1, Math.max(0, (sceneDur - sceneTime) / fadeDur));
         }
 
-        // Effet d'entrée en translation Y douce
+        // Translation fluide et zoom cinématique doux
         const enterY = sceneTime < fadeDur ? (1 - (sceneTime / fadeDur)) * 25 : 0;
-        // Effet de sortie en translation Y douce vers le haut
         const exitY = sceneTime > sceneDur - fadeDur ? ((sceneTime - (sceneDur - fadeDur)) / fadeDur) * -20 : 0;
         const translateY = enterY + exitY;
 
-        return { sceneIdx, sceneTime, sceneDur, alpha, translateY };
+        // Lent travelling avant cinématique (zoom 0.96 -> 1.04)
+        const progress = Math.min(1, Math.max(0, sceneTime / Math.max(0.1, sceneDur)));
+        const textScale = 0.96 + progress * 0.08;
+
+        return { sceneIdx, sceneTime, sceneDur, alpha, translateY, textScale };
     };
 
     // ── Dessin de la frame sur le Canvas (1080x1920) ──
@@ -167,7 +219,7 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
             const vy = (height - vh) / 2;
             ctx.drawImage(vid, vx, vy, vw, vh);
         } else {
-            // Fond dégradé scène concert club par défaut si pas de vidéo uploadée
+            // Fond scène concert club par défaut si pas de vidéo
             const grad = ctx.createLinearGradient(0, 0, width, height);
             grad.addColorStop(0, '#0a0208');
             grad.addColorStop(0.5, '#12041a');
@@ -193,383 +245,342 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
             ctx.restore();
         }
 
-        // 2. Voile sombre dégradé pour garantir 100% de lisibilité
+        // 2. Voile sombre dégradé pour garantir 100% de lisibilité du texte sans cadre
         ctx.save();
         ctx.fillStyle = `rgba(0, 0, 0, ${bgOverlayOpacity})`;
         ctx.fillRect(0, 0, width, height);
 
-        // Vignette cinématographique
-        const vignette = ctx.createRadialGradient(width / 2, height / 2, width * 0.2, width / 2, height / 2, width * 0.95);
-        vignette.addColorStop(0, 'rgba(0,0,0,0)');
-        vignette.addColorStop(1, 'rgba(0,0,0,0.65)');
-        ctx.fillStyle = vignette;
+        // Dégradé sombre central pour sublimer le texte
+        const centerShade = ctx.createRadialGradient(width / 2, height / 2, 100, width / 2, height / 2, width * 0.85);
+        centerShade.addColorStop(0, 'rgba(0,0,0,0.4)');
+        centerShade.addColorStop(1, 'rgba(0,0,0,0.85)');
+        ctx.fillStyle = centerShade;
         ctx.fillRect(0, 0, width, height);
         ctx.restore();
 
-        // 3. Calcul de la scène active et transitions fluides
-        const { sceneIdx, sceneTime, alpha, translateY } = getSceneState(time);
+        // 3. Calcul de la scène active et transitions cinématiques
+        const { sceneIdx, sceneTime, alpha, translateY, textScale } = getSceneState(time);
 
         ctx.save();
         ctx.globalAlpha = alpha;
-        ctx.translate(0, translateY);
+        ctx.translate(width / 2, height / 2);
+        ctx.scale(textScale, textScale);
+        ctx.translate(-width / 2, -height / 2 + translateY);
 
         // ─────────────────────────────────────────────────────────────
-        // SCÈNE 1 : EN PLEIN ÉCRAN DROPSIDERS ET EN DESSOUS RECRUTE
+        // SCÈNE 1 : EN PLEIN ÉCRAN DROPSIDERS ET EN DESSOUS RECRUTE (SANS CADRE)
         // ─────────────────────────────────────────────────────────────
         if (sceneIdx === 1) {
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
 
-            // Badge Saison
-            const badgeY = height * 0.35;
+            // Surtitre stylé avec étoiles
+            const badgeY = height * 0.37;
             ctx.save();
             ctx.font = '900 32px "Montserrat", sans-serif';
-            const badgeText = `• ${introBadge} •`;
-            const badgeMetrics = ctx.measureText(badgeText);
-            const badgeW = badgeMetrics.width + 60;
-            const badgeH = 54;
-            ctx.fillStyle = 'rgba(255, 0, 51, 0.18)';
-            ctx.strokeStyle = 'rgba(255, 0, 51, 0.8)';
-            ctx.lineWidth = 3;
-            ctx.shadowColor = '#ff0033';
+            ctx.shadowColor = 'rgba(0,0,0,0.95)';
             ctx.shadowBlur = 20;
-            ctx.beginPath();
-            ctx.roundRect((width - badgeW) / 2, badgeY - badgeH / 2, badgeW, badgeH, 27);
-            ctx.fill();
-            ctx.stroke();
+            ctx.shadowOffsetY = 4;
             ctx.fillStyle = '#ff3355';
-            ctx.fillText(badgeText, width / 2, badgeY);
+            ctx.letterSpacing = '6px';
+            ctx.fillText(`✦ ${introBadge.toUpperCase()} ✦`, width / 2, badgeY);
             ctx.restore();
 
             // Gros Titre Plein Écran : DROPSIDERS
             const dropY = height * 0.46;
             ctx.save();
-            ctx.font = '900 115px "Montserrat", sans-serif';
-            ctx.shadowColor = 'rgba(255, 0, 51, 0.9)';
-            ctx.shadowBlur = 40;
+            ctx.font = '900 120px "Montserrat", sans-serif';
+            ctx.shadowColor = 'rgba(255, 0, 51, 0.95)';
+            ctx.shadowBlur = 45;
+            ctx.shadowOffsetY = 6;
             ctx.fillStyle = '#ffffff';
             ctx.letterSpacing = '4px';
             ctx.fillText(introTitle, width / 2, dropY);
             ctx.restore();
 
-            // En dessous : RECRUTE
-            const recruteY = height * 0.56;
+            // En dessous : RECRUTE avec pulsation dorée / rouge
+            const recruteY = height * 0.55;
             ctx.save();
-            ctx.font = '900 92px "Montserrat", sans-serif';
+            ctx.font = '900 96px "Montserrat", sans-serif';
             const neonPulse = (Math.sin(sceneTime * 8) + 1) / 2;
             ctx.shadowColor = neonPulse > 0.4 ? '#ffe600' : '#ff0033';
-            ctx.shadowBlur = 45;
-            const recruteGrad = ctx.createLinearGradient(0, recruteY - 40, 0, recruteY + 40);
+            ctx.shadowBlur = 40 + neonPulse * 20;
+            ctx.shadowOffsetY = 6;
+            const recruteGrad = ctx.createLinearGradient(0, recruteY - 45, 0, recruteY + 45);
             recruteGrad.addColorStop(0, '#ffe600');
-            recruteGrad.addColorStop(1, '#ff8800');
+            recruteGrad.addColorStop(1, '#ff6600');
             ctx.fillStyle = recruteGrad;
-            ctx.letterSpacing = '8px';
+            ctx.letterSpacing = '10px';
             ctx.fillText(introSubtitle, width / 2, recruteY);
             ctx.restore();
 
-            // Micro texte d'accroche bas
+            // Ligne d'accroche bas
             ctx.save();
-            ctx.font = '700 28px "Montserrat", sans-serif';
-            ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
-            ctx.fillText('LE MÉDIA ÉLECTRO RECHERCHE SES NOUVEAUX TALENTS', width / 2, height * 0.65);
+            ctx.font = '800 28px "Montserrat", sans-serif';
+            ctx.shadowColor = 'rgba(0,0,0,0.95)';
+            ctx.shadowBlur = 15;
+            ctx.shadowOffsetY = 3;
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
+            ctx.letterSpacing = '4px';
+            ctx.fillText('LE MÉDIA ÉLECTRO & FESTIVALS', width / 2, height * 0.64);
             ctx.restore();
         }
 
         // ─────────────────────────────────────────────────────────────
-        // SCÈNE 2 : AU MILIEU LE 1ER PROFIL RECHERCHÉ (RÉDACTEURS)
+        // SCÈNE 2 (NOUVELLE) : TU VIBRES AU SON DE LA MUSIQUE ÉLECTRO... REJOINS NOUS !
         // ─────────────────────────────────────────────────────────────
         else if (sceneIdx === 2) {
-            const cardW = 900;
-            const cardH = 680;
-            const cardX = (width - cardW) / 2;
-            const cardY = (height - cardH) / 2;
-
-            // Carte Glassmorphism Cyan
-            ctx.save();
-            ctx.fillStyle = 'rgba(5, 10, 20, 0.88)';
-            ctx.strokeStyle = '#00f0ff';
-            ctx.lineWidth = 5;
-            ctx.shadowColor = 'rgba(0, 240, 255, 0.75)';
-            ctx.shadowBlur = 35;
-            ctx.beginPath();
-            ctx.roundRect(cardX, cardY, cardW, cardH, 40);
-            ctx.fill();
-            ctx.stroke();
-            ctx.restore();
-
-            // En-tête profil (Numéro / Tag)
-            ctx.save();
-            ctx.font = '900 28px "Montserrat", sans-serif';
-            ctx.fillStyle = '#00f0ff';
             ctx.textAlign = 'center';
-            ctx.fillText('⚡ PROFIL RECHERCHÉ #1 ⚡', width / 2, cardY + 80);
-            ctx.restore();
+            ctx.textBaseline = 'middle';
 
-            // Icône
+            // Question 1 : Tu vibres au son de la musique électronique ?
             ctx.save();
-            ctx.font = '70px sans-serif';
-            ctx.textAlign = 'center';
-            ctx.fillText('✍️', width / 2, cardY + 175);
-            ctx.restore();
-
-            // Titre profil
-            ctx.save();
-            ctx.font = '900 48px "Montserrat", sans-serif';
+            ctx.font = '900 58px "Montserrat", sans-serif';
+            ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
+            ctx.shadowBlur = 25;
+            ctx.shadowOffsetY = 4;
             ctx.fillStyle = '#ffffff';
-            ctx.textAlign = 'center';
-            ctx.shadowColor = '#00f0ff';
-            ctx.shadowBlur = 20;
-            ctx.fillText(p1Title, width / 2, cardY + 270);
+            drawCenteredWrappedText(ctx, vibeLine1, width / 2, height * 0.35, 960, 72);
             ctx.restore();
 
-            // Ligne de séparation
+            // Séparateur discret lumineux
             ctx.save();
-            const sepGrad = ctx.createLinearGradient(cardX + 100, 0, cardX + cardW - 100, 0);
+            const sepGrad = ctx.createLinearGradient(width / 2 - 200, 0, width / 2 + 200, 0);
+            sepGrad.addColorStop(0, 'transparent');
+            sepGrad.addColorStop(0.5, 'rgba(0, 240, 255, 0.8)');
+            sepGrad.addColorStop(1, 'transparent');
+            ctx.fillStyle = sepGrad;
+            ctx.fillRect(width / 2 - 200, height * 0.44, 400, 3);
+            ctx.restore();
+
+            // Question 2 : Tu rêves de découvrir les backstages des meilleurs events du monde ?
+            ctx.save();
+            ctx.font = '800 46px "Montserrat", sans-serif';
+            ctx.shadowColor = 'rgba(0, 240, 255, 0.8)';
+            ctx.shadowBlur = 30;
+            ctx.shadowOffsetY = 4;
+            ctx.fillStyle = '#00f0ff';
+            drawCenteredWrappedText(ctx, vibeLine2, width / 2, height * 0.50, 940, 62);
+            ctx.restore();
+
+            // Call To Action : ⚡ REJOINS-NOUS ! ⚡
+            const ctaPulse = (Math.sin(sceneTime * 7) + 1) / 2;
+            ctx.save();
+            ctx.font = '900 84px "Montserrat", sans-serif';
+            ctx.shadowColor = `rgba(255, 230, 0, ${0.75 + ctaPulse * 0.25})`;
+            ctx.shadowBlur = 35 + ctaPulse * 25;
+            ctx.shadowOffsetY = 5;
+            const ctaGrad = ctx.createLinearGradient(0, height * 0.67 - 40, 0, height * 0.67 + 40);
+            ctaGrad.addColorStop(0, '#ffffff');
+            ctaGrad.addColorStop(0.3, '#ffe600');
+            ctaGrad.addColorStop(1, '#ff9900');
+            ctx.fillStyle = ctaGrad;
+            ctx.letterSpacing = '5px';
+            ctx.fillText(vibeCta, width / 2, height * 0.67);
+            ctx.restore();
+        }
+
+        // ─────────────────────────────────────────────────────────────
+        // SCÈNE 3 : PROFIL 1 (RÉDACTEURS & JOURNALISTES) - SANS CADRE
+        // ─────────────────────────────────────────────────────────────
+        else if (sceneIdx === 3) {
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+
+            // Tag Profil Cyan
+            ctx.save();
+            ctx.font = '900 34px "Montserrat", sans-serif';
+            ctx.fillStyle = '#00f0ff';
+            ctx.shadowColor = 'rgba(0, 240, 255, 0.9)';
+            ctx.shadowBlur = 25;
+            ctx.shadowOffsetY = 3;
+            ctx.letterSpacing = '6px';
+            ctx.fillText(`⚡ ${p1Tag.toUpperCase()} ⚡`, width / 2, height * 0.33);
+            ctx.restore();
+
+            // Titre Profil
+            ctx.save();
+            ctx.font = '900 74px "Montserrat", sans-serif';
+            ctx.fillStyle = '#ffffff';
+            ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
+            ctx.shadowBlur = 30;
+            ctx.shadowOffsetY = 5;
+            ctx.letterSpacing = '2px';
+            drawCenteredWrappedText(ctx, p1Title, width / 2, height * 0.42, 980, 84);
+            ctx.restore();
+
+            // Ligne de lueur cyan
+            ctx.save();
+            const sepGrad = ctx.createLinearGradient(width / 2 - 250, 0, width / 2 + 250, 0);
             sepGrad.addColorStop(0, 'transparent');
             sepGrad.addColorStop(0.5, '#00f0ff');
             sepGrad.addColorStop(1, 'transparent');
             ctx.fillStyle = sepGrad;
-            ctx.fillRect(cardX + 100, cardY + 315, cardW - 200, 3);
+            ctx.fillRect(width / 2 - 250, height * 0.49, 500, 3);
             ctx.restore();
 
-            // Description multiligne
+            // Description textuelle pure sans boîte
             ctx.save();
-            ctx.font = '600 32px "Montserrat", sans-serif';
-            ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
-            ctx.textAlign = 'center';
-            const words = p1Desc.split(' ');
-            let line = '';
-            let lineY = cardY + 380;
-            const maxLineWidth = cardW - 120;
-            for (let n = 0; n < words.length; n++) {
-                const testLine = line + words[n] + ' ';
-                const metrics = ctx.measureText(testLine);
-                if (metrics.width > maxLineWidth && n > 0) {
-                    ctx.fillText(line, width / 2, lineY);
-                    line = words[n] + ' ';
-                    lineY += 46;
-                } else {
-                    line = testLine;
-                }
-            }
-            ctx.fillText(line, width / 2, lineY);
+            ctx.font = '600 40px "Montserrat", sans-serif';
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.92)';
+            ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
+            ctx.shadowBlur = 20;
+            ctx.shadowOffsetY = 3;
+            drawCenteredWrappedText(ctx, p1Desc, width / 2, height * 0.55, 940, 56);
             ctx.restore();
 
-            // Badge Anglais en bas de la carte
+            // Mention Anglais stylée
             ctx.save();
-            ctx.font = '900 26px "Montserrat", sans-serif';
-            const bMetrics = ctx.measureText(p1Badge);
-            const bW = bMetrics.width + 44;
-            const bH = 50;
-            const bX = (width - bW) / 2;
-            const bY = cardY + cardH - 85;
-            ctx.fillStyle = 'rgba(255, 204, 0, 0.18)';
-            ctx.strokeStyle = 'rgba(255, 204, 0, 0.8)';
-            ctx.lineWidth = 3;
-            ctx.shadowColor = '#ffcc00';
-            ctx.shadowBlur = 15;
-            ctx.beginPath();
-            ctx.roundRect(bX, bY, bW, bH, 25);
-            ctx.fill();
-            ctx.stroke();
+            ctx.font = '900 36px "Montserrat", sans-serif';
             ctx.fillStyle = '#ffdd33';
-            ctx.textAlign = 'center';
-            ctx.fillText(p1Badge, width / 2, bY + 34);
+            ctx.shadowColor = 'rgba(255, 204, 0, 0.85)';
+            ctx.shadowBlur = 25;
+            ctx.shadowOffsetY = 4;
+            ctx.letterSpacing = '3px';
+            ctx.fillText(p1Badge, width / 2, height * 0.69);
             ctx.restore();
         }
 
         // ─────────────────────────────────────────────────────────────
-        // SCÈNE 3 : AU MILIEU LE 2EME PROFIL RECHERCHÉ (CRÉATEURS)
+        // SCÈNE 4 : PROFIL 2 (CRÉATEURS DE CONTENU) - SANS CADRE
         // ─────────────────────────────────────────────────────────────
-        else if (sceneIdx === 3) {
-            const cardW = 900;
-            const cardH = 680;
-            const cardX = (width - cardW) / 2;
-            const cardY = (height - cardH) / 2;
+        else if (sceneIdx === 4) {
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
 
-            // Carte Glassmorphism Rouge Neon
+            // Tag Profil Rouge / Rose
             ctx.save();
-            ctx.fillStyle = 'rgba(20, 5, 10, 0.88)';
-            ctx.strokeStyle = '#ff0033';
-            ctx.lineWidth = 5;
-            ctx.shadowColor = 'rgba(255, 0, 51, 0.75)';
-            ctx.shadowBlur = 35;
-            ctx.beginPath();
-            ctx.roundRect(cardX, cardY, cardW, cardH, 40);
-            ctx.fill();
-            ctx.stroke();
-            ctx.restore();
-
-            // En-tête profil
-            ctx.save();
-            ctx.font = '900 28px "Montserrat", sans-serif';
+            ctx.font = '900 34px "Montserrat", sans-serif';
             ctx.fillStyle = '#ff3355';
-            ctx.textAlign = 'center';
-            ctx.fillText('⚡ PROFIL RECHERCHÉ #2 ⚡', width / 2, cardY + 80);
+            ctx.shadowColor = 'rgba(255, 0, 51, 0.9)';
+            ctx.shadowBlur = 25;
+            ctx.shadowOffsetY = 3;
+            ctx.letterSpacing = '6px';
+            ctx.fillText(`⚡ ${p2Tag.toUpperCase()} ⚡`, width / 2, height * 0.31);
             ctx.restore();
 
-            // Icône
+            // Titre Profil
             ctx.save();
-            ctx.font = '70px sans-serif';
-            ctx.textAlign = 'center';
-            ctx.fillText('📱', width / 2, cardY + 175);
-            ctx.restore();
-
-            // Titre profil
-            ctx.save();
-            ctx.font = '900 44px "Montserrat", sans-serif';
+            ctx.font = '900 74px "Montserrat", sans-serif';
             ctx.fillStyle = '#ffffff';
-            ctx.textAlign = 'center';
-            ctx.shadowColor = '#ff0033';
-            ctx.shadowBlur = 20;
-            ctx.fillText(p2Title, width / 2, cardY + 270);
+            ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
+            ctx.shadowBlur = 30;
+            ctx.shadowOffsetY = 5;
+            ctx.letterSpacing = '2px';
+            ctx.fillText(p2Title, width / 2, height * 0.39);
             ctx.restore();
 
-            // Ligne de séparation
+            // Sous-titre Plateformes (TikTok / Insta)
             ctx.save();
-            const sepGrad = ctx.createLinearGradient(cardX + 100, 0, cardX + cardW - 100, 0);
+            ctx.font = '900 48px "Montserrat", sans-serif';
+            ctx.fillStyle = '#00f0ff';
+            ctx.shadowColor = 'rgba(0, 240, 255, 0.8)';
+            ctx.shadowBlur = 25;
+            ctx.shadowOffsetY = 4;
+            ctx.letterSpacing = '4px';
+            ctx.fillText(`(${p2Sub})`, width / 2, height * 0.45);
+            ctx.restore();
+
+            // Ligne de lueur rouge
+            ctx.save();
+            const sepGrad = ctx.createLinearGradient(width / 2 - 250, 0, width / 2 + 250, 0);
             sepGrad.addColorStop(0, 'transparent');
             sepGrad.addColorStop(0.5, '#ff0033');
             sepGrad.addColorStop(1, 'transparent');
             ctx.fillStyle = sepGrad;
-            ctx.fillRect(cardX + 100, cardY + 315, cardW - 200, 3);
+            ctx.fillRect(width / 2 - 250, height * 0.49, 500, 3);
             ctx.restore();
 
-            // Description multiligne
+            // Description textuelle sans boîte
             ctx.save();
-            ctx.font = '600 32px "Montserrat", sans-serif';
-            ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
-            ctx.textAlign = 'center';
-            const words = p2Desc.split(' ');
-            let line = '';
-            let lineY = cardY + 380;
-            const maxLineWidth = cardW - 120;
-            for (let n = 0; n < words.length; n++) {
-                const testLine = line + words[n] + ' ';
-                const metrics = ctx.measureText(testLine);
-                if (metrics.width > maxLineWidth && n > 0) {
-                    ctx.fillText(line, width / 2, lineY);
-                    line = words[n] + ' ';
-                    lineY += 46;
-                } else {
-                    line = testLine;
-                }
-            }
-            ctx.fillText(line, width / 2, lineY);
+            ctx.font = '600 40px "Montserrat", sans-serif';
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.92)';
+            ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
+            ctx.shadowBlur = 20;
+            ctx.shadowOffsetY = 3;
+            drawCenteredWrappedText(ctx, p2Desc, width / 2, height * 0.55, 940, 56);
             ctx.restore();
 
-            // Badge Anglais en bas de la carte
-            ctx.save();
-            ctx.font = '900 26px "Montserrat", sans-serif';
-            const bMetrics = ctx.measureText(p2Badge);
-            const bW = bMetrics.width + 44;
-            const bH = 50;
-            const bX = (width - bW) / 2;
-            const bY = cardY + cardH - 85;
-            ctx.fillStyle = 'rgba(255, 204, 0, 0.18)';
-            ctx.strokeStyle = 'rgba(255, 204, 0, 0.8)';
-            ctx.lineWidth = 3;
-            ctx.shadowColor = '#ffcc00';
-            ctx.shadowBlur = 15;
-            ctx.beginPath();
-            ctx.roundRect(bX, bY, bW, bH, 25);
-            ctx.fill();
-            ctx.stroke();
-            ctx.fillStyle = '#ffdd33';
-            ctx.textAlign = 'center';
-            ctx.fillText(p2Badge, width / 2, bY + 34);
-            ctx.restore();
-        }
-
-        // ─────────────────────────────────────────────────────────────
-        // SCÈNE 4 : PHRASE CONTACT PAR MAIL OU FORMULAIRE
-        // ─────────────────────────────────────────────────────────────
-        else if (sceneIdx === 4) {
-            const cardW = 920;
-            const cardH = 650;
-            const cardX = (width - cardW) / 2;
-            const cardY = (height - cardH) / 2;
-
-            // Carte Glassmorphism Contact
-            ctx.save();
-            ctx.fillStyle = 'rgba(10, 8, 15, 0.90)';
-            ctx.strokeStyle = 'rgba(255, 204, 0, 0.7)';
-            ctx.lineWidth = 4;
-            ctx.shadowColor = 'rgba(255, 204, 0, 0.5)';
-            ctx.shadowBlur = 30;
-            ctx.beginPath();
-            ctx.roundRect(cardX, cardY, cardW, cardH, 40);
-            ctx.fill();
-            ctx.stroke();
-            ctx.restore();
-
-            // Accroche
+            // Mention Anglais
             ctx.save();
             ctx.font = '900 36px "Montserrat", sans-serif';
-            ctx.fillStyle = '#ffffff';
-            ctx.textAlign = 'center';
-            ctx.fillText(contactHeadline, width / 2, cardY + 110);
-            ctx.restore();
-
-            // Bloc Option 1 : EMAIL
-            const emailBoxY = cardY + 190;
-            ctx.save();
-            ctx.fillStyle = 'rgba(255, 0, 51, 0.15)';
-            ctx.strokeStyle = 'rgba(255, 0, 51, 0.6)';
-            ctx.lineWidth = 2;
-            ctx.beginPath();
-            ctx.roundRect(cardX + 60, emailBoxY, cardW - 120, 150, 25);
-            ctx.fill();
-            ctx.stroke();
-
-            ctx.font = '800 26px "Montserrat", sans-serif';
-            ctx.fillStyle = '#aaaaaa';
-            ctx.textAlign = 'center';
-            ctx.fillText('📩 PAR EMAIL DIRECTEMENT :', width / 2, emailBoxY + 50);
-
-            ctx.font = '900 46px "Montserrat", sans-serif';
-            ctx.fillStyle = '#ff3355';
-            ctx.shadowColor = '#ff0033';
+            ctx.fillStyle = '#ffdd33';
+            ctx.shadowColor = 'rgba(255, 204, 0, 0.85)';
             ctx.shadowBlur = 25;
-            ctx.fillText(contactEmail, width / 2, emailBoxY + 105);
-            ctx.restore();
-
-            // Bloc Option 2 : FORMULAIRE SITE
-            const siteBoxY = cardY + 380;
-            ctx.save();
-            ctx.fillStyle = 'rgba(0, 240, 255, 0.15)';
-            ctx.strokeStyle = 'rgba(0, 240, 255, 0.6)';
-            ctx.lineWidth = 2;
-            ctx.beginPath();
-            ctx.roundRect(cardX + 60, siteBoxY, cardW - 120, 150, 25);
-            ctx.fill();
-            ctx.stroke();
-
-            ctx.font = '800 26px "Montserrat", sans-serif';
-            ctx.fillStyle = '#aaaaaa';
-            ctx.textAlign = 'center';
-            ctx.fillText('🌐 OU VIA LE FORMULAIRE SUR LE SITE :', width / 2, siteBoxY + 50);
-
-            ctx.font = '900 46px "Montserrat", sans-serif';
-            ctx.fillStyle = '#00f0ff';
-            ctx.shadowColor = '#00f0ff';
-            ctx.shadowBlur = 25;
-            ctx.fillText(contactSite.toUpperCase(), width / 2, siteBoxY + 105);
-            ctx.restore();
-
-            // Indication bas
-            ctx.save();
-            ctx.font = '800 24px "Montserrat", sans-serif';
-            ctx.fillStyle = '#ffe600';
-            ctx.textAlign = 'center';
-            ctx.fillText('⚡ RÉPONSE RAPIDE DE L\'ÉQUIPE GARANTIE ⚡', width / 2, cardY + cardH - 45);
+            ctx.shadowOffsetY = 4;
+            ctx.letterSpacing = '3px';
+            ctx.fillText(p2Badge, width / 2, height * 0.69);
             ctx.restore();
         }
 
         // ─────────────────────────────────────────────────────────────
-        // SCÈNE 5 : APPARITION DU LOGO DROPSIDERS FINAL
+        // SCÈNE 5 : CONTACT MAIL OU FORMULAIRE SITE - SANS CADRE
         // ─────────────────────────────────────────────────────────────
         else if (sceneIdx === 5) {
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+
+            // Grande accroche
+            ctx.save();
+            ctx.font = '900 52px "Montserrat", sans-serif';
+            ctx.fillStyle = '#ffffff';
+            ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
+            ctx.shadowBlur = 25;
+            ctx.shadowOffsetY = 4;
+            drawCenteredWrappedText(ctx, contactHeadline, width / 2, height * 0.34, 960, 68);
+            ctx.restore();
+
+            // Par Email
+            ctx.save();
+            ctx.font = '800 32px "Montserrat", sans-serif';
+            ctx.fillStyle = '#aaaaaa';
+            ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
+            ctx.shadowBlur = 15;
+            ctx.letterSpacing = '3px';
+            ctx.fillText('📩 PAR EMAIL DIRECTEMENT :', width / 2, height * 0.47);
+
+            ctx.font = '900 64px "Montserrat", sans-serif';
+            ctx.fillStyle = '#ff3355';
+            ctx.shadowColor = 'rgba(255, 0, 51, 0.95)';
+            ctx.shadowBlur = 35;
+            ctx.shadowOffsetY = 5;
+            ctx.fillText(contactEmail, width / 2, height * 0.52);
+            ctx.restore();
+
+            // Ou via le site
+            ctx.save();
+            ctx.font = '800 32px "Montserrat", sans-serif';
+            ctx.fillStyle = '#aaaaaa';
+            ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
+            ctx.shadowBlur = 15;
+            ctx.letterSpacing = '3px';
+            ctx.fillText('🌐 OU VIA LE FORMULAIRE SUR :', width / 2, height * 0.60);
+
+            ctx.font = '900 72px "Montserrat", sans-serif';
+            ctx.fillStyle = '#00f0ff';
+            ctx.shadowColor = 'rgba(0, 240, 255, 0.95)';
+            ctx.shadowBlur = 35;
+            ctx.shadowOffsetY = 5;
+            ctx.letterSpacing = '3px';
+            ctx.fillText(contactSite.toUpperCase(), width / 2, height * 0.66);
+            ctx.restore();
+
+            // Mention bas
+            ctx.save();
+            ctx.font = '900 32px "Montserrat", sans-serif';
+            ctx.fillStyle = '#ffe600';
+            ctx.shadowColor = 'rgba(255, 230, 0, 0.8)';
+            ctx.shadowBlur = 20;
+            ctx.shadowOffsetY = 3;
+            ctx.letterSpacing = '2px';
+            ctx.fillText('⚡ RÉPONSE RAPIDE DE L\'ÉQUIPE ⚡', width / 2, height * 0.74);
+            ctx.restore();
+        }
+
+        // ─────────────────────────────────────────────────────────────
+        // SCÈNE 6 : APPARITION DU LOGO OFFICIEL DROPSIDERS FINAL
+        // ─────────────────────────────────────────────────────────────
+        else if (sceneIdx === 6) {
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
 
@@ -579,134 +590,122 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
             ctx.translate(width / 2, height * 0.48);
             ctx.scale(pump, pump);
 
-            // Halo rougeoyant majestueux
-            const halo = ctx.createRadialGradient(0, 0, 50, 0, 0, 320);
-            halo.addColorStop(0, 'rgba(255, 0, 51, 0.7)');
-            halo.addColorStop(0.6, 'rgba(255, 0, 51, 0.2)');
+            // Halo radiant derrière le logo
+            const halo = ctx.createRadialGradient(0, 0, 50, 0, 0, 380);
+            halo.addColorStop(0, 'rgba(255, 0, 51, 0.55)');
+            halo.addColorStop(0.5, 'rgba(255, 204, 0, 0.25)');
             halo.addColorStop(1, 'transparent');
             ctx.fillStyle = halo;
             ctx.beginPath();
-            ctx.arc(0, 0, 320, 0, Math.PI * 2);
+            ctx.arc(0, 0, 380, 0, Math.PI * 2);
             ctx.fill();
 
-            // Boîte logo officielle Dropsiders
-            const boxW = 540;
-            const boxH = 180;
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.9)';
-            ctx.strokeStyle = '#ffffff';
-            ctx.lineWidth = 6;
-            ctx.shadowColor = '#ff0033';
-            ctx.shadowBlur = 35;
-            ctx.beginPath();
-            ctx.roundRect(-boxW / 2, -boxH / 2, boxW, boxH, 30);
-            ctx.fill();
-            ctx.stroke();
-
-            // Dessin du Logo Image si chargée, sinon texte stylisé officiel
-            if (logoImgRef.current && logoImgRef.current.complete) {
-                const imgScale = Math.min((boxW - 60) / logoImgRef.current.width, (boxH - 40) / logoImgRef.current.height);
-                const iw = logoImgRef.current.width * imgScale;
-                const ih = logoImgRef.current.height * imgScale;
-                ctx.drawImage(logoImgRef.current, -iw / 2, -ih / 2, iw, ih);
+            // Logo image
+            if (logoImgRef.current && logoImgRef.current.complete && logoImgRef.current.naturalWidth > 0) {
+                const img = logoImgRef.current;
+                const maxDim = 460;
+                const aspect = img.naturalWidth / img.naturalHeight;
+                let lw = maxDim;
+                let lh = maxDim / aspect;
+                if (lh > 220) {
+                    lh = 220;
+                    lw = lh * aspect;
+                }
+                ctx.shadowColor = 'rgba(255, 0, 51, 0.8)';
+                ctx.shadowBlur = 40;
+                ctx.drawImage(img, -lw / 2, -lh / 2, lw, lh);
             } else {
-                ctx.font = '900 68px "Montserrat", sans-serif';
+                ctx.font = '900 70px "Montserrat", sans-serif';
                 ctx.fillStyle = '#ffffff';
-                ctx.letterSpacing = '6px';
-                ctx.fillText('DROPSIDERS', 0, -10);
-
-                ctx.font = '800 26px "Montserrat", sans-serif';
-                ctx.fillStyle = '#ff0033';
-                ctx.letterSpacing = '10px';
-                ctx.fillText('.FR', 160, -10);
+                ctx.shadowColor = '#ff0033';
+                ctx.shadowBlur = 35;
+                ctx.fillText('DROPSIDERS.FR', 0, 0);
             }
-
             ctx.restore();
 
-            // Sous-titre Web
+            // Texte bas sous le logo
             ctx.save();
-            ctx.font = '800 32px "Montserrat", sans-serif';
+            ctx.font = '900 36px "Montserrat", sans-serif';
             ctx.fillStyle = '#ffffff';
-            ctx.letterSpacing = '6px';
-            ctx.shadowColor = 'rgba(255,255,255,0.6)';
-            ctx.shadowBlur = 15;
-            ctx.fillText('WWW.DROPSIDERS.FR', width / 2, height * 0.63);
-
-            ctx.font = '700 24px "Montserrat", sans-serif';
-            ctx.fillStyle = '#aaaaaa';
-            ctx.letterSpacing = '2px';
-            ctx.fillText('LE MÉDIA N°1 ÉLECTRO & FESTIVALS', width / 2, height * 0.68);
+            ctx.letterSpacing = '8px';
+            ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
+            ctx.shadowBlur = 20;
+            ctx.shadowOffsetY = 4;
+            ctx.fillText('WWW.DROPSIDERS.FR', width / 2, height * 0.65);
             ctx.restore();
         }
 
         ctx.restore();
     }, [
+        bgOverlayOpacity,
         introTitle, introSubtitle, introBadge, introDuration,
-        p1Title, p1Desc, p1Badge, p1Duration,
-        p2Title, p2Desc, p2Badge, p2Duration,
+        vibeLine1, vibeLine2, vibeCta, vibeDuration,
+        p1Tag, p1Title, p1Desc, p1Badge, p1Duration,
+        p2Tag, p2Title, p2Sub, p2Desc, p2Badge, p2Duration,
         contactHeadline, contactEmail, contactSite, contactDuration,
-        logoDuration, bgOverlayOpacity
+        logoDuration
     ]);
 
-    // ── Boucle d'animation en temps réel pour le preview (60 FPS) ──
+    // Boucle de rendu animation temps réel (60 FPS)
     useEffect(() => {
         if (!isOpen) return;
 
-        let lastTime = performance.now();
+        let frameId: number;
         const renderLoop = (now: number) => {
-            const dt = (now - lastTime) / 1000;
-            lastTime = now;
+            const dt = (now - lastTimestampRef.current) / 1000;
+            lastTimestampRef.current = now;
 
             if (isPlaying && !isExportingRef.current) {
                 setCurrentTime(prev => {
-                    const next = prev + dt;
+                    let next = prev + dt;
                     if (next >= totalDuration) {
-                        // Boucle fluide
-                        if (videoRef.current) {
-                            videoRef.current.currentTime = bgVideoStartTimeRef.current;
-                        }
-                        return 0;
+                        next = 0;
+                        if (videoRef.current) videoRef.current.currentTime = bgVideoStartTimeRef.current;
                     }
                     return next;
                 });
             }
 
-            // Sync de la vidéo de fond
-            const vid = videoRef.current;
-            if (vid && isPlaying && !isExportingRef.current) {
-                if (vid.paused) vid.play().catch(() => {});
-                // Si la vidéo dérive trop ou boucle nativement, la recaler
-                const targetVidTime = bgVideoStartTimeRef.current + currentTime;
-                if (Math.abs(vid.currentTime - targetVidTime) > 0.4 && vid.duration && targetVidTime < vid.duration) {
-                    vid.currentTime = targetVidTime;
-                }
-            }
-
-            // Dessin frame canvas
-            const canvas = canvasRef.current;
-            if (canvas) {
-                const ctx = canvas.getContext('2d');
+            if (canvasRef.current) {
+                const ctx = canvasRef.current.getContext('2d');
                 if (ctx) {
-                    drawFrame(ctx, canvas.width, canvas.height, currentTime);
+                    drawFrame(ctx, 1080, 1920, currentTime);
                 }
             }
 
-            animFrameRef.current = requestAnimationFrame(renderLoop);
+            frameId = requestAnimationFrame(renderLoop);
         };
 
-        animFrameRef.current = requestAnimationFrame(renderLoop);
-        return () => {
-            if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
-        };
-    }, [isOpen, isPlaying, totalDuration, currentTime, drawFrame]);
+        lastTimestampRef.current = performance.now();
+        frameId = requestAnimationFrame(renderLoop);
+        return () => cancelAnimationFrame(frameId);
+    }, [isOpen, isPlaying, currentTime, totalDuration, drawFrame]);
 
-    // ── Export Vidéo MP4 HD (1080x1920) Haute Fidélité ──
+    // Synchronisation de la vidéo avec currentTime
+    useEffect(() => {
+        const vid = videoRef.current;
+        if (!vid || isNaN(vid.duration) || vid.duration <= 0) return;
+
+        const targetTime = bgVideoStartTime + currentTime;
+        if (Math.abs(vid.currentTime - targetTime) > 0.3) {
+            vid.currentTime = targetTime;
+        }
+
+        if (isPlaying && vid.paused) {
+            vid.play().catch(() => {});
+        } else if (!isPlaying && !vid.paused) {
+            vid.pause();
+        }
+    }, [isPlaying, currentTime, bgVideoStartTime]);
+
+    // ── MOTEUR D'EXPORTATION MP4 (1080x1920, 60 ou 30 FPS) ──
     const handleExportMp4 = async () => {
-        if (isExporting || !canvasRef.current) return;
+        if (isExporting) return;
         setIsExporting(true);
         isExportingRef.current = true;
+        setIsPlaying(false);
         setExportProgress(0);
 
-        const canvas = canvasRef.current;
         const targetWidth = 1080;
         const targetHeight = 1920;
         const fps = exportFps;
@@ -788,15 +787,17 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
             // Dessin
             drawFrame(exportCtx, targetWidth, targetHeight, frameTimeSec);
 
-            // Capture Frame
-            const vFrame = new VideoFrameCls(exportCanvas, {
-                timestamp: f * frameDurationUs,
+            // Création frame WebCodecs
+            const frameBitmap = await createImageBitmap(exportCanvas);
+            const videoFrame = new VideoFrameCls(frameBitmap, {
+                timestamp: Math.round(f * frameDurationUs),
                 duration: frameDurationUs
             });
 
-            const isKey = (f % (fps * 2) === 0);
-            encoder.encode(vFrame, { keyFrame: isKey });
-            vFrame.close();
+            const isKeyFrame = f % (fps * 2) === 0;
+            encoder.encode(videoFrame, { keyFrame: isKeyFrame });
+            videoFrame.close();
+            frameBitmap.close();
 
             const p = Math.round(((f + 1) / totalFrames) * 100);
             setExportProgress(p);
@@ -844,7 +845,7 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
                                 VIP Alex
                             </span>
                         </div>
-                        <p className="text-[10px] text-gray-400">Générateur vidéo 9:16 personnalisé avec vidéo de fond & animation 5 étapes</p>
+                        <p className="text-[10px] text-gray-400">Générateur vidéo 9:16 avec vidéo de fond & typographie cinématique sans cadre</p>
                     </div>
                 </div>
 
@@ -908,7 +909,7 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
                     </div>
 
                     {/* BARRE DE LECTURE DU PREVIEW */}
-                    <div className="w-full max-w-[420px] mt-3 space-y-2 bg-black/60 border border-white/10 p-2.5 rounded-2xl backdrop-blur-md">
+                    <div className="w-full max-w-[440px] mt-3 space-y-2 bg-black/60 border border-white/10 p-2.5 rounded-2xl backdrop-blur-md">
                         {/* Timeline Scrubber */}
                         <div className="flex items-center gap-2">
                             <span className="text-[10px] font-mono text-gray-400 w-10 text-right">{currentTime.toFixed(1)}s</span>
@@ -954,14 +955,15 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
                                 </button>
                             </div>
 
-                            {/* Raccourcis Scènes 1 à 5 */}
-                            <div className="flex items-center gap-1">
+                            {/* Raccourcis Scènes 1 à 6 */}
+                            <div className="flex items-center gap-1 flex-wrap">
                                 {[
                                     { id: 1, label: '1. Intro', time: 0 },
-                                    { id: 2, label: '2. P1', time: introDuration },
-                                    { id: 3, label: '3. P2', time: introDuration + p1Duration },
-                                    { id: 4, label: '4. Contact', time: introDuration + p1Duration + p2Duration },
-                                    { id: 5, label: '5. Logo', time: introDuration + p1Duration + p2Duration + contactDuration },
+                                    { id: 2, label: '2. Vibe', time: introDuration },
+                                    { id: 3, label: '3. P1', time: introDuration + vibeDuration },
+                                    { id: 4, label: '4. P2', time: introDuration + vibeDuration + p1Duration },
+                                    { id: 5, label: '5. Contact', time: introDuration + vibeDuration + p1Duration + p2Duration },
+                                    { id: 6, label: '6. Logo', time: introDuration + vibeDuration + p1Duration + p2Duration + contactDuration },
                                 ].map(sc => (
                                     <button
                                         key={sc.id}
@@ -970,7 +972,7 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
                                             setCurrentTime(sc.time);
                                             if (videoRef.current) videoRef.current.currentTime = bgVideoStartTimeRef.current + sc.time;
                                         }}
-                                        className="px-2 py-1 rounded-lg bg-white/5 hover:bg-white/15 border border-white/10 text-[9px] font-black uppercase text-gray-300"
+                                        className="px-1.5 py-1 rounded-lg bg-white/5 hover:bg-white/15 border border-white/10 text-[8px] font-black uppercase text-gray-300"
                                     >
                                         {sc.label}
                                     </button>
@@ -981,7 +983,7 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
                 </div>
 
                 {/* DROITE : PANNEAU DE CONTRÔLE ET RÉGLAGES ALEX */}
-                <div className="w-full lg:w-[460px] border-l border-white/10 bg-[#0a0c12] flex flex-col overflow-hidden">
+                <div className="w-full lg:w-[480px] border-l border-white/10 bg-[#0a0c12] flex flex-col overflow-hidden">
                     
                     {/* Onglets */}
                     <div className="flex border-b border-white/10 bg-black/40">
@@ -1001,7 +1003,7 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
                                 activeTab === 'textes' ? 'bg-[#ffe600]/20 text-[#ffe600] border-b-2 border-[#ffe600]' : 'text-gray-400 hover:text-white'
                             }`}
                         >
-                            <Settings2 className="w-4 h-4" /> Textes & Profils
+                            <Settings2 className="w-4 h-4" /> Textes des 6 Scènes
                         </button>
                         <button
                             type="button"
@@ -1137,11 +1139,11 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
                             </div>
                         )}
 
-                        {/* ONGLET 2 : TEXTES DES 5 ÉTAPES */}
+                        {/* ONGLET 2 : TEXTES DES 6 SCÈNES (SANS CADRE) */}
                         {activeTab === 'textes' && (
                             <div className="space-y-3.5">
                                 
-                                {/* Étape 1 : Intro Plein Écran */}
+                                {/* Scène 1 : Intro Plein Écran */}
                                 <div className="p-3 rounded-2xl bg-black/40 border border-red-500/30 space-y-2">
                                     <div className="flex items-center justify-between text-xs font-black uppercase text-[#ff3355]">
                                         <span>1. Intro Plein Écran</span>
@@ -1162,13 +1164,51 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
                                             placeholder="Sous-titre (ex: RECRUTE)"
                                             className="w-full px-3 py-1.5 bg-black/60 border border-white/10 rounded-xl text-xs font-bold text-amber-400 focus:border-amber-400 outline-none"
                                         />
+                                        <input
+                                            type="text"
+                                            value={introBadge}
+                                            onChange={(e) => setIntroBadge(e.target.value)}
+                                            placeholder="Surtitre (ex: SAISON 2026)"
+                                            className="w-full px-3 py-1.5 bg-black/60 border border-white/10 rounded-xl text-[10px] font-bold text-[#ff3355] focus:border-[#ff0033] outline-none"
+                                        />
                                     </div>
                                 </div>
 
-                                {/* Étape 2 : Profil 1 */}
+                                {/* Scène 2 : Accroche Vibe / Backstages / REJOINS-NOUS */}
+                                <div className="p-3 rounded-2xl bg-black/40 border border-amber-500/30 space-y-2">
+                                    <div className="flex items-center justify-between text-xs font-black uppercase text-amber-300">
+                                        <span>2. Accroche Backstages & Vibe</span>
+                                        <span className="text-gray-400 font-mono text-[10px]">Durée : {vibeDuration}s</span>
+                                    </div>
+                                    <div className="space-y-1.5">
+                                        <textarea
+                                            rows={2}
+                                            value={vibeLine1}
+                                            onChange={(e) => setVibeLine1(e.target.value)}
+                                            placeholder="Question 1 (ex: Tu vibres au son de la musique électronique ?)"
+                                            className="w-full px-3 py-1.5 bg-black/60 border border-white/10 rounded-xl text-xs font-bold text-white focus:border-amber-400 outline-none resize-none"
+                                        />
+                                        <textarea
+                                            rows={2}
+                                            value={vibeLine2}
+                                            onChange={(e) => setVibeLine2(e.target.value)}
+                                            placeholder="Question 2 (ex: Tu rêves de découvrir les backstages...)"
+                                            className="w-full px-3 py-1.5 bg-black/60 border border-white/10 rounded-xl text-[11px] font-bold text-[#00f0ff] focus:border-[#00f0ff] outline-none resize-none"
+                                        />
+                                        <input
+                                            type="text"
+                                            value={vibeCta}
+                                            onChange={(e) => setVibeCta(e.target.value)}
+                                            placeholder="Bouton Appel (ex: ⚡ REJOINS-NOUS ! ⚡)"
+                                            className="w-full px-3 py-1.5 bg-black/60 border border-white/10 rounded-xl text-xs font-black text-amber-400 focus:border-amber-400 outline-none"
+                                        />
+                                    </div>
+                                </div>
+
+                                {/* Scène 3 : Profil 1 */}
                                 <div className="p-3 rounded-2xl bg-black/40 border border-[#00f0ff]/30 space-y-2">
                                     <div className="flex items-center justify-between text-xs font-black uppercase text-[#00f0ff]">
-                                        <span>2. Profil 1 (Cyan)</span>
+                                        <span>3. Profil 1 (Cyan)</span>
                                         <span className="text-gray-400 font-mono text-[10px]">Durée : {p1Duration}s</span>
                                     </div>
                                     <div className="space-y-1.5">
@@ -1196,10 +1236,10 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
                                     </div>
                                 </div>
 
-                                {/* Étape 3 : Profil 2 */}
+                                {/* Scène 4 : Profil 2 */}
                                 <div className="p-3 rounded-2xl bg-black/40 border border-[#ff0033]/30 space-y-2">
                                     <div className="flex items-center justify-between text-xs font-black uppercase text-[#ff3355]">
-                                        <span>3. Profil 2 (Rouge)</span>
+                                        <span>4. Profil 2 (Rouge)</span>
                                         <span className="text-gray-400 font-mono text-[10px]">Durée : {p2Duration}s</span>
                                     </div>
                                     <div className="space-y-1.5">
@@ -1209,6 +1249,13 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
                                             onChange={(e) => setP2Title(e.target.value)}
                                             placeholder="Titre Profil 2"
                                             className="w-full px-3 py-1.5 bg-black/60 border border-white/10 rounded-xl text-xs font-bold text-[#ff3355] focus:border-[#ff0033] outline-none"
+                                        />
+                                        <input
+                                            type="text"
+                                            value={p2Sub}
+                                            onChange={(e) => setP2Sub(e.target.value)}
+                                            placeholder="Plateformes (ex: TIKTOK & INSTAGRAM)"
+                                            className="w-full px-3 py-1.5 bg-black/60 border border-white/10 rounded-xl text-xs font-bold text-[#00f0ff] focus:border-[#00f0ff] outline-none"
                                         />
                                         <textarea
                                             rows={2}
@@ -1227,10 +1274,10 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
                                     </div>
                                 </div>
 
-                                {/* Étape 4 : Contact Mail / Site */}
+                                {/* Scène 5 : Contact Mail / Site */}
                                 <div className="p-3 rounded-2xl bg-black/40 border border-amber-500/30 space-y-2">
                                     <div className="flex items-center justify-between text-xs font-black uppercase text-amber-300">
-                                        <span>4. Phrase Contact</span>
+                                        <span>5. Phrase Contact</span>
                                         <span className="text-gray-400 font-mono text-[10px]">Durée : {contactDuration}s</span>
                                     </div>
                                     <div className="space-y-1.5">
@@ -1258,13 +1305,13 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
                                     </div>
                                 </div>
 
-                                {/* Étape 5 : Outro Logo */}
+                                {/* Scène 6 : Outro Logo */}
                                 <div className="p-3 rounded-2xl bg-black/40 border border-white/20 space-y-1.5">
                                     <div className="flex items-center justify-between text-xs font-black uppercase text-white">
-                                        <span>5. Outro Finale Logo</span>
+                                        <span>6. Outro Finale Logo Dropsiders</span>
                                         <span className="text-gray-400 font-mono text-[10px]">Durée : {logoDuration}s</span>
                                     </div>
-                                    <p className="text-[11px] text-gray-400">Le logo officiel Dropsiders apparaît au centre en grand avec pulsation néon EDM.</p>
+                                    <p className="text-[11px] text-gray-400">Le logo officiel Dropsiders apparaît en plein centre avec pulsation néon sans aucun cadre.</p>
                                 </div>
 
                             </div>
@@ -1278,29 +1325,30 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
                                         <Sparkles className="w-4 h-4 text-amber-400" />
                                         <span>Paramètres d'Exportation Reel</span>
                                     </div>
-                                    <ul className="text-xs text-gray-300 space-y-1.5">
-                                        <li>• Résolution : <strong>1080 x 1920 (9:16 Vertical HD)</strong></li>
-                                        <li>• Durée totale : <strong>{totalDuration.toFixed(1)} secondes</strong></li>
-                                        <li>• Piste audio : <strong>{isVideoAudioMuted ? 'Muette' : 'Son de la vidéo inclus'}</strong></li>
-                                        <li>• Encodage matériel : <strong>MP4 H.264 High Profile</strong></li>
-                                    </ul>
-
-                                    <div className="pt-2 flex items-center justify-between">
-                                        <span className="text-xs font-black uppercase text-gray-400">Fluidité (FPS) :</span>
-                                        <div className="flex gap-2">
-                                            {[30, 60].map(f => (
-                                                <button
-                                                    key={f}
-                                                    type="button"
-                                                    onClick={() => setExportFps(f)}
-                                                    className={`px-3 py-1.5 rounded-xl text-xs font-black transition ${
-                                                        exportFps === f ? 'bg-[#ff0033] text-white shadow-md' : 'bg-white/5 border border-white/10 text-gray-400'
-                                                    }`}
-                                                >
-                                                    {f} FPS
-                                                </button>
-                                            ))}
-                                        </div>
+                                    <p className="text-xs text-gray-300">
+                                        Génération MP4 haute qualité (1080x1920) avec accélération matérielle WebCodecs.
+                                    </p>
+                                    <div className="grid grid-cols-2 gap-3 pt-2">
+                                        <button
+                                            type="button"
+                                            onClick={() => setExportFps(60)}
+                                            className={`p-3 rounded-xl border text-xs font-black uppercase flex flex-col items-center gap-1 transition ${
+                                                exportFps === 60 ? 'bg-[#ff0033]/20 border-[#ff0033] text-white' : 'bg-black/40 border-white/10 text-gray-400'
+                                            }`}
+                                        >
+                                            <span className="text-base font-black">60 FPS</span>
+                                            <span className="text-[9px] text-gray-400">Fluidité maximale</span>
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => setExportFps(30)}
+                                            className={`p-3 rounded-xl border text-xs font-black uppercase flex flex-col items-center gap-1 transition ${
+                                                exportFps === 30 ? 'bg-amber-500/20 border-amber-500 text-white' : 'bg-black/40 border-white/10 text-gray-400'
+                                            }`}
+                                        >
+                                            <span className="text-base font-black">30 FPS</span>
+                                            <span className="text-[9px] text-gray-400">Export ultra rapide</span>
+                                        </button>
                                     </div>
                                 </div>
 
@@ -1308,24 +1356,18 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
                                     type="button"
                                     onClick={handleExportMp4}
                                     disabled={isExporting}
-                                    className={`w-full py-4 rounded-2xl font-black text-sm uppercase flex items-center justify-center gap-2.5 transition-all shadow-xl active:scale-98 ${
-                                        isExporting
-                                            ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40 animate-pulse'
-                                            : 'bg-gradient-to-r from-[#ff0033] via-rose-500 to-amber-500 hover:brightness-110 text-white shadow-[0_0_30px_rgba(255,0,51,0.5)]'
-                                    }`}
+                                    className="w-full py-4 rounded-2xl bg-gradient-to-r from-[#ff0033] via-rose-500 to-amber-500 text-white font-black text-sm uppercase tracking-wider shadow-[0_0_30px_rgba(255,0,51,0.5)] hover:brightness-110 active:scale-95 transition flex items-center justify-center gap-2.5"
                                 >
                                     <Download className="w-5 h-5" />
-                                    <span>{isExporting ? `Génération MP4 (${exportProgress}%)` : '🎬 Lancer l\'Export Vidéo MP4'}</span>
+                                    <span>Lancer le Rendu & Télécharger la Vidéo MP4</span>
                                 </button>
                             </div>
                         )}
 
                     </div>
-
                 </div>
 
             </div>
-
         </div>
     );
 };
