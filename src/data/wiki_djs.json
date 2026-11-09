@@ -83,7 +83,7 @@
     "bio": "Alesso est un DJ et producteur suédois de premier plan, maître de la house progressive et de l'EDM mélodique. Mentoré par Sebastian Ingrosso, il est devenu mondialement connu avec des hymnes comme 'Calling (Losing My Mind)' et 'Heroes'. Ses sets sont réputés pour leur énergie émotionnelle et leur capacité à soulever les foules dans les plus grands stades du monde. Figure incontournable des mainstages de Tomorrowland et Ultra, il continue de définir le son de la musique électronique moderne.",
     "country": "Intl",
     "image": "https://cdn-images.dzcdn.net/images/artist/00153f7b9e83fd1ef39cf1a94776aae3/1000x1000-000000-80-0-0.jpg",
-    "rating": "0",
+    "rating": "1",
     "spotify": "https://open.spotify.com/search/Alesso",
     "instagram": "https://instagram.com/alesso",
     "facebook": "https://facebook.com/alesso",
@@ -94,7 +94,8 @@
       "Heroes (we could be) [feat. Tove Lo]",
       "Calling (Lose My Mind) [Radio Edit] [feat. Ryan Tedder]",
       "If I Lose Myself (Alesso vs OneRepublic)"
-    ]
+    ],
+    "votes": 1
   },
   {
     "id": "64",
