@@ -82,6 +82,7 @@ const BlindTestPage = lazyRetry(() => import('./pages/BlindTestPage').then(m => 
 const CallGeneratorPage = lazyRetry(() => import('./pages/CallGeneratorPage').then(m => m.CallGeneratorPage));
 const LiveChatPopoutPage = lazyRetry(() => import('./pages/LiveChatPopoutPage').then(m => m.LiveChatPopoutPage));
 const ModViewPage = lazyRetry(() => import('./pages/ModViewPage').then(m => m.ModViewPage));
+const AuthPage = lazyRetry(() => import('./pages/AuthPage').then(m => m.AuthPage));
 
 
 function ErrorFallback() {
@@ -244,6 +245,13 @@ const router = createBrowserRouter([
       { path: "shop", element: <Shop /> },
       { path: "galerie", element: <Galerie /> },
       { path: "communaute", element: <Community /> },
+      { path: "inscription", element: <AuthPage /> },
+      { path: "rejoindre", element: <AuthPage /> },
+      { path: "creer-compte", element: <AuthPage /> },
+      { path: "register", element: <AuthPage /> },
+      { path: "join", element: <AuthPage /> },
+      { path: "connexion", element: <AuthPage /> },
+      { path: "login", element: <AuthPage /> },
       { path: "top-dropsiders", element: <TopDropsiders /> },
       { path: "profil", element: <Profile /> },
       { path: "profil/:username", element: <PublicProfile /> },

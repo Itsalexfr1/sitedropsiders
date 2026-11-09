@@ -54,6 +54,9 @@ interface UserContextType {
     deleteAccount: () => Promise<boolean>;
     isAuthModalOpen: boolean;
     setIsAuthModalOpen: (open: boolean) => void;
+    authModalMode: 'login' | 'register';
+    setAuthModalMode: (mode: 'login' | 'register') => void;
+    openAuthModal: (mode?: 'login' | 'register') => void;
     showNotification: (message: string, type?: 'success' | 'error' | 'info') => void;
     addCard: (card: DropsidersCard) => void;
     addCards: (cards: DropsidersCard[]) => void;
@@ -166,6 +169,11 @@ function pick9RandomCards(): DropsidersCard[] {
 export function UserProvider({ children }: { children: React.ReactNode }) {
     const [user, setUser] = useState<UserProfile | null>(null);
     const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+    const [authModalMode, setAuthModalMode] = useState<'login' | 'register'>('login');
+    const openAuthModal = (mode: 'login' | 'register' = 'login') => {
+        setAuthModalMode(mode);
+        setIsAuthModalOpen(true);
+    };
     const [notification, setNotification] = useState<{ message: string, type: 'success' | 'error' | 'info' } | null>(null);
     const [pendingBooster, setPendingBooster] = useState<DropsidersCard[] | null>(null);
 
@@ -860,6 +868,9 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
             deleteAccount,
             isAuthModalOpen,
             setIsAuthModalOpen,
+            authModalMode,
+            setAuthModalMode,
+            openAuthModal,
             showNotification,
             addCard,
             addCards,

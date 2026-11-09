@@ -21,7 +21,15 @@ export function Layout({ children }: LayoutProps) {
     const [bannerEnabled, setBannerEnabled] = useState(false);
     const [isMobile, setIsMobile] = useState(window.innerWidth < 1024);
     const [isSearchOpen, setIsSearchOpen] = useState(false);
-    const { isAuthModalOpen, setIsAuthModalOpen } = useUser();
+    const { isAuthModalOpen, setIsAuthModalOpen, authModalMode, openAuthModal } = useUser();
+
+    useEffect(() => {
+        const params = new URLSearchParams(location.search);
+        const auth = params.get('auth');
+        if (auth === 'register' || auth === 'login') {
+            openAuthModal(auth);
+        }
+    }, [location.search]);
 
     useEffect(() => {
         const handleResize = () => setIsMobile(window.innerWidth < 1024);
@@ -45,12 +53,14 @@ export function Layout({ children }: LayoutProps) {
     const isHome = location.pathname === '/';
     const isMini = new URLSearchParams(location.search).get('mini') === 'true';
     const isLivePage = location.pathname === '/live' || location.pathname === '/tv';
+    const isAuthRoute = ['/inscription', '/rejoindre', '/creer-compte', '/register', '/join', '/connexion', '/login'].includes(location.pathname);
     const isHideLayout = location.pathname.startsWith('/admin') ||
         location.pathname.startsWith('/newsletter/admin') ||
         location.pathname.startsWith('/newsletter/studio') ||
         location.pathname.startsWith('/social-studio') ||
         location.pathname.includes('/create') ||
         location.pathname.startsWith('/websiders') ||
+        isAuthRoute ||
         isMini ||
         isLivePage;
 
@@ -103,6 +113,7 @@ export function Layout({ children }: LayoutProps) {
             <UserAuthModal 
                 isOpen={isAuthModalOpen} 
                 onClose={() => setIsAuthModalOpen(false)} 
+                initialMode={authModalMode}
             />
 
         </div>
