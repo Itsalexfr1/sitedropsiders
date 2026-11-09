@@ -8473,7 +8473,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         // ══════════════════════════════════════════════════════════════
                         const isStory = canvas.height > 1500;
                         const centerX = canvas.width / 2;
-                        const centerY = isStory ? 960 : 540;
+                        const centerY = isStory ? 960 : 675;
 
                         // 1. Fond sombre & Aura néon rouge centrale
                         const auraGrad = ctx.createRadialGradient(centerX, centerY, 50, centerX, centerY, canvas.width * 0.75);
@@ -8561,9 +8561,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         });
 
                         const titleLineHeight = titleFontSize * 1.15;
-                        const titleCenterY = isStory ? 730 : 410;
-                        const festCenterY = isStory ? 1040 : 585;
-                        const pillY = isStory ? 1270 : 715;
+                        const titleCenterY = isStory ? 770 : 590;
+                        const festCenterY = isStory ? 1080 : 765;
+                        const pillY = isStory ? 1310 : 900;
                         const titleLine0Y = titleCenterY - (((titleLines.length - 1) * titleLineHeight) / 2);
 
                         // Tracé des lignes du titre avec asterisques en rouge néon
@@ -8712,10 +8712,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         // Calcul des positions Y verticalement CENTRÉES
                         // En Story 1920: bloc s'étend de Y=480 à Y=1320 (centre ~900)
                         // En Post 1080: bloc s'étend de Y=220 à Y=780 (centre ~500)
-                        const startY = isStory ? 480 : Math.round(canvas.height * 0.20);
-                        const stageY = isStory ? 740 : Math.round(canvas.height * 0.38);
-                        const dayY = isStory ? 980 : Math.round(canvas.height * 0.54);
-                        const hourY = isStory ? 1220 : Math.round(canvas.height * 0.70);
+                        const startY = isStory ? 550 : 320;
+                        const stageY = isStory ? 810 : 535;
+                        const dayY = isStory ? 1050 : 725;
+                        const hourY = isStory ? 1290 : 915;
 
                         // 2. Artist Logo or Name (Centré verticalement dans le haut du bloc)
                         if (artistLogoRef.current) {
