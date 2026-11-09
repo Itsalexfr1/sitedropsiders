@@ -109,6 +109,7 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
     const bgImgRef = useRef<HTMLImageElement | null>(null);
     const logoImgRef = useRef<HTMLImageElement | null>(null);
     const logoPureImgRef = useRef<HTMLImageElement | null>(null);
+    const darkLogoCanvasRef = useRef<HTMLCanvasElement | null>(null);
     const bgVideoBlobRef = useRef<Blob | null>(null);
 
     // Time Tracking Ref pour 60 FPS fluide sans React re-render
@@ -276,6 +277,20 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
         pureImg.src = '/logo_dropsiders_brand_pure.png';
         pureImg.onload = () => {
             logoPureImgRef.current = pureImg;
+            // Pré-générer la version 3D sombre offscreen (0 lag, 60 FPS sans aucun ctx.filter)
+            try {
+                const off = document.createElement('canvas');
+                off.width = pureImg.naturalWidth;
+                off.height = pureImg.naturalHeight;
+                const octx = off.getContext('2d');
+                if (octx) {
+                    octx.drawImage(pureImg, 0, 0);
+                    octx.globalCompositeOperation = 'source-in';
+                    octx.fillStyle = '#2d3340'; // Acier sombre brossé
+                    octx.fillRect(0, 0, off.width, off.height);
+                    darkLogoCanvasRef.current = off;
+                }
+            } catch {}
         };
     }, []);
 
@@ -783,13 +798,14 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
 
             // Ou via le site
             ctx.save();
-            ctx.font = '800 32px "Montserrat", sans-serif';
+            ctx.font = '800 30px "Montserrat", sans-serif';
             ctx.fillStyle = '#aaaaaa';
             ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
             ctx.shadowBlur = 15;
             ctx.fillText('🌐 OU VIA LE FORMULAIRE SUR LE SITE :', width / 2, height * 0.60);
 
-            ctx.font = '900 72px "Montserrat", sans-serif';
+            ctx.font = '900 62px "Syncopate", "Orbitron", sans-serif';
+            (ctx as any).letterSpacing = '8px';
             ctx.fillStyle = '#00f0ff';
             ctx.shadowColor = 'rgba(0, 240, 255, 0.95)';
             ctx.shadowBlur = 35;
@@ -847,29 +863,32 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
             const rotY = Math.sin(sceneTime * swingSpeed) * (0.32 * swingProgress); // Balancement ~18°
             const rotX = 0.07 * swingProgress; // Inclinaison 4°
 
-            // Helper de tracé des éléments du logo pour chaque tranche 3D
+            // Helper de tracé des éléments du logo pour chaque tranche 3D (0 lag, 60 FPS fluide sans ctx.filter)
             const renderLogoSlice = (
                 c: CanvasRenderingContext2D,
-                isFront: boolean
+                isFront: boolean,
+                sliceShade: number = 1
             ) => {
                 // 1. Tracé dynamique des lignes du cadre
                 if (frameProgress > 0) {
                     c.save();
-                    c.lineWidth = isFront ? 10 : 9;
-                    c.strokeStyle = isFront ? '#ffffff' : '#a0a5b5';
-                    c.lineCap = 'square';
-                    c.lineJoin = 'miter';
+                    c.lineWidth = isFront ? 10 : 8;
                     if (isFront) {
+                        c.strokeStyle = '#ffffff';
                         c.shadowColor = 'rgba(0, 0, 0, 0.95)';
                         c.shadowOffsetX = -Math.sin(rotY) * 6;
                         c.shadowOffsetY = 6;
                         c.shadowBlur = 10;
                     } else {
+                        const val = Math.round(35 + sliceShade * 75);
+                        c.strokeStyle = `rgb(${val}, ${val + 5}, ${val + 15})`;
                         c.shadowColor = 'transparent';
                         c.shadowBlur = 0;
                         c.shadowOffsetX = 0;
                         c.shadowOffsetY = 0;
                     }
+                    c.lineCap = 'square';
+                    c.lineJoin = 'miter';
 
                     const perimeterHalf = halfW + boxH + halfW;
                     const currentDist = frameProgress * perimeterHalf;
@@ -910,6 +929,7 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
                 if (lettersVisible > 0) {
                     const pureImg = logoPureImgRef.current;
                     const fallbackImg = logoImgRef.current;
+                    const darkImg = darkLogoCanvasRef.current;
 
                     if (pureImg && pureImg.complete && pureImg.naturalWidth > 0) {
                         const lw = 760;
@@ -931,7 +951,8 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
                         c.beginPath();
                         c.rect(-lw / 2, -lh / 2, revealW, lh);
                         c.clip();
-                        c.drawImage(pureImg, -lw / 2, -lh / 2, lw, lh);
+                        // Tranches arrière rendues instantanément via buffer offscreen dark (0 lag GPU !)
+                        c.drawImage(isFront ? pureImg : (darkImg || pureImg), -lw / 2, -lh / 2, lw, lh);
                         c.restore();
 
                         // Curseur lumineux d'écriture à la dernière lettre révélée (sur la face avant uniquement)
@@ -968,63 +989,66 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
                     }
                 }
 
-                // 3. Sous-titre WWW.DROPSIDERS.FR
+                // 3. Sous-titre WWW.DROPSIDERS.FR (Police moderne Syncopate / Orbitron avec espacement racé)
                 if (numSubVisible > 0) {
                     const visibleSub = subText.slice(0, numSubVisible);
                     c.save();
-                    c.font = '900 42px "Montserrat", sans-serif';
-                    (c as any).letterSpacing = '8px';
-                    c.fillStyle = isFront ? '#ffffff' : '#777d8c';
+                    c.font = '900 36px "Syncopate", "Orbitron", sans-serif';
+                    (c as any).letterSpacing = '10px';
                     if (isFront) {
+                        c.fillStyle = '#ffffff';
                         c.shadowColor = 'rgba(0, 0, 0, 0.95)';
                         c.shadowOffsetX = -Math.sin(rotY) * 6;
                         c.shadowOffsetY = 6;
                         c.shadowBlur = 10;
                     } else {
+                        const val = Math.round(40 + sliceShade * 60);
+                        c.fillStyle = `rgb(${val}, ${val + 5}, ${val + 12})`;
                         c.shadowColor = 'transparent';
                         c.shadowBlur = 0;
                         c.shadowOffsetX = 0;
                         c.shadowOffsetY = 0;
                     }
-                    c.fillText(visibleSub, 0, halfH + 70);
+                    c.fillText(visibleSub, 0, halfH + 68);
 
                     if (isFront && numSubVisible < subText.length) {
                         const metrics = c.measureText(visibleSub);
-                        const curX = metrics.width / 2 + 8;
+                        const curX = metrics.width / 2 + 10;
                         c.fillStyle = '#ff0033';
                         c.shadowColor = '#ff0033';
                         c.shadowBlur = 10;
-                        c.fillRect(curX, halfH + 50, 4, 38);
+                        c.fillRect(curX, halfH + 48, 4, 30);
                     }
                     c.restore();
                 }
             };
 
-            // ── 1. OMBRE PORTÉE PROFONDE DE CONTACT (TranslateZ arrière) ──
+            // ── 1. OMBRE PORTÉE DE CONTACT (0 lag, ombre matérielle ultra fluide) ──
             ctx.save();
-            const shadowZ = -34;
+            const shadowZ = -22;
             ctx.transform(
                 Math.cos(rotY),
                 Math.sin(rotX) * Math.sin(rotY),
                 0,
                 Math.cos(rotX),
                 -Math.sin(rotY) * shadowZ,
-                Math.sin(rotX) * shadowZ + 16
+                Math.sin(rotX) * shadowZ + 12
             );
-            if ('filter' in ctx) ctx.filter = 'blur(18px) brightness(0)';
-            ctx.globalAlpha = 0.75;
-            renderLogoSlice(ctx, false);
+            ctx.globalAlpha = 0.50;
+            ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
+            ctx.shadowBlur = 20;
+            ctx.shadowOffsetY = 8;
+            renderLogoSlice(ctx, false, 0.1);
             ctx.restore();
 
-            // ── 2. TRANCHES 3D VOLUMÉTRIQUES EXTRUDÉES (Acier / Titane sombre comme Animated3DLogo) ──
-            const sliceCount = 14;
-            const maxDepth = 26;
+            // ── 2. TRANCHES 3D VOLUMÉTRIQUES EXTRUDÉES (Acier / Titane sombre comme Animated3DLogo, 60 FPS garanti) ──
+            const sliceCount = 8;
+            const maxDepth = 20;
             for (let idx = 0; idx < sliceCount; idx++) {
                 const i = sliceCount - idx;
                 const z = -((i / sliceCount) * maxDepth);
                 const ratio = 1 - (i / sliceCount);
-                // Nuance d'acier brossé profond : de 0.12 (fond) à 0.65 (face)
-                const shade = 0.12 + ratio * 0.53;
+                const shade = 0.18 + ratio * 0.55;
 
                 ctx.save();
                 ctx.transform(
@@ -1035,29 +1059,12 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
                     -Math.sin(rotY) * z,
                     Math.sin(rotX) * z
                 );
-                if ('filter' in ctx) ctx.filter = `brightness(${shade.toFixed(2)}) contrast(1.15)`;
-                ctx.globalAlpha = 0.96;
-                renderLogoSlice(ctx, false);
+                ctx.globalAlpha = 0.95;
+                renderLogoSlice(ctx, false, shade);
                 ctx.restore();
             }
 
-            // ── 2.5 BISEAU CHISÉLÉ ET CONTRASTE (Tranche de transition haute définition) ──
-            ctx.save();
-            const bevelZ = -1.5;
-            ctx.transform(
-                Math.cos(rotY),
-                Math.sin(rotX) * Math.sin(rotY),
-                0,
-                Math.cos(rotX),
-                -Math.sin(rotY) * bevelZ,
-                Math.sin(rotX) * bevelZ
-            );
-            if ('filter' in ctx) ctx.filter = 'brightness(0.80)';
-            ctx.globalAlpha = 1.0;
-            renderLogoSlice(ctx, false);
-            ctx.restore();
-
-            // ── 3. FACE AVANT 3D (Blanc pur éclatant + relief biseauté sans barre blanche) ──
+            // ── 3. FACE AVANT 3D (Blanc pur éclatant + relief ciselé sans filtre laguant) ──
             ctx.save();
             ctx.transform(
                 Math.cos(rotY),
@@ -1067,9 +1074,8 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
                 0,
                 0
             );
-            if ('filter' in ctx) ctx.filter = 'none';
             ctx.globalAlpha = 1.0;
-            renderLogoSlice(ctx, true);
+            renderLogoSlice(ctx, true, 1.0);
             ctx.restore();
 
             ctx.restore();
