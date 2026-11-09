@@ -123,5 +123,23 @@
     ],
     "created": "2026-09-28T21:38:39.678Z",
     "verified": false
+  },
+  {
+    "email": "timeolambert91@gmail.com",
+    "dropsiders_email": "timzo34@crew.dropsiders.fr",
+    "mail_enabled": true,
+    "username": "timzo34",
+    "pseudo": "timzo34",
+    "role": "RÉDACTEUR",
+    "permissions": [
+      "news_focus",
+      "musique_releases",
+      "recaps_festivals",
+      "agenda_events",
+      "social_studio",
+      "messages_contact"
+    ],
+    "created": "2026-11-09T20:54:49.028Z",
+    "verified": true
   }
 ]
