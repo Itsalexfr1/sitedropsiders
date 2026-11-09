@@ -5940,25 +5940,27 @@ export function AdminDashboard() {
                       </div>
                     </button>
 
-                    <button
-                      onClick={() => {
-                        setIsGeneratorsModalOpen(false);
-                        navigate("/admin/tarifs");
-                      }}
-                      className="p-4 md:p-8 bg-white/5 border border-white/10 rounded-[1.5rem] md:rounded-[2.5rem] flex flex-col items-center gap-3 md:gap-6 hover:bg-neon-red/10 hover:border-neon-red/50 transition-all group"
-                    >
-                      <div className="w-10 h-10 md:w-16 md:h-16 bg-neon-red/20 rounded-xl md:rounded-2xl flex items-center justify-center border border-neon-red/30 group-hover:scale-110 transition-transform">
-                        <Palette className="w-5 h-5 md:w-8 md:h-8 text-neon-red" />
-                      </div>
-                      <div className="text-center">
-                        <h3 className="text-xs md:text-lg font-bold text-white uppercase italic">
-                          GRILLE TARIFAIRE
-                        </h3>
-                        <p className="text-[9px] text-gray-500 font-bold uppercase tracking-[0.2em] mt-2">
-                          Export PNG & PDF
-                        </p>
-                      </div>
-                    </button>
+                    {isAlex && (
+                      <button
+                        onClick={() => {
+                          setIsGeneratorsModalOpen(false);
+                          navigate("/admin/tarifs");
+                        }}
+                        className="p-4 md:p-8 bg-white/5 border border-white/10 rounded-[1.5rem] md:rounded-[2.5rem] flex flex-col items-center gap-3 md:gap-6 hover:bg-neon-red/10 hover:border-neon-red/50 transition-all group"
+                      >
+                        <div className="w-10 h-10 md:w-16 md:h-16 bg-neon-red/20 rounded-xl md:rounded-2xl flex items-center justify-center border border-neon-red/30 group-hover:scale-110 transition-transform">
+                          <Palette className="w-5 h-5 md:w-8 md:h-8 text-neon-red" />
+                        </div>
+                        <div className="text-center">
+                          <h3 className="text-xs md:text-lg font-bold text-white uppercase italic">
+                            GRILLE TARIFAIRE
+                          </h3>
+                          <p className="text-[9px] text-gray-500 font-bold uppercase tracking-[0.2em] mt-2">
+                            Export PNG & PDF
+                          </p>
+                        </div>
+                      </button>
+                    )}
 
                     <button
                       onClick={() => {
