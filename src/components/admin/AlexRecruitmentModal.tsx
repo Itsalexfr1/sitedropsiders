@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { X, Play, Pause, RotateCcw, Upload, Volume2, VolumeX, Video, Download, Sparkles, Check, Film, Settings2 } from 'lucide-react';
+import { X, Play, Pause, RotateCcw, Upload, Volume2, VolumeX, Video, Download, Sparkles, Check, Film, Settings2, Clock, Image as ImageIcon } from 'lucide-react';
 // @ts-ignore
 import { Muxer, ArrayBufferTarget } from 'mp4-muxer';
 import { isSuperAdmin } from '../../utils/auth';
@@ -14,25 +14,25 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
     const currentUser = (typeof window !== 'undefined' ? localStorage.getItem('admin_user') || '' : '').toLowerCase().trim();
     const isAlex = isSuperAdmin(currentUser) || currentUser === 'alex' || currentUser === 'alexf' || currentUser === 'itsalexfr1' || currentUser.startsWith('alex');
 
-    // ── Configuration des 6 Scènes ──
+    // ── Configuration des Durées (Augmentées pour un visionnage confortable) ──
     // Scène 1 : DROPSIDERS RECRUTE
     const [introTitle, setIntroTitle] = useState('DROPSIDERS');
     const [introSubtitle, setIntroSubtitle] = useState('RECRUTE');
     const [introBadge, setIntroBadge] = useState('SAISON 2026');
-    const [introDuration, setIntroDuration] = useState(2.8);
+    const [introDuration, setIntroDuration] = useState(4.5); // Augmenté de 2.8s à 4.5s
 
-    // Scène 2 : NOUVELLE SCÈNE (Accroche Vibe / Backstages / REJOINS-NOUS)
+    // Scène 2 : Accroche Vibe / Backstages / REJOINS-NOUS
     const [vibeLine1, setVibeLine1] = useState('TU VIBRES AU SON DE LA MUSIQUE ÉLECTRONIQUE ?');
     const [vibeLine2, setVibeLine2] = useState('TU RÊVES DE DÉCOUVRIR LES BACKSTAGES DES MEILLEURS EVENTS DU MONDE ?');
     const [vibeCta, setVibeCta] = useState('⚡ REJOINS-NOUS ! ⚡');
-    const [vibeDuration, setVibeDuration] = useState(3.5);
+    const [vibeDuration, setVibeDuration] = useState(6.0); // Augmenté de 3.5s à 6.0s (beaucoup de texte)
 
     // Scène 3 : Profil 1 (Rédacteurs & Journalistes)
     const [p1Tag, setP1Tag] = useState('PROFIL RECHERCHÉ #1');
     const [p1Title, setP1Title] = useState('RÉDACTEURS & JOURNALISTES');
     const [p1Desc, setP1Desc] = useState("Passionné(e) d'électro, capable d'écrire des articles de fond, réaliser des interviews d'artistes et couvrir les plus gros festivals.");
     const [p1Badge, setP1Badge] = useState('🇬🇧 PARLER ANGLAIS EST UN VRAI PLUS');
-    const [p1Duration, setP1Duration] = useState(3.5);
+    const [p1Duration, setP1Duration] = useState(5.5); // Augmenté de 3.5s à 5.5s
 
     // Scène 4 : Profil 2 (Créateurs de Contenu)
     const [p2Tag, setP2Tag] = useState('PROFIL RECHERCHÉ #2');
@@ -40,29 +40,30 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
     const [p2Sub, setP2Sub] = useState('TIKTOK & INSTAGRAM');
     const [p2Desc, setP2Desc] = useState("À l'aise face caméra ou caméra au poing, pour capturer l'énergie des scènes, interviewer le public et produire du contenu viral.");
     const [p2Badge, setP2Badge] = useState('🇬🇧 ANGLAIS APPRÉCIÉ POUR LES INTERVIEWS');
-    const [p2Duration, setP2Duration] = useState(3.5);
+    const [p2Duration, setP2Duration] = useState(5.5); // Augmenté de 3.5s à 5.5s
 
     // Scène 5 : Contact
     const [contactHeadline, setContactHeadline] = useState('PRÊT(E) À VIVRE LES FESTIVALS DE L\'INTÉRIEUR ?');
     const [contactEmail, setContactEmail] = useState('contact@dropsiders.fr');
     const [contactSite, setContactSite] = useState('dropsiders.fr');
-    const [contactDuration, setContactDuration] = useState(3.2);
+    const [contactDuration, setContactDuration] = useState(5.0); // Augmenté de 3.2s à 5.0s
 
     // Scène 6 : Outro Finale Logo
-    const [logoDuration, setLogoDuration] = useState(2.8);
+    const [logoDuration, setLogoDuration] = useState(4.0); // Augmenté de 2.8s à 4.0s
 
-    // ── Vidéo de fond ──
-    const [bgVideoBlob, setBgVideoBlob] = useState<Blob | null>(null);
+    // ── Fond Visuel (Image Festival par défaut, ou Vidéo / Image Uploadée) ──
+    const [bgType, setBgType] = useState<'image' | 'video' | 'lasers'>('image');
+    const [bgImageSrc, setBgImageSrc] = useState<string>('/images/festival_recrutement_bg.jpg');
     const [bgVideoSrc, setBgVideoSrc] = useState<string>('');
     const [bgVideoStartTime, setBgVideoStartTime] = useState<number>(0);
     const [bgVideoDuration, setBgVideoDuration] = useState<number>(0);
-    const [isVideoAudioMuted, setIsVideoAudioMuted] = useState<boolean>(false);
-    const [bgOverlayOpacity, setBgOverlayOpacity] = useState<number>(0.45);
+    const [isVideoAudioMuted, setIsVideoAudioMuted] = useState<boolean>(true); // Muted par défaut pour autoplay navigateur
+    const [bgOverlayOpacity, setBgOverlayOpacity] = useState<number>(0.50);
 
-    // ── Contrôles Lecture ──
+    // ── Contrôles Lecture Haute Fluidité (60 FPS) ──
     const [isPlaying, setIsPlaying] = useState<boolean>(true);
-    const [currentTime, setCurrentTime] = useState<number>(0);
-    const [activeTab, setActiveTab] = useState<'video' | 'textes' | 'export'>('textes');
+    const [uiDisplayTime, setUiDisplayTime] = useState<number>(0); // Mis à jour à 10 FPS pour le scrubber sans saccade
+    const [activeTab, setActiveTab] = useState<'fond' | 'durees' | 'textes' | 'export'>('fond');
 
     // ── Export MP4 ──
     const [isExporting, setIsExporting] = useState<boolean>(false);
@@ -73,44 +74,82 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
     // Refs
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
     const videoRef = useRef<HTMLVideoElement | null>(null);
-    const animFrameRef = useRef<number | null>(null);
-    const lastTimestampRef = useRef<number>(performance.now());
-    const isExportingRef = useRef<boolean>(false);
-    const bgVideoStartTimeRef = useRef<number>(0);
+    const bgImgRef = useRef<HTMLImageElement | null>(null);
     const logoImgRef = useRef<HTMLImageElement | null>(null);
 
+    // Time Tracking Ref pour 60 FPS fluide sans React re-render
+    const currentTimeRef = useRef<number>(0);
+    const lastTimestampRef = useRef<number>(performance.now());
+    const isPlayingRef = useRef<boolean>(true);
+    const isExportingRef = useRef<boolean>(false);
+    const bgVideoStartTimeRef = useRef<number>(0);
+    const lastUiUpdateRef = useRef<number>(0);
+
     const totalDuration = introDuration + vibeDuration + p1Duration + p2Duration + contactDuration + logoDuration;
+
+    // Synchroniser refs
+    useEffect(() => {
+        isPlayingRef.current = isPlaying;
+    }, [isPlaying]);
 
     useEffect(() => {
         bgVideoStartTimeRef.current = bgVideoStartTime;
     }, [bgVideoStartTime]);
+
+    // Charger l'image de fond festival par défaut
+    useEffect(() => {
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.src = bgImageSrc;
+        img.onload = () => {
+            bgImgRef.current = img;
+        };
+    }, [bgImageSrc]);
 
     // Charger le logo Dropsiders officiel
     useEffect(() => {
         const img = new Image();
         img.crossOrigin = 'anonymous';
         img.src = '/logo_white.png';
-        img.onload = () => { logoImgRef.current = img; };
+        img.onload = () => {
+            logoImgRef.current = img;
+        };
     }, []);
 
-    // ── Upload de vidéo de fond ──
-    const handleVideoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    // ── Gestionnaire d'Upload Médias (Vidéo ou Image) ──
+    const handleMediaUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
-        const blobUrl = URL.createObjectURL(file);
-        setBgVideoBlob(file);
-        setBgVideoSrc(blobUrl);
-        setBgVideoStartTime(0);
-        setCurrentTime(0);
 
-        if (videoRef.current) {
-            videoRef.current.src = blobUrl;
-            videoRef.current.currentTime = 0;
-            videoRef.current.onloadedmetadata = () => {
-                if (videoRef.current) {
-                    setBgVideoDuration(videoRef.current.duration || 0);
-                    videoRef.current.play().catch(() => {});
-                }
+        const isVid = file.type.startsWith('video/');
+        const blobUrl = URL.createObjectURL(file);
+
+        if (isVid) {
+            setBgType('video');
+            setBgVideoSrc(blobUrl);
+            setBgVideoStartTime(0);
+            currentTimeRef.current = 0;
+            setUiDisplayTime(0);
+
+            if (videoRef.current) {
+                videoRef.current.src = blobUrl;
+                videoRef.current.currentTime = 0;
+                videoRef.current.onloadedmetadata = () => {
+                    if (videoRef.current) {
+                        setBgVideoDuration(videoRef.current.duration || 0);
+                        videoRef.current.play().catch(() => {});
+                    }
+                };
+            }
+        } else {
+            // Image
+            setBgType('image');
+            setBgImageSrc(blobUrl);
+            const img = new Image();
+            img.crossOrigin = 'anonymous';
+            img.src = blobUrl;
+            img.onload = () => {
+                bgImgRef.current = img;
             };
         }
     };
@@ -139,13 +178,23 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
         }
         lines.push(line.trim());
 
+        // Centrer verticalement l'ensemble des lignes autour de startY
+        const totalBlockHeight = (lines.length - 1) * lineHeight;
+        const initialY = startY - totalBlockHeight / 2;
+
         for (let i = 0; i < lines.length; i++) {
-            ctx.fillText(lines[i], centerX, startY + i * lineHeight);
+            ctx.fillText(lines[i], centerX, initialY + i * lineHeight);
         }
-        return startY + lines.length * lineHeight;
+        return initialY + lines.length * lineHeight;
     };
 
-    // Calcul de la scène active et de son opacité de transition
+    // Easing doux pour transition cinématique
+    const smoothStep = (t: number): number => {
+        const clamped = Math.max(0, Math.min(1, t));
+        return clamped * clamped * (3 - 2 * clamped);
+    };
+
+    // Calcul de la scène active et transitions fluides
     const getSceneState = (t: number) => {
         const t1 = introDuration;
         const t2 = t1 + vibeDuration;
@@ -184,23 +233,23 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
             sceneDur = logoDuration;
         }
 
-        // Fondu d'entrée 0.35s et fondu de sortie 0.35s
-        const fadeDur = 0.35;
+        // Fondu d'entrée 0.5s et fondu de sortie 0.5s très doux
+        const fadeDur = 0.5;
         let alpha = 1.0;
         if (sceneTime < fadeDur) {
-            alpha = Math.min(1, Math.max(0, sceneTime / fadeDur));
+            alpha = smoothStep(sceneTime / fadeDur);
         } else if (sceneTime > sceneDur - fadeDur) {
-            alpha = Math.min(1, Math.max(0, (sceneDur - sceneTime) / fadeDur));
+            alpha = smoothStep((sceneDur - sceneTime) / fadeDur);
         }
 
-        // Translation fluide et zoom cinématique doux
-        const enterY = sceneTime < fadeDur ? (1 - (sceneTime / fadeDur)) * 25 : 0;
-        const exitY = sceneTime > sceneDur - fadeDur ? ((sceneTime - (sceneDur - fadeDur)) / fadeDur) * -20 : 0;
+        // Translation fluide
+        const enterY = sceneTime < fadeDur ? (1 - smoothStep(sceneTime / fadeDur)) * 30 : 0;
+        const exitY = sceneTime > sceneDur - fadeDur ? ((1 - smoothStep((sceneDur - sceneTime) / fadeDur))) * -25 : 0;
         const translateY = enterY + exitY;
 
-        // Lent travelling avant cinématique (zoom 0.96 -> 1.04)
+        // Travelling avant cinématique doux (zoom 0.97 -> 1.03)
         const progress = Math.min(1, Math.max(0, sceneTime / Math.max(0.1, sceneDur)));
-        const textScale = 0.96 + progress * 0.08;
+        const textScale = 0.97 + progress * 0.06;
 
         return { sceneIdx, sceneTime, sceneDur, alpha, translateY, textScale };
     };
@@ -209,56 +258,91 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
     const drawFrame = useCallback((ctx: CanvasRenderingContext2D, width: number, height: number, time: number) => {
         ctx.clearRect(0, 0, width, height);
 
-        // 1. Fond : Vidéo ou Dégradé festival EDM immersif
-        const vid = videoRef.current;
-        if (vid && vid.readyState >= 2 && !isNaN(vid.videoWidth) && vid.videoWidth > 0) {
-            const scale = Math.max(width / vid.videoWidth, height / vid.videoHeight);
-            const vw = vid.videoWidth * scale;
-            const vh = vid.videoHeight * scale;
-            const vx = (width - vw) / 2;
-            const vy = (height - vh) / 2;
-            ctx.drawImage(vid, vx, vy, vw, vh);
-        } else {
-            // Fond scène concert club par défaut si pas de vidéo
+        // 1. FOND VISUEL (Vidéo / Image Festival / Lasers de concert)
+        let hasCustomBg = false;
+
+        // A. Cas Vidéo
+        if (bgType === 'video') {
+            const vid = videoRef.current;
+            if (vid && vid.readyState >= 2 && !isNaN(vid.videoWidth) && vid.videoWidth > 0) {
+                const scale = Math.max(width / vid.videoWidth, height / vid.videoHeight);
+                const vw = vid.videoWidth * scale;
+                const vh = vid.videoHeight * scale;
+                const vx = (width - vw) / 2;
+                const vy = (height - vh) / 2;
+                ctx.drawImage(vid, vx, vy, vw, vh);
+                hasCustomBg = true;
+            }
+        }
+
+        // B. Cas Image de fond Festival (par défaut ou uploadée)
+        if (!hasCustomBg && (bgType === 'image' || bgImgRef.current)) {
+            const img = bgImgRef.current;
+            if (img && img.complete && img.naturalWidth > 0) {
+                // Effet Ken Burns très subtil (zoom lent 1.00 -> 1.06)
+                const zoomFactor = 1.0 + (Math.sin(time * 0.15) * 0.5 + 0.5) * 0.06;
+                const baseScale = Math.max(width / img.naturalWidth, height / img.naturalHeight) * zoomFactor;
+                const iw = img.naturalWidth * baseScale;
+                const ih = img.naturalHeight * baseScale;
+                const ix = (width - iw) / 2;
+                const iy = (height - ih) / 2;
+                ctx.drawImage(img, ix, iy, iw, ih);
+                hasCustomBg = true;
+            }
+        }
+
+        // C. Cas Fond Lasers Synthwave / EDM par défaut si aucune image/vidéo
+        if (!hasCustomBg) {
             const grad = ctx.createLinearGradient(0, 0, width, height);
             grad.addColorStop(0, '#0a0208');
             grad.addColorStop(0.5, '#12041a');
             grad.addColorStop(1, '#02050e');
             ctx.fillStyle = grad;
             ctx.fillRect(0, 0, width, height);
-
-            // Faisceaux laser d'ambiance festival par défaut
-            ctx.save();
-            const beamX = width / 2;
-            const beamY = height * 0.45;
-            for (let i = -3; i <= 3; i++) {
-                const angle = (i * 0.22) + Math.sin(time * 1.5 + i) * 0.15;
-                ctx.beginPath();
-                ctx.moveTo(beamX, beamY);
-                ctx.lineTo(beamX + Math.sin(angle) * (height * 1.1), beamY - Math.cos(angle) * (height * 1.1));
-                ctx.strokeStyle = i % 2 === 0 ? 'rgba(0, 240, 255, 0.25)' : 'rgba(255, 0, 51, 0.3)';
-                ctx.lineWidth = 4;
-                ctx.shadowColor = ctx.strokeStyle;
-                ctx.shadowBlur = 18;
-                ctx.stroke();
-            }
-            ctx.restore();
         }
 
-        // 2. Voile sombre dégradé pour garantir 100% de lisibilité du texte sans cadre
+        // Faisceaux laser d'ambiance festival (toujours en surimpression subtile pour donner du dynamisme)
+        ctx.save();
+        const beamX = width / 2;
+        const beamY = height * 0.42;
+        for (let i = -3; i <= 3; i++) {
+            const angle = (i * 0.22) + Math.sin(time * 1.8 + i) * 0.18;
+            ctx.beginPath();
+            ctx.moveTo(beamX, beamY);
+            ctx.lineTo(beamX + Math.sin(angle) * (height * 1.1), beamY - Math.cos(angle) * (height * 1.1));
+            ctx.strokeStyle = i % 2 === 0 ? 'rgba(0, 240, 255, 0.22)' : 'rgba(255, 0, 51, 0.28)';
+            ctx.lineWidth = 3.5;
+            ctx.shadowColor = ctx.strokeStyle;
+            ctx.shadowBlur = 20;
+            ctx.stroke();
+        }
+
+        // Particules flottantes d'étincelles dorées
+        for (let p = 0; p < 18; p++) {
+            const px = ((Math.sin(p * 99 + time * 0.4) * 0.5 + 0.5) * width);
+            const py = ((Math.cos(p * 33 + time * 0.6) * 0.5 + 0.5) * height);
+            const pSize = 2 + (p % 4);
+            ctx.fillStyle = p % 2 === 0 ? 'rgba(255, 230, 0, 0.4)' : 'rgba(255, 51, 85, 0.35)';
+            ctx.beginPath();
+            ctx.arc(px, py, pSize, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        ctx.restore();
+
+        // 2. VOILE SOMBRE ÉLÉGANT POUR 100% DE LISIBILITÉ DU TEXTE
         ctx.save();
         ctx.fillStyle = `rgba(0, 0, 0, ${bgOverlayOpacity})`;
         ctx.fillRect(0, 0, width, height);
 
-        // Dégradé sombre central pour sublimer le texte
-        const centerShade = ctx.createRadialGradient(width / 2, height / 2, 100, width / 2, height / 2, width * 0.85);
-        centerShade.addColorStop(0, 'rgba(0,0,0,0.4)');
+        // Vignetage cinématographique
+        const centerShade = ctx.createRadialGradient(width / 2, height / 2, 120, width / 2, height / 2, width * 0.95);
+        centerShade.addColorStop(0, 'rgba(0,0,0,0.3)');
         centerShade.addColorStop(1, 'rgba(0,0,0,0.85)');
         ctx.fillStyle = centerShade;
         ctx.fillRect(0, 0, width, height);
         ctx.restore();
 
-        // 3. Calcul de la scène active et transitions cinématiques
+        // 3. SCÈNE ACTIVE & ANIMATION DU TEXTE (SANS CADRE)
         const { sceneIdx, sceneTime, alpha, translateY, textScale } = getSceneState(time);
 
         ctx.save();
@@ -282,7 +366,6 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
             ctx.shadowBlur = 20;
             ctx.shadowOffsetY = 4;
             ctx.fillStyle = '#ff3355';
-            ctx.letterSpacing = '6px';
             ctx.fillText(`✦ ${introBadge.toUpperCase()} ✦`, width / 2, badgeY);
             ctx.restore();
 
@@ -294,7 +377,6 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
             ctx.shadowBlur = 45;
             ctx.shadowOffsetY = 6;
             ctx.fillStyle = '#ffffff';
-            ctx.letterSpacing = '4px';
             ctx.fillText(introTitle, width / 2, dropY);
             ctx.restore();
 
@@ -302,15 +384,14 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
             const recruteY = height * 0.55;
             ctx.save();
             ctx.font = '900 96px "Montserrat", sans-serif';
-            const neonPulse = (Math.sin(sceneTime * 8) + 1) / 2;
+            const neonPulse = (Math.sin(sceneTime * 6) + 1) / 2;
             ctx.shadowColor = neonPulse > 0.4 ? '#ffe600' : '#ff0033';
-            ctx.shadowBlur = 40 + neonPulse * 20;
+            ctx.shadowBlur = 35 + neonPulse * 20;
             ctx.shadowOffsetY = 6;
             const recruteGrad = ctx.createLinearGradient(0, recruteY - 45, 0, recruteY + 45);
             recruteGrad.addColorStop(0, '#ffe600');
             recruteGrad.addColorStop(1, '#ff6600');
             ctx.fillStyle = recruteGrad;
-            ctx.letterSpacing = '10px';
             ctx.fillText(introSubtitle, width / 2, recruteY);
             ctx.restore();
 
@@ -321,13 +402,12 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
             ctx.shadowBlur = 15;
             ctx.shadowOffsetY = 3;
             ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
-            ctx.letterSpacing = '4px';
             ctx.fillText('LE MÉDIA ÉLECTRO & FESTIVALS', width / 2, height * 0.64);
             ctx.restore();
         }
 
         // ─────────────────────────────────────────────────────────────
-        // SCÈNE 2 (NOUVELLE) : TU VIBRES AU SON DE LA MUSIQUE ÉLECTRO... REJOINS NOUS !
+        // SCÈNE 2 : TU VIBRES AU SON DE LA MUSIQUE ÉLECTRONIQUE ? REJOINS-NOUS !
         // ─────────────────────────────────────────────────────────────
         else if (sceneIdx === 2) {
             ctx.textAlign = 'center';
@@ -335,12 +415,12 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
 
             // Question 1 : Tu vibres au son de la musique électronique ?
             ctx.save();
-            ctx.font = '900 58px "Montserrat", sans-serif';
+            ctx.font = '900 56px "Montserrat", sans-serif';
             ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
             ctx.shadowBlur = 25;
             ctx.shadowOffsetY = 4;
             ctx.fillStyle = '#ffffff';
-            drawCenteredWrappedText(ctx, vibeLine1, width / 2, height * 0.35, 960, 72);
+            drawCenteredWrappedText(ctx, vibeLine1, width / 2, height * 0.35, 960, 70);
             ctx.restore();
 
             // Séparateur discret lumineux
@@ -350,33 +430,32 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
             sepGrad.addColorStop(0.5, 'rgba(0, 240, 255, 0.8)');
             sepGrad.addColorStop(1, 'transparent');
             ctx.fillStyle = sepGrad;
-            ctx.fillRect(width / 2 - 200, height * 0.44, 400, 3);
+            ctx.fillRect(width / 2 - 200, height * 0.45, 400, 3);
             ctx.restore();
 
             // Question 2 : Tu rêves de découvrir les backstages des meilleurs events du monde ?
             ctx.save();
-            ctx.font = '800 46px "Montserrat", sans-serif';
-            ctx.shadowColor = 'rgba(0, 240, 255, 0.8)';
+            ctx.font = '800 44px "Montserrat", sans-serif';
+            ctx.shadowColor = 'rgba(0, 240, 255, 0.85)';
             ctx.shadowBlur = 30;
             ctx.shadowOffsetY = 4;
             ctx.fillStyle = '#00f0ff';
-            drawCenteredWrappedText(ctx, vibeLine2, width / 2, height * 0.50, 940, 62);
+            drawCenteredWrappedText(ctx, vibeLine2, width / 2, height * 0.52, 940, 60);
             ctx.restore();
 
             // Call To Action : ⚡ REJOINS-NOUS ! ⚡
-            const ctaPulse = (Math.sin(sceneTime * 7) + 1) / 2;
+            const ctaPulse = (Math.sin(sceneTime * 6) + 1) / 2;
             ctx.save();
             ctx.font = '900 84px "Montserrat", sans-serif';
             ctx.shadowColor = `rgba(255, 230, 0, ${0.75 + ctaPulse * 0.25})`;
             ctx.shadowBlur = 35 + ctaPulse * 25;
             ctx.shadowOffsetY = 5;
-            const ctaGrad = ctx.createLinearGradient(0, height * 0.67 - 40, 0, height * 0.67 + 40);
+            const ctaGrad = ctx.createLinearGradient(0, height * 0.69 - 40, 0, height * 0.69 + 40);
             ctaGrad.addColorStop(0, '#ffffff');
             ctaGrad.addColorStop(0.3, '#ffe600');
             ctaGrad.addColorStop(1, '#ff9900');
             ctx.fillStyle = ctaGrad;
-            ctx.letterSpacing = '5px';
-            ctx.fillText(vibeCta, width / 2, height * 0.67);
+            ctx.fillText(vibeCta, width / 2, height * 0.69);
             ctx.restore();
         }
 
@@ -394,19 +473,17 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
             ctx.shadowColor = 'rgba(0, 240, 255, 0.9)';
             ctx.shadowBlur = 25;
             ctx.shadowOffsetY = 3;
-            ctx.letterSpacing = '6px';
-            ctx.fillText(`⚡ ${p1Tag.toUpperCase()} ⚡`, width / 2, height * 0.33);
+            ctx.fillText(`⚡ ${p1Tag.toUpperCase()} ⚡`, width / 2, height * 0.32);
             ctx.restore();
 
             // Titre Profil
             ctx.save();
-            ctx.font = '900 74px "Montserrat", sans-serif';
+            ctx.font = '900 72px "Montserrat", sans-serif';
             ctx.fillStyle = '#ffffff';
             ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
             ctx.shadowBlur = 30;
             ctx.shadowOffsetY = 5;
-            ctx.letterSpacing = '2px';
-            drawCenteredWrappedText(ctx, p1Title, width / 2, height * 0.42, 980, 84);
+            drawCenteredWrappedText(ctx, p1Title, width / 2, height * 0.41, 980, 82);
             ctx.restore();
 
             // Ligne de lueur cyan
@@ -416,17 +493,17 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
             sepGrad.addColorStop(0.5, '#00f0ff');
             sepGrad.addColorStop(1, 'transparent');
             ctx.fillStyle = sepGrad;
-            ctx.fillRect(width / 2 - 250, height * 0.49, 500, 3);
+            ctx.fillRect(width / 2 - 250, height * 0.48, 500, 3);
             ctx.restore();
 
             // Description textuelle pure sans boîte
             ctx.save();
             ctx.font = '600 40px "Montserrat", sans-serif';
-            ctx.fillStyle = 'rgba(255, 255, 255, 0.92)';
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.94)';
             ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
             ctx.shadowBlur = 20;
             ctx.shadowOffsetY = 3;
-            drawCenteredWrappedText(ctx, p1Desc, width / 2, height * 0.55, 940, 56);
+            drawCenteredWrappedText(ctx, p1Desc, width / 2, height * 0.56, 940, 56);
             ctx.restore();
 
             // Mention Anglais stylée
@@ -436,8 +513,7 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
             ctx.shadowColor = 'rgba(255, 204, 0, 0.85)';
             ctx.shadowBlur = 25;
             ctx.shadowOffsetY = 4;
-            ctx.letterSpacing = '3px';
-            ctx.fillText(p1Badge, width / 2, height * 0.69);
+            ctx.fillText(p1Badge, width / 2, height * 0.70);
             ctx.restore();
         }
 
@@ -455,19 +531,17 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
             ctx.shadowColor = 'rgba(255, 0, 51, 0.9)';
             ctx.shadowBlur = 25;
             ctx.shadowOffsetY = 3;
-            ctx.letterSpacing = '6px';
-            ctx.fillText(`⚡ ${p2Tag.toUpperCase()} ⚡`, width / 2, height * 0.31);
+            ctx.fillText(`⚡ ${p2Tag.toUpperCase()} ⚡`, width / 2, height * 0.30);
             ctx.restore();
 
             // Titre Profil
             ctx.save();
-            ctx.font = '900 74px "Montserrat", sans-serif';
+            ctx.font = '900 72px "Montserrat", sans-serif';
             ctx.fillStyle = '#ffffff';
             ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
             ctx.shadowBlur = 30;
             ctx.shadowOffsetY = 5;
-            ctx.letterSpacing = '2px';
-            ctx.fillText(p2Title, width / 2, height * 0.39);
+            ctx.fillText(p2Title, width / 2, height * 0.38);
             ctx.restore();
 
             // Sous-titre Plateformes (TikTok / Insta)
@@ -477,8 +551,7 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
             ctx.shadowColor = 'rgba(0, 240, 255, 0.8)';
             ctx.shadowBlur = 25;
             ctx.shadowOffsetY = 4;
-            ctx.letterSpacing = '4px';
-            ctx.fillText(`(${p2Sub})`, width / 2, height * 0.45);
+            ctx.fillText(`(${p2Sub})`, width / 2, height * 0.44);
             ctx.restore();
 
             // Ligne de lueur rouge
@@ -488,17 +561,17 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
             sepGrad.addColorStop(0.5, '#ff0033');
             sepGrad.addColorStop(1, 'transparent');
             ctx.fillStyle = sepGrad;
-            ctx.fillRect(width / 2 - 250, height * 0.49, 500, 3);
+            ctx.fillRect(width / 2 - 250, height * 0.48, 500, 3);
             ctx.restore();
 
             // Description textuelle sans boîte
             ctx.save();
             ctx.font = '600 40px "Montserrat", sans-serif';
-            ctx.fillStyle = 'rgba(255, 255, 255, 0.92)';
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.94)';
             ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
             ctx.shadowBlur = 20;
             ctx.shadowOffsetY = 3;
-            drawCenteredWrappedText(ctx, p2Desc, width / 2, height * 0.55, 940, 56);
+            drawCenteredWrappedText(ctx, p2Desc, width / 2, height * 0.56, 940, 56);
             ctx.restore();
 
             // Mention Anglais
@@ -508,8 +581,7 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
             ctx.shadowColor = 'rgba(255, 204, 0, 0.85)';
             ctx.shadowBlur = 25;
             ctx.shadowOffsetY = 4;
-            ctx.letterSpacing = '3px';
-            ctx.fillText(p2Badge, width / 2, height * 0.69);
+            ctx.fillText(p2Badge, width / 2, height * 0.70);
             ctx.restore();
         }
 
@@ -527,7 +599,7 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
             ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
             ctx.shadowBlur = 25;
             ctx.shadowOffsetY = 4;
-            drawCenteredWrappedText(ctx, contactHeadline, width / 2, height * 0.34, 960, 68);
+            drawCenteredWrappedText(ctx, contactHeadline, width / 2, height * 0.33, 960, 68);
             ctx.restore();
 
             // Par Email
@@ -536,8 +608,7 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
             ctx.fillStyle = '#aaaaaa';
             ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
             ctx.shadowBlur = 15;
-            ctx.letterSpacing = '3px';
-            ctx.fillText('📩 PAR EMAIL DIRECTEMENT :', width / 2, height * 0.47);
+            ctx.fillText('📩 PAR EMAIL DIRECTEMENT :', width / 2, height * 0.46);
 
             ctx.font = '900 64px "Montserrat", sans-serif';
             ctx.fillStyle = '#ff3355';
@@ -553,15 +624,13 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
             ctx.fillStyle = '#aaaaaa';
             ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
             ctx.shadowBlur = 15;
-            ctx.letterSpacing = '3px';
-            ctx.fillText('🌐 OU VIA LE FORMULAIRE SUR :', width / 2, height * 0.60);
+            ctx.fillText('🌐 OU VIA LE FORMULAIRE SUR LE SITE :', width / 2, height * 0.60);
 
             ctx.font = '900 72px "Montserrat", sans-serif';
             ctx.fillStyle = '#00f0ff';
             ctx.shadowColor = 'rgba(0, 240, 255, 0.95)';
             ctx.shadowBlur = 35;
             ctx.shadowOffsetY = 5;
-            ctx.letterSpacing = '3px';
             ctx.fillText(contactSite.toUpperCase(), width / 2, height * 0.66);
             ctx.restore();
 
@@ -572,8 +641,7 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
             ctx.shadowColor = 'rgba(255, 230, 0, 0.8)';
             ctx.shadowBlur = 20;
             ctx.shadowOffsetY = 3;
-            ctx.letterSpacing = '2px';
-            ctx.fillText('⚡ RÉPONSE RAPIDE DE L\'ÉQUIPE ⚡', width / 2, height * 0.74);
+            ctx.fillText('⚡ RÉPONSE RAPIDE DE L\'ÉQUIPE ⚡', width / 2, height * 0.75);
             ctx.restore();
         }
 
@@ -585,37 +653,37 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
             ctx.textBaseline = 'middle';
 
             // Pulsation du logo
-            const pump = 1.0 + Math.sin(sceneTime * 6) * 0.04;
+            const pump = 1.0 + Math.sin(sceneTime * 5) * 0.03;
             ctx.save();
             ctx.translate(width / 2, height * 0.48);
             ctx.scale(pump, pump);
 
             // Halo radiant derrière le logo
-            const halo = ctx.createRadialGradient(0, 0, 50, 0, 0, 380);
+            const halo = ctx.createRadialGradient(0, 0, 50, 0, 0, 400);
             halo.addColorStop(0, 'rgba(255, 0, 51, 0.55)');
             halo.addColorStop(0.5, 'rgba(255, 204, 0, 0.25)');
             halo.addColorStop(1, 'transparent');
             ctx.fillStyle = halo;
             ctx.beginPath();
-            ctx.arc(0, 0, 380, 0, Math.PI * 2);
+            ctx.arc(0, 0, 400, 0, Math.PI * 2);
             ctx.fill();
 
-            // Logo image
+            // Logo image officiel
             if (logoImgRef.current && logoImgRef.current.complete && logoImgRef.current.naturalWidth > 0) {
                 const img = logoImgRef.current;
-                const maxDim = 460;
+                const maxDim = 480;
                 const aspect = img.naturalWidth / img.naturalHeight;
                 let lw = maxDim;
                 let lh = maxDim / aspect;
-                if (lh > 220) {
-                    lh = 220;
+                if (lh > 230) {
+                    lh = 230;
                     lw = lh * aspect;
                 }
-                ctx.shadowColor = 'rgba(255, 0, 51, 0.8)';
+                ctx.shadowColor = 'rgba(255, 0, 51, 0.85)';
                 ctx.shadowBlur = 40;
                 ctx.drawImage(img, -lw / 2, -lh / 2, lw, lh);
             } else {
-                ctx.font = '900 70px "Montserrat", sans-serif';
+                ctx.font = '900 72px "Montserrat", sans-serif';
                 ctx.fillStyle = '#ffffff';
                 ctx.shadowColor = '#ff0033';
                 ctx.shadowBlur = 35;
@@ -627,16 +695,16 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
             ctx.save();
             ctx.font = '900 36px "Montserrat", sans-serif';
             ctx.fillStyle = '#ffffff';
-            ctx.letterSpacing = '8px';
             ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
             ctx.shadowBlur = 20;
             ctx.shadowOffsetY = 4;
-            ctx.fillText('WWW.DROPSIDERS.FR', width / 2, height * 0.65);
+            ctx.fillText('WWW.DROPSIDERS.FR', width / 2, height * 0.66);
             ctx.restore();
         }
 
         ctx.restore();
     }, [
+        bgType,
         bgOverlayOpacity,
         introTitle, introSubtitle, introBadge, introDuration,
         vibeLine1, vibeLine2, vibeCta, vibeDuration,
@@ -646,57 +714,63 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
         logoDuration
     ]);
 
-    // Boucle de rendu animation temps réel (60 FPS)
+    // ── BOUCLE DE RENDU 60 FPS HAUTE FLUIDITÉ SANS RE-RENDER REACT ──
     useEffect(() => {
         if (!isOpen) return;
 
         let frameId: number;
+
         const renderLoop = (now: number) => {
             const dt = (now - lastTimestampRef.current) / 1000;
             lastTimestampRef.current = now;
 
-            if (isPlaying && !isExportingRef.current) {
-                setCurrentTime(prev => {
-                    let next = prev + dt;
-                    if (next >= totalDuration) {
-                        next = 0;
-                        if (videoRef.current) videoRef.current.currentTime = bgVideoStartTimeRef.current;
+            // Avancer le temps de manière fluide
+            if (isPlayingRef.current && !isExportingRef.current) {
+                currentTimeRef.current += dt;
+                if (currentTimeRef.current >= totalDuration) {
+                    currentTimeRef.current = 0;
+                    if (videoRef.current && !isNaN(videoRef.current.duration)) {
+                        videoRef.current.currentTime = bgVideoStartTimeRef.current;
                     }
-                    return next;
-                });
+                }
             }
 
+            // Dessiner immédiatement sur le canvas sans attendre React
             if (canvasRef.current) {
                 const ctx = canvasRef.current.getContext('2d');
                 if (ctx) {
-                    drawFrame(ctx, 1080, 1920, currentTime);
+                    drawFrame(ctx, 1080, 1920, currentTimeRef.current);
                 }
+            }
+
+            // Rafraîchir l'affichage du scrubber et de la timeline à ~10 FPS (toutes les 100ms)
+            // pour garantir une fluidité 60 FPS parfaite du canvas sans surcharge React
+            if (now - lastUiUpdateRef.current > 100) {
+                lastUiUpdateRef.current = now;
+                setUiDisplayTime(currentTimeRef.current);
             }
 
             frameId = requestAnimationFrame(renderLoop);
         };
 
         lastTimestampRef.current = performance.now();
+        lastUiUpdateRef.current = performance.now();
         frameId = requestAnimationFrame(renderLoop);
-        return () => cancelAnimationFrame(frameId);
-    }, [isOpen, isPlaying, currentTime, totalDuration, drawFrame]);
 
-    // Synchronisation de la vidéo avec currentTime
+        return () => cancelAnimationFrame(frameId);
+    }, [isOpen, totalDuration, drawFrame]);
+
+    // Gestion propre de la lecture/pause de la vidéo de fond
     useEffect(() => {
         const vid = videoRef.current;
         if (!vid || isNaN(vid.duration) || vid.duration <= 0) return;
 
-        const targetTime = bgVideoStartTime + currentTime;
-        if (Math.abs(vid.currentTime - targetTime) > 0.3) {
-            vid.currentTime = targetTime;
-        }
-
-        if (isPlaying && vid.paused) {
+        if (isPlaying) {
             vid.play().catch(() => {});
-        } else if (!isPlaying && !vid.paused) {
+        } else {
             vid.pause();
         }
-    }, [isPlaying, currentTime, bgVideoStartTime]);
+    }, [isPlaying]);
 
     // ── MOTEUR D'EXPORTATION MP4 (1080x1920, 60 ou 30 FPS) ──
     const handleExportMp4 = async () => {
@@ -704,6 +778,7 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
         setIsExporting(true);
         isExportingRef.current = true;
         setIsPlaying(false);
+        isPlayingRef.current = false;
         setExportProgress(0);
 
         const targetWidth = 1080;
@@ -760,13 +835,13 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
 
         // Vidéo de fond : calage précis à bgVideoStartTime
         const vid = videoRef.current;
-        if (vid) {
+        if (vid && bgType === 'video') {
             vid.pause();
             vid.currentTime = bgVideoStartTimeRef.current;
             await new Promise<void>(res => {
                 const onSeek = () => { vid.removeEventListener('seeked', onSeek); res(); };
                 vid.addEventListener('seeked', onSeek, { once: true });
-                setTimeout(res, 300);
+                setTimeout(res, 200);
             });
         }
 
@@ -776,12 +851,15 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
         for (let f = 0; f < totalFrames; f++) {
             const frameTimeSec = f / fps;
 
-            // Recaler la vidéo sur le timestamp exact
-            if (vid && !isNaN(vid.duration) && vid.duration > 0) {
-                const targetTime = bgVideoStartTimeRef.current + frameTimeSec;
-                if (targetTime < vid.duration) {
-                    vid.currentTime = targetTime;
-                }
+            // Recaler la vidéo sur le timestamp exact et attendre le décodage réel de la frame
+            if (vid && bgType === 'video' && !isNaN(vid.duration) && vid.duration > 0) {
+                const targetTime = (bgVideoStartTimeRef.current + frameTimeSec) % vid.duration;
+                vid.currentTime = targetTime;
+                await new Promise<void>(res => {
+                    const onSeek = () => { vid.removeEventListener('seeked', onSeek); res(); };
+                    vid.addEventListener('seeked', onSeek, { once: true });
+                    setTimeout(res, 60);
+                });
             }
 
             // Dessin
@@ -845,7 +923,7 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
                                 VIP Alex
                             </span>
                         </div>
-                        <p className="text-[10px] text-gray-400">Générateur vidéo 9:16 avec vidéo de fond & typographie cinématique sans cadre</p>
+                        <p className="text-[10px] text-gray-400">Générateur vidéo 9:16 avec fond festival/vidéo & typographie cinématique sans cadre</p>
                     </div>
                 </div>
 
@@ -891,19 +969,29 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
                                 className="w-full h-full object-contain"
                             />
 
-                            {/* Élément vidéo invisible servant de texture au canvas */}
+                            {/* Élément vidéo invisible servant de texture au canvas (jamais display: none pour décodage continu) */}
                             <video
                                 ref={videoRef}
                                 src={bgVideoSrc}
                                 playsInline
+                                crossOrigin="anonymous"
                                 muted={isVideoAudioMuted}
                                 loop
-                                className="hidden"
+                                style={{
+                                    position: 'fixed',
+                                    top: -9999,
+                                    left: -9999,
+                                    width: 320,
+                                    height: 180,
+                                    opacity: 0.001,
+                                    pointerEvents: 'none',
+                                    zIndex: -1
+                                }}
                             />
 
                             {/* Badge Timeline HUD */}
                             <div className="absolute top-3 left-3 px-2 py-0.5 rounded-full bg-black/70 border border-white/15 text-[9px] font-mono text-gray-300 backdrop-blur-md z-30">
-                                {currentTime.toFixed(1)}s / {totalDuration.toFixed(1)}s
+                                {uiDisplayTime.toFixed(1)}s / {totalDuration.toFixed(1)}s
                             </div>
                         </div>
                     </div>
@@ -912,17 +1000,18 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
                     <div className="w-full max-w-[440px] mt-3 space-y-2 bg-black/60 border border-white/10 p-2.5 rounded-2xl backdrop-blur-md">
                         {/* Timeline Scrubber */}
                         <div className="flex items-center gap-2">
-                            <span className="text-[10px] font-mono text-gray-400 w-10 text-right">{currentTime.toFixed(1)}s</span>
+                            <span className="text-[10px] font-mono text-gray-400 w-10 text-right">{uiDisplayTime.toFixed(1)}s</span>
                             <input
                                 type="range"
                                 min={0}
                                 max={totalDuration}
                                 step={0.05}
-                                value={currentTime}
+                                value={uiDisplayTime}
                                 onChange={(e) => {
                                     const val = parseFloat(e.target.value);
-                                    setCurrentTime(val);
-                                    if (videoRef.current) {
+                                    currentTimeRef.current = val;
+                                    setUiDisplayTime(val);
+                                    if (videoRef.current && !isNaN(videoRef.current.duration)) {
                                         videoRef.current.currentTime = bgVideoStartTimeRef.current + val;
                                     }
                                 }}
@@ -936,7 +1025,10 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
                             <div className="flex items-center gap-1.5">
                                 <button
                                     type="button"
-                                    onClick={() => setIsPlaying(!isPlaying)}
+                                    onClick={() => {
+                                        setIsPlaying(!isPlaying);
+                                        isPlayingRef.current = !isPlaying;
+                                    }}
                                     className="px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white font-black text-xs uppercase flex items-center gap-1.5 transition active:scale-95"
                                 >
                                     {isPlaying ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
@@ -945,8 +1037,11 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
                                 <button
                                     type="button"
                                     onClick={() => {
-                                        setCurrentTime(0);
-                                        if (videoRef.current) videoRef.current.currentTime = bgVideoStartTimeRef.current;
+                                        currentTimeRef.current = 0;
+                                        setUiDisplayTime(0);
+                                        if (videoRef.current && !isNaN(videoRef.current.duration)) {
+                                            videoRef.current.currentTime = bgVideoStartTimeRef.current;
+                                        }
                                     }}
                                     className="px-2.5 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-gray-300 font-bold text-xs uppercase transition active:scale-95"
                                     title="Recommencer"
@@ -969,8 +1064,11 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
                                         key={sc.id}
                                         type="button"
                                         onClick={() => {
-                                            setCurrentTime(sc.time);
-                                            if (videoRef.current) videoRef.current.currentTime = bgVideoStartTimeRef.current + sc.time;
+                                            currentTimeRef.current = sc.time;
+                                            setUiDisplayTime(sc.time);
+                                            if (videoRef.current && !isNaN(videoRef.current.duration)) {
+                                                videoRef.current.currentTime = bgVideoStartTimeRef.current + sc.time;
+                                            }
                                         }}
                                         className="px-1.5 py-1 rounded-lg bg-white/5 hover:bg-white/15 border border-white/10 text-[8px] font-black uppercase text-gray-300"
                                     >
@@ -983,18 +1081,27 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
                 </div>
 
                 {/* DROITE : PANNEAU DE CONTRÔLE ET RÉGLAGES ALEX */}
-                <div className="w-full lg:w-[480px] border-l border-white/10 bg-[#0a0c12] flex flex-col overflow-hidden">
+                <div className="w-full lg:w-[490px] border-l border-white/10 bg-[#0a0c12] flex flex-col overflow-hidden">
                     
                     {/* Onglets */}
                     <div className="flex border-b border-white/10 bg-black/40">
                         <button
                             type="button"
-                            onClick={() => setActiveTab('video')}
+                            onClick={() => setActiveTab('fond')}
                             className={`flex-1 py-3 text-xs font-black uppercase flex items-center justify-center gap-1.5 transition ${
-                                activeTab === 'video' ? 'bg-[#ff0033]/20 text-[#ff3355] border-b-2 border-[#ff0033]' : 'text-gray-400 hover:text-white'
+                                activeTab === 'fond' ? 'bg-[#ff0033]/20 text-[#ff3355] border-b-2 border-[#ff0033]' : 'text-gray-400 hover:text-white'
                             }`}
                         >
-                            <Film className="w-4 h-4" /> Vidéo de Fond
+                            <Film className="w-4 h-4" /> Fond Visuel
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => setActiveTab('durees')}
+                            className={`flex-1 py-3 text-xs font-black uppercase flex items-center justify-center gap-1.5 transition ${
+                                activeTab === 'durees' ? 'bg-[#00f0ff]/20 text-[#00f0ff] border-b-2 border-[#00f0ff]' : 'text-gray-400 hover:text-white'
+                            }`}
+                        >
+                            <Clock className="w-4 h-4" /> Durées ({totalDuration.toFixed(1)}s)
                         </button>
                         <button
                             type="button"
@@ -1003,7 +1110,7 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
                                 activeTab === 'textes' ? 'bg-[#ffe600]/20 text-[#ffe600] border-b-2 border-[#ffe600]' : 'text-gray-400 hover:text-white'
                             }`}
                         >
-                            <Settings2 className="w-4 h-4" /> Textes des 6 Scènes
+                            <Settings2 className="w-4 h-4" /> Textes (6 Scènes)
                         </button>
                         <button
                             type="button"
@@ -1019,16 +1126,56 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
                     {/* Contenu de l'onglet actif */}
                     <div className="flex-1 overflow-y-auto p-4 space-y-4">
                         
-                        {/* ONGLET 1 : VIDÉO DE FOND */}
-                        {activeTab === 'video' && (
+                        {/* ONGLET 1 : FOND VISUEL (VIDÉO OU IMAGE FESTIVAL) */}
+                        {activeTab === 'fond' && (
                             <div className="space-y-4">
+                                {/* Sélecteur de type de fond */}
+                                <div className="grid grid-cols-3 gap-2">
+                                    <button
+                                        type="button"
+                                        onClick={() => setBgType('image')}
+                                        className={`p-2.5 rounded-xl border text-xs font-black uppercase flex flex-col items-center gap-1 transition ${
+                                            bgType === 'image' ? 'bg-amber-500/20 border-amber-500 text-amber-300' : 'bg-white/5 border-white/10 text-gray-400'
+                                        }`}
+                                    >
+                                        <ImageIcon className="w-4 h-4" />
+                                        <span>Image Festival</span>
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setBgType('video')}
+                                        className={`p-2.5 rounded-xl border text-xs font-black uppercase flex flex-col items-center gap-1 transition ${
+                                            bgType === 'video' ? 'bg-[#ff0033]/20 border-[#ff0033] text-[#ff3355]' : 'bg-white/5 border-white/10 text-gray-400'
+                                        }`}
+                                    >
+                                        <Video className="w-4 h-4" />
+                                        <span>Vidéo de Fond</span>
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setBgType('lasers')}
+                                        className={`p-2.5 rounded-xl border text-xs font-black uppercase flex flex-col items-center gap-1 transition ${
+                                            bgType === 'lasers' ? 'bg-[#00f0ff]/20 border-[#00f0ff] text-[#00f0ff]' : 'bg-white/5 border-white/10 text-gray-400'
+                                        }`}
+                                    >
+                                        <Sparkles className="w-4 h-4" />
+                                        <span>Lasers Concert</span>
+                                    </button>
+                                </div>
+
+                                {/* Uploader Vidéo ou Image */}
                                 <div className="p-3.5 rounded-2xl bg-white/5 border border-white/10 space-y-3">
                                     <div className="flex items-center justify-between">
                                         <span className="text-xs font-black uppercase text-gray-300 flex items-center gap-1.5">
-                                            <Video className="w-4 h-4 text-[#ff0033]" />
-                                            Fichier Vidéo de Fond
+                                            <Upload className="w-4 h-4 text-[#ff0033]" />
+                                            Importer une Vidéo ou une Photo
                                         </span>
-                                        {bgVideoSrc && (
+                                        {bgType === 'image' && bgImageSrc && (
+                                            <span className="text-[10px] font-mono text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">
+                                                ✓ Fond Festival Actif
+                                            </span>
+                                        )}
+                                        {bgType === 'video' && bgVideoSrc && (
                                             <span className="text-[10px] font-mono text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
                                                 ✓ Vidéo Chargée
                                             </span>
@@ -1037,17 +1184,17 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
 
                                     <label className="flex flex-col items-center justify-center p-4 border-2 border-dashed border-white/20 hover:border-[#ff0033] rounded-2xl cursor-pointer bg-black/40 transition group">
                                         <Upload className="w-6 h-6 text-gray-400 group-hover:text-[#ff0033] mb-1 transition" />
-                                        <span className="text-xs font-bold text-gray-200">Clique pour choisir une vidéo festival / club</span>
-                                        <span className="text-[10px] text-gray-500 mt-0.5">MP4, MOV, WebM (Vertical ou Horizontal)</span>
-                                        <input type="file" accept="video/*" onChange={handleVideoUpload} className="hidden" />
+                                        <span className="text-xs font-bold text-gray-200">Clique pour choisir un fichier vidéo ou photo</span>
+                                        <span className="text-[10px] text-gray-500 mt-0.5">MP4, MOV, WebM, JPG, PNG (Vertical 9:16 ou Horizontal)</span>
+                                        <input type="file" accept="video/*,image/*" onChange={handleMediaUpload} className="hidden" />
                                     </label>
                                 </div>
 
-                                {/* Scrubber de départ du passage vidéo */}
-                                {videoRef.current && (
-                                    <div className="p-3.5 rounded-2xl bg-black/40 border border-white/10 space-y-2.5">
+                                {/* Réglages spécifiques si Vidéo */}
+                                {bgType === 'video' && (
+                                    <div className="p-3.5 rounded-2xl bg-black/40 border border-white/10 space-y-3">
                                         <div className="flex justify-between items-center text-xs font-black uppercase text-gray-300">
-                                            <span>Point de départ de la vidéo :</span>
+                                            <span>Départ de la vidéo :</span>
                                             <span className="text-[#00f0ff] font-mono font-bold bg-[#00f0ff]/10 px-2 py-0.5 rounded border border-[#00f0ff]/30">
                                                 {bgVideoStartTime.toFixed(1)}s / {bgVideoDuration.toFixed(1)}s
                                             </span>
@@ -1061,7 +1208,7 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
                                             onChange={(e) => {
                                                 const val = parseFloat(e.target.value);
                                                 setBgVideoStartTime(val);
-                                                if (videoRef.current) videoRef.current.currentTime = val + currentTime;
+                                                if (videoRef.current) videoRef.current.currentTime = val + currentTimeRef.current;
                                             }}
                                             className="w-full h-1.5 bg-white/15 rounded-lg appearance-none cursor-pointer accent-[#00f0ff]"
                                         />
@@ -1101,45 +1248,179 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
                                                 </button>
                                             </div>
                                         </div>
+
+                                        <div className="pt-2">
+                                            <button
+                                                type="button"
+                                                onClick={() => setIsVideoAudioMuted(!isVideoAudioMuted)}
+                                                className={`w-full py-2 px-3 rounded-xl border text-xs font-black uppercase flex items-center justify-center gap-1.5 transition ${
+                                                    !isVideoAudioMuted ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40' : 'bg-white/5 text-gray-400 border-white/10'
+                                                }`}
+                                            >
+                                                {!isVideoAudioMuted ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
+                                                <span>{!isVideoAudioMuted ? 'Son Vidéo Actif' : 'En Sourdine'}</span>
+                                            </button>
+                                        </div>
                                     </div>
                                 )}
 
-                                {/* Réglage Sourdine / Son & Voile Sombre */}
-                                <div className="grid grid-cols-2 gap-3">
-                                    <div className="p-3 rounded-2xl bg-white/5 border border-white/10 space-y-2">
-                                        <span className="text-[10px] font-black uppercase text-gray-400">Piste Son Vidéo</span>
-                                        <button
-                                            type="button"
-                                            onClick={() => setIsVideoAudioMuted(!isVideoAudioMuted)}
-                                            className={`w-full py-2 px-3 rounded-xl border text-xs font-black uppercase flex items-center justify-center gap-1.5 transition ${
-                                                !isVideoAudioMuted ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40' : 'bg-white/5 text-gray-400 border-white/10'
-                                            }`}
-                                        >
-                                            {!isVideoAudioMuted ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
-                                            <span>{!isVideoAudioMuted ? 'Son Actif' : 'En Sourdine'}</span>
-                                        </button>
+                                {/* Réglage du Voile Sombre pour lisibilité */}
+                                <div className="p-3 rounded-2xl bg-white/5 border border-white/10 space-y-1.5">
+                                    <div className="flex justify-between text-xs font-black uppercase text-gray-300">
+                                        <span>Voile d'obscurcissement (Lisibilité)</span>
+                                        <span className="text-amber-400 font-mono">{Math.round(bgOverlayOpacity * 100)}%</span>
                                     </div>
+                                    <input
+                                        type="range"
+                                        min={0.15}
+                                        max={0.85}
+                                        step={0.05}
+                                        value={bgOverlayOpacity}
+                                        onChange={(e) => setBgOverlayOpacity(parseFloat(e.target.value))}
+                                        className="w-full h-1.5 bg-white/15 rounded-lg appearance-none cursor-pointer accent-amber-400 mt-2"
+                                    />
+                                    <p className="text-[10px] text-gray-400">Permet au texte de ressortir avec un contraste parfait sans aucun cadre.</p>
+                                </div>
+                            </div>
+                        )}
 
-                                    <div className="p-3 rounded-2xl bg-white/5 border border-white/10 space-y-1.5">
-                                        <div className="flex justify-between text-[10px] font-black uppercase text-gray-400">
-                                            <span>Voile Sombre</span>
-                                            <span className="text-amber-400">{Math.round(bgOverlayOpacity * 100)}%</span>
+                        {/* ONGLET 2 : DURÉES PERSONNALISABLES */}
+                        {activeTab === 'durees' && (
+                            <div className="space-y-3.5">
+                                <div className="p-3.5 rounded-2xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-between">
+                                    <div>
+                                        <span className="text-xs font-black uppercase text-cyan-300 block">Durée Totale de la Vidéo</span>
+                                        <span className="text-[11px] text-gray-300">Idéal pour un Reel Instagram ou TikTok (25s à 35s)</span>
+                                    </div>
+                                    <span className="text-xl font-black font-mono text-cyan-400 bg-cyan-500/20 px-3 py-1 rounded-xl border border-cyan-500/40">
+                                        {totalDuration.toFixed(1)}s
+                                    </span>
+                                </div>
+
+                                {/* Presets rapides de durée */}
+                                <div className="grid grid-cols-3 gap-2">
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setIntroDuration(3.5);
+                                            setVibeDuration(4.5);
+                                            setP1Duration(4.5);
+                                            setP2Duration(4.5);
+                                            setContactDuration(4.0);
+                                            setLogoDuration(3.0);
+                                        }}
+                                        className="p-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-[10px] font-black uppercase text-gray-300"
+                                    >
+                                        ⚡ Rapide (24s)
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setIntroDuration(4.5);
+                                            setVibeDuration(6.0);
+                                            setP1Duration(5.5);
+                                            setP2Duration(5.5);
+                                            setContactDuration(5.0);
+                                            setLogoDuration(4.0);
+                                        }}
+                                        className="p-2 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-[10px] font-black uppercase text-amber-300"
+                                    >
+                                        ⭐ Standard (30.5s)
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setIntroDuration(5.5);
+                                            setVibeDuration(8.0);
+                                            setP1Duration(7.0);
+                                            setP2Duration(7.0);
+                                            setContactDuration(6.5);
+                                            setLogoDuration(5.0);
+                                        }}
+                                        className="p-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-[10px] font-black uppercase text-gray-300"
+                                    >
+                                        📖 Détaillé (39s)
+                                    </button>
+                                </div>
+
+                                {/* Sliders par Scène */}
+                                <div className="space-y-3 pt-1">
+                                    <div className="p-3 rounded-xl bg-white/5 border border-white/10 space-y-1">
+                                        <div className="flex justify-between text-xs font-black uppercase text-[#ff3355]">
+                                            <span>1. Intro Plein Écran</span>
+                                            <span className="font-mono">{introDuration.toFixed(1)}s</span>
                                         </div>
                                         <input
-                                            type="range"
-                                            min={0.1}
-                                            max={0.85}
-                                            step={0.05}
-                                            value={bgOverlayOpacity}
-                                            onChange={(e) => setBgOverlayOpacity(parseFloat(e.target.value))}
-                                            className="w-full h-1.5 bg-white/15 rounded-lg appearance-none cursor-pointer accent-amber-400 mt-2"
+                                            type="range" min={2.0} max={10.0} step={0.5} value={introDuration}
+                                            onChange={(e) => setIntroDuration(parseFloat(e.target.value))}
+                                            className="w-full h-1.5 bg-white/15 rounded-lg appearance-none cursor-pointer accent-[#ff3355]"
+                                        />
+                                    </div>
+
+                                    <div className="p-3 rounded-xl bg-white/5 border border-white/10 space-y-1">
+                                        <div className="flex justify-between text-xs font-black uppercase text-amber-300">
+                                            <span>2. Accroche Backstages & Vibe</span>
+                                            <span className="font-mono">{vibeDuration.toFixed(1)}s</span>
+                                        </div>
+                                        <input
+                                            type="range" min={3.0} max={12.0} step={0.5} value={vibeDuration}
+                                            onChange={(e) => setVibeDuration(parseFloat(e.target.value))}
+                                            className="w-full h-1.5 bg-white/15 rounded-lg appearance-none cursor-pointer accent-amber-400"
+                                        />
+                                    </div>
+
+                                    <div className="p-3 rounded-xl bg-white/5 border border-white/10 space-y-1">
+                                        <div className="flex justify-between text-xs font-black uppercase text-[#00f0ff]">
+                                            <span>3. Profil 1 (Rédacteurs)</span>
+                                            <span className="font-mono">{p1Duration.toFixed(1)}s</span>
+                                        </div>
+                                        <input
+                                            type="range" min={3.0} max={12.0} step={0.5} value={p1Duration}
+                                            onChange={(e) => setP1Duration(parseFloat(e.target.value))}
+                                            className="w-full h-1.5 bg-white/15 rounded-lg appearance-none cursor-pointer accent-[#00f0ff]"
+                                        />
+                                    </div>
+
+                                    <div className="p-3 rounded-xl bg-white/5 border border-white/10 space-y-1">
+                                        <div className="flex justify-between text-xs font-black uppercase text-[#ff3355]">
+                                            <span>4. Profil 2 (Créateurs Contenu)</span>
+                                            <span className="font-mono">{p2Duration.toFixed(1)}s</span>
+                                        </div>
+                                        <input
+                                            type="range" min={3.0} max={12.0} step={0.5} value={p2Duration}
+                                            onChange={(e) => setP2Duration(parseFloat(e.target.value))}
+                                            className="w-full h-1.5 bg-white/15 rounded-lg appearance-none cursor-pointer accent-[#ff3355]"
+                                        />
+                                    </div>
+
+                                    <div className="p-3 rounded-xl bg-white/5 border border-white/10 space-y-1">
+                                        <div className="flex justify-between text-xs font-black uppercase text-amber-300">
+                                            <span>5. Coordonnées Contact</span>
+                                            <span className="font-mono">{contactDuration.toFixed(1)}s</span>
+                                        </div>
+                                        <input
+                                            type="range" min={3.0} max={10.0} step={0.5} value={contactDuration}
+                                            onChange={(e) => setContactDuration(parseFloat(e.target.value))}
+                                            className="w-full h-1.5 bg-white/15 rounded-lg appearance-none cursor-pointer accent-amber-400"
+                                        />
+                                    </div>
+
+                                    <div className="p-3 rounded-xl bg-white/5 border border-white/10 space-y-1">
+                                        <div className="flex justify-between text-xs font-black uppercase text-white">
+                                            <span>6. Outro Logo Final</span>
+                                            <span className="font-mono">{logoDuration.toFixed(1)}s</span>
+                                        </div>
+                                        <input
+                                            type="range" min={2.0} max={8.0} step={0.5} value={logoDuration}
+                                            onChange={(e) => setLogoDuration(parseFloat(e.target.value))}
+                                            className="w-full h-1.5 bg-white/15 rounded-lg appearance-none cursor-pointer accent-white"
                                         />
                                     </div>
                                 </div>
                             </div>
                         )}
 
-                        {/* ONGLET 2 : TEXTES DES 6 SCÈNES (SANS CADRE) */}
+                        {/* ONGLET 3 : TEXTES DES 6 SCÈNES (SANS CADRE) */}
                         {activeTab === 'textes' && (
                             <div className="space-y-3.5">
                                 
@@ -1147,7 +1428,7 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
                                 <div className="p-3 rounded-2xl bg-black/40 border border-red-500/30 space-y-2">
                                     <div className="flex items-center justify-between text-xs font-black uppercase text-[#ff3355]">
                                         <span>1. Intro Plein Écran</span>
-                                        <span className="text-gray-400 font-mono text-[10px]">Durée : {introDuration}s</span>
+                                        <span className="text-gray-400 font-mono text-[10px]">Durée : {introDuration.toFixed(1)}s</span>
                                     </div>
                                     <div className="space-y-1.5">
                                         <input
@@ -1178,7 +1459,7 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
                                 <div className="p-3 rounded-2xl bg-black/40 border border-amber-500/30 space-y-2">
                                     <div className="flex items-center justify-between text-xs font-black uppercase text-amber-300">
                                         <span>2. Accroche Backstages & Vibe</span>
-                                        <span className="text-gray-400 font-mono text-[10px]">Durée : {vibeDuration}s</span>
+                                        <span className="text-gray-400 font-mono text-[10px]">Durée : {vibeDuration.toFixed(1)}s</span>
                                     </div>
                                     <div className="space-y-1.5">
                                         <textarea
@@ -1209,7 +1490,7 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
                                 <div className="p-3 rounded-2xl bg-black/40 border border-[#00f0ff]/30 space-y-2">
                                     <div className="flex items-center justify-between text-xs font-black uppercase text-[#00f0ff]">
                                         <span>3. Profil 1 (Cyan)</span>
-                                        <span className="text-gray-400 font-mono text-[10px]">Durée : {p1Duration}s</span>
+                                        <span className="text-gray-400 font-mono text-[10px]">Durée : {p1Duration.toFixed(1)}s</span>
                                     </div>
                                     <div className="space-y-1.5">
                                         <input
@@ -1240,7 +1521,7 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
                                 <div className="p-3 rounded-2xl bg-black/40 border border-[#ff0033]/30 space-y-2">
                                     <div className="flex items-center justify-between text-xs font-black uppercase text-[#ff3355]">
                                         <span>4. Profil 2 (Rouge)</span>
-                                        <span className="text-gray-400 font-mono text-[10px]">Durée : {p2Duration}s</span>
+                                        <span className="text-gray-400 font-mono text-[10px]">Durée : {p2Duration.toFixed(1)}s</span>
                                     </div>
                                     <div className="space-y-1.5">
                                         <input
@@ -1278,7 +1559,7 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
                                 <div className="p-3 rounded-2xl bg-black/40 border border-amber-500/30 space-y-2">
                                     <div className="flex items-center justify-between text-xs font-black uppercase text-amber-300">
                                         <span>5. Phrase Contact</span>
-                                        <span className="text-gray-400 font-mono text-[10px]">Durée : {contactDuration}s</span>
+                                        <span className="text-gray-400 font-mono text-[10px]">Durée : {contactDuration.toFixed(1)}s</span>
                                     </div>
                                     <div className="space-y-1.5">
                                         <input
@@ -1309,7 +1590,7 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
                                 <div className="p-3 rounded-2xl bg-black/40 border border-white/20 space-y-1.5">
                                     <div className="flex items-center justify-between text-xs font-black uppercase text-white">
                                         <span>6. Outro Finale Logo Dropsiders</span>
-                                        <span className="text-gray-400 font-mono text-[10px]">Durée : {logoDuration}s</span>
+                                        <span className="text-gray-400 font-mono text-[10px]">Durée : {logoDuration.toFixed(1)}s</span>
                                     </div>
                                     <p className="text-[11px] text-gray-400">Le logo officiel Dropsiders apparaît en plein centre avec pulsation néon sans aucun cadre.</p>
                                 </div>
@@ -1317,7 +1598,7 @@ export const AlexRecruitmentModal: React.FC<AlexRecruitmentModalProps> = ({ isOp
                             </div>
                         )}
 
-                        {/* ONGLET 3 : EXPORT MP4 */}
+                        {/* ONGLET 4 : EXPORT MP4 */}
                         {activeTab === 'export' && (
                             <div className="space-y-4">
                                 <div className="p-4 rounded-2xl bg-gradient-to-r from-[#ff0033]/15 to-amber-500/15 border border-[#ff0033]/30 space-y-3">
