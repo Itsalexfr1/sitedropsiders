@@ -123,5 +123,22 @@
     ],
     "created": "2026-09-28T21:38:39.678Z",
     "verified": false
+  },
+  {
+    "email": "harouxtimeo@gmail.com",
+    "dropsiders_email": "thx@crew.dropsiders.fr",
+    "mail_enabled": true,
+    "username": "Thx",
+    "pseudo": "Thx",
+    "role": "RÉDACTEUR",
+    "permissions": [
+      "news_focus",
+      "musique_releases",
+      "interviews_video",
+      "recaps_festivals",
+      "social_studio"
+    ],
+    "created": "2026-11-09T21:37:31.261Z",
+    "verified": true
   }
 ]
