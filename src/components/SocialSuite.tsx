@@ -9113,16 +9113,33 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         if (afficheMode === 'contain') {
                             // Fond flouté : l'affiche en cover avec un fort blur
                             ctx.save();
-                            ctx.filter = 'blur(28px) brightness(0.45) saturate(1.3)';
+                            ctx.filter = 'blur(28px) brightness(0.42) saturate(1.4)';
                             drawImageZoomPan(ctx, posterImg, cardX, cardY, cardW, cardH, 'cover', 100, 0, 0);
                             ctx.filter = 'none';
                             ctx.restore();
                             // Légère surimpression sombre pour améliorer le contraste
-                            ctx.fillStyle = 'rgba(0, 0, 0, 0.18)';
+                            ctx.fillStyle = 'rgba(0, 0, 0, 0.15)';
                             ctx.fillRect(cardX, cardY, cardW, cardH);
                         }
                         // Zoom + déplacement interne : seule l'image bouge, le cadre reste fixe
                         drawImageZoomPan(ctx, posterImg, cardX, cardY, cardW, cardH, afficheMode === 'contain' ? 'contain' : 'cover', afficheImgZoom, afficheImgPanX, afficheImgPanY);
+
+                        // Fondu haut et bas pour intégrer l'image dans le fond (évite l'effet "posé")
+                        if (afficheMode === 'contain') {
+                            const fadeH = Math.round(cardH * 0.22);
+                            // Fondu haut
+                            const fadeTop = ctx.createLinearGradient(0, cardY, 0, cardY + fadeH);
+                            fadeTop.addColorStop(0, 'rgba(0,0,0,0.75)');
+                            fadeTop.addColorStop(1, 'rgba(0,0,0,0)');
+                            ctx.fillStyle = fadeTop;
+                            ctx.fillRect(cardX, cardY, cardW, fadeH);
+                            // Fondu bas
+                            const fadeBot = ctx.createLinearGradient(0, cardY + cardH - fadeH, 0, cardY + cardH);
+                            fadeBot.addColorStop(0, 'rgba(0,0,0,0)');
+                            fadeBot.addColorStop(1, 'rgba(0,0,0,0.75)');
+                            ctx.fillStyle = fadeBot;
+                            ctx.fillRect(cardX, cardY + cardH - fadeH, cardW, fadeH);
+                        }
                     } else {
                         // Carte placeholder élégante en attente d'image
                         const phGrad = ctx.createLinearGradient(cardX, cardY, cardX + cardW, cardY + cardH);
