@@ -806,11 +806,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     <button
                         type="button"
                         onClick={() => switchAudioTarget('global')}
-                        className={`px-2.5 py-1 rounded-lg font-black uppercase transition-all whitespace-nowrap flex items-center gap-1.5 shrink-0 ${
-                            isGlobal
+                        className={`px-2.5 py-1 rounded-lg font-black uppercase transition-all whitespace-nowrap flex items-center gap-1.5 shrink-0 ${isGlobal
                                 ? 'bg-[#00f0ff] text-black shadow-[0_0_10px_rgba(0,240,255,0.4)]'
                                 : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
-                        }`}
+                            }`}
                     >
                         🌐 Tout le Carrousel
                         {carouselAudioUrl && <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>}
@@ -823,11 +822,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 key={s}
                                 type="button"
                                 onClick={() => switchAudioTarget(s)}
-                                className={`px-2.5 py-1 rounded-lg font-black uppercase transition-all whitespace-nowrap flex items-center gap-1.5 shrink-0 ${
-                                    isSelected
+                                className={`px-2.5 py-1 rounded-lg font-black uppercase transition-all whitespace-nowrap flex items-center gap-1.5 shrink-0 ${isSelected
                                         ? 'bg-[#00f0ff] text-black shadow-[0_0_10px_rgba(0,240,255,0.4)]'
                                         : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
-                                }`}
+                                    }`}
                             >
                                 {s === 1 ? '📌 Slide 1' : s === 2 ? '📖 Slide 2' : `📄 Slide ${s}`}
                                 {hasAudio && <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>}
@@ -934,9 +932,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             <button
                                 type="button"
                                 onClick={toggleCarouselAudioPreview}
-                                className={`px-2 py-1 rounded text-[9.5px] font-black uppercase flex items-center gap-1 flex-shrink-0 transition ${
-                                    isPlayingCarouselPreview ? 'bg-[#00f0ff] text-black shadow-[0_0_10px_rgba(0,240,255,0.4)]' : 'bg-white/10 hover:bg-white/20 text-white'
-                                }`}
+                                className={`px-2 py-1 rounded text-[9.5px] font-black uppercase flex items-center gap-1 flex-shrink-0 transition ${isPlayingCarouselPreview ? 'bg-[#00f0ff] text-black shadow-[0_0_10px_rgba(0,240,255,0.4)]' : 'bg-white/10 hover:bg-white/20 text-white'
+                                    }`}
                             >
                                 {isPlayingCarouselPreview ? (
                                     <>Pause</>
@@ -1533,7 +1530,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         try {
             const saved = localStorage.getItem('dropsiders_top10_logo_scale_v1');
             if (saved) return Number(saved);
-        } catch (_) {}
+        } catch (_) { }
         return 100;
     });
     const top10LogoScaleRef = useRef<number>(top10LogoScale);
@@ -1542,7 +1539,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const updateTop10LogoScale = (newScale: number) => {
         setTop10LogoScale(newScale);
         top10LogoScaleRef.current = newScale;
-        try { localStorage.setItem('dropsiders_top10_logo_scale_v1', String(newScale)); } catch (_) {}
+        try { localStorage.setItem('dropsiders_top10_logo_scale_v1', String(newScale)); } catch (_) { }
         generateImage();
     };
 
@@ -1820,7 +1817,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             }
             try {
                 localStorage.setItem('dropsiders_top10_tracks_v7', JSON.stringify(newTracks));
-            } catch (_) {}
+            } catch (_) { }
             generateImage();
 
             // Résolution automatique en tâche de fond des pochettes HD et audio pour chacun des 10 morceaux
@@ -1842,7 +1839,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             });
                         }
                     }
-                } catch (_) {}
+                } catch (_) { }
             }
         } catch (err) {
             console.warn("Erreur import texte Top 10 :", err);
@@ -1851,7 +1848,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         }
     };
 
-        const handleAutoFetchLabelTop10 = async (labelName: string) => {
+    const handleAutoFetchLabelTop10 = async (labelName: string) => {
         const cleaned = labelName.trim();
         if (!cleaned) return;
         setIsAutoFillingTop10(true);
@@ -1912,7 +1909,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             top10TracksRef.current = resolvedTracks;
             try {
                 localStorage.setItem('dropsiders_top10_tracks_v7', JSON.stringify(resolvedTracks));
-            } catch (_) {}
+            } catch (_) { }
         }
         setIsAutoFillingTop10(false);
         generateImage();
@@ -1973,7 +1970,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         top10IntroArtistRef.current = bpArtData.artist || cleaned;
                         try {
                             localStorage.setItem('dropsiders_top10_tracks_v7', JSON.stringify(mapped));
-                        } catch (_) {}
+                        } catch (_) { }
                         generateImage();
                         resolvedFromBeatport = true;
                     }
@@ -2004,7 +2001,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     const arts = Array.isArray(t.artists) ? t.artists.map((a: any) => (a.name || '').toLowerCase()) : [];
                                     const rmx = Array.isArray(t.remixers) ? t.remixers.map((r: any) => (r.name || '').toLowerCase()) : [];
                                     return arts.some((a: string) => a.includes(cleanedLower) || cleanedLower.includes(a)) ||
-                                           rmx.some((r: string) => r.includes(cleanedLower));
+                                        rmx.some((r: string) => r.includes(cleanedLower));
                                 });
 
                                 const pool = (artistTracks.length >= 5) ? artistTracks : rawTracks;
@@ -2062,7 +2059,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     top10IntroArtistRef.current = cleaned;
                                     try {
                                         localStorage.setItem('dropsiders_top10_tracks_v7', JSON.stringify(newTracks));
-                                    } catch (_) {}
+                                    } catch (_) { }
                                     generateImage();
                                     resolvedFromBeatport = true;
                                 }
@@ -2111,12 +2108,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             top10IntroArtistRef.current = cleaned;
                             try {
                                 localStorage.setItem('dropsiders_top10_tracks_v7', JSON.stringify(mapped));
-                            } catch (_) {}
+                            } catch (_) { }
                             generateImage();
                             resolvedFromBeatport = true;
                         }
                     }
-                } catch (_) {}
+                } catch (_) { }
             }
 
             // 4. FALLBACK 3 : APPLE MUSIC / ITUNES API
@@ -2165,7 +2162,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             top10IntroArtistRef.current = cleaned;
                             try {
                                 localStorage.setItem('dropsiders_top10_tracks_v7', JSON.stringify(newTracks));
-                            } catch (_) {}
+                            } catch (_) { }
                             generateImage();
                         }
                     }
@@ -2396,14 +2393,14 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             top10TracksRef.current = resolvedTracks;
             try {
                 localStorage.setItem('dropsiders_top10_tracks_v7', JSON.stringify(resolvedTracks));
-            } catch (_) {}
+            } catch (_) { }
             generateImage();
         }
 
         setIsAutoFillingTop10(false);
     };
 
-        // Système de recherche universelle par Titre & Artiste (Beatport / Spotify / Apple Music)
+    // Système de recherche universelle par Titre & Artiste (Beatport / Spotify / Apple Music)
     const [top10SearchQuery, setTop10SearchQuery] = useState<string>('');
     const [top10SearchResults, setTop10SearchResults] = useState<ResolvedMusicData[]>([]);
     const [isTop10Searching, setIsTop10Searching] = useState<boolean>(false);
@@ -4319,7 +4316,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             setArtistLogo(url);
             generateImage();
         }
-        try { e.target.value = ''; } catch (_) {}
+        try { e.target.value = ''; } catch (_) { }
     };
 
     const handleRestoreOriginalLogo = () => {
@@ -4455,8 +4452,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const top10DynamicTheme = (top10GenModeRef.current || top10GenMode) === 'label'
         ? { label: 'TOP 10 TRACKS', grad: '184, 98, 33', color: '#B86221' }
         : (top10GenModeRef.current || top10GenMode) === 'style'
-        ? { label: 'TOP 10 TRACKS', grad: '255, 184, 0', color: '#FFB800' }
-        : { label: 'TOP 10 TRACKS', grad: '0, 240, 255', color: '#00f0ff' };
+            ? { label: 'TOP 10 TRACKS', grad: '255, 184, 0', color: '#FFB800' }
+            : { label: 'TOP 10 TRACKS', grad: '0, 240, 255', color: '#00f0ff' };
 
     const activeColor = theme === 'TOP 10 TRACKS'
         ? (themeColor || top10DynamicTheme)
@@ -5106,8 +5103,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 const top10DynamicTheme = (top10GenModeRef.current || top10GenMode) === 'label'
                     ? { label: 'TOP 10 TRACKS', grad: '184, 98, 33', color: '#B86221' }
                     : (top10GenModeRef.current || top10GenMode) === 'style'
-                    ? { label: 'TOP 10 TRACKS', grad: '255, 184, 0', color: '#FFB800' }
-                    : { label: 'TOP 10 TRACKS', grad: '0, 240, 255', color: '#00f0ff' };
+                        ? { label: 'TOP 10 TRACKS', grad: '255, 184, 0', color: '#FFB800' }
+                        : { label: 'TOP 10 TRACKS', grad: '0, 240, 255', color: '#00f0ff' };
 
                 const activeColor = isPromoTheme
                     ? promoThemeData
@@ -5163,11 +5160,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ? (currentSlideAfficheUrl || bgImage)
                     : isSpotlightArtistSlide
                         ? (spotlightSlidesData[artisteFestivalSlide]?.bgImage || editorialSlideImages[artisteFestivalSlide] || '')
-                    : (theme === 'JEU_DJ' && effectiveEditorialSlide === 2 && (!editorialSlideImages[2] || editorialSlideImages[2] === djOriginalImage))
-                        ? (editorialSlideImages[1] || bgImage)
-                        : isMusiqueTrackSlide
-                            ? (editorialSlideImages[effectiveEditorialSlide] || (musiqueCoverUrl ? musiqueCoverUrl : bgImage))
-                            : (editorialSlideImages[effectiveEditorialSlide] || bgImage);
+                        : (theme === 'JEU_DJ' && effectiveEditorialSlide === 2 && (!editorialSlideImages[2] || editorialSlideImages[2] === djOriginalImage))
+                            ? (editorialSlideImages[1] || bgImage)
+                            : isMusiqueTrackSlide
+                                ? (editorialSlideImages[effectiveEditorialSlide] || (musiqueCoverUrl ? musiqueCoverUrl : bgImage))
+                                : (editorialSlideImages[effectiveEditorialSlide] || bgImage);
                 if (activeSlideImgSrc) {
                     const resolvedSlideImgSrc = resolveImageUrl(activeSlideImgSrc);
                     if (imageCacheRef.current[resolvedSlideImgSrc]) {
@@ -5479,318 +5476,318 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     }
                 } else if (theme === 'JEU_DJ') {
                     // SILHOUETTE MYSTÈRE & RÉVÉLATION DJ
-                        // 1. DESSIN DU FOND VISUEL SCÉNIQUE (identique sur Slide 1 et Slide 2)
-                        // Peut être une vidéo (bgVideo) ou une photo de décor (djBgPhotoObj / bgImage / img)
-                        const bgPhoto = djBgPhotoObj || (bgImage && imageCacheRef.current[bgImage]) || (bgImage && imageCacheRef.current[resolveImageUrl(bgImage)]) || (img && img !== djOriginalImgObj && img !== djCutoutImgObj ? img : null);
+                    // 1. DESSIN DU FOND VISUEL SCÉNIQUE (identique sur Slide 1 et Slide 2)
+                    // Peut être une vidéo (bgVideo) ou une photo de décor (djBgPhotoObj / bgImage / img)
+                    const bgPhoto = djBgPhotoObj || (bgImage && imageCacheRef.current[bgImage]) || (bgImage && imageCacheRef.current[resolveImageUrl(bgImage)]) || (img && img !== djOriginalImgObj && img !== djCutoutImgObj ? img : null);
 
-                        if (bgVideo) {
-                            const baseScale = Math.max(canvas.width / bgVideo.videoWidth, canvas.height / bgVideo.videoHeight);
-                            const scale = baseScale * bgAnimScale;
-                            const vw = bgVideo.videoWidth * scale;
-                            const vh = bgVideo.videoHeight * scale;
-                            const vx = ((canvas.width - vw) / 2) + bgOffsetX + bgAnimX;
-                            const vy = ((canvas.height - vh) / 2) + bgOffsetY + bgAnimY;
-                            ctx.drawImage(bgVideo, vx, vy, vw, vh);
+                    if (bgVideo) {
+                        const baseScale = Math.max(canvas.width / bgVideo.videoWidth, canvas.height / bgVideo.videoHeight);
+                        const scale = baseScale * bgAnimScale;
+                        const vw = bgVideo.videoWidth * scale;
+                        const vh = bgVideo.videoHeight * scale;
+                        const vx = ((canvas.width - vw) / 2) + bgOffsetX + bgAnimX;
+                        const vy = ((canvas.height - vh) / 2) + bgOffsetY + bgAnimY;
+                        ctx.drawImage(bgVideo, vx, vy, vw, vh);
 
-                            // Voile atmosphérique club/EDM sombre immersif pour faire ressortir l'artiste & le texte
-                            const bgOverlay = ctx.createLinearGradient(0, 0, 0, canvas.height);
-                            bgOverlay.addColorStop(0, 'rgba(4, 6, 14, 0.40)');
-                            bgOverlay.addColorStop(0.35, 'rgba(4, 6, 14, 0.65)');
-                            bgOverlay.addColorStop(0.70, 'rgba(2, 3, 6, 0.88)');
-                            bgOverlay.addColorStop(1, 'rgba(2, 3, 6, 0.96)');
-                            ctx.fillStyle = bgOverlay;
+                        // Voile atmosphérique club/EDM sombre immersif pour faire ressortir l'artiste & le texte
+                        const bgOverlay = ctx.createLinearGradient(0, 0, 0, canvas.height);
+                        bgOverlay.addColorStop(0, 'rgba(4, 6, 14, 0.40)');
+                        bgOverlay.addColorStop(0.35, 'rgba(4, 6, 14, 0.65)');
+                        bgOverlay.addColorStop(0.70, 'rgba(2, 3, 6, 0.88)');
+                        bgOverlay.addColorStop(1, 'rgba(2, 3, 6, 0.96)');
+                        ctx.fillStyle = bgOverlay;
+                        ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    } else if (bgPhoto) {
+                        // Dessiner la photo comme fond de scène / club / festival
+                        const baseScale = Math.max(canvas.width / bgPhoto.width, canvas.height / bgPhoto.height);
+                        const scale = baseScale * bgAnimScale;
+                        const biw = bgPhoto.width * scale;
+                        const bih = bgPhoto.height * scale;
+                        const bx = ((canvas.width - biw) / 2) + bgOffsetX + bgAnimX;
+                        const by = ((canvas.height - bih) / 2) + bgOffsetY + bgAnimY;
+                        ctx.drawImage(bgPhoto, bx, by, biw, bih);
+
+                        // Voile atmosphérique club/EDM sombre immersif pour faire ressortir l'artiste & le texte
+                        const bgOverlay = ctx.createLinearGradient(0, 0, 0, canvas.height);
+                        bgOverlay.addColorStop(0, 'rgba(4, 6, 14, 0.40)');
+                        bgOverlay.addColorStop(0.35, 'rgba(4, 6, 14, 0.65)');
+                        bgOverlay.addColorStop(0.70, 'rgba(2, 3, 6, 0.88)');
+                        bgOverlay.addColorStop(1, 'rgba(2, 3, 6, 0.96)');
+                        ctx.fillStyle = bgOverlay;
+                        ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    } else if (!isTransparent) {
+                        // Fond dégradé scène EDM sombre et immersif si aucun fond photo ou fond transparent
+                        const bgGrad = ctx.createRadialGradient(canvas.width / 2, canvas.height * 0.42, 40, canvas.width / 2, canvas.height * 0.45, canvas.height * 0.75);
+                        bgGrad.addColorStop(0, '#101322');
+                        bgGrad.addColorStop(0.45, '#070913');
+                        bgGrad.addColorStop(1, '#020306');
+                        ctx.fillStyle = bgGrad;
+                        ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    }
+
+                    const hexToRgb = (hex: string) => {
+                        const shorthandRegex = /^#?([a-f\d])([a-f\d])([a-f\d])$/i;
+                        const fullHex = hex.replace(shorthandRegex, (_, r, g, b) => r + r + g + g + b + b);
+                        const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(fullHex);
+                        return result ? `${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(result[3], 16)}` : '189, 0, 255';
+                    };
+                    const rgbColor = hexToRgb(djSilhouetteColor);
+
+                    // 2. DESSIN DE L'ARTISTE : SILHOUETTE (Slide 1) vs RÉVÉLATION EN COULEUR (Slide 2)
+                    // En Slide 1 : priorité absolue à la silhouette détourée IA, sinon image originale
+                    const activeSilhouetteImg = djCutoutImgObj || (djOriginalImgObj && checkImageHasAlpha(djOriginalImgObj) ? djOriginalImgObj : null) || djOriginalImgObj;
+
+                    if (isCurrentSlideSilhouette) {
+                        if (activeSilhouetteImg) {
+                            const isTransparentSil = Boolean(djCutoutImgObj || checkImageHasAlpha(activeSilhouetteImg));
+                            const baseScale = Math.min((canvas.width * 0.90) / activeSilhouetteImg.width, (canvas.height * 0.70) / activeSilhouetteImg.height);
+                            let scale = (baseScale > 1.25 ? baseScale : Math.max(canvas.width / activeSilhouetteImg.width, canvas.height / activeSilhouetteImg.height) * 0.92) * bgAnimScale;
+
+                            // Application de l'effet d'apparition choisi
+                            let silAlpha = 1.0;
+                            let silGlowBlur = djGlowIntensity;
+                            let scanLaserY: number | null = null;
+
+                            if (djAppearanceAnim === 'STROBE') {
+                                if (animElapsed < 0.85) {
+                                    const step = Math.floor(animElapsed * 26);
+                                    const flicker = (step % 4 !== 1 && step % 7 !== 2);
+                                    silAlpha = flicker ? 1.0 : 0.20;
+                                    silGlowBlur = flicker ? djGlowIntensity * 1.6 : djGlowIntensity * 0.3;
+                                }
+                            } else if (djAppearanceAnim === 'PULSE') {
+                                const pulse = Math.pow(Math.sin(animElapsed * Math.PI * 2.13), 4);
+                                silGlowBlur = djGlowIntensity * (0.75 + 0.65 * pulse);
+                                scale *= (1.0 + pulse * 0.025);
+                            } else if (djAppearanceAnim === 'FADE') {
+                                const t = Math.max(0, Math.min(1, animElapsed / 0.75));
+                                const ease = 1 - Math.pow(1 - t, 3);
+                                silAlpha = ease;
+                                scale *= (0.92 + 0.08 * ease);
+                                silGlowBlur = djGlowIntensity * ease;
+                            } else if (djAppearanceAnim === 'SCAN') {
+                                const tScan = (animElapsed % 2.4) / 2.4;
+                                scanLaserY = ((canvas.height * 0.44) - (activeSilhouetteImg.height * scale) / 2) + ((activeSilhouetteImg.height * scale) * tScan);
+                                silGlowBlur = djGlowIntensity * (0.9 + Math.sin(tScan * Math.PI) * 0.4);
+                            } else if (djAppearanceAnim === 'IMPACT') {
+                                const t = Math.max(0, Math.min(1, animElapsed / 0.50));
+                                const ease = 1 - Math.pow(1 - t, 4);
+                                scale *= (1.35 - 0.35 * ease);
+                                silAlpha = Math.min(1, t * 2.5);
+                            }
+
+                            const iw = activeSilhouetteImg.width * scale;
+                            const ih = activeSilhouetteImg.height * scale;
+                            const x = ((canvas.width - iw) / 2) + bgOffsetX + bgAnimX;
+                            const y = ((canvas.height * 0.44 - ih / 2)) + bgOffsetY + bgAnimY;
+
+                            // Lueur d'ambiance scénique derrière la silhouette (couleur néon choisie)
+                            const haloGrad = ctx.createRadialGradient(canvas.width / 2, y + ih * 0.42, 20, canvas.width / 2, y + ih * 0.42, Math.max(iw, ih) * 0.60);
+                            haloGrad.addColorStop(0, `rgba(${rgbColor}, 0.30)`);
+                            haloGrad.addColorStop(0.5, `rgba(${rgbColor}, 0.09)`);
+                            haloGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+                            ctx.fillStyle = haloGrad;
                             ctx.fillRect(0, 0, canvas.width, canvas.height);
-                        } else if (bgPhoto) {
-                            // Dessiner la photo comme fond de scène / club / festival
-                            const baseScale = Math.max(canvas.width / bgPhoto.width, canvas.height / bgPhoto.height);
-                            const scale = baseScale * bgAnimScale;
-                            const biw = bgPhoto.width * scale;
-                            const bih = bgPhoto.height * scale;
-                            const bx = ((canvas.width - biw) / 2) + bgOffsetX + bgAnimX;
-                            const by = ((canvas.height - bih) / 2) + bgOffsetY + bgAnimY;
-                            ctx.drawImage(bgPhoto, bx, by, biw, bih);
 
-                            // Voile atmosphérique club/EDM sombre immersif pour faire ressortir l'artiste & le texte
-                            const bgOverlay = ctx.createLinearGradient(0, 0, 0, canvas.height);
-                            bgOverlay.addColorStop(0, 'rgba(4, 6, 14, 0.40)');
-                            bgOverlay.addColorStop(0.35, 'rgba(4, 6, 14, 0.65)');
-                            bgOverlay.addColorStop(0.70, 'rgba(2, 3, 6, 0.88)');
-                            bgOverlay.addColorStop(1, 'rgba(2, 3, 6, 0.96)');
-                            ctx.fillStyle = bgOverlay;
-                            ctx.fillRect(0, 0, canvas.width, canvas.height);
-                        } else if (!isTransparent) {
-                            // Fond dégradé scène EDM sombre et immersif si aucun fond photo ou fond transparent
-                            const bgGrad = ctx.createRadialGradient(canvas.width / 2, canvas.height * 0.42, 40, canvas.width / 2, canvas.height * 0.45, canvas.height * 0.75);
-                            bgGrad.addColorStop(0, '#101322');
-                            bgGrad.addColorStop(0.45, '#070913');
-                            bgGrad.addColorStop(1, '#020306');
-                            ctx.fillStyle = bgGrad;
-                            ctx.fillRect(0, 0, canvas.width, canvas.height);
-                        }
-
-                        const hexToRgb = (hex: string) => {
-                            const shorthandRegex = /^#?([a-f\d])([a-f\d])([a-f\d])$/i;
-                            const fullHex = hex.replace(shorthandRegex, (_, r, g, b) => r + r + g + g + b + b);
-                            const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(fullHex);
-                            return result ? `${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(result[3], 16)}` : '189, 0, 255';
-                        };
-                        const rgbColor = hexToRgb(djSilhouetteColor);
-
-                        // 2. DESSIN DE L'ARTISTE : SILHOUETTE (Slide 1) vs RÉVÉLATION EN COULEUR (Slide 2)
-                        // En Slide 1 : priorité absolue à la silhouette détourée IA, sinon image originale
-                        const activeSilhouetteImg = djCutoutImgObj || (djOriginalImgObj && checkImageHasAlpha(djOriginalImgObj) ? djOriginalImgObj : null) || djOriginalImgObj;
-
-                        if (isCurrentSlideSilhouette) {
-                            if (activeSilhouetteImg) {
-                                const isTransparentSil = Boolean(djCutoutImgObj || checkImageHasAlpha(activeSilhouetteImg));
-                                const baseScale = Math.min((canvas.width * 0.90) / activeSilhouetteImg.width, (canvas.height * 0.70) / activeSilhouetteImg.height);
-                                let scale = (baseScale > 1.25 ? baseScale : Math.max(canvas.width / activeSilhouetteImg.width, canvas.height / activeSilhouetteImg.height) * 0.92) * bgAnimScale;
-
-                                // Application de l'effet d'apparition choisi
-                                let silAlpha = 1.0;
-                                let silGlowBlur = djGlowIntensity;
-                                let scanLaserY: number | null = null;
-
-                                if (djAppearanceAnim === 'STROBE') {
-                                    if (animElapsed < 0.85) {
-                                        const step = Math.floor(animElapsed * 26);
-                                        const flicker = (step % 4 !== 1 && step % 7 !== 2);
-                                        silAlpha = flicker ? 1.0 : 0.20;
-                                        silGlowBlur = flicker ? djGlowIntensity * 1.6 : djGlowIntensity * 0.3;
-                                    }
-                                } else if (djAppearanceAnim === 'PULSE') {
-                                    const pulse = Math.pow(Math.sin(animElapsed * Math.PI * 2.13), 4);
-                                    silGlowBlur = djGlowIntensity * (0.75 + 0.65 * pulse);
-                                    scale *= (1.0 + pulse * 0.025);
-                                } else if (djAppearanceAnim === 'FADE') {
-                                    const t = Math.max(0, Math.min(1, animElapsed / 0.75));
-                                    const ease = 1 - Math.pow(1 - t, 3);
-                                    silAlpha = ease;
-                                    scale *= (0.92 + 0.08 * ease);
-                                    silGlowBlur = djGlowIntensity * ease;
-                                } else if (djAppearanceAnim === 'SCAN') {
-                                    const tScan = (animElapsed % 2.4) / 2.4;
-                                    scanLaserY = ((canvas.height * 0.44) - (activeSilhouetteImg.height * scale) / 2) + ((activeSilhouetteImg.height * scale) * tScan);
-                                    silGlowBlur = djGlowIntensity * (0.9 + Math.sin(tScan * Math.PI) * 0.4);
-                                } else if (djAppearanceAnim === 'IMPACT') {
-                                    const t = Math.max(0, Math.min(1, animElapsed / 0.50));
-                                    const ease = 1 - Math.pow(1 - t, 4);
-                                    scale *= (1.35 - 0.35 * ease);
-                                    silAlpha = Math.min(1, t * 2.5);
+                            if (isTransparentSil) {
+                                // Traitement silhouette transparente via canvas hors écran (fond rempli en noir pur)
+                                const off = document.createElement('canvas');
+                                off.width = activeSilhouetteImg.width;
+                                off.height = activeSilhouetteImg.height;
+                                const offCtx = off.getContext('2d');
+                                if (offCtx) {
+                                    offCtx.drawImage(activeSilhouetteImg, 0, 0);
+                                    offCtx.globalCompositeOperation = 'source-in';
+                                    offCtx.fillStyle = '#060810';
+                                    offCtx.fillRect(0, 0, off.width, off.height);
                                 }
 
-                                const iw = activeSilhouetteImg.width * scale;
-                                const ih = activeSilhouetteImg.height * scale;
+                                // Dessin du halo / néon rim light
+                                ctx.save();
+                                ctx.globalAlpha = silAlpha;
+                                ctx.shadowColor = djSilhouetteColor;
+                                ctx.shadowBlur = silGlowBlur;
+                                ctx.drawImage(off, x, y, iw, ih);
+                                ctx.drawImage(off, x, y, iw, ih);
+                                ctx.restore();
+
+                                // Dessin de la silhouette noire pure
+                                ctx.save();
+                                ctx.globalAlpha = silAlpha;
+                                ctx.drawImage(off, x, y, iw, ih);
+                                ctx.restore();
+                            } else {
+                                // Image opaque pas encore détourée : afficher l'artiste assombri avec contour néon
+                                ctx.save();
+                                ctx.globalAlpha = silAlpha;
+                                ctx.shadowColor = djSilhouetteColor;
+                                ctx.shadowBlur = silGlowBlur;
+                                // Assombrissement mystère pour donner l'effet silhouette (compatible PC + iOS WebKit)
+                                if (supportsCanvasFilterBlur()) {
+                                    ctx.filter = 'brightness(0.14) contrast(1.4)';
+                                    ctx.drawImage(activeSilhouetteImg, x, y, iw, ih);
+                                    ctx.filter = 'none';
+                                } else {
+                                    const darkOff = document.createElement('canvas');
+                                    darkOff.width = Math.max(1, Math.round(iw));
+                                    darkOff.height = Math.max(1, Math.round(ih));
+                                    const dCtx = darkOff.getContext('2d');
+                                    if (dCtx) {
+                                        dCtx.drawImage(activeSilhouetteImg, 0, 0, darkOff.width, darkOff.height);
+                                        dCtx.globalCompositeOperation = 'source-atop';
+                                        dCtx.fillStyle = 'rgba(0, 0, 0, 0.86)';
+                                        dCtx.fillRect(0, 0, darkOff.width, darkOff.height);
+                                        ctx.drawImage(darkOff, x, y, iw, ih);
+                                    } else {
+                                        ctx.drawImage(activeSilhouetteImg, x, y, iw, ih);
+                                    }
+                                }
+
+                                ctx.strokeStyle = djSilhouetteColor;
+                                ctx.lineWidth = 3.5;
+                                ctx.strokeRect(x, y, iw, ih);
+                                ctx.restore();
+                            }
+
+                            // Faisceau Laser vertical si SCAN
+                            if (scanLaserY !== null && djAppearanceAnim === 'SCAN') {
+                                ctx.save();
+                                const laserGrad = ctx.createLinearGradient(x - 50, scanLaserY, x + iw + 50, scanLaserY);
+                                laserGrad.addColorStop(0, 'rgba(0,0,0,0)');
+                                laserGrad.addColorStop(0.2, djSilhouetteColor);
+                                laserGrad.addColorStop(0.5, '#ffffff');
+                                laserGrad.addColorStop(0.8, djSilhouetteColor);
+                                laserGrad.addColorStop(1, 'rgba(0,0,0,0)');
+                                ctx.fillStyle = laserGrad;
+                                ctx.shadowColor = djSilhouetteColor;
+                                ctx.shadowBlur = 16;
+                                ctx.fillRect(x - 50, scanLaserY - 2.5, iw + 100, 5);
+                                ctx.restore();
+                            }
+
+                            // Badge mystère "?" chic sur la silhouette
+                            if (djShowQuestionMark) {
+                                ctx.save();
+                                ctx.globalAlpha = silAlpha;
+                                const qX = x + (iw / 2);
+                                const qY = y + (ih * 0.38);
+                                const qRadius = 42;
+
+                                ctx.shadowColor = djSilhouetteColor;
+                                ctx.shadowBlur = 18;
+                                const discGrad = ctx.createLinearGradient(qX - qRadius, qY - qRadius, qX + qRadius, qY + qRadius);
+                                discGrad.addColorStop(0, 'rgba(15, 20, 35, 0.94)');
+                                discGrad.addColorStop(1, 'rgba(6, 8, 16, 0.98)');
+                                ctx.fillStyle = discGrad;
+                                ctx.beginPath();
+                                ctx.arc(qX, qY, qRadius, 0, Math.PI * 2);
+                                ctx.fill();
+
+                                ctx.strokeStyle = djSilhouetteColor;
+                                ctx.lineWidth = 2.5;
+                                ctx.stroke();
+
+                                ctx.font = '900 italic 50px "Montserrat", sans-serif';
+                                ctx.textAlign = 'center';
+                                ctx.textBaseline = 'middle';
+                                ctx.fillStyle = '#ffffff';
+                                ctx.shadowColor = djSilhouetteColor;
+                                ctx.shadowBlur = 10;
+                                ctx.fillText('?', qX, qY + 2);
+                                ctx.restore();
+                            }
+                        } else {
+                            // Pas encore de photo DJ chargée : halo d'ambiance et badge mystère central sur le fond visuel
+                            const haloGrad = ctx.createRadialGradient(canvas.width / 2, canvas.height * 0.42, 20, canvas.width / 2, canvas.height * 0.42, 380);
+                            haloGrad.addColorStop(0, `rgba(${rgbColor}, 0.28)`);
+                            haloGrad.addColorStop(0.5, `rgba(${rgbColor}, 0.08)`);
+                            haloGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+                            ctx.fillStyle = haloGrad;
+                            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                            if (djShowQuestionMark) {
+                                ctx.save();
+                                const qX = canvas.width / 2 + bgOffsetX;
+                                const qY = canvas.height * 0.42 + bgOffsetY;
+                                const qRadius = 50;
+
+                                ctx.shadowColor = djSilhouetteColor;
+                                ctx.shadowBlur = 22;
+                                const discGrad = ctx.createLinearGradient(qX - qRadius, qY - qRadius, qX + qRadius, qY + qRadius);
+                                discGrad.addColorStop(0, 'rgba(18, 24, 42, 0.95)');
+                                discGrad.addColorStop(1, 'rgba(6, 8, 16, 0.98)');
+                                ctx.fillStyle = discGrad;
+                                ctx.beginPath();
+                                ctx.arc(qX, qY, qRadius, 0, Math.PI * 2);
+                                ctx.fill();
+
+                                ctx.strokeStyle = djSilhouetteColor;
+                                ctx.lineWidth = 3;
+                                ctx.stroke();
+
+                                ctx.font = '900 italic 56px "Montserrat", sans-serif';
+                                ctx.textAlign = 'center';
+                                ctx.textBaseline = 'middle';
+                                ctx.fillStyle = '#ffffff';
+                                ctx.shadowColor = djSilhouetteColor;
+                                ctx.shadowBlur = 12;
+                                ctx.fillText('?', qX, qY + 2);
+                                ctx.restore();
+                            }
+                        }
+                    } else {
+                        // SLIDE 2 : RÉVÉLATION DU DJ EN COULEURS NON MASQUÉ SUR LE MÊME FOND DE SCÈNE (AVEC FONDU PROGRESSIF)
+                        const activeRevealImg = djCutoutImgObj || djOriginalImgObj || (editorialSlideImages[2] ? imageCacheRef.current[editorialSlideImages[2]] : null);
+                        if (activeRevealImg) {
+                            const isCutout = Boolean(djCutoutImgObj && activeRevealImg === djCutoutImgObj) || checkImageHasAlpha(activeRevealImg);
+                            const revealFadeT = isStaticPngExport ? 1 : Math.min(1, Math.max(0, animElapsed / 0.85));
+                            const revealAlpha = 1 - Math.pow(1 - revealFadeT, 3);
+                            const revealScale = 0.94 + (0.06 * revealAlpha);
+
+                            if (isCutout) {
+                                // Dessin du DJ détouré en couleur naturelle à la même position exacte que la silhouette
+                                const baseScale = Math.min((canvas.width * 0.90) / activeRevealImg.width, (canvas.height * 0.70) / activeRevealImg.height);
+                                let scale = (baseScale > 1.25 ? baseScale : Math.max(canvas.width / activeRevealImg.width, canvas.height / activeRevealImg.height) * 0.92) * bgAnimScale * revealScale;
+                                const iw = activeRevealImg.width * scale;
+                                const ih = activeRevealImg.height * scale;
                                 const x = ((canvas.width - iw) / 2) + bgOffsetX + bgAnimX;
                                 const y = ((canvas.height * 0.44 - ih / 2)) + bgOffsetY + bgAnimY;
 
-                                // Lueur d'ambiance scénique derrière la silhouette (couleur néon choisie)
+                                // Lueur d'ambiance cyan/émeraude subtile pour détacher l'artiste du fond avec fondu
                                 const haloGrad = ctx.createRadialGradient(canvas.width / 2, y + ih * 0.42, 20, canvas.width / 2, y + ih * 0.42, Math.max(iw, ih) * 0.60);
-                                haloGrad.addColorStop(0, `rgba(${rgbColor}, 0.30)`);
-                                haloGrad.addColorStop(0.5, `rgba(${rgbColor}, 0.09)`);
+                                haloGrad.addColorStop(0, `rgba(0, 240, 255, ${0.22 * revealAlpha})`);
+                                haloGrad.addColorStop(0.5, `rgba(0, 240, 255, ${0.05 * revealAlpha})`);
                                 haloGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
                                 ctx.fillStyle = haloGrad;
                                 ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-                                if (isTransparentSil) {
-                                    // Traitement silhouette transparente via canvas hors écran (fond rempli en noir pur)
-                                    const off = document.createElement('canvas');
-                                    off.width = activeSilhouetteImg.width;
-                                    off.height = activeSilhouetteImg.height;
-                                    const offCtx = off.getContext('2d');
-                                    if (offCtx) {
-                                        offCtx.drawImage(activeSilhouetteImg, 0, 0);
-                                        offCtx.globalCompositeOperation = 'source-in';
-                                        offCtx.fillStyle = '#060810';
-                                        offCtx.fillRect(0, 0, off.width, off.height);
-                                    }
-
-                                    // Dessin du halo / néon rim light
-                                    ctx.save();
-                                    ctx.globalAlpha = silAlpha;
-                                    ctx.shadowColor = djSilhouetteColor;
-                                    ctx.shadowBlur = silGlowBlur;
-                                    ctx.drawImage(off, x, y, iw, ih);
-                                    ctx.drawImage(off, x, y, iw, ih);
-                                    ctx.restore();
-
-                                    // Dessin de la silhouette noire pure
-                                    ctx.save();
-                                    ctx.globalAlpha = silAlpha;
-                                    ctx.drawImage(off, x, y, iw, ih);
-                                    ctx.restore();
-                                } else {
-                                    // Image opaque pas encore détourée : afficher l'artiste assombri avec contour néon
-                                    ctx.save();
-                                    ctx.globalAlpha = silAlpha;
-                                    ctx.shadowColor = djSilhouetteColor;
-                                    ctx.shadowBlur = silGlowBlur;
-                                    // Assombrissement mystère pour donner l'effet silhouette (compatible PC + iOS WebKit)
-                                    if (supportsCanvasFilterBlur()) {
-                                        ctx.filter = 'brightness(0.14) contrast(1.4)';
-                                        ctx.drawImage(activeSilhouetteImg, x, y, iw, ih);
-                                        ctx.filter = 'none';
-                                    } else {
-                                        const darkOff = document.createElement('canvas');
-                                        darkOff.width = Math.max(1, Math.round(iw));
-                                        darkOff.height = Math.max(1, Math.round(ih));
-                                        const dCtx = darkOff.getContext('2d');
-                                        if (dCtx) {
-                                            dCtx.drawImage(activeSilhouetteImg, 0, 0, darkOff.width, darkOff.height);
-                                            dCtx.globalCompositeOperation = 'source-atop';
-                                            dCtx.fillStyle = 'rgba(0, 0, 0, 0.86)';
-                                            dCtx.fillRect(0, 0, darkOff.width, darkOff.height);
-                                            ctx.drawImage(darkOff, x, y, iw, ih);
-                                        } else {
-                                            ctx.drawImage(activeSilhouetteImg, x, y, iw, ih);
-                                        }
-                                    }
-
-                                    ctx.strokeStyle = djSilhouetteColor;
-                                    ctx.lineWidth = 3.5;
-                                    ctx.strokeRect(x, y, iw, ih);
-                                    ctx.restore();
-                                }
-
-                                // Faisceau Laser vertical si SCAN
-                                if (scanLaserY !== null && djAppearanceAnim === 'SCAN') {
-                                    ctx.save();
-                                    const laserGrad = ctx.createLinearGradient(x - 50, scanLaserY, x + iw + 50, scanLaserY);
-                                    laserGrad.addColorStop(0, 'rgba(0,0,0,0)');
-                                    laserGrad.addColorStop(0.2, djSilhouetteColor);
-                                    laserGrad.addColorStop(0.5, '#ffffff');
-                                    laserGrad.addColorStop(0.8, djSilhouetteColor);
-                                    laserGrad.addColorStop(1, 'rgba(0,0,0,0)');
-                                    ctx.fillStyle = laserGrad;
-                                    ctx.shadowColor = djSilhouetteColor;
-                                    ctx.shadowBlur = 16;
-                                    ctx.fillRect(x - 50, scanLaserY - 2.5, iw + 100, 5);
-                                    ctx.restore();
-                                }
-
-                                // Badge mystère "?" chic sur la silhouette
-                                if (djShowQuestionMark) {
-                                    ctx.save();
-                                    ctx.globalAlpha = silAlpha;
-                                    const qX = x + (iw / 2);
-                                    const qY = y + (ih * 0.38);
-                                    const qRadius = 42;
-
-                                    ctx.shadowColor = djSilhouetteColor;
-                                    ctx.shadowBlur = 18;
-                                    const discGrad = ctx.createLinearGradient(qX - qRadius, qY - qRadius, qX + qRadius, qY + qRadius);
-                                    discGrad.addColorStop(0, 'rgba(15, 20, 35, 0.94)');
-                                    discGrad.addColorStop(1, 'rgba(6, 8, 16, 0.98)');
-                                    ctx.fillStyle = discGrad;
-                                    ctx.beginPath();
-                                    ctx.arc(qX, qY, qRadius, 0, Math.PI * 2);
-                                    ctx.fill();
-
-                                    ctx.strokeStyle = djSilhouetteColor;
-                                    ctx.lineWidth = 2.5;
-                                    ctx.stroke();
-
-                                    ctx.font = '900 italic 50px "Montserrat", sans-serif';
-                                    ctx.textAlign = 'center';
-                                    ctx.textBaseline = 'middle';
-                                    ctx.fillStyle = '#ffffff';
-                                    ctx.shadowColor = djSilhouetteColor;
-                                    ctx.shadowBlur = 10;
-                                    ctx.fillText('?', qX, qY + 2);
-                                    ctx.restore();
-                                }
+                                ctx.save();
+                                ctx.globalAlpha = revealAlpha;
+                                // Ombre portée de profondeur
+                                ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
+                                ctx.shadowBlur = 32;
+                                ctx.drawImage(activeRevealImg, x, y, iw, ih);
+                                ctx.restore();
                             } else {
-                                // Pas encore de photo DJ chargée : halo d'ambiance et badge mystère central sur le fond visuel
-                                const haloGrad = ctx.createRadialGradient(canvas.width / 2, canvas.height * 0.42, 20, canvas.width / 2, canvas.height * 0.42, 380);
-                                haloGrad.addColorStop(0, `rgba(${rgbColor}, 0.28)`);
-                                haloGrad.addColorStop(0.5, `rgba(${rgbColor}, 0.08)`);
-                                haloGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
-                                ctx.fillStyle = haloGrad;
-                                ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-                                if (djShowQuestionMark) {
-                                    ctx.save();
-                                    const qX = canvas.width / 2 + bgOffsetX;
-                                    const qY = canvas.height * 0.42 + bgOffsetY;
-                                    const qRadius = 50;
-
-                                    ctx.shadowColor = djSilhouetteColor;
-                                    ctx.shadowBlur = 22;
-                                    const discGrad = ctx.createLinearGradient(qX - qRadius, qY - qRadius, qX + qRadius, qY + qRadius);
-                                    discGrad.addColorStop(0, 'rgba(18, 24, 42, 0.95)');
-                                    discGrad.addColorStop(1, 'rgba(6, 8, 16, 0.98)');
-                                    ctx.fillStyle = discGrad;
-                                    ctx.beginPath();
-                                    ctx.arc(qX, qY, qRadius, 0, Math.PI * 2);
-                                    ctx.fill();
-
-                                    ctx.strokeStyle = djSilhouetteColor;
-                                    ctx.lineWidth = 3;
-                                    ctx.stroke();
-
-                                    ctx.font = '900 italic 56px "Montserrat", sans-serif';
-                                    ctx.textAlign = 'center';
-                                    ctx.textBaseline = 'middle';
-                                    ctx.fillStyle = '#ffffff';
-                                    ctx.shadowColor = djSilhouetteColor;
-                                    ctx.shadowBlur = 12;
-                                    ctx.fillText('?', qX, qY + 2);
-                                    ctx.restore();
-                                }
-                            }
-                        } else {
-                            // SLIDE 2 : RÉVÉLATION DU DJ EN COULEURS NON MASQUÉ SUR LE MÊME FOND DE SCÈNE (AVEC FONDU PROGRESSIF)
-                            const activeRevealImg = djCutoutImgObj || djOriginalImgObj || (editorialSlideImages[2] ? imageCacheRef.current[editorialSlideImages[2]] : null);
-                            if (activeRevealImg) {
-                                const isCutout = Boolean(djCutoutImgObj && activeRevealImg === djCutoutImgObj) || checkImageHasAlpha(activeRevealImg);
-                                const revealFadeT = isStaticPngExport ? 1 : Math.min(1, Math.max(0, animElapsed / 0.85));
-                                const revealAlpha = 1 - Math.pow(1 - revealFadeT, 3);
-                                const revealScale = 0.94 + (0.06 * revealAlpha);
-
-                                if (isCutout) {
-                                    // Dessin du DJ détouré en couleur naturelle à la même position exacte que la silhouette
-                                    const baseScale = Math.min((canvas.width * 0.90) / activeRevealImg.width, (canvas.height * 0.70) / activeRevealImg.height);
-                                    let scale = (baseScale > 1.25 ? baseScale : Math.max(canvas.width / activeRevealImg.width, canvas.height / activeRevealImg.height) * 0.92) * bgAnimScale * revealScale;
-                                    const iw = activeRevealImg.width * scale;
-                                    const ih = activeRevealImg.height * scale;
-                                    const x = ((canvas.width - iw) / 2) + bgOffsetX + bgAnimX;
-                                    const y = ((canvas.height * 0.44 - ih / 2)) + bgOffsetY + bgAnimY;
-
-                                    // Lueur d'ambiance cyan/émeraude subtile pour détacher l'artiste du fond avec fondu
-                                    const haloGrad = ctx.createRadialGradient(canvas.width / 2, y + ih * 0.42, 20, canvas.width / 2, y + ih * 0.42, Math.max(iw, ih) * 0.60);
-                                    haloGrad.addColorStop(0, `rgba(0, 240, 255, ${0.22 * revealAlpha})`);
-                                    haloGrad.addColorStop(0.5, `rgba(0, 240, 255, ${0.05 * revealAlpha})`);
-                                    haloGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
-                                    ctx.fillStyle = haloGrad;
-                                    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-                                    ctx.save();
-                                    ctx.globalAlpha = revealAlpha;
-                                    // Ombre portée de profondeur
-                                    ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
-                                    ctx.shadowBlur = 32;
-                                    ctx.drawImage(activeRevealImg, x, y, iw, ih);
-                                    ctx.restore();
-                                } else {
-                                    // Photo DJ originale non détourée : affichage centré sur le décor avec bordure et ombre
-                                    const baseScale = Math.min((canvas.width * 0.85) / activeRevealImg.width, (canvas.height * 0.60) / activeRevealImg.height);
-                                    const scale = baseScale * bgAnimScale * revealScale;
-                                    const iw = activeRevealImg.width * scale;
-                                    const ih = activeRevealImg.height * scale;
-                                    const x = ((canvas.width - iw) / 2) + bgOffsetX + bgAnimX;
-                                    const y = ((canvas.height * 0.44 - ih / 2)) + bgOffsetY + bgAnimY;
-                                    ctx.save();
-                                    ctx.globalAlpha = revealAlpha;
-                                    ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
-                                    ctx.shadowBlur = 30;
-                                    ctx.drawImage(activeRevealImg, x, y, iw, ih);
-                                    ctx.strokeStyle = `rgba(0, 240, 255, ${0.6 * revealAlpha})`;
-                                    ctx.lineWidth = 3;
-                                    ctx.strokeRect(x, y, iw, ih);
-                                    ctx.restore();
-                                }
+                                // Photo DJ originale non détourée : affichage centré sur le décor avec bordure et ombre
+                                const baseScale = Math.min((canvas.width * 0.85) / activeRevealImg.width, (canvas.height * 0.60) / activeRevealImg.height);
+                                const scale = baseScale * bgAnimScale * revealScale;
+                                const iw = activeRevealImg.width * scale;
+                                const ih = activeRevealImg.height * scale;
+                                const x = ((canvas.width - iw) / 2) + bgOffsetX + bgAnimX;
+                                const y = ((canvas.height * 0.44 - ih / 2)) + bgOffsetY + bgAnimY;
+                                ctx.save();
+                                ctx.globalAlpha = revealAlpha;
+                                ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
+                                ctx.shadowBlur = 30;
+                                ctx.drawImage(activeRevealImg, x, y, iw, ih);
+                                ctx.strokeStyle = `rgba(0, 240, 255, ${0.6 * revealAlpha})`;
+                                ctx.lineWidth = 3;
+                                ctx.strokeRect(x, y, iw, ih);
+                                ctx.restore();
                             }
                         }
+                    }
                 } else if (effectiveImg) {
                     if (theme === 'SPOTLIGHT') {
                         const baseScale = Math.max(canvas.width / effectiveImg.width, canvas.height / effectiveImg.height);
@@ -6262,8 +6259,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     const top10EffectiveHex = top10CurrentMode === 'label'
                         ? '#B86221'
                         : top10CurrentMode === 'style'
-                        ? '#FFB800'
-                        : '#00f0ff';
+                            ? '#FFB800'
+                            : '#00f0ff';
 
                     const effectiveThemeHex = isTop10Theme
                         ? ((typeof activeColor === 'string' ? activeColor : activeColor?.color)
@@ -9126,19 +9123,34 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                         // Fondu haut et bas pour intégrer l'image dans le fond (évite l'effet "posé")
                         if (afficheMode === 'contain') {
-                            const fadeH = Math.round(cardH * 0.22);
-                            // Fondu haut
+                            const fadeH = Math.round(cardH * 0.32);
+                            // Fondu haut progressif avec palier
                             const fadeTop = ctx.createLinearGradient(0, cardY, 0, cardY + fadeH);
-                            fadeTop.addColorStop(0, 'rgba(0,0,0,0.75)');
-                            fadeTop.addColorStop(1, 'rgba(0,0,0,0)');
+                            fadeTop.addColorStop(0, 'rgba(5, 5, 8, 0.98)');
+                            fadeTop.addColorStop(0.35, 'rgba(5, 5, 8, 0.85)');
+                            fadeTop.addColorStop(0.7, 'rgba(5, 5, 8, 0.4)');
+                            fadeTop.addColorStop(1, 'rgba(5, 5, 8, 0)');
                             ctx.fillStyle = fadeTop;
                             ctx.fillRect(cardX, cardY, cardW, fadeH);
-                            // Fondu bas
+
+                            // Fondu bas progressif avec palier
                             const fadeBot = ctx.createLinearGradient(0, cardY + cardH - fadeH, 0, cardY + cardH);
-                            fadeBot.addColorStop(0, 'rgba(0,0,0,0)');
-                            fadeBot.addColorStop(1, 'rgba(0,0,0,0.75)');
+                            fadeBot.addColorStop(0, 'rgba(5, 5, 8, 0)');
+                            fadeBot.addColorStop(0.3, 'rgba(5, 5, 8, 0.4)');
+                            fadeBot.addColorStop(0.65, 'rgba(5, 5, 8, 0.85)');
+                            fadeBot.addColorStop(1, 'rgba(5, 5, 8, 0.98)');
                             ctx.fillStyle = fadeBot;
                             ctx.fillRect(cardX, cardY + cardH - fadeH, cardW, fadeH);
+
+                            // Légère vignette latérale douce pour adoucir tous les angles de l'affiche
+                            const innerVig = ctx.createRadialGradient(
+                                cardX + cardW / 2, cardY + cardH / 2, Math.min(cardW, cardH) * 0.35,
+                                cardX + cardW / 2, cardY + cardH / 2, Math.max(cardW, cardH) * 0.55
+                            );
+                            innerVig.addColorStop(0, 'rgba(0, 0, 0, 0)');
+                            innerVig.addColorStop(1, 'rgba(5, 5, 8, 0.6)');
+                            ctx.fillStyle = innerVig;
+                            ctx.fillRect(cardX, cardY, cardW, cardH);
                         }
                     } else {
                         // Carte placeholder élégante en attente d'image
@@ -11303,719 +11315,719 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         const activeTrack = currentTracks[currentTrackIndex] || currentTracks[0];
                         const activeRank = activeTrack.rank;
 
-                    let trackProgress = 0;
-                    let animTime = 0;
+                        let trackProgress = 0;
+                        let animTime = 0;
 
-                    if (isVideoExport) {
-                        animTime = Math.min(durPerTrack - 0.001, Math.max(0, deterministicAnimTimeRef.current));
-                        trackProgress = animTime / durPerTrack;
-                    } else {
-                        animTime = (Date.now() - animStartTimeRef.current) / 1000;
-                        trackProgress = (top10TestingRank === currentActiveRank) ? ((animTime % durPerTrack) / durPerTrack) : 0.5;
-                    }
+                        if (isVideoExport) {
+                            animTime = Math.min(durPerTrack - 0.001, Math.max(0, deterministicAnimTimeRef.current));
+                            trackProgress = animTime / durPerTrack;
+                        } else {
+                            animTime = (Date.now() - animStartTimeRef.current) / 1000;
+                            trackProgress = (top10TestingRank === currentActiveRank) ? ((animTime % durPerTrack) / durPerTrack) : 0.5;
+                        }
 
-                    // Temps d'animation propre à la track active (sans modulo en export pour éviter tout flash en fin de piste)
-                    const trackAnimTime = isVideoExport
-                        ? animTime
-                        : (top10TestingRank === currentActiveRank
-                            ? (animTime % durPerTrack)
-                            : Math.max(0, (Date.now() - animStartTimeRef.current) / 1000));
+                        // Temps d'animation propre à la track active (sans modulo en export pour éviter tout flash en fin de piste)
+                        const trackAnimTime = isVideoExport
+                            ? animTime
+                            : (top10TestingRank === currentActiveRank
+                                ? (animTime % durPerTrack)
+                                : Math.max(0, (Date.now() - animStartTimeRef.current) / 1000));
 
-                    // Thématique couleur du rang (Podium Or, Argent, Bronze ou Cyber Néon)
-                    let rankColor = isLabelMode ? activeLabelColor : (isStyleMode ? activeStyleColor : '#00f0ff');
-                    let rankColorRgb = isLabelMode ? activeLabelRgb : (isStyleMode ? activeStyleRgb : '0, 240, 255');
-                    let rankTitle = `N° ${activeRank}`;
-                    let isPodium = false;
+                        // Thématique couleur du rang (Podium Or, Argent, Bronze ou Cyber Néon)
+                        let rankColor = isLabelMode ? activeLabelColor : (isStyleMode ? activeStyleColor : '#00f0ff');
+                        let rankColorRgb = isLabelMode ? activeLabelRgb : (isStyleMode ? activeStyleRgb : '0, 240, 255');
+                        let rankTitle = `N° ${activeRank}`;
+                        let isPodium = false;
 
-                    if (activeRank === 1) {
-                        rankColor = '#ffd700'; // Gold
-                        rankColorRgb = '255, 215, 0';
-                        rankTitle = '👑 N° 1';
-                        isPodium = true;
-                    } else if (activeRank === 2) {
-                        rankColor = '#e0e0e0'; // Silver
-                        rankColorRgb = '224, 224, 224';
-                        rankTitle = '🥈 N° 2';
-                        isPodium = true;
-                    } else if (activeRank === 3) {
-                        rankColor = '#cd7f32'; // Bronze
-                        rankColorRgb = '205, 127, 50';
-                        rankTitle = '🥉 N° 3';
-                        isPodium = true;
-                    }
+                        if (activeRank === 1) {
+                            rankColor = '#ffd700'; // Gold
+                            rankColorRgb = '255, 215, 0';
+                            rankTitle = '👑 N° 1';
+                            isPodium = true;
+                        } else if (activeRank === 2) {
+                            rankColor = '#e0e0e0'; // Silver
+                            rankColorRgb = '224, 224, 224';
+                            rankTitle = '🥈 N° 2';
+                            isPodium = true;
+                        } else if (activeRank === 3) {
+                            rankColor = '#cd7f32'; // Bronze
+                            rankColorRgb = '205, 127, 50';
+                            rankTitle = '🥉 N° 3';
+                            isPodium = true;
+                        }
 
-                    // 0. Récupération de la Pochette UNIQUEMENT pour la track active (zéro fuite entre tracks)
-                    const trackCoverSrc = activeTrack.cover || '';
-                    let coverImg: HTMLImageElement | null = null;
-                    if (trackCoverSrc) {
-                        const resolvedCover = resolveImageUrl(trackCoverSrc);
-                        if (imageCacheRef.current[trackCoverSrc] && (imageCacheRef.current[trackCoverSrc].naturalWidth > 0 || imageCacheRef.current[trackCoverSrc].complete)) {
-                            coverImg = imageCacheRef.current[trackCoverSrc];
-                        } else if (imageCacheRef.current[resolvedCover] && (imageCacheRef.current[resolvedCover].naturalWidth > 0 || imageCacheRef.current[resolvedCover].complete)) {
-                            coverImg = imageCacheRef.current[resolvedCover];
-                        } else if (exportMode || isVideoExport) {
-                            await new Promise<void>((res) => {
+                        // 0. Récupération de la Pochette UNIQUEMENT pour la track active (zéro fuite entre tracks)
+                        const trackCoverSrc = activeTrack.cover || '';
+                        let coverImg: HTMLImageElement | null = null;
+                        if (trackCoverSrc) {
+                            const resolvedCover = resolveImageUrl(trackCoverSrc);
+                            if (imageCacheRef.current[trackCoverSrc] && (imageCacheRef.current[trackCoverSrc].naturalWidth > 0 || imageCacheRef.current[trackCoverSrc].complete)) {
+                                coverImg = imageCacheRef.current[trackCoverSrc];
+                            } else if (imageCacheRef.current[resolvedCover] && (imageCacheRef.current[resolvedCover].naturalWidth > 0 || imageCacheRef.current[resolvedCover].complete)) {
+                                coverImg = imageCacheRef.current[resolvedCover];
+                            } else if (exportMode || isVideoExport) {
+                                await new Promise<void>((res) => {
+                                    loadCorsSafeImage(trackCoverSrc, (loadedImg) => {
+                                        imageCacheRef.current[trackCoverSrc] = loadedImg;
+                                        imageCacheRef.current[resolvedCover] = loadedImg;
+                                        coverImg = loadedImg;
+                                        res();
+                                    }, () => res());
+                                });
+                            } else {
                                 loadCorsSafeImage(trackCoverSrc, (loadedImg) => {
                                     imageCacheRef.current[trackCoverSrc] = loadedImg;
                                     imageCacheRef.current[resolvedCover] = loadedImg;
-                                    coverImg = loadedImg;
-                                    res();
-                                }, () => res());
-                            });
-                        } else {
-                            loadCorsSafeImage(trackCoverSrc, (loadedImg) => {
-                                imageCacheRef.current[trackCoverSrc] = loadedImg;
-                                imageCacheRef.current[resolvedCover] = loadedImg;
-                                generateImage();
-                            });
+                                    generateImage();
+                                });
+                            }
                         }
-                    }
 
-                    // 1. Fond Dynamique Animé Immersif (Vidéo de fond personnalisée ou Style Tomorrowland One World Radio)
-                    ctx.save();
-                    ctx.fillStyle = '#020306';
-                    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-                    // A) Si une vidéo d'arrière-plan personnalisée a été importée par l'utilisateur
-                    if (bgVideo && (bgVideo.videoWidth > 0 || bgVideo.readyState >= 2)) {
+                        // 1. Fond Dynamique Animé Immersif (Vidéo de fond personnalisée ou Style Tomorrowland One World Radio)
                         ctx.save();
-                        const vScale = Math.max(canvas.width / bgVideo.videoWidth, canvas.height / bgVideo.videoHeight);
-                        const vw = bgVideo.videoWidth * vScale;
-                        const vh = bgVideo.videoHeight * vScale;
-                        const vx = ((canvas.width - vw) / 2) + bgOffsetX;
-                        const vy = ((canvas.height - vh) / 2) + bgOffsetY;
-                        ctx.drawImage(bgVideo, vx, vy, vw, vh);
-
-                        // Voile d'ambiance festival sombre pour faire ressortir la pochette et les titres
-                        const bgDarkOverlay = ctx.createLinearGradient(0, 0, 0, canvas.height);
-                        bgDarkOverlay.addColorStop(0, 'rgba(2, 3, 6, 0.55)');
-                        bgDarkOverlay.addColorStop(0.5, 'rgba(2, 3, 6, 0.70)');
-                        bgDarkOverlay.addColorStop(1, 'rgba(2, 3, 6, 0.92)');
-                        ctx.fillStyle = bgDarkOverlay;
+                        ctx.fillStyle = '#020306';
                         ctx.fillRect(0, 0, canvas.width, canvas.height);
-                        ctx.restore();
-                    } else {
-                        // Sinon dérive cinématique floutée de la pochette propre à cette track
-                        const bgSource = (coverImg && (coverImg.naturalWidth > 0 || coverImg.complete))
-                            ? coverImg
-                            : null;
-                        if (bgSource) {
+
+                        // A) Si une vidéo d'arrière-plan personnalisée a été importée par l'utilisateur
+                        if (bgVideo && (bgVideo.videoWidth > 0 || bgVideo.readyState >= 2)) {
                             ctx.save();
-                            const bgScale = 1.15 + Math.sin(animTime * 0.40) * 0.05;
-                            const bgDriftX = Math.sin(animTime * 0.30) * 28;
-                            const bgDriftY = Math.cos(animTime * 0.22) * 22;
+                            const vScale = Math.max(canvas.width / bgVideo.videoWidth, canvas.height / bgVideo.videoHeight);
+                            const vw = bgVideo.videoWidth * vScale;
+                            const vh = bgVideo.videoHeight * vScale;
+                            const vx = ((canvas.width - vw) / 2) + bgOffsetX;
+                            const vy = ((canvas.height - vh) / 2) + bgOffsetY;
+                            ctx.drawImage(bgVideo, vx, vy, vw, vh);
 
-                            ctx.translate(canvas.width / 2 + bgDriftX, canvas.height / 2 + bgDriftY);
-                            ctx.scale(bgScale, bgScale);
-
-                            if (supportsCanvasFilterBlur()) {
-                                (ctx as any).filter = 'blur(45px) brightness(0.40) saturate(1.45)';
-                                ctx.globalAlpha = 0.85;
-                                ctx.drawImage(bgSource, -canvas.width / 2 - 40, -canvas.height / 2 - 40, canvas.width + 80, canvas.height + 80);
-                                (ctx as any).filter = 'none';
-                            } else {
-                                // iOS / WebKit : ctx.filter est ignoré → pochette floutée pré-calculée (flou logiciel, mise en cache)
-                                const coverKey = `${bgSource.src || 'cover'}_${canvas.width}x${canvas.height}_top10_blur`;
-                                let blurredCover = blurredBgCacheRef.current.get(coverKey);
-                                if (!blurredCover) {
-                                    // rayon ~11px à 0.25x ≈ blur(45px) en pleine résolution
-                                    blurredCover = createCrossBrowserBlurredCanvas(bgSource, canvas.width, canvas.height, 22, 0.40, 1.45);
-                                    if (blurredBgCacheRef.current.size > 24) blurredBgCacheRef.current.clear();
-                                    blurredBgCacheRef.current.set(coverKey, blurredCover);
-                                }
-                                ctx.imageSmoothingEnabled = true;
-                                ctx.imageSmoothingQuality = 'high';
-                                ctx.globalAlpha = 0.85;
-                                ctx.drawImage(blurredCover, -canvas.width / 2 - 40, -canvas.height / 2 - 40, canvas.width + 80, canvas.height + 80);
-                            }
-                            ctx.restore();
-                        }
-                    }
-
-                    // B) Onde d'énergie / Aura pulsante concentrique One World Radio
-                    const auraBreath = 1.0 + Math.sin(animTime * 1.8) * 0.12;
-                    const auraGrad = ctx.createRadialGradient(
-                        canvas.width / 2, 740, 120 * auraBreath,
-                        canvas.width / 2, 740, 680 * auraBreath
-                    );
-                    auraGrad.addColorStop(0, `rgba(${rankColorRgb}, 0.28)`);
-                    auraGrad.addColorStop(0.55, `rgba(${rankColorRgb}, 0.06)`);
-                    auraGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
-                    ctx.fillStyle = auraGrad;
-                    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-                    // C) Particules & Poussières Magiques Festival (Fairy Dust Tomorrowland - Rendu groupé 60fps)
-                    const particleCount = 36;
-                    ctx.save();
-                    ctx.shadowColor = `rgba(${rankColorRgb}, 0.85)`;
-                    ctx.shadowBlur = 6;
-                    for (let p = 0; p < particleCount; p++) {
-                        const seedX = ((p * 137.5) % 1) * canvas.width;
-                        const speed = 32 + ((p * 31.7) % 48); // Vitesse d'ascension lente
-                        const swaySpeed = 0.9 + ((p * 19.3) % 1.4);
-                        const swayAmp = 15 + ((p * 27.1) % 25);
-                        const pSize = 1.5 + ((p * 37.3) % 4.0); // 1.5px à 5.5px
-
-                        const totalH = canvas.height + 140;
-                        const rawY = (canvas.height + 70) - ((animTime * speed + p * 89.3) % totalH);
-                        const pX = seedX + Math.sin(animTime * swaySpeed + p * 1.8) * swayAmp;
-                        const pY = rawY;
-
-                        let pAlpha = 1.0;
-                        if (pY > canvas.height - 180) {
-                            pAlpha = Math.max(0, (canvas.height - pY) / 180);
-                        } else if (pY < 220) {
-                            pAlpha = Math.max(0, pY / 220);
-                        }
-
-                        const sparkle = 0.65 + 0.35 * Math.sin(animTime * 3.2 + p * 2.3);
-                        const finalAlpha = pAlpha * sparkle * (pSize > 3.8 ? 0.40 : 0.75);
-
-                        if (finalAlpha > 0.05) {
-                            ctx.globalAlpha = finalAlpha;
-                            ctx.beginPath();
-                            ctx.arc(pX, pY, pSize, 0, Math.PI * 2);
-                            const isGold = (p % 3 === 0);
-                            ctx.fillStyle = isGold ? '#ffe680' : rankColor;
-                            ctx.fill();
-                        }
-                    }
-                    ctx.restore();
-
-                    // D) Vignette sombre cinématique haut et bas pour contraste des textes
-                    const topVig = ctx.createLinearGradient(0, 0, 0, 320);
-                    topVig.addColorStop(0, 'rgba(2, 3, 6, 0.90)');
-                    topVig.addColorStop(0.7, 'rgba(2, 3, 6, 0.60)');
-                    topVig.addColorStop(1, 'rgba(2, 3, 6, 0)');
-                    ctx.fillStyle = topVig;
-                    ctx.fillRect(0, 0, canvas.width, 320);
-
-                    const botVig = ctx.createLinearGradient(0, canvas.height - 420, 0, canvas.height);
-                    botVig.addColorStop(0, 'rgba(2, 3, 6, 0)');
-                    botVig.addColorStop(0.35, 'rgba(2, 3, 6, 0.70)');
-                    botVig.addColorStop(1, 'rgba(2, 3, 6, 0.96)');
-                    ctx.fillStyle = botVig;
-                    ctx.fillRect(0, canvas.height - 420, canvas.width, 420);
-                    ctx.restore();
-
-                    // 1. Top-Left Badge Dropsiders (Effets News avec couleur néon dynamique)
-                    drawTopCapsuleBadge((top10BadgeRef.current || top10Badge || 'TOP 10 TRACKS').toUpperCase(), top10AccentColor, top10AccentRgb);
-
-                    // 2. Header Titre Principal (TOP 10 TRACKS par défaut, sans doublon artiste)
-                    ctx.save();
-                    ctx.textAlign = 'center';
-                    ctx.textBaseline = 'middle';
-
-                    const rawTracksTitle = (top10TitleRef.current || top10Title || '').trim();
-                    const cleanTracksTitle = rawTracksTitle.replace(/\*/g, '').trim().toUpperCase();
-                    const isDefaultOrIntroTitle = !cleanTracksTitle ||
-                        cleanTracksTitle === 'TOP 10 TRACKS' ||
-                        cleanTracksTitle.includes('LES PLUS STREAMÉES') ||
-                        cleanTracksTitle.includes('LES PLUS JOUÉES') ||
-                        cleanTracksTitle.includes('TÉLÉCHARG') ||
-                        cleanTracksTitle.includes('TELECHARG') ||
-                        cleanTracksTitle.includes('BEATPORT') ||
-                        cleanTracksTitle.startsWith('TOP 10 DES TRACKS') ||
-                        cleanTracksTitle.endsWith('• TOP 10 TRACKS') ||
-                        cleanTracksTitle === 'ARTISTE • TOP 10 TRACKS';
-
-                    const t10Title = isDefaultOrIntroTitle ? 'TOP 10 TRACKS' : rawTracksTitle.toUpperCase();
-
-                    // En mode style, le titre est centré verticalement et légèrement plus grand (sans doublon de style en dessous)
-                    const t10TitleY = 260;
-                    let t10FontSize = 34;
-                    ctx.font = `900 ${t10FontSize}px "Montserrat", sans-serif`;
-                    if ('letterSpacing' in ctx) (ctx as any).letterSpacing = '3px';
-                    let t10W = ctx.measureText(t10Title.replace(/\*/g, '')).width;
-                    if (t10W > 920) {
-                        t10FontSize = Math.max(22, Math.floor(t10FontSize * (920 / t10W)));
-                        ctx.font = `900 ${t10FontSize}px "Montserrat", sans-serif`;
-                    }
-                    if (!isStaticPngExport && textAnimation !== 'NONE') {
-                        applyTextAnimCtx(ctx, 0.0, canvas.width / 2, t10TitleY, trackAnimTime);
-                    }
-
-                    ctx.textAlign = 'left';
-                    ctx.textBaseline = 'middle';
-                    const trackSegments = parseTop10TitleSegments(t10Title);
-                    const totalTrackW = trackSegments.reduce((sum, s) => sum + ctx.measureText(s.text).width, 0);
-                    let trackCurX = (canvas.width - totalTrackW) / 2;
-
-                    trackSegments.forEach(seg => {
-                        const segW = ctx.measureText(seg.text).width;
-                        const color = seg.isHighlighted ? top10AccentColor : '#ffffff';
-
-                        // 1. Ombre portée profonde diffuse
-                        ctx.save();
-                        ctx.shadowColor = 'rgba(0, 0, 0, 0.98)';
-                        ctx.shadowBlur = 18;
-                        ctx.shadowOffsetX = 0;
-                        ctx.shadowOffsetY = 6;
-                        ctx.fillStyle = color;
-                        ctx.fillText(seg.text, trackCurX, t10TitleY);
-                        ctx.restore();
-
-                        // 2. Ombre de contact nette vers le bas
-                        ctx.save();
-                        ctx.shadowColor = 'rgba(0, 0, 0, 0.92)';
-                        ctx.shadowBlur = 5;
-                        ctx.shadowOffsetX = 0;
-                        ctx.shadowOffsetY = 3;
-                        ctx.fillStyle = color;
-                        ctx.fillText(seg.text, trackCurX, t10TitleY);
-                        ctx.restore();
-
-                        // 3. Lueur néon si mis en valeur (Bleu pour Artiste, Or Festival pour Style)
-                        if (seg.isHighlighted) {
-                            ctx.save();
-                            ctx.shadowColor = `rgba(${top10AccentRgb}, 0.85)`;
-                            ctx.shadowBlur = 16;
-                            ctx.fillStyle = top10AccentColor;
-                            ctx.fillText(seg.text, trackCurX, t10TitleY);
-                            ctx.restore();
-                        }
-
-                        // 4. Texte net au premier plan
-                        ctx.save();
-                        ctx.shadowColor = 'transparent';
-                        ctx.fillStyle = color;
-                        ctx.fillText(seg.text, trackCurX, t10TitleY);
-                        ctx.restore();
-
-                        trackCurX += segW;
-                    });
-                    ctx.restore();
-
-                    // 2b. Ligne 2 : Logo Officiel (ou nom stylé) de l'Artiste / Label / Genre
-                    {
-                        const countdownSubtitle = (
-                            top10IntroArtistRef.current ||
-                            top10IntroArtist ||
-                            (isLabelMode ? (top10LabelSearchRef.current || top10LabelSearch) : isStyleMode ? (top10StyleSearch || 'GENRE') : (top10ArtistSearch || 'ARTISTE')) ||
-                            activeTrack.artist ||
-                            (isLabelMode ? 'LABEL' : isStyleMode ? 'GENRE' : 'ARTISTE')
-                        ).toUpperCase().trim();
-
-                        const countdownLogoObj = artistLogoRef.current;
-                        const countdownHasLogo = Boolean(artistLogo && artistLogo.trim() !== '' && !artistLogo.includes('JOHN-SUMMIT-GIVEAWAY') && countdownLogoObj && (countdownLogoObj.naturalWidth > 0 || countdownLogoObj.complete));
-                        const logoAreaCenterY = 352;
-
-                        if (countdownHasLogo && countdownLogoObj) {
-                            const scale = (top10LogoScaleRef.current || top10LogoScale || 100) / 100;
-                            const maxLogoW = Math.round(760 * scale);
-                            const maxLogoH = Math.round(125 * scale);
-                            let lw = countdownLogoObj.width;
-                            let lh = countdownLogoObj.height;
-                            const ratio = Math.min(maxLogoW / lw, maxLogoH / lh);
-                            lw = Math.round(lw * ratio);
-                            lh = Math.round(lh * ratio);
-                            const lx = (canvas.width - lw) / 2;
-                            const ly = logoAreaCenterY - (lh / 2);
-
-                            ctx.save();
-                            if (!isStaticPngExport && textAnimation !== 'NONE') {
-                                applyTextAnimCtx(ctx, 0.04, canvas.width / 2, logoAreaCenterY, trackAnimTime);
-                            }
-                            ctx.shadowColor = `rgba(${top10AccentRgb}, 0.85)`;
-                            ctx.shadowBlur = 20;
-                            if (isArtistLogoNegative) {
-                                drawWhiteLogoCrossBrowser(ctx, countdownLogoObj, lx, ly, lw, lh);
-                            } else {
-                                ctx.drawImage(countdownLogoObj, lx, ly, lw, lh);
-                            }
+                            // Voile d'ambiance festival sombre pour faire ressortir la pochette et les titres
+                            const bgDarkOverlay = ctx.createLinearGradient(0, 0, 0, canvas.height);
+                            bgDarkOverlay.addColorStop(0, 'rgba(2, 3, 6, 0.55)');
+                            bgDarkOverlay.addColorStop(0.5, 'rgba(2, 3, 6, 0.70)');
+                            bgDarkOverlay.addColorStop(1, 'rgba(2, 3, 6, 0.92)');
+                            ctx.fillStyle = bgDarkOverlay;
+                            ctx.fillRect(0, 0, canvas.width, canvas.height);
                             ctx.restore();
                         } else {
-                            ctx.save();
-                            if (!isStaticPngExport && textAnimation !== 'NONE') {
-                                applyTextAnimCtx(ctx, 0.04, canvas.width / 2, logoAreaCenterY, trackAnimTime);
+                            // Sinon dérive cinématique floutée de la pochette propre à cette track
+                            const bgSource = (coverImg && (coverImg.naturalWidth > 0 || coverImg.complete))
+                                ? coverImg
+                                : null;
+                            if (bgSource) {
+                                ctx.save();
+                                const bgScale = 1.15 + Math.sin(animTime * 0.40) * 0.05;
+                                const bgDriftX = Math.sin(animTime * 0.30) * 28;
+                                const bgDriftY = Math.cos(animTime * 0.22) * 22;
+
+                                ctx.translate(canvas.width / 2 + bgDriftX, canvas.height / 2 + bgDriftY);
+                                ctx.scale(bgScale, bgScale);
+
+                                if (supportsCanvasFilterBlur()) {
+                                    (ctx as any).filter = 'blur(45px) brightness(0.40) saturate(1.45)';
+                                    ctx.globalAlpha = 0.85;
+                                    ctx.drawImage(bgSource, -canvas.width / 2 - 40, -canvas.height / 2 - 40, canvas.width + 80, canvas.height + 80);
+                                    (ctx as any).filter = 'none';
+                                } else {
+                                    // iOS / WebKit : ctx.filter est ignoré → pochette floutée pré-calculée (flou logiciel, mise en cache)
+                                    const coverKey = `${bgSource.src || 'cover'}_${canvas.width}x${canvas.height}_top10_blur`;
+                                    let blurredCover = blurredBgCacheRef.current.get(coverKey);
+                                    if (!blurredCover) {
+                                        // rayon ~11px à 0.25x ≈ blur(45px) en pleine résolution
+                                        blurredCover = createCrossBrowserBlurredCanvas(bgSource, canvas.width, canvas.height, 22, 0.40, 1.45);
+                                        if (blurredBgCacheRef.current.size > 24) blurredBgCacheRef.current.clear();
+                                        blurredBgCacheRef.current.set(coverKey, blurredCover);
+                                    }
+                                    ctx.imageSmoothingEnabled = true;
+                                    ctx.imageSmoothingQuality = 'high';
+                                    ctx.globalAlpha = 0.85;
+                                    ctx.drawImage(blurredCover, -canvas.width / 2 - 40, -canvas.height / 2 - 40, canvas.width + 80, canvas.height + 80);
+                                }
+                                ctx.restore();
                             }
-                            ctx.textAlign = 'center';
-                            ctx.textBaseline = 'middle';
-                            const scale = (top10LogoScaleRef.current || top10LogoScale || 100) / 100;
-                            let aFontSize = Math.round(44 * scale);
-                            ctx.font = `900 italic ${aFontSize}px "Montserrat", sans-serif`;
-                            if ('letterSpacing' in ctx) (ctx as any).letterSpacing = '3px';
-                            const aW = ctx.measureText(countdownSubtitle).width;
-                            if (aW > 820) {
-                                aFontSize = Math.max(22, Math.floor(aFontSize * (820 / aW)));
-                                ctx.font = `900 italic ${aFontSize}px "Montserrat", sans-serif`;
-                            }
-                            ctx.fillStyle = top10AccentColor;
-                            ctx.shadowColor = `rgba(${top10AccentRgb}, 0.9)`;
-                            ctx.shadowBlur = 18;
-                            ctx.fillText(countdownSubtitle, canvas.width / 2, logoAreaCenterY);
-                            ctx.restore();
                         }
-                    }
 
-                    // 3. Rank Badge au-dessus de la vidéo ("la place", descendue et stylée)
-                    ctx.save();
-                    const badgeW = 320;
-                    const badgeH = 70;
-                    const badgeX = (canvas.width - badgeW) / 2;
-                    const badgeY = 440;
+                        // B) Onde d'énergie / Aura pulsante concentrique One World Radio
+                        const auraBreath = 1.0 + Math.sin(animTime * 1.8) * 0.12;
+                        const auraGrad = ctx.createRadialGradient(
+                            canvas.width / 2, 740, 120 * auraBreath,
+                            canvas.width / 2, 740, 680 * auraBreath
+                        );
+                        auraGrad.addColorStop(0, `rgba(${rankColorRgb}, 0.28)`);
+                        auraGrad.addColorStop(0.55, `rgba(${rankColorRgb}, 0.06)`);
+                        auraGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+                        ctx.fillStyle = auraGrad;
+                        ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-                    if (!isStaticPngExport && textAnimation !== 'NONE') {
-                        applyTextAnimCtx(ctx, 0.08, canvas.width / 2, badgeY + badgeH / 2, trackAnimTime);
-                    }
+                        // C) Particules & Poussières Magiques Festival (Fairy Dust Tomorrowland - Rendu groupé 60fps)
+                        const particleCount = 36;
+                        ctx.save();
+                        ctx.shadowColor = `rgba(${rankColorRgb}, 0.85)`;
+                        ctx.shadowBlur = 6;
+                        for (let p = 0; p < particleCount; p++) {
+                            const seedX = ((p * 137.5) % 1) * canvas.width;
+                            const speed = 32 + ((p * 31.7) % 48); // Vitesse d'ascension lente
+                            const swaySpeed = 0.9 + ((p * 19.3) % 1.4);
+                            const swayAmp = 15 + ((p * 27.1) % 25);
+                            const pSize = 1.5 + ((p * 37.3) % 4.0); // 1.5px à 5.5px
 
-                    ctx.fillStyle = 'rgba(10, 12, 18, 0.88)';
-                    ctx.beginPath();
-                    ctx.roundRect(badgeX, badgeY, badgeW, badgeH, 35);
-                    ctx.fill();
+                            const totalH = canvas.height + 140;
+                            const rawY = (canvas.height + 70) - ((animTime * speed + p * 89.3) % totalH);
+                            const pX = seedX + Math.sin(animTime * swaySpeed + p * 1.8) * swayAmp;
+                            const pY = rawY;
 
-                    ctx.strokeStyle = rankColor;
-                    ctx.lineWidth = 2.5;
-                    ctx.shadowColor = `rgba(${rankColorRgb}, 0.65)`;
-                    ctx.shadowBlur = 18;
-                    ctx.stroke();
+                            let pAlpha = 1.0;
+                            if (pY > canvas.height - 180) {
+                                pAlpha = Math.max(0, (canvas.height - pY) / 180);
+                            } else if (pY < 220) {
+                                pAlpha = Math.max(0, pY / 220);
+                            }
 
-                    ctx.font = `900 ${isPodium ? 28 : 32}px "Montserrat", sans-serif`;
-                    ctx.fillStyle = rankColor;
-                    ctx.textAlign = 'center';
-                    ctx.textBaseline = 'middle';
-                    ctx.shadowColor = `rgba(${rankColorRgb}, 0.75)`;
-                    ctx.shadowBlur = 12;
-                    ctx.fillText(rankTitle, canvas.width / 2, badgeY + badgeH / 2);
-                    ctx.restore();
+                            const sparkle = 0.65 + 0.35 * Math.sin(animTime * 3.2 + p * 2.3);
+                            const finalAlpha = pAlpha * sparkle * (pSize > 3.8 ? 0.40 : 0.75);
 
-                    // 4. Cadre Pochette Carrée 1:1 au Centre (Descendu avec espace généreux)
-                    const cardSize = 640;
-                    const cardX = Math.round((canvas.width - cardSize) / 2); // 220px
-                    const cardY = 545;
-                    const cardR = 26;
+                            if (finalAlpha > 0.05) {
+                                ctx.globalAlpha = finalAlpha;
+                                ctx.beginPath();
+                                ctx.arc(pX, pY, pSize, 0, Math.PI * 2);
+                                const isGold = (p % 3 === 0);
+                                ctx.fillStyle = isGold ? '#ffe680' : rankColor;
+                                ctx.fill();
+                            }
+                        }
+                        ctx.restore();
 
-                    // A) Halo d'ambiance vibrant derrière la pochette
-                    ctx.save();
-                    const coverHalo = ctx.createRadialGradient(
-                        canvas.width / 2, cardY + cardSize / 2, cardSize * 0.18,
-                        canvas.width / 2, cardY + cardSize / 2, cardSize * 0.8
-                    );
-                    coverHalo.addColorStop(0, `rgba(${rankColorRgb}, 0.32)`);
-                    coverHalo.addColorStop(0.55, `rgba(${rankColorRgb}, 0.06)`);
-                    coverHalo.addColorStop(1, 'rgba(0, 0, 0, 0)');
-                    ctx.fillStyle = coverHalo;
-                    ctx.fillRect(cardX - 120, cardY - 120, cardSize + 240, cardSize + 240);
-                    ctx.restore();
+                        // D) Vignette sombre cinématique haut et bas pour contraste des textes
+                        const topVig = ctx.createLinearGradient(0, 0, 0, 320);
+                        topVig.addColorStop(0, 'rgba(2, 3, 6, 0.90)');
+                        topVig.addColorStop(0.7, 'rgba(2, 3, 6, 0.60)');
+                        topVig.addColorStop(1, 'rgba(2, 3, 6, 0)');
+                        ctx.fillStyle = topVig;
+                        ctx.fillRect(0, 0, canvas.width, 320);
 
-                    // C) Ombre portée 3D réaliste (optimisé 60fps)
-                    ctx.save();
-                    ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
-                    ctx.shadowBlur = 24;
-                    ctx.shadowOffsetX = 0;
-                    ctx.shadowOffsetY = 16;
-                    ctx.beginPath();
-                    ctx.roundRect(cardX, cardY, cardSize, cardSize, cardR);
-                    ctx.fillStyle = '#080a0e';
-                    ctx.fill();
-                    ctx.restore();
+                        const botVig = ctx.createLinearGradient(0, canvas.height - 420, 0, canvas.height);
+                        botVig.addColorStop(0, 'rgba(2, 3, 6, 0)');
+                        botVig.addColorStop(0.35, 'rgba(2, 3, 6, 0.70)');
+                        botVig.addColorStop(1, 'rgba(2, 3, 6, 0.96)');
+                        ctx.fillStyle = botVig;
+                        ctx.fillRect(0, canvas.height - 420, canvas.width, 420);
+                        ctx.restore();
 
-                    // D) Dessin de l'image de la pochette ou vinyle haute couture
-                    ctx.save();
-                    ctx.beginPath();
-                    ctx.roundRect(cardX, cardY, cardSize, cardSize, cardR);
-                    ctx.clip();
+                        // 1. Top-Left Badge Dropsiders (Effets News avec couleur néon dynamique)
+                        drawTopCapsuleBadge((top10BadgeRef.current || top10Badge || 'TOP 10 TRACKS').toUpperCase(), top10AccentColor, top10AccentRgb);
 
-                    if (coverImg && (coverImg.naturalWidth > 0 || coverImg.complete)) {
-                        ctx.drawImage(coverImg, cardX, cardY, cardSize, cardSize);
-                    } else {
-                        // Placeholder vinyle avec sillons gravés
-                        const phGrad = ctx.createLinearGradient(cardX, cardY, cardX + cardSize, cardY + cardSize);
-                        phGrad.addColorStop(0, '#161922');
-                        phGrad.addColorStop(0.5, '#0b0d13');
-                        phGrad.addColorStop(1, '#050608');
-                        ctx.fillStyle = phGrad;
-                        ctx.fillRect(cardX, cardY, cardSize, cardSize);
-
-                        const vCenterX = cardX + cardSize / 2;
-                        const vCenterY = cardY + cardSize / 2;
-                        [0.42, 0.35, 0.28, 0.21, 0.14].forEach(rRatio => {
-                            ctx.beginPath();
-                            ctx.arc(vCenterX, vCenterY, cardSize * rRatio, 0, Math.PI * 2);
-                            ctx.strokeStyle = 'rgba(255, 255, 255, 0.06)';
-                            ctx.lineWidth = 1.5;
-                            ctx.stroke();
-                        });
-
-                        ctx.beginPath();
-                        ctx.arc(vCenterX, vCenterY, 44, 0, Math.PI * 2);
-                        ctx.fillStyle = '#06080c';
-                        ctx.fill();
-                        ctx.strokeStyle = rankColor;
-                        ctx.lineWidth = 2.5;
-                        ctx.stroke();
-
-                        ctx.beginPath();
-                        ctx.arc(vCenterX, vCenterY, 10, 0, Math.PI * 2);
-                        ctx.fillStyle = rankColor;
-                        ctx.fill();
-
-                        ctx.font = '800 22px "Montserrat", sans-serif';
-                        ctx.fillStyle = '#ffffff';
+                        // 2. Header Titre Principal (TOP 10 TRACKS par défaut, sans doublon artiste)
+                        ctx.save();
                         ctx.textAlign = 'center';
                         ctx.textBaseline = 'middle';
-                        ctx.fillText('POCHETTE 1:1', vCenterX, cardY + cardSize * 0.82);
-                    }
 
-                    // Reflet permanent de vitre (effet plaque de verre protectrice / cadre sous verre)
-                    const glassAmbient = ctx.createLinearGradient(cardX, cardY, cardX + cardSize, cardY + cardSize);
-                    glassAmbient.addColorStop(0, 'rgba(255, 255, 255, 0.12)');
-                    glassAmbient.addColorStop(0.28, 'rgba(255, 255, 255, 0.04)');
-                    glassAmbient.addColorStop(0.55, 'rgba(255, 255, 255, 0.0)');
-                    glassAmbient.addColorStop(1, 'rgba(0, 0, 0, 0.15)');
-                    ctx.fillStyle = glassAmbient;
-                    ctx.fillRect(cardX, cardY, cardSize, cardSize);
+                        const rawTracksTitle = (top10TitleRef.current || top10Title || '').trim();
+                        const cleanTracksTitle = rawTracksTitle.replace(/\*/g, '').trim().toUpperCase();
+                        const isDefaultOrIntroTitle = !cleanTracksTitle ||
+                            cleanTracksTitle === 'TOP 10 TRACKS' ||
+                            cleanTracksTitle.includes('LES PLUS STREAMÉES') ||
+                            cleanTracksTitle.includes('LES PLUS JOUÉES') ||
+                            cleanTracksTitle.includes('TÉLÉCHARG') ||
+                            cleanTracksTitle.includes('TELECHARG') ||
+                            cleanTracksTitle.includes('BEATPORT') ||
+                            cleanTracksTitle.startsWith('TOP 10 DES TRACKS') ||
+                            cleanTracksTitle.endsWith('• TOP 10 TRACKS') ||
+                            cleanTracksTitle === 'ARTISTE • TOP 10 TRACKS';
 
-                    // Biseau spéculaire supérieur ultra-fin (arête du verre taillé)
-                    const glassEdge = ctx.createLinearGradient(cardX, cardY, cardX, cardY + 4);
-                    glassEdge.addColorStop(0, 'rgba(255, 255, 255, 0.30)');
-                    glassEdge.addColorStop(1, 'rgba(255, 255, 255, 0)');
-                    ctx.fillStyle = glassEdge;
-                    ctx.fillRect(cardX, cardY, cardSize, 4);
+                        const t10Title = isDefaultOrIntroTitle ? 'TOP 10 TRACKS' : rawTracksTitle.toUpperCase();
 
-                    // Balayage lumineux de vitre (grande onde de lumière diffuse, zéro trait dur)
-                    const sweepTime = isVideoExport ? animTime : (Date.now() - animStartTimeRef.current) / 1000;
-                    const sweepCycle = 3.4; // Cycle toutes les 3.4s
-                    const sweepDuration = 1.35; // 1.35s de glisse douce
-                    const sweepDelay = 0.25; // Déclenchement 0.25s après le track
-                    const cycleT = (sweepTime + sweepCycle - sweepDelay) % sweepCycle;
-                    if (cycleT < sweepDuration) {
-                        const rawP = cycleT / sweepDuration;
-                        // Smoothstep easing pour une transition soyeuse et naturelle
-                        const easeP = rawP * rawP * (3 - 2 * rawP);
-
-                        const cX = cardX + cardSize / 2;
-                        const cY = cardY + cardSize / 2;
-                        const diag = cardSize * Math.SQRT2; // ~933px
-
-                        // Large onde de reflet de vitre (440px de large, aucun trait ni arête blanche)
-                        const glassW = 440;
-                        const beamSpan = diag + glassW + 100;
-                        const curX = -diag / 2 - glassW / 2 - 50 + beamSpan * easeP;
-
-                        ctx.save();
-                        ctx.translate(cX, cY);
-                        ctx.rotate(Math.PI / 4); // Diagonale coin haut-gauche -> coin bas-droit
-                        ctx.globalCompositeOperation = 'screen'; // Incrustation douce et lumineuse sans aplat
-
-                        // Dégradé en cloche ultra-doux (pure réflexion de verre)
-                        const glassGrad = ctx.createLinearGradient(curX - glassW / 2, 0, curX + glassW / 2, 0);
-                        glassGrad.addColorStop(0.00, 'rgba(255, 255, 255, 0)');
-                        glassGrad.addColorStop(0.20, 'rgba(255, 255, 255, 0.015)');
-                        glassGrad.addColorStop(0.38, 'rgba(255, 255, 255, 0.07)');
-                        glassGrad.addColorStop(0.50, 'rgba(255, 255, 255, 0.20)');
-                        glassGrad.addColorStop(0.62, 'rgba(255, 255, 255, 0.07)');
-                        glassGrad.addColorStop(0.80, 'rgba(255, 255, 255, 0.015)');
-                        glassGrad.addColorStop(1.00, 'rgba(255, 255, 255, 0)');
-
-                        ctx.fillStyle = glassGrad;
-                        ctx.fillRect(curX - glassW / 2, -diag, glassW, diag * 2);
-
-                        ctx.restore();
-                    }
-
-                    ctx.restore();
-
-                    // E) Bordure néon & Coins cyber autour de la pochette
-                    ctx.save();
-                    ctx.strokeStyle = rankColor;
-                    ctx.lineWidth = 2.5;
-                    ctx.shadowColor = `rgba(${rankColorRgb}, 0.6)`;
-                    ctx.shadowBlur = 18;
-                    ctx.beginPath();
-                    ctx.roundRect(cardX, cardY, cardSize, cardSize, cardR);
-                    ctx.stroke();
-
-                    // Coins cyber néon
-                    const cLen = 32;
-                    ctx.strokeStyle = '#ffffff';
-                    ctx.lineWidth = 4;
-                    ctx.shadowColor = rankColor;
-                    ctx.shadowBlur = 10;
-                    ctx.beginPath();
-                    ctx.moveTo(cardX + cardR, cardY); ctx.lineTo(cardX, cardY); ctx.lineTo(cardX, cardY + cardR);
-                    ctx.stroke();
-                    ctx.beginPath();
-                    ctx.moveTo(cardX + cardSize - cardR, cardY); ctx.lineTo(cardX + cardSize, cardY); ctx.lineTo(cardX + cardSize, cardY + cardR);
-                    ctx.stroke();
-                    ctx.beginPath();
-                    ctx.moveTo(cardX, cardY + cardSize - cardR); ctx.lineTo(cardX, cardY + cardSize); ctx.lineTo(cardX + cardR, cardY + cardSize);
-                    ctx.stroke();
-                    ctx.beginPath();
-                    ctx.moveTo(cardX + cardSize - cardR, cardY + cardSize); ctx.lineTo(cardX + cardSize, cardY + cardSize); ctx.lineTo(cardX + cardSize, cardY + cardSize - cardR);
-                    ctx.stroke();
-                    ctx.restore();
-
-                    // F) Barre de progression sous la pochette
-                    ctx.save();
-                    const pBarW = cardSize;
-                    const pBarH = 4;
-                    const pBarX = cardX;
-                    const pBarY = cardY + cardSize + 18;
-                    ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
-                    ctx.beginPath();
-                    ctx.roundRect(pBarX, pBarY, pBarW, pBarH, 2);
-                    ctx.fill();
-                    ctx.fillStyle = rankColor;
-                    ctx.shadowColor = `rgba(${rankColorRgb}, 0.8)`;
-                    ctx.shadowBlur = 8;
-                    ctx.beginPath();
-                    ctx.roundRect(pBarX, pBarY, Math.max(8, pBarW * Math.min(1, Math.max(0, trackProgress))), pBarH, 2);
-                    ctx.fill();
-                    ctx.restore();
-
-                    // 6a. Nom de l'Artiste
-                    ctx.save();
-                    ctx.textAlign = 'center';
-                    ctx.textBaseline = 'middle';
-
-                    const hasArtist = Boolean(activeTrack.artist?.trim());
-                    const artistStr = (activeTrack.artist || 'NOM DE L\'ARTISTE').toUpperCase();
-                    let artistFontSize = 48;
-                    ctx.font = `900 ${artistFontSize}px "Montserrat", sans-serif`;
-                    if ('letterSpacing' in ctx) (ctx as any).letterSpacing = '2px';
-                    let artistW = ctx.measureText(artistStr).width;
-                    if (artistW > 920) {
-                        artistFontSize = Math.max(26, Math.floor(artistFontSize * (920 / artistW)));
-                        ctx.font = `900 ${artistFontSize}px "Montserrat", sans-serif`;
-                    }
-
-                    if (!isStaticPngExport && textAnimation !== 'NONE') {
-                        applyTextAnimCtx(ctx, 0.04, canvas.width / 2, 1280, trackAnimTime);
-                    }
-
-                    let artistToDraw = artistStr;
-                    if (!isStaticPngExport && textAnimation === 'TYPEWRITER') {
-                        const typeEl = Math.max(0, trackAnimTime - 0.04);
-                        const visibleChars = Math.min(artistStr.length, Math.floor(typeEl * 34));
-                        artistToDraw = artistStr.slice(0, visibleChars);
-                    }
-
-                    ctx.fillStyle = hasArtist ? '#ffffff' : 'rgba(255, 255, 255, 0.45)';
-                    ctx.shadowColor = hasArtist ? 'rgba(0, 0, 0, 0.95)' : 'transparent';
-                    ctx.shadowBlur = hasArtist ? 18 : 0;
-                    ctx.shadowOffsetY = 4;
-                    ctx.fillText(artistToDraw, canvas.width / 2, 1280);
-                    ctx.restore();
-
-                    // 6b. Titre du Morceau
-                    ctx.save();
-                    ctx.textAlign = 'center';
-                    ctx.textBaseline = 'middle';
-
-                    const hasTitle = Boolean(activeTrack.title?.trim());
-                    const rawTitle = (activeTrack.title || 'TITRE DU MORCEAU');
-                    const titleStr = cleanTop10TrackTitle(rawTitle).toUpperCase();
-                    let titleFontSize = 56;
-                    ctx.font = `900 ${titleFontSize}px "Montserrat", sans-serif`;
-                    if ('letterSpacing' in ctx) (ctx as any).letterSpacing = '1px';
-                    let titleW = ctx.measureText(titleStr).width;
-                    if (titleW > 940) {
-                        titleFontSize = Math.max(28, Math.floor(titleFontSize * (940 / titleW)));
-                        ctx.font = `900 ${titleFontSize}px "Montserrat", sans-serif`;
-                    }
-
-                    if (!isStaticPngExport && textAnimation !== 'NONE') {
-                        applyTextAnimCtx(ctx, 0.14, canvas.width / 2, 1360, trackAnimTime);
-                    }
-
-                    let titleToDraw = titleStr;
-                    if (!isStaticPngExport && textAnimation === 'TYPEWRITER') {
-                        const typeEl = Math.max(0, trackAnimTime - 0.14);
-                        const visibleChars = Math.min(titleStr.length, Math.floor(typeEl * 34));
-                        titleToDraw = titleStr.slice(0, visibleChars);
-                    }
-
-                    ctx.fillStyle = hasTitle ? rankColor : `rgba(${rankColorRgb}, 0.35)`;
-                    ctx.shadowColor = hasTitle ? `rgba(${rankColorRgb}, 0.75)` : 'transparent';
-                    ctx.shadowBlur = hasTitle ? 24 : 0;
-                    ctx.fillText(titleToDraw, canvas.width / 2, 1360);
-                    ctx.restore();
-
-                    // 6c. Badge Nombre de Streams (Sous le titre)
-                    const activeStreams = activeTrack.streams?.trim();
-                    if (activeStreams) {
-                        ctx.save();
-                        const rawStreams = activeStreams.toUpperCase();
-                        const streamStr = (rawStreams.includes('STREAM') || rawStreams.includes('ÉCOUTE'))
-                            ? rawStreams
-                            : `${rawStreams} STREAMS`;
-
-                        ctx.font = '800 22px "Montserrat", sans-serif';
-                        if ('letterSpacing' in ctx) (ctx as any).letterSpacing = '2px';
-                        const sMetrics = ctx.measureText(streamStr);
-                        const pillW = Math.ceil(sMetrics.width + 50);
-                        const pillH = 38;
-                        const pillX = (canvas.width - pillW) / 2;
-                        const pillY = 1430;
-
+                        // En mode style, le titre est centré verticalement et légèrement plus grand (sans doublon de style en dessous)
+                        const t10TitleY = 260;
+                        let t10FontSize = 34;
+                        ctx.font = `900 ${t10FontSize}px "Montserrat", sans-serif`;
+                        if ('letterSpacing' in ctx) (ctx as any).letterSpacing = '3px';
+                        let t10W = ctx.measureText(t10Title.replace(/\*/g, '')).width;
+                        if (t10W > 920) {
+                            t10FontSize = Math.max(22, Math.floor(t10FontSize * (920 / t10W)));
+                            ctx.font = `900 ${t10FontSize}px "Montserrat", sans-serif`;
+                        }
                         if (!isStaticPngExport && textAnimation !== 'NONE') {
-                            applyTextAnimCtx(ctx, 0.24, canvas.width / 2, pillY + pillH / 2, trackAnimTime);
+                            applyTextAnimCtx(ctx, 0.0, canvas.width / 2, t10TitleY, trackAnimTime);
                         }
 
-                        // Fond capsule verre sombre
-                        ctx.fillStyle = 'rgba(10, 14, 22, 0.85)';
-                        ctx.beginPath();
-                        ctx.roundRect(pillX, pillY, pillW, pillH, 19);
-                        ctx.fill();
-
-                        ctx.strokeStyle = `rgba(${rankColorRgb}, 0.55)`;
-                        ctx.lineWidth = 1.5;
-                        ctx.shadowColor = `rgba(${rankColorRgb}, 0.5)`;
-                        ctx.shadowBlur = 10;
-                        ctx.stroke();
-
-                        // Point néon
-                        const dotRadius = 4.5;
-                        const dotX = pillX + 18;
-                        const dotY = pillY + pillH / 2;
-                        ctx.fillStyle = rankColor;
-                        ctx.shadowColor = `rgba(${rankColorRgb}, 0.85)`;
-                        ctx.shadowBlur = 8;
-                        ctx.beginPath();
-                        ctx.arc(dotX, dotY, dotRadius, 0, Math.PI * 2);
-                        ctx.fill();
-
-                        // Texte streams
-                        ctx.fillStyle = '#ffffff';
                         ctx.textAlign = 'left';
                         ctx.textBaseline = 'middle';
-                        ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
-                        ctx.shadowBlur = 6;
-                        ctx.fillText(streamStr, dotX + 12, pillY + pillH / 2 + 0.5);
+                        const trackSegments = parseTop10TitleSegments(t10Title);
+                        const totalTrackW = trackSegments.reduce((sum, s) => sum + ctx.measureText(s.text).width, 0);
+                        let trackCurX = (canvas.width - totalTrackW) / 2;
+
+                        trackSegments.forEach(seg => {
+                            const segW = ctx.measureText(seg.text).width;
+                            const color = seg.isHighlighted ? top10AccentColor : '#ffffff';
+
+                            // 1. Ombre portée profonde diffuse
+                            ctx.save();
+                            ctx.shadowColor = 'rgba(0, 0, 0, 0.98)';
+                            ctx.shadowBlur = 18;
+                            ctx.shadowOffsetX = 0;
+                            ctx.shadowOffsetY = 6;
+                            ctx.fillStyle = color;
+                            ctx.fillText(seg.text, trackCurX, t10TitleY);
+                            ctx.restore();
+
+                            // 2. Ombre de contact nette vers le bas
+                            ctx.save();
+                            ctx.shadowColor = 'rgba(0, 0, 0, 0.92)';
+                            ctx.shadowBlur = 5;
+                            ctx.shadowOffsetX = 0;
+                            ctx.shadowOffsetY = 3;
+                            ctx.fillStyle = color;
+                            ctx.fillText(seg.text, trackCurX, t10TitleY);
+                            ctx.restore();
+
+                            // 3. Lueur néon si mis en valeur (Bleu pour Artiste, Or Festival pour Style)
+                            if (seg.isHighlighted) {
+                                ctx.save();
+                                ctx.shadowColor = `rgba(${top10AccentRgb}, 0.85)`;
+                                ctx.shadowBlur = 16;
+                                ctx.fillStyle = top10AccentColor;
+                                ctx.fillText(seg.text, trackCurX, t10TitleY);
+                                ctx.restore();
+                            }
+
+                            // 4. Texte net au premier plan
+                            ctx.save();
+                            ctx.shadowColor = 'transparent';
+                            ctx.fillStyle = color;
+                            ctx.fillText(seg.text, trackCurX, t10TitleY);
+                            ctx.restore();
+
+                            trackCurX += segW;
+                        });
                         ctx.restore();
-                    }
 
-                    // 7. Visualiseur Waveform Audio Animé (rendu groupé 60fps)
-                    ctx.save();
-                    const waveBars = 32;
-                    const waveCenterY = activeStreams ? 1545 : 1485;
-                    const waveMaxH = 70;
-                    const waveTotalW = 600;
-                    const waveBarW = 10;
-                    const waveGap = (waveTotalW - (waveBars * waveBarW)) / (waveBars - 1);
-                    const waveStartX = (canvas.width - waveTotalW) / 2;
+                        // 2b. Ligne 2 : Logo Officiel (ou nom stylé) de l'Artiste / Label / Genre
+                        {
+                            const countdownSubtitle = (
+                                top10IntroArtistRef.current ||
+                                top10IntroArtist ||
+                                (isLabelMode ? (top10LabelSearchRef.current || top10LabelSearch) : isStyleMode ? (top10StyleSearch || 'GENRE') : (top10ArtistSearch || 'ARTISTE')) ||
+                                activeTrack.artist ||
+                                (isLabelMode ? 'LABEL' : isStyleMode ? 'GENRE' : 'ARTISTE')
+                            ).toUpperCase().trim();
 
-                    const barGrad = ctx.createLinearGradient(0, waveCenterY - waveMaxH / 2, 0, waveCenterY + waveMaxH / 2);
-                    barGrad.addColorStop(0, rankColor);
-                    barGrad.addColorStop(1, 'rgba(255, 255, 255, 0.4)');
-                    ctx.fillStyle = barGrad;
-                    ctx.shadowColor = `rgba(${rankColorRgb}, 0.5)`;
-                    ctx.shadowBlur = 8;
-                    ctx.beginPath();
+                            const countdownLogoObj = artistLogoRef.current;
+                            const countdownHasLogo = Boolean(artistLogo && artistLogo.trim() !== '' && !artistLogo.includes('JOHN-SUMMIT-GIVEAWAY') && countdownLogoObj && (countdownLogoObj.naturalWidth > 0 || countdownLogoObj.complete));
+                            const logoAreaCenterY = 352;
 
-                    for (let b = 0; b < waveBars; b++) {
-                        const distFromCenter = Math.abs(b - (waveBars / 2)) / (waveBars / 2);
-                        const bellCurve = Math.cos(distFromCenter * Math.PI / 2);
-                        const wavePhase = (animTime * 6) + (b * 0.45);
-                        const barFactor = (Math.sin(wavePhase) * 0.5 + 0.5) * bellCurve;
-                        const barH = Math.max(10, waveMaxH * barFactor);
-                        const barX = waveStartX + b * (waveBarW + waveGap);
-                        const barY = waveCenterY - barH / 2;
-                        ctx.roundRect(barX, barY, waveBarW, barH, 5);
-                    }
-                    ctx.fill();
-                    ctx.restore();
+                            if (countdownHasLogo && countdownLogoObj) {
+                                const scale = (top10LogoScaleRef.current || top10LogoScale || 100) / 100;
+                                const maxLogoW = Math.round(760 * scale);
+                                const maxLogoH = Math.round(125 * scale);
+                                let lw = countdownLogoObj.width;
+                                let lh = countdownLogoObj.height;
+                                const ratio = Math.min(maxLogoW / lw, maxLogoH / lh);
+                                lw = Math.round(lw * ratio);
+                                lh = Math.round(lh * ratio);
+                                const lx = (canvas.width - lw) / 2;
+                                const ly = logoAreaCenterY - (lh / 2);
+
+                                ctx.save();
+                                if (!isStaticPngExport && textAnimation !== 'NONE') {
+                                    applyTextAnimCtx(ctx, 0.04, canvas.width / 2, logoAreaCenterY, trackAnimTime);
+                                }
+                                ctx.shadowColor = `rgba(${top10AccentRgb}, 0.85)`;
+                                ctx.shadowBlur = 20;
+                                if (isArtistLogoNegative) {
+                                    drawWhiteLogoCrossBrowser(ctx, countdownLogoObj, lx, ly, lw, lh);
+                                } else {
+                                    ctx.drawImage(countdownLogoObj, lx, ly, lw, lh);
+                                }
+                                ctx.restore();
+                            } else {
+                                ctx.save();
+                                if (!isStaticPngExport && textAnimation !== 'NONE') {
+                                    applyTextAnimCtx(ctx, 0.04, canvas.width / 2, logoAreaCenterY, trackAnimTime);
+                                }
+                                ctx.textAlign = 'center';
+                                ctx.textBaseline = 'middle';
+                                const scale = (top10LogoScaleRef.current || top10LogoScale || 100) / 100;
+                                let aFontSize = Math.round(44 * scale);
+                                ctx.font = `900 italic ${aFontSize}px "Montserrat", sans-serif`;
+                                if ('letterSpacing' in ctx) (ctx as any).letterSpacing = '3px';
+                                const aW = ctx.measureText(countdownSubtitle).width;
+                                if (aW > 820) {
+                                    aFontSize = Math.max(22, Math.floor(aFontSize * (820 / aW)));
+                                    ctx.font = `900 italic ${aFontSize}px "Montserrat", sans-serif`;
+                                }
+                                ctx.fillStyle = top10AccentColor;
+                                ctx.shadowColor = `rgba(${top10AccentRgb}, 0.9)`;
+                                ctx.shadowBlur = 18;
+                                ctx.fillText(countdownSubtitle, canvas.width / 2, logoAreaCenterY);
+                                ctx.restore();
+                            }
+                        }
+
+                        // 3. Rank Badge au-dessus de la vidéo ("la place", descendue et stylée)
+                        ctx.save();
+                        const badgeW = 320;
+                        const badgeH = 70;
+                        const badgeX = (canvas.width - badgeW) / 2;
+                        const badgeY = 440;
+
+                        if (!isStaticPngExport && textAnimation !== 'NONE') {
+                            applyTextAnimCtx(ctx, 0.08, canvas.width / 2, badgeY + badgeH / 2, trackAnimTime);
+                        }
+
+                        ctx.fillStyle = 'rgba(10, 12, 18, 0.88)';
+                        ctx.beginPath();
+                        ctx.roundRect(badgeX, badgeY, badgeW, badgeH, 35);
+                        ctx.fill();
+
+                        ctx.strokeStyle = rankColor;
+                        ctx.lineWidth = 2.5;
+                        ctx.shadowColor = `rgba(${rankColorRgb}, 0.65)`;
+                        ctx.shadowBlur = 18;
+                        ctx.stroke();
+
+                        ctx.font = `900 ${isPodium ? 28 : 32}px "Montserrat", sans-serif`;
+                        ctx.fillStyle = rankColor;
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'middle';
+                        ctx.shadowColor = `rgba(${rankColorRgb}, 0.75)`;
+                        ctx.shadowBlur = 12;
+                        ctx.fillText(rankTitle, canvas.width / 2, badgeY + badgeH / 2);
+                        ctx.restore();
+
+                        // 4. Cadre Pochette Carrée 1:1 au Centre (Descendu avec espace généreux)
+                        const cardSize = 640;
+                        const cardX = Math.round((canvas.width - cardSize) / 2); // 220px
+                        const cardY = 545;
+                        const cardR = 26;
+
+                        // A) Halo d'ambiance vibrant derrière la pochette
+                        ctx.save();
+                        const coverHalo = ctx.createRadialGradient(
+                            canvas.width / 2, cardY + cardSize / 2, cardSize * 0.18,
+                            canvas.width / 2, cardY + cardSize / 2, cardSize * 0.8
+                        );
+                        coverHalo.addColorStop(0, `rgba(${rankColorRgb}, 0.32)`);
+                        coverHalo.addColorStop(0.55, `rgba(${rankColorRgb}, 0.06)`);
+                        coverHalo.addColorStop(1, 'rgba(0, 0, 0, 0)');
+                        ctx.fillStyle = coverHalo;
+                        ctx.fillRect(cardX - 120, cardY - 120, cardSize + 240, cardSize + 240);
+                        ctx.restore();
+
+                        // C) Ombre portée 3D réaliste (optimisé 60fps)
+                        ctx.save();
+                        ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
+                        ctx.shadowBlur = 24;
+                        ctx.shadowOffsetX = 0;
+                        ctx.shadowOffsetY = 16;
+                        ctx.beginPath();
+                        ctx.roundRect(cardX, cardY, cardSize, cardSize, cardR);
+                        ctx.fillStyle = '#080a0e';
+                        ctx.fill();
+                        ctx.restore();
+
+                        // D) Dessin de l'image de la pochette ou vinyle haute couture
+                        ctx.save();
+                        ctx.beginPath();
+                        ctx.roundRect(cardX, cardY, cardSize, cardSize, cardR);
+                        ctx.clip();
+
+                        if (coverImg && (coverImg.naturalWidth > 0 || coverImg.complete)) {
+                            ctx.drawImage(coverImg, cardX, cardY, cardSize, cardSize);
+                        } else {
+                            // Placeholder vinyle avec sillons gravés
+                            const phGrad = ctx.createLinearGradient(cardX, cardY, cardX + cardSize, cardY + cardSize);
+                            phGrad.addColorStop(0, '#161922');
+                            phGrad.addColorStop(0.5, '#0b0d13');
+                            phGrad.addColorStop(1, '#050608');
+                            ctx.fillStyle = phGrad;
+                            ctx.fillRect(cardX, cardY, cardSize, cardSize);
+
+                            const vCenterX = cardX + cardSize / 2;
+                            const vCenterY = cardY + cardSize / 2;
+                            [0.42, 0.35, 0.28, 0.21, 0.14].forEach(rRatio => {
+                                ctx.beginPath();
+                                ctx.arc(vCenterX, vCenterY, cardSize * rRatio, 0, Math.PI * 2);
+                                ctx.strokeStyle = 'rgba(255, 255, 255, 0.06)';
+                                ctx.lineWidth = 1.5;
+                                ctx.stroke();
+                            });
+
+                            ctx.beginPath();
+                            ctx.arc(vCenterX, vCenterY, 44, 0, Math.PI * 2);
+                            ctx.fillStyle = '#06080c';
+                            ctx.fill();
+                            ctx.strokeStyle = rankColor;
+                            ctx.lineWidth = 2.5;
+                            ctx.stroke();
+
+                            ctx.beginPath();
+                            ctx.arc(vCenterX, vCenterY, 10, 0, Math.PI * 2);
+                            ctx.fillStyle = rankColor;
+                            ctx.fill();
+
+                            ctx.font = '800 22px "Montserrat", sans-serif';
+                            ctx.fillStyle = '#ffffff';
+                            ctx.textAlign = 'center';
+                            ctx.textBaseline = 'middle';
+                            ctx.fillText('POCHETTE 1:1', vCenterX, cardY + cardSize * 0.82);
+                        }
+
+                        // Reflet permanent de vitre (effet plaque de verre protectrice / cadre sous verre)
+                        const glassAmbient = ctx.createLinearGradient(cardX, cardY, cardX + cardSize, cardY + cardSize);
+                        glassAmbient.addColorStop(0, 'rgba(255, 255, 255, 0.12)');
+                        glassAmbient.addColorStop(0.28, 'rgba(255, 255, 255, 0.04)');
+                        glassAmbient.addColorStop(0.55, 'rgba(255, 255, 255, 0.0)');
+                        glassAmbient.addColorStop(1, 'rgba(0, 0, 0, 0.15)');
+                        ctx.fillStyle = glassAmbient;
+                        ctx.fillRect(cardX, cardY, cardSize, cardSize);
+
+                        // Biseau spéculaire supérieur ultra-fin (arête du verre taillé)
+                        const glassEdge = ctx.createLinearGradient(cardX, cardY, cardX, cardY + 4);
+                        glassEdge.addColorStop(0, 'rgba(255, 255, 255, 0.30)');
+                        glassEdge.addColorStop(1, 'rgba(255, 255, 255, 0)');
+                        ctx.fillStyle = glassEdge;
+                        ctx.fillRect(cardX, cardY, cardSize, 4);
+
+                        // Balayage lumineux de vitre (grande onde de lumière diffuse, zéro trait dur)
+                        const sweepTime = isVideoExport ? animTime : (Date.now() - animStartTimeRef.current) / 1000;
+                        const sweepCycle = 3.4; // Cycle toutes les 3.4s
+                        const sweepDuration = 1.35; // 1.35s de glisse douce
+                        const sweepDelay = 0.25; // Déclenchement 0.25s après le track
+                        const cycleT = (sweepTime + sweepCycle - sweepDelay) % sweepCycle;
+                        if (cycleT < sweepDuration) {
+                            const rawP = cycleT / sweepDuration;
+                            // Smoothstep easing pour une transition soyeuse et naturelle
+                            const easeP = rawP * rawP * (3 - 2 * rawP);
+
+                            const cX = cardX + cardSize / 2;
+                            const cY = cardY + cardSize / 2;
+                            const diag = cardSize * Math.SQRT2; // ~933px
+
+                            // Large onde de reflet de vitre (440px de large, aucun trait ni arête blanche)
+                            const glassW = 440;
+                            const beamSpan = diag + glassW + 100;
+                            const curX = -diag / 2 - glassW / 2 - 50 + beamSpan * easeP;
+
+                            ctx.save();
+                            ctx.translate(cX, cY);
+                            ctx.rotate(Math.PI / 4); // Diagonale coin haut-gauche -> coin bas-droit
+                            ctx.globalCompositeOperation = 'screen'; // Incrustation douce et lumineuse sans aplat
+
+                            // Dégradé en cloche ultra-doux (pure réflexion de verre)
+                            const glassGrad = ctx.createLinearGradient(curX - glassW / 2, 0, curX + glassW / 2, 0);
+                            glassGrad.addColorStop(0.00, 'rgba(255, 255, 255, 0)');
+                            glassGrad.addColorStop(0.20, 'rgba(255, 255, 255, 0.015)');
+                            glassGrad.addColorStop(0.38, 'rgba(255, 255, 255, 0.07)');
+                            glassGrad.addColorStop(0.50, 'rgba(255, 255, 255, 0.20)');
+                            glassGrad.addColorStop(0.62, 'rgba(255, 255, 255, 0.07)');
+                            glassGrad.addColorStop(0.80, 'rgba(255, 255, 255, 0.015)');
+                            glassGrad.addColorStop(1.00, 'rgba(255, 255, 255, 0)');
+
+                            ctx.fillStyle = glassGrad;
+                            ctx.fillRect(curX - glassW / 2, -diag, glassW, diag * 2);
+
+                            ctx.restore();
+                        }
+
+                        ctx.restore();
+
+                        // E) Bordure néon & Coins cyber autour de la pochette
+                        ctx.save();
+                        ctx.strokeStyle = rankColor;
+                        ctx.lineWidth = 2.5;
+                        ctx.shadowColor = `rgba(${rankColorRgb}, 0.6)`;
+                        ctx.shadowBlur = 18;
+                        ctx.beginPath();
+                        ctx.roundRect(cardX, cardY, cardSize, cardSize, cardR);
+                        ctx.stroke();
+
+                        // Coins cyber néon
+                        const cLen = 32;
+                        ctx.strokeStyle = '#ffffff';
+                        ctx.lineWidth = 4;
+                        ctx.shadowColor = rankColor;
+                        ctx.shadowBlur = 10;
+                        ctx.beginPath();
+                        ctx.moveTo(cardX + cardR, cardY); ctx.lineTo(cardX, cardY); ctx.lineTo(cardX, cardY + cardR);
+                        ctx.stroke();
+                        ctx.beginPath();
+                        ctx.moveTo(cardX + cardSize - cardR, cardY); ctx.lineTo(cardX + cardSize, cardY); ctx.lineTo(cardX + cardSize, cardY + cardR);
+                        ctx.stroke();
+                        ctx.beginPath();
+                        ctx.moveTo(cardX, cardY + cardSize - cardR); ctx.lineTo(cardX, cardY + cardSize); ctx.lineTo(cardX + cardR, cardY + cardSize);
+                        ctx.stroke();
+                        ctx.beginPath();
+                        ctx.moveTo(cardX + cardSize - cardR, cardY + cardSize); ctx.lineTo(cardX + cardSize, cardY + cardSize); ctx.lineTo(cardX + cardSize, cardY + cardSize - cardR);
+                        ctx.stroke();
+                        ctx.restore();
+
+                        // F) Barre de progression sous la pochette
+                        ctx.save();
+                        const pBarW = cardSize;
+                        const pBarH = 4;
+                        const pBarX = cardX;
+                        const pBarY = cardY + cardSize + 18;
+                        ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
+                        ctx.beginPath();
+                        ctx.roundRect(pBarX, pBarY, pBarW, pBarH, 2);
+                        ctx.fill();
+                        ctx.fillStyle = rankColor;
+                        ctx.shadowColor = `rgba(${rankColorRgb}, 0.8)`;
+                        ctx.shadowBlur = 8;
+                        ctx.beginPath();
+                        ctx.roundRect(pBarX, pBarY, Math.max(8, pBarW * Math.min(1, Math.max(0, trackProgress))), pBarH, 2);
+                        ctx.fill();
+                        ctx.restore();
+
+                        // 6a. Nom de l'Artiste
+                        ctx.save();
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'middle';
+
+                        const hasArtist = Boolean(activeTrack.artist?.trim());
+                        const artistStr = (activeTrack.artist || 'NOM DE L\'ARTISTE').toUpperCase();
+                        let artistFontSize = 48;
+                        ctx.font = `900 ${artistFontSize}px "Montserrat", sans-serif`;
+                        if ('letterSpacing' in ctx) (ctx as any).letterSpacing = '2px';
+                        let artistW = ctx.measureText(artistStr).width;
+                        if (artistW > 920) {
+                            artistFontSize = Math.max(26, Math.floor(artistFontSize * (920 / artistW)));
+                            ctx.font = `900 ${artistFontSize}px "Montserrat", sans-serif`;
+                        }
+
+                        if (!isStaticPngExport && textAnimation !== 'NONE') {
+                            applyTextAnimCtx(ctx, 0.04, canvas.width / 2, 1280, trackAnimTime);
+                        }
+
+                        let artistToDraw = artistStr;
+                        if (!isStaticPngExport && textAnimation === 'TYPEWRITER') {
+                            const typeEl = Math.max(0, trackAnimTime - 0.04);
+                            const visibleChars = Math.min(artistStr.length, Math.floor(typeEl * 34));
+                            artistToDraw = artistStr.slice(0, visibleChars);
+                        }
+
+                        ctx.fillStyle = hasArtist ? '#ffffff' : 'rgba(255, 255, 255, 0.45)';
+                        ctx.shadowColor = hasArtist ? 'rgba(0, 0, 0, 0.95)' : 'transparent';
+                        ctx.shadowBlur = hasArtist ? 18 : 0;
+                        ctx.shadowOffsetY = 4;
+                        ctx.fillText(artistToDraw, canvas.width / 2, 1280);
+                        ctx.restore();
+
+                        // 6b. Titre du Morceau
+                        ctx.save();
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'middle';
+
+                        const hasTitle = Boolean(activeTrack.title?.trim());
+                        const rawTitle = (activeTrack.title || 'TITRE DU MORCEAU');
+                        const titleStr = cleanTop10TrackTitle(rawTitle).toUpperCase();
+                        let titleFontSize = 56;
+                        ctx.font = `900 ${titleFontSize}px "Montserrat", sans-serif`;
+                        if ('letterSpacing' in ctx) (ctx as any).letterSpacing = '1px';
+                        let titleW = ctx.measureText(titleStr).width;
+                        if (titleW > 940) {
+                            titleFontSize = Math.max(28, Math.floor(titleFontSize * (940 / titleW)));
+                            ctx.font = `900 ${titleFontSize}px "Montserrat", sans-serif`;
+                        }
+
+                        if (!isStaticPngExport && textAnimation !== 'NONE') {
+                            applyTextAnimCtx(ctx, 0.14, canvas.width / 2, 1360, trackAnimTime);
+                        }
+
+                        let titleToDraw = titleStr;
+                        if (!isStaticPngExport && textAnimation === 'TYPEWRITER') {
+                            const typeEl = Math.max(0, trackAnimTime - 0.14);
+                            const visibleChars = Math.min(titleStr.length, Math.floor(typeEl * 34));
+                            titleToDraw = titleStr.slice(0, visibleChars);
+                        }
+
+                        ctx.fillStyle = hasTitle ? rankColor : `rgba(${rankColorRgb}, 0.35)`;
+                        ctx.shadowColor = hasTitle ? `rgba(${rankColorRgb}, 0.75)` : 'transparent';
+                        ctx.shadowBlur = hasTitle ? 24 : 0;
+                        ctx.fillText(titleToDraw, canvas.width / 2, 1360);
+                        ctx.restore();
+
+                        // 6c. Badge Nombre de Streams (Sous le titre)
+                        const activeStreams = activeTrack.streams?.trim();
+                        if (activeStreams) {
+                            ctx.save();
+                            const rawStreams = activeStreams.toUpperCase();
+                            const streamStr = (rawStreams.includes('STREAM') || rawStreams.includes('ÉCOUTE'))
+                                ? rawStreams
+                                : `${rawStreams} STREAMS`;
+
+                            ctx.font = '800 22px "Montserrat", sans-serif';
+                            if ('letterSpacing' in ctx) (ctx as any).letterSpacing = '2px';
+                            const sMetrics = ctx.measureText(streamStr);
+                            const pillW = Math.ceil(sMetrics.width + 50);
+                            const pillH = 38;
+                            const pillX = (canvas.width - pillW) / 2;
+                            const pillY = 1430;
+
+                            if (!isStaticPngExport && textAnimation !== 'NONE') {
+                                applyTextAnimCtx(ctx, 0.24, canvas.width / 2, pillY + pillH / 2, trackAnimTime);
+                            }
+
+                            // Fond capsule verre sombre
+                            ctx.fillStyle = 'rgba(10, 14, 22, 0.85)';
+                            ctx.beginPath();
+                            ctx.roundRect(pillX, pillY, pillW, pillH, 19);
+                            ctx.fill();
+
+                            ctx.strokeStyle = `rgba(${rankColorRgb}, 0.55)`;
+                            ctx.lineWidth = 1.5;
+                            ctx.shadowColor = `rgba(${rankColorRgb}, 0.5)`;
+                            ctx.shadowBlur = 10;
+                            ctx.stroke();
+
+                            // Point néon
+                            const dotRadius = 4.5;
+                            const dotX = pillX + 18;
+                            const dotY = pillY + pillH / 2;
+                            ctx.fillStyle = rankColor;
+                            ctx.shadowColor = `rgba(${rankColorRgb}, 0.85)`;
+                            ctx.shadowBlur = 8;
+                            ctx.beginPath();
+                            ctx.arc(dotX, dotY, dotRadius, 0, Math.PI * 2);
+                            ctx.fill();
+
+                            // Texte streams
+                            ctx.fillStyle = '#ffffff';
+                            ctx.textAlign = 'left';
+                            ctx.textBaseline = 'middle';
+                            ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
+                            ctx.shadowBlur = 6;
+                            ctx.fillText(streamStr, dotX + 12, pillY + pillH / 2 + 0.5);
+                            ctx.restore();
+                        }
+
+                        // 7. Visualiseur Waveform Audio Animé (rendu groupé 60fps)
+                        ctx.save();
+                        const waveBars = 32;
+                        const waveCenterY = activeStreams ? 1545 : 1485;
+                        const waveMaxH = 70;
+                        const waveTotalW = 600;
+                        const waveBarW = 10;
+                        const waveGap = (waveTotalW - (waveBars * waveBarW)) / (waveBars - 1);
+                        const waveStartX = (canvas.width - waveTotalW) / 2;
+
+                        const barGrad = ctx.createLinearGradient(0, waveCenterY - waveMaxH / 2, 0, waveCenterY + waveMaxH / 2);
+                        barGrad.addColorStop(0, rankColor);
+                        barGrad.addColorStop(1, 'rgba(255, 255, 255, 0.4)');
+                        ctx.fillStyle = barGrad;
+                        ctx.shadowColor = `rgba(${rankColorRgb}, 0.5)`;
+                        ctx.shadowBlur = 8;
+                        ctx.beginPath();
+
+                        for (let b = 0; b < waveBars; b++) {
+                            const distFromCenter = Math.abs(b - (waveBars / 2)) / (waveBars / 2);
+                            const bellCurve = Math.cos(distFromCenter * Math.PI / 2);
+                            const wavePhase = (animTime * 6) + (b * 0.45);
+                            const barFactor = (Math.sin(wavePhase) * 0.5 + 0.5) * bellCurve;
+                            const barH = Math.max(10, waveMaxH * barFactor);
+                            const barX = waveStartX + b * (waveBarW + waveGap);
+                            const barY = waveCenterY - barH / 2;
+                            ctx.roundRect(barX, barY, waveBarW, barH, 5);
+                        }
+                        ctx.fill();
+                        ctx.restore();
                     }
                 } else if (theme === 'HIGHLIGHTS') {
                     const isReel = effectiveTab === 'REEL';
@@ -13547,7 +13559,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             video.playsInline = true; // Indispensable pour Safari / Chrome mobile
             video.volume = 1;
             video.currentTime = 0;
-            
+
             // Requis par Safari iOS : le composant vidéo doit être dans le DOM pour router le son vers les haut-parleurs
             ensureVideoMountedInDOM(video);
 
@@ -13563,7 +13575,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     // Fallback si la politique autoplay mobile bloque le son non muté au premier essai
                     video.muted = true;
                     setIsVideoAudioMuted(true);
-                    video.play().catch(() => {});
+                    video.play().catch(() => { });
                 });
                 if (['JEU', 'JEU_FESTIVAL', 'JEU_DJ'].includes(theme)) {
                     if (video.duration && !isNaN(video.duration) && video.duration > 0) {
@@ -13592,7 +13604,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             }).catch(() => {
                 video.muted = true;
                 setIsVideoAudioMuted(true);
-                video.play().catch(() => {});
+                video.play().catch(() => { });
             });
             setBgVideo(video);
             setBgImage('');
@@ -13651,8 +13663,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             try {
                 bgVideo.muted = isVideoAudioMuted;
                 bgVideo.loop = true;
-                bgVideo.play().catch(() => {});
-            } catch (_) {}
+                bgVideo.play().catch(() => { });
+            } catch (_) { }
         }
         promoOutroOverrideRef.current = false;
         editorialAfficheOverrideRef.current = false;
@@ -22643,7 +22655,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     })()}
 
                     {/* Durée strictement fixe à 1 minute pile (60s) */}
-                    <div 
+                    <div
                         className="p-3 rounded-xl space-y-1 border"
                         style={{
                             backgroundColor: `rgba(${top10CurrentAccentRgb}, 0.08)`,
@@ -22654,7 +22666,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             <span className="text-[9px] font-black uppercase tracking-wider flex items-center gap-1.5" style={{ color: top10CurrentAccentHex }}>
                                 ⏱️ Durée Totale : 1 Minute 30 Pile (90s)
                             </span>
-                            <span 
+                            <span
                                 className="px-1.5 py-0.5 text-[7.5px] font-black uppercase rounded"
                                 style={{
                                     backgroundColor: `rgba(${top10CurrentAccentRgb}, 0.20)`,
@@ -22671,7 +22683,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 </div>
 
                 {/* AUTO-GÉNÉRATEUR TOP 10 100% DYNAMIQUE */}
-                <div 
+                <div
                     className="p-3.5 bg-gradient-to-br from-black/80 via-black/40 to-black/80 rounded-2xl shadow-xl space-y-3 border"
                     style={{ borderColor: `rgba(${top10CurrentAccentRgb}, 0.40)` }}
                 >
@@ -22680,7 +22692,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             ⚡ Auto-Générateur Top 10
                         </span>
                         {isAutoFillingTop10 && (
-                            <span 
+                            <span
                                 className="px-2 py-0.5 text-[8px] font-black uppercase rounded-full animate-pulse border"
                                 style={{
                                     backgroundColor: `rgba(${top10CurrentAccentRgb}, 0.20)`,
@@ -22928,174 +22940,173 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                     {/* 🎨 LOGO OFFICIEL DE L'ARTISTE (Affiché si mode artiste ou si un logo est déjà présent) */}
                     {(top10GenMode === 'artist' || top10GenMode === 'label' || top10GenMode === 'style' || Boolean(artistLogo)) && (
-                    <div className="p-3 bg-black/60 border border-neon-cyan/35 rounded-xl space-y-2.5">
-                        <div className="flex items-center justify-between">
-                            <span className="text-[9px] font-black text-white uppercase tracking-wider flex items-center gap-1.5">
-                                <span className={top10GenMode === 'label' ? "text-[#B86221]" : top10GenMode === 'style' ? "text-[#ffb800]" : "text-neon-cyan"}>🎨</span> Logo Transparent {top10GenMode === 'label' ? 'du Label' : top10GenMode === 'style' ? 'du Genre' : "de l'Artiste"}
-                            </span>
-                            {artistLogo && (
+                        <div className="p-3 bg-black/60 border border-neon-cyan/35 rounded-xl space-y-2.5">
+                            <div className="flex items-center justify-between">
+                                <span className="text-[9px] font-black text-white uppercase tracking-wider flex items-center gap-1.5">
+                                    <span className={top10GenMode === 'label' ? "text-[#B86221]" : top10GenMode === 'style' ? "text-[#ffb800]" : "text-neon-cyan"}>🎨</span> Logo Transparent {top10GenMode === 'label' ? 'du Label' : top10GenMode === 'style' ? 'du Genre' : "de l'Artiste"}
+                                </span>
+                                {artistLogo && (
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setArtistLogo('');
+                                            artistLogoRef.current = null;
+                                            generateImage();
+                                        }}
+                                        className="text-[8px] text-red-400 hover:text-red-300 font-bold uppercase transition-colors"
+                                    >
+                                        ✕ Retirer
+                                    </button>
+                                )}
+                            </div>
+
+                            {/* Aperçu */}
+                            {artistLogo ? (
+                                <div className="p-2.5 bg-black/80 border border-neon-cyan/40 rounded-xl flex items-center justify-center min-h-[64px] relative">
+                                    <img
+                                        src={artistLogo}
+                                        alt="Logo Artiste"
+                                        className="max-h-16 max-w-[220px] object-contain transition-all"
+                                        style={{ filter: isArtistLogoNegative ? 'brightness(0) invert(1) drop-shadow(0 0 10px rgba(0,240,255,0.7))' : 'drop-shadow(0 0 6px rgba(255,255,255,0.4))' }}
+                                    />
+                                </div>
+                            ) : (
+                                <div className="p-2 bg-white/5 border border-dashed border-white/10 rounded-lg text-center">
+                                    <span className="text-[8px] text-gray-400">
+                                        Aucun logo chargé • Chargé auto ou recherche 1-clic ci-dessous :
+                                    </span>
+                                </div>
+                            )}
+
+                            {/* Boutons d'action pour le logo */}
+                            <div className="grid grid-cols-2 gap-2">
                                 <button
                                     type="button"
-                                    onClick={() => {
-                                        setArtistLogo('');
-                                        artistLogoRef.current = null;
-                                        generateImage();
-                                    }}
-                                    className="text-[8px] text-red-400 hover:text-red-300 font-bold uppercase transition-colors"
+                                    disabled={isSearchingTop10Logo}
+                                    onClick={() => searchArtistLogos(top10IntroArtist || top10ArtistSearch)}
+                                    className="py-2 px-2 bg-gradient-to-r from-neon-cyan to-blue-600 hover:brightness-110 text-black text-[9px] font-black uppercase rounded-lg flex items-center justify-center gap-1.5 shadow-md shadow-neon-cyan/20 active:scale-95 disabled:opacity-40"
                                 >
-                                    ✕ Retirer
+                                    <Search className="w-3.5 h-3.5 shrink-0" />
+                                    <span>{isSearchingTop10Logo ? '⏳ Recherche...' : '🔍 Chercher Logo Web'}</span>
                                 </button>
-                            )}
-                        </div>
 
-                        {/* Aperçu */}
-                        {artistLogo ? (
-                            <div className="p-2.5 bg-black/80 border border-neon-cyan/40 rounded-xl flex items-center justify-center min-h-[64px] relative">
-                                <img
-                                    src={artistLogo}
-                                    alt="Logo Artiste"
-                                    className="max-h-16 max-w-[220px] object-contain transition-all"
-                                    style={{ filter: isArtistLogoNegative ? 'brightness(0) invert(1) drop-shadow(0 0 10px rgba(0,240,255,0.7))' : 'drop-shadow(0 0 6px rgba(255,255,255,0.4))' }}
-                                />
-                            </div>
-                        ) : (
-                            <div className="p-2 bg-white/5 border border-dashed border-white/10 rounded-lg text-center">
-                                <span className="text-[8px] text-gray-400">
-                                    Aucun logo chargé • Chargé auto ou recherche 1-clic ci-dessous :
-                                </span>
-                            </div>
-                        )}
-
-                        {/* Boutons d'action pour le logo */}
-                        <div className="grid grid-cols-2 gap-2">
-                            <button
-                                type="button"
-                                disabled={isSearchingTop10Logo}
-                                onClick={() => searchArtistLogos(top10IntroArtist || top10ArtistSearch)}
-                                className="py-2 px-2 bg-gradient-to-r from-neon-cyan to-blue-600 hover:brightness-110 text-black text-[9px] font-black uppercase rounded-lg flex items-center justify-center gap-1.5 shadow-md shadow-neon-cyan/20 active:scale-95 disabled:opacity-40"
-                            >
-                                <Search className="w-3.5 h-3.5 shrink-0" />
-                                <span>{isSearchingTop10Logo ? '⏳ Recherche...' : '🔍 Chercher Logo Web'}</span>
-                            </button>
-
-                            <label className="py-2 px-2 bg-white/10 hover:bg-white/15 border border-white/20 rounded-lg text-[9px] font-black uppercase text-white flex items-center justify-center gap-1.5 cursor-pointer active:scale-95 text-center">
-                                <Upload className="w-3.5 h-3.5 text-neon-cyan shrink-0" />
-                                <span>📁 Uploader PNG</span>
-                                <input
-                                    type="file"
-                                    accept="image/*"
-                                    className="hidden"
-                                    onChange={handleArtistLogoChange}
-                                />
-                            </label>
-                        </div>
-
-                        {/* Option Rendre Blanc Pur / Négatif */}
-                        {artistLogo && (
-                            <div className="flex items-center justify-between pt-1 border-t border-white/10">
-                                <label htmlFor="gen-logo-neg" className="text-[8px] font-bold text-gray-300 uppercase cursor-pointer flex items-center gap-1.5">
-                                    <span>✨ Rendre Blanc Pur & Néon</span>
-                                    <span className="text-[7px] text-gray-500 font-normal">(Recommandé vidéo)</span>
+                                <label className="py-2 px-2 bg-white/10 hover:bg-white/15 border border-white/20 rounded-lg text-[9px] font-black uppercase text-white flex items-center justify-center gap-1.5 cursor-pointer active:scale-95 text-center">
+                                    <Upload className="w-3.5 h-3.5 text-neon-cyan shrink-0" />
+                                    <span>📁 Uploader PNG</span>
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        className="hidden"
+                                        onChange={handleArtistLogoChange}
+                                    />
                                 </label>
-                                <input
-                                    type="checkbox"
-                                    id="gen-logo-neg"
-                                    checked={isArtistLogoNegative}
-                                    onChange={e => {
-                                        setIsArtistLogoNegative(e.target.checked);
-                                        setTimeout(() => generateImage(), 30);
-                                    }}
-                                    className="w-3.5 h-3.5 accent-neon-cyan cursor-pointer"
-                                />
                             </div>
-                        )}
-                        {/* 🪄 DÉTOURAGE FOND NOIR / BLANC (1-CLIC) */}
-                        {artistLogo && (
-                            <div className="pt-2 pb-1 border-t border-white/10 space-y-1.5">
-                                <div className="flex items-center justify-between text-[8px] font-black uppercase text-gray-300">
-                                    <span className="flex items-center gap-1 text-white">
-                                        <span>🪄</span> Détourage Fond (1-Clic) :
-                                    </span>
-                                    {artistLogoOriginal && (
-                                        <button
-                                            type="button"
-                                            onClick={handleRestoreOriginalLogo}
-                                            className="text-[7.5px] text-amber-400 hover:text-amber-300 font-bold uppercase transition-colors"
-                                        >
-                                            ↺ Fond Original
-                                        </button>
-                                    )}
-                                </div>
-                                <div className="grid grid-cols-2 gap-1.5">
-                                    <button
-                                        type="button"
-                                        onClick={() => handleRemoveLogoBackground('BLACK')}
-                                        className="py-1.5 px-2 bg-black/80 hover:bg-black border border-white/20 hover:border-neon-cyan/60 rounded-lg text-[8px] font-black uppercase text-white transition-all flex items-center justify-center gap-1 shadow-sm active:scale-95"
-                                        title="Supprime le fond noir autour du logo"
-                                    >
-                                        <span>⬛</span>
-                                        <span>Retirer Fond Noir</span>
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={() => handleRemoveLogoBackground('WHITE')}
-                                        className="py-1.5 px-2 bg-white/10 hover:bg-white/20 border border-white/20 hover:border-neon-cyan/60 rounded-lg text-[8px] font-black uppercase text-white transition-all flex items-center justify-center gap-1 shadow-sm active:scale-95"
-                                        title="Supprime le fond blanc autour du logo"
-                                    >
-                                        <span>⬜</span>
-                                        <span>Retirer Fond Blanc</span>
-                                    </button>
-                                </div>
-                            </div>
-                        )}
 
-
-                        {/* Option Taille / Échelle du Logo */}
-                        {artistLogo && (
-                            <div className="pt-2 space-y-1.5 border-t border-white/10">
-                                <div className="flex items-center justify-between text-[8.5px] font-black uppercase text-gray-300">
-                                    <span className="flex items-center gap-1.5 text-neon-cyan">
-                                        <span>🔍</span> Taille du Logo : <span className="font-mono text-white">{top10LogoScale}%</span>
-                                    </span>
-                                    <div className="flex items-center gap-1">
-                                        {[50, 70, 85, 100, 120].map((preset) => (
-                                            <button
-                                                key={preset}
-                                                type="button"
-                                                onClick={() => updateTop10LogoScale(preset)}
-                                                className={`px-1.5 py-0.5 rounded text-[7.5px] font-mono font-bold transition-all ${
-                                                    top10LogoScale === preset
-                                                        ? 'bg-neon-cyan text-black font-black shadow-[0_0_8px_rgba(0,240,255,0.5)]'
-                                                        : 'bg-white/5 hover:bg-white/15 text-gray-400 hover:text-white border border-white/10'
-                                                }`}
-                                            >
-                                                {preset}%
-                                            </button>
-                                        ))}
-                                        {top10LogoScale !== 100 && (
+                            {/* Option Rendre Blanc Pur / Négatif */}
+                            {artistLogo && (
+                                <div className="flex items-center justify-between pt-1 border-t border-white/10">
+                                    <label htmlFor="gen-logo-neg" className="text-[8px] font-bold text-gray-300 uppercase cursor-pointer flex items-center gap-1.5">
+                                        <span>✨ Rendre Blanc Pur & Néon</span>
+                                        <span className="text-[7px] text-gray-500 font-normal">(Recommandé vidéo)</span>
+                                    </label>
+                                    <input
+                                        type="checkbox"
+                                        id="gen-logo-neg"
+                                        checked={isArtistLogoNegative}
+                                        onChange={e => {
+                                            setIsArtistLogoNegative(e.target.checked);
+                                            setTimeout(() => generateImage(), 30);
+                                        }}
+                                        className="w-3.5 h-3.5 accent-neon-cyan cursor-pointer"
+                                    />
+                                </div>
+                            )}
+                            {/* 🪄 DÉTOURAGE FOND NOIR / BLANC (1-CLIC) */}
+                            {artistLogo && (
+                                <div className="pt-2 pb-1 border-t border-white/10 space-y-1.5">
+                                    <div className="flex items-center justify-between text-[8px] font-black uppercase text-gray-300">
+                                        <span className="flex items-center gap-1 text-white">
+                                            <span>🪄</span> Détourage Fond (1-Clic) :
+                                        </span>
+                                        {artistLogoOriginal && (
                                             <button
                                                 type="button"
-                                                onClick={() => updateTop10LogoScale(100)}
-                                                className="text-[7.5px] text-gray-400 hover:text-white underline ml-1"
-                                                title="Réinitialiser à 100%"
+                                                onClick={handleRestoreOriginalLogo}
+                                                className="text-[7.5px] text-amber-400 hover:text-amber-300 font-bold uppercase transition-colors"
                                             >
-                                                ↺
+                                                ↺ Fond Original
                                             </button>
                                         )}
                                     </div>
+                                    <div className="grid grid-cols-2 gap-1.5">
+                                        <button
+                                            type="button"
+                                            onClick={() => handleRemoveLogoBackground('BLACK')}
+                                            className="py-1.5 px-2 bg-black/80 hover:bg-black border border-white/20 hover:border-neon-cyan/60 rounded-lg text-[8px] font-black uppercase text-white transition-all flex items-center justify-center gap-1 shadow-sm active:scale-95"
+                                            title="Supprime le fond noir autour du logo"
+                                        >
+                                            <span>⬛</span>
+                                            <span>Retirer Fond Noir</span>
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => handleRemoveLogoBackground('WHITE')}
+                                            className="py-1.5 px-2 bg-white/10 hover:bg-white/20 border border-white/20 hover:border-neon-cyan/60 rounded-lg text-[8px] font-black uppercase text-white transition-all flex items-center justify-center gap-1 shadow-sm active:scale-95"
+                                            title="Supprime le fond blanc autour du logo"
+                                        >
+                                            <span>⬜</span>
+                                            <span>Retirer Fond Blanc</span>
+                                        </button>
+                                    </div>
                                 </div>
-                                <input
-                                    type="range"
-                                    min="30"
-                                    max="160"
-                                    step="5"
-                                    value={top10LogoScale}
-                                    onChange={(e) => updateTop10LogoScale(Number(e.target.value))}
-                                    className="w-full accent-cyan-400 h-1.5 bg-white/10 rounded-lg cursor-pointer"
-                                />
-                            </div>
-                        )}
-                    </div>
+                            )}
+
+
+                            {/* Option Taille / Échelle du Logo */}
+                            {artistLogo && (
+                                <div className="pt-2 space-y-1.5 border-t border-white/10">
+                                    <div className="flex items-center justify-between text-[8.5px] font-black uppercase text-gray-300">
+                                        <span className="flex items-center gap-1.5 text-neon-cyan">
+                                            <span>🔍</span> Taille du Logo : <span className="font-mono text-white">{top10LogoScale}%</span>
+                                        </span>
+                                        <div className="flex items-center gap-1">
+                                            {[50, 70, 85, 100, 120].map((preset) => (
+                                                <button
+                                                    key={preset}
+                                                    type="button"
+                                                    onClick={() => updateTop10LogoScale(preset)}
+                                                    className={`px-1.5 py-0.5 rounded text-[7.5px] font-mono font-bold transition-all ${top10LogoScale === preset
+                                                            ? 'bg-neon-cyan text-black font-black shadow-[0_0_8px_rgba(0,240,255,0.5)]'
+                                                            : 'bg-white/5 hover:bg-white/15 text-gray-400 hover:text-white border border-white/10'
+                                                        }`}
+                                                >
+                                                    {preset}%
+                                                </button>
+                                            ))}
+                                            {top10LogoScale !== 100 && (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => updateTop10LogoScale(100)}
+                                                    className="text-[7.5px] text-gray-400 hover:text-white underline ml-1"
+                                                    title="Réinitialiser à 100%"
+                                                >
+                                                    ↺
+                                                </button>
+                                            )}
+                                        </div>
+                                    </div>
+                                    <input
+                                        type="range"
+                                        min="30"
+                                        max="160"
+                                        step="5"
+                                        value={top10LogoScale}
+                                        onChange={(e) => updateTop10LogoScale(Number(e.target.value))}
+                                        className="w-full accent-cyan-400 h-1.5 bg-white/10 rounded-lg cursor-pointer"
+                                    />
+                                </div>
+                            )}
+                        </div>
                     )}
 
                     {/* TRIEUR MAGIQUE SPOTIFY & KWORB (Résout le mauvais tri de Spotify !) */}
@@ -23188,7 +23199,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     Logo optionnel
                                 </span>
                             )}
-                            <span 
+                            <span
                                 className="text-[9px] font-black uppercase px-2 py-0.5 rounded font-mono"
                                 style={Number(top10ActiveRank) === 0 ? {
                                     backgroundColor: top10CurrentAccentHex,
@@ -23249,7 +23260,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                 {/* 3. ÉDITION INTRO OU TRACK ACTIVE */}
                 {Number(top10ActiveRank) === 0 ? (
-                    <div 
+                    <div
                         className="p-4 bg-gradient-to-br from-black/80 via-black/60 to-black/80 rounded-2xl shadow-xl space-y-4 border"
                         style={{ borderColor: `rgba(${top10CurrentAccentRgb}, 0.40)` }}
                     >
@@ -23490,45 +23501,45 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     />
                                 </div>
                             )}
-                        {/* 🪄 DÉTOURAGE FOND NOIR / BLANC (1-CLIC) */}
-                        {artistLogo && (
-                            <div className="pt-2 pb-1 border-t border-white/10 space-y-1.5">
-                                <div className="flex items-center justify-between text-[8px] font-black uppercase text-gray-300">
-                                    <span className="flex items-center gap-1 text-white">
-                                        <span>🪄</span> Détourage Fond (1-Clic) :
-                                    </span>
-                                    {artistLogoOriginal && (
+                            {/* 🪄 DÉTOURAGE FOND NOIR / BLANC (1-CLIC) */}
+                            {artistLogo && (
+                                <div className="pt-2 pb-1 border-t border-white/10 space-y-1.5">
+                                    <div className="flex items-center justify-between text-[8px] font-black uppercase text-gray-300">
+                                        <span className="flex items-center gap-1 text-white">
+                                            <span>🪄</span> Détourage Fond (1-Clic) :
+                                        </span>
+                                        {artistLogoOriginal && (
+                                            <button
+                                                type="button"
+                                                onClick={handleRestoreOriginalLogo}
+                                                className="text-[7.5px] text-amber-400 hover:text-amber-300 font-bold uppercase transition-colors"
+                                            >
+                                                ↺ Fond Original
+                                            </button>
+                                        )}
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-1.5">
                                         <button
                                             type="button"
-                                            onClick={handleRestoreOriginalLogo}
-                                            className="text-[7.5px] text-amber-400 hover:text-amber-300 font-bold uppercase transition-colors"
+                                            onClick={() => handleRemoveLogoBackground('BLACK')}
+                                            className="py-1.5 px-2 bg-black/80 hover:bg-black border border-white/20 hover:border-neon-cyan/60 rounded-lg text-[8px] font-black uppercase text-white transition-all flex items-center justify-center gap-1 shadow-sm active:scale-95"
+                                            title="Supprime le fond noir autour du logo"
                                         >
-                                            ↺ Fond Original
+                                            <span>⬛</span>
+                                            <span>Retirer Fond Noir</span>
                                         </button>
-                                    )}
+                                        <button
+                                            type="button"
+                                            onClick={() => handleRemoveLogoBackground('WHITE')}
+                                            className="py-1.5 px-2 bg-white/10 hover:bg-white/20 border border-white/20 hover:border-neon-cyan/60 rounded-lg text-[8px] font-black uppercase text-white transition-all flex items-center justify-center gap-1 shadow-sm active:scale-95"
+                                            title="Supprime le fond blanc autour du logo"
+                                        >
+                                            <span>⬜</span>
+                                            <span>Retirer Fond Blanc</span>
+                                        </button>
+                                    </div>
                                 </div>
-                                <div className="grid grid-cols-2 gap-1.5">
-                                    <button
-                                        type="button"
-                                        onClick={() => handleRemoveLogoBackground('BLACK')}
-                                        className="py-1.5 px-2 bg-black/80 hover:bg-black border border-white/20 hover:border-neon-cyan/60 rounded-lg text-[8px] font-black uppercase text-white transition-all flex items-center justify-center gap-1 shadow-sm active:scale-95"
-                                        title="Supprime le fond noir autour du logo"
-                                    >
-                                        <span>⬛</span>
-                                        <span>Retirer Fond Noir</span>
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={() => handleRemoveLogoBackground('WHITE')}
-                                        className="py-1.5 px-2 bg-white/10 hover:bg-white/20 border border-white/20 hover:border-neon-cyan/60 rounded-lg text-[8px] font-black uppercase text-white transition-all flex items-center justify-center gap-1 shadow-sm active:scale-95"
-                                        title="Supprime le fond blanc autour du logo"
-                                    >
-                                        <span>⬜</span>
-                                        <span>Retirer Fond Blanc</span>
-                                    </button>
-                                </div>
-                            </div>
-                        )}
+                            )}
 
 
                             {/* Option Taille / Échelle du Logo */}
@@ -23544,11 +23555,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                                     key={preset}
                                                     type="button"
                                                     onClick={() => updateTop10LogoScale(preset)}
-                                                    className={`px-1.5 py-0.5 rounded text-[7.5px] font-mono font-bold transition-all ${
-                                                        top10LogoScale === preset
+                                                    className={`px-1.5 py-0.5 rounded text-[7.5px] font-mono font-bold transition-all ${top10LogoScale === preset
                                                             ? 'bg-neon-cyan text-black font-black shadow-[0_0_8px_rgba(0,240,255,0.5)]'
                                                             : 'bg-white/5 hover:bg-white/15 text-gray-400 hover:text-white border border-white/10'
-                                                    }`}
+                                                        }`}
                                                 >
                                                     {preset}%
                                                 </button>
@@ -23596,499 +23606,498 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     </div>
                 ) : (
                     /* 3. FORMULAIRE DE LA TRACK ACTIVE */
-                    <div 
+                    <div
                         className={`p-4 bg-black/50 border rounded-2xl shadow-xl space-y-3.5 transition-all ${podiumBorder}`}
                         style={!podiumBorder ? { borderColor: `rgba(${top10CurrentAccentRgb}, 0.35)` } : {}}
                     >
-                    <div className="flex items-center justify-between pb-1 border-b border-white/10">
-                        <div className="flex items-center gap-2">
-                            <span 
-                                className={`text-[14px] font-black font-mono ${podiumColor}`}
-                                style={!podiumColor ? { color: top10CurrentAccentHex } : {}}
-                            >
-                                {activeTrack.rank === 1 ? '👑 POSITION #1' : activeTrack.rank === 2 ? '🥈 POSITION #2' : activeTrack.rank === 3 ? '🥉 POSITION #3' : `POSITION #${activeTrack.rank}`}
-                            </span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <button
-                                type="button"
-                                onClick={() => selectTop10Track(0)}
-                                className="px-2 py-0.5 bg-cyan-950/50 hover:bg-neon-cyan/20 text-cyan-300 hover:text-white border border-cyan-500/30 hover:border-neon-cyan rounded-md text-[8px] font-black uppercase transition-all flex items-center gap-1"
-                                title="Aller à la configuration de l'Intro"
-                            >
-                                <span>🎬</span> Éditer l'Intro (3.5s)
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => {
-                                    updateTop10Track(activeTrack.rank, { artist: '', title: '', videoUrl: '', cover: '', audioUrl: '', videoStartTime: 0, audioStartTime: 0 });
-                                }}
-                                className="px-2 py-0.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 hover:text-white rounded-md text-[8px] font-bold uppercase transition-colors"
-                                title="Vider cette position"
-                            >
-                                ✕ Vider
-                            </button>
-                            <span className="text-[8px] font-black uppercase tracking-wider text-gray-400">
-                                Track {11 - activeTrack.rank} / 10
-                            </span>
-                        </div>
-                    </div>
-
-                    {/* Mini réglette rapide Taille du Logo Artiste */}
-                    <div className="flex items-center justify-between px-3 py-1.5 bg-black/60 border border-neon-cyan/25 rounded-xl text-[8.5px]">
-                        <span className="font-black text-gray-300 flex items-center gap-1.5">
-                            <span className="text-neon-cyan">🎨</span> Taille Logo Artiste : <span className="text-neon-cyan font-mono">{top10LogoScale}%</span>
-                        </span>
-                        <div className="flex items-center gap-2">
-                            <input
-                                type="range"
-                                min="30"
-                                max="160"
-                                step="5"
-                                value={top10LogoScale}
-                                onChange={e => updateTop10LogoScale(Number(e.target.value))}
-                                className="w-24 sm:w-32 accent-cyan-400 h-1.5 bg-white/10 rounded cursor-pointer"
-                            />
-                            <div className="flex items-center gap-1">
-                                {[50, 70, 85, 100].map(p => (
-                                    <button
-                                        key={p}
-                                        type="button"
-                                        onClick={() => updateTop10LogoScale(p)}
-                                        className={`px-1.5 py-0.5 rounded text-[7.5px] font-mono transition-all ${
-                                            top10LogoScale === p
-                                                ? 'bg-neon-cyan text-black font-black'
-                                                : 'bg-white/5 hover:bg-white/15 text-gray-400 hover:text-white'
-                                        }`}
-                                    >
-                                        {p}%
-                                    </button>
-                                ))}
-                                {top10LogoScale !== 100 && (
-                                    <button
-                                        type="button"
-                                        onClick={() => updateTop10LogoScale(100)}
-                                        className="text-[7.5px] text-gray-400 hover:text-white underline ml-0.5"
-                                        title="Réinitialiser à 100%"
-                                    >
-                                        ↺
-                                    </button>
-                                )}
+                        <div className="flex items-center justify-between pb-1 border-b border-white/10">
+                            <div className="flex items-center gap-2">
+                                <span
+                                    className={`text-[14px] font-black font-mono ${podiumColor}`}
+                                    style={!podiumColor ? { color: top10CurrentAccentHex } : {}}
+                                >
+                                    {activeTrack.rank === 1 ? '👑 POSITION #1' : activeTrack.rank === 2 ? '🥈 POSITION #2' : activeTrack.rank === 3 ? '🥉 POSITION #3' : `POSITION #${activeTrack.rank}`}
+                                </span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <button
+                                    type="button"
+                                    onClick={() => selectTop10Track(0)}
+                                    className="px-2 py-0.5 bg-cyan-950/50 hover:bg-neon-cyan/20 text-cyan-300 hover:text-white border border-cyan-500/30 hover:border-neon-cyan rounded-md text-[8px] font-black uppercase transition-all flex items-center gap-1"
+                                    title="Aller à la configuration de l'Intro"
+                                >
+                                    <span>🎬</span> Éditer l'Intro (3.5s)
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        updateTop10Track(activeTrack.rank, { artist: '', title: '', videoUrl: '', cover: '', audioUrl: '', videoStartTime: 0, audioStartTime: 0 });
+                                    }}
+                                    className="px-2 py-0.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 hover:text-white rounded-md text-[8px] font-bold uppercase transition-colors"
+                                    title="Vider cette position"
+                                >
+                                    ✕ Vider
+                                </button>
+                                <span className="text-[8px] font-black uppercase tracking-wider text-gray-400">
+                                    Track {11 - activeTrack.rank} / 10
+                                </span>
                             </div>
                         </div>
-                    </div>
 
-                    {/* 🔍 RECHERCHE UNIVERSELLE PAR TITRE & ARTISTE */}
-                    <div className="p-3 bg-neon-cyan/10 border border-neon-cyan/30 rounded-xl space-y-2">
-                        <div className="flex items-center justify-between">
-                            <label className="text-[9px] font-black text-neon-cyan uppercase tracking-wider flex items-center gap-1.5">
-                                <Search className="w-3.5 h-3.5 text-neon-cyan" /> Rechercher Titre & Artiste
-                            </label>
-                            <span className="text-[7.5px] text-gray-400 font-mono">
-                                Beatport • Spotify • Apple
+                        {/* Mini réglette rapide Taille du Logo Artiste */}
+                        <div className="flex items-center justify-between px-3 py-1.5 bg-black/60 border border-neon-cyan/25 rounded-xl text-[8.5px]">
+                            <span className="font-black text-gray-300 flex items-center gap-1.5">
+                                <span className="text-neon-cyan">🎨</span> Taille Logo Artiste : <span className="text-neon-cyan font-mono">{top10LogoScale}%</span>
                             </span>
+                            <div className="flex items-center gap-2">
+                                <input
+                                    type="range"
+                                    min="30"
+                                    max="160"
+                                    step="5"
+                                    value={top10LogoScale}
+                                    onChange={e => updateTop10LogoScale(Number(e.target.value))}
+                                    className="w-24 sm:w-32 accent-cyan-400 h-1.5 bg-white/10 rounded cursor-pointer"
+                                />
+                                <div className="flex items-center gap-1">
+                                    {[50, 70, 85, 100].map(p => (
+                                        <button
+                                            key={p}
+                                            type="button"
+                                            onClick={() => updateTop10LogoScale(p)}
+                                            className={`px-1.5 py-0.5 rounded text-[7.5px] font-mono transition-all ${top10LogoScale === p
+                                                    ? 'bg-neon-cyan text-black font-black'
+                                                    : 'bg-white/5 hover:bg-white/15 text-gray-400 hover:text-white'
+                                                }`}
+                                        >
+                                            {p}%
+                                        </button>
+                                    ))}
+                                    {top10LogoScale !== 100 && (
+                                        <button
+                                            type="button"
+                                            onClick={() => updateTop10LogoScale(100)}
+                                            className="text-[7.5px] text-gray-400 hover:text-white underline ml-0.5"
+                                            title="Réinitialiser à 100%"
+                                        >
+                                            ↺
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
                         </div>
-                        <div className="flex items-center gap-1.5">
-                            <div className="relative flex-1">
+
+                        {/* 🔍 RECHERCHE UNIVERSELLE PAR TITRE & ARTISTE */}
+                        <div className="p-3 bg-neon-cyan/10 border border-neon-cyan/30 rounded-xl space-y-2">
+                            <div className="flex items-center justify-between">
+                                <label className="text-[9px] font-black text-neon-cyan uppercase tracking-wider flex items-center gap-1.5">
+                                    <Search className="w-3.5 h-3.5 text-neon-cyan" /> Rechercher Titre & Artiste
+                                </label>
+                                <span className="text-[7.5px] text-gray-400 font-mono">
+                                    Beatport • Spotify • Apple
+                                </span>
+                            </div>
+                            <div className="flex items-center gap-1.5">
+                                <div className="relative flex-1">
+                                    <input
+                                        type="text"
+                                        value={top10SearchQuery}
+                                        onChange={e => setTop10SearchQuery(e.target.value)}
+                                        onKeyDown={e => {
+                                            if (e.key === 'Enter') handleTop10Search(activeTrack.rank, top10SearchQuery);
+                                        }}
+                                        placeholder="Ex: Martin Garrix Byte ou Fisher Losing It..."
+                                        className="w-full bg-black/60 border border-white/10 rounded-xl px-2.5 py-2 text-white text-[10.5px] font-bold focus:border-neon-cyan outline-none placeholder-gray-500"
+                                    />
+                                    {top10SearchQuery && (
+                                        <button
+                                            type="button"
+                                            onClick={() => { setTop10SearchQuery(''); setTop10SearchResults([]); }}
+                                            className="absolute right-2 top-2 text-gray-400 hover:text-white text-[11px]"
+                                        >
+                                            ✕
+                                        </button>
+                                    )}
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={() => handleTop10Search(activeTrack.rank, top10SearchQuery)}
+                                    disabled={isTop10Searching || !top10SearchQuery.trim()}
+                                    className="px-3.5 py-2 bg-neon-cyan text-black font-black text-[9.5px] uppercase rounded-xl hover:bg-neon-cyan/80 transition-all flex items-center gap-1 disabled:opacity-40 shrink-0 active:scale-95 shadow-md shadow-neon-cyan/20"
+                                >
+                                    {isTop10Searching ? '⏳...' : '🔍 Trouver'}
+                                </button>
+                            </div>
+
+                            {/* Résultats de recherche déroulants */}
+                            {top10SearchResults.length > 0 && (
+                                <div className="mt-2 space-y-1.5 max-h-56 overflow-y-auto pr-1">
+                                    <div className="flex items-center justify-between">
+                                        <p className="text-[7.5px] font-black text-gray-400 uppercase tracking-wider">
+                                            Résultats trouvés ({top10SearchResults.length}) :
+                                        </p>
+                                        <button
+                                            type="button"
+                                            onClick={() => setTop10SearchResults([])}
+                                            className="text-[7.5px] text-gray-400 hover:text-white uppercase font-bold"
+                                        >
+                                            Fermer
+                                        </button>
+                                    </div>
+                                    {top10SearchResults.map((res, idx) => (
+                                        <div
+                                            key={idx}
+                                            onClick={() => handleSelectTop10SearchResult(activeTrack.rank, res)}
+                                            className="p-2 bg-white/5 hover:bg-neon-cyan/20 border border-white/10 hover:border-neon-cyan/60 rounded-xl cursor-pointer transition-all flex items-center gap-2.5 group active:scale-98"
+                                        >
+                                            <div className="w-9 h-9 rounded-lg overflow-hidden bg-black/60 shrink-0 border border-white/10">
+                                                {res.coverUrl ? (
+                                                    <img src={res.coverUrl} alt="Cover" className="w-full h-full object-cover" />
+                                                ) : (
+                                                    <div className="w-full h-full flex items-center justify-center text-xs">💿</div>
+                                                )}
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <p className="text-[10px] font-black text-white group-hover:text-neon-cyan truncate uppercase">
+                                                    {res.title}
+                                                </p>
+                                                <p className="text-[8.5px] text-gray-400 truncate uppercase">
+                                                    {res.artist}
+                                                </p>
+                                            </div>
+                                            <div className="shrink-0 flex items-center gap-1.5">
+                                                <span className={`text-[7px] font-black uppercase px-1.5 py-0.5 rounded ${res.platform === 'beatport' ? 'bg-[#00ff66]/20 text-[#00ff66] border border-[#00ff66]/40' : 'bg-pink-500/20 text-pink-300 border border-pink-500/40'}`}>
+                                                    {res.platform}
+                                                </span>
+                                                <span className="text-[8.5px] text-neon-cyan font-black group-hover:translate-x-0.5 transition-transform">
+                                                    ➔
+                                                </span>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Artiste */}
+                        <div className="space-y-1">
+                            <label className="text-[8.5px] font-black text-white uppercase tracking-wider flex items-center justify-between">
+                                <span>Nom de l'Artiste</span>
+                                <span className="text-[7.5px] text-gray-500 font-normal">Rempli auto via lien</span>
+                            </label>
+                            <input
+                                type="text"
+                                value={activeTrack.artist}
+                                onChange={e => updateTop10Track(activeTrack.rank, { artist: e.target.value.toUpperCase() })}
+                                placeholder="EX: NOM DE L'ARTISTE (OU AUTO DÉTECTÉ)"
+                                className="w-full bg-white/5 border border-white/10 rounded-xl p-2.5 text-white font-black uppercase text-[11px] tracking-wider focus:border-neon-cyan/50 outline-none"
+                            />
+                        </div>
+
+                        {/* Titre */}
+                        <div className="space-y-1">
+                            <label className="text-[8.5px] font-black text-white uppercase tracking-wider flex items-center justify-between">
+                                <span>Titre du Morceau</span>
+                                <span className="text-[7.5px] text-gray-500 font-normal">Rempli auto via lien ou recherche</span>
+                            </label>
+                            <input
+                                type="text"
+                                value={activeTrack.title}
+                                onChange={e => updateTop10Track(activeTrack.rank, { title: e.target.value.toUpperCase() })}
+                                placeholder="EX: TITRE DU MORCEAU (OU AUTO DÉTECTÉ)"
+                                className="w-full bg-white/5 border border-white/10 rounded-xl p-2.5 text-white font-black uppercase text-[11px] tracking-wider focus:border-neon-cyan/50 outline-none"
+                            />
+                        </div>
+
+                        {/* Streams (Nombre d'écoutes affiché sous le titre) */}
+                        <div className="space-y-1">
+                            <label className="text-[8.5px] font-black text-neon-cyan uppercase tracking-wider flex items-center justify-between">
+                                <span className="flex items-center gap-1">
+                                    📊 Streams / Écoutes (Sous le titre)
+                                </span>
+                                <span className="text-[7.5px] text-gray-400 font-normal">Optionnel</span>
+                            </label>
+                            <div className="relative">
                                 <input
                                     type="text"
-                                    value={top10SearchQuery}
-                                    onChange={e => setTop10SearchQuery(e.target.value)}
-                                    onKeyDown={e => {
-                                        if (e.key === 'Enter') handleTop10Search(activeTrack.rank, top10SearchQuery);
-                                    }}
-                                    placeholder="Ex: Martin Garrix Byte ou Fisher Losing It..."
-                                    className="w-full bg-black/60 border border-white/10 rounded-xl px-2.5 py-2 text-white text-[10.5px] font-bold focus:border-neon-cyan outline-none placeholder-gray-500"
+                                    value={activeTrack.streams || ''}
+                                    onChange={e => updateTop10Track(activeTrack.rank, { streams: e.target.value })}
+                                    placeholder="EX: 1 826 620 962 OU 743M"
+                                    className="w-full bg-white/5 border border-white/10 rounded-xl p-2.5 text-white font-mono font-bold text-[11px] tracking-wider focus:border-neon-cyan/50 outline-none placeholder:text-gray-600"
                                 />
-                                {top10SearchQuery && (
+                                {activeTrack.streams && (
                                     <button
                                         type="button"
-                                        onClick={() => { setTop10SearchQuery(''); setTop10SearchResults([]); }}
-                                        className="absolute right-2 top-2 text-gray-400 hover:text-white text-[11px]"
+                                        onClick={() => updateTop10Track(activeTrack.rank, { streams: '' })}
+                                        className="absolute right-2 top-2.5 text-gray-500 hover:text-white text-[11px]"
+                                        title="Effacer"
                                     >
                                         ✕
                                     </button>
                                 )}
                             </div>
+                        </div>
+
+                        {/* Bouton de recherche automatique si Titre ou Artiste déjà saisi */}
+                        {(activeTrack.artist || activeTrack.title) && (
                             <button
                                 type="button"
-                                onClick={() => handleTop10Search(activeTrack.rank, top10SearchQuery)}
-                                disabled={isTop10Searching || !top10SearchQuery.trim()}
-                                className="px-3.5 py-2 bg-neon-cyan text-black font-black text-[9.5px] uppercase rounded-xl hover:bg-neon-cyan/80 transition-all flex items-center gap-1 disabled:opacity-40 shrink-0 active:scale-95 shadow-md shadow-neon-cyan/20"
+                                onClick={() => {
+                                    const q = `${activeTrack.artist || ''} ${activeTrack.title || ''}`.trim();
+                                    setTop10SearchQuery(q);
+                                    handleTop10Search(activeTrack.rank, q);
+                                }}
+                                className="w-full py-1.5 px-2 bg-neon-cyan/10 hover:bg-neon-cyan/20 border border-neon-cyan/30 hover:border-neon-cyan/50 rounded-xl text-[8.5px] font-bold text-neon-cyan uppercase flex items-center justify-center gap-1.5 transition-all"
                             >
-                                {isTop10Searching ? '⏳...' : '🔍 Trouver'}
+                                <Search className="w-3 h-3 text-neon-cyan" />
+                                <span>Auto-compléter la pochette & le son pour « {activeTrack.artist || ''} {activeTrack.title || ''} »</span>
+                            </button>
+                        )}
+
+                        {/* Pochette Carrée 1:1 (Cover) */}
+                        <div className="space-y-1.5 pt-1 border-t border-white/5">
+                            <label className="text-[8.5px] font-black text-white uppercase tracking-wider flex items-center justify-between">
+                                <span>🖼️ Pochette du Morceau (Cover 1:1)</span>
+                                {activeTrack.cover && <span className="text-emerald-400 text-[7.5px] font-mono">✓ Pochette chargée</span>}
+                            </label>
+                            <div className="flex items-center gap-2">
+                                <div className="w-10 h-10 rounded-xl overflow-hidden bg-black/60 border border-white/10 shrink-0 flex items-center justify-center">
+                                    {activeTrack.cover ? (
+                                        <img src={activeTrack.cover} alt="Cover" className="w-full h-full object-cover" />
+                                    ) : (
+                                        <span className="text-[14px]">💿</span>
+                                    )}
+                                </div>
+                                <input
+                                    type="text"
+                                    value={activeTrack.cover || ''}
+                                    onChange={e => {
+                                        const val = e.target.value.trim();
+                                        updateTop10Track(activeTrack.rank, { cover: val });
+                                        if (val) {
+                                            loadCorsSafeImage(val, (im) => {
+                                                imageCacheRef.current[val] = im;
+                                                generateImage();
+                                            });
+                                        }
+                                    }}
+                                    placeholder="URL de la pochette (ou auto-détectée via le lien)..."
+                                    className="flex-1 bg-white/5 border border-white/10 rounded-xl p-2 text-white font-mono text-[10px] focus:border-neon-cyan/50 outline-none truncate"
+                                />
+                                <label className="px-2.5 py-2 bg-white/10 hover:bg-white/20 text-white rounded-xl text-[9px] font-black uppercase cursor-pointer transition-all shrink-0 border border-white/10 flex items-center gap-1" title="Importer une image locale">
+                                    <span>📁</span>
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        className="hidden"
+                                        onChange={e => {
+                                            const file = e.target.files?.[0];
+                                            if (file) {
+                                                const reader = new FileReader();
+                                                reader.onload = (ev) => {
+                                                    const dataUrl = ev.target?.result as string;
+                                                    if (dataUrl) {
+                                                        const im = new Image();
+                                                        im.onload = () => {
+                                                            imageCacheRef.current[dataUrl] = im;
+                                                            updateTop10Track(activeTrack.rank, { cover: dataUrl });
+                                                            generateImage();
+                                                        };
+                                                        im.src = dataUrl;
+                                                    }
+                                                };
+                                                reader.readAsDataURL(file);
+                                            }
+                                            e.target.value = '';
+                                        }}
+                                    />
+                                </label>
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setR2TargetType('top10_track_cover');
+                                        setR2TargetIdx(activeTrack.rank);
+                                        setIsR2ModalOpen(true);
+                                    }}
+                                    className="px-2.5 py-2 bg-white/10 hover:bg-white/20 text-white rounded-xl text-[9px] font-black uppercase transition-all shrink-0 border border-white/10 flex items-center gap-1"
+                                    title="Choisir dans la médiathèque Dropsiders R2"
+                                >
+                                    <span>🖼️ R2</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Extrait Audio / Vidéo (Spotify, Beatport, Deezer, Soundcloud, YouTube...) */}
+                        <div className="space-y-1.5 pt-1 border-t border-white/5">
+                            <label className="text-[8.5px] font-black text-white uppercase tracking-wider flex items-center justify-between">
+                                <span>🎵 Extrait Audio / Vidéo (Spotify, Beatport, Deezer, YouTube...)</span>
+                                {(activeTrack.audioUrl || activeTrack.videoUrl) ? (
+                                    <span className="text-emerald-400 text-[8px] font-mono">
+                                        ✓ Connecté ({activeTrack.audioUrl ? 'Beatport/Spotify Audio' : 'Vidéo'})
+                                    </span>
+                                ) : (
+                                    <span className="text-gray-500 text-[7.5px]">En attente de lien</span>
+                                )}
+                            </label>
+                            <div className="flex gap-2">
+                                <input
+                                    type="text"
+                                    value={activeTrack.sourceUrl !== undefined ? activeTrack.sourceUrl : (activeTrack.videoUrl || activeTrack.audioUrl || '')}
+                                    onChange={e => {
+                                        const val = e.target.value;
+                                        updateTop10Track(activeTrack.rank, { sourceUrl: val });
+                                    }}
+                                    onPaste={e => {
+                                        const pasted = e.clipboardData.getData('text');
+                                        if (pasted && pasted.trim()) {
+                                            const clean = pasted.trim();
+                                            updateTop10Track(activeTrack.rank, { sourceUrl: clean });
+                                            setTimeout(() => {
+                                                handleTop10ResolveVideo(activeTrack.rank, clean);
+                                            }, 50);
+                                        }
+                                    }}
+                                    onKeyDown={e => {
+                                        if (e.key === 'Enter') {
+                                            e.preventDefault();
+                                            const urlToResolve = activeTrack.sourceUrl || activeTrack.videoUrl || activeTrack.audioUrl || '';
+                                            if (urlToResolve) handleTop10ResolveVideo(activeTrack.rank, urlToResolve);
+                                        }
+                                    }}
+                                    placeholder="Coller lien Spotify, Beatport, Deezer, YouTube..."
+                                    className="flex-1 bg-white/5 border border-white/10 rounded-xl p-2 text-white font-mono text-[10px] focus:border-neon-cyan/50 outline-none truncate"
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        const urlToResolve = activeTrack.sourceUrl || activeTrack.videoUrl || activeTrack.audioUrl || '';
+                                        if (urlToResolve) handleTop10ResolveVideo(activeTrack.rank, urlToResolve);
+                                    }}
+                                    disabled={top10ResolvingRank === activeTrack.rank || (!activeTrack.sourceUrl && !activeTrack.audioUrl && !activeTrack.videoUrl)}
+                                    className="px-3 py-2 bg-neon-cyan/20 border border-neon-cyan text-neon-cyan rounded-xl text-[9px] font-black uppercase hover:bg-neon-cyan hover:text-black transition-all disabled:opacity-40 disabled:pointer-events-none shrink-0"
+                                >
+                                    {top10ResolvingRank === activeTrack.rank ? '⏳...' : '⚡ Extraire'}
+                                </button>
+                            </div>
+                            <p className="text-[7.5px] text-gray-500 font-mono">
+                                💡 Chaque position possède son propre lien indépendant. Collez un lien Spotify, YouTube, Beatport ou Deezer pour remplir cette position.
+                            </p>
+                        </div>
+
+                        {/* Start Time Découpage */}
+                        <div className="space-y-1.5">
+                            <div className="flex items-center justify-between">
+                                <label className="text-[8.5px] font-black text-gray-300 uppercase tracking-wider">
+                                    ⏱️ Début de l'extrait / Drop
+                                </label>
+                                <span className="text-[10px] font-mono font-bold text-neon-cyan">
+                                    {Math.floor((activeTrack.videoStartTime || 0) / 60)}:{(Math.floor((activeTrack.videoStartTime || 0) % 60)).toString().padStart(2, '0')} ({activeTrack.videoStartTime || 0}s)
+                                </span>
+                            </div>
+
+                            {/* Quick adjusters */}
+                            <div className="flex items-center gap-1.5">
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        const next = Math.max(0, (activeTrack.audioStartTime || activeTrack.videoStartTime || 0) - 15);
+                                        updateTop10Track(activeTrack.rank, { videoStartTime: next, audioStartTime: next });
+                                        const v = activeTrack.videoUrl ? getOrCreateTop10Video(activeTrack.rank, activeTrack.videoUrl) : null;
+                                        if (v) try { v.currentTime = next; } catch (_) { }
+                                    }}
+                                    className="flex-1 py-1 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-[9px] font-mono text-gray-300"
+                                >
+                                    -15s
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        const next = Math.max(0, (activeTrack.audioStartTime || activeTrack.videoStartTime || 0) - 5);
+                                        updateTop10Track(activeTrack.rank, { videoStartTime: next, audioStartTime: next });
+                                        const v = activeTrack.videoUrl ? getOrCreateTop10Video(activeTrack.rank, activeTrack.videoUrl) : null;
+                                        if (v) try { v.currentTime = next; } catch (_) { }
+                                    }}
+                                    className="flex-1 py-1 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-[9px] font-mono text-gray-300"
+                                >
+                                    -5s
+                                </button>
+                                <input
+                                    type="number"
+                                    min={0}
+                                    value={activeTrack.audioStartTime || activeTrack.videoStartTime || 0}
+                                    onChange={e => {
+                                        const next = Math.max(0, Number(e.target.value) || 0);
+                                        updateTop10Track(activeTrack.rank, { videoStartTime: next, audioStartTime: next });
+                                        const v = activeTrack.videoUrl ? getOrCreateTop10Video(activeTrack.rank, activeTrack.videoUrl) : null;
+                                        if (v) try { v.currentTime = next; } catch (_) { }
+                                    }}
+                                    className="w-16 bg-white/10 border border-white/20 rounded-lg p-1 text-center font-mono text-white text-[10px] outline-none"
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        const next = (activeTrack.audioStartTime || activeTrack.videoStartTime || 0) + 5;
+                                        updateTop10Track(activeTrack.rank, { videoStartTime: next, audioStartTime: next });
+                                        const v = activeTrack.videoUrl ? getOrCreateTop10Video(activeTrack.rank, activeTrack.videoUrl) : null;
+                                        if (v) try { v.currentTime = next; } catch (_) { }
+                                    }}
+                                    className="flex-1 py-1 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-[9px] font-mono text-gray-300"
+                                >
+                                    +5s
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        const next = (activeTrack.audioStartTime || activeTrack.videoStartTime || 0) + 15;
+                                        updateTop10Track(activeTrack.rank, { videoStartTime: next, audioStartTime: next });
+                                        const v = activeTrack.videoUrl ? getOrCreateTop10Video(activeTrack.rank, activeTrack.videoUrl) : null;
+                                        if (v) try { v.currentTime = next; } catch (_) { }
+                                    }}
+                                    className="flex-1 py-1 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-[9px] font-mono text-gray-300"
+                                >
+                                    +15s
+                                </button>
+                            </div>
+
+                            {/* Test clip button */}
+                            <button
+                                type="button"
+                                onClick={() => handleTop10TestClip(activeTrack.rank)}
+                                className={`w-full py-2.5 rounded-xl border text-[10px] font-black uppercase transition-all flex items-center justify-center gap-2 shadow-lg active:scale-98 ${top10TestingRank === activeTrack.rank
+                                    ? 'bg-amber-500 text-black border-amber-400 animate-pulse'
+                                    : 'bg-white/10 hover:bg-white/20 border-white/20 text-white'
+                                    }`}
+                            >
+                                {top10TestingRank === activeTrack.rank ? (
+                                    <>⏹ Arrêter le test</>
+                                ) : (
+                                    <>▶ Écouter / Tester l'extrait ({top10TrackDuration}s)</>
+                                )}
                             </button>
                         </div>
 
-                        {/* Résultats de recherche déroulants */}
-                        {top10SearchResults.length > 0 && (
-                            <div className="mt-2 space-y-1.5 max-h-56 overflow-y-auto pr-1">
-                                <div className="flex items-center justify-between">
-                                    <p className="text-[7.5px] font-black text-gray-400 uppercase tracking-wider">
-                                        Résultats trouvés ({top10SearchResults.length}) :
-                                    </p>
-                                    <button
-                                        type="button"
-                                        onClick={() => setTop10SearchResults([])}
-                                        className="text-[7.5px] text-gray-400 hover:text-white uppercase font-bold"
-                                    >
-                                        Fermer
-                                    </button>
-                                </div>
-                                {top10SearchResults.map((res, idx) => (
-                                    <div
-                                        key={idx}
-                                        onClick={() => handleSelectTop10SearchResult(activeTrack.rank, res)}
-                                        className="p-2 bg-white/5 hover:bg-neon-cyan/20 border border-white/10 hover:border-neon-cyan/60 rounded-xl cursor-pointer transition-all flex items-center gap-2.5 group active:scale-98"
-                                    >
-                                        <div className="w-9 h-9 rounded-lg overflow-hidden bg-black/60 shrink-0 border border-white/10">
-                                            {res.coverUrl ? (
-                                                <img src={res.coverUrl} alt="Cover" className="w-full h-full object-cover" />
-                                            ) : (
-                                                <div className="w-full h-full flex items-center justify-center text-xs">💿</div>
-                                            )}
-                                        </div>
-                                        <div className="flex-1 min-w-0">
-                                            <p className="text-[10px] font-black text-white group-hover:text-neon-cyan truncate uppercase">
-                                                {res.title}
-                                            </p>
-                                            <p className="text-[8.5px] text-gray-400 truncate uppercase">
-                                                {res.artist}
-                                            </p>
-                                        </div>
-                                        <div className="shrink-0 flex items-center gap-1.5">
-                                            <span className={`text-[7px] font-black uppercase px-1.5 py-0.5 rounded ${res.platform === 'beatport' ? 'bg-[#00ff66]/20 text-[#00ff66] border border-[#00ff66]/40' : 'bg-pink-500/20 text-pink-300 border border-pink-500/40'}`}>
-                                                {res.platform}
-                                            </span>
-                                            <span className="text-[8.5px] text-neon-cyan font-black group-hover:translate-x-0.5 transition-transform">
-                                                ➔
-                                            </span>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-                    </div>
-
-                    {/* Artiste */}
-                    <div className="space-y-1">
-                        <label className="text-[8.5px] font-black text-white uppercase tracking-wider flex items-center justify-between">
-                            <span>Nom de l'Artiste</span>
-                            <span className="text-[7.5px] text-gray-500 font-normal">Rempli auto via lien</span>
-                        </label>
-                        <input
-                            type="text"
-                            value={activeTrack.artist}
-                            onChange={e => updateTop10Track(activeTrack.rank, { artist: e.target.value.toUpperCase() })}
-                            placeholder="EX: NOM DE L'ARTISTE (OU AUTO DÉTECTÉ)"
-                            className="w-full bg-white/5 border border-white/10 rounded-xl p-2.5 text-white font-black uppercase text-[11px] tracking-wider focus:border-neon-cyan/50 outline-none"
-                        />
-                    </div>
-
-                    {/* Titre */}
-                    <div className="space-y-1">
-                        <label className="text-[8.5px] font-black text-white uppercase tracking-wider flex items-center justify-between">
-                            <span>Titre du Morceau</span>
-                            <span className="text-[7.5px] text-gray-500 font-normal">Rempli auto via lien ou recherche</span>
-                        </label>
-                        <input
-                            type="text"
-                            value={activeTrack.title}
-                            onChange={e => updateTop10Track(activeTrack.rank, { title: e.target.value.toUpperCase() })}
-                            placeholder="EX: TITRE DU MORCEAU (OU AUTO DÉTECTÉ)"
-                            className="w-full bg-white/5 border border-white/10 rounded-xl p-2.5 text-white font-black uppercase text-[11px] tracking-wider focus:border-neon-cyan/50 outline-none"
-                        />
-                    </div>
-
-                    {/* Streams (Nombre d'écoutes affiché sous le titre) */}
-                    <div className="space-y-1">
-                        <label className="text-[8.5px] font-black text-neon-cyan uppercase tracking-wider flex items-center justify-between">
-                            <span className="flex items-center gap-1">
-                                📊 Streams / Écoutes (Sous le titre)
-                            </span>
-                            <span className="text-[7.5px] text-gray-400 font-normal">Optionnel</span>
-                        </label>
-                        <div className="relative">
-                            <input
-                                type="text"
-                                value={activeTrack.streams || ''}
-                                onChange={e => updateTop10Track(activeTrack.rank, { streams: e.target.value })}
-                                placeholder="EX: 1 826 620 962 OU 743M"
-                                className="w-full bg-white/5 border border-white/10 rounded-xl p-2.5 text-white font-mono font-bold text-[11px] tracking-wider focus:border-neon-cyan/50 outline-none placeholder:text-gray-600"
-                            />
-                            {activeTrack.streams && (
+                        {/* Navigation track suivante */}
+                        <div className="pt-2 flex justify-between gap-2 border-t border-white/10">
+                            {activeTrack.rank < 10 && (
                                 <button
                                     type="button"
-                                    onClick={() => updateTop10Track(activeTrack.rank, { streams: '' })}
-                                    className="absolute right-2 top-2.5 text-gray-500 hover:text-white text-[11px]"
-                                    title="Effacer"
+                                    onClick={() => selectTop10Track(activeTrack.rank + 1)}
+                                    className="py-2 px-3 bg-white/5 hover:bg-white/10 text-gray-300 rounded-xl text-[9px] font-black uppercase border border-white/10"
                                 >
-                                    ✕
+                                    ← Track #{activeTrack.rank + 1}
+                                </button>
+                            )}
+                            {activeTrack.rank > 1 && (
+                                <button
+                                    type="button"
+                                    onClick={() => selectTop10Track(activeTrack.rank - 1)}
+                                    className="ml-auto py-2 px-3 bg-neon-cyan/20 hover:bg-neon-cyan text-neon-cyan hover:text-black rounded-xl text-[9px] font-black uppercase border border-neon-cyan/50 transition-all"
+                                >
+                                    Track #{activeTrack.rank - 1} →
                                 </button>
                             )}
                         </div>
                     </div>
-
-                    {/* Bouton de recherche automatique si Titre ou Artiste déjà saisi */}
-                    {(activeTrack.artist || activeTrack.title) && (
-                        <button
-                            type="button"
-                            onClick={() => {
-                                const q = `${activeTrack.artist || ''} ${activeTrack.title || ''}`.trim();
-                                setTop10SearchQuery(q);
-                                handleTop10Search(activeTrack.rank, q);
-                            }}
-                            className="w-full py-1.5 px-2 bg-neon-cyan/10 hover:bg-neon-cyan/20 border border-neon-cyan/30 hover:border-neon-cyan/50 rounded-xl text-[8.5px] font-bold text-neon-cyan uppercase flex items-center justify-center gap-1.5 transition-all"
-                        >
-                            <Search className="w-3 h-3 text-neon-cyan" />
-                            <span>Auto-compléter la pochette & le son pour « {activeTrack.artist || ''} {activeTrack.title || ''} »</span>
-                        </button>
-                    )}
-
-                    {/* Pochette Carrée 1:1 (Cover) */}
-                    <div className="space-y-1.5 pt-1 border-t border-white/5">
-                        <label className="text-[8.5px] font-black text-white uppercase tracking-wider flex items-center justify-between">
-                            <span>🖼️ Pochette du Morceau (Cover 1:1)</span>
-                            {activeTrack.cover && <span className="text-emerald-400 text-[7.5px] font-mono">✓ Pochette chargée</span>}
-                        </label>
-                        <div className="flex items-center gap-2">
-                            <div className="w-10 h-10 rounded-xl overflow-hidden bg-black/60 border border-white/10 shrink-0 flex items-center justify-center">
-                                {activeTrack.cover ? (
-                                    <img src={activeTrack.cover} alt="Cover" className="w-full h-full object-cover" />
-                                ) : (
-                                    <span className="text-[14px]">💿</span>
-                                )}
-                            </div>
-                            <input
-                                type="text"
-                                value={activeTrack.cover || ''}
-                                onChange={e => {
-                                    const val = e.target.value.trim();
-                                    updateTop10Track(activeTrack.rank, { cover: val });
-                                    if (val) {
-                                        loadCorsSafeImage(val, (im) => {
-                                            imageCacheRef.current[val] = im;
-                                            generateImage();
-                                        });
-                                    }
-                                }}
-                                placeholder="URL de la pochette (ou auto-détectée via le lien)..."
-                                className="flex-1 bg-white/5 border border-white/10 rounded-xl p-2 text-white font-mono text-[10px] focus:border-neon-cyan/50 outline-none truncate"
-                            />
-                            <label className="px-2.5 py-2 bg-white/10 hover:bg-white/20 text-white rounded-xl text-[9px] font-black uppercase cursor-pointer transition-all shrink-0 border border-white/10 flex items-center gap-1" title="Importer une image locale">
-                                <span>📁</span>
-                                <input
-                                    type="file"
-                                    accept="image/*"
-                                    className="hidden"
-                                    onChange={e => {
-                                        const file = e.target.files?.[0];
-                                        if (file) {
-                                            const reader = new FileReader();
-                                            reader.onload = (ev) => {
-                                                const dataUrl = ev.target?.result as string;
-                                                if (dataUrl) {
-                                                    const im = new Image();
-                                                    im.onload = () => {
-                                                        imageCacheRef.current[dataUrl] = im;
-                                                        updateTop10Track(activeTrack.rank, { cover: dataUrl });
-                                                        generateImage();
-                                                    };
-                                                    im.src = dataUrl;
-                                                }
-                                            };
-                                            reader.readAsDataURL(file);
-                                        }
-                                        e.target.value = '';
-                                    }}
-                                />
-                            </label>
-                            <button
-                                type="button"
-                                onClick={() => {
-                                    setR2TargetType('top10_track_cover');
-                                    setR2TargetIdx(activeTrack.rank);
-                                    setIsR2ModalOpen(true);
-                                }}
-                                className="px-2.5 py-2 bg-white/10 hover:bg-white/20 text-white rounded-xl text-[9px] font-black uppercase transition-all shrink-0 border border-white/10 flex items-center gap-1"
-                                title="Choisir dans la médiathèque Dropsiders R2"
-                            >
-                                <span>🖼️ R2</span>
-                            </button>
-                        </div>
-                    </div>
-
-                    {/* Extrait Audio / Vidéo (Spotify, Beatport, Deezer, Soundcloud, YouTube...) */}
-                    <div className="space-y-1.5 pt-1 border-t border-white/5">
-                        <label className="text-[8.5px] font-black text-white uppercase tracking-wider flex items-center justify-between">
-                            <span>🎵 Extrait Audio / Vidéo (Spotify, Beatport, Deezer, YouTube...)</span>
-                            {(activeTrack.audioUrl || activeTrack.videoUrl) ? (
-                                <span className="text-emerald-400 text-[8px] font-mono">
-                                    ✓ Connecté ({activeTrack.audioUrl ? 'Beatport/Spotify Audio' : 'Vidéo'})
-                                </span>
-                            ) : (
-                                <span className="text-gray-500 text-[7.5px]">En attente de lien</span>
-                            )}
-                        </label>
-                        <div className="flex gap-2">
-                            <input
-                                type="text"
-                                value={activeTrack.sourceUrl !== undefined ? activeTrack.sourceUrl : (activeTrack.videoUrl || activeTrack.audioUrl || '')}
-                                onChange={e => {
-                                    const val = e.target.value;
-                                    updateTop10Track(activeTrack.rank, { sourceUrl: val });
-                                }}
-                                onPaste={e => {
-                                    const pasted = e.clipboardData.getData('text');
-                                    if (pasted && pasted.trim()) {
-                                        const clean = pasted.trim();
-                                        updateTop10Track(activeTrack.rank, { sourceUrl: clean });
-                                        setTimeout(() => {
-                                            handleTop10ResolveVideo(activeTrack.rank, clean);
-                                        }, 50);
-                                    }
-                                }}
-                                onKeyDown={e => {
-                                    if (e.key === 'Enter') {
-                                        e.preventDefault();
-                                        const urlToResolve = activeTrack.sourceUrl || activeTrack.videoUrl || activeTrack.audioUrl || '';
-                                        if (urlToResolve) handleTop10ResolveVideo(activeTrack.rank, urlToResolve);
-                                    }
-                                }}
-                                placeholder="Coller lien Spotify, Beatport, Deezer, YouTube..."
-                                className="flex-1 bg-white/5 border border-white/10 rounded-xl p-2 text-white font-mono text-[10px] focus:border-neon-cyan/50 outline-none truncate"
-                            />
-                            <button
-                                type="button"
-                                onClick={() => {
-                                    const urlToResolve = activeTrack.sourceUrl || activeTrack.videoUrl || activeTrack.audioUrl || '';
-                                    if (urlToResolve) handleTop10ResolveVideo(activeTrack.rank, urlToResolve);
-                                }}
-                                disabled={top10ResolvingRank === activeTrack.rank || (!activeTrack.sourceUrl && !activeTrack.audioUrl && !activeTrack.videoUrl)}
-                                className="px-3 py-2 bg-neon-cyan/20 border border-neon-cyan text-neon-cyan rounded-xl text-[9px] font-black uppercase hover:bg-neon-cyan hover:text-black transition-all disabled:opacity-40 disabled:pointer-events-none shrink-0"
-                            >
-                                {top10ResolvingRank === activeTrack.rank ? '⏳...' : '⚡ Extraire'}
-                            </button>
-                        </div>
-                        <p className="text-[7.5px] text-gray-500 font-mono">
-                            💡 Chaque position possède son propre lien indépendant. Collez un lien Spotify, YouTube, Beatport ou Deezer pour remplir cette position.
-                        </p>
-                    </div>
-
-                    {/* Start Time Découpage */}
-                    <div className="space-y-1.5">
-                        <div className="flex items-center justify-between">
-                            <label className="text-[8.5px] font-black text-gray-300 uppercase tracking-wider">
-                                ⏱️ Début de l'extrait / Drop
-                            </label>
-                            <span className="text-[10px] font-mono font-bold text-neon-cyan">
-                                {Math.floor((activeTrack.videoStartTime || 0) / 60)}:{(Math.floor((activeTrack.videoStartTime || 0) % 60)).toString().padStart(2, '0')} ({activeTrack.videoStartTime || 0}s)
-                            </span>
-                        </div>
-
-                        {/* Quick adjusters */}
-                        <div className="flex items-center gap-1.5">
-                            <button
-                                type="button"
-                                onClick={() => {
-                                    const next = Math.max(0, (activeTrack.audioStartTime || activeTrack.videoStartTime || 0) - 15);
-                                    updateTop10Track(activeTrack.rank, { videoStartTime: next, audioStartTime: next });
-                                    const v = activeTrack.videoUrl ? getOrCreateTop10Video(activeTrack.rank, activeTrack.videoUrl) : null;
-                                    if (v) try { v.currentTime = next; } catch (_) { }
-                                }}
-                                className="flex-1 py-1 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-[9px] font-mono text-gray-300"
-                            >
-                                -15s
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => {
-                                    const next = Math.max(0, (activeTrack.audioStartTime || activeTrack.videoStartTime || 0) - 5);
-                                    updateTop10Track(activeTrack.rank, { videoStartTime: next, audioStartTime: next });
-                                    const v = activeTrack.videoUrl ? getOrCreateTop10Video(activeTrack.rank, activeTrack.videoUrl) : null;
-                                    if (v) try { v.currentTime = next; } catch (_) { }
-                                }}
-                                className="flex-1 py-1 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-[9px] font-mono text-gray-300"
-                            >
-                                -5s
-                            </button>
-                            <input
-                                type="number"
-                                min={0}
-                                value={activeTrack.audioStartTime || activeTrack.videoStartTime || 0}
-                                onChange={e => {
-                                    const next = Math.max(0, Number(e.target.value) || 0);
-                                    updateTop10Track(activeTrack.rank, { videoStartTime: next, audioStartTime: next });
-                                    const v = activeTrack.videoUrl ? getOrCreateTop10Video(activeTrack.rank, activeTrack.videoUrl) : null;
-                                    if (v) try { v.currentTime = next; } catch (_) { }
-                                }}
-                                className="w-16 bg-white/10 border border-white/20 rounded-lg p-1 text-center font-mono text-white text-[10px] outline-none"
-                            />
-                            <button
-                                type="button"
-                                onClick={() => {
-                                    const next = (activeTrack.audioStartTime || activeTrack.videoStartTime || 0) + 5;
-                                    updateTop10Track(activeTrack.rank, { videoStartTime: next, audioStartTime: next });
-                                    const v = activeTrack.videoUrl ? getOrCreateTop10Video(activeTrack.rank, activeTrack.videoUrl) : null;
-                                    if (v) try { v.currentTime = next; } catch (_) { }
-                                }}
-                                className="flex-1 py-1 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-[9px] font-mono text-gray-300"
-                            >
-                                +5s
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => {
-                                    const next = (activeTrack.audioStartTime || activeTrack.videoStartTime || 0) + 15;
-                                    updateTop10Track(activeTrack.rank, { videoStartTime: next, audioStartTime: next });
-                                    const v = activeTrack.videoUrl ? getOrCreateTop10Video(activeTrack.rank, activeTrack.videoUrl) : null;
-                                    if (v) try { v.currentTime = next; } catch (_) { }
-                                }}
-                                className="flex-1 py-1 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-[9px] font-mono text-gray-300"
-                            >
-                                +15s
-                            </button>
-                        </div>
-
-                        {/* Test clip button */}
-                        <button
-                            type="button"
-                            onClick={() => handleTop10TestClip(activeTrack.rank)}
-                            className={`w-full py-2.5 rounded-xl border text-[10px] font-black uppercase transition-all flex items-center justify-center gap-2 shadow-lg active:scale-98 ${top10TestingRank === activeTrack.rank
-                                    ? 'bg-amber-500 text-black border-amber-400 animate-pulse'
-                                    : 'bg-white/10 hover:bg-white/20 border-white/20 text-white'
-                                }`}
-                        >
-                            {top10TestingRank === activeTrack.rank ? (
-                                <>⏹ Arrêter le test</>
-                            ) : (
-                                <>▶ Écouter / Tester l'extrait ({top10TrackDuration}s)</>
-                            )}
-                        </button>
-                    </div>
-
-                    {/* Navigation track suivante */}
-                    <div className="pt-2 flex justify-between gap-2 border-t border-white/10">
-                        {activeTrack.rank < 10 && (
-                            <button
-                                type="button"
-                                onClick={() => selectTop10Track(activeTrack.rank + 1)}
-                                className="py-2 px-3 bg-white/5 hover:bg-white/10 text-gray-300 rounded-xl text-[9px] font-black uppercase border border-white/10"
-                            >
-                                ← Track #{activeTrack.rank + 1}
-                            </button>
-                        )}
-                        {activeTrack.rank > 1 && (
-                            <button
-                                type="button"
-                                onClick={() => selectTop10Track(activeTrack.rank - 1)}
-                                className="ml-auto py-2 px-3 bg-neon-cyan/20 hover:bg-neon-cyan text-neon-cyan hover:text-black rounded-xl text-[9px] font-black uppercase border border-neon-cyan/50 transition-all"
-                            >
-                                Track #{activeTrack.rank - 1} →
-                            </button>
-                        )}
-                    </div>
-                </div>
                 )}
 
                 {/* 4. MODALE RECHERCHE DE LOGO WEB */}
@@ -26427,7 +26436,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         video.play().then(() => setIsVideoAudioMuted(false)).catch(() => {
                                             video.muted = true;
                                             setIsVideoAudioMuted(true);
-                                            video.play().catch(() => {});
+                                            video.play().catch(() => { });
                                         });
                                         setBgVideo(video);
                                         setIsVideoAudioMuted(true);
@@ -27418,7 +27427,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                             </div>
                                         )}
 
-                                        
+
 
                                         {/* Export du fond visuel + Option pour animer le fond */}
                                         <div className="pt-2 border-t border-white/10 space-y-2">
@@ -27981,11 +27990,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                             if (bgVideo) bgVideo.currentTime = bgVideoStartTimeRef.current;
                                             setAnimReplayKey(k => k + 1);
                                         }}
-                                        className={`px-2.5 py-1 rounded-xl text-[9.5px] font-black uppercase transition-all flex items-center gap-1 ${
-                                            focusReelStyle === st.id
+                                        className={`px-2.5 py-1 rounded-xl text-[9.5px] font-black uppercase transition-all flex items-center gap-1 ${focusReelStyle === st.id
                                                 ? 'bg-[#ffe600] text-black shadow-[0_0_14px_rgba(255,230,0,0.6)] scale-[1.03]'
                                                 : 'bg-white/5 text-gray-300 hover:text-white hover:bg-white/10 border border-white/10'
-                                        }`}
+                                            }`}
                                         title={st.desc}
                                     >
                                         {st.label}
@@ -27998,7 +28006,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                             animStartTimeRef.current = Date.now();
                                             if (bgVideo) {
                                                 bgVideo.currentTime = bgVideoStartTimeRef.current;
-                                                bgVideo.play().catch(() => {});
+                                                bgVideo.play().catch(() => { });
                                             }
                                             setAnimReplayKey(k => k + 1);
                                         }}
@@ -28598,18 +28606,17 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                             ensureVideoMountedInDOM(bgVideo);
                                             if (bgVideo.muted) {
                                                 bgVideo.muted = false;
-                                                bgVideo.play().catch(() => {});
+                                                bgVideo.play().catch(() => { });
                                                 setIsVideoAudioMuted(false);
                                             } else {
                                                 bgVideo.muted = true;
                                                 setIsVideoAudioMuted(true);
                                             }
                                         }}
-                                        className={`px-2.5 py-1 rounded-xl text-[8px] font-black transition-all shrink-0 flex items-center gap-1 active:scale-95 shadow-sm border ${
-                                            !isVideoAudioMuted
+                                        className={`px-2.5 py-1 rounded-xl text-[8px] font-black transition-all shrink-0 flex items-center gap-1 active:scale-95 shadow-sm border ${!isVideoAudioMuted
                                                 ? 'bg-[#00ff66]/20 border-[#00ff66]/50 text-[#00ff66]'
                                                 : 'bg-red-500/20 border-red-500/50 text-red-400'
-                                        }`}
+                                            }`}
                                         title={!isVideoAudioMuted ? 'Couper le son' : 'Activer le son de la vidéo'}
                                     >
                                         {!isVideoAudioMuted ? <Volume2 className="w-3 h-3" /> : <VolumeX className="w-3 h-3" />}
@@ -29386,7 +29393,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             video.play().then(() => setIsVideoAudioMuted(false)).catch(() => {
                                 video.muted = true;
                                 setIsVideoAudioMuted(true);
-                                video.play().catch(() => {});
+                                video.play().catch(() => { });
                             });
                             fetch(finalUrl)
                                 .then(r => r.ok ? r.blob() : null)
