@@ -807,8 +807,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         type="button"
                         onClick={() => switchAudioTarget('global')}
                         className={`px-2.5 py-1 rounded-lg font-black uppercase transition-all whitespace-nowrap flex items-center gap-1.5 shrink-0 ${isGlobal
-                                ? 'bg-[#00f0ff] text-black shadow-[0_0_10px_rgba(0,240,255,0.4)]'
-                                : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
+                            ? 'bg-[#00f0ff] text-black shadow-[0_0_10px_rgba(0,240,255,0.4)]'
+                            : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
                             }`}
                     >
                         🌐 Tout le Carrousel
@@ -823,8 +823,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 type="button"
                                 onClick={() => switchAudioTarget(s)}
                                 className={`px-2.5 py-1 rounded-lg font-black uppercase transition-all whitespace-nowrap flex items-center gap-1.5 shrink-0 ${isSelected
-                                        ? 'bg-[#00f0ff] text-black shadow-[0_0_10px_rgba(0,240,255,0.4)]'
-                                        : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
+                                    ? 'bg-[#00f0ff] text-black shadow-[0_0_10px_rgba(0,240,255,0.4)]'
+                                    : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
                                     }`}
                             >
                                 {s === 1 ? '📌 Slide 1' : s === 2 ? '📖 Slide 2' : `📄 Slide ${s}`}
@@ -23423,8 +23423,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                                     type="button"
                                                     onClick={() => updateTop10LogoScale(preset)}
                                                     className={`px-1.5 py-0.5 rounded text-[7.5px] font-mono font-bold transition-all ${top10LogoScale === preset
-                                                            ? 'bg-neon-cyan text-black font-black shadow-[0_0_8px_rgba(0,240,255,0.5)]'
-                                                            : 'bg-white/5 hover:bg-white/15 text-gray-400 hover:text-white border border-white/10'
+                                                        ? 'bg-neon-cyan text-black font-black shadow-[0_0_8px_rgba(0,240,255,0.5)]'
+                                                        : 'bg-white/5 hover:bg-white/15 text-gray-400 hover:text-white border border-white/10'
                                                         }`}
                                                 >
                                                     {preset}%
@@ -23903,8 +23903,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                                     type="button"
                                                     onClick={() => updateTop10LogoScale(preset)}
                                                     className={`px-1.5 py-0.5 rounded text-[7.5px] font-mono font-bold transition-all ${top10LogoScale === preset
-                                                            ? 'bg-neon-cyan text-black font-black shadow-[0_0_8px_rgba(0,240,255,0.5)]'
-                                                            : 'bg-white/5 hover:bg-white/15 text-gray-400 hover:text-white border border-white/10'
+                                                        ? 'bg-neon-cyan text-black font-black shadow-[0_0_8px_rgba(0,240,255,0.5)]'
+                                                        : 'bg-white/5 hover:bg-white/15 text-gray-400 hover:text-white border border-white/10'
                                                         }`}
                                                 >
                                                     {preset}%
@@ -24013,8 +24013,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                             type="button"
                                             onClick={() => updateTop10LogoScale(p)}
                                             className={`px-1.5 py-0.5 rounded text-[7.5px] font-mono transition-all ${top10LogoScale === p
-                                                    ? 'bg-neon-cyan text-black font-black'
-                                                    : 'bg-white/5 hover:bg-white/15 text-gray-400 hover:text-white'
+                                                ? 'bg-neon-cyan text-black font-black'
+                                                : 'bg-white/5 hover:bg-white/15 text-gray-400 hover:text-white'
                                                 }`}
                                         >
                                             {p}%
@@ -28426,8 +28426,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                             setAnimReplayKey(k => k + 1);
                                         }}
                                         className={`px-2.5 py-1 rounded-xl text-[9.5px] font-black uppercase transition-all flex items-center gap-1 ${focusReelStyle === st.id
-                                                ? 'bg-[#ffe600] text-black shadow-[0_0_14px_rgba(255,230,0,0.6)] scale-[1.03]'
-                                                : 'bg-white/5 text-gray-300 hover:text-white hover:bg-white/10 border border-white/10'
+                                            ? 'bg-[#ffe600] text-black shadow-[0_0_14px_rgba(255,230,0,0.6)] scale-[1.03]'
+                                            : 'bg-white/5 text-gray-300 hover:text-white hover:bg-white/10 border border-white/10'
                                             }`}
                                         title={st.desc}
                                     >
@@ -29049,8 +29049,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                             }
                                         }}
                                         className={`px-2.5 py-1 rounded-xl text-[8px] font-black transition-all shrink-0 flex items-center gap-1 active:scale-95 shadow-sm border ${!isVideoAudioMuted
-                                                ? 'bg-[#00ff66]/20 border-[#00ff66]/50 text-[#00ff66]'
-                                                : 'bg-red-500/20 border-red-500/50 text-red-400'
+                                            ? 'bg-[#00ff66]/20 border-[#00ff66]/50 text-[#00ff66]'
+                                            : 'bg-red-500/20 border-red-500/50 text-red-400'
                                             }`}
                                         title={!isVideoAudioMuted ? 'Couper le son' : 'Activer le son de la vidéo'}
                                     >
