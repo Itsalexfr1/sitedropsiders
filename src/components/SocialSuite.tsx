@@ -8558,9 +8558,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         });
 
                         const titleLineHeight = titleFontSize * 1.15;
-                        const titleCenterY = isStory ? 770 : 590;
-                        const festCenterY = isStory ? 1080 : 765;
-                        const pillY = isStory ? 1310 : 900;
+                        // Centrage vertical harmonieux (l'ensemble était trop haut)
+                        const titleCenterY = isStory ? 910 : 660;
+                        const festCenterY = isStory ? 1220 : 830;
+                        const pillY = isStory ? 1440 : 960;
                         const titleLine0Y = titleCenterY - (((titleLines.length - 1) * titleLineHeight) / 2);
 
                         // Tracé des lignes du titre avec asterisques en rouge néon
@@ -8639,16 +8640,43 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             applyTextAnimCtx(ctx, 0.35, centerX, festCenterY);
                             ctx.textAlign = 'center';
                             ctx.textBaseline = 'middle';
-                            ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
-                            ctx.shadowBlur = 30;
-                            ctx.shadowOffsetY = 6;
-                            ctx.fillStyle = '#ffffff';
-                            ctx.fillText(effectiveFestName, centerX, festCenterY);
 
-                            ctx.shadowColor = 'transparent';
-                            ctx.shadowBlur = 0;
+                            // 1. Halo néon rouge intense pour faire ressortir le texte
+                            ctx.save();
+                            ctx.shadowColor = 'rgba(255, 0, 51, 0.9)';
+                            ctx.shadowBlur = 35;
                             ctx.fillStyle = '#ff0033';
                             ctx.fillText(effectiveFestName, centerX, festCenterY);
+                            ctx.restore();
+
+                            // 2. Contour noir gras + ombre profonde pour décoller de l'arrière-plan
+                            ctx.save();
+                            ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
+                            ctx.shadowBlur = 24;
+                            ctx.shadowOffsetX = 0;
+                            ctx.shadowOffsetY = 6;
+                            ctx.strokeStyle = '#050208';
+                            ctx.lineWidth = Math.max(6, Math.round(textFestFontSize * 0.12));
+                            ctx.lineJoin = 'round';
+                            ctx.miterLimit = 2;
+                            ctx.strokeText(effectiveFestName, centerX, festCenterY);
+                            ctx.restore();
+
+                            // 3. Dégradé néon rouge vibrant vers blanc rosé lumineux
+                            const festGrad = ctx.createLinearGradient(0, festCenterY - textFestFontSize * 0.5, 0, festCenterY + textFestFontSize * 0.5);
+                            festGrad.addColorStop(0, '#ffffff');
+                            festGrad.addColorStop(0.3, '#ff7a94');
+                            festGrad.addColorStop(0.7, '#ff0033');
+                            festGrad.addColorStop(1, '#b80024');
+
+                            ctx.fillStyle = festGrad;
+                            ctx.fillText(effectiveFestName, centerX, festCenterY);
+
+                            // 4. Fin contour blanc subtil pour une netteté parfaite
+                            ctx.strokeStyle = 'rgba(255, 255, 255, 0.7)';
+                            ctx.lineWidth = 1.5;
+                            ctx.strokeText(effectiveFestName, centerX, festCenterY);
+
                             ctx.restore();
                         }
 
