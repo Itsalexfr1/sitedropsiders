@@ -15952,6 +15952,228 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         startVideoRecording('NONE');
     };
 
+    const exportVideoCarouselZip = async (targetFormat?: TabType) => {
+        if (!canvasRef.current || isExportingZip || isVideoRecording) return;
+        setIsExportingZip(true);
+        cancelZipExportRef.current = false;
+        const formatToUse: TabType = targetFormat || activeTab || 'PUBLICATION';
+        const isStory = formatToUse === 'REEL';
+        const formatSuffix = isStory ? 'story-9-16' : 'post-1-1';
+
+        const prevEditorialSlide = editorialSlide;
+        const prevAgendaSlide = agendaSlide;
+        const prevEventsSlide = eventsSlide;
+        const prevPromoActive = isCarouselPromoActive;
+        const prevAfficheActive = isEditorialAfficheActive;
+
+        try {
+            const zip = new JSZip();
+
+            type ZipVideoItem = {
+                type: 'AGENDA' | 'EDITORIAL' | 'EVENTS' | 'PROMO' | 'AFFICHE';
+                slideNum: number;
+                title: string;
+                filename: string;
+            };
+
+            const slidesToProcess: ZipVideoItem[] = [];
+            const cleanTheme = theme.toLowerCase().replace(/\s+/g, '-');
+
+            if (theme === 'PLANNING') {
+                slidesToProcess.push({
+                    type: 'AGENDA',
+                    slideNum: 1,
+                    title: 'Slide 1 • Cover Agenda',
+                    filename: `01-agenda-slide1-cover-${formatSuffix}.mp4`
+                });
+                slidesToProcess.push({
+                    type: 'AGENDA',
+                    slideNum: 2,
+                    title: 'Slide 2 • Événements',
+                    filename: `02-agenda-slide2-events-${formatSuffix}.mp4`
+                });
+                for (let i = 0; i < agendaAffiches.length; i++) {
+                    const sNum = i + 3;
+                    const affTitle = agendaAffiches[i]?.title ? agendaAffiches[i].title.toLowerCase().replace(/[^a-z0-9]+/g, '-') : `event-${i + 1}`;
+                    slidesToProcess.push({
+                        type: 'AGENDA',
+                        slideNum: sNum,
+                        title: `Slide ${sNum} • Affiche ${agendaAffiches[i]?.title || i + 1}`,
+                        filename: `${String(sNum).padStart(2, '0')}-agenda-slide${sNum}-affiche-${affTitle}-${formatSuffix}.mp4`
+                    });
+                }
+            } else if (theme === 'EVENTS' || theme === 'AFFICHE') {
+                slidesToProcess.push({
+                    type: 'EVENTS',
+                    slideNum: 1,
+                    title: 'Slide 1 • Post Événement',
+                    filename: `01-event-slide1-post-${formatSuffix}.mp4`
+                });
+                for (let i = 0; i < eventNormalSlidesCount; i++) {
+                    const sNum = i + 2;
+                    slidesToProcess.push({
+                        type: 'EVENTS',
+                        slideNum: sNum,
+                        title: `Slide ${sNum} • Détail Événement`,
+                        filename: `${String(sNum).padStart(2, '0')}-event-slide${sNum}-${formatSuffix}.mp4`
+                    });
+                }
+                const afficheNum = eventNormalSlidesCount === 0 ? 2 : (2 + eventNormalSlidesCount);
+                slidesToProcess.push({
+                    type: 'AFFICHE',
+                    slideNum: afficheNum,
+                    title: `Slide ${afficheNum} • Affiche Événement`,
+                    filename: `${String(afficheNum).padStart(2, '0')}-event-slide${afficheNum}-affiche-${formatSuffix}.mp4`
+                });
+            } else {
+                const shouldSkipSlide2 = (theme !== 'JEU_DJ') && skipEditorialSlide2;
+                const slidesList: number[] = shouldSkipSlide2
+                    ? [1, ...extraEditorialSlides.map((_, i) => i + 3)]
+                    : [1, 2, ...extraEditorialSlides.map((_, i) => i + 3)];
+
+                slidesList.forEach((s) => {
+                    const suffix = s === 1
+                        ? (theme === 'JEU_DJ' ? 'silhouette' : 'cover')
+                        : (theme === 'JEU_DJ' && s === 2 ? 'revelation' : `detail-slide${s}`);
+                    slidesToProcess.push({
+                        type: 'EDITORIAL',
+                        slideNum: s,
+                        title: `Slide ${s} • ${suffix}`,
+                        filename: `${String(s).padStart(2, '0')}-${cleanTheme}-slide${s}-${suffix}-${formatSuffix}.mp4`
+                    });
+                });
+
+                if (afficheImage || isEditorialAfficheActive) {
+                    const affSlideNum = slidesList.length + 1;
+                    slidesToProcess.push({
+                        type: 'AFFICHE',
+                        slideNum: affSlideNum,
+                        title: `Slide ${affSlideNum} • Affiche`,
+                        filename: `${String(affSlideNum).padStart(2, '0')}-${cleanTheme}-slide-affiche-${formatSuffix}.mp4`
+                    });
+                }
+            }
+
+            // Slide Outro Promo Dropsiders toujours incluse
+            const promoNum = slidesToProcess.length + 1;
+            slidesToProcess.push({
+                type: 'PROMO',
+                slideNum: promoNum,
+                title: `Slide ${promoNum} • Outro Promo Dropsiders`,
+                filename: `${String(promoNum).padStart(2, '0')}-${cleanTheme}-outro-promo-${formatSuffix}.mp4`
+            });
+
+            const totalSlides = slidesToProcess.length;
+
+            for (let i = 0; i < totalSlides; i++) {
+                if (cancelZipExportRef.current) {
+                    console.log('[Export ZIP Vidéo] Annulé.');
+                    break;
+                }
+
+                const item = slidesToProcess[i];
+                setZipExportProgress({
+                    current: i + 1,
+                    total: totalSlides,
+                    title: item.title,
+                    stage: 'encoding'
+                });
+
+                let blob: Blob | null = null;
+                if (item.type === 'PROMO') {
+                    promoOutroOverrideRef.current = true;
+                    setIsCarouselPromoActive(true);
+                    editorialSlideOverrideRef.current = null;
+                    agendaSlideOverrideRef.current = null;
+                    setIsEditorialAfficheActive(false);
+                    await new Promise(r => setTimeout(r, 120));
+                    blob = await startVideoRecording('PROMO_ONLY', { returnBlob: true, formatTab: formatToUse });
+                } else if (item.type === 'AFFICHE') {
+                    promoOutroOverrideRef.current = false;
+                    setIsCarouselPromoActive(false);
+                    editorialAfficheOverrideRef.current = true;
+                    setIsEditorialAfficheActive(true);
+                    if (item.slideNum) {
+                        setEditorialSlide(item.slideNum);
+                        setEventsSlide(item.slideNum);
+                    }
+                    await new Promise(r => setTimeout(r, 120));
+                    blob = await startVideoRecording('NONE', { returnBlob: true, formatTab: formatToUse });
+                } else if (item.type === 'AGENDA') {
+                    promoOutroOverrideRef.current = false;
+                    setIsCarouselPromoActive(false);
+                    setIsEditorialAfficheActive(false);
+                    agendaSlideOverrideRef.current = item.slideNum;
+                    setAgendaSlide(item.slideNum);
+                    await new Promise(r => setTimeout(r, 120));
+                    blob = await startVideoRecording('NONE', { returnBlob: true, formatTab: formatToUse });
+                } else if (item.type === 'EVENTS') {
+                    promoOutroOverrideRef.current = false;
+                    setIsCarouselPromoActive(false);
+                    editorialAfficheOverrideRef.current = false;
+                    setIsEditorialAfficheActive(false);
+                    setEventsSlide(item.slideNum);
+                    setEditorialSlide(item.slideNum);
+                    await new Promise(r => setTimeout(r, 120));
+                    blob = await startVideoRecording('NONE', { returnBlob: true, formatTab: formatToUse });
+                } else {
+                    promoOutroOverrideRef.current = false;
+                    setIsCarouselPromoActive(false);
+                    editorialSlideOverrideRef.current = item.slideNum;
+                    setEditorialSlide(item.slideNum);
+                    await new Promise(r => setTimeout(r, 120));
+                    blob = await startVideoRecording('NONE', { returnBlob: true, formatTab: formatToUse });
+                }
+
+                if (blob) {
+                    zip.file(item.filename, blob);
+                }
+
+                await new Promise(r => setTimeout(r, 250));
+            }
+
+            if (!cancelZipExportRef.current) {
+                setZipExportProgress({
+                    current: totalSlides,
+                    total: totalSlides,
+                    title: 'Compression des vidéos en archive ZIP...',
+                    stage: 'zipping'
+                });
+
+                const zipBlob = await zip.generateAsync({
+                    type: 'blob',
+                    compression: 'DEFLATE',
+                    compressionOptions: { level: 6 }
+                });
+
+                const zipUrl = URL.createObjectURL(zipBlob);
+                const a = document.createElement('a');
+                a.href = zipUrl;
+                a.download = `dropsiders-${cleanTheme}-pack-videos-${formatSuffix}-${Date.now()}.zip`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                setTimeout(() => URL.revokeObjectURL(zipUrl), 30000);
+            }
+        } catch (err: any) {
+            console.error('Erreur exportVideoCarouselZip:', err);
+            setErrorMessage("Erreur lors de l'exportation du pack ZIP vidéo : " + (err?.message || String(err)));
+        } finally {
+            editorialSlideOverrideRef.current = null;
+            agendaSlideOverrideRef.current = null;
+            editorialAfficheOverrideRef.current = false;
+            promoOutroOverrideRef.current = false;
+            setIsExportingZip(false);
+            setZipExportProgress(null);
+            setIsCarouselPromoActive(prevPromoActive);
+            setIsEditorialAfficheActive(prevAfficheActive);
+            setEditorialSlide(prevEditorialSlide);
+            setAgendaSlide(prevAgendaSlide);
+            setEventsSlide(prevEventsSlide);
+            setTimeout(() => generateImage(), 150);
+        }
+    };
+
     const exportMusiqueZip = async (targetFormat?: TabType) => {
         if (!canvasRef.current || isExportingZip || isVideoRecording) return;
         setIsExportingZip(true);
@@ -25543,37 +25765,59 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                         {/* Grand Bouton d'Export */}
                         {theme === 'PLANNING' ? (
-                            <button
-                                type="button"
-                                onClick={() => startVideoRecording('PLANNING')}
-                                disabled={isVideoRecording}
-                                className={`w-full py-3.5 rounded-2xl text-[10px] font-black uppercase flex items-center justify-center gap-2.5 transition-all shadow-xl ${isVideoRecording
-                                    ? 'bg-[#ff3700]/30 text-[#ff3700] border border-[#ff3700]/50 animate-pulse'
-                                    : 'bg-gradient-to-r from-[#ff3700] via-orange-500 to-amber-500 text-black hover:brightness-110 active:scale-[0.98] shadow-[0_0_25px_rgba(255,55,0,0.45)]'
-                                    }`}
-                            >
-                                <Video className="w-4 h-4 text-black" />
-                                {isVideoRecording ? 'CAPTURE VIDÉO EN COURS...' : `🎬 EXPORTER CARROUSEL VIDÉO COMPLET (${activeTab === 'REEL' ? 'REEL 9:16' : 'POST 1:1'} • ${2 + agendaAffiches.length} SLIDES + PROMO) • MP4`}
-                            </button>
+                            <div className="space-y-2">
+                                <button
+                                    type="button"
+                                    onClick={() => startVideoRecording('PLANNING')}
+                                    disabled={isVideoRecording || isExportingZip}
+                                    className={`w-full py-3.5 rounded-2xl text-[10px] font-black uppercase flex items-center justify-center gap-2.5 transition-all shadow-xl ${isVideoRecording
+                                        ? 'bg-[#ff3700]/30 text-[#ff3700] border border-[#ff3700]/50 animate-pulse'
+                                        : 'bg-gradient-to-r from-[#ff3700] via-orange-500 to-amber-500 text-black hover:brightness-110 active:scale-[0.98] shadow-[0_0_25px_rgba(255,55,0,0.45)]'
+                                        }`}
+                                >
+                                    <Video className="w-4 h-4 text-black" />
+                                    {isVideoRecording ? 'CAPTURE VIDÉO EN COURS...' : `🎬 1 SEULE VIDÉO ENCHAÎNÉE (${activeTab === 'REEL' ? 'REEL 9:16' : 'POST 1:1'} • ${2 + agendaAffiches.length} SLIDES + PROMO) • MP4`}
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => exportVideoCarouselZip(activeTab)}
+                                    disabled={isVideoRecording || isExportingZip}
+                                    className="w-full py-3 bg-white/10 hover:bg-white/20 border border-[#ff3700]/50 hover:border-[#ff3700] text-white rounded-2xl text-[10px] font-black uppercase flex items-center justify-center gap-2 transition-all shadow-md active:scale-95 disabled:opacity-40"
+                                >
+                                    <span>📦</span>
+                                    <span>PACK ZIP : TOUTES LES SLIDES VIDÉOS SÉPARÉES 1 PAR 1 (.mp4)</span>
+                                </button>
+                            </div>
                         ) : ['NEWS', 'FOCUS', 'RECAP', 'MUSIQUE', 'INTERVIEW', 'LIVESTREAM', 'CONSEILS', 'REELS', 'CONCOURS', 'TOP 100 DROPSIDERS', 'JEU', 'JEU_FESTIVAL', 'JEU_DJ', 'EVENTS', 'HIGHLIGHTS'].includes(theme) ? (
-                            <button
-                                type="button"
-                                onClick={() => startVideoRecording('EDITORIAL')}
-                                disabled={isVideoRecording}
-                                className={`w-full py-3.5 rounded-2xl text-[10px] font-black uppercase flex items-center justify-center gap-2.5 transition-all shadow-xl ${isVideoRecording
-                                    ? 'bg-red-500/30 text-red-400 border border-red-500/50 animate-pulse'
-                                    : 'bg-gradient-to-r from-neon-red via-rose-500 to-pink-600 text-white hover:brightness-110 active:scale-[0.98] shadow-[0_0_25px_rgba(255,0,51,0.45)]'
-                                    }`}
-                            >
-                                <Video className="w-4 h-4" />
-                                {isVideoRecording
-                                    ? 'CAPTURE VIDÉO EN COURS...'
-                                    : theme === 'MUSIQUE'
-                                        ? `🎬 EXPORTER LE CARROUSEL VIDÉO COMPLET (${activeTab === 'REEL' ? 'REEL 9:16' : 'POST 1:1'} • ${1 + musicTracks.length} TRACKS + PROMO) • MP4`
-                                        : skipEditorialSlide2
-                                            ? `🎬 EXPORTER VIDÉO (${activeTab === 'REEL' ? 'REEL 9:16' : 'POST 1:1'} • ${exportFps} FPS • SLIDE 1 [${editorialSlide1Duration}s] + PROMO [${editorialPromoDuration}s]) • MP4`
-                                            : `🎬 EXPORTER CARROUSEL VIDÉO COMPLET (${activeTab === 'REEL' ? 'REEL 9:16' : 'POST 1:1'} • ${exportFps} FPS • ${2 + extraEditorialSlides.length} SLIDES + PROMO) • MP4`}
-                            </button>
+                            <div className="space-y-2">
+                                <button
+                                    type="button"
+                                    onClick={() => startVideoRecording('EDITORIAL')}
+                                    disabled={isVideoRecording || isExportingZip}
+                                    className={`w-full py-3.5 rounded-2xl text-[10px] font-black uppercase flex items-center justify-center gap-2.5 transition-all shadow-xl ${isVideoRecording
+                                        ? 'bg-red-500/30 text-red-400 border border-red-500/50 animate-pulse'
+                                        : 'bg-gradient-to-r from-neon-red via-rose-500 to-pink-600 text-white hover:brightness-110 active:scale-[0.98] shadow-[0_0_25px_rgba(255,0,51,0.45)]'
+                                        }`}
+                                >
+                                    <Video className="w-4 h-4" />
+                                    {isVideoRecording
+                                        ? 'CAPTURE VIDÉO EN COURS...'
+                                        : theme === 'MUSIQUE'
+                                            ? `🎬 1 SEULE VIDÉO ENCHAÎNÉE (${activeTab === 'REEL' ? 'REEL 9:16' : 'POST 1:1'} • ${1 + musicTracks.length} TRACKS + PROMO) • MP4`
+                                            : skipEditorialSlide2
+                                                ? `🎬 1 SEULE VIDÉO ENCHAÎNÉE (${activeTab === 'REEL' ? 'REEL 9:16' : 'POST 1:1'} • SLIDE 1 [${editorialSlide1Duration}s] + PROMO [${editorialPromoDuration}s]) • MP4`
+                                                : `🎬 1 SEULE VIDÉO ENCHAÎNÉE (${activeTab === 'REEL' ? 'REEL 9:16' : 'POST 1:1'} • ${2 + extraEditorialSlides.length} SLIDES + PROMO) • MP4`}
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => theme === 'MUSIQUE' ? exportMusiqueZip(activeTab) : exportVideoCarouselZip(activeTab)}
+                                    disabled={isVideoRecording || isExportingZip}
+                                    className="w-full py-3 bg-white/10 hover:bg-white/20 border border-neon-red/50 hover:border-neon-red text-white rounded-2xl text-[10px] font-black uppercase flex items-center justify-center gap-2 transition-all shadow-md active:scale-95 disabled:opacity-40"
+                                >
+                                    <span>📦</span>
+                                    <span>PACK ZIP : TOUTES LES SLIDES VIDÉOS SÉPARÉES 1 PAR 1 (.mp4)</span>
+                                </button>
+                            </div>
                         ) : theme === 'TOP 10 TRACKS' ? (
                             <button
                                 type="button"
