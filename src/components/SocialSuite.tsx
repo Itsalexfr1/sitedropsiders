@@ -706,7 +706,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         if (!carouselBeatportQuery.trim()) return;
         setIsSearchingCarouselBeatport(true);
         try {
-            const results = await searchMusicTracksList(carouselBeatportQuery.trim(), 8);
+            const results = await searchMusicTracksList(carouselBeatportQuery.trim(), 10);
             setCarouselBeatportResults(results);
         } catch (err) {
             console.warn('Erreur recherche Beatport carrousel :', err);
@@ -2243,15 +2243,42 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             try {
                 const bpToken = await getBeatportToken();
                 if (bpToken) {
-                    const bpRes = await fetch(`https://api.beatport.com/v4/catalog/search/?q=${encodeURIComponent(cleaned)}&type=tracks&per_page=35`, {
-                        headers: {
-                            Authorization: `Bearer ${bpToken}`,
-                            Accept: 'application/json'
+                    let rawTracks: any[] = [];
+                    // Cherche d'abord si la saisie correspond à un artiste Beatport (ex: "Justice", "Charlotte de Witte")
+                    try {
+                        const artistRes = await fetch(`https://api.beatport.com/v4/catalog/search/?q=${encodeURIComponent(cleaned)}&type=artists&per_page=3`, {
+                            headers: { Authorization: `Bearer ${bpToken}`, Accept: 'application/json' }
+                        });
+                        if (artistRes.ok) {
+                            const aData = await artistRes.json();
+                            const matchedArtist = aData.artists?.find((a: any) => a.name.toLowerCase() === cleaned.toLowerCase()) || aData.artists?.[0];
+                            if (matchedArtist?.id) {
+                                const trRes = await fetch(`https://api.beatport.com/v4/catalog/tracks/?artist_id=${matchedArtist.id}&per_page=35`, {
+                                    headers: { Authorization: `Bearer ${bpToken}`, Accept: 'application/json' }
+                                });
+                                if (trRes.ok) {
+                                    const trData = await trRes.json();
+                                    rawTracks = trData.results || trData.tracks || [];
+                                }
+                            }
                         }
-                    });
-                    if (bpRes.ok) {
-                        const sData = await bpRes.json();
-                        const rawTracks = sData.tracks || sData.results || [];
+                    } catch {
+                        // ignore
+                    }
+
+                    // Si pas assez de morceaux par artiste direct, recherche par tracks
+                    if (rawTracks.length < 5) {
+                        const bpRes = await fetch(`https://api.beatport.com/v4/catalog/search/?q=${encodeURIComponent(cleaned)}&type=tracks&per_page=35`, {
+                            headers: {
+                                Authorization: `Bearer ${bpToken}`,
+                                Accept: 'application/json'
+                            }
+                        });
+                        if (bpRes.ok) {
+                            const sData = await bpRes.json();
+                            rawTracks = sData.tracks || sData.results || [];
+                        }
+                    }
                         if (rawTracks && rawTracks.length >= 5) {
                             const seen = new Set<string>();
                             const unique: any[] = [];
@@ -2295,7 +2322,6 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             }
                         }
                     }
-                }
             } catch (e) {
                 console.warn("Échec repli Beatport Catalog v4 :", e);
             }
@@ -2411,7 +2437,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         setIsTop10Searching(true);
         setTop10SearchResults([]);
         try {
-            const results = await searchMusicTracksList(q, 6);
+            const results = await searchMusicTracksList(q, 8);
             setTop10SearchResults(results);
         } catch (e) {
             console.warn("Erreur recherche Top 10 :", e);

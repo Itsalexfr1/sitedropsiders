@@ -62,50 +62,36 @@ function cleanQuery(str: string): string {
 
 /**
  * Recherche un extrait musical sur l'API publique de Beatport (Catalog v4)
- * Renvoie un extrait de 120 secondes (2 minutes) centré sur le break & drop avec pochette HD 1400x1400
+ * Renvoie un extrait de 120 secondes (2 minutes) centré sur le break & drop avec pochette HD 1400x1400.
+ * Utilise l'algorithme intelligent de recherche et scoring multi-requêtes pour garantir le bon titre.
  */
 export async function searchBeatportSnippet(query: string, platform: ResolvedMusicData['platform'] = 'beatport'): Promise<ResolvedMusicData | null> {
     const cleaned = cleanQuery(query);
     if (!cleaned) return null;
 
     try {
-        const token = await getBeatportToken();
-        if (!token) return null;
+        const list = await searchMusicTracksList(cleaned, 6);
+        if (!list || list.length === 0) return null;
 
-        const res = await fetch(`https://api.beatport.com/v4/catalog/search/?q=${encodeURIComponent(cleaned)}&type=tracks&per_page=3`, {
-            headers: {
-                Authorization: `Bearer ${token}`,
-                Accept: 'application/json'
-            }
-        });
-        if (!res.ok) return null;
-        const data = await res.json();
-        if (!data.tracks || data.tracks.length === 0) return null;
+        // Priorité 1: résultat Beatport avec extrait audio 120s
+        const bpMatch = list.find(item => item.platform === 'beatport' && !!item.audioUrl);
+        if (bpMatch) {
+            return {
+                ...bpMatch,
+                platform: platform === 'beatport' ? 'beatport' : platform
+            };
+        }
 
-        const track = data.tracks.find((t: any) => !!t.sample_url) || data.tracks[0];
-        if (!track || !track.sample_url) return null;
+        // Priorité 2: tout autre résultat avec extrait audio valide
+        const anyMatch = list.find(item => !!item.audioUrl);
+        if (anyMatch) {
+            return {
+                ...anyMatch,
+                platform
+            };
+        }
 
-        const rawImg = track.release?.image?.uri || '';
-        const coverUrl = rawImg
-            ? rawImg.replace('{w}x{h}', '1400x1400').replace(/500x500/i, '1400x1400')
-            : undefined;
-
-        const artists = track.artists?.map((a: any) => a.name).join(', ') || '';
-        const mixSuffix = track.mix_name && !track.name?.toLowerCase().includes(track.mix_name.toLowerCase())
-            ? ` (${track.mix_name})`
-            : '';
-        const title = (track.name || '') + mixSuffix;
-        const label = track.release?.label?.name || track.release?.name;
-
-        return {
-            audioUrl: track.sample_url,
-            coverUrl,
-            title,
-            artist: artists,
-            album: label,
-            platform,
-            duration: 120
-        };
+        return list[0] || null;
     } catch (err) {
         console.warn("Échec recherche Beatport snippet :", err);
         return null;
@@ -242,79 +228,283 @@ export async function searchItunesSnippet(query: string, platform: ResolvedMusic
 
 /**
  * Recherche une liste de morceaux par titre et/ou artiste sur Beatport et Apple Music
- * Renvoie jusqu'à `limit` résultats complets (Titre, Artiste, Pochette HD, Audio).
+ * Algorithme intelligent multi-requêtes :
+ * - Recherche Catalog Tracks générale
+ * - Recherche précise par nom de morceau (/tracks/?name=...)
+ * - Recherche par artiste Beatport (/search/?type=artists) et récupération des tracks par artist_id
+ * - Recherche iTunes sémantique en parallèle (pour croiser artiste & titre)
+ * - Scoring sémantique poussé pour faire remonter le titre exact et l'artiste ciblé (ex: "justice pusher")
+ * Renvoie jusqu'à `limit` résultats complets classés par pertinence (Titre, Artiste, Pochette HD, Audio 120s ou 30s).
  */
 export async function searchMusicTracksList(query: string, limit: number = 6): Promise<ResolvedMusicData[]> {
     const cleaned = cleanQuery(query);
     if (!cleaned) return [];
-    const results: ResolvedMusicData[] = [];
 
-    // 1. Beatport Catalog v4
+    const tokens = cleaned.toLowerCase().split(/\s+/).filter(t => t.length >= 2);
+    const candidates: Array<{ source: 'beatport' | 'itunes'; raw: any }> = [];
+    const seenBpIds = new Set<number>();
+    const seenKeys = new Set<string>();
+
+    const fetchWithTimeout = async (url: string, init?: RequestInit, ms = 4500) => {
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), ms);
+        try {
+            const res = await fetch(url, { ...init, signal: controller.signal });
+            clearTimeout(timer);
+            return res;
+        } catch (e) {
+            clearTimeout(timer);
+            throw e;
+        }
+    };
+
+    const promises: Promise<void>[] = [];
+
+    // 1. Beatport multi-requêtes avec token public
     try {
         const token = await getBeatportToken();
         if (token) {
-            const res = await fetch(`https://api.beatport.com/v4/catalog/search/?q=${encodeURIComponent(cleaned)}&type=tracks&per_page=${limit}`, {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                    Accept: 'application/json'
-                }
-            });
-            if (res.ok) {
-                const data = await res.json();
-                if (Array.isArray(data.tracks)) {
-                    for (const track of data.tracks) {
-                        if (!track?.sample_url) continue;
-                        const rawImg = track.release?.image?.uri || '';
-                        const coverUrl = rawImg ? rawImg.replace('{w}x{h}', '1400x1400').replace(/500x500/i, '1400x1400') : undefined;
-                        const artists = track.artists?.map((a: any) => a.name).join(', ') || '';
-                        const mixSuffix = track.mix_name && !track.name?.toLowerCase().includes(track.mix_name.toLowerCase()) ? ` (${track.mix_name})` : '';
-                        results.push({
-                            audioUrl: track.sample_url,
-                            coverUrl,
-                            title: (track.name || '') + mixSuffix,
-                            artist: artists,
-                            album: track.release?.name,
-                            platform: 'beatport',
-                            duration: 120
-                        });
+            const bpHeaders = {
+                Authorization: `Bearer ${token}`,
+                Accept: 'application/json'
+            };
+
+            // A. Recherche Beatport Search générale (per_page = 30)
+            promises.push(
+                fetchWithTimeout(`https://api.beatport.com/v4/catalog/search/?q=${encodeURIComponent(cleaned)}&type=tracks&per_page=30`, { headers: bpHeaders })
+                    .then(r => r.ok ? r.json() : null)
+                    .then(d => {
+                        if (d && Array.isArray(d.tracks)) {
+                            for (const t of d.tracks) {
+                                if (t?.id && t.sample_url && !seenBpIds.has(t.id)) {
+                                    seenBpIds.add(t.id);
+                                    candidates.push({ source: 'beatport', raw: t });
+                                }
+                            }
+                        }
+                    })
+                    .catch(() => {})
+            );
+
+            // B. Recherche Beatport Tracks endpoint par nom exact ou partiel
+            promises.push(
+                fetchWithTimeout(`https://api.beatport.com/v4/catalog/tracks/?name=${encodeURIComponent(cleaned)}&per_page=25`, { headers: bpHeaders })
+                    .then(r => r.ok ? r.json() : null)
+                    .then(d => {
+                        const list = d?.results || d?.tracks || [];
+                        for (const t of list) {
+                            if (t?.id && t.sample_url && !seenBpIds.has(t.id)) {
+                                seenBpIds.add(t.id);
+                                candidates.push({ source: 'beatport', raw: t });
+                            }
+                        }
+                    })
+                    .catch(() => {})
+            );
+
+            // C. Si la requête contient plusieurs mots (ex: "justice pusher"), recherche ciblée par token
+            if (tokens.length > 1) {
+                for (const tok of tokens) {
+                    if (tok.length >= 3) {
+                        // Track name endpoint
+                        promises.push(
+                            fetchWithTimeout(`https://api.beatport.com/v4/catalog/tracks/?name=${encodeURIComponent(tok)}&per_page=20`, { headers: bpHeaders })
+                                .then(r => r.ok ? r.json() : null)
+                                .then(d => {
+                                    const list = d?.results || d?.tracks || [];
+                                    for (const t of list) {
+                                        if (t?.id && t.sample_url && !seenBpIds.has(t.id)) {
+                                            seenBpIds.add(t.id);
+                                            candidates.push({ source: 'beatport', raw: t });
+                                        }
+                                    }
+                                })
+                                .catch(() => {})
+                        );
+
+                        // Recherche Artiste sur Beatport et récupération de ses meilleurs tracks
+                        promises.push(
+                            fetchWithTimeout(`https://api.beatport.com/v4/catalog/search/?q=${encodeURIComponent(tok)}&type=artists&per_page=2`, { headers: bpHeaders })
+                                .then(r => r.ok ? r.json() : null)
+                                .then(async d => {
+                                    const artists = d?.artists || [];
+                                    for (const art of artists.slice(0, 2)) {
+                                        if (art?.id) {
+                                            try {
+                                                const trRes = await fetchWithTimeout(`https://api.beatport.com/v4/catalog/tracks/?artist_id=${art.id}&per_page=25`, { headers: bpHeaders }, 3500);
+                                                if (trRes.ok) {
+                                                    const trData = await trRes.json();
+                                                    const list = trData?.results || trData?.tracks || [];
+                                                    for (const t of list) {
+                                                        if (t?.id && t.sample_url && !seenBpIds.has(t.id)) {
+                                                            seenBpIds.add(t.id);
+                                                            candidates.push({ source: 'beatport', raw: t });
+                                                        }
+                                                    }
+                                                }
+                                            } catch {
+                                                // ignore
+                                            }
+                                        }
+                                    }
+                                })
+                                .catch(() => {})
+                        );
                     }
                 }
             }
         }
-    } catch (err) {
-        console.warn("Erreur recherche liste Beatport :", err);
+    } catch (e) {
+        console.warn("Échec requête Beatport catalog :", e);
     }
 
-    // 2. iTunes / Apple Music (si moins de résultats)
-    if (results.length < limit) {
-        try {
-            const url = `https://itunes.apple.com/search?term=${encodeURIComponent(cleaned)}&entity=song&limit=${limit}`;
-            const res = await fetch(url, { headers: { Accept: 'application/json' } });
-            if (res.ok) {
-                const data = await res.json();
-                if (Array.isArray(data.results)) {
-                    for (const track of data.results) {
-                        if (!track?.previewUrl) continue;
-                        const isDup = results.some(r => r.title?.toLowerCase() === track.trackName?.toLowerCase());
-                        if (isDup) continue;
-                        const coverUrl = track.artworkUrl100
-                            ? track.artworkUrl100.replace(/100x100bb\.(jpg|png)/i, '1000x1000bb.jpg')
-                            : undefined;
-                        results.push({
-                            audioUrl: track.previewUrl,
-                            coverUrl,
-                            title: track.trackName,
-                            artist: track.artistName,
-                            album: track.collectionName,
-                            platform: 'applemusic',
-                            duration: 30
-                        });
-                        if (results.length >= limit) break;
+    // 2. Recherche iTunes en parallèle (excellent pour comprendre la relation Artiste <-> Titre et en fallback)
+    promises.push(
+        fetchWithTimeout(`https://itunes.apple.com/search?term=${encodeURIComponent(cleaned)}&entity=song&limit=10`, { headers: { Accept: 'application/json' } })
+            .then(r => r.ok ? r.json() : null)
+            .then(d => {
+                if (d && Array.isArray(d.results)) {
+                    for (const item of d.results) {
+                        if (item?.previewUrl) {
+                            candidates.push({ source: 'itunes', raw: item });
+                        }
                     }
                 }
+            })
+            .catch(() => {})
+    );
+
+    // Attente de toutes les requêtes en parallèle (rapide avec les timeouts)
+    await Promise.allSettled(promises);
+
+    // Fonction de scoring intelligent
+    const scoreCandidate = (item: { source: 'beatport' | 'itunes'; raw: any }): number => {
+        let title = '';
+        let artist = '';
+        let mix = '';
+        let album = '';
+        const isBeatport = item.source === 'beatport';
+
+        if (isBeatport) {
+            const t = item.raw;
+            title = (t.name || '').toLowerCase();
+            mix = (t.mix_name || '').toLowerCase();
+            artist = t.artists?.map((a: any) => a.name.toLowerCase()).join(' ') || '';
+            album = (t.release?.name || '').toLowerCase();
+        } else {
+            const t = item.raw;
+            title = (t.trackName || '').toLowerCase();
+            artist = (t.artistName || '').toLowerCase();
+            album = (t.collectionName || '').toLowerCase();
+        }
+
+        let score = 0;
+        let matchedTokens = 0;
+
+        for (const tok of tokens) {
+            let matched = false;
+            if (artist.includes(tok)) {
+                score += 70; // Correspondance avec le nom de l'artiste
+                matched = true;
             }
-        } catch (err) {
-            console.warn("Erreur recherche liste iTunes :", err);
+            if (title.includes(tok)) {
+                score += 55; // Correspondance avec le titre du morceau
+                matched = true;
+            }
+            if (mix.includes(tok)) {
+                score += 20;
+                matched = true;
+            }
+            if (album.includes(tok)) {
+                score += 15;
+                matched = true;
+            }
+            if (matched) matchedTokens++;
+        }
+
+        // Si TOUS les mots de la recherche sont trouvés dans le morceau (ex: "justice" ET "pusher")
+        if (tokens.length > 1 && matchedTokens === tokens.length) {
+            score += 260; // Bonus massif pour match complet Artiste + Titre
+        } else {
+            score += matchedTokens * 20;
+        }
+
+        // Bonus si titre strictement identique
+        if (title === cleaned.toLowerCase()) {
+            score += 80;
+        }
+
+        // Bonus Beatport (priorité aux extraits 120s club / DJ)
+        if (isBeatport) {
+            score += 40;
+            if (mix.includes('original') || mix.includes('extended')) {
+                score += 10;
+            }
+        }
+
+        return score;
+    };
+
+    const scored = candidates.map(c => ({
+        ...c,
+        score: scoreCandidate(c)
+    }));
+
+    // Tri par score décroissant
+    scored.sort((a, b) => b.score - a.score);
+
+    const results: ResolvedMusicData[] = [];
+
+    for (const item of scored) {
+        if (results.length >= limit) break;
+
+        let formatted: ResolvedMusicData | null = null;
+
+        if (item.source === 'beatport') {
+            const t = item.raw;
+            const rawImg = t.release?.image?.uri || '';
+            const coverUrl = rawImg ? rawImg.replace('{w}x{h}', '1400x1400').replace(/500x500/i, '1400x1400') : undefined;
+            const artists = t.artists?.map((a: any) => a.name).join(', ') || '';
+            const mixSuffix = t.mix_name && !t.name?.toLowerCase().includes(t.mix_name.toLowerCase()) ? ` (${t.mix_name})` : '';
+            const title = (t.name || '') + mixSuffix;
+            const normKey = `${artists.toLowerCase()} - ${title.toLowerCase()}`.replace(/[^a-z0-9]/g, '');
+
+            if (seenKeys.has(normKey)) continue;
+            seenKeys.add(normKey);
+
+            formatted = {
+                audioUrl: t.sample_url,
+                coverUrl,
+                title,
+                artist: artists,
+                album: t.release?.name,
+                platform: 'beatport',
+                duration: 120
+            };
+        } else {
+            const t = item.raw;
+            const normKey = `${(t.artistName || '').toLowerCase()} - ${(t.trackName || '').toLowerCase()}`.replace(/[^a-z0-9]/g, '');
+
+            if (seenKeys.has(normKey)) continue;
+            seenKeys.add(normKey);
+
+            const coverUrl = t.artworkUrl100
+                ? t.artworkUrl100.replace(/100x100bb\.(jpg|png)/i, '1000x1000bb.jpg')
+                : undefined;
+
+            formatted = {
+                audioUrl: t.previewUrl,
+                coverUrl,
+                title: t.trackName,
+                artist: t.artistName,
+                album: t.collectionName,
+                platform: 'applemusic',
+                duration: 30
+            };
+        }
+
+        if (formatted) {
+            results.push(formatted);
         }
     }
 
