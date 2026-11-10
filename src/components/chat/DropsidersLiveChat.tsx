@@ -6,6 +6,7 @@ import {
     Plus, MessageSquare, Trophy, Bell, Lock, ChevronDown
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
+import { FollowerGifAlert, FOLLOWER_GIF_PRESETS, DEFAULT_FOLLOWER_GIF } from '../alerts/FollowerGifAlert';
 import { useUser } from '../../context/UserContext';
 import { UserAuthModal } from '../auth/UserAuthModal';
 
@@ -70,6 +71,7 @@ export interface LiveAlert {
     message?: string;
     amount?: number;
     months?: number;
+    gifUrl?: string;
 }
 
 // ==========================================
@@ -249,6 +251,14 @@ export const DropsidersLiveChat: React.FC<DropsidersLiveChatProps> = ({
 
     // ===== ALERTS OVERLAY =====
     const [currentAlert, setCurrentAlert] = useState<LiveAlert | null>(null);
+    const [selectedFollowerGif, setSelectedFollowerGif] = useState<string>(() => {
+        try {
+            return localStorage.getItem('dropsiders_follower_gif') || DEFAULT_FOLLOWER_GIF;
+        } catch {
+            return DEFAULT_FOLLOWER_GIF;
+        }
+    });
+    const [customGifInput, setCustomGifInput] = useState('');
     const [isMockAlertOpen, setIsMockAlertOpen] = useState(false);
     const alertTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -659,7 +669,7 @@ export const DropsidersLiveChat: React.FC<DropsidersLiveChatProps> = ({
 
     const triggerMockAlert = (type: LiveAlert['type']) => {
         const demos: Record<LiveAlert['type'], LiveAlert> = {
-            follower:  { id: 'a-' + Date.now(), type: 'follower',  pseudo: 'NeonFan_'    + Math.floor(Math.random()*999) },
+            follower:  { id: 'a-' + Date.now(), type: 'follower',  pseudo: 'NeonFan_'    + Math.floor(Math.random()*900 + 100), gifUrl: selectedFollowerGif },
             sub:       { id: 'a-' + Date.now(), type: 'sub',       pseudo: 'SubUser_'    + Math.floor(Math.random()*999), months: 1 },
             resub:     { id: 'a-' + Date.now(), type: 'resub',     pseudo: 'LoyalFan_'   + Math.floor(Math.random()*99),  months: Math.floor(2+Math.random()*10) },
             gift_sub:  { id: 'a-' + Date.now(), type: 'gift_sub',  pseudo: 'GiftKing_'   + Math.floor(Math.random()*99),  amount: Math.floor(1+Math.random()*5) },
@@ -704,31 +714,43 @@ export const DropsidersLiveChat: React.FC<DropsidersLiveChatProps> = ({
             `}</style>
 
             {/* ======================================================== */}
-            {/* LIVE ALERT OVERLAY                                         */}
+            {/* LIVE ALERT OVERLAY (AVEC ALERTE GIF NOUVEAU FOLLOWER)        */}
             {/* ======================================================== */}
-            {currentAlert && (() => {
-                const s = getAlertStyle(currentAlert.type);
-                return (
-                    <div className="absolute top-16 left-1/2 z-[200] pointer-events-none w-72"
-                        style={{ animation: 'alertSlideIn 0.4s cubic-bezier(.21,1.02,.73,1) forwards', transform: 'translateX(-50%)' }}>
-                        <div className={`bg-gradient-to-r ${s.bg} border ${s.border} rounded-2xl px-5 py-3.5 shadow-2xl flex items-center gap-3 relative overflow-hidden`}
-                            style={{ boxShadow: `0 0 30px ${s.color}40` }}>
-                            <span className="text-3xl shrink-0">{s.icon}</span>
-                            <div className="flex flex-col min-w-0 flex-1">
-                                <span className="text-[10px] font-black uppercase tracking-widest" style={{ color: s.color }}>{s.label}</span>
-                                <span className="text-white font-black text-sm truncate">{currentAlert.pseudo}</span>
-                                {currentAlert.type === 'resub' && currentAlert.months && <span className="text-[10px] text-gray-300">{currentAlert.months} mois consécutifs 🎉</span>}
-                                {currentAlert.type === 'gift_sub' && currentAlert.amount && <span className="text-[10px] text-gray-300">offre {currentAlert.amount} sub(s) !</span>}
-                                {currentAlert.type === 'raid' && currentAlert.amount && <span className="text-[10px] text-gray-300">avec {currentAlert.amount} raiders !</span>}
-                                {currentAlert.type === 'donation' && currentAlert.amount && <span className="text-[10px] text-gray-300">{currentAlert.amount}€{currentAlert.message ? ` — "${currentAlert.message}"` : ''}</span>}
+            {currentAlert && (
+                <div className="absolute top-16 left-1/2 -translate-x-1/2 z-[200] pointer-events-none flex justify-center w-full px-3">
+                    {currentAlert.type === 'follower' ? (
+                        <FollowerGifAlert
+                            pseudo={currentAlert.pseudo}
+                            gifUrl={currentAlert.gifUrl || selectedFollowerGif}
+                            size="compact"
+                            durationMs={5500}
+                            playSound={true}
+                            onClose={() => setCurrentAlert(null)}
+                        />
+                    ) : (() => {
+                        const s = getAlertStyle(currentAlert.type);
+                        return (
+                            <div className="w-72" style={{ animation: 'alertSlideIn 0.4s cubic-bezier(.21,1.02,.73,1) forwards' }}>
+                                <div className={`bg-gradient-to-r ${s.bg} border ${s.border} rounded-2xl px-5 py-3.5 shadow-2xl flex items-center gap-3 relative overflow-hidden`}
+                                    style={{ boxShadow: `0 0 30px ${s.color}40` }}>
+                                    <span className="text-3xl shrink-0">{s.icon}</span>
+                                    <div className="flex flex-col min-w-0 flex-1">
+                                        <span className="text-[10px] font-black uppercase tracking-widest" style={{ color: s.color }}>{s.label}</span>
+                                        <span className="text-white font-black text-sm truncate">{currentAlert.pseudo}</span>
+                                        {currentAlert.type === 'resub' && currentAlert.months && <span className="text-[10px] text-gray-300">{currentAlert.months} mois consécutifs 🎉</span>}
+                                        {currentAlert.type === 'gift_sub' && currentAlert.amount && <span className="text-[10px] text-gray-300">offre {currentAlert.amount} sub(s) !</span>}
+                                        {currentAlert.type === 'raid' && currentAlert.amount && <span className="text-[10px] text-gray-300">avec {currentAlert.amount} raiders !</span>}
+                                        {currentAlert.type === 'donation' && currentAlert.amount && <span className="text-[10px] text-gray-300">{currentAlert.amount}€{currentAlert.message ? ` — "${currentAlert.message}"` : ''}</span>}
+                                    </div>
+                                    <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-white/10 overflow-hidden">
+                                        <div className="h-full" style={{ backgroundColor: s.color, animation: 'alertProgress 5.5s linear forwards' }} />
+                                    </div>
+                                </div>
                             </div>
-                            <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-white/10 overflow-hidden">
-                                <div className="h-full" style={{ backgroundColor: s.color, animation: 'alertProgress 5.5s linear forwards' }} />
-                            </div>
-                        </div>
-                    </div>
-                );
-            })()}
+                        );
+                    })()}
+                </div>
+            )}
 
             {/* Badge Unlock Notif */}
             {badgeUnlockNotif && (
@@ -1454,8 +1476,77 @@ export const DropsidersLiveChat: React.FC<DropsidersLiveChatProps> = ({
                             </h3>
                             <button onClick={() => setIsMockAlertOpen(false)} className="text-gray-400 hover:text-white"><X className="w-4 h-4" /></button>
                         </div>
-                        <div className="p-5 space-y-2">
-                            <p className="text-[10px] text-gray-400 mb-3">Déclenchez une alerte visuelle sur le chat pour annoncer un événement en direct.</p>
+                        <div className="p-5 space-y-4 max-h-[75vh] overflow-y-auto">
+                            {/* GIF Chooser for Follower Alert */}
+                            <div className="p-3.5 rounded-2xl bg-black/60 border border-cyan-400/30 space-y-2.5">
+                                <div className="flex items-center justify-between">
+                                    <span className="text-[10px] font-black uppercase text-cyan-400 tracking-wider flex items-center gap-1.5">
+                                        🎬 GIF Nouveau Follower
+                                    </span>
+                                    <a
+                                        href="/obs/alerts?test=true"
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        className="text-[9px] font-bold text-gray-400 hover:text-white flex items-center gap-1"
+                                    >
+                                        <ExternalLink className="w-3 h-3 text-cyan-400" />
+                                        Overlay OBS
+                                    </a>
+                                </div>
+
+                                {/* Presets Grid */}
+                                <div className="grid grid-cols-2 gap-2">
+                                    {FOLLOWER_GIF_PRESETS.map((p) => {
+                                        const isSel = selectedFollowerGif === p.url;
+                                        return (
+                                            <button
+                                                key={p.id}
+                                                type="button"
+                                                onClick={() => {
+                                                    setSelectedFollowerGif(p.url);
+                                                    try { localStorage.setItem('dropsiders_follower_gif', p.url); } catch {}
+                                                }}
+                                                className={`relative rounded-xl overflow-hidden border p-1 text-left transition-all cursor-pointer ${
+                                                    isSel ? 'border-cyan-400 bg-cyan-950/40 shadow-[0_0_12px_rgba(0,240,255,0.4)]' : 'border-white/10 hover:border-white/30 bg-white/5'
+                                                }`}
+                                            >
+                                                <div className="h-14 w-full rounded-lg overflow-hidden bg-black mb-1">
+                                                    <img src={p.url} alt={p.name} className="w-full h-full object-cover" />
+                                                </div>
+                                                <span className="text-[9px] font-black uppercase truncate block text-white">
+                                                    {p.name}
+                                                </span>
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+
+                                {/* Custom GIF link */}
+                                <div className="flex gap-1.5 pt-1">
+                                    <input
+                                        type="text"
+                                        value={customGifInput}
+                                        onChange={(e) => setCustomGifInput(e.target.value)}
+                                        placeholder="Ou collez un lien GIF direct..."
+                                        className="flex-1 px-2.5 py-1.5 bg-white/5 border border-white/10 rounded-xl text-[10px] text-white focus:outline-none focus:border-cyan-400"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            if (customGifInput.trim()) {
+                                                setSelectedFollowerGif(customGifInput.trim());
+                                                try { localStorage.setItem('dropsiders_follower_gif', customGifInput.trim()); } catch {}
+                                                setCustomGifInput('');
+                                            }
+                                        }}
+                                        className="px-3 py-1.5 bg-cyan-500 hover:bg-cyan-400 text-black font-black text-[10px] uppercase rounded-xl cursor-pointer"
+                                    >
+                                        Appliquer
+                                    </button>
+                                </div>
+                            </div>
+
+                            <p className="text-[10px] text-gray-400">Cliquez ci-dessous pour déclencher l'alerte en direct :</p>
                             {(['follower', 'sub', 'resub', 'gift_sub', 'raid', 'donation'] as LiveAlert['type'][]).map(type => {
                                 const s = getAlertStyle(type);
                                 return (

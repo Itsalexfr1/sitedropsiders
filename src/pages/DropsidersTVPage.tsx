@@ -9,6 +9,7 @@ import { TVShareScheduleModal } from '../components/tv/TVShareScheduleModal';
 import type { TVScheduleBlock, TVVideoCategory } from '../utils/tvSchedule';
 
 import { DropsidersLiveChat } from '../components/chat/DropsidersLiveChat';
+import { FollowerGifAlert, DEFAULT_FOLLOWER_GIF } from '../components/alerts/FollowerGifAlert';
 import { 
     DEFAULT_TV_BLOCKS, 
     STORAGE_TV_BLOCKS_KEY, 
@@ -515,6 +516,20 @@ export function DropsidersTVPage() {
     const cleanTakeoverYtId = useMemo(() => extractYouTubeId(takeoverYtId), [takeoverYtId, extractYouTubeId]);
 
     const [isUpdatingLiveStatus, setIsUpdatingLiveStatus] = useState(false);
+    const [tvFloatingAlert, setTvFloatingAlert] = useState<{ pseudo: string; gifUrl?: string } | null>(null);
+
+    useEffect(() => {
+        const bc = new BroadcastChannel('dropsiders_native_chat_v1');
+        bc.onmessage = (event) => {
+            if (event.data?.type === 'LIVE_ALERT' && event.data?.alert?.type === 'follower') {
+                setTvFloatingAlert({
+                    pseudo: event.data.alert.pseudo,
+                    gifUrl: event.data.alert.gifUrl
+                });
+            }
+        };
+        return () => bc.close();
+    }, []);
 
     const handleToggleLiveStatus = useCallback(async () => {
         if (isUpdatingLiveStatus) return;
@@ -1662,6 +1677,20 @@ export function DropsidersTVPage() {
                         >
                             {/* Dedicated slot for YouTube iframe - React won't re-create or diff changing styles on this element */}
                             <div id="tv-yt-player-slot" className="w-full h-full">
+                                    {/* Floating Follower GIF Alert over TV */}
+                                    <AnimatePresence>
+                                        {tvFloatingAlert && !isChatOpen && (
+                                            <div className="absolute top-20 right-6 z-[60] pointer-events-none">
+                                                <FollowerGifAlert
+                                                    pseudo={tvFloatingAlert.pseudo}
+                                                    gifUrl={tvFloatingAlert.gifUrl || DEFAULT_FOLLOWER_GIF}
+                                                    size="normal"
+                                                    durationMs={5500}
+                                                    onClose={() => setTvFloatingAlert(null)}
+                                                />
+                                            </div>
+                                        )}
+                                    </AnimatePresence>
                                 <div id="tv-yt-player" className="w-full h-full" />
                             </div>
                         </div>

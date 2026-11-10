@@ -82,6 +82,7 @@ const AdminGTAContestPage = lazyRetry(() => import('./pages/AdminGTAContestPage'
 const BlindTestPage = lazyRetry(() => import('./pages/BlindTestPage').then(m => m.BlindTestPage));
 const CallGeneratorPage = lazyRetry(() => import('./pages/CallGeneratorPage').then(m => m.CallGeneratorPage));
 const LiveChatPopoutPage = lazyRetry(() => import('./pages/LiveChatPopoutPage').then(m => m.LiveChatPopoutPage));
+const StreamAlertsOverlayPage = lazyRetry(() => import('./pages/StreamAlertsOverlayPage').then(m => m.StreamAlertsOverlayPage));
 const ModViewPage = lazyRetry(() => import('./pages/ModViewPage').then(m => m.ModViewPage));
 
 
