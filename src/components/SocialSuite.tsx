@@ -16349,22 +16349,28 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         }
     };
 
-    const downloadFullAgendaCarousel = async (format: TabType = (activeTab || 'PUBLICATION')) => {
+    const downloadFullAgendaCarousel = async (format: TabType = (activeTab || 'PUBLICATION'), exportZip: boolean = false) => {
         if (!canvasRef.current) return;
         setIsDownloading(true);
         const prevSlide = agendaSlide;
+        const zip = exportZip ? new JSZip() : null;
         try {
             // 1. Slide 1 (Cover)
             setAgendaSlide(1);
             await new Promise(r => setTimeout(r, 60));
             await generateImage(format, true);
             const dataUrl1 = canvasRef.current.toDataURL('image/png');
-            const a1 = document.createElement('a');
-            a1.href = dataUrl1;
-            a1.download = `${format === 'REEL' ? 'STORY' : 'POST'}-agenda-slide1-cover.png`;
-            document.body.appendChild(a1);
-            a1.click();
-            document.body.removeChild(a1);
+            const fileName1 = `${format === 'REEL' ? 'STORY' : 'POST'}-agenda-slide1-cover.png`;
+            if (zip) {
+                zip.file(fileName1, dataUrl1.split(',')[1], { base64: true });
+            } else {
+                const a1 = document.createElement('a');
+                a1.href = dataUrl1;
+                a1.download = fileName1;
+                document.body.appendChild(a1);
+                a1.click();
+                document.body.removeChild(a1);
+            }
 
             // 2. Slide 2 (Events)
             await new Promise(r => setTimeout(r, 350));
@@ -16372,12 +16378,17 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             await new Promise(r => setTimeout(r, 60));
             await generateImage(format, true);
             const dataUrl2 = canvasRef.current.toDataURL('image/png');
-            const a2 = document.createElement('a');
-            a2.href = dataUrl2;
-            a2.download = `${format === 'REEL' ? 'STORY' : 'POST'}-agenda-slide2-events.png`;
-            document.body.appendChild(a2);
-            a2.click();
-            document.body.removeChild(a2);
+            const fileName2 = `${format === 'REEL' ? 'STORY' : 'POST'}-agenda-slide2-events.png`;
+            if (zip) {
+                zip.file(fileName2, dataUrl2.split(',')[1], { base64: true });
+            } else {
+                const a2 = document.createElement('a');
+                a2.href = dataUrl2;
+                a2.download = fileName2;
+                document.body.appendChild(a2);
+                a2.click();
+                document.body.removeChild(a2);
+            }
 
             // 3. Slides Affiches (Slide 3..N)
             for (let i = 0; i < agendaAffiches.length; i++) {
@@ -16387,13 +16398,30 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 await new Promise(r => setTimeout(r, 60));
                 await generateImage(format, true);
                 const dataUrlAff = canvasRef.current.toDataURL('image/png');
-                const aAff = document.createElement('a');
-                aAff.href = dataUrlAff;
                 const affTitle = agendaAffiches[i]?.title ? agendaAffiches[i].title.toLowerCase().replace(/[^a-z0-9]+/g, '-') : `event-${i + 1}`;
-                aAff.download = `${format === 'REEL' ? 'STORY' : 'POST'}-agenda-slide${sNum}-affiche-${affTitle}.png`;
-                document.body.appendChild(aAff);
-                aAff.click();
-                document.body.removeChild(aAff);
+                const fileNameAff = `${format === 'REEL' ? 'STORY' : 'POST'}-agenda-slide${sNum}-affiche-${affTitle}.png`;
+                if (zip) {
+                    zip.file(fileNameAff, dataUrlAff.split(',')[1], { base64: true });
+                } else {
+                    const aAff = document.createElement('a');
+                    aAff.href = dataUrlAff;
+                    aAff.download = fileNameAff;
+                    document.body.appendChild(aAff);
+                    aAff.click();
+                    document.body.removeChild(aAff);
+                }
+            }
+
+            if (zip) {
+                const zipBlob = await zip.generateAsync({ type: 'blob', compression: 'DEFLATE', compressionOptions: { level: 6 } });
+                const zipUrl = URL.createObjectURL(zipBlob);
+                const aZip = document.createElement('a');
+                aZip.href = zipUrl;
+                aZip.download = `dropsiders-agenda-carrousel-${format === 'REEL' ? 'story' : 'post'}-${Date.now()}.zip`;
+                document.body.appendChild(aZip);
+                aZip.click();
+                document.body.removeChild(aZip);
+                setTimeout(() => URL.revokeObjectURL(zipUrl), 30000);
             }
         } catch (e) {
             console.error(e);
@@ -16530,10 +16558,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         }
     };
 
-    const downloadArtisteFestivalCarousel = async (format: TabType = (activeTab || 'PUBLICATION')) => {
+    const downloadArtisteFestivalCarousel = async (format: TabType = (activeTab || 'PUBLICATION'), exportZip: boolean = false) => {
         if (!canvasRef.current) return;
         setIsDownloading(true);
         const prevSlide = artisteFestivalSlide;
+        const zip = exportZip ? new JSZip() : null;
         try {
             const allSlides = [1, 2, ...extraSpotlightSlides];
             for (let i = 0; i < allSlides.length; i++) {
@@ -16542,13 +16571,30 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 await new Promise(r => setTimeout(r, 120));
                 await generateImage(format, true);
                 const dataUrl = canvasRef.current.toDataURL('image/png');
-                const a = document.createElement('a');
-                a.href = dataUrl;
-                a.download = `${format === 'REEL' ? 'STORY' : 'POST'}-spotlight-slide${sNum}-${sNum === 1 ? 'intro' : `artiste-${sNum - 1}`}.png`;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                await new Promise(r => setTimeout(r, 200));
+                const fileName = `${format === 'REEL' ? 'STORY' : 'POST'}-spotlight-slide${sNum}-${sNum === 1 ? 'intro' : `artiste-${sNum - 1}`}.png`;
+                if (zip) {
+                    zip.file(fileName, dataUrl.split(',')[1], { base64: true });
+                } else {
+                    const a = document.createElement('a');
+                    a.href = dataUrl;
+                    a.download = fileName;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    await new Promise(r => setTimeout(r, 200));
+                }
+            }
+
+            if (zip) {
+                const zipBlob = await zip.generateAsync({ type: 'blob', compression: 'DEFLATE', compressionOptions: { level: 6 } });
+                const zipUrl = URL.createObjectURL(zipBlob);
+                const aZip = document.createElement('a');
+                aZip.href = zipUrl;
+                aZip.download = `dropsiders-spotlight-carrousel-${format === 'REEL' ? 'story' : 'post'}-${Date.now()}.zip`;
+                document.body.appendChild(aZip);
+                aZip.click();
+                document.body.removeChild(aZip);
+                setTimeout(() => URL.revokeObjectURL(zipUrl), 30000);
             }
         } catch (e) {
             console.error(e);
@@ -16619,12 +16665,13 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         }
     };
 
-    const downloadEventsCarousel = async (format: TabType = (activeTab || 'PUBLICATION')) => {
+    const downloadEventsCarousel = async (format: TabType = (activeTab || 'PUBLICATION'), exportZip: boolean = false) => {
         if (!canvasRef.current) return;
         setIsDownloading(true);
         const prevSlide = editorialSlide;
         const prevEventsSlide = eventsSlide;
         const prevAffiche = isEditorialAfficheActive;
+        const zip = exportZip ? new JSZip() : null;
         try {
             // 1. Slide 1 (Post)
             setIsEditorialAfficheActive(false);
@@ -16633,12 +16680,17 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             await new Promise(r => setTimeout(r, 60));
             await generateImage(format, true);
             let dataUrl = canvasRef.current.toDataURL('image/png');
-            let a = document.createElement('a');
-            a.href = dataUrl;
-            a.download = `${format === 'REEL' ? 'STORY' : 'POST'}-event-slide1-post.png`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
+            let fileName = `${format === 'REEL' ? 'STORY' : 'POST'}-event-slide1-post.png`;
+            if (zip) {
+                zip.file(fileName, dataUrl.split(',')[1], { base64: true });
+            } else {
+                let a = document.createElement('a');
+                a.href = dataUrl;
+                a.download = fileName;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+            }
 
             // 2. Slides normales supplémentaires si ajoutées (Slide 2, 3...)
             for (let i = 0; i < eventNormalSlidesCount; i++) {
@@ -16649,12 +16701,17 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 await new Promise(r => setTimeout(r, 60));
                 await generateImage(format, true);
                 dataUrl = canvasRef.current.toDataURL('image/png');
-                a = document.createElement('a');
-                a.href = dataUrl;
-                a.download = `${format === 'REEL' ? 'STORY' : 'POST'}-event-slide${sNum}.png`;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
+                fileName = `${format === 'REEL' ? 'STORY' : 'POST'}-event-slide${sNum}.png`;
+                if (zip) {
+                    zip.file(fileName, dataUrl.split(',')[1], { base64: true });
+                } else {
+                    let a = document.createElement('a');
+                    a.href = dataUrl;
+                    a.download = fileName;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                }
             }
 
             // 3. Slide Affiche
@@ -16665,14 +16722,31 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             await new Promise(r => setTimeout(r, 60));
             await generateImage(format, true);
             dataUrl = canvasRef.current.toDataURL('image/png');
-            a = document.createElement('a');
-            a.href = dataUrl;
             const afficheNum = eventNormalSlidesCount === 0 ? 2 : (2 + eventNormalSlidesCount);
-            a.download = `${format === 'REEL' ? 'STORY' : 'POST'}-event-slide${afficheNum}-affiche.png`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
+            fileName = `${format === 'REEL' ? 'STORY' : 'POST'}-event-slide${afficheNum}-affiche.png`;
+            if (zip) {
+                zip.file(fileName, dataUrl.split(',')[1], { base64: true });
+            } else {
+                let a = document.createElement('a');
+                a.href = dataUrl;
+                a.download = fileName;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+            }
             editorialAfficheOverrideRef.current = false;
+
+            if (zip) {
+                const zipBlob = await zip.generateAsync({ type: 'blob', compression: 'DEFLATE', compressionOptions: { level: 6 } });
+                const zipUrl = URL.createObjectURL(zipBlob);
+                const aZip = document.createElement('a');
+                aZip.href = zipUrl;
+                aZip.download = `dropsiders-events-carrousel-${format === 'REEL' ? 'story' : 'post'}-${Date.now()}.zip`;
+                document.body.appendChild(aZip);
+                aZip.click();
+                document.body.removeChild(aZip);
+                setTimeout(() => URL.revokeObjectURL(zipUrl), 30000);
+            }
         } catch (e) {
             console.error(e);
             setErrorMessage("Erreur lors de l'exportation du carrousel.");
@@ -16768,7 +16842,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         }
     };
 
-    const downloadEditorialCarousel = async (format: TabType = (activeTab || 'PUBLICATION')) => {
+    const downloadEditorialCarousel = async (format: TabType = (activeTab || 'PUBLICATION'), exportZip: boolean = false) => {
         if (!canvasRef.current) return;
         setIsDownloading(true);
         const prevSlide = editorialSlide;
@@ -16781,6 +16855,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 ? [1, ...extraEditorialSlides.map((_, i) => i + 3)]
                 : [1, 2, ...extraEditorialSlides.map((_, i) => i + 3)]);
         const includeAffiche = Boolean(!isMusicTheme && (afficheImage || isEditorialAfficheActive));
+        const zip = exportZip ? new JSZip() : null;
         try {
             for (let idx = 0; idx < slidesToDownload.length; idx++) {
                 const s = slidesToDownload[idx];
@@ -16789,15 +16864,20 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 await new Promise(r => setTimeout(r, 60));
                 await generateImage(format, true);
                 const dataUrl = canvasRef.current.toDataURL('image/png');
-                const a = document.createElement('a');
-                a.href = dataUrl;
                 const suffix = s === 1
                     ? (isMusicTheme ? 'annonce' : (theme === 'JEU_DJ' ? 'silhouette' : 'cover'))
                     : (isMusicTheme ? `track-${s - 1}-cover` : (theme === 'JEU_DJ' && s === 2 ? 'revelation' : `detail-slide${s}`));
-                a.download = `${format === 'REEL' ? 'STORY' : 'POST'}-${theme.toLowerCase().replace(/\s+/g, '-')}-slide${s}-${suffix}.png`;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
+                const fileName = `${format === 'REEL' ? 'STORY' : 'POST'}-${theme.toLowerCase().replace(/\s+/g, '-')}-slide${s}-${suffix}.png`;
+                if (zip) {
+                    zip.file(fileName, dataUrl.split(',')[1], { base64: true });
+                } else {
+                    const a = document.createElement('a');
+                    a.href = dataUrl;
+                    a.download = fileName;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                }
             }
 
             if (includeAffiche) {
@@ -16826,13 +16906,30 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 await new Promise(r => setTimeout(r, 80));
                 await generateImage(format, true);
                 const dataUrl = canvasRef.current.toDataURL('image/png');
-                const a = document.createElement('a');
-                a.href = dataUrl;
-                a.download = `${format === 'REEL' ? 'STORY' : 'POST'}-${theme.toLowerCase().replace(/\s+/g, '-')}-slide-affiche.png`;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
+                const fileNameAff = `${format === 'REEL' ? 'STORY' : 'POST'}-${theme.toLowerCase().replace(/\s+/g, '-')}-slide-affiche.png`;
+                if (zip) {
+                    zip.file(fileNameAff, dataUrl.split(',')[1], { base64: true });
+                } else {
+                    const a = document.createElement('a');
+                    a.href = dataUrl;
+                    a.download = fileNameAff;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                }
                 editorialAfficheOverrideRef.current = false;
+            }
+
+            if (zip) {
+                const zipBlob = await zip.generateAsync({ type: 'blob', compression: 'DEFLATE', compressionOptions: { level: 6 } });
+                const zipUrl = URL.createObjectURL(zipBlob);
+                const aZip = document.createElement('a');
+                aZip.href = zipUrl;
+                aZip.download = `dropsiders-${theme.toLowerCase().replace(/\s+/g, '-')}-carrousel-${format === 'REEL' ? 'story' : 'post'}-${Date.now()}.zip`;
+                document.body.appendChild(aZip);
+                aZip.click();
+                document.body.removeChild(aZip);
+                setTimeout(() => URL.revokeObjectURL(zipUrl), 30000);
             }
         } catch (e) {
             console.error(e);
@@ -25144,14 +25241,24 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 <span className="text-[8px] font-black text-[#ff3700] uppercase tracking-wider block">
                                     Carrousel Complet ({2 + agendaAffiches.length} Slides)
                                 </span>
-                                <button
-                                    type="button"
-                                    onClick={() => downloadFullAgendaCarousel()}
-                                    disabled={isDownloading}
-                                    className="w-full py-2.5 bg-gradient-to-r from-[#ff3700] via-orange-500 to-amber-500 hover:brightness-110 text-black font-black text-[9.5px] uppercase rounded-xl transition-all flex items-center justify-center gap-2 shadow-md shadow-[#ff3700]/20"
-                                >
-                                    <Sparkles className="w-4 h-4 text-black" /> Télécharger Toutes les Slides ({2 + agendaAffiches.length})
-                                </button>
+                                <div className="grid grid-cols-2 gap-2">
+                                    <button
+                                        type="button"
+                                        onClick={() => downloadFullAgendaCarousel(activeTab, false)}
+                                        disabled={isDownloading}
+                                        className="py-2.5 px-2 bg-gradient-to-r from-[#ff3700] via-orange-500 to-amber-500 hover:brightness-110 text-black font-black text-[9px] uppercase rounded-xl transition-all flex items-center justify-center gap-1.5 shadow-md shadow-[#ff3700]/20"
+                                    >
+                                        <Download className="w-3.5 h-3.5 text-black" /> 1 par 1 ({2 + agendaAffiches.length})
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => downloadFullAgendaCarousel(activeTab, true)}
+                                        disabled={isDownloading}
+                                        className="py-2.5 px-2 bg-white/10 hover:bg-white/20 border border-[#ff3700]/50 hover:border-[#ff3700] text-white font-black text-[9px] uppercase rounded-xl transition-all flex items-center justify-center gap-1.5 shadow-md"
+                                    >
+                                        <span>📦</span> Pack ZIP (.zip)
+                                    </button>
+                                </div>
                             </div>
                         )}
 
@@ -25160,14 +25267,24 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 <span className="text-[8px] font-black text-neon-cyan uppercase tracking-wider block">
                                     Carrousel Complet ({2 + extraEditorialSlides.length + (afficheImage || isEditorialAfficheActive ? 1 : 0)} Slides)
                                 </span>
-                                <button
-                                    type="button"
-                                    onClick={() => downloadEditorialCarousel()}
-                                    disabled={isDownloading}
-                                    className="w-full py-2.5 bg-gradient-to-r from-neon-cyan via-blue-500 to-indigo-600 hover:opacity-90 text-black font-black text-[9.5px] uppercase rounded-xl shadow-md shadow-cyan-500/20 transition-all flex items-center justify-center gap-2"
-                                >
-                                    <Download className="w-4 h-4 text-black" /> Télécharger Toutes les Slides ({2 + extraEditorialSlides.length + (afficheImage || isEditorialAfficheActive ? 1 : 0)})
-                                </button>
+                                <div className="grid grid-cols-2 gap-2">
+                                    <button
+                                        type="button"
+                                        onClick={() => downloadEditorialCarousel(activeTab, false)}
+                                        disabled={isDownloading}
+                                        className="py-2.5 px-2 bg-gradient-to-r from-neon-cyan via-blue-500 to-indigo-600 hover:opacity-90 text-black font-black text-[9px] uppercase rounded-xl shadow-md shadow-cyan-500/20 transition-all flex items-center justify-center gap-1.5"
+                                    >
+                                        <Download className="w-3.5 h-3.5 text-black" /> 1 par 1 ({2 + extraEditorialSlides.length + (afficheImage || isEditorialAfficheActive ? 1 : 0)})
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => downloadEditorialCarousel(activeTab, true)}
+                                        disabled={isDownloading}
+                                        className="py-2.5 px-2 bg-white/10 hover:bg-white/20 border border-neon-cyan/50 hover:border-neon-cyan text-white font-black text-[9px] uppercase rounded-xl shadow-md transition-all flex items-center justify-center gap-1.5"
+                                    >
+                                        <span>📦</span> Pack ZIP (.zip)
+                                    </button>
+                                </div>
                             </div>
                         )}
 
@@ -25176,14 +25293,24 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 <span className="text-[8px] font-black text-[#00ff66] uppercase tracking-wider block">
                                     Carrousel Musique ({1 + musicTracks.length} Slides)
                                 </span>
-                                <button
-                                    type="button"
-                                    onClick={() => downloadEditorialCarousel()}
-                                    disabled={isDownloading}
-                                    className="w-full py-2.5 bg-[#00ff66] hover:bg-[#33ff85] text-black font-black text-[9.5px] uppercase rounded-xl shadow-md transition-all flex items-center justify-center gap-2"
-                                >
-                                    <Download className="w-4 h-4 text-black" /> Télécharger Toutes les Slides ({1 + musicTracks.length})
-                                </button>
+                                <div className="grid grid-cols-2 gap-2">
+                                    <button
+                                        type="button"
+                                        onClick={() => downloadEditorialCarousel(activeTab, false)}
+                                        disabled={isDownloading}
+                                        className="py-2.5 px-2 bg-[#00ff66] hover:bg-[#33ff85] text-black font-black text-[9px] uppercase rounded-xl shadow-md transition-all flex items-center justify-center gap-1.5"
+                                    >
+                                        <Download className="w-3.5 h-3.5 text-black" /> 1 par 1 ({1 + musicTracks.length})
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => downloadEditorialCarousel(activeTab, true)}
+                                        disabled={isDownloading}
+                                        className="py-2.5 px-2 bg-white/10 hover:bg-white/20 border border-[#00ff66]/50 hover:border-[#00ff66] text-white font-black text-[9px] uppercase rounded-xl shadow-md transition-all flex items-center justify-center gap-1.5"
+                                    >
+                                        <span>📦</span> Pack ZIP (.zip)
+                                    </button>
+                                </div>
                             </div>
                         )}
 
@@ -25192,14 +25319,50 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 <span className="text-[8px] font-black text-[#ff3700] uppercase tracking-wider block">
                                     Carrousel Événement ({2 + eventNormalSlidesCount} Slides)
                                 </span>
-                                <button
-                                    type="button"
-                                    onClick={() => downloadEventsCarousel()}
-                                    disabled={isDownloading}
-                                    className="w-full py-2.5 bg-gradient-to-r from-[#ff3700] to-[#ff6700] text-white font-black text-[9.5px] uppercase rounded-xl shadow-md transition-all flex items-center justify-center gap-2"
-                                >
-                                    <Download className="w-4 h-4" /> Télécharger Carrousel ({2 + eventNormalSlidesCount} Slides)
-                                </button>
+                                <div className="grid grid-cols-2 gap-2">
+                                    <button
+                                        type="button"
+                                        onClick={() => downloadEventsCarousel(activeTab, false)}
+                                        disabled={isDownloading}
+                                        className="py-2.5 px-2 bg-gradient-to-r from-[#ff3700] to-[#ff6700] text-white font-black text-[9px] uppercase rounded-xl shadow-md transition-all flex items-center justify-center gap-1.5"
+                                    >
+                                        <Download className="w-3.5 h-3.5" /> 1 par 1 ({2 + eventNormalSlidesCount})
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => downloadEventsCarousel(activeTab, true)}
+                                        disabled={isDownloading}
+                                        className="py-2.5 px-2 bg-white/10 hover:bg-white/20 border border-[#ff3700]/50 hover:border-[#ff3700] text-white font-black text-[9px] uppercase rounded-xl shadow-md transition-all flex items-center justify-center gap-1.5"
+                                    >
+                                        <span>📦</span> Pack ZIP (.zip)
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+
+                        {theme === 'ARTISTE FESTIVAL' && (
+                            <div className="space-y-1.5 pt-1 border-t border-white/5">
+                                <span className="text-[8px] font-black text-neon-red uppercase tracking-wider block">
+                                    Carrousel Artiste Festival ({2 + extraSpotlightSlides.length} Slides)
+                                </span>
+                                <div className="grid grid-cols-2 gap-2">
+                                    <button
+                                        type="button"
+                                        onClick={() => downloadArtisteFestivalCarousel(activeTab, false)}
+                                        disabled={isDownloading}
+                                        className="py-2.5 px-2 bg-gradient-to-r from-neon-red to-pink-600 text-white font-black text-[9px] uppercase rounded-xl shadow-md transition-all flex items-center justify-center gap-1.5"
+                                    >
+                                        <Download className="w-3.5 h-3.5" /> 1 par 1 ({2 + extraSpotlightSlides.length})
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => downloadArtisteFestivalCarousel(activeTab, true)}
+                                        disabled={isDownloading}
+                                        className="py-2.5 px-2 bg-white/10 hover:bg-white/20 border border-neon-red/50 hover:border-neon-red text-white font-black text-[9px] uppercase rounded-xl shadow-md transition-all flex items-center justify-center gap-1.5"
+                                    >
+                                        <span>📦</span> Pack ZIP (.zip)
+                                    </button>
+                                </div>
                             </div>
                         )}
 
