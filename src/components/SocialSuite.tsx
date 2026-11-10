@@ -12582,7 +12582,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             ctx.stroke();
                         }
                         ctx.restore();
-                    } else if (showEditorialDate && focusHookAlpha > 0.001 && !(theme === 'FOCUS' && isReel && focusReelStyle !== 'CLASSIC')) {
+                    } else if (showEditorialDate && focusHookAlpha > 0.001 && !(theme === 'FOCUS' && isReel)) {
                         // Date épurée centrée au-dessus du grand titre, sans barre blanche
                         const defaultDateText = getTodayFormattedDate();
                         const dateText = (editorialDate && editorialDate.trim()) ? editorialDate.trim().toUpperCase() : defaultDateText;
