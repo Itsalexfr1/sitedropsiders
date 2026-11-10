@@ -9111,7 +9111,14 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     if (poster && poster.complete && poster.naturalWidth > 0) {
                         const posterImg = poster;
                         if (afficheMode === 'contain') {
-                            ctx.fillStyle = '#0a0a0e';
+                            // Fond flouté : l'affiche en cover avec un fort blur
+                            ctx.save();
+                            ctx.filter = 'blur(28px) brightness(0.45) saturate(1.3)';
+                            drawImageZoomPan(ctx, posterImg, cardX, cardY, cardW, cardH, 'cover', 100, 0, 0);
+                            ctx.filter = 'none';
+                            ctx.restore();
+                            // Légère surimpression sombre pour améliorer le contraste
+                            ctx.fillStyle = 'rgba(0, 0, 0, 0.18)';
                             ctx.fillRect(cardX, cardY, cardW, cardH);
                         }
                         // Zoom + déplacement interne : seule l'image bouge, le cadre reste fixe
