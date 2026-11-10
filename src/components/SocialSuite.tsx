@@ -6482,8 +6482,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         ctx.fillRect(0, gradStart, canvas.width, canvas.height - gradStart);
                     }
 
-                    // Subtle ambient colored glow at the bottom edge (max 14% opacity, skip for Interview pure white et retiré sur FOCUS REEL)
-                    if (activeData?.grad && theme !== 'INTERVIEW' && theme !== 'MAP' && !(isReel && theme === 'FOCUS')) {
+                    // Subtle ambient colored glow at the bottom edge (max 14% opacity, skip for Interview pure white et retiré sur FOCUS REEL Hook)
+                    if (activeData?.grad && theme !== 'INTERVIEW' && theme !== 'MAP' && !(isReel && theme === 'FOCUS' && focusReelStyle !== 'CLASSIC')) {
                         const edgeGrad = ctx.createLinearGradient(0, canvas.height * 0.82, 0, canvas.height);
                         edgeGrad.addColorStop(0, `rgba(${activeData.grad}, 0)`);
                         edgeGrad.addColorStop(1, `rgba(${activeData.grad}, 0.14)`);
@@ -12512,8 +12512,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             ? (Date.now() - animStartTimeRef.current) / 1000
                             : 99.0);
 
-                    // Date centrée dans la barre blanche (avec un segment de barre blanche de chaque côté) - exclue en FOCUS REEL
-                    const showEditorialDate = showDividerDate && ['NEWS', 'FOCUS', 'RECAP', 'INTERVIEW', 'LIVESTREAM', 'MUSIQUE', 'EVENTS', 'CONCOURS', 'REELS', 'CONSEILS', 'TOP 100 DROPSIDERS', 'JEU', 'JEU_FESTIVAL', 'JEU_DJ', 'TRACKLIST', 'CITATION'].includes(theme) && !(theme === 'FOCUS' && isReel);
+                    // Date centrée dans la barre blanche (avec un segment de barre blanche de chaque côté) - exclue en FOCUS REEL Hook
+                    const showEditorialDate = showDividerDate && ['NEWS', 'FOCUS', 'RECAP', 'INTERVIEW', 'LIVESTREAM', 'MUSIQUE', 'EVENTS', 'CONCOURS', 'REELS', 'CONSEILS', 'TOP 100 DROPSIDERS', 'JEU', 'JEU_FESTIVAL', 'JEU_DJ', 'TRACKLIST', 'CITATION'].includes(theme) && !(theme === 'FOCUS' && isReel && focusReelStyle !== 'CLASSIC');
 
                     if (!isFocusReelHook) {
                         ctx.save();
@@ -12582,7 +12582,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             ctx.stroke();
                         }
                         ctx.restore();
-                    } else if (showEditorialDate && focusHookAlpha > 0.001 && !(theme === 'FOCUS' && isReel)) {
+                    } else if (showEditorialDate && focusHookAlpha > 0.001 && !(theme === 'FOCUS' && isReel && focusReelStyle !== 'CLASSIC')) {
                         // Date épurée centrée au-dessus du grand titre, sans barre blanche
                         const defaultDateText = getTodayFormattedDate();
                         const dateText = (editorialDate && editorialDate.trim()) ? editorialDate.trim().toUpperCase() : defaultDateText;
