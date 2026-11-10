@@ -12009,7 +12009,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
 
                     // 4. Safe bottom position for the 3 stacked text lines
-                    const safeBottom = canvas.height - (isReel ? 280 : 180);
+                    const safeBottom = canvas.height - (isReel ? 310 : 210);
 
                     // Animation support (if animated)
                     const animElapsed = isVideoRecordingRef.current

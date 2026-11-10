@@ -62,4 +62,8 @@ mails_import/
 
 # PreMiD Repos
 premid-repo/
-premid-dropsiders/
+premid-dropsiders/
+public/alerts/*.mp4
+public/alerts/*.webm
+public/alerts/raw/
+
