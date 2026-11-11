@@ -16259,7 +16259,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         };
     };
 
-    const exportPromoSlideVideo = async (formatTab?: 'PUBLICATION' | 'REEL') => {
+    const exportPromoSlideVideo = async (formatTab?: TabType) => {
         const effectiveFormatTab = formatTab || (exportStudioDimension === 'REEL' ? 'REEL' : activeTab);
         if (effectiveFormatTab && effectiveFormatTab !== activeTab) {
             setActiveTab(effectiveFormatTab);
@@ -16271,7 +16271,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         startVideoRecording('PROMO_ONLY', { formatTab: effectiveFormatTab });
     };
 
-    const exportCurrentSlideVideo = async (formatTab?: 'PUBLICATION' | 'REEL') => {
+    const exportCurrentSlideVideo = async (formatTab?: TabType) => {
         const effectiveFormatTab = formatTab || (exportStudioDimension === 'REEL' ? 'REEL' : activeTab);
         if (isCarouselPromoActive) {
             await exportPromoSlideVideo(effectiveFormatTab);
