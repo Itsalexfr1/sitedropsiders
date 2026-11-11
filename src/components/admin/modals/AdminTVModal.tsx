@@ -264,7 +264,7 @@ export async function fetchYouTubeTitle(urlOrId: string): Promise<string | null>
 }
 
 export interface TakeoverStatePartial {
-    enabled: boolean;
+    enabled?: boolean;
     status?: 'off' | 'edit' | 'live';
     youtubeId?: string;
     title?: string;
@@ -318,7 +318,8 @@ export function AdminTVModal({
     };
 
     const updateTakeoverField = useCallback((field: string, value: any) => {
-        const updated = {
+        const updated: TakeoverStatePartial = {
+            enabled: false,
             ...(takeoverState || {}),
             [field]: value
         };
@@ -2988,7 +2989,8 @@ export function AdminTVModal({
                                                                     </div>
                                                                 </div>
                                                             );
-                                                        })}
+                                                        });
+                                                        })()}
                                                     </div>
                                                 )}
                                             </div>
@@ -3491,7 +3493,7 @@ export function AdminTVModal({
                                             const promoYtCnt = new Map<string, number>();
                                             promos.forEach(x => { if (x.youtubeId) promoYtCnt.set(x.youtubeId, (promoYtCnt.get(x.youtubeId) || 0) + 1); });
                                             promoYtCnt.forEach((cnt, ytid) => { if (cnt > 1) promoDupSet.add(ytid); });
-                                            return promos.map((p, idx) => (
+                                            return promos.map((p, idx) => { return (
                                             <div
                                                 key={p.id || idx}
                                                 className="group p-1.5 px-2.5 rounded-xl bg-white/[0.02] hover:bg-white/[0.05] border border-white/5 hover:border-neon-purple/30 transition-all flex items-center gap-2.5"
@@ -3581,9 +3583,9 @@ export function AdminTVModal({
                                                     </button>
                                                 </div>
                                             </div>
-                                        ));
-                                        })()
-                                    )}
+                                        );
+                                        });
+                                        })()}
                                 </div>
                             </>
                         )}
@@ -4162,6 +4164,7 @@ export function AdminTVModal({
                                 </div>
                             </div>
                         )}
+                        </div>
                     </motion.div>
                 </div>
             )}
@@ -4325,7 +4328,6 @@ export function AdminTVModal({
                                                     <img loading="lazy" decoding="async" src={`https://img.youtube.com/vi/${item.youtubeId}/mqdefault.jpg`}
                                                         alt={item.title}
                                                         className="w-full h-full object-cover"
-                                                        loading="lazy"
                                                     />
                                                 </div>
 
