@@ -1,10 +1,10 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { useLocation } from 'react-router-dom';
+import React, { useState, useEffect, useMemo, useCallback, useTransition, useDeferredValue, memo } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
     X, Tv, Plus, Trash2, ChevronUp, ChevronDown, Save, ExternalLink, 
     RotateCcw, CheckCircle2, Loader2, AlertCircle, Film, ChevronRight, 
-    Sparkles, Radio, Zap, Eye, Calendar, Home, Video, Shield, ShieldAlert, 
+    Sparkles, Radio, Zap, Eye, Calendar, Home, Video, Shield, ShieldAlert, ShieldCheck, 
     Pin, PinOff, MessageSquare, Clock, Lock, User, Upload, 
     Image as ImageIcon, Pencil, LayoutDashboard, Globe, Activity,
     Layers, Palette, Sliders, Search, Check, ListPlus, ArrowUpDown,
@@ -311,7 +311,40 @@ export function AdminTVModal({
     onTakeoverChange,
     isUpdatingTakeover
 }: AdminTVModalProps) {
+    const navigate = useNavigate();
+    const handleCloseModal = () => {
+        onClose();
+        navigate('/admin');
+    };
+
+    const updateTakeoverField = useCallback((field: string, value: any) => {
+        const updated = {
+            ...(takeoverState || {}),
+            [field]: value
+        };
+        if (onTakeoverChange) onTakeoverChange(updated);
+    }, [takeoverState, onTakeoverChange]);
+
+    const handleSaveLive = async () => {
+        setLiveSaving(true);
+        try {
+            if (onSaveTakeover) {
+                await onSaveTakeover(takeoverState);
+            }
+            setLiveSaved(true);
+            setTimeout(() => setLiveSaved(false), 2500);
+        } catch (e) {
+            console.error('Save live error', e);
+        } finally {
+            setLiveSaving(false);
+        }
+    };
+
+    const [_isPending, startTransition] = useTransition();
     const [activeTab, setActiveTab] = useState<'blocks' | 'promo' | 'main' | 'live'>('blocks');
+    const switchTab = useCallback((tab: 'blocks' | 'promo' | 'main' | 'live') => {
+        startTransition(() => setActiveTab(tab));
+    }, [startTransition]);
     const [liveSubTab, setLiveSubTab] = useState<'general' | 'planning' | 'moderation' | 'ticker' | 'bot' | 'mods' | 'access'>('general');
     const [liveSaving, setLiveSaving] = useState(false);
     const [liveSaved, setLiveSaved] = useState(false);
@@ -398,6 +431,7 @@ export function AdminTVModal({
     const [isLibraryOpen, setIsLibraryOpen] = useState(false);
     const [libraryTarget, setLibraryTarget] = useState<'block' | 'main'>('block');
     const [librarySearch, setLibrarySearch] = useState('');
+    const deferredLibrarySearch = useDeferredValue(librarySearch);
     const [libraryFilter, setLibraryFilter] = useState<string>('all');
     const [selectedLibraryIds, setSelectedLibraryIds] = useState<string[]>([]);
 
@@ -409,6 +443,7 @@ export function AdminTVModal({
     const [radioBlocks, setRadioBlocks] = useState<Array<{ id: string; title: string; emoji?: string; color?: string; tracks?: Array<{ id: string; title?: string; artist?: string; youtubeId: string; duration?: number; category?: string }> }>>([]);
     const [showAddFromRadio, setShowAddFromRadio] = useState(false);
     const [radioLibSearch, setRadioLibSearch] = useState('');
+    const deferredRadioSearch = useDeferredValue(radioLibSearch);
 
     // Catalogue complet et dédoublonné de tous les clips & lives déjà programmés
     const availableLibraryVideos = useMemo<LibraryVideoItem[]>(() => {
@@ -512,8 +547,8 @@ export function AdminTVModal({
         if (libraryFilter !== 'all') {
             list = list.filter(v => v.sources.includes(libraryFilter));
         }
-        if (librarySearch.trim()) {
-            const q = librarySearch.toLowerCase().trim();
+        if (deferredLibrarySearch.trim()) {
+            const q = deferredLibrarySearch.toLowerCase().trim();
             list = list.filter(v => 
                 v.title.toLowerCase().includes(q) ||
                 (v.description && v.description.toLowerCase().includes(q)) ||
@@ -522,17 +557,17 @@ export function AdminTVModal({
             );
         }
         return list;
-    }, [availableLibraryVideos, libraryFilter, librarySearch]);
+    }, [availableLibraryVideos, libraryFilter, deferredLibrarySearch]);
 
     // Vérifie si une vidéo est déjà programmée dans la cible active (émission ou playlist principale)
-    const isVideoInTarget = (ytid: string): boolean => {
+    const isVideoInTarget = useCallback((ytid: string): boolean => {
         if (libraryTarget === 'block') {
             const targetBlock = blocks.find(b => b.id === selectedBlockId);
             return !!targetBlock?.videos?.some(v => v.youtubeId === ytid);
         } else {
             return playlist.some(v => v.youtubeId === ytid);
         }
-    };
+    }, [libraryTarget, blocks, selectedBlockId, playlist]);
 
     // Style et couleur d'une source (émission TV ou Radio) pour l'affichage des badges
     const getSourceStyle = (sourceName: string) => {
@@ -879,16 +914,16 @@ export function AdminTVModal({
         }));
     };
 
-    const handleRemoveVideoFromBlock = (blockId: string, index: number) => {
+    const handleRemoveVideoFromBlock = useCallback((blockId: string, index: number) => {
         setBlocks(prev => prev.map(b => {
             if (b.id !== blockId) return b;
             const nextVids = [...(b.videos || [])];
             nextVids.splice(index, 1);
             return { ...b, videos: nextVids };
         }));
-    };
+    }, []);
 
-    const handleMoveVideoInBlock = (blockId: string, index: number, direction: -1 | 1) => {
+    const handleMoveVideoInBlock = useCallback((blockId: string, index: number, direction: -1 | 1) => {
         setBlocks(prev => prev.map(b => {
             if (b.id !== blockId) return b;
             const nextVids = [...(b.videos || [])];
@@ -899,7 +934,7 @@ export function AdminTVModal({
             nextVids[index] = tmp;
             return { ...b, videos: nextVids };
         }));
-    };
+    }, []);
 
     // Rename & style/category video inside a block
     const handleRenameVideoInBlock = (blockId: string, videoIdx: number, newTitle: string, newCategory?: TVVideoCategory) => {
@@ -921,7 +956,7 @@ export function AdminTVModal({
     };
 
     // Cycle or set video category/style directly (Liveset -> Clip -> Interview)
-    const handleCycleVideoCategoryInBlock = (blockId: string, videoIdx: number, currentCategory?: TVVideoCategory) => {
+    const handleCycleVideoCategoryInBlock = useCallback((blockId: string, videoIdx: number, currentCategory?: TVVideoCategory) => {
         const order: TVVideoCategory[] = ['liveset', 'clip', 'interview'];
         const current = currentCategory || 'liveset';
         const nextIndex = (order.indexOf(current) + 1) % order.length;
@@ -934,7 +969,7 @@ export function AdminTVModal({
             }
             return { ...b, videos: nextVids };
         }));
-    };
+    }, []);
 
     // Rename main video
     const handleRenameMainVideo = (videoId: string, newTitle: string) => {
@@ -1657,8 +1692,19 @@ export function AdminTVModal({
         setTimeout(() => setSaveMessage(null), 3000);
     };
 
+    // Mémoïser le bloc sélectionné (évite de recalculer à chaque render)
+    const currentBlockMemo = useMemo(
+        () => blocks.find(b => b.id === selectedBlockId) || blocks[0] || null,
+        [blocks, selectedBlockId]
+    );
+
+    // Mémoïser l'ID du bloc actif TV pour éviter de recalculer dans le JSX
+    const activeTVBlockId = useMemo(
+        () => (blocks.length > 0 ? getActiveTVBlock(blocks).id : ''),
+        [blocks]
+    );
+
     const location = useLocation();
-    const isOnTvPage = typeof window !== 'undefined' && (location.pathname.startsWith('/tv') || window.location.pathname.startsWith('/tv'));
 
     // Handle Escape key to close modal
     useEffect(() => {
@@ -1666,192 +1712,212 @@ export function AdminTVModal({
         const handleKeyDown = (e: KeyboardEvent) => {
             if (e.key === 'Escape') {
                 e.preventDefault();
-                onClose();
+                handleCloseModal();
             }
         };
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, [isOpen, onClose]);
 
-    const bgVideoId = playlist?.[0]?.youtubeId || 'H5QLyGiDr_0';
 
     return (
         <>
             <AnimatePresence>
             {isOpen && (
                 <div
-                    className={`fixed inset-0 z-[120] flex items-center justify-center bg-black/85 backdrop-blur-md overflow-hidden ${
-                        isFullscreen ? 'p-0' : 'p-1 sm:p-2 md:p-2.5'
+                    className={`fixed inset-0 z-[120] flex items-center justify-center bg-black/90 overflow-hidden ${
+                        isFullscreen ? 'p-0' : 'p-1 sm:p-2 md:p-3'
                     }`}
-                    onClick={(e) => { if (e.target === e.currentTarget && !isFullscreen) onClose(); }}
+                    onClick={(e) => { if (e.target === e.currentTarget && !isFullscreen) handleCloseModal(); }}
                 >
-                    {/* Live TV Background (blurred, muted, ambient backdrop when opened from Admin) */}
-                    {!isOnTvPage && (
-                        <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
-                            <div 
-                                className="w-full h-full scale-125 filter blur-2xl opacity-35 transition-transform duration-700"
-                                style={{ transformOrigin: 'center center' }}
-                            >
-                                <iframe
-                                    className="w-full h-full object-cover"
-                                    src={`https://www.youtube-nocookie.com/embed/${bgVideoId}?autoplay=1&mute=1&controls=0&disablekb=1&fs=0&loop=1&playlist=${bgVideoId}&cc_load_policy=0&iv_load_policy=3`}
-                                    allow="autoplay; encrypted-media"
-                                    tabIndex={-1}
-                                    title="Dropsiders TV Background"
-                                />
-                            </div>
-                            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
-                        </div>
-                    )}
-
                     <motion.div
-                        initial={{ opacity: 0, scale: 0.96, y: 15 }}
-                        animate={{ opacity: 1, scale: 1, y: 0 }}
-                        exit={{ opacity: 0, scale: 0.96, y: 15 }}
-                        className={`bg-[#0c0c0c]/95 backdrop-blur-2xl border border-white/10 shadow-2xl relative overflow-hidden flex flex-col z-10 transition-all duration-200 ${
+                        initial={{ opacity: 0, scale: 0.99 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.99 }}
+                        transition={{ duration: 0.12, ease: 'easeOut' }}
+                        className={`bg-[#0d1017] border border-neon-red/30 shadow-2xl relative overflow-hidden flex flex-col z-10 ${
                             isFullscreen
-                                ? 'w-screen h-screen max-w-none max-h-none rounded-none border-none p-3 sm:p-4 md:p-6'
-                                : 'rounded-2xl md:rounded-[1.75rem] p-3 sm:p-4 md:p-5 w-[99vw] max-w-[1720px] h-[97vh] max-h-[98vh]'
+                                ? 'w-screen h-screen rounded-none'
+                                : 'w-full max-w-[1720px] h-[96vh] rounded-3xl'
                         }`}
                     >
                         {/* Red Accent top line */}
                         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-neon-red via-neon-purple to-neon-cyan" />
 
-                        {/* Modal Header */}
-                        <div className="flex justify-between items-center mb-2.5 shrink-0">
-                            <div className="flex items-center gap-2.5">
-                                <div className="w-8 h-8 rounded-xl bg-neon-red/10 border border-neon-red/20 flex items-center justify-center text-neon-red shrink-0">
-                                    <Tv className="w-4 h-4" />
+                        {/* Top Header (Style RadioManager) */}
+                        <div className="h-14 px-4 sm:px-5 border-b border-white/10 flex items-center justify-between shrink-0 bg-gradient-to-r from-[#170d10] via-[#1a1017] to-[#0d1017]">
+                            <div className="flex items-center gap-4 sm:gap-6">
+                                <div className="flex items-center gap-2.5">
+                                    <div className="w-8 h-8 rounded-xl bg-neon-red/20 border border-neon-red/40 flex items-center justify-center text-neon-red shadow-[0_0_15px_rgba(255,18,65,0.3)] shrink-0">
+                                        <Tv className="w-4 h-4" />
+                                    </div>
+                                    <div>
+                                        <h1 className="text-base font-display font-black text-white uppercase italic tracking-tighter flex items-center gap-1.5">
+                                            TV<span className="text-neon-red">Manager</span>
+                                            <span className="text-[9px] font-mono not-italic px-1.5 py-0.5 rounded bg-neon-red/10 text-neon-red border border-neon-red/30 font-bold">
+                                                PRO
+                                            </span>
+                                        </h1>
+                                    </div>
                                 </div>
-                                <div>
-                                    <h2 className="text-lg md:text-xl font-display font-black text-white uppercase italic tracking-tighter leading-tight">
-                                        DROPSIDERS <span className="text-neon-red">TV</span> & <span className="text-neon-purple">LIVE</span>
-                                    </h2>
-                                    <p className="text-gray-400 font-bold uppercase tracking-widest text-[8px] md:text-[9px]">
-                                        Programmation continue TV · Live Takeover · Timetable & Modération
-                                    </p>
+
+                                {/* Navigation Onglets style RadioManager */}
+                                <div className="hidden md:flex items-center gap-1 bg-black/40 p-1 rounded-xl border border-white/10 text-xs font-bold">
+                                    <button
+                                        type="button"
+                                        onClick={() => setActiveTab('blocks')}
+                                        className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 ${
+                                            activeTab === 'blocks'
+                                                ? 'bg-neon-red/20 text-white border border-neon-red/40 shadow-sm font-bold'
+                                                : 'text-gray-400 hover:text-white'
+                                        }`}
+                                    >
+                                        <Clock className="w-3.5 h-3.5 text-amber-400" />
+                                        Émissions & Grille
+                                        <span className="text-[10px] px-1.5 py-0.2 rounded bg-white/10 font-mono text-white/70">
+                                            {blocks.length}
+                                        </span>
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setActiveTab('main')}
+                                        className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 ${
+                                            activeTab === 'main'
+                                                ? 'bg-neon-red/20 text-white border border-neon-red/40 shadow-sm font-bold'
+                                                : 'text-gray-400 hover:text-white'
+                                        }`}
+                                    >
+                                        <Tv className="w-3.5 h-3.5 text-neon-cyan" />
+                                        Tous les Sets
+                                        <span className="text-[10px] px-1.5 py-0.2 rounded bg-white/10 font-mono text-white/70">
+                                            {playlist.length}
+                                        </span>
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setActiveTab('promo')}
+                                        className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 ${
+                                            activeTab === 'promo'
+                                                ? 'bg-neon-purple/20 text-purple-200 border border-neon-purple/40 shadow-sm font-bold'
+                                                : 'text-gray-400 hover:text-white'
+                                        }`}
+                                    >
+                                        <Film className="w-3.5 h-3.5 text-neon-purple" />
+                                        Promos & Jingles
+                                        <span className="text-[10px] px-1.5 py-0.2 rounded bg-white/10 font-mono text-white/70">
+                                            {promos.length}
+                                        </span>
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setActiveTab('live')}
+                                        className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 ${
+                                            activeTab === 'live'
+                                                ? 'bg-gradient-to-r from-red-600/30 to-orange-600/30 text-white border border-red-500/50 shadow-sm font-bold'
+                                                : 'text-gray-400 hover:text-white'
+                                        }`}
+                                    >
+                                        <Radio className={`w-3.5 h-3.5 ${takeoverState?.status === 'live' ? 'text-neon-red animate-pulse' : 'text-gray-400'}`} />
+                                        Prise d'Antenne Live
+                                        <span className={`w-2 h-2 rounded-full ${
+                                            takeoverState?.status === 'live' ? 'bg-neon-red animate-ping' :
+                                            takeoverState?.status === 'edit' ? 'bg-orange-500' : 'bg-gray-600'
+                                        }`} />
+                                    </button>
                                 </div>
                             </div>
-                            <div className="flex items-center gap-1.5">
-                                {/* Radionomy · Jingles & Pubs */}
+
+                            <div className="flex items-center gap-2">
                                 <button
                                     type="button"
                                     onClick={() => setIsRadionomyOpen(true)}
-                                    className="px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest flex items-center gap-1.5 border bg-gradient-to-r from-purple-900/40 via-purple-700/30 to-pink-900/30 border-purple-500/50 text-purple-200 hover:text-white hover:border-purple-400 shadow-[0_0_15px_rgba(168,85,247,0.3)] transition-all cursor-pointer group"
+                                    className="px-2.5 sm:px-3 py-1.5 rounded-lg text-[9px] sm:text-[10px] font-bold uppercase tracking-wider flex items-center gap-1.5 border bg-purple-900/30 border-purple-500/40 text-purple-200 hover:text-white hover:border-purple-400 transition-all cursor-pointer"
                                     title="Boîte à Jingles, Pubs et Règle Horloge façon Radionomy"
                                 >
-                                    <Sliders className="w-3 h-3 text-purple-400 group-hover:rotate-90 transition-transform duration-300" />
+                                    <Sliders className="w-3.5 h-3.5 text-purple-400" />
                                     <span className="hidden sm:inline">Radionomy</span>
-                                    <span className="text-[8px] text-purple-300 font-mono normal-case hidden md:inline">· Jingles/Pubs</span>
                                 </button>
 
-                                {/* Recherche YouTube directe */}
                                 <button
                                     type="button"
                                     onClick={() => setIsYouTubeSearchOpen(true)}
-                                    className="px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest flex items-center gap-1.5 border bg-red-600/20 border-red-500/40 text-red-300 hover:text-white hover:bg-red-600/30 shadow-[0_0_12px_rgba(239,68,68,0.25)] transition-all cursor-pointer"
+                                    className="px-2.5 sm:px-3 py-1.5 rounded-lg text-[9px] sm:text-[10px] font-bold uppercase tracking-wider flex items-center gap-1.5 border bg-red-600/20 border-red-500/40 text-red-300 hover:text-white hover:bg-red-600/30 transition-all cursor-pointer"
                                     title="Recherche YouTube intégrée pour sets et clips"
                                 >
-                                    <Search className="w-3 h-3 text-red-400" />
+                                    <Search className="w-3.5 h-3.5 text-red-400" />
                                     <span className="hidden sm:inline">Recherche YouTube</span>
                                 </button>
 
-                                {!isOnTvPage && (
-                                    <a
-                                        href="/tv"
-                                        target="_blank"
-                                        rel="noreferrer"
-                                        className="px-2.5 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-[9px] font-black uppercase tracking-widest text-white/70 hover:text-white transition-all flex items-center gap-1.5"
-                                    >
-                                        <ExternalLink className="w-3 h-3" />
-                                        Voir la TV
-                                    </a>
-                                )}
-                                <a
-                                    href="/live?edit=true"
-                                    target="_blank"
-                                    rel="noreferrer"
-                                    className="px-2.5 py-1.5 rounded-lg bg-neon-purple/10 hover:bg-neon-purple/20 border border-neon-purple/30 text-[9px] font-black uppercase tracking-widest text-neon-purple transition-all flex items-center gap-1.5"
+                                <button
+                                    type="button"
+                                    onClick={handleSave}
+                                    disabled={saving}
+                                    className="px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider bg-neon-red hover:bg-neon-red/90 text-white flex items-center gap-1.5 shadow-lg shadow-neon-red/20 transition-all cursor-pointer disabled:opacity-50"
                                 >
-                                    <Radio className="w-3 h-3" />
-                                    Studio Live Takeover
-                                </a>
+                                    {saving ? (
+                                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                    ) : saveSuccess ? (
+                                        <CheckCircle2 className="w-3.5 h-3.5 text-green-300" />
+                                    ) : (
+                                        <Save className="w-3.5 h-3.5" />
+                                    )}
+                                    <span>{saving ? 'Sauvegarde...' : saveSuccess ? 'Enregistré !' : 'Sauvegarder'}</span>
+                                </button>
 
-                                {/* Plein Écran */}
                                 <button
                                     type="button"
                                     onClick={() => setIsFullscreen(!isFullscreen)}
-                                    className={`p-2 border rounded-xl transition-all cursor-pointer ${
-                                        isFullscreen
-                                            ? 'bg-neon-red/20 border-neon-red/50 text-neon-red shadow-[0_0_15px_rgba(255,18,65,0.3)]'
-                                            : 'bg-white/5 hover:bg-white/10 border-white/10 text-gray-400 hover:text-white'
-                                    }`}
-                                    title={isFullscreen ? "Quitter le plein écran" : "Passer en plein écran"}
+                                    className="p-2 border rounded-xl bg-white/5 hover:bg-white/10 border-white/10 text-gray-400 hover:text-white transition-all cursor-pointer"
+                                    title={isFullscreen ? "Quitter le plein écran" : "Plein écran"}
                                 >
                                     {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
                                 </button>
 
                                 <button
-                                    onClick={onClose}
-                                    className="p-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-gray-400 hover:text-white transition-all"
+                                    type="button"
+                                    onClick={handleCloseModal}
+                                    className="p-2 bg-white/5 hover:bg-neon-red/20 border border-white/10 hover:border-neon-red/40 rounded-xl text-gray-400 hover:text-white transition-all cursor-pointer"
+                                    title="Fermer et retourner au tableau de bord"
                                 >
                                     <X className="w-4 h-4" />
                                 </button>
                             </div>
                         </div>
 
-                        {/* Top Main Navigation Tabs */}
-                        <div className="flex items-center gap-1.5 mb-2.5 p-1 rounded-xl bg-white/[0.03] border border-white/10 shrink-0 overflow-x-auto">
+                        {/* Barre d'onglets pour mobile */}
+                        <div className="flex md:hidden items-center gap-1 p-1 bg-black/50 border-b border-white/10 overflow-x-auto text-[10px] font-bold shrink-0">
                             <button
                                 type="button"
                                 onClick={() => setActiveTab('blocks')}
-                                className={`flex-1 py-1.5 px-2.5 rounded-lg text-[11px] font-black uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 whitespace-nowrap ${
-                                    activeTab === 'blocks'
-                                        ? 'bg-gradient-to-r from-amber-500 to-neon-red text-white shadow-md shadow-neon-red/20'
-                                        : 'text-white/60 hover:text-white hover:bg-white/5'
-                                }`}
+                                className={`px-2.5 py-1 rounded-lg shrink-0 ${activeTab === 'blocks' ? 'bg-neon-red text-white' : 'text-gray-400'}`}
                             >
-                                <Clock className="w-3.5 h-3.5" />
-                                Grille TV ({blocks.length} Émissions · {blocks.reduce((acc, b) => acc + (b.videos?.length || 0), 0)} vidéos)
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => setActiveTab('promo')}
-                                className={`flex-1 py-1.5 px-2.5 rounded-lg text-[11px] font-black uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 whitespace-nowrap ${
-                                    activeTab === 'promo'
-                                        ? 'bg-neon-purple text-white shadow-md shadow-neon-purple/20'
-                                        : 'text-white/60 hover:text-white hover:bg-white/5'
-                                }`}
-                            >
-                                <Film className="w-3.5 h-3.5" />
-                                Vidéos Promo ({promos.length})
+                                📺 Émissions ({blocks.length})
                             </button>
                             <button
                                 type="button"
                                 onClick={() => setActiveTab('main')}
-                                className={`flex-1 py-1.5 px-2.5 rounded-lg text-[11px] font-black uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 whitespace-nowrap ${
-                                    activeTab === 'main'
-                                        ? 'bg-neon-red text-white shadow-md shadow-neon-red/20'
-                                        : 'text-white/60 hover:text-white hover:bg-white/5'
-                                }`}
+                                className={`px-2.5 py-1 rounded-lg shrink-0 ${activeTab === 'main' ? 'bg-neon-red text-white' : 'text-gray-400'}`}
                             >
-                                <Tv className="w-3.5 h-3.5" />
-                                Tous les Sets ({playlist.length})
+                                🎬 Sets ({playlist.length})
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setActiveTab('promo')}
+                                className={`px-2.5 py-1 rounded-lg shrink-0 ${activeTab === 'promo' ? 'bg-neon-purple text-white' : 'text-gray-400'}`}
+                            >
+                                📢 Promos ({promos.length})
                             </button>
                             <button
                                 type="button"
                                 onClick={() => setActiveTab('live')}
-                                className={`flex-1 py-1.5 px-2.5 rounded-lg text-[11px] font-black uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 whitespace-nowrap ${
-                                    activeTab === 'live'
-                                        ? 'bg-gradient-to-r from-orange-600 to-red-600 text-white shadow-md shadow-red-600/30'
-                                        : 'text-white/60 hover:text-white hover:bg-white/5'
-                                }`}
+                                className={`px-2.5 py-1 rounded-lg shrink-0 ${activeTab === 'live' ? 'bg-orange-600 text-white' : 'text-gray-400'}`}
                             >
-                                <Radio className="w-3.5 h-3.5 text-white" />
-                                Prise d'antenne Live {takeoverState?.status === 'live' ? '🔴 (ONLINE)' : '⚫ (OFFLINE)'}
+                                🔴 Live Takeover
                             </button>
                         </div>
 
+                        {/* Modal Body Wrapper */}
+                        <div className="p-3 sm:p-4 md:p-5 flex-1 flex flex-col min-h-0 overflow-hidden">
                         {/* ── Duration stats bar ── */}
                         {!loading && (() => {
                             const mainTotal = playlist.reduce((sum, v) => sum + (durationsMap[v.youtubeId] || 0), 0);
@@ -1966,7 +2032,7 @@ export function AdminTVModal({
                                             <div className="space-y-1.5 max-h-60 overflow-y-auto pr-1 custom-scrollbar">
                                                 {blocks.map((b) => {
                                                     const isSelected = b.id === selectedBlockId;
-                                                    const isLive = getActiveTVBlock(blocks).id === b.id;
+                                                    const isLive = activeTVBlockId === b.id;
                                                     return (
                                                         <div
                                                             key={b.id}
@@ -2165,9 +2231,11 @@ export function AdminTVModal({
 
                                     {/* 5 Blocks Selector Buttons */}
                                     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-1.5 shrink-0">
-                                        {blocks.map(b => {
+                                        {(() => {
+                                            const activeTVBlockId = getActiveTVBlock(blocks).id;
+                                            return blocks.map(b => {
                                             const isSelected = b.id === selectedBlockId;
-                                            const isLiveNow = getActiveTVBlock(blocks).id === b.id;
+                                            const isLiveNow = activeTVBlockId === b.id;
                                             const matchesFilter = filterDay === 'all' || isBlockActiveOnDay(b, filterDay);
                                             return (
                                                 <button
@@ -2218,15 +2286,16 @@ export function AdminTVModal({
                                                     </div>
                                                 </button>
                                             );
-                                        })}
+                                        });
+                                        })()}
                                     </div>
                                 </div>
 
                                 {/* Selected Block Details & Link Management */}
                                 {(() => {
-                                    const currentBlock = blocks.find(b => b.id === selectedBlockId) || blocks[0];
+                                    const currentBlock = currentBlockMemo;
                                     if (!currentBlock) return null;
-                                    const isLiveNow = getActiveTVBlock(blocks).id === currentBlock.id;
+                                    const isLiveNow = activeTVBlockId === currentBlock.id;
 
                                     return (
                                         <div 
@@ -2717,8 +2786,15 @@ export function AdminTVModal({
                                                         <p className="text-[10px] text-white/20 mt-0.5">Collez un lien YouTube ci-dessus pour alimenter ce créneau horaire.</p>
                                                     </div>
                                                 ) : (
-                                                    <div className="space-y-1 flex-1 max-h-[460px] overflow-y-auto pr-1 custom-scrollbar">
-                                                        {currentBlock.videos
+                                                    <div className="space-y-1 flex-1 max-h-[460px] overflow-y-auto pr-1 custom-scrollbar" style={{ contain: 'layout style' }}>
+                                                        {(() => {
+                                                            const currentBlockDuplicates = new Set<string>();
+                                                            const counts = new Map<string, number>();
+                                                            (currentBlock.videos || []).forEach(v => {
+                                                                if (v.youtubeId) counts.set(v.youtubeId, (counts.get(v.youtubeId) || 0) + 1);
+                                                            });
+                                                            counts.forEach((cnt, ytid) => { if (cnt > 1) currentBlockDuplicates.add(ytid); });
+                                                            return currentBlock.videos
                                                             .filter(v => {
                                                                 if (blockCategoryFilter === 'all') return true;
                                                                 const c = v.category || detectVideoCategory(v.title, v.description);
@@ -2738,8 +2814,7 @@ export function AdminTVModal({
                                                                             {idx + 1}
                                                                         </span>
                                                                         <div className="relative w-14 h-8 rounded-md overflow-hidden bg-black/50 shrink-0 border border-white/10">
-                                                                            <img
-                                                                                src={`https://img.youtube.com/vi/${vid.youtubeId}/mqdefault.jpg`}
+                                                                            <img loading="lazy" decoding="async" src={`https://img.youtube.com/vi/${vid.youtubeId}/mqdefault.jpg`}
                                                                                 alt={vid.title}
                                                                                 className="w-full h-full object-cover"
                                                                                 onError={(e: any) => {
@@ -2836,7 +2911,7 @@ export function AdminTVModal({
                                                                             )}
                                                                             <div className="flex items-center gap-2 text-[9px] text-white/40">
                                                                                 <span className="font-mono">ID: {vid.youtubeId}</span>
-                                                                                {(currentBlock.videos || []).filter(v => v.youtubeId === vid.youtubeId).length > 1 && (
+                                                                                {currentBlockDuplicates.has(vid.youtubeId) && (
                                                                                     <span className="px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[8px] font-black uppercase tracking-wider flex items-center gap-1 shrink-0">
                                                                                         <ShieldAlert className="w-2.5 h-2.5 text-amber-400" />
                                                                                         Doublon
@@ -2928,7 +3003,7 @@ export function AdminTVModal({
                                                         </span>
                                                         <button
                                                             type="button"
-                                                            onClick={() => setActiveTab('promo')}
+                                                            onClick={() => switchTab('promo')}
                                                             className="text-[8px] text-neon-purple hover:underline font-bold uppercase tracking-wider transition-all"
                                                         >
                                                             Gérer →
@@ -2941,8 +3016,7 @@ export function AdminTVModal({
                                                                 className="flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-neon-purple/10 border border-neon-purple/20"
                                                             >
                                                                 <div className="w-8 h-5 rounded overflow-hidden shrink-0 border border-neon-purple/20">
-                                                                    <img
-                                                                        src={`https://img.youtube.com/vi/${p.youtubeId}/mqdefault.jpg`}
+                                                                    <img loading="lazy" decoding="async" src={`https://img.youtube.com/vi/${p.youtubeId}/mqdefault.jpg`}
                                                                         alt={p.title}
                                                                         className="w-full h-full object-cover"
                                                                     />
@@ -3114,7 +3188,7 @@ export function AdminTVModal({
                                 })()}
 
                                 {/* List of Main Videos */}
-                                <div className="flex-1 overflow-y-auto space-y-1.5 pr-1 custom-scrollbar min-h-0">
+                                <div className="flex-1 overflow-y-auto space-y-1.5 pr-1 custom-scrollbar min-h-0" style={{ contain: 'layout style' }}>
                                     {loading ? (
                                         <div className="py-12 flex flex-col items-center justify-center text-white/40 gap-2">
                                             <Loader2 className="w-6 h-6 animate-spin text-neon-red" />
@@ -3124,8 +3198,12 @@ export function AdminTVModal({
                                         <div className="py-12 text-center text-white/40 text-xs uppercase tracking-widest font-bold">
                                             Aucune vidéo dans la programmation TV.
                                         </div>
-                                    ) : (
-                                        playlist.map((video, idx) => {
+                                    ) : (() => {
+                                            const playlistDupSet = new Set<string>();
+                                            const playlistYtCount = new Map<string, number>();
+                                            playlist.forEach(v => { if (v.youtubeId) playlistYtCount.set(v.youtubeId, (playlistYtCount.get(v.youtubeId) || 0) + 1); });
+                                            playlistYtCount.forEach((cnt, ytid) => { if (cnt > 1) playlistDupSet.add(ytid); });
+                                            return playlist.map((video, idx) => {
                                             const nextPromo = promos.length > 0 ? promos[idx % promos.length] : null;
                                             const nextPromoIdx = promos.length > 0 ? (idx % promos.length) : null;
                                             return (
@@ -3137,8 +3215,7 @@ export function AdminTVModal({
                                                         </div>
 
                                                         <div className="w-16 h-10 rounded-lg bg-black overflow-hidden relative shrink-0 border border-white/10">
-                                                            <img
-                                                                src={`https://img.youtube.com/vi/${video.youtubeId}/mqdefault.jpg`}
+                                                            <img loading="lazy" decoding="async" src={`https://img.youtube.com/vi/${video.youtubeId}/mqdefault.jpg`}
                                                                 alt={video.title}
                                                                 className="w-full h-full object-cover"
                                                                 onError={(e) => {
@@ -3186,7 +3263,7 @@ export function AdminTVModal({
                                                             </div>
                                                             <div className="text-[9px] text-white/40 font-mono mt-0.5 flex items-center gap-2">
                                                                 <span>ID: {video.youtubeId}</span>
-                                                                {playlist.filter(v => v.youtubeId === video.youtubeId).length > 1 && (
+                                                                {playlistDupSet.has(video.youtubeId) && (
                                                                     <span className="px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[8px] font-black uppercase tracking-wider flex items-center gap-1">
                                                                         <ShieldAlert className="w-2.5 h-2.5 text-amber-400" />
                                                                         Doublon
@@ -3241,8 +3318,7 @@ export function AdminTVModal({
                                                                 P{nextPromoIdx! + 1}
                                                             </div>
                                                             <div className="w-12 h-7 rounded bg-black overflow-hidden relative shrink-0 border border-neon-purple/30">
-                                                                <img
-                                                                    src={`https://img.youtube.com/vi/${nextPromo.youtubeId}/mqdefault.jpg`}
+                                                                <img loading="lazy" decoding="async" src={`https://img.youtube.com/vi/${nextPromo.youtubeId}/mqdefault.jpg`}
                                                                     alt={nextPromo.title}
                                                                     className="w-full h-full object-cover"
                                                                     onError={(e) => {
@@ -3265,7 +3341,7 @@ export function AdminTVModal({
                                                             </div>
                                                             <button
                                                                 type="button"
-                                                                onClick={() => setActiveTab('promo')}
+                                                                onClick={() => switchTab('promo')}
                                                                 className="text-[9px] text-neon-purple hover:underline px-2 py-0.5 rounded bg-neon-purple/10 hover:bg-neon-purple/20 font-bold uppercase tracking-wider shrink-0 transition-all"
                                                             >
                                                                 Gérer promos →
@@ -3274,8 +3350,8 @@ export function AdminTVModal({
                                                     )}
                                                 </div>
                                             );
-                                        })
-                                    )}
+                                        });
+                                        })()}
                                 </div>
                             </>
                         )}
@@ -3410,8 +3486,12 @@ export function AdminTVModal({
                                         <div className="py-12 text-center text-white/40 text-xs uppercase tracking-widest font-bold">
                                             Aucune vidéo promo configurée. Les sets principaux s'enchaîneront directement sans promo.
                                         </div>
-                                    ) : (
-                                        promos.map((p, idx) => (
+                                    ) : (() => {
+                                            const promoDupSet = new Set<string>();
+                                            const promoYtCnt = new Map<string, number>();
+                                            promos.forEach(x => { if (x.youtubeId) promoYtCnt.set(x.youtubeId, (promoYtCnt.get(x.youtubeId) || 0) + 1); });
+                                            promoYtCnt.forEach((cnt, ytid) => { if (cnt > 1) promoDupSet.add(ytid); });
+                                            return promos.map((p, idx) => (
                                             <div
                                                 key={p.id || idx}
                                                 className="group p-1.5 px-2.5 rounded-xl bg-white/[0.02] hover:bg-white/[0.05] border border-white/5 hover:border-neon-purple/30 transition-all flex items-center gap-2.5"
@@ -3421,8 +3501,7 @@ export function AdminTVModal({
                                                 </div>
 
                                                 <div className="w-16 h-10 rounded-lg bg-black overflow-hidden relative shrink-0 border border-white/10">
-                                                    <img
-                                                        src={`https://img.youtube.com/vi/${p.youtubeId}/mqdefault.jpg`}
+                                                    <img loading="lazy" decoding="async" src={`https://img.youtube.com/vi/${p.youtubeId}/mqdefault.jpg`}
                                                         alt={p.title}
                                                         className="w-full h-full object-cover"
                                                     />
@@ -3456,7 +3535,7 @@ export function AdminTVModal({
                                                     )}
                                                     <div className="text-[9px] text-white/40 font-mono mt-0.5 flex items-center gap-2">
                                                         <span>ID: {p.youtubeId} · Jouée après le set {idx + 1}</span>
-                                                        {promos.filter(x => x.youtubeId === p.youtubeId).length > 1 && (
+                                                        {promoDupSet.has(p.youtubeId) && (
                                                             <span className="px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[8px] font-black uppercase tracking-wider flex items-center gap-1">
                                                                 <ShieldAlert className="w-2.5 h-2.5 text-amber-400" />
                                                                 Doublon
@@ -3502,52 +3581,63 @@ export function AdminTVModal({
                                                     </button>
                                                 </div>
                                             </div>
-                                        ))
+                                        ));
+                                        })()
                                     )}
                                 </div>
                             </>
                         )}
 
                         {/* ========================================================= */}
-                        {/* TAB: LIVE TAKEOVER (FULL INTERFACE AVEC PLANNING, MODS, BOT...) */}
-                        {/* ========================================================= */}
+                        {/* TAB: LIVE TAKEOVER (NATIVE COMPLETE PANEL - NO IFRAME) */}
                         {activeTab === 'live' && (
-                            <div className="flex-1 overflow-y-auto space-y-4 pr-1 min-h-0 flex flex-col">
-                                {/* Status Banner */}
-                                <div className={`p-4 rounded-2xl border flex items-center gap-4 shrink-0 ${
+                            <div className="flex-1 overflow-y-auto space-y-4 pr-1 min-h-0 flex flex-col custom-scrollbar">
+                                {/* Status Banner with Big Toggles */}
+                                <div className={`p-4 rounded-2xl border flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shrink-0 transition-all ${
                                     takeoverState?.status === 'live'
-                                        ? 'bg-green-950/40 border-green-600/40'
+                                        ? 'bg-green-950/40 border-green-600/40 shadow-lg shadow-green-900/20'
                                         : takeoverState?.status === 'edit'
-                                            ? 'bg-orange-950/40 border-orange-500/40'
-                                            : 'bg-black/40 border-white/10'
+                                            ? 'bg-orange-950/40 border-orange-500/40 shadow-lg shadow-orange-900/20'
+                                            : 'bg-[#121620] border-white/10'
                                 }`}>
-                                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 ${
-                                        takeoverState?.status === 'live'
-                                            ? 'bg-green-600/20 text-green-400'
-                                            : takeoverState?.status === 'edit'
-                                                ? 'bg-orange-500/20 text-orange-400'
-                                                : 'bg-white/5 text-white/30'
-                                    }`}>
-                                        <Radio className={`w-5 h-5 ${takeoverState?.status === 'live' ? 'animate-pulse' : ''}`} />
-                                    </div>
-                                    <div className="flex-1 min-w-0">
-                                        <div className="text-[10px] font-black uppercase tracking-widest text-white/40 mb-0.5">Statut Live Takeover</div>
-                                        <div className={`text-sm font-black uppercase tracking-wider ${
-                                            takeoverState?.status === 'live' ? 'text-green-400' :
-                                            takeoverState?.status === 'edit' ? 'text-orange-400' : 'text-white/40'
+                                    <div className="flex items-center gap-3.5">
+                                        <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 border ${
+                                            takeoverState?.status === 'live'
+                                                ? 'bg-green-600/20 text-green-400 border-green-500/40 shadow-[0_0_15px_rgba(34,197,94,0.3)]'
+                                                : takeoverState?.status === 'edit'
+                                                    ? 'bg-orange-500/20 text-orange-400 border-orange-500/40'
+                                                    : 'bg-white/5 text-white/30 border-white/10'
                                         }`}>
-                                            {takeoverState?.status === 'live' ? '🔴 EN DIRECT – ON AIR' :
-                                             takeoverState?.status === 'edit' ? '🟠 MODE ÉDITION' :
-                                             '⚫ HORS LIGNE – OFF'}
+                                            <Radio className={`w-6 h-6 ${takeoverState?.status === 'live' ? 'animate-pulse' : ''}`} />
+                                        </div>
+                                        <div>
+                                            <div className="text-[10px] font-black uppercase tracking-widest text-white/40">Statut Live Takeover</div>
+                                            <div className={`text-base font-black uppercase tracking-wider flex items-center gap-2 ${
+                                                takeoverState?.status === 'live' ? 'text-green-400' :
+                                                takeoverState?.status === 'edit' ? 'text-orange-400' : 'text-white/40'
+                                            }`}>
+                                                {takeoverState?.status === 'live' ? '🔴 EN DIRECT – ON AIR' :
+                                                 takeoverState?.status === 'edit' ? '🟠 MODE ÉDITION' :
+                                                 '⚫ HORS LIGNE – OFF'}
+                                            </div>
+                                            <p className="text-[10px] text-white/40 mt-0.5">
+                                                {takeoverState?.status === 'live' ? 'Le flux vidéo remplace la diffusion continue et le chat est en direct.' :
+                                                 takeoverState?.status === 'edit' ? 'Interface en préparation privée, visible uniquement par les admins.' :
+                                                 'Le site diffuse normalement sa programmation continue.'}
+                                            </p>
                                         </div>
                                     </div>
-                                    <div className="flex items-center gap-2">
+
+                                    {/* Big Radio Status Buttons */}
+                                    <div className="flex items-center gap-1.5 bg-black/60 p-1.5 rounded-xl border border-white/10 shrink-0">
                                         <button
                                             type="button"
                                             onClick={() => onUpdateLiveStatus?.('off')}
                                             disabled={isUpdatingTakeover}
-                                            className={`px-3 py-1.5 rounded-xl text-[10px] font-black uppercase transition-all ${
-                                                takeoverState?.status === 'off' || !takeoverState?.enabled ? 'bg-red-600 text-white' : 'bg-white/5 text-white/50 hover:text-white'
+                                            className={`px-4 py-2 rounded-lg text-xs font-black uppercase tracking-wider transition-all ${
+                                                takeoverState?.status === 'off' || !takeoverState?.enabled
+                                                    ? 'bg-red-600 text-white shadow-md shadow-red-600/30 font-black'
+                                                    : 'bg-transparent text-white/40 hover:text-white hover:bg-white/5'
                                             }`}
                                         >
                                             OFF
@@ -3556,18 +3646,22 @@ export function AdminTVModal({
                                             type="button"
                                             onClick={() => onUpdateLiveStatus?.('edit')}
                                             disabled={isUpdatingTakeover}
-                                            className={`px-3 py-1.5 rounded-xl text-[10px] font-black uppercase transition-all ${
-                                                takeoverState?.status === 'edit' ? 'bg-orange-500 text-white' : 'bg-white/5 text-white/50 hover:text-white'
+                                            className={`px-4 py-2 rounded-lg text-xs font-black uppercase tracking-wider transition-all ${
+                                                takeoverState?.status === 'edit'
+                                                    ? 'bg-orange-500 text-white shadow-md shadow-orange-500/30 font-black'
+                                                    : 'bg-transparent text-white/40 hover:text-white hover:bg-white/5'
                                             }`}
                                         >
-                                            ÉDIT
+                                            ÉDITION
                                         </button>
                                         <button
                                             type="button"
                                             onClick={() => onUpdateLiveStatus?.('live')}
                                             disabled={isUpdatingTakeover}
-                                            className={`px-3 py-1.5 rounded-xl text-[10px] font-black uppercase transition-all ${
-                                                takeoverState?.status === 'live' ? 'bg-green-600 text-white animate-pulse' : 'bg-white/5 text-white/50 hover:text-white'
+                                            className={`px-4 py-2 rounded-lg text-xs font-black uppercase tracking-wider transition-all ${
+                                                takeoverState?.status === 'live'
+                                                    ? 'bg-green-600 text-white shadow-md shadow-green-600/30 font-black animate-pulse'
+                                                    : 'bg-transparent text-white/40 hover:text-white hover:bg-white/5'
                                             }`}
                                         >
                                             ON AIR
@@ -3575,36 +3669,453 @@ export function AdminTVModal({
                                     </div>
                                 </div>
 
-                                {/* Studio Live Takeover Complet (La même interface que le Live Dashboard) */}
-                                <div className="space-y-4 pt-2">
-                                    <div className="flex items-center justify-between px-2">
-                                        <div className="flex items-center gap-2">
-                                            <Sparkles className="w-4 h-4 text-neon-purple animate-pulse" />
-                                            <span className="text-xs font-black uppercase tracking-wider text-white">
-                                                Studio Live Takeover & Planning (Édition Complète)
-                                            </span>
-                                        </div>
-                                        <a
-                                            href="/live?edit=true"
-                                            target="_blank"
-                                            rel="noreferrer"
-                                            className="px-3 py-1.5 rounded-xl bg-neon-purple/20 hover:bg-neon-purple/30 border border-neon-purple/40 text-neon-purple text-[10px] font-black uppercase tracking-wider transition-all flex items-center gap-2"
-                                        >
-                                            <ExternalLink className="w-3.5 h-3.5" />
-                                            Ouvrir en plein écran
-                                        </a>
-                                    </div>
-                                    <iframe
-                                        src="/live?edit=true"
-                                        className="w-full h-[72vh] rounded-2xl border border-white/10 bg-black shadow-2xl"
-                                        title="Live Takeover Studio"
-                                    />
+                                {/* Sub-Tabs Navigation for Live Takeover */}
+                                <div className="flex items-center gap-1 p-1 bg-black/40 rounded-xl border border-white/10 shrink-0 text-xs font-bold overflow-x-auto">
+                                    <button
+                                        type="button"
+                                        onClick={() => setLiveSubTab('general')}
+                                        className={`px-3.5 py-1.5 rounded-lg transition-all flex items-center gap-1.5 ${
+                                            liveSubTab === 'general' ? 'bg-neon-red/20 text-white border border-neon-red/40 shadow-sm' : 'text-gray-400 hover:text-white'
+                                        }`}
+                                    >
+                                        <Radio className="w-3.5 h-3.5 text-neon-red" />
+                                        Signal & Flux Vidéo
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setLiveSubTab('planning')}
+                                        className={`px-3.5 py-1.5 rounded-lg transition-all flex items-center gap-1.5 ${
+                                            liveSubTab === 'planning' ? 'bg-amber-500/20 text-amber-200 border border-amber-500/40 shadow-sm' : 'text-gray-400 hover:text-white'
+                                        }`}
+                                    >
+                                        <Calendar className="w-3.5 h-3.5 text-amber-400" />
+                                        Lineup & Horaires
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setLiveSubTab('ticker')}
+                                        className={`px-3.5 py-1.5 rounded-lg transition-all flex items-center gap-1.5 ${
+                                            liveSubTab === 'ticker' ? 'bg-cyan-500/20 text-cyan-200 border border-cyan-500/40 shadow-sm' : 'text-gray-400 hover:text-white'
+                                        }`}
+                                    >
+                                        <Sliders className="w-3.5 h-3.5 text-cyan-400" />
+                                        Bannières & Ticker
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setLiveSubTab('moderation')}
+                                        className={`px-3.5 py-1.5 rounded-lg transition-all flex items-center gap-1.5 ${
+                                            liveSubTab === 'moderation' ? 'bg-purple-500/20 text-purple-200 border border-purple-500/40 shadow-sm' : 'text-gray-400 hover:text-white'
+                                        }`}
+                                    >
+                                        <ShieldCheck className="w-3.5 h-3.5 text-purple-400" />
+                                        Chat, Bot & Modération
+                                    </button>
                                 </div>
 
-                            </div>
-                        )}
+                                {/* SUB-TAB: GENERAL & FLUX VIDÉO */}
+                                {liveSubTab === 'general' && (
+                                    <div className="space-y-4 p-4 rounded-2xl bg-white/[0.02] border border-white/5">
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <div>
+                                                <label className="block text-[10px] font-black uppercase tracking-widest text-white/60 mb-1.5">
+                                                    Titre de l'événement en direct
+                                                </label>
+                                                <input
+                                                    type="text"
+                                                    value={takeoverState?.title || ''}
+                                                    onChange={(e) => updateTakeoverField('title', e.target.value)}
+                                                    placeholder="Ex: LIVESTREAM ULTRA MIAMI 2026"
+                                                    className="w-full px-3 py-2 rounded-xl bg-black/60 border border-white/10 text-white text-xs font-bold focus:border-neon-red outline-none"
+                                                />
+                                                <p className="text-[10px] text-white/30 mt-1">Affiché en tête du lecteur et dans la barre de titre.</p>
+                                            </div>
 
-                        {/* Modal Footer Controls for TV Tab */}
+                                            <div>
+                                                <label className="block text-[10px] font-black uppercase tracking-widest text-white/60 mb-1.5">
+                                                    Lien ou ID YouTube du direct
+                                                </label>
+                                                <input
+                                                    type="text"
+                                                    value={takeoverState?.youtubeId || ''}
+                                                    onChange={(e) => {
+                                                        const ytid = extractYouTubeId(e.target.value) || e.target.value;
+                                                        updateTakeoverField('youtubeId', ytid);
+                                                    }}
+                                                    placeholder="Ex: https://www.youtube.com/watch?v=... ou ID vidéo"
+                                                    className="w-full px-3 py-2 rounded-xl bg-black/60 border border-white/10 text-white text-xs font-mono font-bold focus:border-neon-cyan outline-none"
+                                                />
+                                                <p className="text-[10px] text-white/30 mt-1">Accepte les URLs complètes, raccourcies youtu.be ou directement l'ID.</p>
+                                            </div>
+                                        </div>
+
+                                        {takeoverState?.youtubeId && (
+                                            <div className="p-3 rounded-xl bg-black/40 border border-white/10 flex items-center gap-3">
+                                                <div className="w-20 h-12 rounded-lg overflow-hidden bg-black shrink-0 border border-white/10">
+                                                    <img
+                                                        src={`https://img.youtube.com/vi/${extractYouTubeId(takeoverState.youtubeId) || takeoverState.youtubeId}/mqdefault.jpg`}
+                                                        alt="Aperçu YouTube"
+                                                        className="w-full h-full object-cover"
+                                                    />
+                                                </div>
+                                                <div className="flex-1 min-w-0">
+                                                    <div className="text-[10px] font-black uppercase text-neon-cyan">Flux YouTube Configuré</div>
+                                                    <div className="text-xs font-mono text-white/80 truncate">ID: {extractYouTubeId(takeoverState.youtubeId) || takeoverState.youtubeId}</div>
+                                                </div>
+                                                <a
+                                                    href={`https://www.youtube.com/watch?v=${extractYouTubeId(takeoverState.youtubeId) || takeoverState.youtubeId}`}
+                                                    target="_blank"
+                                                    rel="noreferrer"
+                                                    className="px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-[10px] font-bold text-white/70 hover:text-white flex items-center gap-1.5"
+                                                >
+                                                    <ExternalLink className="w-3 h-3" />
+                                                    Tester sur YouTube
+                                                </a>
+                                            </div>
+                                        )}
+
+                                        <div>
+                                            <label className="block text-[10px] font-black uppercase tracking-widest text-white/60 mb-1.5">
+                                                Chaînes & flux complémentaires (Twitch, Kick, URL externe)
+                                            </label>
+                                            <input
+                                                type="text"
+                                                value={takeoverState?.channels || ''}
+                                                onChange={(e) => updateTakeoverField('channels', e.target.value)}
+                                                placeholder="Ex: twitch.tv/dropsiders, kick.com/dropsiders"
+                                                className="w-full px-3 py-2 rounded-xl bg-black/60 border border-white/10 text-white text-xs font-mono focus:border-neon-purple outline-none"
+                                            />
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* SUB-TAB: LINEUP & PLANNING */}
+                                {liveSubTab === 'planning' && (
+                                    <div className="space-y-4 p-4 rounded-2xl bg-white/[0.02] border border-white/5">
+                                        <div>
+                                            <div className="flex items-center justify-between mb-1.5">
+                                                <label className="text-[10px] font-black uppercase tracking-widest text-white/60">
+                                                    Lineup & Horaires de passage
+                                                </label>
+                                                <span className="text-[9px] text-white/40 font-mono">Format : [Heure] Nom Artiste | Infos | Image</span>
+                                            </div>
+                                            <textarea
+                                                rows={8}
+                                                value={takeoverState?.lineup || ''}
+                                                onChange={(e) => updateTakeoverField('lineup', e.target.value)}
+                                                placeholder="[18:00] Warm Up - DJ Set | Scène Principale | https://...
+[19:30] Martin Garrix | Live @ Tomorrowland | https://...
+[21:00] David Guetta | B2B Morten | https://..."
+                                                className="w-full px-3 py-2 rounded-xl bg-black/60 border border-white/10 text-white text-xs font-mono leading-relaxed focus:border-amber-400 outline-none"
+                                            />
+                                            <p className="text-[10px] text-white/30 mt-1">Chaque ligne correspond à un passage d'artiste ou segment horaire dans le planning.</p>
+                                        </div>
+
+                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                            <div>
+                                                <label className="block text-[10px] font-black uppercase tracking-widest text-white/60 mb-1.5">
+                                                    Date & Heure de début
+                                                </label>
+                                                <input
+                                                    type="datetime-local"
+                                                    value={takeoverState?.startDate || ''}
+                                                    onChange={(e) => updateTakeoverField('startDate', e.target.value)}
+                                                    className="w-full px-3 py-2 rounded-xl bg-black/60 border border-white/10 text-white text-xs font-mono focus:border-amber-400 outline-none"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block text-[10px] font-black uppercase tracking-widest text-white/60 mb-1.5">
+                                                    Date & Heure de fin
+                                                </label>
+                                                <input
+                                                    type="datetime-local"
+                                                    value={takeoverState?.endDate || ''}
+                                                    onChange={(e) => updateTakeoverField('endDate', e.target.value)}
+                                                    className="w-full px-3 py-2 rounded-xl bg-black/60 border border-white/10 text-white text-xs font-mono focus:border-amber-400 outline-none"
+                                                />
+                                            </div>
+                                            <div className="flex items-center justify-between p-3 rounded-xl bg-black/40 border border-white/10">
+                                                <div>
+                                                    <div className="text-[10px] font-black uppercase text-white">Afficher dans l'Agenda</div>
+                                                    <div className="text-[9px] text-white/40">Visible dans la programmation du site</div>
+                                                </div>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => updateTakeoverField('showInAgenda', !takeoverState?.showInAgenda)}
+                                                    className={`w-10 h-5 rounded-full relative transition-all cursor-pointer ${takeoverState?.showInAgenda ? 'bg-amber-400' : 'bg-gray-800'}`}
+                                                >
+                                                    <div className={`absolute top-0.5 w-4 h-4 rounded-full bg-white transition-all ${takeoverState?.showInAgenda ? 'right-0.5' : 'left-0.5'}`} />
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* SUB-TAB: BANNIÈRES & TICKER */}
+                                {liveSubTab === 'ticker' && (
+                                    <div className="space-y-4 p-4 rounded-2xl bg-white/[0.02] border border-white/5">
+                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                                            <div className="flex items-center justify-between p-3 rounded-xl bg-black/40 border border-white/10">
+                                                <div>
+                                                    <div className="text-[10px] font-black uppercase text-white">Forcer l'accueil</div>
+                                                    <div className="text-[8px] text-white/40">Remplace la page d'accueil par le Live</div>
+                                                </div>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => updateTakeoverField('forceHomepage', !takeoverState?.forceHomepage)}
+                                                    className={`w-10 h-5 rounded-full relative transition-all cursor-pointer ${takeoverState?.forceHomepage ? 'bg-neon-red' : 'bg-gray-800'}`}
+                                                >
+                                                    <div className={`absolute top-0.5 w-4 h-4 rounded-full bg-white transition-all ${takeoverState?.forceHomepage ? 'right-0.5' : 'left-0.5'}`} />
+                                                </button>
+                                            </div>
+
+                                            <div className="flex items-center justify-between p-3 rounded-xl bg-black/40 border border-white/10">
+                                                <div>
+                                                    <div className="text-[10px] font-black uppercase text-white">Afficher dans le Menu</div>
+                                                    <div className="text-[8px] text-white/40">Badge Live dans la barre de navigation</div>
+                                                </div>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => updateTakeoverField('showInNavbar', !takeoverState?.showInNavbar)}
+                                                    className={`w-10 h-5 rounded-full relative transition-all cursor-pointer ${takeoverState?.showInNavbar ? 'bg-neon-cyan' : 'bg-gray-800'}`}
+                                                >
+                                                    <div className={`absolute top-0.5 w-4 h-4 rounded-full bg-white transition-all ${takeoverState?.showInNavbar ? 'right-0.5' : 'left-0.5'}`} />
+                                                </button>
+                                            </div>
+
+                                            <div className="flex items-center justify-between p-3 rounded-xl bg-black/40 border border-white/10">
+                                                <div>
+                                                    <div className="text-[10px] font-black uppercase text-white">Bannière haute</div>
+                                                    <div className="text-[8px] text-white/40">Bandeau d'alerte sous le header</div>
+                                                </div>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => updateTakeoverField('showTopBanner', !takeoverState?.showTopBanner)}
+                                                    className={`w-10 h-5 rounded-full relative transition-all cursor-pointer ${takeoverState?.showTopBanner ? 'bg-neon-purple' : 'bg-gray-800'}`}
+                                                >
+                                                    <div className={`absolute top-0.5 w-4 h-4 rounded-full bg-white transition-all ${takeoverState?.showTopBanner ? 'right-0.5' : 'left-0.5'}`} />
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        {/* Ticker Banner Controls */}
+                                        <div className="p-4 rounded-xl bg-black/40 border border-white/10 space-y-3">
+                                            <div className="flex items-center justify-between">
+                                                <div className="flex items-center gap-2">
+                                                    <Sliders className="w-4 h-4 text-cyan-400" />
+                                                    <span className="text-xs font-black uppercase text-white">Bandeau Ticker Défilant</span>
+                                                </div>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => updateTakeoverField('showTickerBanner', !takeoverState?.showTickerBanner)}
+                                                    className={`w-10 h-5 rounded-full relative transition-all cursor-pointer ${takeoverState?.showTickerBanner ? 'bg-cyan-400' : 'bg-gray-800'}`}
+                                                >
+                                                    <div className={`absolute top-0.5 w-4 h-4 rounded-full bg-white transition-all ${takeoverState?.showTickerBanner ? 'right-0.5' : 'left-0.5'}`} />
+                                                </button>
+                                            </div>
+
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                                <div>
+                                                    <label className="block text-[10px] font-black uppercase tracking-widest text-white/60 mb-1">
+                                                        Texte du bandeau défilant
+                                                    </label>
+                                                    <input
+                                                        type="text"
+                                                        value={takeoverState?.tickerText || ''}
+                                                        onChange={(e) => updateTakeoverField('tickerText', e.target.value)}
+                                                        placeholder="Ex: ⚡ EN DIRECT : ULTRA MIAMI 2026 SUR DROPSIDERS TV"
+                                                        className="w-full px-3 py-1.5 rounded-lg bg-black/60 border border-white/10 text-white text-xs focus:border-cyan-400 outline-none"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-[10px] font-black uppercase tracking-widest text-white/60 mb-1">
+                                                        Lien au clic sur le bandeau
+                                                    </label>
+                                                    <input
+                                                        type="text"
+                                                        value={takeoverState?.tickerLink || ''}
+                                                        onChange={(e) => updateTakeoverField('tickerLink', e.target.value)}
+                                                        placeholder="Ex: /live"
+                                                        className="w-full px-3 py-1.5 rounded-lg bg-black/60 border border-white/10 text-white text-xs font-mono focus:border-cyan-400 outline-none"
+                                                    />
+                                                </div>
+                                            </div>
+
+                                            <div className="flex items-center gap-4 pt-1">
+                                                <div className="flex items-center gap-2">
+                                                    <span className="text-[10px] font-bold text-white/60 uppercase">Fond :</span>
+                                                    <input
+                                                        type="color"
+                                                        value={takeoverState?.tickerBgColor || '#000000'}
+                                                        onChange={(e) => updateTakeoverField('tickerBgColor', e.target.value)}
+                                                        className="w-7 h-7 rounded-lg bg-transparent border-0 cursor-pointer p-0"
+                                                    />
+                                                </div>
+                                                <div className="flex items-center gap-2">
+                                                    <span className="text-[10px] font-bold text-white/60 uppercase">Texte :</span>
+                                                    <input
+                                                        type="color"
+                                                        value={takeoverState?.tickerTextColor || '#ffffff'}
+                                                        onChange={(e) => updateTakeoverField('tickerTextColor', e.target.value)}
+                                                        className="w-7 h-7 rounded-lg bg-transparent border-0 cursor-pointer p-0"
+                                                    />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* SUB-TAB: CHAT, BOT & MODÉRATION */}
+                                {liveSubTab === 'moderation' && (
+                                    <div className="space-y-4 p-4 rounded-2xl bg-white/[0.02] border border-white/5">
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <div>
+                                                <label className="block text-[10px] font-black uppercase tracking-widest text-white/60 mb-1.5">
+                                                    Modérateurs du Live (séparés par des virgules)
+                                                </label>
+                                                <input
+                                                    type="text"
+                                                    value={takeoverState?.moderators || ''}
+                                                    onChange={(e) => updateTakeoverField('moderators', e.target.value)}
+                                                    placeholder="Alex, Tanguy, Julien..."
+                                                    className="w-full px-3 py-2 rounded-xl bg-black/60 border border-white/10 text-white text-xs font-bold focus:border-purple-400 outline-none"
+                                                />
+                                            </div>
+
+                                            <div>
+                                                <label className="block text-[10px] font-black uppercase tracking-widest text-white/60 mb-1.5">
+                                                    Message épinglé en tête du Chat
+                                                </label>
+                                                <input
+                                                    type="text"
+                                                    value={takeoverState?.pinnedMessage || ''}
+                                                    onChange={(e) => updateTakeoverField('pinnedMessage', e.target.value)}
+                                                    placeholder="Bienvenue sur le Live Dropsiders ! Restez respectueux."
+                                                    className="w-full px-3 py-2 rounded-xl bg-black/60 border border-white/10 text-white text-xs focus:border-purple-400 outline-none"
+                                                />
+                                            </div>
+                                        </div>
+
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <div>
+                                                <label className="block text-[10px] font-black uppercase tracking-widest text-white/60 mb-1.5">
+                                                    Message automatique périodique du Bot
+                                                </label>
+                                                <input
+                                                    type="text"
+                                                    value={takeoverState?.autoMessage || ''}
+                                                    onChange={(e) => updateTakeoverField('autoMessage', e.target.value)}
+                                                    placeholder="N'hésitez pas à poser vos questions dans le chat !"
+                                                    className="w-full px-3 py-2 rounded-xl bg-black/60 border border-white/10 text-white text-xs focus:border-purple-400 outline-none"
+                                                />
+                                            </div>
+
+                                            <div>
+                                                <label className="block text-[10px] font-black uppercase tracking-widest text-white/60 mb-1.5">
+                                                    Intervalle du message automatique (en secondes)
+                                                </label>
+                                                <input
+                                                    type="number"
+                                                    min={10}
+                                                    step={10}
+                                                    value={takeoverState?.autoMessageInterval || 60}
+                                                    onChange={(e) => updateTakeoverField('autoMessageInterval', parseInt(e.target.value, 10) || 60)}
+                                                    className="w-full px-3 py-2 rounded-xl bg-black/60 border border-white/10 text-white text-xs font-mono focus:border-purple-400 outline-none"
+                                                />
+                                            </div>
+                                        </div>
+
+                                        <div>
+                                            <label className="block text-[10px] font-black uppercase tracking-widest text-white/60 mb-1.5">
+                                                Commandes personnalisées du chat (ex: !lineup, !horaires)
+                                            </label>
+                                            <textarea
+                                                rows={3}
+                                                value={takeoverState?.customCommands || ''}
+                                                onChange={(e) => updateTakeoverField('customCommands', e.target.value)}
+                                                placeholder="!lineup: Retrouvez le planning complet sur dropsiders.fr
+!radio: Écoutez également notre radio sur dropsiders.fr/radio"
+                                                className="w-full px-3 py-2 rounded-xl bg-black/60 border border-white/10 text-white text-xs font-mono focus:border-purple-400 outline-none"
+                                            />
+                                        </div>
+
+                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-2">
+                                            <div className="flex items-center justify-between p-3 rounded-xl bg-black/40 border border-white/10">
+                                                <div>
+                                                    <div className="text-[10px] font-black uppercase text-white">Mode Secret / Privé</div>
+                                                    <div className="text-[8px] text-white/40">Accessible uniquement via code</div>
+                                                </div>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => updateTakeoverField('isSecret', !takeoverState?.isSecret)}
+                                                    className={`w-10 h-5 rounded-full relative transition-all cursor-pointer ${takeoverState?.isSecret ? 'bg-purple-500' : 'bg-gray-800'}`}
+                                                >
+                                                    <div className={`absolute top-0.5 w-4 h-4 rounded-full bg-white transition-all ${takeoverState?.isSecret ? 'right-0.5' : 'left-0.5'}`} />
+                                                </button>
+                                            </div>
+
+                                            <div>
+                                                <label className="block text-[10px] font-black uppercase tracking-widest text-white/60 mb-1">
+                                                    Mot de passe (si mode secret)
+                                                </label>
+                                                <input
+                                                    type="password"
+                                                    value={takeoverState?.password || ''}
+                                                    onChange={(e) => updateTakeoverField('password', e.target.value)}
+                                                    placeholder="Mot de passe secret"
+                                                    className="w-full px-3 py-1.5 rounded-lg bg-black/60 border border-white/10 text-white text-xs font-mono focus:border-purple-400 outline-none"
+                                                />
+                                            </div>
+
+                                            <div className="flex items-center justify-between p-3 rounded-xl bg-black/40 border border-white/10">
+                                                <div>
+                                                    <div className="text-[10px] font-black uppercase text-white">Votes DJ Wiki</div>
+                                                    <div className="text-[8px] text-white/40">Permet au public de voter</div>
+                                                </div>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => updateTakeoverField('wikiVotesEnabled', !takeoverState?.wikiVotesEnabled)}
+                                                    className={`w-10 h-5 rounded-full relative transition-all cursor-pointer ${takeoverState?.wikiVotesEnabled ? 'bg-green-500' : 'bg-gray-800'}`}
+                                                >
+                                                    <div className={`absolute top-0.5 w-4 h-4 rounded-full bg-white transition-all ${takeoverState?.wikiVotesEnabled ? 'right-0.5' : 'left-0.5'}`} />
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Bottom Live Actions Bar */}
+                                <div className="pt-2 flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-white/10 shrink-0">
+                                    <div className="flex items-center gap-2">
+                                        <a
+                                            href="/live"
+                                            target="_blank"
+                                            rel="noreferrer"
+                                            className="px-4 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-white/70 hover:text-white text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-1.5"
+                                        >
+                                            <ExternalLink className="w-3.5 h-3.5" />
+                                            <span>Tester la page publique /live</span>
+                                        </a>
+                                    </div>
+
+                                    <button
+                                        type="button"
+                                        onClick={handleSaveLive}
+                                        disabled={liveSaving}
+                                        className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-gradient-to-r from-neon-red via-neon-purple to-neon-cyan hover:opacity-90 text-white font-black uppercase tracking-wider text-xs flex items-center justify-center gap-2 shadow-xl shadow-neon-red/20 transition-all cursor-pointer disabled:opacity-50"
+                                    >
+                                        {liveSaving ? (
+                                            <Loader2 className="w-4 h-4 animate-spin" />
+                                        ) : liveSaved ? (
+                                            <CheckCircle2 className="w-4 h-4 text-green-300" />
+                                        ) : (
+                                            <Save className="w-4 h-4" />
+                                        )}
+                                        <span>{liveSaving ? 'Sauvegarde des réglages...' : liveSaved ? 'Réglages Live Enregistrés !' : 'Enregistrer les réglages Live'}</span>
+                                    </button>
+                                </div>
+                            </div>
+                        )}{/* Modal Footer Controls for TV Tab */}
                         {activeTab !== 'live' && (
                             <div className="mt-2.5 pt-2 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-2 shrink-0">
                                 <button
@@ -3657,7 +4168,7 @@ export function AdminTVModal({
 
             {/* Modal Bibliothèque de clips & lives déjà programmés */}
             {isLibraryOpen && (
-                <div className="fixed inset-0 z-[140] flex items-center justify-center p-2 sm:p-4 bg-black/85 backdrop-blur-md overflow-hidden animate-in fade-in">
+                <div className="fixed inset-0 z-[140] flex items-center justify-center p-2 sm:p-4 bg-black/85 overflow-hidden animate-in fade-in">
                     <motion.div
                         initial={{ scale: 0.95, opacity: 0 }}
                         animate={{ scale: 1, opacity: 1 }}
@@ -3811,8 +4322,7 @@ export function AdminTVModal({
 
                                                 {/* Thumbnail preview */}
                                                 <div className="w-16 h-10 rounded-lg overflow-hidden bg-black shrink-0 relative border border-white/10">
-                                                    <img
-                                                        src={`https://img.youtube.com/vi/${item.youtubeId}/mqdefault.jpg`}
+                                                    <img loading="lazy" decoding="async" src={`https://img.youtube.com/vi/${item.youtubeId}/mqdefault.jpg`}
                                                         alt={item.title}
                                                         className="w-full h-full object-cover"
                                                         loading="lazy"
@@ -3924,7 +4434,7 @@ export function AdminTVModal({
         <RadionomyJinglesBox
             isOpen={isRadionomyOpen}
             onClose={() => setIsRadionomyOpen(false)}
-            currentBlockTitle={blocks.find(b => b.id === selectedBlockId)?.title || 'Programmation TV'}
+            currentBlockTitle={currentBlockMemo?.title || 'Programmation TV'}
             onInsertItem={handleInsertRadionomyItem}
             onApplyRadionomyRule={handleApplyRadionomyRule}
             onOpenYouTubeSearch={() => {
@@ -3938,7 +4448,7 @@ export function AdminTVModal({
             isOpen={isYouTubeSearchOpen}
             onClose={() => setIsYouTubeSearchOpen(false)}
             mode="tv"
-            blockTitle={blocks.find(b => b.id === selectedBlockId)?.title || 'Programmation TV'}
+            blockTitle={currentBlockMemo?.title || 'Programmation TV'}
             onAddVideo={handleYouTubeAddVideo}
         />
 

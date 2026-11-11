@@ -1,5 +1,5 @@
-﻿import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Tv, Volume2, VolumeX, Volume1, Play, Pause, Maximize2, Minimize2, Radio, Film, Settings, X, ListMusic, Home, Clock, CalendarDays, ChevronRight, Shuffle, Share2, Sparkles, MessageSquare, ExternalLink } from 'lucide-react';
 import { SEO } from '../components/utils/SEO';
@@ -564,6 +564,7 @@ export function DropsidersTVPage() {
     }, [isTakeoverActive, liveSettings, isUpdatingLiveStatus]);
 
     const [searchParams, setSearchParams] = useSearchParams();
+    const navigate = useNavigate();
     const hasAdminParam = searchParams.get('admin') === 'true';
 
     const [isAdmin, setIsAdmin] = useState(() => checkAdminAuth() || hasAdminParam);
@@ -693,8 +694,9 @@ export function DropsidersTVPage() {
     const openAdminModal = () => {
         prevMuteStateRef.current = isMuted;
         isAdminTVModalOpenRef.current = true;
-        if (playerRef.current && typeof playerRef.current.mute === 'function') {
-            try { playerRef.current.mute(); } catch {}
+        if (playerRef.current) {
+            try { if (typeof playerRef.current.pauseVideo === 'function') playerRef.current.pauseVideo(); } catch {}
+            try { if (typeof playerRef.current.mute === 'function') playerRef.current.mute(); } catch {}
         }
         setIsMuted(true);
         isMutedRef.current = true;
@@ -704,8 +706,6 @@ export function DropsidersTVPage() {
     const closeAdminModal = () => {
         setIsAdminTVModalOpen(false);
         isAdminTVModalOpenRef.current = false;
-
-        // Remove ?admin=true from URL cleanly without harsh re-mounts
         try {
             const url = new URL(window.location.href);
             if (url.searchParams.has('admin')) {
@@ -715,62 +715,8 @@ export function DropsidersTVPage() {
         } catch {
             window.history.replaceState({}, document.title, window.location.pathname);
         }
-
-        // Unconditionally unmute video when closing the admin modal so the user has sound directly
-        setIsMuted(false);
-        isMutedRef.current = false;
-        try {
-            localStorage.setItem('dropsiders_tv_muted', 'false');
-        } catch {}
-
-        const targetVol = volumeRef.current > 0 ? volumeRef.current : 80;
-
-        if (playerRef.current && typeof playerRef.current.unMute === 'function') {
-            try {
-                playerRef.current.unMute();
-                playerRef.current.setVolume(targetVol);
-                const state = playerRef.current.getPlayerState();
-                if (state !== 1) { // 1 = PLAYING
-                    playerRef.current.playVideo();
-                }
-                setIsPlaying(true);
-            } catch {}
-        }
-        prevMuteStateRef.current = null;
-
-        // Ensure playback continues and volume/unmute is applied smoothly without resetting video position
-        setTimeout(() => {
-            if (playerRef.current && typeof playerRef.current.unMute === 'function') {
-                try {
-                    playerRef.current.unMute();
-                    playerRef.current.setVolume(targetVol);
-                    const state = playerRef.current.getPlayerState();
-                    if (state !== 1) {
-                        playerRef.current.playVideo();
-                    }
-                    setIsPlaying(true);
-                } catch {}
-            }
-        }, 150);
-
-        setTimeout(() => {
-            if (playerRef.current && typeof playerRef.current.unMute === 'function') {
-                try {
-                    playerRef.current.unMute();
-                    playerRef.current.setVolume(targetVol);
-                } catch {}
-            }
-        }, 400);
+        navigate('/admin');
     };
-
-    // Close admin modal on Escape key
-    useEffect(() => {
-        const handleEsc = (e: KeyboardEvent) => {
-            if (e.key === 'Escape' && isAdminTVModalOpen) closeAdminModal();
-        };
-        window.addEventListener('keydown', handleEsc);
-        return () => window.removeEventListener('keydown', handleEsc);
-    }, [isAdminTVModalOpen]);
 
     const controlsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const containerRef = useRef<HTMLDivElement>(null);
@@ -1671,7 +1617,7 @@ export function DropsidersTVPage() {
                                     ? 'scale(1.3) translateY(-4%)'
                                     : 'scale(1.12) translateY(-3.5%)',
                                 transformOrigin: 'center center',
-                                filter: isAdminTVModalOpen ? 'blur(20px) brightness(0.35)' : 'none',
+                                filter: 'none', opacity: isAdminTVModalOpen ? 0.05 : 1,
                                 transition: 'transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), filter 0.5s ease'
                             }}
                         >
