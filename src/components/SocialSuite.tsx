@@ -6744,58 +6744,72 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
                     // 2. Top Capsule Badge du thème actif (ex: NEWS, FOCUS, RECAP, etc.)
-                    const badgeLabel = (baseThemeData[theme]?.label || theme).toUpperCase();
-                    const badgeColor = activeColor.color || '#ff0033';
-                    const badgeGrad = activeColor.grad || '255, 0, 51';
-                    drawTopCapsuleBadge(badgeLabel, badgeColor, badgeGrad);
+                    const blankBadgeLabel = (baseThemeData[theme]?.label || theme).toUpperCase();
+                    const blankBadgeColor = activeColor.color || '#ff0033';
+                    const blankBadgeGrad = activeColor.grad || '255, 0, 51';
+                    drawTopCapsuleBadge(blankBadgeLabel, blankBadgeColor, blankBadgeGrad);
 
-                    // 3. Cadre stylisé du thème avec angles néon
+                    // 3. Cadre téléphone néon (identique au showFrame des autres slides, avec glow couleur du thème)
                     ctx.save();
-                    const frameMargin = isStory ? 35 : 30;
-                    const frameRadius = isStory ? 24 : 20;
+                    const blankPad = 30;
+                    const blankFrameW = canvas.width - (blankPad * 2);
+                    const blankFrameH = canvas.height - (blankPad * 2);
+                    // Halo néon extérieur
+                    ctx.shadowColor = `rgba(${blankBadgeGrad}, 0.5)`;
+                    ctx.shadowBlur = 22;
+                    ctx.strokeStyle = `rgba(${blankBadgeGrad}, 0.7)`;
+                    ctx.lineWidth = 3;
                     ctx.beginPath();
-                    ctx.roundRect(frameMargin, frameMargin, canvas.width - (frameMargin * 2), canvas.height - (frameMargin * 2), frameRadius);
-                    ctx.strokeStyle = `rgba(${badgeGrad}, 0.35)`;
-                    ctx.lineWidth = 2;
-                    ctx.stroke();
-
-                    // Accents d'angle néon
-                    const cornerLen = 32;
-                    ctx.strokeStyle = badgeColor;
-                    ctx.lineWidth = 3.5;
-                    // Top-Left
-                    ctx.beginPath();
-                    ctx.moveTo(frameMargin, frameMargin + cornerLen);
-                    ctx.lineTo(frameMargin, frameMargin);
-                    ctx.lineTo(frameMargin + cornerLen, frameMargin);
-                    ctx.stroke();
-                    // Top-Right
-                    ctx.beginPath();
-                    ctx.moveTo(canvas.width - frameMargin - cornerLen, frameMargin);
-                    ctx.lineTo(canvas.width - frameMargin, frameMargin);
-                    ctx.lineTo(canvas.width - frameMargin, frameMargin + cornerLen);
-                    ctx.stroke();
-                    // Bottom-Left
-                    ctx.beginPath();
-                    ctx.moveTo(frameMargin, canvas.height - frameMargin - cornerLen);
-                    ctx.lineTo(frameMargin, canvas.height - frameMargin);
-                    ctx.lineTo(frameMargin + cornerLen, canvas.height - frameMargin);
-                    ctx.stroke();
-                    // Bottom-Right
-                    ctx.beginPath();
-                    ctx.moveTo(canvas.width - frameMargin - cornerLen, canvas.height - frameMargin);
-                    ctx.lineTo(canvas.width - frameMargin, canvas.height - frameMargin);
-                    ctx.lineTo(canvas.width - frameMargin, canvas.height - frameMargin - cornerLen);
+                    ctx.roundRect(blankPad, blankPad, blankFrameW, blankFrameH, 24);
                     ctx.stroke();
                     ctx.restore();
 
-                    // 4. Mention Swipe si active
+                    // Accents d'angle néon lumineux
+                    ctx.save();
+                    const blankCornerLen = 38;
+                    ctx.shadowColor = blankBadgeColor;
+                    ctx.shadowBlur = 14;
+                    ctx.strokeStyle = blankBadgeColor;
+                    ctx.lineWidth = 4;
+                    ctx.lineCap = 'round';
+                    // Top-Left
+                    ctx.beginPath();
+                    ctx.moveTo(blankPad, blankPad + blankCornerLen);
+                    ctx.lineTo(blankPad, blankPad);
+                    ctx.lineTo(blankPad + blankCornerLen, blankPad);
+                    ctx.stroke();
+                    // Top-Right
+                    ctx.beginPath();
+                    ctx.moveTo(canvas.width - blankPad - blankCornerLen, blankPad);
+                    ctx.lineTo(canvas.width - blankPad, blankPad);
+                    ctx.lineTo(canvas.width - blankPad, blankPad + blankCornerLen);
+                    ctx.stroke();
+                    // Bottom-Left
+                    ctx.beginPath();
+                    ctx.moveTo(blankPad, canvas.height - blankPad - blankCornerLen);
+                    ctx.lineTo(blankPad, canvas.height - blankPad);
+                    ctx.lineTo(blankPad + blankCornerLen, canvas.height - blankPad);
+                    ctx.stroke();
+                    // Bottom-Right
+                    ctx.beginPath();
+                    ctx.moveTo(canvas.width - blankPad - blankCornerLen, canvas.height - blankPad);
+                    ctx.lineTo(canvas.width - blankPad, canvas.height - blankPad);
+                    ctx.lineTo(canvas.width - blankPad, canvas.height - blankPad - blankCornerLen);
+                    ctx.stroke();
+                    ctx.restore();
+
+                    // 4. Logo Dropsiders 3D (identique aux autres slides)
+                    if (logoRef.current && theme !== 'SPOTLIGHT' && theme !== 'ARTISTE FESTIVAL' && theme !== 'PROMO') {
+                        drawDropsiders3DLogo();
+                    }
+
+                    // 5. Mention Swipe si active
                     if (showSwipeEffective) {
                         const swipeY = canvas.height - (isStory ? 80 : 50);
                         drawAnimatedSwipeIndicator(
                             canvas.width - (isStory ? 80 : 60),
                             swipeY,
-                            badgeColor,
+                            blankBadgeColor,
                             24
                         );
                     }
