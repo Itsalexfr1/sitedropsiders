@@ -1069,7 +1069,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
     // ── ÉTATS ET CONTRÔLES MODALE EXPORT STUDIO ────────────────────────────────
     const [isExportStudioOpen, setIsExportStudioOpen] = useState<boolean>(false);
-    const [exportStudioFormat, setExportStudioFormat] = useState<'PNG' | 'MP4'>('PNG');
+    const [exportStudioFormat, setExportStudioFormat] = useState<'PNG' | 'MP4'>('MP4');
     const [exportStudioDimension, setExportStudioDimension] = useState<'POST' | 'REEL'>('POST');
     const [exportStudioType, setExportStudioType] = useState<'SLIDE' | 'ZIP' | 'COMBINED'>('SLIDE');
     const [selectedExportSlides, setSelectedExportSlides] = useState<Record<string, boolean>>({});
