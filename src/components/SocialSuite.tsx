@@ -2360,29 +2360,42 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 const bpToken = await getBeatportToken();
                 if (bpToken) {
                     let rawTracks: any[] = [];
-                    // Cherche d'abord si la saisie correspond à un artiste Beatport (ex: "Justice", "Charlotte de Witte")
+                    // ⚠️ NE PAS chercher par artiste en mode "style/genre" — un genre comme
+                    // "Hard Dance" pourrait matcher un artiste Beatport du même nom et retourner
+                    // ses tracks au lieu des tracks du genre. On va directement chercher par genre.
+
+                    // Recherche par genre (subgenre) sur Beatport catalog
+                    // Étape 1 : chercher l'ID du genre via l'endpoint subgenres
                     try {
-                        const artistRes = await fetch(`https://api.beatport.com/v4/catalog/search/?q=${encodeURIComponent(cleaned)}&type=artists&per_page=3`, {
+                        const subgenreRes = await fetch(`https://api.beatport.com/v4/catalog/genres/?q=${encodeURIComponent(cleaned)}&per_page=10`, {
                             headers: { Authorization: `Bearer ${bpToken}`, Accept: 'application/json' }
                         });
-                        if (artistRes.ok) {
-                            const aData = await artistRes.json();
-                            const matchedArtist = aData.artists?.find((a: any) => a.name.toLowerCase() === cleaned.toLowerCase()) || aData.artists?.[0];
-                            if (matchedArtist?.id) {
-                                const trRes = await fetch(`https://api.beatport.com/v4/catalog/tracks/?artist_id=${matchedArtist.id}&per_page=35`, {
+                        if (subgenreRes.ok) {
+                            const sgData = await subgenreRes.json();
+                            const genres: any[] = sgData.results || sgData.genres || [];
+                            // Chercher le genre qui correspond exactement ou partiellement
+                            const matchedGenre = genres.find((g: any) =>
+                                g.name?.toLowerCase() === cleaned.toLowerCase()
+                            ) || genres.find((g: any) =>
+                                g.name?.toLowerCase().includes(cleaned.toLowerCase()) ||
+                                cleaned.toLowerCase().includes(g.name?.toLowerCase() || '')
+                            );
+                            if (matchedGenre?.id) {
+                                // Chercher les tops tracks de ce genre
+                                const genreTracksRes = await fetch(`https://api.beatport.com/v4/catalog/tracks/?genre_id=${matchedGenre.id}&per_page=35&ordering=-publish_date`, {
                                     headers: { Authorization: `Bearer ${bpToken}`, Accept: 'application/json' }
                                 });
-                                if (trRes.ok) {
-                                    const trData = await trRes.json();
-                                    rawTracks = trData.results || trData.tracks || [];
+                                if (genreTracksRes.ok) {
+                                    const gtData = await genreTracksRes.json();
+                                    rawTracks = gtData.results || gtData.tracks || [];
                                 }
                             }
                         }
                     } catch {
-                        // ignore
+                        // ignore, fallback à la recherche texte
                     }
 
-                    // Si pas assez de morceaux par artiste direct, recherche par tracks
+                    // Si pas assez de morceaux par genre direct, recherche par tracks (titre contient le genre)
                     if (rawTracks.length < 5) {
                         const bpRes = await fetch(`https://api.beatport.com/v4/catalog/search/?q=${encodeURIComponent(cleaned)}&type=tracks&per_page=35`, {
                             headers: {
@@ -23182,7 +23195,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             <label className="text-[8.5px] font-black text-gray-400 uppercase tracking-wider">
                                 Badge Capsule Haut Gauche
                             </label>
-                            <span className="text-[7.5px] font-bold uppercase" style={{ color: top10CurrentAccentHex }}>Effet Cyber</span>
+                            <span className="text-[7.5px] font-bold uppercase" style={{ color: top10CurrentAccentHex }}>Synchro auto avec le titre</span>
                         </div>
                         <input
                             type="text"
@@ -23206,8 +23219,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             type="text"
                             value={top10Title}
                             onChange={e => {
-                                setTop10Title(e.target.value.toUpperCase());
-                                top10TitleRef.current = e.target.value.toUpperCase();
+                                const val = e.target.value.toUpperCase();
+                                setTop10Title(val);
+                                top10TitleRef.current = val;
+                                // 🔗 Badge Capsule suit automatiquement le titre
+                                setTop10Badge(val);
+                                top10BadgeRef.current = val;
                                 generateImage();
                             }}
                             placeholder="ex: TOP 10 TRACKS"
@@ -24053,22 +24070,24 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             );
                         })()}
 
-                        {/* Nom de l'Artiste */}
-                        <div className="space-y-1">
-                            <label className="text-[8.5px] font-black text-gray-300 uppercase tracking-wider">
-                                Nom de l'Artiste
-                            </label>
-                            <input
-                                type="text"
-                                value={top10IntroArtist}
-                                onChange={e => {
-                                    setTop10IntroArtist(e.target.value);
-                                    generateImage();
-                                }}
-                                placeholder={top10GenMode === 'style' ? (top10StyleSearch || "ex: Techno, Hard Techno, House...") : top10GenMode === 'label' ? ((top10LabelSearchRef.current || top10LabelSearch) || "ex: Experts Only, Defected, Drumcode...") : (top10ArtistSearch || "ex: Martin Garrix, David Guetta...")}
-                                className="w-full bg-black/60 border border-white/10 rounded-xl p-2.5 text-white font-black text-[11px] focus:border-neon-cyan outline-none"
-                            />
-                        </div>
+                        {/* Nom de l'Artiste — affiché uniquement en mode Label ou Artiste */}
+                        {top10GenMode !== 'style' && (
+                            <div className="space-y-1">
+                                <label className="text-[8.5px] font-black text-gray-300 uppercase tracking-wider">
+                                    Nom de l'Artiste
+                                </label>
+                                <input
+                                    type="text"
+                                    value={top10IntroArtist}
+                                    onChange={e => {
+                                        setTop10IntroArtist(e.target.value);
+                                        generateImage();
+                                    }}
+                                    placeholder={top10GenMode === 'label' ? ((top10LabelSearchRef.current || top10LabelSearch) || "ex: Experts Only, Defected, Drumcode...") : (top10ArtistSearch || "ex: Martin Garrix, David Guetta...")}
+                                    className="w-full bg-black/60 border border-white/10 rounded-xl p-2.5 text-white font-black text-[11px] focus:border-neon-cyan outline-none"
+                                />
+                            </div>
+                        )}
 
                         {/* LOGO DE L'ARTISTE (MÉLANGE IDÉE 1 ET 2) */}
                         <div className="p-3 bg-black/70 border border-white/10 rounded-xl space-y-3">
