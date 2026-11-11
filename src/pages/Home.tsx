@@ -22,17 +22,20 @@ import { useNavigate, useLocation } from 'react-router-dom';
 export function Home() {
     const [layout, setLayout] = useState(layoutData);
     const [socials, setSocials] = useState<any>(null);
-    const [isMobile, setIsMobile] = useState(window.innerWidth < 1024);
+    // Détection mobile STRICTE : user-agent + largeur écran (évite la redirection sur PC)
+    const isTrulyMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    const [isMobile, setIsMobile] = useState(isTrulyMobile && window.innerWidth < 1024);
     const navigate = useNavigate();
     const location = useLocation();
 
     useEffect(() => {
-        const handleResize = () => setIsMobile(window.innerWidth < 1024);
+        const handleResize = () => setIsMobile(isTrulyMobile && window.innerWidth < 1024);
         window.addEventListener('resize', handleResize);
         return () => window.removeEventListener('resize', handleResize);
-    }, []);
+    }, [isTrulyMobile]);
 
-    // Automatic redirection for mobile visitors to /go (Branding page)
+    // Automatic redirection pour les VRAIS mobiles (user-agent mobile) vers /go
+    // Les PC avec petite fenêtre ne sont jamais redirigés
     useEffect(() => {
         const params = new URLSearchParams(location.search);
         const hasFullFlag = params.get('full') === '1' || params.get('desktop') === '1';
