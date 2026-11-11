@@ -30,6 +30,7 @@ import {
     CheckSquare,
     Square,
     Play,
+    Pause,
     Volume2,
     VolumeX,
     Music,
@@ -39,7 +40,9 @@ import {
     Instagram,
     Users,
     Share2,
-    Clock
+    Clock,
+    AlertTriangle,
+    AlertCircle
 } from 'lucide-react';
 import { ExportSuccessModal } from './ExportSuccessModal';
 import { AlexRecruitmentModal } from './admin/AlexRecruitmentModal';
@@ -319,6 +322,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         setBgPositionOptionsOpen(isReel);
     }, [activeTab, theme]);
     const [showSwipe, setShowSwipe] = useState(false);
+    const forceDisableSwipeRef = useRef<boolean>(false);
     const [showArticleLink, setShowArticleLink] = useState(false);
     const getAutoArticleLinkText = (themeName: string): string => {
         switch (themeName) {
@@ -1022,6 +1026,94 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 )}
             </div>
         );
+    };
+
+    // ── BEEP D'ALERTE SONORE ──────────────────────────────────────────────────
+    const playWarningBeep = () => {
+        try {
+            const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+            if (!AudioCtx) return;
+            const ctx = new AudioCtx();
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(280, ctx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(130, ctx.currentTime + 0.28);
+            gain.gain.setValueAtTime(0.35, ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.28);
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start();
+            osc.stop(ctx.currentTime + 0.29);
+        } catch (_) {}
+    };
+
+    // ── ÉTATS ET CONTRÔLES MODALE EXPORT STUDIO ────────────────────────────────
+    const [isExportStudioOpen, setIsExportStudioOpen] = useState<boolean>(false);
+    const [exportStudioFormat, setExportStudioFormat] = useState<'PNG' | 'MP4'>('PNG');
+    const [exportStudioDimension, setExportStudioDimension] = useState<'POST' | 'REEL'>('POST');
+    const [exportStudioType, setExportStudioType] = useState<'SLIDE' | 'ZIP' | 'COMBINED'>('SLIDE');
+    const [selectedExportSlides, setSelectedExportSlides] = useState<Record<string, boolean>>({});
+    const [modalAudioTargetSlide, setModalAudioTargetSlide] = useState<number | 'global'>('global');
+    const [modalAudioSourceTab, setModalAudioSourceTab] = useState<'BEATPORT' | 'MP3'>('BEATPORT');
+    const [beatportArtistInput, setBeatportArtistInput] = useState<string>('');
+    const [beatportTitleInput, setBeatportTitleInput] = useState<string>('');
+    const [isSearchingBeatportModal, setIsSearchingBeatportModal] = useState<boolean>(false);
+    const [beatportModalResults, setBeatportModalResults] = useState<ResolvedMusicData[]>([]);
+    const [audioWarningAlert, setAudioWarningAlert] = useState<string | null>(null);
+    const [audioShake, setAudioShake] = useState<boolean>(false);
+
+    const openExportStudioModal = () => {
+        const available = getAvailableSlideNumbers();
+        const map: Record<string, boolean> = {};
+        available.forEach(s => {
+            map[`slide_${s}`] = true;
+        });
+        if (isMultiSlideTheme || theme === 'PLANNING') {
+            map['promo_outro'] = true;
+        }
+        if (afficheImage || isEditorialAfficheActive) {
+            map['slide_affiche'] = true;
+        }
+        setSelectedExportSlides(map);
+        setExportStudioDimension(activeTab === 'REEL' ? 'REEL' : 'POST');
+        setAudioWarningAlert(null);
+        setIsExportStudioOpen(true);
+    };
+
+    const handleBeatportModalSearch = async () => {
+        if (!beatportArtistInput.trim()) {
+            playWarningBeep();
+            setAudioWarningAlert("Le nom de l'artiste est obligatoire pour la recherche Beatport !");
+            setAudioShake(true);
+            setTimeout(() => setAudioShake(false), 800);
+            return;
+        }
+        setAudioWarningAlert(null);
+        setIsSearchingBeatportModal(true);
+        try {
+            const query = `${beatportArtistInput.trim()} ${beatportTitleInput.trim()}`.trim();
+            const results = await searchMusicTracksList(query, 10);
+            setBeatportModalResults(results);
+        } catch (err) {
+            console.warn('Erreur recherche Beatport modal :', err);
+        } finally {
+            setIsSearchingBeatportModal(false);
+        }
+    };
+
+    const handleSelectBeatportModalTrack = (item: ResolvedMusicData) => {
+        updateActiveAudioData(prev => ({
+            ...prev,
+            url: item.audioUrl,
+            title: item.title || '',
+            artist: item.artist || beatportArtistInput.trim() || 'Beatport',
+            cover: item.coverUrl || '',
+            startTime: 0,
+            duration: item.duration || 120
+        }));
+        setBeatportModalResults([]);
+        setAudioWarningAlert(null);
     };
 
     // ── CALCUL DYNAMIQUE DU RYTHME SPÉCIAL TIKTOK (<60s MAX, SWEET SPOT 15-30s) ───
@@ -5120,6 +5212,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         try {
             await (async (theme: ThemeType) => {
                 const isPromoTheme = theme === 'PROMO';
+                const isSwipeSuppressed = Boolean(forceDisableSwipeRef.current || isPromoRequested || isPromoTheme);
+                const showSwipeEffective = showSwipe && !isSwipeSuppressed;
                 const isAgendaSource = theme === 'PLANNING' || promoCategory === 'PLANNING';
                 const sourceThemeKey = (isPromoRequested
                     ? (isAgendaSource ? 'PLANNING' : (promoCategory as ThemeType || theme || 'NEWS'))
@@ -6426,7 +6520,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                     const isAnim = isVideoRecordingRef.current
                         ? true
-                        : ((bgVideo && !isDownloading) || textAnimation !== 'NONE' || (showSwipe && effectiveTab === 'REEL'));
+                        : ((bgVideo && !isDownloading) || textAnimation !== 'NONE' || (showSwipeEffective && effectiveTab === 'REEL'));
                     const animTime = isVideoRecordingRef.current
                         ? deterministicAnimTimeRef.current
                         : (animStartTimeRef.current ? (Date.now() - animStartTimeRef.current) / 1000 : 0);
@@ -7758,7 +7852,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         // 5. BOTTOM CTA PILL (Clean & Centered)
                         const ctaText = (showAgendaCoverCta && agendaCoverCta) ? agendaCoverCta.trim() : '';
                         if (showAgendaCoverCta && ctaText) {
-                            const ctaY = canvas.height - (isStory ? 170 : (showSwipe ? 110 : 92));
+                            const ctaY = canvas.height - (isStory ? 170 : (showSwipeEffective ? 110 : 92));
 
                             let ctaFontSize = isStory ? 17 : 14;
                             ctx.font = `800 italic ${ctaFontSize}px "Montserrat", sans-serif`;
@@ -7794,7 +7888,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         }
 
                         // 6. MENTION SWIPE ANIMÉE OFFICIELLE (au bas de l'écran, sans chevaucher le texte)
-                        if (showSwipe) {
+                        if (showSwipeEffective) {
                             const swipeY = canvas.height - (isStory ? 80 : 45);
                             drawAnimatedSwipeIndicator(
                                 canvas.width - (isStory ? 80 : 60),
@@ -8204,7 +8298,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         ctx.restore();
 
                         // 7. Mention Swipe (Chevrons en Cascade) si activée
-                        if (showSwipe) {
+                        if (showSwipeEffective) {
                             const swipeY = canvas.height - (isStory ? 80 : 50);
                             drawAnimatedSwipeIndicator(
                                 canvas.width - (isStory ? 80 : 60),
@@ -8733,7 +8827,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         ctx.restore();
 
                         // 7. Indicateur Swipe
-                        if (showSwipe) {
+                        if (showSwipeEffective) {
                             const swipeY = isStory ? canvas.height - 120 : canvas.height - 70;
                             drawAnimatedSwipeIndicator(canvas.width / 2 + 50, swipeY, '#ff0033', 24);
                         }
@@ -9055,7 +9149,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     }
 
                     // 7. Mention Swipe (Chevrons en Cascade)
-                    if (showSwipe) {
+                    if (showSwipeEffective) {
                         const swipeY = canvas.height - (isStory ? 80 : 50);
                         drawAnimatedSwipeIndicator(
                             canvas.width - (isStory ? 80 : 60),
@@ -9243,7 +9337,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.restore();
 
                     // 7. Mention Swipe (Chevrons en Cascade)
-                    if (showSwipe) {
+                    if (showSwipeEffective) {
                         const swipeY = canvas.height - (isStory ? 80 : 50);
                         drawAnimatedSwipeIndicator(
                             canvas.width - (isStory ? 80 : 60),
@@ -9667,7 +9761,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     }
 
                     // 9. Mention Swipe aux couleurs du thème
-                    if (showSwipe) {
+                    if (showSwipeEffective) {
                         const swipeY = canvas.height - (isStory ? 80 : 50);
                         drawAnimatedSwipeIndicator(
                             canvas.width - (isStory ? 80 : 60),
@@ -10047,7 +10141,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.restore();
 
                     // Right Swipe (Chevrons en Cascade)
-                    if (showSwipe) {
+                    if (showSwipeEffective) {
                         const resolvedColor = activeData.color || (typeof themeColor === 'string' ? themeColor : themeColor?.color) || '#00ff66';
                         drawAnimatedSwipeIndicator(
                             canvas.width - (isStory ? 80 : 60),
@@ -12374,7 +12468,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.restore();
 
                     // 7. Mention Swipe (Chevrons en Cascade) si activée (alignée en bas à droite à la même hauteur que les autres thèmes)
-                    if (showSwipe) {
+                    if (showSwipeEffective) {
                         drawAnimatedSwipeIndicator(
                             canvas.width - (isReel ? 80 : 60),
                             canvas.height - (isReel ? 80 : 50),
@@ -12514,7 +12608,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                     // Swipe indicator aligned directly on the divider line (Chevrons en Cascade)
                     const isDevinetteSlide1 = isDevinetteTheme && effectiveEditorialSlide === 1;
-                    const shouldDrawSwipe = showSwipe || isDevinetteSlide1;
+                    const shouldDrawSwipe = !isSwipeSuppressed && (showSwipe || isDevinetteSlide1);
                     if (shouldDrawSwipe) {
                         const swipeWord = isDevinetteSlide1 ? 'Swipe pour la révélation' : 'Swipe';
                         const swipeFontSize = isDevinetteSlide1 ? (isReel ? 18 : 16) : 24;
@@ -13732,7 +13826,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     };
 
     const startVideoRecording = async (
-        combinedMode: 'NONE' | 'PLANNING' | 'EDITORIAL' | 'PROMO_ONLY' | 'TIKTOK' = 'NONE',
+        combinedMode: 'NONE' | 'PLANNING' | 'EDITORIAL' | 'PROMO_ONLY' | 'TIKTOK' | 'STORY_FAST' = 'NONE',
         options?: { returnBlob?: boolean; formatTab?: TabType }
     ): Promise<Blob | null> => {
         const canvas = canvasRef.current;
@@ -13815,7 +13909,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         const frameDurationUs = Math.round(1_000_000 / fps); // durée d'un frame en microsecondes
         const effectiveTab = options?.formatTab || activeTab;
         const targetWidth = 1080;
-        const targetHeight = (effectiveTab === 'REEL' || combinedMode === 'TIKTOK') ? 1920 : 1350;
+        const targetHeight = (effectiveTab === 'REEL' || combinedMode === 'TIKTOK' || combinedMode === 'STORY_FAST') ? 1920 : 1350;
         if (canvas.width !== targetWidth) canvas.width = targetWidth;
         if (canvas.height !== targetHeight) canvas.height = targetHeight;
         const bitrate = isMobile ? 10000000 : (fps === 60 ? 16000000 : 12000000);
@@ -14014,7 +14108,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         let totalDuration = 0;
         if (combinedMode === 'PROMO_ONLY') {
             totalDuration = promoOutroStyle === 'PHONE_3D' ? 10000 : 7000; // 10.0s pour Smartphone 3D, 7.0s pour Instagram
-        } else if (combinedMode === 'EDITORIAL' || (combinedMode === 'TIKTOK' && theme !== 'PLANNING')) {
+        } else if (combinedMode === 'EDITORIAL' || ((combinedMode === 'TIKTOK' || combinedMode === 'STORY_FAST') && theme !== 'PLANNING')) {
             const isMusicTheme = (theme === 'MUSIQUE');
             const shouldSkipSlide2 = skipEditorialSlide2;
             const hasAfficheSlide = Boolean(afficheImage && !isMusicTheme);
@@ -14037,6 +14131,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 } else {
                     totalDuration = timings.totalDurationMs;
                 }
+            } else if (combinedMode === 'STORY_FAST') {
+                const promoDuration = 5500;
+                const slideDuration = 4000;
+                totalDuration = (numContentSlides * slideDuration) + (numContentSlides * currentTransitionDuration) + promoDuration;
             } else {
                 const promoDuration = promoOutroStyle === 'PHONE_3D' ? 10000 : 7000; // 10.0s pour Smartphone 3D, 7.0s pour Instagram
                 const transitionDuration = currentTransitionDuration;
@@ -14053,12 +14151,16 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     totalDuration = (numContentSlides * slideDuration) + (numContentSlides * transitionDuration) + promoDuration;
                 }
             }
-        } else if (combinedMode === 'PLANNING' || (combinedMode === 'TIKTOK' && theme === 'PLANNING')) {
+        } else if (combinedMode === 'PLANNING' || ((combinedMode === 'TIKTOK' || combinedMode === 'STORY_FAST') && theme === 'PLANNING')) {
             const transitionDuration = currentTransitionDuration;
             const numAgendaSlides = 2 + agendaAffiches.length;
             if (combinedMode === 'TIKTOK') {
                 const timings = getTikTokSlideTimings(numAgendaSlides);
                 totalDuration = timings.totalDurationMs;
+            } else if (combinedMode === 'STORY_FAST') {
+                const promoDuration = 5500;
+                const slideDuration = 4000;
+                totalDuration = (numAgendaSlides * slideDuration) + (numAgendaSlides * transitionDuration) + promoDuration;
             } else {
                 const promoDuration = promoOutroStyle === 'PHONE_3D' ? 10000 : 7000; // 10.0s pour Smartphone 3D, 7.0s pour Instagram
                 const slideDuration = 5200;
@@ -14790,7 +14892,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 if (theme !== 'MUSIQUE' && theme !== 'TOP 10 TRACKS') {
                     const currentSlideAudios = slideAudiosRef.current || slideAudios;
                     const availableSlides = getAvailableSlideNumbers();
-                    const isReelExport = effectiveTab === 'REEL' || combinedMode === 'TIKTOK';
+                    const isReelExport = effectiveTab === 'REEL' || combinedMode === 'TIKTOK' || combinedMode === 'STORY_FAST';
 
                     // Priorité au son de la Slide 1 (ou son global carrousel)
                     const slide1OrGlobalAudio = currentSlideAudios[1]?.url
@@ -15084,12 +15186,20 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 setReadyVideoBlob(videoBlob);
                 setReadyVideoUrl(url);
                 setActivePanel(null);
-                const exportThemeName = combinedMode === 'PROMO_ONLY' ? 'promo' : combinedMode === 'TIKTOK' ? `tiktok-${theme.toLowerCase().replace(/\s+/g, '-')}` : theme.toLowerCase().replace(/\s+/g, '-');
+                const exportThemeName = combinedMode === 'PROMO_ONLY'
+                    ? 'promo'
+                    : combinedMode === 'STORY_FAST'
+                        ? `story-4s-${theme.toLowerCase().replace(/\s+/g, '-')}`
+                        : combinedMode === 'TIKTOK'
+                            ? `tiktok-${theme.toLowerCase().replace(/\s+/g, '-')}`
+                            : theme.toLowerCase().replace(/\s+/g, '-');
                 const a = document.createElement('a');
                 a.href = url;
-                a.download = combinedMode === 'TIKTOK'
-                    ? `dropsiders-tiktok-${theme.toLowerCase().replace(/\s+/g, '-')}-${Date.now()}.mp4`
-                    : `dropsiders-${exportThemeName}-${effectiveTab.toLowerCase()}-${Date.now()}.mp4`;
+                a.download = combinedMode === 'STORY_FAST'
+                    ? `dropsiders-story-4s-${theme.toLowerCase().replace(/\s+/g, '-')}-${Date.now()}.mp4`
+                    : combinedMode === 'TIKTOK'
+                        ? `dropsiders-tiktok-${theme.toLowerCase().replace(/\s+/g, '-')}-${Date.now()}.mp4`
+                        : `dropsiders-${exportThemeName}-${effectiveTab.toLowerCase()}-${Date.now()}.mp4`;
                 document.body.appendChild(a);
                 a.click();
                 document.body.removeChild(a);
@@ -15323,12 +15433,20 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         setReadyVideoUrl(url);
                         setActivePanel(null);
 
-                        const exportThemeName = combinedMode === 'PROMO_ONLY' ? 'promo' : combinedMode === 'TIKTOK' ? `tiktok-${theme.toLowerCase().replace(/\s+/g, '-')}` : theme.toLowerCase().replace(/\s+/g, '-');
+                        const exportThemeName = combinedMode === 'PROMO_ONLY'
+                            ? 'promo'
+                            : combinedMode === 'STORY_FAST'
+                                ? `story-4s-${theme.toLowerCase().replace(/\s+/g, '-')}`
+                                : combinedMode === 'TIKTOK'
+                                    ? `tiktok-${theme.toLowerCase().replace(/\s+/g, '-')}`
+                                    : theme.toLowerCase().replace(/\s+/g, '-');
                         const a = document.createElement('a');
                         a.href = url;
-                        a.download = combinedMode === 'TIKTOK'
-                            ? `dropsiders-tiktok-${theme.toLowerCase().replace(/\s+/g, '-')}-${Date.now()}.mp4`
-                            : `dropsiders-${exportThemeName}-${effectiveTab.toLowerCase()}-${Date.now()}.mp4`;
+                        a.download = combinedMode === 'STORY_FAST'
+                            ? `dropsiders-story-4s-${theme.toLowerCase().replace(/\s+/g, '-')}-${Date.now()}.mp4`
+                            : combinedMode === 'TIKTOK'
+                                ? `dropsiders-tiktok-${theme.toLowerCase().replace(/\s+/g, '-')}-${Date.now()}.mp4`
+                                : `dropsiders-${exportThemeName}-${effectiveTab.toLowerCase()}-${Date.now()}.mp4`;
                         document.body.appendChild(a);
                         a.click();
                         document.body.removeChild(a);
@@ -15583,7 +15701,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         if (combinedMode === 'PROMO_ONLY') {
             animStartTimeRef.current = Date.now();
             await renderDuration(totalDuration);
-        } else if (combinedMode === 'EDITORIAL' || (combinedMode === 'TIKTOK' && theme !== 'PLANNING')) {
+        } else if (combinedMode === 'EDITORIAL' || ((combinedMode === 'TIKTOK' || combinedMode === 'STORY_FAST') && theme !== 'PLANNING')) {
             const isMusicTheme = (theme === 'MUSIQUE');
             const shouldSkipSlide2 = skipEditorialSlide2;
             const hasAfficheSlide = Boolean(afficheImage && !isMusicTheme);
@@ -15610,6 +15728,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     slideDuration = Math.min(15000, slideDuration);
                 }
                 promoDuration = (hasVideoBg && promoOutroStyle === 'PHONE_3D') ? 7000 : (hasVideoBg ? 5000 : timings.promoDurationMs);
+            } else if (combinedMode === 'STORY_FAST') {
+                slideDuration = 4000;
+                promoDuration = 5500;
             }
 
             // 1. Déroulement des slides de contenu (selon contentSlideNumbers)
@@ -15677,7 +15798,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             // 3. Affichage du visuel promo final pendant promoDuration avec continuité (zéro relance de texte)
             await renderDuration(promoDuration, 0);
 
-        } else if (combinedMode === 'PLANNING' || (combinedMode === 'TIKTOK' && theme === 'PLANNING')) {
+        } else if (combinedMode === 'PLANNING' || ((combinedMode === 'TIKTOK' || combinedMode === 'STORY_FAST') && theme === 'PLANNING')) {
             const transitionDuration = currentTransitionDuration;
             let promoDuration = 7000;
             let slideDuration = 5200;
@@ -15686,6 +15807,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 const timings = getTikTokSlideTimings(numAgendaSlides);
                 slideDuration = timings.slideDurationMs;
                 promoDuration = timings.promoDurationMs;
+            } else if (combinedMode === 'STORY_FAST') {
+                slideDuration = 4000;
+                promoDuration = 5500;
             }
 
             // 1. Slide 1 (Cover)
@@ -15887,13 +16011,13 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         promoOutroOverrideRef.current = false;
         editorialAfficheOverrideRef.current = false;
         editorialTweetOverrideRef.current = false;
-        if (combinedMode === 'PLANNING' || (combinedMode === 'TIKTOK' && theme === 'PLANNING')) {
+        if (combinedMode === 'PLANNING' || ((combinedMode === 'TIKTOK' || combinedMode === 'STORY_FAST') && theme === 'PLANNING')) {
             agendaSlideOverrideRef.current = null;
             setAgendaSlide(prevAgendaSlide);
             setIsCarouselPromoActive(prevWasCarouselPromoActive);
             setIsEditorialAfficheActive(prevWasEditorialAfficheActive);
             setIsEditorialTweetActive(prevWasEditorialTweetActive);
-        } else if (combinedMode === 'EDITORIAL' || combinedMode === 'TIKTOK') {
+        } else if (combinedMode === 'EDITORIAL' || combinedMode === 'TIKTOK' || combinedMode === 'STORY_FAST') {
             editorialSlideOverrideRef.current = null;
             setEditorialSlide(prevEditorialSlide);
             setIsCarouselPromoActive(prevWasCarouselPromoActive);
@@ -15916,6 +16040,113 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             return;
         }
         startVideoRecording('TIKTOK');
+    };
+
+    const exportStoryFastVideo = async () => {
+        const activeAudio = getActiveAudioData();
+        const hasAnyAudio = Boolean(
+            activeAudio.url ||
+            carouselAudioUrl ||
+            Object.values(slideAudios || {}).some(a => Boolean(a?.url)) ||
+            (theme === 'MUSIQUE' && musicTracks.some(t => Boolean(t.audio)))
+        );
+        if (!hasAnyAudio) {
+            playWarningBeep();
+            setAudioWarningAlert("⚠️ Aucun son détecté ! Ajoutez un MP3 ou un morceau Beatport pour votre Story vidéo.");
+            setAudioShake(true);
+            setTimeout(() => setAudioShake(false), 800);
+            return;
+        }
+
+        setIsExportStudioOpen(false);
+        forceDisableSwipeRef.current = true;
+        try {
+            if (activeTab !== 'REEL') {
+                setActiveTab('REEL');
+                await new Promise(r => setTimeout(r, 200));
+            }
+            await startVideoRecording('STORY_FAST');
+        } finally {
+            forceDisableSwipeRef.current = false;
+        }
+    };
+
+    const executeUnifiedExport = async () => {
+        const isReel = exportStudioDimension === 'REEL';
+        const targetTab: TabType = isReel ? 'REEL' : 'PUBLICATION';
+
+        // 1. Validation Audio si format MP4
+        if (exportStudioFormat === 'MP4') {
+            const activeAudio = getActiveAudioData();
+            const hasAnyAudio = Boolean(
+                activeAudio.url ||
+                carouselAudioUrl ||
+                Object.values(slideAudios || {}).some(a => Boolean(a?.url)) ||
+                (theme === 'MUSIQUE' && musicTracks.some(t => Boolean(t.audio)))
+            );
+            if (!hasAnyAudio) {
+                playWarningBeep();
+                setAudioWarningAlert("⚠️ Aucun son détecté ! Ajoutez un MP3 ou un morceau Beatport ci-dessous pour votre vidéo MP4.");
+                setAudioShake(true);
+                setTimeout(() => setAudioShake(false), 800);
+                return;
+            }
+        }
+
+        setIsExportStudioOpen(false);
+
+        // A. Format PNG
+        if (exportStudioFormat === 'PNG') {
+            if (exportStudioType === 'SLIDE') {
+                await downloadFormat(targetTab);
+            } else {
+                // ZIP PNG
+                if (theme === 'PLANNING') {
+                    await downloadFullAgendaCarousel(targetTab, true);
+                } else if (theme === 'EVENTS' || theme === 'AFFICHE') {
+                    await downloadEventsCarousel(targetTab, true);
+                } else if (theme === 'ARTISTE FESTIVAL') {
+                    await downloadArtisteFestivalCarousel(targetTab, true);
+                } else {
+                    await downloadEditorialCarousel(targetTab, true);
+                }
+            }
+            return;
+        }
+
+        // B. Format MP4
+        if (exportStudioFormat === 'MP4') {
+            if (exportStudioType === 'SLIDE') {
+                await exportCurrentSlideVideo(targetTab);
+            } else if (exportStudioType === 'ZIP') {
+                // PACK ZIP MP4 : chaque slide en vidéo .mp4 séparée
+                if (theme === 'MUSIQUE') {
+                    await exportMusiqueZip(targetTab);
+                } else {
+                    await exportVideoCarouselZip(targetTab);
+                }
+            } else if (exportStudioType === 'COMBINED') {
+                // 1 seule vidéo fusionnée
+                if (isReel) {
+                    forceDisableSwipeRef.current = true;
+                }
+                try {
+                    if (activeTab !== targetTab) {
+                        setActiveTab(targetTab);
+                        await new Promise(r => setTimeout(r, 200));
+                    }
+                    if (theme === 'PLANNING') {
+                        await startVideoRecording('PLANNING');
+                    } else if (['NEWS', 'FOCUS', 'RECAP', 'MUSIQUE', 'INTERVIEW', 'LIVESTREAM', 'CONSEILS', 'REELS', 'CONCOURS', 'TOP 100 DROPSIDERS', 'JEU', 'JEU_FESTIVAL', 'JEU_DJ', 'EVENTS', 'HIGHLIGHTS'].includes(theme)) {
+                        await startVideoRecording('EDITORIAL');
+                    } else {
+                        await startVideoRecording('NONE');
+                    }
+                } finally {
+                    forceDisableSwipeRef.current = false;
+                }
+            }
+        }
     };
 
     const getTikTokInfo = () => {
@@ -25417,576 +25648,813 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     })();
 
     const exportButtons = (
-        <div className="p-4 bg-gradient-to-b from-white/[0.08] to-black/60 border border-white/15 rounded-3xl space-y-3 shadow-2xl">
-            <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                    <Download className="w-4 h-4 text-neon-cyan" />
-                    <span className="text-[10px] font-black uppercase text-white tracking-widest">Centre d'Exportation</span>
+        <div className="space-y-2.5">
+            <button
+                type="button"
+                onClick={openExportStudioModal}
+                disabled={isDownloading || isVideoRecording || isExportingZip}
+                className="w-full py-4 px-4 bg-gradient-to-r from-[#00ff66] via-emerald-400 to-[#00f0ff] hover:brightness-110 active:scale-[0.98] text-black font-black uppercase rounded-2xl shadow-[0_0_25px_rgba(0,255,102,0.4)] flex items-center justify-between transition-all group disabled:opacity-50"
+            >
+                <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-xl bg-black/20 flex items-center justify-center text-black">
+                        <Download className="w-5 h-5 group-hover:translate-y-0.5 transition-transform" />
+                    </div>
+                    <div className="text-left">
+                        <span className="block text-[12px] font-black tracking-wider leading-tight">TÉLÉCHARGER</span>
+                        <span className="block text-[8px] font-bold text-black/75 tracking-normal">Format, Dimension, Slides & Audio</span>
+                    </div>
                 </div>
-                <span className="text-[8px] font-bold text-gray-400 uppercase bg-white/5 border border-white/10 px-2 py-0.5 rounded-full">
-                    {theme} • {activeTab === 'REEL' ? 'Story / Reel 9:16' : 'Post 1:1'}
-                </span>
-            </div>
+                <div className="flex items-center gap-1.5 bg-black/80 px-2.5 py-1 rounded-xl border border-black/50">
+                    <Sparkles className="w-3 h-3 text-[#00ff66]" />
+                    <span className="text-[8px] font-black uppercase text-[#00ff66]">Studio</span>
+                </div>
+            </button>
 
-            {/* ACCORDION 1 : 📸 EXPORT IMAGES (PNG) */}
-            <div className="border border-white/10 rounded-2xl overflow-hidden bg-black/40">
-                <button
-                    type="button"
-                    onClick={() => setExportAccordion(curr => curr === 'image' ? null : 'image')}
-                    className="w-full p-3 flex items-center justify-between text-left hover:bg-white/5 transition-colors group"
-                >
-                    <div className="flex items-center gap-2.5">
-                        <div className="w-7 h-7 rounded-lg bg-neon-cyan/15 border border-neon-cyan/30 flex items-center justify-center text-neon-cyan shadow-sm">
-                            <ImageIcon className="w-4 h-4" />
-                        </div>
-                        <div>
-                            <span className="text-[9.5px] font-black uppercase text-white block tracking-wider">
-                                📸 Export Images (PNG)
-                            </span>
-                            <span className="text-[7.5px] text-gray-400 block">
-                                Format HD Post 1:1, Story 9:16 ou Carrousel Complet
-                            </span>
-                        </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                        <span className="px-1.5 py-0.5 rounded text-[7.5px] font-black uppercase bg-neon-cyan/15 text-neon-cyan border border-neon-cyan/30">
-                            Instantané
-                        </span>
-                        <ChevronDown className={`w-3.5 h-3.5 text-gray-400 transition-transform duration-200 ${exportAccordion === 'image' ? 'rotate-180 text-white' : ''}`} />
-                    </div>
-                </button>
-
-                {exportAccordion === 'image' && (
-                    <div className="p-3 pt-0 space-y-2.5 border-t border-white/5 animate-in fade-in duration-200">
-                        {/* Ligne 1 : Visuel Actuel Post / Story */}
-                        <div className="pt-2">
-                            <span className="text-[8px] font-black text-gray-400 uppercase tracking-wider block mb-1.5">
-                                Slide Actuelle ({theme === 'PLANNING' ? `Slide ${agendaSlide}` : `Slide ${editorialSlide}`})
-                            </span>
-                            <div className="grid grid-cols-2 gap-2">
-                                <button
-                                    type="button"
-                                    onClick={() => downloadFormat('PUBLICATION')}
-                                    disabled={isDownloading || isVideoRecording}
-                                    className="py-2 px-3 bg-neon-cyan/10 hover:bg-neon-cyan/20 border border-neon-cyan/30 hover:border-neon-cyan text-neon-cyan rounded-xl text-[9px] font-black uppercase flex items-center justify-center gap-2 transition-all shadow-sm active:scale-95 disabled:opacity-40"
-                                >
-                                    <Download className="w-3.5 h-3.5" /> PNG POST (1:1)
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() => downloadFormat('REEL')}
-                                    disabled={isDownloading || isVideoRecording}
-                                    className="py-2 px-3 bg-neon-purple/10 hover:bg-neon-purple/20 border border-neon-purple/30 hover:border-neon-purple text-neon-purple rounded-xl text-[9px] font-black uppercase flex items-center justify-center gap-2 transition-all shadow-sm active:scale-95 disabled:opacity-40"
-                                >
-                                    <Download className="w-3.5 h-3.5" /> PNG STORY (9:16)
-                                </button>
-                            </div>
-                        </div>
-
-                        {/* Carrousel Complet */}
-                        {theme === 'PLANNING' && (
-                            <div className="space-y-1.5 pt-1 border-t border-white/5">
-                                <span className="text-[8px] font-black text-[#ff3700] uppercase tracking-wider block">
-                                    Carrousel Complet ({2 + agendaAffiches.length} Slides)
-                                </span>
-                                <div className="grid grid-cols-2 gap-2">
-                                    <button
-                                        type="button"
-                                        onClick={() => downloadFullAgendaCarousel(activeTab, false)}
-                                        disabled={isDownloading}
-                                        className="py-2.5 px-2 bg-gradient-to-r from-[#ff3700] via-orange-500 to-amber-500 hover:brightness-110 text-black font-black text-[9px] uppercase rounded-xl transition-all flex items-center justify-center gap-1.5 shadow-md shadow-[#ff3700]/20"
-                                    >
-                                        <Download className="w-3.5 h-3.5 text-black" /> 1 par 1 ({2 + agendaAffiches.length})
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={() => downloadFullAgendaCarousel(activeTab, true)}
-                                        disabled={isDownloading}
-                                        className="py-2.5 px-2 bg-white/10 hover:bg-white/20 border border-[#ff3700]/50 hover:border-[#ff3700] text-white font-black text-[9px] uppercase rounded-xl transition-all flex items-center justify-center gap-1.5 shadow-md"
-                                    >
-                                        <span>📦</span> Pack ZIP (.zip)
-                                    </button>
-                                </div>
-                            </div>
-                        )}
-
-                        {['NEWS', 'FOCUS', 'RECAP', 'INTERVIEW', 'LIVESTREAM', 'CONSEILS', 'REELS', 'CONCOURS', 'TOP 100 DROPSIDERS', 'JEU', 'JEU_FESTIVAL', 'JEU_DJ', 'HIGHLIGHTS'].includes(theme) && (
-                            <div className="space-y-1.5 pt-1 border-t border-white/5">
-                                <span className="text-[8px] font-black text-neon-cyan uppercase tracking-wider block">
-                                    Carrousel Complet ({2 + extraEditorialSlides.length + (afficheImage || isEditorialAfficheActive ? 1 : 0)} Slides)
-                                </span>
-                                <div className="grid grid-cols-2 gap-2">
-                                    <button
-                                        type="button"
-                                        onClick={() => downloadEditorialCarousel(activeTab, false)}
-                                        disabled={isDownloading}
-                                        className="py-2.5 px-2 bg-gradient-to-r from-neon-cyan via-blue-500 to-indigo-600 hover:opacity-90 text-black font-black text-[9px] uppercase rounded-xl shadow-md shadow-cyan-500/20 transition-all flex items-center justify-center gap-1.5"
-                                    >
-                                        <Download className="w-3.5 h-3.5 text-black" /> 1 par 1 ({2 + extraEditorialSlides.length + (afficheImage || isEditorialAfficheActive ? 1 : 0)})
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={() => downloadEditorialCarousel(activeTab, true)}
-                                        disabled={isDownloading}
-                                        className="py-2.5 px-2 bg-white/10 hover:bg-white/20 border border-neon-cyan/50 hover:border-neon-cyan text-white font-black text-[9px] uppercase rounded-xl shadow-md transition-all flex items-center justify-center gap-1.5"
-                                    >
-                                        <span>📦</span> Pack ZIP (.zip)
-                                    </button>
-                                </div>
-                            </div>
-                        )}
-
-                        {theme === 'MUSIQUE' && (
-                            <div className="space-y-1.5 pt-1 border-t border-white/5">
-                                <span className="text-[8px] font-black text-[#00ff66] uppercase tracking-wider block">
-                                    Carrousel Musique ({1 + musicTracks.length} Slides)
-                                </span>
-                                <div className="grid grid-cols-2 gap-2">
-                                    <button
-                                        type="button"
-                                        onClick={() => downloadEditorialCarousel(activeTab, false)}
-                                        disabled={isDownloading}
-                                        className="py-2.5 px-2 bg-[#00ff66] hover:bg-[#33ff85] text-black font-black text-[9px] uppercase rounded-xl shadow-md transition-all flex items-center justify-center gap-1.5"
-                                    >
-                                        <Download className="w-3.5 h-3.5 text-black" /> 1 par 1 ({1 + musicTracks.length})
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={() => downloadEditorialCarousel(activeTab, true)}
-                                        disabled={isDownloading}
-                                        className="py-2.5 px-2 bg-white/10 hover:bg-white/20 border border-[#00ff66]/50 hover:border-[#00ff66] text-white font-black text-[9px] uppercase rounded-xl shadow-md transition-all flex items-center justify-center gap-1.5"
-                                    >
-                                        <span>📦</span> Pack ZIP (.zip)
-                                    </button>
-                                </div>
-                            </div>
-                        )}
-
-                        {(theme === 'EVENTS' || theme === 'AFFICHE') && (
-                            <div className="space-y-1.5 pt-1 border-t border-white/5">
-                                <span className="text-[8px] font-black text-[#ff3700] uppercase tracking-wider block">
-                                    Carrousel Événement ({2 + eventNormalSlidesCount} Slides)
-                                </span>
-                                <div className="grid grid-cols-2 gap-2">
-                                    <button
-                                        type="button"
-                                        onClick={() => downloadEventsCarousel(activeTab, false)}
-                                        disabled={isDownloading}
-                                        className="py-2.5 px-2 bg-gradient-to-r from-[#ff3700] to-[#ff6700] text-white font-black text-[9px] uppercase rounded-xl shadow-md transition-all flex items-center justify-center gap-1.5"
-                                    >
-                                        <Download className="w-3.5 h-3.5" /> 1 par 1 ({2 + eventNormalSlidesCount})
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={() => downloadEventsCarousel(activeTab, true)}
-                                        disabled={isDownloading}
-                                        className="py-2.5 px-2 bg-white/10 hover:bg-white/20 border border-[#ff3700]/50 hover:border-[#ff3700] text-white font-black text-[9px] uppercase rounded-xl shadow-md transition-all flex items-center justify-center gap-1.5"
-                                    >
-                                        <span>📦</span> Pack ZIP (.zip)
-                                    </button>
-                                </div>
-                            </div>
-                        )}
-
-                        {theme === 'ARTISTE FESTIVAL' && (
-                            <div className="space-y-1.5 pt-1 border-t border-white/5">
-                                <span className="text-[8px] font-black text-neon-red uppercase tracking-wider block">
-                                    Carrousel Artiste Festival ({2 + extraSpotlightSlides.length} Slides)
-                                </span>
-                                <div className="grid grid-cols-2 gap-2">
-                                    <button
-                                        type="button"
-                                        onClick={() => downloadArtisteFestivalCarousel(activeTab, false)}
-                                        disabled={isDownloading}
-                                        className="py-2.5 px-2 bg-gradient-to-r from-neon-red to-pink-600 text-white font-black text-[9px] uppercase rounded-xl shadow-md transition-all flex items-center justify-center gap-1.5"
-                                    >
-                                        <Download className="w-3.5 h-3.5" /> 1 par 1 ({2 + extraSpotlightSlides.length})
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={() => downloadArtisteFestivalCarousel(activeTab, true)}
-                                        disabled={isDownloading}
-                                        className="py-2.5 px-2 bg-white/10 hover:bg-white/20 border border-neon-red/50 hover:border-neon-red text-white font-black text-[9px] uppercase rounded-xl shadow-md transition-all flex items-center justify-center gap-1.5"
-                                    >
-                                        <span>📦</span> Pack ZIP (.zip)
-                                    </button>
-                                </div>
-                            </div>
-                        )}
-
-                        {/* Slide Affiche isolée */}
-                        {Boolean(afficheImage || isEditorialAfficheActive) && (
-                            <div className="space-y-1 pt-1 border-t border-white/5">
-                                <button
-                                    type="button"
-                                    onClick={() => downloadAfficheSlide(activeTab)}
-                                    disabled={isDownloading}
-                                    className="w-full py-2 bg-[#ff3700]/20 hover:bg-[#ff3700]/30 border border-[#ff3700]/40 text-[#ff3700] hover:text-white font-black text-[9px] uppercase rounded-xl transition-all flex items-center justify-center gap-1.5"
-                                >
-                                    <Download className="w-3.5 h-3.5" /> Télécharger Slide Affiche Isolée
-                                </button>
-                            </div>
-                        )}
-                    </div>
-                )}
-            </div>
-
-            {/* ACCORDION 2 : 🎬 EXPORT VIDÉO - SLIDE ACTUELLE (MP4) */}
-            <div className="border border-white/10 rounded-2xl overflow-hidden bg-black/40">
-                <button
-                    type="button"
-                    onClick={() => setExportAccordion(curr => curr === 'video_slide' ? null : 'video_slide')}
-                    className="w-full p-3 flex items-center justify-between text-left hover:bg-white/5 transition-colors group"
-                >
-                    <div className="flex items-center gap-2.5">
-                        <div className="w-7 h-7 rounded-lg bg-[#00ff66]/15 border border-[#00ff66]/30 flex items-center justify-center text-[#00ff66] shadow-sm">
-                            <Video className="w-4 h-4" />
-                        </div>
-                        <div>
-                            <span className="text-[9.5px] font-black uppercase text-white block tracking-wider">
-                                🎬 Export Vidéo - Slide Actuelle (MP4)
-                            </span>
-                            <span className="text-[7.5px] text-gray-400 block">
-                                Vidéo 30s synchronisée avec l'audio + Promo Outro 7s
-                            </span>
-                        </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                        <span className="px-1.5 py-0.5 rounded text-[7.5px] font-black uppercase bg-[#00ff66]/15 text-[#00ff66] border border-[#00ff66]/30">
-                            30s & Promo
-                        </span>
-                        <ChevronDown className={`w-3.5 h-3.5 text-gray-400 transition-transform duration-200 ${exportAccordion === 'video_slide' ? 'rotate-180 text-white' : ''}`} />
-                    </div>
-                </button>
-
-                {exportAccordion === 'video_slide' && (
-                    <div className="p-3 pt-0 space-y-2.5 border-t border-white/5 animate-in fade-in duration-200">
-                        {/* Musique pour la Slide Actuelle / Carrousel (MP3 ou Beatport) */}
-                        <div className="pt-2">
-                            {renderCarouselAudioControlBox()}
-                        </div>
-                        {/* Vidéo 30s avec musique */}
-                        <div className="pt-2">
-                            <span className="text-[8px] font-black text-gray-400 uppercase tracking-wider block mb-1.5">
-                                Vidéo 30s synchronisée (Cover + Audio)
-                            </span>
-                            <div className="grid grid-cols-2 gap-2">
-                                <button
-                                    type="button"
-                                    onClick={() => exportCurrentSlideVideo('PUBLICATION')}
-                                    disabled={isDownloading || isVideoRecording}
-                                    className="py-2.5 px-3 bg-gradient-to-r from-[#00ff66]/20 to-[#00cc88]/20 hover:from-[#00ff66]/30 hover:to-[#00cc88]/30 border border-[#00ff66]/50 hover:border-[#00ff66] text-[#00ff66] rounded-xl text-[9px] font-black uppercase flex items-center justify-center gap-1.5 transition-all shadow-md active:scale-95 disabled:opacity-40"
-                                >
-                                    <Video className="w-3.5 h-3.5 text-[#00ff66]" />
-                                    {isVideoRecording ? 'CAPTURE...' : '🎬 MP4 POST (30s)'}
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() => exportCurrentSlideVideo('REEL')}
-                                    disabled={isDownloading || isVideoRecording}
-                                    className="py-2.5 px-3 bg-gradient-to-r from-neon-purple/20 to-pink-500/20 hover:from-neon-purple/30 hover:to-pink-500/30 border border-neon-purple/50 hover:border-neon-purple text-white rounded-xl text-[9px] font-black uppercase flex items-center justify-center gap-1.5 transition-all shadow-md active:scale-95 disabled:opacity-40"
-                                >
-                                    <Video className="w-3.5 h-3.5 text-neon-purple" />
-                                    {isVideoRecording ? 'CAPTURE...' : '🎬 MP4 STORY (30s)'}
-                                </button>
-                            </div>
-                        </div>
-
-                        {/* Slide Promo Outro 7s */}
-                        <div className="space-y-1.5 pt-1 border-t border-white/5">
-                            <span className="text-[8px] font-black text-gray-400 uppercase tracking-wider block">
-                                🔥 Slide Promo Outro (Vidéo MP4 7s)
-                            </span>
-                            <div className="grid grid-cols-2 gap-2">
-                                <button
-                                    type="button"
-                                    onClick={() => exportPromoSlideVideo('PUBLICATION')}
-                                    disabled={isDownloading || isVideoRecording}
-                                    className="py-2 px-3 bg-gradient-to-r from-neon-red/20 to-orange-500/20 hover:from-neon-red/30 hover:to-orange-500/30 border border-neon-red/50 hover:border-neon-red text-white rounded-xl text-[9px] font-black uppercase flex items-center justify-center gap-1.5 transition-all shadow-sm active:scale-95 disabled:opacity-40"
-                                >
-                                    <Video className="w-3.5 h-3.5 text-neon-red" />
-                                    {isVideoRecording ? 'CAPTURE...' : 'PROMO POST (7s)'}
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() => exportPromoSlideVideo('REEL')}
-                                    disabled={isDownloading || isVideoRecording}
-                                    className="py-2 px-3 bg-gradient-to-r from-neon-red/20 to-pink-500/20 hover:from-neon-red/30 hover:to-pink-500/30 border border-neon-red/50 hover:border-neon-red text-white rounded-xl text-[9px] font-black uppercase flex items-center justify-center gap-1.5 transition-all shadow-sm active:scale-95 disabled:opacity-40"
-                                >
-                                    <Video className="w-3.5 h-3.5 text-neon-red" />
-                                    {isVideoRecording ? 'CAPTURE...' : 'PROMO STORY (7s)'}
-                                </button>
-                            </div>
-                        </div>
-
-                        {/* Pack complet ZIP MP4 pour MUSIQUE */}
-                        {theme === 'MUSIQUE' && (
-                            <div className="space-y-1.5 pt-2 border-t border-[#00ff66]/20">
-                                <span className="text-[8px] font-black text-[#00ff66] uppercase tracking-wider block">
-                                    📦 Pack Complet (Toutes les pistes en ZIP .mp4)
-                                </span>
-                                <div className="grid grid-cols-2 gap-2">
-                                    <button
-                                        type="button"
-                                        onClick={() => exportMusiqueZip('PUBLICATION')}
-                                        disabled={isDownloading || isVideoRecording || isExportingZip}
-                                        className="py-2.5 px-3 bg-[#00ff66]/15 hover:bg-[#00ff66]/25 border border-[#00ff66]/40 hover:border-[#00ff66] text-[#00ff66] rounded-xl text-[8.5px] font-black uppercase flex items-center justify-center gap-1.5 transition-all shadow-sm active:scale-95 disabled:opacity-40"
-                                    >
-                                        <span>📦</span>
-                                        <span>ZIP POST (4:5)</span>
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={() => exportMusiqueZip('REEL')}
-                                        disabled={isDownloading || isVideoRecording || isExportingZip}
-                                        className="py-2.5 px-3 bg-neon-purple/15 hover:bg-neon-purple/25 border border-neon-purple/40 hover:border-neon-purple text-white rounded-xl text-[8.5px] font-black uppercase flex items-center justify-center gap-1.5 transition-all shadow-sm active:scale-95 disabled:opacity-40"
-                                    >
-                                        <span>📦</span>
-                                        <span>ZIP STORY (9:16)</span>
-                                    </button>
-                                </div>
-                            </div>
-                        )}
-                    </div>
-                )}
-            </div>
-
-            {/* ACCORDION 3 : 🚀 EXPORT VIDÉO - CARROUSEL COMPLET (MP4) */}
-            <div className="border border-white/10 rounded-2xl overflow-hidden bg-black/40">
-                <button
-                    type="button"
-                    onClick={() => setExportAccordion(curr => curr === 'video_carousel' ? null : 'video_carousel')}
-                    className="w-full p-3 flex items-center justify-between text-left hover:bg-white/5 transition-colors group"
-                >
-                    <div className="flex items-center gap-2.5">
-                        <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-neon-red/20 to-pink-500/20 border border-neon-red/30 flex items-center justify-center text-neon-red shadow-sm">
-                            <Film className="w-4 h-4" />
-                        </div>
-                        <div>
-                            <span className="text-[9.5px] font-black uppercase text-white block tracking-wider">
-                                🚀 Export Vidéo - Carrousel Complet (MP4)
-                            </span>
-                            <span className="text-[7.5px] text-gray-400 block">
-                                Toutes les slides enchaînées avec transitions + Outro Promo
-                            </span>
-                        </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                        <span className="px-1.5 py-0.5 rounded text-[7.5px] font-black uppercase bg-neon-red/15 text-neon-red border border-neon-red/30">
-                            {theme === 'PLANNING' ? `${2 + agendaAffiches.length} Slides` : ['NEWS', 'FOCUS', 'RECAP', 'HIGHLIGHTS'].includes(theme) ? `${skipEditorialSlide2 ? 1 : 2 + extraEditorialSlides.length} Slides` : 'Carrousel'}
-                        </span>
-                        <ChevronDown className={`w-3.5 h-3.5 text-gray-400 transition-transform duration-200 ${exportAccordion === 'video_carousel' ? 'rotate-180 text-white' : ''}`} />
-                    </div>
-                </button>
-
-                {exportAccordion === 'video_carousel' && (
-                    <div className="p-3 pt-0 space-y-3 border-t border-white/5 animate-in fade-in duration-200">
-                        {/* Options et Durées */}
-                        <div className="pt-2">
-                            {theme !== 'MUSIQUE' && editorialDurationControls}
-                        </div>
-
-                        {/* Musique de Fond Carrousel (MP3 Upload & Beatport) */}
-                        {renderCarouselAudioControlBox()}
-
-                        {/* Grand Bouton d'Export */}
-                        {theme === 'PLANNING' ? (
-                            <div className="space-y-2">
-                                <button
-                                    type="button"
-                                    onClick={() => startVideoRecording('PLANNING')}
-                                    disabled={isVideoRecording || isExportingZip}
-                                    className={`w-full py-3.5 rounded-2xl text-[10px] font-black uppercase flex items-center justify-center gap-2.5 transition-all shadow-xl ${isVideoRecording
-                                        ? 'bg-[#ff3700]/30 text-[#ff3700] border border-[#ff3700]/50 animate-pulse'
-                                        : 'bg-gradient-to-r from-[#ff3700] via-orange-500 to-amber-500 text-black hover:brightness-110 active:scale-[0.98] shadow-[0_0_25px_rgba(255,55,0,0.45)]'
-                                        }`}
-                                >
-                                    <Video className="w-4 h-4 text-black" />
-                                    {isVideoRecording ? 'CAPTURE VIDÉO EN COURS...' : `🎬 1 SEULE VIDÉO ENCHAÎNÉE (${activeTab === 'REEL' ? 'REEL 9:16' : 'POST 1:1'} • ${2 + agendaAffiches.length} SLIDES + PROMO) • MP4`}
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() => exportVideoCarouselZip(activeTab)}
-                                    disabled={isVideoRecording || isExportingZip}
-                                    className="w-full py-3 bg-white/10 hover:bg-white/20 border border-[#ff3700]/50 hover:border-[#ff3700] text-white rounded-2xl text-[10px] font-black uppercase flex items-center justify-center gap-2 transition-all shadow-md active:scale-95 disabled:opacity-40"
-                                >
-                                    <span>📦</span>
-                                    <span>PACK ZIP : TOUTES LES SLIDES VIDÉOS SÉPARÉES 1 PAR 1 (.mp4)</span>
-                                </button>
-                            </div>
-                        ) : ['NEWS', 'FOCUS', 'RECAP', 'MUSIQUE', 'INTERVIEW', 'LIVESTREAM', 'CONSEILS', 'REELS', 'CONCOURS', 'TOP 100 DROPSIDERS', 'JEU', 'JEU_FESTIVAL', 'JEU_DJ', 'EVENTS', 'HIGHLIGHTS'].includes(theme) ? (
-                            <div className="space-y-2">
-                                <button
-                                    type="button"
-                                    onClick={() => startVideoRecording('EDITORIAL')}
-                                    disabled={isVideoRecording || isExportingZip}
-                                    className={`w-full py-3.5 rounded-2xl text-[10px] font-black uppercase flex items-center justify-center gap-2.5 transition-all shadow-xl ${isVideoRecording
-                                        ? 'bg-red-500/30 text-red-400 border border-red-500/50 animate-pulse'
-                                        : 'bg-gradient-to-r from-neon-red via-rose-500 to-pink-600 text-white hover:brightness-110 active:scale-[0.98] shadow-[0_0_25px_rgba(255,0,51,0.45)]'
-                                        }`}
-                                >
-                                    <Video className="w-4 h-4" />
-                                    {isVideoRecording
-                                        ? 'CAPTURE VIDÉO EN COURS...'
-                                        : theme === 'MUSIQUE'
-                                            ? `🎬 1 SEULE VIDÉO ENCHAÎNÉE (${activeTab === 'REEL' ? 'REEL 9:16' : 'POST 1:1'} • ${1 + musicTracks.length} TRACKS + PROMO) • MP4`
-                                            : skipEditorialSlide2
-                                                ? `🎬 1 SEULE VIDÉO ENCHAÎNÉE (${activeTab === 'REEL' ? 'REEL 9:16' : 'POST 1:1'} • SLIDE 1 [${editorialSlide1Duration}s] + PROMO [${editorialPromoDuration}s]) • MP4`
-                                                : `🎬 1 SEULE VIDÉO ENCHAÎNÉE (${activeTab === 'REEL' ? 'REEL 9:16' : 'POST 1:1'} • ${2 + extraEditorialSlides.length} SLIDES + PROMO) • MP4`}
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() => theme === 'MUSIQUE' ? exportMusiqueZip(activeTab) : exportVideoCarouselZip(activeTab)}
-                                    disabled={isVideoRecording || isExportingZip}
-                                    className="w-full py-3 bg-white/10 hover:bg-white/20 border border-neon-red/50 hover:border-neon-red text-white rounded-2xl text-[10px] font-black uppercase flex items-center justify-center gap-2 transition-all shadow-md active:scale-95 disabled:opacity-40"
-                                >
-                                    <span>📦</span>
-                                    <span>PACK ZIP : TOUTES LES SLIDES VIDÉOS SÉPARÉES 1 PAR 1 (.mp4)</span>
-                                </button>
-                            </div>
-                        ) : theme === 'TOP 10 TRACKS' ? (
-                            <button
-                                type="button"
-                                onClick={() => startVideoRecording('NONE')}
-                                disabled={isVideoRecording}
-                                className={`w-full py-3.5 rounded-2xl text-[10px] font-black uppercase flex items-center justify-center gap-2.5 transition-all shadow-xl ${isVideoRecording
-                                    ? 'bg-neon-cyan/30 text-neon-cyan border border-neon-cyan/50 animate-pulse'
-                                    : 'bg-gradient-to-r from-neon-cyan via-blue-500 to-indigo-600 text-black hover:brightness-110 active:scale-[0.98] shadow-[0_0_25px_rgba(0,240,255,0.45)]'
-                                    }`}
-                            >
-                                <Video className="w-4 h-4 text-black" />
-                                {isVideoRecording ? 'CAPTURE TOP 10 TRACKS EN COURS...' : '🎬 EXPORTER LE REEL TOP 10 TRACKS (REEL 9:16 • 10 MORCEAUX • 90s) • MP4'}
-                            </button>
-                        ) : (
-                            <button
-                                type="button"
-                                onClick={() => startVideoRecording('NONE')}
-                                disabled={isVideoRecording}
-                                className={`w-full py-3.5 rounded-2xl text-[10px] font-black uppercase flex items-center justify-center gap-2.5 transition-all shadow-xl ${isVideoRecording
-                                    ? 'bg-red-500/30 text-red-400 border border-red-500/50 animate-pulse'
-                                    : 'bg-gradient-to-r from-neon-red to-pink-600 text-white hover:brightness-110 active:scale-[0.98] shadow-[0_0_25px_rgba(255,0,51,0.45)]'
-                                    }`}
-                            >
-                                <Video className="w-4 h-4" />
-                                {isVideoRecording ? 'CAPTURE MP4 EN COURS...' : `🎬 EXPORTER EN VIDÉO MP4 (${activeTab === 'REEL' ? 'REEL 9:16 + OUTRO PROMO' : theme})`}
-                            </button>
-                        )}
-                    </div>
-                )}
-            </div>
-
-            {/* ACCORDION 4 : 🎵 EXPORT SPÉCIAL TIKTOK (9:16 VERTICAL DYNAMIQUE) */}
-            <div className="border border-[#00f2fe]/30 hover:border-[#00f2fe]/60 rounded-2xl overflow-hidden bg-gradient-to-br from-[#010814]/90 via-black/80 to-[#15020c]/90 transition-all shadow-[0_0_20px_rgba(0,242,254,0.12)]">
-                <button
-                    type="button"
-                    onClick={() => setExportAccordion(curr => curr === 'tiktok' ? null : 'tiktok')}
-                    className="w-full p-3 flex items-center justify-between text-left hover:bg-white/[0.04] transition-colors group"
-                >
-                    <div className="flex items-center gap-2.5">
-                        <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-[#00f2fe] via-black to-[#fe0979] p-[1px] flex items-center justify-center shadow-[0_0_12px_rgba(0,242,254,0.35)] shrink-0">
-                            <div className="w-full h-full bg-black/90 rounded-[7px] flex items-center justify-center">
-                                <svg className="w-4 h-4 text-[#00f2fe]" viewBox="0 0 24 24" fill="currentColor">
-                                    <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64c.298-.002.595.042.88.13V9.4a6.33 6.33 0 0 0-1-.08A6.34 6.34 0 0 0 3 15.66a6.34 6.34 0 0 0 10.82 4.47 6.27 6.27 0 0 0 1.95-4.52V8.9a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-.95-.33z" />
-                                </svg>
-                            </div>
-                        </div>
-                        <div>
-                            <div className="flex items-center gap-1.5 flex-wrap">
-                                <span className="text-[9.5px] font-black uppercase text-white tracking-wider">
-                                    🎵 Export Spécial TikTok (9:16)
-                                </span>
-                                <span className="px-1.5 py-0.2 rounded text-[7px] font-black uppercase bg-[#00f2fe]/20 text-[#00f2fe] border border-[#00f2fe]/40 animate-pulse">
-                                    Auto-Fit &lt;60s
-                                </span>
-                            </div>
-                            <span className="text-[7.5px] text-gray-400 block">
-                                Toutes les slides enchaînées + Outro Promo • Format vertical 1080×1920
-                            </span>
-                        </div>
-                    </div>
-                    <div className="flex items-center gap-2 shrink-0">
-                        <span className="px-1.5 py-0.5 rounded text-[7.5px] font-black uppercase bg-[#fe0979]/15 text-[#fe0979] border border-[#fe0979]/30">
-                            ~{getTikTokInfo().totalDurationSec}s
-                        </span>
-                        <ChevronDown className={`w-3.5 h-3.5 text-gray-400 transition-transform duration-200 ${exportAccordion === 'tiktok' ? 'rotate-180 text-[#00f2fe]' : ''}`} />
-                    </div>
-                </button>
-
-                {exportAccordion === 'tiktok' && (
-                    <div className="p-3 pt-0 space-y-3 border-t border-white/5 animate-in fade-in duration-200">
-                        {/* Badges récapitulatifs TikTok */}
-                        <div className="grid grid-cols-3 gap-2 pt-2">
-                            <div className="bg-black/50 border border-white/10 rounded-xl p-2 text-center">
-                                <span className="text-[7px] font-bold text-gray-400 uppercase block">Slides Vidéo</span>
-                                <span className="text-[11px] font-black text-[#00f2fe]">{getTikTokInfo().totalSlides} slides</span>
-                                <span className="text-[6.5px] text-gray-500 block">dont outro promo</span>
-                            </div>
-                            <div className="bg-black/50 border border-white/10 rounded-xl p-2 text-center">
-                                <span className="text-[7px] font-bold text-gray-400 uppercase block">Rythme Slide</span>
-                                <span className="text-[11px] font-black text-white">{getTikTokInfo().slideDurationSec}s</span>
-                                <span className="text-[6.5px] text-gray-500 block">par visuel</span>
-                            </div>
-                            <div className="bg-black/50 border border-[#fe0979]/30 rounded-xl p-2 text-center">
-                                <span className="text-[7px] font-bold text-gray-400 uppercase block">Durée Totale</span>
-                                <span className="text-[11px] font-black text-[#fe0979]">~{getTikTokInfo().totalDurationSec}s</span>
-                                <span className="text-[6.5px] text-[#00ff66] font-bold block">✓ &lt;60s strict</span>
-                            </div>
-                        </div>
-
-                        {/* Note explicative dynamique */}
-                        <div className="bg-[#00f2fe]/5 border border-[#00f2fe]/20 rounded-xl p-2.5 flex items-start gap-2">
-                            <Sparkles className="w-3.5 h-3.5 text-[#00f2fe] shrink-0 mt-0.5" />
-                            <div className="text-[7.5px] text-gray-300 space-y-0.5 leading-relaxed">
-                                <p className="font-semibold text-white">✨ Rendu optimisé algorithme TikTok :</p>
-                                <p>Bascule automatique en <b className="text-[#00f2fe]">Vertical 9:16 (1080×1920)</b>, rythme dynamique selon le nombre de slides ({getTikTokInfo().slideDurationSec}s/slide), puis enchaînement fluide sur la <b className="text-[#fe0979]">Slide Promo Outro</b> ({getTikTokInfo().promoDurationSec}s) pour inciter au swipe et à l'abonnement.</p>
-                            </div>
-                        </div>
-
-                        {/* Musique de Fond Carrousel (MP3 Upload & Beatport) */}
-                        {renderCarouselAudioControlBox()}
-
-                        {/* Grand Bouton TikTok */}
-                        <button
-                            type="button"
-                            onClick={exportSpecialTikTokVideo}
-                            disabled={isVideoRecording}
-                            className={`w-full py-3.5 rounded-2xl text-[10px] font-black uppercase flex items-center justify-center gap-2.5 transition-all shadow-xl ${isVideoRecording
-                                ? 'bg-[#00f2fe]/20 text-[#00f2fe] border border-[#00f2fe]/40 animate-pulse'
-                                : 'bg-gradient-to-r from-[#00f2fe] via-black to-[#fe0979] text-white hover:brightness-110 active:scale-[0.98] shadow-[0_0_25px_rgba(0,242,254,0.35)] border border-[#00f2fe]/50'
-                                }`}
-                        >
-                            <svg className="w-4 h-4 text-[#00f2fe]" viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64c.298-.002.595.042.88.13V9.4a6.33 6.33 0 0 0-1-.08A6.34 6.34 0 0 0 3 15.66a6.34 6.34 0 0 0 10.82 4.47 6.27 6.27 0 0 0 1.95-4.52V8.9a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-.95-.33z" />
-                            </svg>
-                            {isVideoRecording
-                                ? 'CAPTURE SPÉCIALE TIKTOK EN COURS...'
-                                : `🎬 EXPORTER EN VIDÉO TIKTOK (9:16 • ${getTikTokInfo().totalSlides} SLIDES • ~${getTikTokInfo().totalDurationSec}S) • MP4`}
-                        </button>
-                    </div>
-                )}
-            </div>
-
-            {/* Actions secondaires */}
-            <div className="pt-2 border-t border-white/5 flex gap-2">
+            <div className="flex gap-2">
                 <button
                     type="button"
                     onClick={addVisualToList}
-                    className="flex-1 py-2 bg-white/5 border border-white/10 hover:bg-white/10 text-gray-300 hover:text-white rounded-xl text-[8.5px] font-black uppercase flex items-center justify-center gap-1.5 transition-all"
+                    className="flex-1 py-2.5 bg-white/5 border border-white/10 hover:bg-white/10 text-gray-300 hover:text-white rounded-xl text-[8.5px] font-black uppercase flex items-center justify-center gap-1.5 transition-all active:scale-95"
                 >
-                    <PlusCircle className="w-3 h-3" /> Ajouter à la liste
+                    <PlusCircle className="w-3.5 h-3.5 text-neon-cyan" /> + Ajouter à la liste
                 </button>
                 <button
                     type="button"
                     onClick={() => downloadBackgroundVisual(activeTab)}
                     disabled={isDownloading}
-                    className="flex-1 py-2 bg-white/5 border border-white/10 hover:bg-white/10 text-gray-300 hover:text-white rounded-xl text-[8.5px] font-black uppercase flex items-center justify-center gap-1.5 transition-all"
+                    className="flex-1 py-2.5 bg-white/5 border border-white/10 hover:bg-white/10 text-gray-300 hover:text-white rounded-xl text-[8.5px] font-black uppercase flex items-center justify-center gap-1.5 transition-all active:scale-95 disabled:opacity-40"
                     title="Exporter l'image de fond seule sans texte"
                 >
-                    <Download className="w-3 h-3" /> Fond seul
+                    <Download className="w-3.5 h-3.5 text-gray-400" /> Fond seul
                 </button>
             </div>
         </div>
     );
+
+    const exportStudioModal = isExportStudioOpen ? (
+        <div className="fixed inset-0 z-[100] bg-black/85 backdrop-blur-xl flex items-center justify-center p-3 sm:p-6 overflow-y-auto animate-in fade-in duration-200">
+            <div className="relative w-full max-w-2xl bg-gradient-to-b from-[#0f1420] via-[#090c14] to-black border border-white/20 rounded-3xl shadow-[0_0_60px_rgba(0,0,0,0.9),0_0_30px_rgba(0,255,102,0.15)] overflow-hidden flex flex-col max-h-[92vh]">
+                {/* Header */}
+                <div className="p-4 sm:p-5 border-b border-white/10 flex items-center justify-between bg-white/[0.02]">
+                    <div className="flex items-center gap-3">
+                        <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#00ff66]/20 to-teal-500/20 border border-[#00ff66]/40 flex items-center justify-center text-[#00ff66] shadow-[0_0_15px_rgba(0,255,102,0.3)]">
+                            <Download className="w-5 h-5" />
+                        </div>
+                        <div>
+                            <div className="flex items-center gap-2">
+                                <h2 className="text-sm sm:text-base font-black uppercase text-white tracking-wider">
+                                    CENTRE DE TÉLÉCHARGEMENT
+                                </h2>
+                                <span className="px-2 py-0.5 rounded-full text-[8px] font-black uppercase bg-[#00ff66]/15 text-[#00ff66] border border-[#00ff66]/30">
+                                    Dropsiders Studio
+                                </span>
+                            </div>
+                            <span className="text-[9px] text-gray-400 block">
+                                {theme} • {exportStudioDimension === 'REEL' ? 'Format Story 9:16' : 'Format Post 1:1'}
+                            </span>
+                        </div>
+                    </div>
+                    <button
+                        type="button"
+                        onClick={() => setIsExportStudioOpen(false)}
+                        className="w-8 h-8 rounded-full bg-white/5 hover:bg-white/15 border border-white/10 flex items-center justify-center text-gray-400 hover:text-white transition group"
+                    >
+                        <X className="w-4 h-4 group-hover:rotate-90 transition-transform duration-200" />
+                    </button>
+                </div>
+
+                {/* Body (scrollable) */}
+                <div className="p-4 sm:p-6 overflow-y-auto space-y-5 flex-1 custom-scrollbar">
+
+                    {/* Raccourci Express Story 4s (Le preset demandé !) */}
+                    <div className="p-3.5 bg-gradient-to-r from-purple-950/40 via-pink-950/30 to-[#00f2fe]/10 border border-purple-500/30 hover:border-purple-400/50 rounded-2xl flex items-center justify-between gap-3 shadow-lg transition">
+                        <div className="min-w-0">
+                            <div className="flex items-center gap-2 flex-wrap mb-0.5">
+                                <span className="text-[10.5px] font-black uppercase text-white tracking-wider">
+                                    ⚡ STORY DYNAMIQUE RAPIDE
+                                </span>
+                                <span className="px-1.5 py-0.2 rounded text-[7.5px] font-black uppercase bg-[#00f2fe]/20 text-[#00f2fe] border border-[#00f2fe]/40">
+                                    4s / slide • Outro 5s • 9:16
+                                </span>
+                                <span className="px-1.5 py-0.2 rounded text-[7.5px] font-black uppercase bg-[#ff1241]/20 text-[#ff1241] border border-[#ff1241]/40">
+                                    Zéro Swipe
+                                </span>
+                            </div>
+                            <span className="text-[8px] text-gray-400 block">
+                                Convertit automatiquement vos visuels en Story 9:16 verticale avec cadrage parfait, musique synchronisée et sans aucun swipe.
+                            </span>
+                        </div>
+                        <button
+                            type="button"
+                            onClick={exportStoryFastVideo}
+                            disabled={isVideoRecording}
+                            className="px-3.5 py-2.5 bg-gradient-to-r from-[#fe0979] to-[#00f2fe] hover:brightness-110 active:scale-95 text-white font-black text-[9.5px] uppercase rounded-xl transition shadow-[0_0_15px_rgba(254,9,121,0.4)] shrink-0 flex items-center gap-1.5 disabled:opacity-50"
+                        >
+                            <Film className="w-3.5 h-3.5" />
+                            <span>{isVideoRecording ? 'En cours...' : 'Lancer Story 4s'}</span>
+                        </button>
+                    </div>
+
+                    {/* 1. FORMAT DE SORTIE */}
+                    <div className="space-y-2">
+                        <label className="text-[9.5px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-1.5">
+                            <span className="w-1.5 h-1.5 rounded-full bg-[#00ff66]"></span>
+                            1. Format de sortie
+                        </label>
+                        <div className="grid grid-cols-2 gap-2.5">
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setExportStudioFormat('PNG');
+                                    if (exportStudioType === 'COMBINED') setExportStudioType('SLIDE');
+                                }}
+                                className={`p-3 rounded-2xl border text-left transition flex items-center gap-3 ${exportStudioFormat === 'PNG'
+                                    ? 'bg-neon-cyan/15 border-neon-cyan text-white shadow-[0_0_15px_rgba(0,240,255,0.25)]'
+                                    : 'bg-white/5 border-white/10 text-gray-400 hover:border-white/20 hover:text-white'
+                                    }`}
+                            >
+                                <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${exportStudioFormat === 'PNG' ? 'bg-neon-cyan text-black' : 'bg-white/10 text-gray-400'}`}>
+                                    <ImageIcon className="w-4 h-4" />
+                                </div>
+                                <div className="min-w-0">
+                                    <span className="block text-[11px] font-black uppercase text-white">📸 Image (PNG)</span>
+                                    <span className="block text-[8px] text-gray-400">Rendu HD instantané haute fidélité</span>
+                                </div>
+                            </button>
+
+                            <button
+                                type="button"
+                                onClick={() => setExportStudioFormat('MP4')}
+                                className={`p-3 rounded-2xl border text-left transition flex items-center gap-3 ${exportStudioFormat === 'MP4'
+                                    ? 'bg-[#00ff66]/15 border-[#00ff66] text-white shadow-[0_0_15px_rgba(0,255,102,0.25)]'
+                                    : 'bg-white/5 border-white/10 text-gray-400 hover:border-white/20 hover:text-white'
+                                    }`}
+                            >
+                                <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${exportStudioFormat === 'MP4' ? 'bg-[#00ff66] text-black' : 'bg-white/10 text-gray-400'}`}>
+                                    <Video className="w-4 h-4" />
+                                </div>
+                                <div className="min-w-0">
+                                    <span className="block text-[11px] font-black uppercase text-white">🎬 Vidéo (MP4)</span>
+                                    <span className="block text-[8px] text-gray-400">Vidéo animée avec musique & outro</span>
+                                </div>
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* 2. DIMENSION DU VISUEL */}
+                    <div className="space-y-2">
+                        <label className="text-[9.5px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-1.5">
+                            <span className="w-1.5 h-1.5 rounded-full bg-neon-cyan"></span>
+                            2. Dimension & Ratio
+                        </label>
+                        <div className="grid grid-cols-2 gap-2.5">
+                            <button
+                                type="button"
+                                onClick={() => setExportStudioDimension('POST')}
+                                className={`p-3 rounded-2xl border text-left transition flex items-center gap-3 ${exportStudioDimension === 'POST'
+                                    ? 'bg-neon-cyan/15 border-neon-cyan text-white shadow-[0_0_15px_rgba(0,240,255,0.25)]'
+                                    : 'bg-white/5 border-white/10 text-gray-400 hover:border-white/20 hover:text-white'
+                                    }`}
+                            >
+                                <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${exportStudioDimension === 'POST' ? 'bg-neon-cyan text-black' : 'bg-white/10 text-gray-400'}`}>
+                                    <Layout className="w-4 h-4" />
+                                </div>
+                                <div className="min-w-0">
+                                    <span className="block text-[11px] font-black uppercase text-white">⬛ POST (1:1 / 4:5)</span>
+                                    <span className="block text-[8px] text-gray-400">Format Feed Instagram & Réseaux</span>
+                                </div>
+                            </button>
+
+                            <button
+                                type="button"
+                                onClick={() => setExportStudioDimension('REEL')}
+                                className={`p-3 rounded-2xl border text-left transition flex items-center gap-3 ${exportStudioDimension === 'REEL'
+                                    ? 'bg-neon-purple/15 border-neon-purple text-white shadow-[0_0_15px_rgba(189,0,255,0.25)]'
+                                    : 'bg-white/5 border-white/10 text-gray-400 hover:border-white/20 hover:text-white'
+                                    }`}
+                            >
+                                <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${exportStudioDimension === 'REEL' ? 'bg-neon-purple text-white' : 'bg-white/10 text-gray-400'}`}>
+                                    <Smartphone className="w-4 h-4" />
+                                </div>
+                                <div className="min-w-0">
+                                    <span className="block text-[11px] font-black uppercase text-white">📱 REEL & STORY (9:16)</span>
+                                    <span className="block text-[8px] text-gray-400">Plein écran vertical 1080×1920</span>
+                                </div>
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* 3. TYPE D'EXPORTATION */}
+                    <div className="space-y-2">
+                        <label className="text-[9.5px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-1.5">
+                            <span className="w-1.5 h-1.5 rounded-full bg-orange-400"></span>
+                            3. Type d'exportation
+                        </label>
+                        <div className="grid grid-cols-3 gap-2">
+                            <button
+                                type="button"
+                                onClick={() => setExportStudioType('SLIDE')}
+                                className={`p-2.5 rounded-2xl border text-left transition ${exportStudioType === 'SLIDE'
+                                    ? 'bg-white/15 border-white text-white shadow-md'
+                                    : 'bg-white/5 border-white/10 text-gray-400 hover:text-white hover:border-white/20'
+                                    }`}
+                            >
+                                <span className="block text-[10px] font-black uppercase text-white">📄 Slide Seule</span>
+                                <span className="block text-[7.5px] text-gray-400 mt-0.5">
+                                    {exportStudioFormat === 'PNG' ? '1 Image PNG isolée' : '1 Vidéo 30s de la slide'}
+                                </span>
+                            </button>
+
+                            <button
+                                type="button"
+                                onClick={() => setExportStudioType('ZIP')}
+                                className={`p-2.5 rounded-2xl border text-left transition ${exportStudioType === 'ZIP'
+                                    ? 'bg-[#00ff66]/15 border-[#00ff66] text-white shadow-[0_0_15px_rgba(0,255,102,0.25)]'
+                                    : 'bg-white/5 border-white/10 text-gray-400 hover:text-white hover:border-white/20'
+                                    }`}
+                            >
+                                <div className="flex items-center justify-between">
+                                    <span className="block text-[10px] font-black uppercase text-[#00ff66]">📦 Pack ZIP</span>
+                                    <span className="text-[7px] font-bold uppercase px-1 rounded bg-[#00ff66]/20 text-[#00ff66]">
+                                        {exportStudioFormat === 'MP4' ? 'MP4s' : 'PNGs'}
+                                    </span>
+                                </div>
+                                <span className="block text-[7.5px] text-gray-400 mt-0.5">
+                                    {exportStudioFormat === 'PNG' ? 'Toutes les slides en PNG' : 'Chaque slide en vidéo .mp4'}
+                                </span>
+                            </button>
+
+                            <button
+                                type="button"
+                                disabled={exportStudioFormat === 'PNG'}
+                                onClick={() => setExportStudioType('COMBINED')}
+                                className={`p-2.5 rounded-2xl border text-left transition ${exportStudioFormat === 'PNG'
+                                    ? 'opacity-40 cursor-not-allowed bg-black/30 border-white/5'
+                                    : exportStudioType === 'COMBINED'
+                                        ? 'bg-neon-red/15 border-neon-red text-white shadow-[0_0_15px_rgba(255,0,51,0.25)]'
+                                        : 'bg-white/5 border-white/10 text-gray-400 hover:text-white hover:border-white/20'
+                                    }`}
+                            >
+                                <span className="block text-[10px] font-black uppercase text-neon-red">🚀 1 Vidéo Fusion</span>
+                                <span className="block text-[7.5px] text-gray-400 mt-0.5">
+                                    Enchaînement continu + Outro Promo
+                                </span>
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* 4. SÉLECTION DES SLIDES À INCLURE */}
+                    <div className="p-3 bg-black/40 border border-white/10 rounded-2xl space-y-2.5">
+                        <div className="flex items-center justify-between">
+                            <span className="text-[9.5px] font-black uppercase text-gray-300 flex items-center gap-1.5">
+                                <Layers className="w-3.5 h-3.5 text-[#00f0ff]" />
+                                Slides du carrousel à inclure
+                            </span>
+                            <div className="flex items-center gap-2">
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        const available = getAvailableSlideNumbers();
+                                        const map: Record<string, boolean> = {};
+                                        available.forEach(s => { map[`slide_${s}`] = true; });
+                                        map['promo_outro'] = true;
+                                        if (afficheImage || isEditorialAfficheActive) map['slide_affiche'] = true;
+                                        setSelectedExportSlides(map);
+                                    }}
+                                    className="text-[8px] font-bold uppercase text-neon-cyan hover:underline"
+                                >
+                                    Tout cocher
+                                </button>
+                                <span className="text-gray-600">•</span>
+                                <button
+                                    type="button"
+                                    onClick={() => setSelectedExportSlides({})}
+                                    className="text-[8px] font-bold uppercase text-gray-400 hover:underline"
+                                >
+                                    Décocher tout
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Grille des slides cochables */}
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                            {getAvailableSlideNumbers().map(s => {
+                                const isChecked = selectedExportSlides[`slide_${s}`] !== false;
+                                return (
+                                    <div
+                                        key={s}
+                                        onClick={() => setSelectedExportSlides(prev => ({ ...prev, [`slide_${s}`]: !isChecked }))}
+                                        className={`p-2 rounded-xl border flex items-center justify-between cursor-pointer transition select-none ${isChecked
+                                            ? 'bg-neon-cyan/15 border-neon-cyan/40 text-white shadow-sm'
+                                            : 'bg-white/[0.03] border-white/10 text-gray-500'
+                                            }`}
+                                    >
+                                        <div className="min-w-0">
+                                            <span className="text-[9px] font-black block truncate">
+                                                {s === 1 ? '📌 Slide 1 (Cover)' : s === 2 ? '📖 Slide 2' : `📄 Slide ${s}`}
+                                            </span>
+                                            <span className="text-[7px] text-gray-400 block truncate">
+                                                {theme}
+                                            </span>
+                                        </div>
+                                        <div className={`w-4 h-4 rounded-md border flex items-center justify-center shrink-0 ml-1 ${isChecked ? 'bg-neon-cyan border-neon-cyan text-black' : 'border-white/20'}`}>
+                                            {isChecked && <Check className="w-3 h-3 stroke-[3]" />}
+                                        </div>
+                                    </div>
+                                );
+                            })}
+
+                            {/* Slide Affiche si existante */}
+                            {Boolean(afficheImage || isEditorialAfficheActive) && (
+                                <div
+                                    onClick={() => setSelectedExportSlides(prev => ({ ...prev, slide_affiche: !prev.slide_affiche }))}
+                                    className={`p-2 rounded-xl border flex items-center justify-between cursor-pointer transition select-none ${selectedExportSlides.slide_affiche !== false
+                                        ? 'bg-[#ff3700]/15 border-[#ff3700]/40 text-white'
+                                        : 'bg-white/[0.03] border-white/10 text-gray-500'
+                                        }`}
+                                >
+                                    <div className="min-w-0">
+                                        <span className="text-[9px] font-black block truncate">🎨 Slide Affiche</span>
+                                        <span className="text-[7px] text-gray-400 block truncate">Poster HD</span>
+                                    </div>
+                                    <div className={`w-4 h-4 rounded-md border flex items-center justify-center shrink-0 ml-1 ${selectedExportSlides.slide_affiche !== false ? 'bg-[#ff3700] border-[#ff3700] text-black' : 'border-white/20'}`}>
+                                        {selectedExportSlides.slide_affiche !== false && <Check className="w-3 h-3 stroke-[3]" />}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Slide Promo Outro */}
+                            {(isMultiSlideTheme || theme === 'PLANNING') && (
+                                <div
+                                    onClick={() => setSelectedExportSlides(prev => ({ ...prev, promo_outro: !prev.promo_outro }))}
+                                    className={`p-2 rounded-xl border flex items-center justify-between cursor-pointer transition select-none ${selectedExportSlides.promo_outro !== false
+                                        ? 'bg-neon-red/15 border-neon-red/40 text-white'
+                                        : 'bg-white/[0.03] border-white/10 text-gray-500'
+                                        }`}
+                                >
+                                    <div className="min-w-0">
+                                        <span className="text-[9px] font-black block truncate">🔥 Outro Promo</span>
+                                        <span className="text-[7px] text-gray-400 block truncate">5-7s épurée</span>
+                                    </div>
+                                    <div className={`w-4 h-4 rounded-md border flex items-center justify-center shrink-0 ml-1 ${selectedExportSlides.promo_outro !== false ? 'bg-neon-red border-neon-red text-white' : 'border-white/20'}`}>
+                                        {selectedExportSlides.promo_outro !== false && <Check className="w-3 h-3 stroke-[3]" />}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* 5. PISTE AUDIO & MUSIQUE (Uniquement pour exports vidéo MP4) */}
+                    {exportStudioFormat === 'MP4' && (
+                        <div className={`p-3.5 bg-black/60 border rounded-2xl space-y-3 transition-all ${audioShake ? 'border-neon-red shadow-[0_0_25px_rgba(255,18,65,0.6)] animate-bounce' : 'border-white/15'}`}>
+                            <div className="flex items-center justify-between">
+                                <span className="text-[10px] font-black uppercase text-gray-300 flex items-center gap-1.5">
+                                    <Music className="w-4 h-4 text-[#00f0ff]" />
+                                    Piste Audio & Musique pour la vidéo
+                                </span>
+                                {getActiveAudioData().url ? (
+                                    <span className="px-2 py-0.5 rounded text-[8px] font-black uppercase bg-[#00ff66]/15 text-[#00ff66] border border-[#00ff66]/30">
+                                        ✓ Son détecté
+                                    </span>
+                                ) : (
+                                    <span className="px-2 py-0.5 rounded text-[8px] font-black uppercase bg-yellow-500/15 text-yellow-400 border border-yellow-500/30">
+                                        Son manquant
+                                    </span>
+                                )}
+                            </div>
+
+                            {/* CIBLE AUDIO : TOUT LE CARROUSEL OU SLIDE PAR SLIDE */}
+                            <div className="flex items-center gap-2 pt-1 border-t border-white/5">
+                                <span className="text-[8px] font-black uppercase text-gray-400 shrink-0">Cible audio :</span>
+                                <div className="flex gap-1.5 flex-1">
+                                    <button
+                                        type="button"
+                                        onClick={() => switchAudioTarget('global')}
+                                        className={`flex-1 py-1 px-2 rounded-lg text-[8.5px] font-black uppercase transition ${audioTargetSlide === 'global'
+                                            ? 'bg-[#00f0ff] text-black shadow-sm'
+                                            : 'bg-white/5 text-gray-400 hover:text-white'
+                                            }`}
+                                    >
+                                        🌐 Tout le Carrousel (Piste Continue)
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => switchAudioTarget(1)}
+                                        className={`flex-1 py-1 px-2 rounded-lg text-[8.5px] font-black uppercase transition ${audioTargetSlide !== 'global'
+                                            ? 'bg-[#00f0ff] text-black shadow-sm'
+                                            : 'bg-white/5 text-gray-400 hover:text-white'
+                                            }`}
+                                    >
+                                        📄 Slide par Slide
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* Si Slide par Slide : liste des onglets slides */}
+                            {audioTargetSlide !== 'global' && (
+                                <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-[8.5px] no-scrollbar">
+                                    {getAvailableSlideNumbers().map(s => {
+                                        const isSel = audioTargetSlide === s;
+                                        const hasSon = Boolean(slideAudios[s]?.url);
+                                        return (
+                                            <button
+                                                key={s}
+                                                type="button"
+                                                onClick={() => switchAudioTarget(s)}
+                                                className={`px-2.5 py-1 rounded-lg font-black uppercase transition shrink-0 flex items-center gap-1 ${isSel ? 'bg-[#00f0ff] text-black' : 'bg-white/5 text-gray-400 hover:text-white'}`}
+                                            >
+                                                Slide {s}
+                                                {hasSon && <span className="w-1.5 h-1.5 rounded-full bg-[#00ff66]"></span>}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            )}
+
+                            {/* CHOIX SOURCE : BEATPORT VS MP3 */}
+                            <div className="grid grid-cols-2 gap-2 pt-1 border-t border-white/5">
+                                <button
+                                    type="button"
+                                    onClick={() => setModalAudioSourceTab('BEATPORT')}
+                                    className={`py-2 px-3 rounded-xl text-[9px] font-black uppercase flex items-center justify-center gap-1.5 transition ${modalAudioSourceTab === 'BEATPORT'
+                                        ? 'bg-emerald-500/20 border border-emerald-400 text-emerald-300 shadow-sm'
+                                        : 'bg-white/5 border border-white/10 text-gray-400 hover:text-white'
+                                        }`}
+                                >
+                                    <Search className="w-3.5 h-3.5" /> 🎧 Recherche Beatport
+                                </button>
+                                <label className={`py-2 px-3 rounded-xl text-[9px] font-black uppercase flex items-center justify-center gap-1.5 transition cursor-pointer ${modalAudioSourceTab === 'MP3'
+                                    ? 'bg-neon-cyan/20 border border-neon-cyan text-neon-cyan shadow-sm'
+                                    : 'bg-white/5 border border-white/10 text-gray-400 hover:text-white'
+                                    }`}>
+                                    <Upload className="w-3.5 h-3.5" /> 📁 Importer MP3
+                                    <input type="file" accept="audio/*,.mp3,.wav,.m4a" onChange={handleCarouselAudioUpload} className="hidden" />
+                                </label>
+                            </div>
+
+                            {/* RECHERCHE BEATPORT AVEC 2 CADRES SÉPARÉS */}
+                            {modalAudioSourceTab === 'BEATPORT' && (
+                                <div className="p-3 bg-black/80 rounded-xl border border-emerald-500/30 space-y-2.5">
+                                    <div className="text-[9px] font-black uppercase text-emerald-400 flex items-center gap-1.5">
+                                        <Sparkles className="w-3 h-3" />
+                                        Recherche Beatport Officielle (Extrait 120s)
+                                    </div>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                        <div>
+                                            <label className="text-[8px] font-black uppercase text-gray-400 block mb-1">
+                                                👤 Nom de l'artiste <span className="text-neon-red">*</span> (Obligatoire)
+                                            </label>
+                                            <input
+                                                type="text"
+                                                value={beatportArtistInput}
+                                                onChange={e => setBeatportArtistInput(e.target.value)}
+                                                onKeyDown={e => e.key === 'Enter' && handleBeatportModalSearch()}
+                                                placeholder="Ex: Charlotte de Witte, Fisher..."
+                                                className="w-full bg-white/10 border border-white/20 focus:border-emerald-400 rounded-lg px-2.5 py-1.5 text-xs text-white placeholder-gray-500 outline-none transition"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="text-[8px] font-black uppercase text-gray-400 block mb-1">
+                                                🎵 Titre du morceau (Optionnel)
+                                            </label>
+                                            <input
+                                                type="text"
+                                                value={beatportTitleInput}
+                                                onChange={e => setBeatportTitleInput(e.target.value)}
+                                                onKeyDown={e => e.key === 'Enter' && handleBeatportModalSearch()}
+                                                placeholder="Ex: High Street, Losing It..."
+                                                className="w-full bg-white/10 border border-white/20 focus:border-emerald-400 rounded-lg px-2.5 py-1.5 text-xs text-white placeholder-gray-500 outline-none transition"
+                                            />
+                                        </div>
+                                    </div>
+                                    <button
+                                        type="button"
+                                        onClick={handleBeatportModalSearch}
+                                        disabled={isSearchingBeatportModal || !beatportArtistInput.trim()}
+                                        className="w-full py-2 bg-gradient-to-r from-emerald-500 to-teal-500 hover:brightness-110 active:scale-98 text-black font-black text-[9.5px] uppercase rounded-xl transition shadow-md flex items-center justify-center gap-1.5 disabled:opacity-50"
+                                    >
+                                        <Search className="w-3.5 h-3.5" />
+                                        <span>{isSearchingBeatportModal ? 'Recherche en cours...' : 'Rechercher sur Beatport'}</span>
+                                    </button>
+
+                                    {/* Résultats Beatport */}
+                                    {beatportModalResults.length > 0 && (
+                                        <div className="space-y-1.5 max-h-44 overflow-y-auto pr-1 pt-1 custom-scrollbar">
+                                            {beatportModalResults.map((item, idx) => (
+                                                <div
+                                                    key={idx}
+                                                    onClick={() => handleSelectBeatportModalTrack(item)}
+                                                    className="flex items-center justify-between p-2 rounded-xl bg-white/5 hover:bg-emerald-500/15 border border-white/5 hover:border-emerald-500/30 cursor-pointer transition group"
+                                                >
+                                                    <div className="flex items-center gap-2.5 min-w-0">
+                                                        {item.coverUrl ? (
+                                                            <img src={item.coverUrl} alt={item.title} className="w-8 h-8 rounded-lg object-cover flex-shrink-0" />
+                                                        ) : (
+                                                            <div className="w-8 h-8 rounded-lg bg-emerald-950/60 flex items-center justify-center text-emerald-400 flex-shrink-0">
+                                                                <Music className="w-4 h-4" />
+                                                            </div>
+                                                        )}
+                                                        <div className="min-w-0">
+                                                            <span className="text-[10px] font-black text-white block truncate">{item.title}</span>
+                                                            <span className="text-[8px] text-gray-400 block truncate">{item.artist}</span>
+                                                        </div>
+                                                    </div>
+                                                    <span className="px-2 py-1 rounded-lg text-[8px] font-black uppercase bg-emerald-500/20 text-emerald-300 group-hover:bg-emerald-500 group-hover:text-black transition shrink-0 ml-2">
+                                                        Choisir
+                                                    </span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+
+                            {/* MINI-LECTEUR AUDIO PRÉ-ÉCOUTE (Idée 1) */}
+                            {getActiveAudioData().url && (
+                                <div className="space-y-2">
+                                    <div className="p-2.5 rounded-xl bg-emerald-950/30 border border-emerald-500/30 flex items-center justify-between gap-2 animate-in fade-in">
+                                        <div className="flex items-center gap-2.5 min-w-0">
+                                            {getActiveAudioData().cover ? (
+                                                <img src={getActiveAudioData().cover} alt="Cover" className="w-8 h-8 rounded-lg object-cover flex-shrink-0" />
+                                            ) : (
+                                                <div className="w-8 h-8 rounded-lg bg-emerald-500/20 flex items-center justify-center text-emerald-400 flex-shrink-0">
+                                                    <Music className="w-4 h-4" />
+                                                </div>
+                                            )}
+                                            <div className="min-w-0">
+                                                <span className="text-[9.5px] font-black text-white block truncate">{getActiveAudioData().title || 'Piste audio active'}</span>
+                                                <span className="text-[7.5px] text-emerald-400 block truncate">{getActiveAudioData().artist || 'Audio'}</span>
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center gap-1.5 shrink-0">
+                                            <button
+                                                type="button"
+                                                onClick={toggleCarouselAudioPreview}
+                                                className="px-2.5 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 active:scale-95 text-black font-black text-[8.5px] uppercase flex items-center gap-1 transition"
+                                            >
+                                                {isPlayingCarouselPreview ? <Pause className="w-3 h-3" /> : <Play className="w-3 h-3" />}
+                                                <span>{isPlayingCarouselPreview ? 'Pause' : 'Écouter'}</span>
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    if (isPlayingCarouselPreview) toggleCarouselAudioPreview();
+                                                    updateActiveAudioData(prev => ({ ...prev, url: '', title: '', artist: '', cover: '', startTime: 0 }));
+                                                }}
+                                                className="p-1.5 rounded-lg bg-red-500/20 hover:bg-red-500/40 text-red-400 transition"
+                                                title="Supprimer la musique"
+                                            >
+                                                <X className="w-3 h-3" />
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    {/* SÉLECTEUR DE MOMENT AUDIO / DROP FINDER (Idée 2) */}
+                                    <div className="p-3 rounded-xl bg-black/60 border border-emerald-500/20 space-y-2.5">
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-[9px] font-black uppercase text-emerald-400 flex items-center gap-1.5">
+                                                <Clock className="w-3.5 h-3.5 text-emerald-400" />
+                                                Départ Audio & Drop Finder
+                                            </span>
+                                            <div className="flex items-center gap-1.5 font-mono text-[8.5px] font-bold">
+                                                <span className="px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
+                                                    {Math.floor(getActiveAudioData().startTime / 60)}:{(Math.floor(getActiveAudioData().startTime % 60)).toString().padStart(2, '0')} ({getActiveAudioData().startTime.toFixed(1)}s)
+                                                </span>
+                                                <span className="text-gray-500">/</span>
+                                                <span className="text-gray-400">
+                                                    {getActiveAudioData().duration > 0 ? `${Math.floor(getActiveAudioData().duration / 60)}:${(Math.floor(getActiveAudioData().duration % 60)).toString().padStart(2, '0')}` : 'Max'}
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        {/* Waveform visuelle stylisée */}
+                                        <div className="h-7 bg-black/70 rounded-lg p-1.5 flex items-end gap-[3px] border border-white/10 overflow-hidden">
+                                            {Array.from({ length: 32 }).map((_, i) => {
+                                                const maxDur = Math.max(10, getActiveAudioData().duration > 5 ? getActiveAudioData().duration - 5 : 120);
+                                                const progress = (getActiveAudioData().startTime / maxDur) * 32;
+                                                const isPassed = i <= progress;
+                                                const heightPercent = [35, 60, 45, 80, 100, 70, 50, 90, 85, 60, 75, 95, 100, 80, 60, 90, 85, 70, 95, 100, 60, 40, 80, 90, 75, 55, 65, 80, 95, 70, 50, 40][i % 32];
+                                                return (
+                                                    <div
+                                                        key={i}
+                                                        style={{ height: `${heightPercent}%` }}
+                                                        className={`flex-1 rounded-sm transition-all duration-150 ${
+                                                            isPassed
+                                                                ? 'bg-gradient-to-t from-emerald-500 to-[#00f0ff] shadow-[0_0_8px_rgba(0,255,102,0.5)]'
+                                                                : 'bg-white/15'
+                                                        }`}
+                                                    />
+                                                );
+                                            })}
+                                        </div>
+
+                                        {/* Slider Range précis */}
+                                        <input
+                                            type="range"
+                                            min={0}
+                                            max={Math.max(10, getActiveAudioData().duration > 5 ? getActiveAudioData().duration - 5 : 120)}
+                                            step={0.5}
+                                            value={getActiveAudioData().startTime}
+                                            onChange={(e) => {
+                                                const val = parseFloat(e.target.value);
+                                                updateActiveAudioData(prev => ({ ...prev, startTime: val }));
+                                                if (carouselAudioElementRef.current) {
+                                                    carouselAudioElementRef.current.currentTime = val;
+                                                }
+                                            }}
+                                            className="w-full h-1.5 bg-white/15 rounded-lg appearance-none cursor-pointer accent-emerald-400"
+                                        />
+
+                                        {/* Raccourcis Instantanés Drop Finder */}
+                                        <div className="flex items-center justify-between gap-1 flex-wrap pt-0.5">
+                                            <div className="flex items-center gap-1 flex-wrap">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        updateActiveAudioData(prev => ({ ...prev, startTime: 0 }));
+                                                        if (carouselAudioElementRef.current) carouselAudioElementRef.current.currentTime = 0;
+                                                    }}
+                                                    className={`px-2 py-1 rounded-lg text-[8px] font-black uppercase transition border ${
+                                                        getActiveAudioData().startTime === 0
+                                                            ? 'bg-emerald-500/25 border-emerald-400 text-emerald-300'
+                                                            : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'
+                                                    }`}
+                                                >
+                                                    ⏪ 0:00 (Intro)
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        const maxD = Math.max(10, getActiveAudioData().duration > 5 ? getActiveAudioData().duration - 5 : 120);
+                                                        const val = Math.min(maxD, 15);
+                                                        updateActiveAudioData(prev => ({ ...prev, startTime: val }));
+                                                        if (carouselAudioElementRef.current) carouselAudioElementRef.current.currentTime = val;
+                                                    }}
+                                                    className={`px-2 py-1 rounded-lg text-[8px] font-black uppercase transition border ${
+                                                        Math.round(getActiveAudioData().startTime) === 15
+                                                            ? 'bg-emerald-500/25 border-emerald-400 text-emerald-300'
+                                                            : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'
+                                                    }`}
+                                                >
+                                                    ⚡ 15s (Build)
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        const maxD = Math.max(10, getActiveAudioData().duration > 5 ? getActiveAudioData().duration - 5 : 120);
+                                                        const val = Math.min(maxD, 30);
+                                                        updateActiveAudioData(prev => ({ ...prev, startTime: val }));
+                                                        if (carouselAudioElementRef.current) carouselAudioElementRef.current.currentTime = val;
+                                                    }}
+                                                    className={`px-2 py-1 rounded-lg text-[8px] font-black uppercase transition border ${
+                                                        Math.round(getActiveAudioData().startTime) === 30
+                                                            ? 'bg-[#fe0979]/25 border-[#fe0979] text-[#fe0979]'
+                                                            : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'
+                                                    }`}
+                                                >
+                                                    🔥 30s (Drop 1)
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        const maxD = Math.max(10, getActiveAudioData().duration > 5 ? getActiveAudioData().duration - 5 : 120);
+                                                        const val = Math.min(maxD, 45);
+                                                        updateActiveAudioData(prev => ({ ...prev, startTime: val }));
+                                                        if (carouselAudioElementRef.current) carouselAudioElementRef.current.currentTime = val;
+                                                    }}
+                                                    className={`px-2 py-1 rounded-lg text-[8px] font-black uppercase transition border ${
+                                                        Math.round(getActiveAudioData().startTime) === 45
+                                                            ? 'bg-purple-500/25 border-purple-400 text-purple-300'
+                                                            : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'
+                                                    }`}
+                                                >
+                                                    💥 45s (Drop 2)
+                                                </button>
+                                            </div>
+
+                                            {/* Ajustement fin -5s / +5s */}
+                                            <div className="flex items-center gap-1">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        const n = Math.max(0, getActiveAudioData().startTime - 5);
+                                                        updateActiveAudioData(prev => ({ ...prev, startTime: n }));
+                                                        if (carouselAudioElementRef.current) carouselAudioElementRef.current.currentTime = n;
+                                                    }}
+                                                    className="px-1.5 py-1 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-[7.5px] font-black uppercase text-gray-300"
+                                                >
+                                                    -5s
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        const maxD = Math.max(10, getActiveAudioData().duration > 5 ? getActiveAudioData().duration - 5 : 120);
+                                                        const n = Math.min(maxD, getActiveAudioData().startTime + 5);
+                                                        updateActiveAudioData(prev => ({ ...prev, startTime: n }));
+                                                        if (carouselAudioElementRef.current) carouselAudioElementRef.current.currentTime = n;
+                                                    }}
+                                                    className="px-1.5 py-1 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-[7.5px] font-black uppercase text-gray-300"
+                                                >
+                                                    +5s
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* BANDEAU ALERTE SI AUCUN SON DÉTECTÉ */}
+                            {audioWarningAlert && (
+                                <div className="p-3 bg-neon-red/15 border border-neon-red/50 rounded-xl flex items-start gap-2.5 animate-pulse">
+                                    <AlertTriangle className="w-4 h-4 text-neon-red shrink-0 mt-0.5" />
+                                    <div className="text-[8.5px] text-gray-200 leading-relaxed">
+                                        <span className="font-black text-neon-red block uppercase">Alerte Sonore :</span>
+                                        {audioWarningAlert}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    )}
+
+                    {/* 6. STYLE DE TRANSITION VIDÉO (Idée 1) */}
+                    {exportStudioFormat === 'MP4' && (
+                        <div className="p-3.5 bg-black/60 border border-white/15 rounded-2xl space-y-2.5">
+                            <div className="flex items-center justify-between">
+                                <span className="text-[10px] font-black uppercase text-gray-300 flex items-center gap-1.5">
+                                    <Sparkles className="w-4 h-4 text-purple-400" />
+                                    Style de Transition Vidéo (Entre les Slides)
+                                </span>
+                                <span className="text-[8px] font-black uppercase px-2 py-0.5 rounded bg-purple-500/20 text-purple-300 border border-purple-500/40 font-mono">
+                                    {SLIDE_TRANSITIONS.find(t => t.id === slideTransition)?.label || 'Glissement'} • {getTransitionDuration(slideTransition)}ms
+                                </span>
+                            </div>
+
+                            <div className="grid grid-cols-5 gap-1.5">
+                                {SLIDE_TRANSITIONS.map(trans => {
+                                    const isSelected = slideTransition === trans.id;
+                                    return (
+                                        <button
+                                            key={trans.id}
+                                            type="button"
+                                            onClick={() => handleSetSlideTransition(trans.id)}
+                                            className={`py-2 px-1 rounded-xl border text-center transition flex flex-col items-center justify-center gap-1 group ${
+                                                isSelected
+                                                    ? 'bg-purple-600/25 border-purple-400 text-white shadow-[0_0_15px_rgba(168,85,247,0.35)]'
+                                                    : 'bg-white/5 border-white/10 text-gray-400 hover:text-white hover:border-white/20'
+                                            }`}
+                                            title={trans.desc}
+                                        >
+                                            <span className="text-sm group-hover:scale-110 transition-transform">{trans.icon}</span>
+                                            <span className="text-[8px] font-black uppercase block truncate w-full">{trans.label}</span>
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                            <span className="text-[7.5px] text-gray-400 block">
+                                {SLIDE_TRANSITIONS.find(t => t.id === slideTransition)?.desc}
+                            </span>
+                        </div>
+                    )}
+                </div>
+
+                {/* Footer avec Grand Bouton d'Action */}
+                <div className="p-4 sm:p-5 border-t border-white/10 bg-white/[0.02] flex items-center justify-between gap-3">
+                    <button
+                        type="button"
+                        onClick={() => setIsExportStudioOpen(false)}
+                        className="py-3 px-4 rounded-2xl bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white font-black text-[9px] uppercase transition"
+                    >
+                        Annuler
+                    </button>
+
+                    <button
+                        type="button"
+                        onClick={executeUnifiedExport}
+                        disabled={isDownloading || isVideoRecording || isExportingZip}
+                        className={`flex-1 py-3.5 px-4 rounded-2xl font-black text-[10px] uppercase transition-all shadow-xl flex items-center justify-center gap-2 active:scale-98 disabled:opacity-50 ${exportStudioFormat === 'PNG'
+                            ? 'bg-gradient-to-r from-neon-cyan via-blue-500 to-indigo-600 text-black shadow-cyan-500/25 hover:brightness-110'
+                            : exportStudioType === 'ZIP'
+                                ? 'bg-gradient-to-r from-[#00ff66] via-emerald-400 to-teal-500 text-black shadow-emerald-500/25 hover:brightness-110'
+                                : 'bg-gradient-to-r from-neon-red via-rose-500 to-pink-600 text-white shadow-rose-500/25 hover:brightness-110'
+                            }`}
+                    >
+                        <Download className="w-4 h-4" />
+                        <span>
+                            {isDownloading || isVideoRecording || isExportingZip
+                                ? 'Exportation en cours...'
+                                : exportStudioFormat === 'PNG'
+                                    ? (exportStudioType === 'ZIP' ? `📸 Télécharger Pack ZIP (${getAvailableSlideNumbers().length} Images PNG)` : `📸 Télécharger Image PNG (${exportStudioDimension === 'REEL' ? '9:16' : '1:1'})`)
+                                    : exportStudioType === 'ZIP'
+                                        ? `📦 Télécharger Pack ZIP (Vidéos MP4 séparées)`
+                                        : exportStudioType === 'COMBINED'
+                                            ? `🚀 Télécharger Vidéo MP4 Complète (${exportStudioDimension === 'REEL' ? 'Reel 9:16' : 'Post 1:1'})`
+                                            : `🎬 Télécharger Vidéo MP4 (Slide Actuelle • 30s)`}
+                        </span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    ) : null;
 
     const isEventsAfficheSelected = isEditorialAfficheActive || (eventsSlide === 2 && eventNormalSlidesCount === 0);
     const eventsEditor = (
@@ -27999,7 +28467,6 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     <span className="text-[10px] font-black text-emerald-400 uppercase tracking-widest flex items-center gap-1.5">
                                         <span>🚀</span> Téléchargement & Export
                                     </span>
-                                    {quickCarouselDownloadBar}
                                     {exportButtons}
                                 </div>
 
@@ -29598,7 +30065,6 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                             </div>
                                         </div>
                                     )}
-                                    {quickCarouselDownloadBar}
                                     {exportButtons}
                                 </div>
                             </motion.div>
@@ -29663,6 +30129,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             />
 
             {/* Shared downloader modal (visible on both) */}
+            {exportStudioModal}
             {downloaderModal}
             {recapPickerModal}
             {agendaPickerModal}
