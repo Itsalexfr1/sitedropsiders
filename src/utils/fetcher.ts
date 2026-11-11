@@ -1,10 +1,6 @@
-import newsFallback from '../data/news.json';
-import recapsFallback from '../data/recaps.json';
-import agendaFallback from '../data/agenda.json';
-import galerieFallback from '../data/galerie.json';
-
 /**
- * Robust fetcher that returns static fallback data if the API fails or returns empty.
+ * Robust fetcher that returns dynamic fallback data if the API fails or returns empty.
+ * JSON fallbacks are loaded lazily (dynamic import) pour ne pas les bundler dans le chunk initial.
  */
 export async function fetchWithFallback(url: string, options: RequestInit = {}) {
     try {
@@ -22,11 +18,27 @@ export async function fetchWithFallback(url: string, options: RequestInit = {}) 
         console.error(`Fetch failed for ${url}:`, e);
     }
 
-    // Fallback logic
-    if (url.includes('/api/news')) return newsFallback;
-    if (url.includes('/api/recaps')) return recapsFallback;
-    if (url.includes('/api/agenda')) return agendaFallback;
-    if (url.includes('/api/galerie')) return galerieFallback;
-    
+    // Fallback chargé dynamiquement uniquement si l'API échoue (pas bundlé dans le chunk initial)
+    try {
+        if (url.includes('/api/news')) {
+            const m = await import('../data/news.json');
+            return m.default;
+        }
+        if (url.includes('/api/recaps')) {
+            const m = await import('../data/recaps.json');
+            return m.default;
+        }
+        if (url.includes('/api/agenda')) {
+            const m = await import('../data/agenda.json');
+            return m.default;
+        }
+        if (url.includes('/api/galerie')) {
+            const m = await import('../data/galerie.json');
+            return m.default;
+        }
+    } catch (fe) {
+        console.error(`Fallback load failed for ${url}:`, fe);
+    }
+
     return null;
 }

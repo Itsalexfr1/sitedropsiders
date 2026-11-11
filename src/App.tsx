@@ -415,7 +415,7 @@ function App() {
     // Shorter splash on mobile for faster time-to-interactive
     const timer = setTimeout(() => {
       setInitialLoad(false);
-    }, isMobile ? 800 : 2000);
+    }, isMobile ? 800 : 0);
     return () => clearTimeout(timer);
   }, [isMobile]);
 
