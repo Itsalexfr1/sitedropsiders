@@ -1236,6 +1236,100 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         reader.readAsDataURL(file);
     };
 
+    const addEditorialAffiche = () => {
+        if (editorialAffiches.length >= 10) return;
+        const newIdx = editorialAffiches.length;
+        setEditorialAffiches(prev => [...prev, { id: `aff_${Date.now()}`, image: '' }]);
+        setIsCarouselPromoActive(false);
+        setIsEditorialTweetActive(false);
+        setIsEditorialBlankActive(false);
+        setEditorialAfficheIndex(newIdx);
+        setIsEditorialAfficheActive(true);
+        setTimeout(() => generateImage(), 50);
+    };
+
+    const removeEditorialAffiche = (idx: number) => {
+        if (editorialAffiches.length <= 1) {
+            setEditorialAffiches([{ id: 'aff_1', image: '' }]);
+            setAfficheImage('');
+            setIsEditorialAfficheActive(false);
+            setEditorialSlide(1);
+            setTimeout(() => generateImage(), 50);
+            return;
+        }
+        const updated = editorialAffiches.filter((_, i) => i !== idx);
+        setEditorialAffiches(updated);
+        const nextIdx = Math.max(0, idx - 1);
+        setEditorialAfficheIndex(nextIdx);
+        setAfficheImage(updated[nextIdx]?.image || '');
+        setTimeout(() => generateImage(), 50);
+    };
+
+    const updateEditorialAffiche = (idx: number, imgUrl: string) => {
+        setEditorialAffiches(prev => {
+            const next = [...prev];
+            if (!next[idx]) next[idx] = { id: `aff_${Date.now()}`, image: imgUrl };
+            else next[idx] = { ...next[idx], image: imgUrl };
+            return next;
+        });
+        if (idx === editorialAfficheIndex) {
+            setAfficheImage(imgUrl);
+        }
+        setTimeout(() => generateImage(), 50);
+    };
+
+    const addEditorialBlankSlide = () => {
+        if (editorialBlankSlides.length >= 10) return;
+        const newIdx = editorialBlankSlides.length;
+        setEditorialBlankSlides(prev => [...prev, { id: `blank_${Date.now()}` }]);
+        setIsCarouselPromoActive(false);
+        setIsEditorialAfficheActive(false);
+        setIsEditorialTweetActive(false);
+        setEditorialBlankIndex(newIdx);
+        setIsEditorialBlankActive(true);
+        setTimeout(() => generateImage(), 50);
+    };
+
+    const removeEditorialBlankSlide = (idx: number) => {
+        const nextSlides = editorialBlankSlides.filter((_, i) => i !== idx);
+        setEditorialBlankSlides(nextSlides);
+        if (nextSlides.length === 0) {
+            setIsEditorialBlankActive(false);
+            setEditorialSlide(1);
+        } else {
+            setEditorialBlankIndex(Math.max(0, idx - 1));
+        }
+        setTimeout(() => generateImage(), 50);
+    };
+
+    const updateEditorialBlankSlide = (idx: number, imgUrl: string) => {
+        setEditorialBlankSlides(prev => {
+            const next = [...prev];
+            if (!next[idx]) next[idx] = { id: `blank_${Date.now()}`, image: imgUrl };
+            else next[idx] = { ...next[idx], image: imgUrl };
+            return next;
+        });
+        setTimeout(() => generateImage(), 50);
+    };
+
+    const handleBlankSlideImageUpload = (file: File, idx: number) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const url = e.target?.result as string;
+            if (!url) return;
+            updateEditorialBlankSlide(idx, url);
+            const imgObj = new Image();
+            imgObj.crossOrigin = 'anonymous';
+            imgObj.src = url;
+            imgObj.onload = () => {
+                imageCacheRef.current[url] = imgObj;
+                imageCacheRef.current[resolveImageUrl(url)] = imgObj;
+                generateImage();
+            };
+        };
+        reader.readAsDataURL(file);
+    };
+
     const handleSlideImageUpload = (file: File) => {
         const reader = new FileReader();
         reader.onload = (e) => {
@@ -1430,6 +1524,21 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const [afficheImgZoom, setAfficheImgZoom] = useState<number>(100);
     const [afficheImgPanX, setAfficheImgPanX] = useState<number>(0);
     const [afficheImgPanY, setAfficheImgPanY] = useState<number>(0);
+
+    // Multiples Affiches Éditoriales
+    const [editorialAffiches, setEditorialAffiches] = useState<Array<{ id: string; image: string; title?: string }>>(() => [
+        { id: 'aff_1', image: '' }
+    ]);
+    const [editorialAfficheIndex, setEditorialAfficheIndex] = useState<number>(0);
+    const editorialAfficheIndexOverrideRef = useRef<number | null>(null);
+
+    // SLIDE VIDE / MÉDIA PUR (Cadre du thème + Logo uniquement, sans texte, pour photos/vidéos)
+    const [editorialBlankSlides, setEditorialBlankSlides] = useState<Array<{ id: string; image?: string; videoUrl?: string; title?: string }>>([]);
+    const [editorialBlankIndex, setEditorialBlankIndex] = useState<number>(0);
+    const [isEditorialBlankActive, setIsEditorialBlankActive] = useState<boolean>(false);
+    const editorialBlankOverrideRef = useRef<boolean>(false);
+    const editorialBlankIndexOverrideRef = useRef<number | null>(null);
+    const blankSlideFileInputRef = useRef<HTMLInputElement | null>(null);
 
     // TWEET / POST X Theme States (Capture d'écran flottante cadrée avec précision)
     const [isEditorialTweetActive, setIsEditorialTweetActive] = useState<boolean>(false);
@@ -5245,6 +5354,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         const isEditorialCarouselTheme = ['NEWS', 'FOCUS', 'MUSIQUE', 'RECAP', 'INTERVIEW', 'LIVESTREAM', 'CONSEILS', 'REELS', 'CONCOURS', 'TOP 100 DROPSIDERS', 'JEU', 'JEU_FESTIVAL', 'JEU_DJ', 'HIGHLIGHTS', 'EVENTS'].includes(effectiveTheme);
         const isEditorialAfficheRequested = Boolean(isEditorialCarouselTheme && !isPromoRequested && (editorialAfficheOverrideRef.current || isEditorialAfficheActive));
         const isEditorialTweetRequested = Boolean(isEditorialCarouselTheme && !isPromoRequested && !isEditorialAfficheRequested && (editorialTweetOverrideRef.current || isEditorialTweetActive));
+        const isEditorialBlankRequested = Boolean(isEditorialCarouselTheme && !isPromoRequested && !isEditorialAfficheRequested && !isEditorialTweetRequested && (editorialBlankOverrideRef.current || isEditorialBlankActive));
 
         try {
             await (async (theme: ThemeType) => {
@@ -5308,20 +5418,30 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     isEditorialAfficheRequested ||
                     (theme === 'PLANNING' && effectiveAgendaSlide >= 3)
                 );
+                const effectiveAfficheIdx = editorialAfficheIndexOverrideRef.current !== null
+                    ? editorialAfficheIndexOverrideRef.current
+                    : editorialAfficheIndex;
                 const currentSlideAfficheUrl = (theme === 'PLANNING' && effectiveAgendaSlide >= 3)
                     ? (agendaAffiches[effectiveAgendaSlide - 3]?.image || '')
-                    : (afficheImage || '');
+                    : (editorialAffiches[effectiveAfficheIdx]?.image || afficheImage || '');
+
+                const effectiveBlankIdx = editorialBlankIndexOverrideRef.current !== null
+                    ? editorialBlankIndexOverrideRef.current
+                    : editorialBlankIndex;
+                const currentBlankItem = editorialBlankSlides[effectiveBlankIdx];
 
                 const isSpotlightArtistSlide = (theme === 'SPOTLIGHT' || theme === 'ARTISTE FESTIVAL') && artisteFestivalSlide >= 2;
                 const activeSlideImgSrc = isCurrentSlideAffiche
                     ? (currentSlideAfficheUrl || bgImage)
-                    : isSpotlightArtistSlide
-                        ? (spotlightSlidesData[artisteFestivalSlide]?.bgImage || editorialSlideImages[artisteFestivalSlide] || '')
-                        : (theme === 'JEU_DJ' && effectiveEditorialSlide === 2 && (!editorialSlideImages[2] || editorialSlideImages[2] === djOriginalImage))
-                            ? (editorialSlideImages[1] || bgImage)
-                            : isMusiqueTrackSlide
-                                ? (editorialSlideImages[effectiveEditorialSlide] || (musiqueCoverUrl ? musiqueCoverUrl : bgImage))
-                                : (editorialSlideImages[effectiveEditorialSlide] || bgImage);
+                    : isEditorialBlankRequested
+                        ? (currentBlankItem?.image || bgImage)
+                        : isSpotlightArtistSlide
+                            ? (spotlightSlidesData[artisteFestivalSlide]?.bgImage || editorialSlideImages[artisteFestivalSlide] || '')
+                            : (theme === 'JEU_DJ' && effectiveEditorialSlide === 2 && (!editorialSlideImages[2] || editorialSlideImages[2] === djOriginalImage))
+                                ? (editorialSlideImages[1] || bgImage)
+                                : isMusiqueTrackSlide
+                                    ? (editorialSlideImages[effectiveEditorialSlide] || (musiqueCoverUrl ? musiqueCoverUrl : bgImage))
+                                    : (editorialSlideImages[effectiveEditorialSlide] || bgImage);
                 if (activeSlideImgSrc) {
                     const resolvedSlideImgSrc = resolveImageUrl(activeSlideImgSrc);
                     if (imageCacheRef.current[resolvedSlideImgSrc]) {
@@ -6609,8 +6729,81 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                 if (!showText) return;
 
+                if (isEditorialBlankRequested) {
+                    const isStory = canvas.height > 1500;
+                    // SLIDE VIDE / MÉDIA PUR (Cadre du thème + Logo uniquement, sans texte, pour photos/vidéos)
+                    // 1. Légère vignette d'ambiance cinématographique pour faire ressortir le cadre et le logo
+                    const vig = ctx.createRadialGradient(
+                        canvas.width / 2, canvas.height / 2, canvas.width * 0.25,
+                        canvas.width / 2, canvas.height / 2, canvas.height * 0.78
+                    );
+                    vig.addColorStop(0, 'rgba(0, 0, 0, 0.04)');
+                    vig.addColorStop(0.70, 'rgba(0, 0, 0, 0.22)');
+                    vig.addColorStop(1, 'rgba(0, 0, 0, 0.55)');
+                    ctx.fillStyle = vig;
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                    // 2. Top Capsule Badge du thème actif (ex: NEWS, FOCUS, RECAP, etc.)
+                    const badgeLabel = (baseThemeData[theme]?.label || theme).toUpperCase();
+                    const badgeColor = activeColor.color || '#ff0033';
+                    const badgeGrad = activeColor.grad || '255, 0, 51';
+                    drawTopCapsuleBadge(badgeLabel, badgeColor, badgeGrad);
+
+                    // 3. Cadre stylisé du thème avec angles néon
+                    ctx.save();
+                    const frameMargin = isStory ? 35 : 30;
+                    const frameRadius = isStory ? 24 : 20;
+                    ctx.beginPath();
+                    ctx.roundRect(frameMargin, frameMargin, canvas.width - (frameMargin * 2), canvas.height - (frameMargin * 2), frameRadius);
+                    ctx.strokeStyle = `rgba(${badgeGrad}, 0.35)`;
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+
+                    // Accents d'angle néon
+                    const cornerLen = 32;
+                    ctx.strokeStyle = badgeColor;
+                    ctx.lineWidth = 3.5;
+                    // Top-Left
+                    ctx.beginPath();
+                    ctx.moveTo(frameMargin, frameMargin + cornerLen);
+                    ctx.lineTo(frameMargin, frameMargin);
+                    ctx.lineTo(frameMargin + cornerLen, frameMargin);
+                    ctx.stroke();
+                    // Top-Right
+                    ctx.beginPath();
+                    ctx.moveTo(canvas.width - frameMargin - cornerLen, frameMargin);
+                    ctx.lineTo(canvas.width - frameMargin, frameMargin);
+                    ctx.lineTo(canvas.width - frameMargin, frameMargin + cornerLen);
+                    ctx.stroke();
+                    // Bottom-Left
+                    ctx.beginPath();
+                    ctx.moveTo(frameMargin, canvas.height - frameMargin - cornerLen);
+                    ctx.lineTo(frameMargin, canvas.height - frameMargin);
+                    ctx.lineTo(frameMargin + cornerLen, canvas.height - frameMargin);
+                    ctx.stroke();
+                    // Bottom-Right
+                    ctx.beginPath();
+                    ctx.moveTo(canvas.width - frameMargin - cornerLen, canvas.height - frameMargin);
+                    ctx.lineTo(canvas.width - frameMargin, canvas.height - frameMargin);
+                    ctx.lineTo(canvas.width - frameMargin, canvas.height - frameMargin - cornerLen);
+                    ctx.stroke();
+                    ctx.restore();
+
+                    // 4. Mention Swipe si active
+                    if (showSwipeEffective) {
+                        const swipeY = canvas.height - (isStory ? 80 : 50);
+                        drawAnimatedSwipeIndicator(
+                            canvas.width - (isStory ? 80 : 60),
+                            swipeY,
+                            badgeColor,
+                            24
+                        );
+                    }
+                    return;
+                }
+
                 const isModernEditorialTheme = (
-                    (!isEditorialAfficheRequested && ['NEWS', 'FOCUS', 'RECAP', 'INTERVIEW', 'LIVESTREAM', 'TRACKLIST', 'CONCOURS', 'CONSEILS', 'REELS', 'JEU', 'JEU_FESTIVAL', 'JEU_DJ'].includes(theme)) ||
+                    (!isEditorialAfficheRequested && !isEditorialBlankRequested && ['NEWS', 'FOCUS', 'RECAP', 'INTERVIEW', 'LIVESTREAM', 'TRACKLIST', 'CONCOURS', 'CONSEILS', 'REELS', 'JEU', 'JEU_FESTIVAL', 'JEU_DJ'].includes(theme)) ||
                     (theme === 'MUSIQUE' && effectiveEditorialSlide === 1) ||
                     (theme === 'EVENTS' && (eventsSlide !== 2 || eventNormalSlidesCount > 0) && !isEditorialAfficheActive)
                 );
@@ -6883,7 +7076,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             isReel,
                             tAnim: isStaticPreview ? 0 : animElapsed,
                             isStaticPreview,
-                            cycleDuration: isReel ? 5.5 : 10.0,
+                            cycleDuration: 10.0,
                             activeColor,
                             effectiveHeadline,
                             effectiveSubphrase,
@@ -13594,14 +13787,14 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             anim = requestAnimationFrame(loop);
         } else { generateImage(); }
         return () => cancelAnimationFrame(anim);
-    }, [bgImage, bgVideo, customText, theme, showSwipe, showArticleLink, articleLinkText, showVoteLink, top5Items, currentPreviewIndex, activeTab, rotation, themeColor, isVideoRecording, transitionProgress, showText, planningDate, planningItems, agendaMonth, agendaBadgeText, agendaSlide, agendaCoverBadge, agendaCoverTitle, agendaCoverYear, agendaCoverGenres, agendaCoverCta, showAgendaCoverCta, artisteFestivalSlide, extraSpotlightSlides, spotlightSlidesData, festivalIntroTitle, eventsSlide, editorialSlide, isEditorialAfficheActive, isEditorialTweetActive, showTitleOnSlide2, showMusicDate, editorialDate, showDividerDate, citationAuthor, citationMedia, extraEditorialSlides, musicTracks, top10Tracks, top10ActiveRank, top10Title, top10IntroTitle, top10IntroArtist, top10ColoredWords, top10LogoScale, top10Subtitle, top10TrackDuration, top10TestingRank, top10GenMode, top10Badge, top10LabelSearch, top10StyleSearch, top10ArtistSearch, top100Rank, top100ArtistName, top100Category, top100Badge, top100AnimKey, calendarMonth, calendarEvents, isRetouchMode, retouchPath, isTransparent, showBottomLogo, artistLogo, festivalLogo, bgOffsetX, bgOffsetY, artistNameText, festivalNameText, isArtistLogoNegative, mapFestivalText, mapCityCountry, mapZoom, mapLatitude, mapLongitude, mapStyle, isMapLoading, mapPinColor, mapLabelText, showMapPin, showMapLabel, mapAnimMode, isMapAnimPlaying, mapScrubTime, mapAnimDuration, mapDestLatitude, mapDestLongitude, mapDestFestivalText, mapDestVenue, mapDestCity, mapDestCountry, mapDestPinColor, imgLayoutMode, quizColor1, quizColor2, showFrame, focusReelStyle, conseilsTitle, conseilsSubtext, isConseilsLargeTitle, concoursFestivalName, concoursFestivalHandle, concoursBottomColor, concoursLateralText, concoursLateralOpacity, concoursBadgeTextColor, concoursMode, concoursGTAHeadline, concoursGTATitle, concoursGTAPlatformText, concoursGTACondition1, concoursGTACondition2, concoursGTACondition3, concoursGTACondition4, afficheImage, afficheGlow, afficheBorderColor, afficheMode, afficheScale, afficheOffsetY, tweetImage, tweetScale, tweetOffsetY, tweetGlow, tweetHeadline, tweetBadge, tweetBorderColor, tweetTranslation, showTweetTranslation, tweetAnimMode, textAnimation, animReplayKey, bgAnimation, cdjPlayerRing, musicBgMotion, isCarouselPromoActive, promoCustomPhrase, promoCustomSubphrase, promoOutroStyle, isPromoAnimPlaying, promoCategory, showPromoHook, showPromoHeadline, showPromoLine1, showPromoLine2, djCutoutImage, djOriginalImage, djSilhouetteColor, djGlowIntensity, djShowQuestionMark, djAppearanceAnim, editorialSlideImages, editorialSlideCutouts, editorialSlideTitles, djSlideModes, agendaAffiches, highlightsSlideArtists, highlightsColorArtist, highlightsColorFestival, highlightsColorCity, highlightsColorCountry, highlightsColorDate, afficheImgZoom, afficheImgPanX, afficheImgPanY]);
+    }, [bgImage, bgVideo, customText, theme, showSwipe, showArticleLink, articleLinkText, showVoteLink, top5Items, currentPreviewIndex, activeTab, rotation, themeColor, isVideoRecording, transitionProgress, showText, planningDate, planningItems, agendaMonth, agendaBadgeText, agendaSlide, agendaCoverBadge, agendaCoverTitle, agendaCoverYear, agendaCoverGenres, agendaCoverCta, showAgendaCoverCta, artisteFestivalSlide, extraSpotlightSlides, spotlightSlidesData, festivalIntroTitle, eventsSlide, editorialSlide, isEditorialAfficheActive, isEditorialTweetActive, isEditorialBlankActive, editorialAffiches, editorialAfficheIndex, editorialBlankSlides, editorialBlankIndex, showTitleOnSlide2, showMusicDate, editorialDate, showDividerDate, citationAuthor, citationMedia, extraEditorialSlides, musicTracks, top10Tracks, top10ActiveRank, top10Title, top10IntroTitle, top10IntroArtist, top10ColoredWords, top10LogoScale, top10Subtitle, top10TrackDuration, top10TestingRank, top10GenMode, top10Badge, top10LabelSearch, top10StyleSearch, top10ArtistSearch, top100Rank, top100ArtistName, top100Category, top100Badge, top100AnimKey, calendarMonth, calendarEvents, isRetouchMode, retouchPath, isTransparent, showBottomLogo, artistLogo, festivalLogo, bgOffsetX, bgOffsetY, artistNameText, festivalNameText, isArtistLogoNegative, mapFestivalText, mapCityCountry, mapZoom, mapLatitude, mapLongitude, mapStyle, isMapLoading, mapPinColor, mapLabelText, showMapPin, showMapLabel, mapAnimMode, isMapAnimPlaying, mapScrubTime, mapAnimDuration, mapDestLatitude, mapDestLongitude, mapDestFestivalText, mapDestVenue, mapDestCity, mapDestCountry, mapDestPinColor, imgLayoutMode, quizColor1, quizColor2, showFrame, focusReelStyle, conseilsTitle, conseilsSubtext, isConseilsLargeTitle, concoursFestivalName, concoursFestivalHandle, concoursBottomColor, concoursLateralText, concoursLateralOpacity, concoursBadgeTextColor, concoursMode, concoursGTAHeadline, concoursGTATitle, concoursGTAPlatformText, concoursGTACondition1, concoursGTACondition2, concoursGTACondition3, concoursGTACondition4, afficheImage, afficheGlow, afficheBorderColor, afficheMode, afficheScale, afficheOffsetY, tweetImage, tweetScale, tweetOffsetY, tweetGlow, tweetHeadline, tweetBadge, tweetBorderColor, tweetTranslation, showTweetTranslation, tweetAnimMode, textAnimation, animReplayKey, bgAnimation, cdjPlayerRing, musicBgMotion, isCarouselPromoActive, promoCustomPhrase, promoCustomSubphrase, promoOutroStyle, isPromoAnimPlaying, promoCategory, showPromoHook, showPromoHeadline, showPromoLine1, showPromoLine2, djCutoutImage, djOriginalImage, djSilhouetteColor, djGlowIntensity, djShowQuestionMark, djAppearanceAnim, editorialSlideImages, editorialSlideCutouts, editorialSlideTitles, djSlideModes, agendaAffiches, highlightsSlideArtists, highlightsColorArtist, highlightsColorFestival, highlightsColorCity, highlightsColorCountry, highlightsColorDate, afficheImgZoom, afficheImgPanX, afficheImgPanY]);
 
     // Rejouer l'animation de texte proprement depuis le début à chaque changement de slide, track ou de thème
     useEffect(() => {
         pendingAnimResetRef.current = true;
         animStartTimeRef.current = Date.now();
         setAnimReplayKey(k => k + 1);
-    }, [editorialSlide, agendaSlide, artisteFestivalSlide, eventsSlide, isCarouselPromoActive, isEditorialAfficheActive, isEditorialTweetActive, theme, top10ActiveRank, top10TestingRank, top100Rank, top100AnimKey, focusReelStyle]);
+    }, [editorialSlide, agendaSlide, artisteFestivalSlide, eventsSlide, isCarouselPromoActive, isEditorialAfficheActive, isEditorialTweetActive, isEditorialBlankActive, editorialAfficheIndex, editorialBlankIndex, theme, top10ActiveRank, top10TestingRank, top100Rank, top100AnimKey, focusReelStyle]);
 
     // Pre-charger les pochettes des tracks du thème MUSIQUE (avec contournement CORS automatique sur mobile)
     useEffect(() => {
@@ -14144,7 +14337,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         const currentTransitionDuration = getTransitionDuration(slideTransition);
         let totalDuration = 0;
         if (combinedMode === 'PROMO_ONLY') {
-            totalDuration = promoOutroStyle === 'PHONE_3D' ? 10000 : 7000; // 10.0s pour Smartphone 3D, 7.0s pour Instagram
+            totalDuration = 10000; // 10.0s fixe partout pour la slide promo
         } else if (combinedMode === 'EDITORIAL' || ((combinedMode === 'TIKTOK' || combinedMode === 'STORY_FAST') && theme !== 'PLANNING')) {
             const isMusicTheme = (theme === 'MUSIQUE');
             const shouldSkipSlide2 = skipEditorialSlide2;
@@ -14155,9 +14348,18 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ? [1, ...extraEditorialSlides.map((_, i) => i + 3)]
                     : [1, 2, ...extraEditorialSlides.map((_, i) => i + 3)]);
             const contentSlideNumbers: number[] = rawSlides.filter(s => selectedExportSlides[`slide_${s}`] !== false);
-            const hasAfficheSlide = Boolean(afficheImage && !isMusicTheme && selectedExportSlides['slide_affiche'] !== false);
+            const activeAffiches = editorialAffiches.filter((aff, idx) => {
+                const key = `slide_affiche_${idx}`;
+                const isSelected = selectedExportSlides[key] !== false && (idx > 0 || selectedExportSlides['slide_affiche'] !== false);
+                return Boolean(aff.image || isEditorialAfficheActive) && isSelected && !isMusicTheme;
+            });
+            const activeBlankSlides = editorialBlankSlides.filter((_, idx) => {
+                const key = `slide_blank_${idx}`;
+                return selectedExportSlides[key] !== false;
+            });
+            const numContentSlides = contentSlideNumbers.length + activeAffiches.length + activeBlankSlides.length;
+            const hasAfficheSlide = activeAffiches.length > 0;
             const includePromoOutro = selectedExportSlides['promo_outro'] !== false;
-            const numContentSlides = contentSlideNumbers.length + (hasAfficheSlide ? 1 : 0);
             const isDevinette = ['JEU', 'JEU_FESTIVAL', 'JEU_DJ'].includes(theme);
             const hasVideoBg = Boolean(bgVideo && !isNaN(bgVideo.duration) && bgVideo.duration > 0);
             const rawVideoDurMs = hasVideoBg ? Math.round(bgVideo!.duration * 1000) : 0;
@@ -14165,18 +14367,18 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             if (combinedMode === 'TIKTOK') {
                 const timings = getTikTokSlideTimings(numContentSlides);
                 if (hasVideoBg) {
-                    const promoDuration = promoOutroStyle === 'PHONE_3D' ? 7000 : 5000;
+                    const promoDuration = 10000;
                     const otherSlidesDur = (numContentSlides > 1) ? (numContentSlides - 1) * (isDevinette ? Math.min(15000, timings.slideDurationMs) : timings.slideDurationMs) : 0;
                     totalDuration = videoDurationMs + otherSlidesDur + (numContentSlides * currentTransitionDuration) + promoDuration;
                 } else {
                     totalDuration = timings.totalDurationMs;
                 }
             } else if (combinedMode === 'STORY_FAST') {
-                const promoDuration = 5500;
+                const promoDuration = 10000;
                 const slideDuration = 3000;
                 totalDuration = (numContentSlides * slideDuration) + (numContentSlides * currentTransitionDuration) + promoDuration;
             } else {
-                const promoDuration = includePromoOutro ? (isReel ? 5500 : (promoOutroStyle === 'PHONE_3D' ? 10000 : 7000)) : 0;
+                const promoDuration = includePromoOutro ? 10000 : 0;
                 const transitionDuration = currentTransitionDuration;
                 let slideDuration = isReel ? 3000 : (hasVideoBg ? videoDurationMs : Math.round(editorialSlide1Duration * 1000));
                 if (isDevinette) {
@@ -14196,11 +14398,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 const timings = getTikTokSlideTimings(numAgendaSlides);
                 totalDuration = timings.totalDurationMs;
             } else if (combinedMode === 'STORY_FAST') {
-                const promoDuration = 5500;
+                const promoDuration = 10000;
                 const slideDuration = 3000;
                 totalDuration = (numAgendaSlides * slideDuration) + (numAgendaSlides * transitionDuration) + promoDuration;
             } else {
-                const promoDuration = includePromoOutro ? (isReel ? 5500 : (promoOutroStyle === 'PHONE_3D' ? 10000 : 7000)) : 0;
+                const promoDuration = includePromoOutro ? 10000 : 0;
                 const slideDuration = isReel ? 3000 : 5200;
                 const numTransitions = Math.max(0, numAgendaSlides + (includePromoOutro ? 1 : 0) - 1);
                 totalDuration = (numAgendaSlides * slideDuration) + (numTransitions * transitionDuration) + promoDuration;
@@ -14221,7 +14423,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ? bgVideo.duration * 1000
                     : 20000;
                 if (isDevinette) contentDur = Math.min(15000, contentDur);
-                const promoDur = promoOutroStyle === 'PHONE_3D' ? 7000 : 5000;
+                const promoDur = 10000;
                 totalDuration = Math.min(600000, contentDur + currentTransitionDuration + promoDur);
             } else {
                 let contentDur = (bgVideo && !isNaN(bgVideo.duration) && bgVideo.duration > 0)
@@ -15780,7 +15982,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             const hasVideoBg = Boolean(bgVideo && !isNaN(bgVideo.duration) && bgVideo.duration > 0);
             const rawVideoDurMs = hasVideoBg ? Math.round(bgVideo!.duration * 1000) : 0;
             const videoDurationMs = isDevinette && hasVideoBg ? Math.min(15000, rawVideoDurMs) : rawVideoDurMs;
-            let promoDuration = isReel ? 5500 : (promoOutroStyle === 'PHONE_3D' ? 7000 : 5000);
+            let promoDuration = 10000;
             let slideDuration = isReel ? 3000 : (hasVideoBg ? videoDurationMs : Math.round(editorialSlide1Duration * 1000));
             if (isDevinette) {
                 slideDuration = Math.min(15000, slideDuration);
@@ -15792,10 +15994,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 if (isDevinette) {
                     slideDuration = Math.min(15000, slideDuration);
                 }
-                promoDuration = (hasVideoBg && promoOutroStyle === 'PHONE_3D') ? 7000 : (hasVideoBg ? 5000 : timings.promoDurationMs);
+                promoDuration = 10000;
             } else if (combinedMode === 'STORY_FAST') {
                 slideDuration = 3000;
-                promoDuration = 5500;
+                promoDuration = 10000;
             }
 
             // Réinitialisation explicite pour démarrer sur la cover / première slide sélectionnée
@@ -15851,15 +16053,40 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 await renderDuration(currentSlideDur, 0);
             }
 
-            // 1b. Transition vers la Slide Affiche si présente
-            if (hasAfficheSlide) {
+            // 1b. Transition vers la / les Slides Affiches si présentes
+            for (let affIdx = 0; affIdx < editorialAffiches.length; affIdx++) {
+                const aff = editorialAffiches[affIdx];
+                const key = `slide_affiche_${affIdx}`;
+                const isSelected = selectedExportSlides[key] !== false && (affIdx > 0 || selectedExportSlides['slide_affiche'] !== false);
+                if ((!aff.image && !isEditorialAfficheActive) || !isSelected || isMusicTheme) continue;
+
                 await renderTransition(transitionDuration, undefined, () => {
+                    editorialAfficheIndexOverrideRef.current = affIdx;
                     editorialAfficheOverrideRef.current = true;
+                    editorialBlankOverrideRef.current = false;
                     animStartTimeRef.current = Date.now();
                 });
                 transitionProgressRef.current = 0;
                 await renderDuration(slideDuration, 0);
                 editorialAfficheOverrideRef.current = false;
+                editorialAfficheIndexOverrideRef.current = null;
+            }
+
+            // 1c. Transition vers la / les Slides Vides si présentes (Photo/Vidéo brute sous cadre)
+            for (let bIdx = 0; bIdx < editorialBlankSlides.length; bIdx++) {
+                const key = `slide_blank_${bIdx}`;
+                if (selectedExportSlides[key] === false) continue;
+
+                await renderTransition(transitionDuration, undefined, () => {
+                    editorialBlankIndexOverrideRef.current = bIdx;
+                    editorialBlankOverrideRef.current = true;
+                    editorialAfficheOverrideRef.current = false;
+                    animStartTimeRef.current = Date.now();
+                });
+                transitionProgressRef.current = 0;
+                await renderDuration(slideDuration, 0);
+                editorialBlankOverrideRef.current = false;
+                editorialBlankIndexOverrideRef.current = null;
             }
 
             // 2. Transition vers le visuel PROMO outro à la fin du Reel (composite fluide)
@@ -15883,15 +16110,15 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             const rawAgendaSlides = [1, 2, ...agendaAffiches.map((_, idx) => idx + 3)];
             const agendaSlidesToProcess = rawAgendaSlides.filter(s => selectedExportSlides[`slide_${s}`] !== false);
             const includePromoOutro = selectedExportSlides['promo_outro'] !== false;
-            let promoDuration = isReel ? 5500 : (promoOutroStyle === 'PHONE_3D' ? 7000 : 5000);
+            let promoDuration = 10000;
             let slideDuration = isReel ? 3000 : 5200;
             if (combinedMode === 'TIKTOK') {
                 const timings = getTikTokSlideTimings(agendaSlidesToProcess.length);
                 slideDuration = timings.slideDurationMs;
-                promoDuration = timings.promoDurationMs;
+                promoDuration = 10000;
             } else if (combinedMode === 'STORY_FAST') {
                 slideDuration = 3000;
-                promoDuration = 5500;
+                promoDuration = 10000;
             }
 
             for (let aIdx = 0; aIdx < agendaSlidesToProcess.length; aIdx++) {
@@ -16039,7 +16266,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ? bgVideo.duration * 1000
                     : 20000;
                 if (isDevinette) contentDur = Math.min(15000, contentDur);
-                const promoDur = promoOutroStyle === 'PHONE_3D' ? 7000 : 5000;
+                const promoDur = 10000;
                 const transitionDuration = currentTransitionDuration;
 
                 // 1. Rendu du Reel / vidéo principale (ex: vidéo Highlight de 45s, Devinette max 15s)
@@ -16243,7 +16470,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         const timings = getTikTokSlideTimings(numContentSlides);
         const hasVideoBg = Boolean(bgVideo && !isNaN(bgVideo.duration) && bgVideo.duration > 0);
         const videoDurationSec = hasVideoBg ? bgVideo!.duration : 0;
-        const promoDurSec = (hasVideoBg && promoOutroStyle === 'PHONE_3D') ? 7 : (hasVideoBg ? 5 : Number((timings.promoDurationMs / 1000).toFixed(1)));
+        const promoDurSec = 10;
         const transSec = getTransitionDuration(slideTransition) / 1000;
         const totalDurationSec = hasVideoBg
             ? (videoDurationSec + (numContentSlides * transSec) + promoDurSec).toFixed(1)
@@ -17515,6 +17742,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         const prevAffiche = isEditorialAfficheActive;
         const prevPromo = isCarouselPromoActive;
         const prevTweet = isEditorialTweetActive;
+        const prevBlank = isEditorialBlankActive;
         const isMusicTheme = (theme === 'MUSIQUE');
         const shouldSkipSlide2 = (theme !== 'JEU_DJ') && skipEditorialSlide2;
         const allSlides: number[] = isMusicTheme
@@ -17525,7 +17753,6 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         const slidesToDownload: number[] = exportZip
             ? allSlides.filter(s => selectedExportSlides[`slide_${s}`] !== false)
             : allSlides;
-        const includeAffiche = Boolean(!isMusicTheme && (afficheImage || isEditorialAfficheActive) && (!exportZip || selectedExportSlides['slide_affiche'] !== false));
         const includePromo = exportZip ? (selectedExportSlides['promo_outro'] !== false && (isMultiSlideTheme || theme === 'PLANNING')) : false;
         const zip = exportZip ? new JSZip() : null;
         try {
@@ -17535,8 +17762,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                 editorialSlideOverrideRef.current = s;
                 editorialAfficheOverrideRef.current = false;
+                editorialBlankOverrideRef.current = false;
                 promoOutroOverrideRef.current = false;
                 setIsEditorialAfficheActive(false);
+                setIsEditorialBlankActive(false);
                 setIsCarouselPromoActive(false);
                 setIsEditorialTweetActive(false);
                 setEditorialSlide(s);
@@ -17560,62 +17789,111 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 }
             }
 
-            if (includeAffiche) {
-                await new Promise(r => setTimeout(r, 350));
-                promoOutroOverrideRef.current = false;
-                setIsCarouselPromoActive(false);
-                editorialAfficheOverrideRef.current = true;
-                setIsEditorialAfficheActive(true);
-                setIsEditorialTweetActive(false);
-                if (afficheImage) {
-                    const resolved = resolveImageUrl(afficheImage);
-                    if (!imageCacheRef.current[afficheImage] && !imageCacheRef.current[resolved]) {
-                        await new Promise<void>((resolve) => {
-                            const im = new Image();
-                            im.crossOrigin = 'anonymous';
-                            im.onload = () => {
-                                imageCacheRef.current[afficheImage] = im;
-                                imageCacheRef.current[resolved] = im;
-                                afficheImageRef.current = im;
-                                resolve();
-                            };
-                            im.onerror = () => resolve();
-                            im.src = resolved;
-                        });
-                    } else if (imageCacheRef.current[resolved] && !afficheImageRef.current) {
-                        afficheImageRef.current = imageCacheRef.current[resolved];
+            // Export des Slides Affiches
+            for (let affIdx = 0; affIdx < editorialAffiches.length; affIdx++) {
+                const aff = editorialAffiches[affIdx];
+                const key = `slide_affiche_${affIdx}`;
+                const isSelected = selectedExportSlides[key] !== false && (affIdx > 0 || selectedExportSlides['slide_affiche'] !== false);
+                if (!isMusicTheme && (aff.image || isEditorialAfficheActive) && (!exportZip || isSelected)) {
+                    await new Promise(r => setTimeout(r, 300));
+                    promoOutroOverrideRef.current = false;
+                    setIsCarouselPromoActive(false);
+                    editorialSlideOverrideRef.current = null;
+                    editorialBlankOverrideRef.current = false;
+                    setIsEditorialBlankActive(false);
+                    setIsEditorialTweetActive(false);
+                    editorialAfficheIndexOverrideRef.current = affIdx;
+                    editorialAfficheOverrideRef.current = true;
+                    setIsEditorialAfficheActive(true);
+
+                    if (aff.image) {
+                        const resolved = resolveImageUrl(aff.image);
+                        if (!imageCacheRef.current[aff.image] && !imageCacheRef.current[resolved]) {
+                            await new Promise<void>((resolve) => {
+                                const im = new Image();
+                                im.crossOrigin = 'anonymous';
+                                im.onload = () => {
+                                    imageCacheRef.current[aff.image] = im;
+                                    imageCacheRef.current[resolved] = im;
+                                    resolve();
+                                };
+                                im.onerror = () => resolve();
+                                im.src = resolved;
+                            });
+                        }
                     }
+                    await new Promise(r => setTimeout(r, 80));
+                    await generateImage(format, true);
+                    const dataUrl = canvasRef.current.toDataURL('image/png');
+                    const suffix = editorialAffiches.length > 1 ? `-${affIdx + 1}` : '';
+                    const fileNameAff = `${format === 'REEL' ? 'STORY' : 'POST'}-${theme.toLowerCase().replace(/\s+/g, '-')}-slide-affiche${suffix}.png`;
+                    if (zip) {
+                        zip.file(fileNameAff, dataUrl.split(',')[1], { base64: true });
+                    } else {
+                        const a = document.createElement('a');
+                        a.href = dataUrl;
+                        a.download = fileNameAff;
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                    }
+                    editorialAfficheOverrideRef.current = false;
+                    editorialAfficheIndexOverrideRef.current = null;
+                    setIsEditorialAfficheActive(false);
                 }
-                await new Promise(r => setTimeout(r, 80));
-                await generateImage(format, true);
-                const dataUrl = canvasRef.current.toDataURL('image/png');
-                const fileNameAff = `${format === 'REEL' ? 'STORY' : 'POST'}-${theme.toLowerCase().replace(/\s+/g, '-')}-slide-affiche.png`;
-                if (zip) {
-                    zip.file(fileNameAff, dataUrl.split(',')[1], { base64: true });
-                } else {
-                    const a = document.createElement('a');
-                    a.href = dataUrl;
-                    a.download = fileNameAff;
-                    document.body.appendChild(a);
-                    a.click();
-                    document.body.removeChild(a);
+            }
+
+            // Export des Slides Vides (Photos/Vidéos épurées)
+            for (let bIdx = 0; bIdx < editorialBlankSlides.length; bIdx++) {
+                const key = `slide_blank_${bIdx}`;
+                const isSelected = selectedExportSlides[key] !== false;
+                if (!exportZip || isSelected) {
+                    await new Promise(r => setTimeout(r, 300));
+                    promoOutroOverrideRef.current = false;
+                    setIsCarouselPromoActive(false);
+                    editorialSlideOverrideRef.current = null;
+                    editorialAfficheOverrideRef.current = false;
+                    setIsEditorialAfficheActive(false);
+                    setIsEditorialTweetActive(false);
+                    editorialBlankIndexOverrideRef.current = bIdx;
+                    editorialBlankOverrideRef.current = true;
+                    setIsEditorialBlankActive(true);
+
+                    await new Promise(r => setTimeout(r, 80));
+                    await generateImage(format, true);
+                    const dataUrl = canvasRef.current.toDataURL('image/png');
+                    const suffix = editorialBlankSlides.length > 1 ? `-${bIdx + 1}` : '';
+                    const fileNameBlank = `${format === 'REEL' ? 'STORY' : 'POST'}-${theme.toLowerCase().replace(/\s+/g, '-')}-slide-vide${suffix}.png`;
+                    if (zip) {
+                        zip.file(fileNameBlank, dataUrl.split(',')[1], { base64: true });
+                    } else {
+                        const a = document.createElement('a');
+                        a.href = dataUrl;
+                        a.download = fileNameBlank;
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                    }
+                    editorialBlankOverrideRef.current = false;
+                    editorialBlankIndexOverrideRef.current = null;
+                    setIsEditorialBlankActive(false);
                 }
-                editorialAfficheOverrideRef.current = false;
-                setIsEditorialAfficheActive(false);
             }
 
             if (includePromo && zip) {
                 await new Promise(r => setTimeout(r, 350));
                 editorialSlideOverrideRef.current = null;
                 editorialAfficheOverrideRef.current = false;
+                editorialBlankOverrideRef.current = false;
                 setIsEditorialAfficheActive(false);
+                setIsEditorialBlankActive(false);
                 setIsEditorialTweetActive(false);
                 promoOutroOverrideRef.current = true;
                 setIsCarouselPromoActive(true);
                 await new Promise(r => setTimeout(r, 80));
                 await generateImage(format, true);
                 const dataUrl = canvasRef.current.toDataURL('image/png');
-                const promoNum = slidesToDownload.length + (includeAffiche ? 2 : 1);
+                const promoNum = slidesToDownload.length + editorialAffiches.length + editorialBlankSlides.length + 1;
                 const fileNamePromo = `${format === 'REEL' ? 'STORY' : 'POST'}-${theme.toLowerCase().replace(/\s+/g, '-')}-slide${promoNum}-outro-promo.png`;
                 zip.file(fileNamePromo, dataUrl.split(',')[1], { base64: true });
                 promoOutroOverrideRef.current = false;
@@ -17639,10 +17917,14 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         } finally {
             editorialSlideOverrideRef.current = null;
             editorialAfficheOverrideRef.current = false;
+            editorialBlankOverrideRef.current = false;
+            editorialAfficheIndexOverrideRef.current = null;
+            editorialBlankIndexOverrideRef.current = null;
             promoOutroOverrideRef.current = false;
             setTimeout(() => {
                 setEditorialSlide(prevSlide);
                 setIsEditorialAfficheActive(prevAffiche);
+                setIsEditorialBlankActive(prevBlank);
                 setIsCarouselPromoActive(prevPromo);
                 setIsEditorialTweetActive(prevTweet);
                 setIsDownloading(false);
@@ -20686,7 +20968,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
         const effectiveAfficheImg = isPlanningAffiche
             ? (currentPlanningAffiche?.image || '')
-            : (afficheImage || (isEditorialAfficheActive ? (editorialSlideImages[editorialSlide] || '') : ''));
+            : (editorialAffiches[editorialAfficheIndex]?.image || afficheImage || (isEditorialAfficheActive ? (editorialSlideImages[editorialSlide] || '') : ''));
 
         const accentTextClass = isMusicTheme ? 'text-[#00ff66]' : (isPlanningAffiche ? 'text-[#ff3700]' : 'text-neon-red');
         const accentGlowBorder = isMusicTheme ? 'border-[#00ff66]/40 text-[#00ff66] bg-[#00ff66]/20' : (isPlanningAffiche ? 'border-[#ff3700]/40 text-[#ff3700] bg-[#ff3700]/20' : 'border-neon-red/40 text-neon-red bg-neon-red/20');
@@ -20694,11 +20976,51 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
         return (
             <div className="space-y-4">
+                {/* Sélecteur d'affiches si plusieurs affiches */}
+                {!isPlanningAffiche && !isMusicTheme && (
+                    <div className="p-3 bg-white/5 border border-[#ff3700]/30 rounded-2xl space-y-2">
+                        <div className="flex items-center justify-between">
+                            <span className="text-[9.5px] font-black text-white uppercase flex items-center gap-1.5">
+                                🖼️ Affiches du Carrousel ({editorialAffiches.length}/10 max)
+                            </span>
+                            {editorialAffiches.length < 10 && (
+                                <button
+                                    type="button"
+                                    onClick={addEditorialAffiche}
+                                    className="px-2 py-1 rounded-xl text-[8.5px] font-black uppercase bg-[#ff3700]/20 text-[#ff3700] hover:bg-[#ff3700]/30 border border-[#ff3700]/40 transition-all flex items-center gap-1"
+                                >
+                                    ➕ Affiche
+                                </button>
+                            )}
+                        </div>
+                        <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
+                            {editorialAffiches.map((aff, idx) => (
+                                <button
+                                    key={aff.id || idx}
+                                    type="button"
+                                    onClick={() => {
+                                        setEditorialAfficheIndex(idx);
+                                        setAfficheImage(aff.image || '');
+                                        setTimeout(() => generateImage(), 50);
+                                    }}
+                                    className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase transition-all shrink-0 ${
+                                        editorialAfficheIndex === idx
+                                            ? 'bg-[#ff3700] text-white shadow-md'
+                                            : 'bg-white/5 text-gray-400 hover:text-white border border-white/10'
+                                    }`}
+                                >
+                                    Affiche {idx + 1}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                )}
+
                 {/* 1. AFFICHE / COVER DE LA TRACK (CARTE FLOTTANTE) */}
                 <div className="space-y-3 bg-white/5 border border-white/10 rounded-2xl p-4">
                     <div className="flex items-center justify-between">
                         <label className={`text-[10px] font-black ${accentTextClass} uppercase tracking-widest flex items-center gap-1.5`}>
-                            {isMusicTheme ? '💿 Cover du Track (1:1 Carré)' : (isPlanningAffiche ? `🖼️ Affiche Festival / Event (Slide ${agendaSlide})` : (theme === 'NEWS' ? '🖼️ Affiche / Visuel (NEWS)' : '🖼️ Affiche de l\'Événement'))}
+                            {isMusicTheme ? '💿 Cover du Track (1:1 Carré)' : (isPlanningAffiche ? `🖼️ Affiche Festival / Event (Slide ${agendaSlide})` : (theme === 'NEWS' ? `🖼️ Affiche ${editorialAffiches.length > 1 ? `#${editorialAfficheIndex + 1}` : ''} (NEWS)` : `🖼️ Affiche ${editorialAffiches.length > 1 ? `#${editorialAfficheIndex + 1}` : ''} de l'Événement`))}
                         </label>
                         {effectiveAfficheImg && (
                             <button
@@ -20707,6 +21029,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     if (isPlanningAffiche) {
                                         updateAgendaAffiche(planningAfficheIdx, 'image', '');
                                     } else {
+                                        updateEditorialAffiche(editorialAfficheIndex, '');
                                         setAfficheImage('');
                                         afficheImageRef.current = null;
                                     }
@@ -20780,6 +21103,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         imageCacheRef.current[u] = im;
                                         afficheImageRef.current = im;
                                         setAfficheImage(u);
+                                        updateEditorialAffiche(editorialAfficheIndex, u);
                                         generateImage();
                                     };
                                     im.src = u;
@@ -20805,6 +21129,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     updateAgendaAffiche(planningAfficheIdx, 'image', url);
                                 } else {
                                     setAfficheImage(url);
+                                    updateEditorialAffiche(editorialAfficheIndex, url);
                                     // Slide 1 isolée : ne jamais écraser editorialSlideImages[1]
                                     setEditorialSlideImages(prev => {
                                         if (prev[1] && prev[1] === url && bgImage && bgImage !== url) {
@@ -22891,30 +23216,65 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
             {/* Slide Affiche dédiée (gérée dans l'onglet Visuel) */}
             {isEditorialAfficheActive && (
-                <div className="p-3 bg-white/5 border border-[#ff3700]/30 rounded-2xl flex items-center justify-between gap-3 shadow-md">
-                    <div className="flex items-center gap-2.5 min-w-0">
-                        {afficheImage ? (
-                            <img src={afficheImage} alt="Affiche" className="w-10 h-12 rounded-lg object-cover border border-[#ff3700]/40 flex-shrink-0" />
-                        ) : (
-                            <div className="w-10 h-12 rounded-lg bg-black/40 border border-dashed border-white/20 flex items-center justify-center flex-shrink-0">
-                                <ImageIcon className="w-5 h-5 text-gray-500" />
-                            </div>
-                        )}
-                        <div className="min-w-0">
-                            <span className="text-[9.5px] font-black text-white uppercase block truncate">Slide Affiche (Extra)</span>
-                            <span className="text-[8px] text-gray-400 block truncate">
-                                {afficheImage ? 'Affiche configurée' : 'Gérer l\'affiche & visuel dans l\'onglet Visuel'}
-                            </span>
+                <div className="p-3 bg-white/5 border border-[#ff3700]/30 rounded-2xl space-y-2.5 shadow-md">
+                    {editorialAffiches.length > 1 && (
+                        <div className="flex items-center gap-1 overflow-x-auto pb-1">
+                            {editorialAffiches.map((aff, idx) => (
+                                <button
+                                    key={aff.id || idx}
+                                    type="button"
+                                    onClick={() => {
+                                        setEditorialAfficheIndex(idx);
+                                        setAfficheImage(aff.image || '');
+                                        setTimeout(() => generateImage(), 50);
+                                    }}
+                                    className={`px-2 py-1 rounded-lg text-[8px] font-black uppercase transition-all ${
+                                        editorialAfficheIndex === idx
+                                            ? 'bg-[#ff3700] text-white shadow-sm'
+                                            : 'bg-white/5 text-gray-400 hover:text-white'
+                                    }`}
+                                >
+                                    Affiche {idx + 1}
+                                </button>
+                            ))}
+                            {editorialAffiches.length < 10 && (
+                                <button
+                                    type="button"
+                                    onClick={addEditorialAffiche}
+                                    className="px-2 py-1 rounded-lg text-[8px] font-black uppercase bg-[#ff3700]/20 text-[#ff3700] hover:bg-[#ff3700]/30"
+                                >
+                                    +
+                                </button>
+                            )}
                         </div>
+                    )}
+                    <div className="flex items-center justify-between gap-3">
+                        <div className="flex items-center gap-2.5 min-w-0">
+                            {(editorialAffiches[editorialAfficheIndex]?.image || afficheImage) ? (
+                                <img src={editorialAffiches[editorialAfficheIndex]?.image || afficheImage} alt="Affiche" className="w-10 h-12 rounded-lg object-cover border border-[#ff3700]/40 flex-shrink-0" />
+                            ) : (
+                                <div className="w-10 h-12 rounded-lg bg-black/40 border border-dashed border-white/20 flex items-center justify-center flex-shrink-0">
+                                    <ImageIcon className="w-5 h-5 text-gray-500" />
+                                </div>
+                            )}
+                            <div className="min-w-0">
+                                <span className="text-[9.5px] font-black text-white uppercase block truncate">
+                                    Slide Affiche {editorialAffiches.length > 1 ? `${editorialAfficheIndex + 1}/${editorialAffiches.length}` : '(Extra)'}
+                                </span>
+                                <span className="text-[8px] text-gray-400 block truncate">
+                                    {(editorialAffiches[editorialAfficheIndex]?.image || afficheImage) ? 'Affiche configurée' : 'Gérer l\'affiche & visuel dans l\'onglet Visuel'}
+                                </span>
+                            </div>
+                        </div>
+                        <button
+                            type="button"
+                            onClick={() => { setSidebarStep('visual'); setActivePanel('fond'); }}
+                            className="px-3 py-1.5 bg-[#ff3700] hover:bg-[#ff4400] text-white font-black text-[9px] uppercase rounded-xl transition-all flex items-center gap-1 shadow-sm active:scale-95 flex-shrink-0"
+                        >
+                            <Sparkles className="w-3 h-3" />
+                            <span>Gérer dans Visuel</span>
+                        </button>
                     </div>
-                    <button
-                        type="button"
-                        onClick={() => { setSidebarStep('visual'); setActivePanel('fond'); }}
-                        className="px-3 py-1.5 bg-[#ff3700] hover:bg-[#ff4400] text-white font-black text-[9px] uppercase rounded-xl transition-all flex items-center gap-1 shadow-sm active:scale-95 flex-shrink-0"
-                    >
-                        <Sparkles className="w-3 h-3" />
-                        <span>Gérer dans Visuel</span>
-                    </button>
                 </div>
             )}
 
@@ -22944,6 +23304,50 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         <Sparkles className="w-3 h-3 text-black" />
                         <span>Gérer dans Visuel</span>
                     </button>
+                </div>
+            )}
+
+            {/* Slide Vide / Média pur (Cadre + Logo pour photo/vidéo) */}
+            {isEditorialBlankActive && (
+                <div className="p-3.5 bg-black/60 border border-purple-500/30 rounded-2xl space-y-3 shadow-xl">
+                    <div className="flex items-center justify-between">
+                        <span className="text-[10px] font-black uppercase text-purple-300 flex items-center gap-1.5">
+                            🎬 Slide Vide {editorialBlankSlides.length > 1 ? `${editorialBlankIndex + 1}/${editorialBlankSlides.length}` : ''}
+                        </span>
+                        {editorialBlankSlides.length > 0 && (
+                            <button
+                                type="button"
+                                onClick={() => removeEditorialBlankSlide(editorialBlankIndex)}
+                                className="px-2 py-0.5 text-[8px] font-black uppercase text-red-400 bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 rounded-lg transition-all"
+                            >
+                                🗑️ Supprimer
+                            </button>
+                        )}
+                    </div>
+                    <p className="text-[8px] text-gray-400">
+                        Slide 100% épurée avec uniquement le cadre du thème <b>{theme}</b> et le logo Dropsiders. Idéale pour mettre des photos ou vidéos plein écran.
+                    </p>
+
+                    <div className="space-y-1.5">
+                        <input
+                            type="file"
+                            ref={blankSlideFileInputRef}
+                            accept="image/*"
+                            className="hidden"
+                            onChange={(e) => {
+                                const file = e.target.files?.[0];
+                                if (file) handleBlankSlideImageUpload(file, editorialBlankIndex);
+                            }}
+                        />
+                        <button
+                            type="button"
+                            onClick={() => blankSlideFileInputRef.current?.click()}
+                            className="w-full py-2.5 px-3 border border-dashed border-purple-500/40 hover:border-purple-400 rounded-xl bg-purple-950/20 hover:bg-purple-900/30 text-purple-200 text-[8.5px] font-black uppercase transition-all flex items-center justify-center gap-1.5"
+                        >
+                            <Upload className="w-3.5 h-3.5 text-purple-400" />
+                            {editorialBlankSlides[editorialBlankIndex]?.image ? `Changer la photo (Slide Vide ${editorialBlankIndex + 1})` : `Importer photo spécifique`}
+                        </button>
+                    </div>
                 </div>
             )}
 
@@ -26108,7 +26512,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         const map: Record<string, boolean> = {};
                                         available.forEach(s => { map[`slide_${s}`] = true; });
                                         map['promo_outro'] = true;
-                                        if (afficheImage || isEditorialAfficheActive) map['slide_affiche'] = true;
+                                        map['slide_affiche'] = true;
+                                        editorialAffiches.forEach((_, idx) => { map[`slide_affiche_${idx}`] = true; });
+                                        editorialBlankSlides.forEach((_, idx) => { map[`slide_blank_${idx}`] = true; });
                                         setSelectedExportSlides(map);
                                     }}
                                     className="text-[8px] font-bold uppercase text-neon-cyan hover:underline"
@@ -26154,24 +26560,58 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 );
                             })}
 
-                            {/* Slide Affiche si existante */}
-                            {Boolean(afficheImage || isEditorialAfficheActive) && (
-                                <div
-                                    onClick={() => setSelectedExportSlides(prev => ({ ...prev, slide_affiche: !prev.slide_affiche }))}
-                                    className={`p-2 rounded-xl border flex items-center justify-between cursor-pointer transition select-none ${selectedExportSlides.slide_affiche !== false
-                                        ? 'bg-[#ff3700]/15 border-[#ff3700]/40 text-white'
-                                        : 'bg-white/[0.03] border-white/10 text-gray-500'
-                                        }`}
-                                >
-                                    <div className="min-w-0">
-                                        <span className="text-[9px] font-black block truncate">🎨 Slide Affiche</span>
-                                        <span className="text-[7px] text-gray-400 block truncate">Poster HD</span>
+                            {/* Slide(s) Affiche si existante(s) */}
+                            {editorialAffiches.map((aff, idx) => {
+                                const key = `slide_affiche_${idx}`;
+                                const isChecked = selectedExportSlides[key] !== false && (idx > 0 || selectedExportSlides['slide_affiche'] !== false);
+                                if (!aff.image && !isEditorialAfficheActive) return null;
+                                return (
+                                    <div
+                                        key={key}
+                                        onClick={() => setSelectedExportSlides(prev => ({
+                                            ...prev,
+                                            [key]: !isChecked,
+                                            ...(idx === 0 ? { slide_affiche: !isChecked } : {})
+                                        }))}
+                                        className={`p-2 rounded-xl border flex items-center justify-between cursor-pointer transition select-none ${isChecked
+                                            ? 'bg-[#ff3700]/15 border-[#ff3700]/40 text-white'
+                                            : 'bg-white/[0.03] border-white/10 text-gray-500'
+                                            }`}
+                                    >
+                                        <div className="min-w-0">
+                                            <span className="text-[9px] font-black block truncate">🎨 Affiche {editorialAffiches.length > 1 ? idx + 1 : ''}</span>
+                                            <span className="text-[7px] text-gray-400 block truncate">Poster HD</span>
+                                        </div>
+                                        <div className={`w-4 h-4 rounded-md border flex items-center justify-center shrink-0 ml-1 ${isChecked ? 'bg-[#ff3700] border-[#ff3700] text-black' : 'border-white/20'}`}>
+                                            {isChecked && <Check className="w-3 h-3 stroke-[3]" />}
+                                        </div>
                                     </div>
-                                    <div className={`w-4 h-4 rounded-md border flex items-center justify-center shrink-0 ml-1 ${selectedExportSlides.slide_affiche !== false ? 'bg-[#ff3700] border-[#ff3700] text-black' : 'border-white/20'}`}>
-                                        {selectedExportSlides.slide_affiche !== false && <Check className="w-3 h-3 stroke-[3]" />}
+                                );
+                            })}
+
+                            {/* Slide(s) Vides si existante(s) */}
+                            {editorialBlankSlides.map((blank, idx) => {
+                                const key = `slide_blank_${idx}`;
+                                const isChecked = selectedExportSlides[key] !== false;
+                                return (
+                                    <div
+                                        key={key}
+                                        onClick={() => setSelectedExportSlides(prev => ({ ...prev, [key]: !isChecked }))}
+                                        className={`p-2 rounded-xl border flex items-center justify-between cursor-pointer transition select-none ${isChecked
+                                            ? 'bg-purple-600/15 border-purple-500/40 text-white'
+                                            : 'bg-white/[0.03] border-white/10 text-gray-500'
+                                            }`}
+                                    >
+                                        <div className="min-w-0">
+                                            <span className="text-[9px] font-black block truncate">🎬 Slide Vide {editorialBlankSlides.length > 1 ? idx + 1 : ''}</span>
+                                            <span className="text-[7px] text-gray-400 block truncate">Photo/Vidéo</span>
+                                        </div>
+                                        <div className={`w-4 h-4 rounded-md border flex items-center justify-center shrink-0 ml-1 ${isChecked ? 'bg-purple-600 border-purple-600 text-white' : 'border-white/20'}`}>
+                                            {isChecked && <Check className="w-3 h-3 stroke-[3]" />}
+                                        </div>
                                     </div>
-                                </div>
-                            )}
+                                );
+                            })}
 
                             {/* Slide Promo Outro */}
                             {(isMultiSlideTheme || theme === 'PLANNING') && (
@@ -26184,7 +26624,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 >
                                     <div className="min-w-0">
                                         <span className="text-[9px] font-black block truncate">🔥 Outro Promo</span>
-                                        <span className="text-[7px] text-gray-400 block truncate">5-6s épurée</span>
+                                        <span className="text-[7px] text-gray-400 block truncate">10s fixe</span>
                                     </div>
                                     <div className={`w-4 h-4 rounded-md border flex items-center justify-center shrink-0 ml-1 ${selectedExportSlides.promo_outro !== false ? 'bg-neon-red border-neon-red text-white' : 'border-white/20'}`}>
                                         {selectedExportSlides.promo_outro !== false && <Check className="w-3 h-3 stroke-[3]" />}
@@ -28938,8 +29378,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 <span className="text-[9px] font-black text-gray-400 uppercase tracking-wider mr-1">Carrousel Insta :</span>
                                 <button
                                     type="button"
-                                    onClick={() => { setIsCarouselPromoActive(false); setIsEditorialAfficheActive(false); setIsEditorialTweetActive(false); setEditorialSlide(1); }}
-                                    className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase transition-all flex items-center gap-1.5 ${!isCarouselPromoActive && !isEditorialAfficheActive && !isEditorialTweetActive && editorialSlide === 1
+                                    onClick={() => { setIsCarouselPromoActive(false); setIsEditorialAfficheActive(false); setIsEditorialTweetActive(false); setIsEditorialBlankActive(false); setEditorialSlide(1); }}
+                                    className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase transition-all flex items-center gap-1.5 ${!isCarouselPromoActive && !isEditorialAfficheActive && !isEditorialTweetActive && !isEditorialBlankActive && editorialSlide === 1
                                         ? 'bg-white text-black shadow-[0_0_12px_rgba(255,255,255,0.5)]'
                                         : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
                                         }`}
@@ -28950,8 +29390,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     <div className="relative group flex items-center rounded-xl overflow-hidden border border-white/10 bg-white/5">
                                         <button
                                             type="button"
-                                            onClick={() => { setIsCarouselPromoActive(false); setIsEditorialAfficheActive(false); setIsEditorialTweetActive(false); setEditorialSlide(2); }}
-                                            className={`px-3 py-1.5 text-[9px] font-black uppercase transition-all flex items-center gap-1.5 ${!isCarouselPromoActive && !isEditorialAfficheActive && !isEditorialTweetActive && editorialSlide === 2
+                                            onClick={() => { setIsCarouselPromoActive(false); setIsEditorialAfficheActive(false); setIsEditorialTweetActive(false); setIsEditorialBlankActive(false); setEditorialSlide(2); }}
+                                            className={`px-3 py-1.5 text-[9px] font-black uppercase transition-all flex items-center gap-1.5 ${!isCarouselPromoActive && !isEditorialAfficheActive && !isEditorialTweetActive && !isEditorialBlankActive && editorialSlide === 2
                                                 ? 'bg-white text-black shadow-[0_0_12px_rgba(255,255,255,0.5)]'
                                                 : 'text-gray-300 hover:text-white hover:bg-white/10'
                                                 }`}
@@ -28981,8 +29421,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         <div key={sNum} className="relative group">
                                             <button
                                                 type="button"
-                                                onClick={() => { setIsCarouselPromoActive(false); setIsEditorialAfficheActive(false); setIsEditorialTweetActive(false); setEditorialSlide(sNum); }}
-                                                className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase transition-all flex items-center gap-1.5 ${!isCarouselPromoActive && !isEditorialAfficheActive && !isEditorialTweetActive && editorialSlide === sNum
+                                                onClick={() => { setIsCarouselPromoActive(false); setIsEditorialAfficheActive(false); setIsEditorialTweetActive(false); setIsEditorialBlankActive(false); setEditorialSlide(sNum); }}
+                                                className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase transition-all flex items-center gap-1.5 ${!isCarouselPromoActive && !isEditorialAfficheActive && !isEditorialTweetActive && !isEditorialBlankActive && editorialSlide === sNum
                                                     ? 'bg-white text-black shadow-[0_0_12px_rgba(255,255,255,0.5)]'
                                                     : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
                                                     }`}
@@ -29012,6 +29452,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                                 setIsCarouselPromoActive(false);
                                                 setIsEditorialAfficheActive(false);
                                                 setIsEditorialTweetActive(false);
+                                                setIsEditorialBlankActive(false);
                                                 setEditorialSlide(2);
                                                 setTimeout(() => generateImage(), 50);
                                             } else {
@@ -29025,21 +29466,55 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     </button>
                                 )}
                                 {theme !== 'HIGHLIGHTS' && (
-                                    <button
-                                        type="button"
-                                        onClick={() => {
-                                            setIsCarouselPromoActive(false);
-                                            setIsEditorialTweetActive(false);
-                                            setIsEditorialAfficheActive(true);
-                                            setTimeout(() => generateImage(), 50);
-                                        }}
-                                        className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase transition-all flex items-center gap-1.5 ${!isCarouselPromoActive && isEditorialAfficheActive
-                                            ? 'bg-[#ff3700] text-white shadow-[0_0_12px_rgba(255,55,0,0.5)]'
-                                            : 'bg-[#ff3700]/10 border border-[#ff3700]/30 text-[#ff3700] hover:bg-[#ff3700]/20'
-                                            }`}
-                                    >
-                                        🖼️ Slide AFFICHE
-                                    </button>
+                                    <>
+                                        {editorialAffiches.map((aff, idx) => {
+                                            const isAffActive = !isCarouselPromoActive && !isEditorialBlankActive && isEditorialAfficheActive && editorialAfficheIndex === idx;
+                                            return (
+                                                <div key={aff.id || idx} className="relative group">
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => {
+                                                            setIsCarouselPromoActive(false);
+                                                            setIsEditorialTweetActive(false);
+                                                            setIsEditorialBlankActive(false);
+                                                            setEditorialAfficheIndex(idx);
+                                                            setIsEditorialAfficheActive(true);
+                                                            setTimeout(() => generateImage(), 50);
+                                                        }}
+                                                        className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase transition-all flex items-center gap-1.5 ${isAffActive
+                                                            ? 'bg-[#ff3700] text-white shadow-[0_0_12px_rgba(255,55,0,0.5)]'
+                                                            : 'bg-[#ff3700]/10 border border-[#ff3700]/30 text-[#ff3700] hover:bg-[#ff3700]/20'
+                                                            }`}
+                                                    >
+                                                        🖼️ Slide AFFICHE {editorialAffiches.length > 1 ? idx + 1 : ''}
+                                                    </button>
+                                                    {editorialAffiches.length > 1 && (
+                                                        <button
+                                                            type="button"
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                removeEditorialAffiche(idx);
+                                                            }}
+                                                            className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-red-500 hover:bg-red-600 text-white rounded-full text-[9px] font-bold flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-sm"
+                                                            title={`Supprimer l'Affiche ${idx + 1}`}
+                                                        >
+                                                            ✕
+                                                        </button>
+                                                    )}
+                                                </div>
+                                            );
+                                        })}
+                                        {editorialAffiches.length < 10 && (
+                                            <button
+                                                type="button"
+                                                onClick={addEditorialAffiche}
+                                                className="px-2 py-1.5 rounded-xl text-[9px] font-black uppercase transition-all bg-[#ff3700]/15 text-[#ff3700] border border-[#ff3700]/30 hover:bg-[#ff3700]/25 flex items-center gap-1 shadow-sm active:scale-95"
+                                                title="Ajouter une slide affiche supplémentaire"
+                                            >
+                                                ➕ Affiche
+                                            </button>
+                                        )}
+                                    </>
                                 )}
                                 {theme !== 'HIGHLIGHTS' && (
                                     <button
@@ -29047,6 +29522,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         onClick={() => {
                                             setIsCarouselPromoActive(false);
                                             setIsEditorialAfficheActive(false);
+                                            setIsEditorialBlankActive(false);
                                             setIsEditorialTweetActive(true);
                                             setTimeout(() => generateImage(), 50);
                                         }}
@@ -29058,12 +29534,58 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         🐦 Slide TWEET
                                     </button>
                                 )}
+                                {editorialBlankSlides.map((blank, idx) => {
+                                    const isBlankActive = !isCarouselPromoActive && isEditorialBlankActive && editorialBlankIndex === idx;
+                                    return (
+                                        <div key={blank.id || idx} className="relative group">
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    setIsCarouselPromoActive(false);
+                                                    setIsEditorialAfficheActive(false);
+                                                    setIsEditorialTweetActive(false);
+                                                    setEditorialBlankIndex(idx);
+                                                    setIsEditorialBlankActive(true);
+                                                    setTimeout(() => generateImage(), 50);
+                                                }}
+                                                className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase transition-all flex items-center gap-1.5 ${isBlankActive
+                                                    ? 'bg-purple-600 text-white shadow-[0_0_12px_rgba(168,85,247,0.5)]'
+                                                    : 'bg-purple-600/10 border border-purple-500/30 text-purple-300 hover:bg-purple-600/20'
+                                                    }`}
+                                            >
+                                                🎬 Slide VIDE {editorialBlankSlides.length > 1 ? idx + 1 : ''}
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    removeEditorialBlankSlide(idx);
+                                                }}
+                                                className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-red-500 hover:bg-red-600 text-white rounded-full text-[9px] font-bold flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-sm"
+                                                title={`Supprimer la Slide Vide ${idx + 1}`}
+                                            >
+                                                ✕
+                                            </button>
+                                        </div>
+                                    );
+                                })}
+                                {editorialBlankSlides.length < 10 && (
+                                    <button
+                                        type="button"
+                                        onClick={addEditorialBlankSlide}
+                                        className="px-2.5 py-1.5 rounded-xl text-[9px] font-black uppercase transition-all bg-purple-500/15 text-purple-300 border border-purple-500/30 hover:bg-purple-500/25 flex items-center gap-1 shadow-sm active:scale-95"
+                                        title="Ajouter une slide vide (cadre du thème et logo pour photo ou vidéo)"
+                                    >
+                                        ➕ Slide Vide
+                                    </button>
+                                )}
                                 <button
                                     type="button"
                                     onClick={() => {
                                         setIsCarouselPromoActive(true);
                                         setIsEditorialAfficheActive(false);
                                         setIsEditorialTweetActive(false);
+                                        setIsEditorialBlankActive(false);
                                         setTimeout(() => generateImage(), 50);
                                     }}
                                     className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase transition-all flex items-center gap-1.5 ${isCarouselPromoActive
@@ -29588,8 +30110,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             <div className="absolute top-16 left-1/2 -translate-x-1/2 z-30 flex items-center gap-1.5 bg-black/85 backdrop-blur-md px-2.5 py-1 rounded-2xl border border-white/10 shadow-2xl max-w-[95vw] overflow-x-auto scrollbar-none">
                                 <button
                                     type="button"
-                                    onClick={(e) => { e.stopPropagation(); setIsCarouselPromoActive(false); setIsEditorialAfficheActive(false); setIsEditorialTweetActive(false); setEditorialSlide(1); }}
-                                    className={`px-2.5 py-1 rounded-xl text-[8px] font-black uppercase transition-all shrink-0 ${!isCarouselPromoActive && !isEditorialAfficheActive && !isEditorialTweetActive && editorialSlide === 1 ? 'bg-white text-black shadow-md' : 'text-gray-400'
+                                    onClick={(e) => { e.stopPropagation(); setIsCarouselPromoActive(false); setIsEditorialAfficheActive(false); setIsEditorialTweetActive(false); setIsEditorialBlankActive(false); setEditorialSlide(1); }}
+                                    className={`px-2.5 py-1 rounded-xl text-[8px] font-black uppercase transition-all shrink-0 ${!isCarouselPromoActive && !isEditorialAfficheActive && !isEditorialTweetActive && !isEditorialBlankActive && editorialSlide === 1 ? 'bg-white text-black shadow-md' : 'text-gray-400'
                                         }`}
                                 >
                                     {theme === 'JEU_DJ' ? 'Slide 1 (Silhouette)' : 'Slide 1 (Cover)'}
@@ -29598,8 +30120,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     <div className="flex items-center shrink-0 rounded-xl overflow-hidden border border-white/10 bg-white/5">
                                         <button
                                             type="button"
-                                            onClick={(e) => { e.stopPropagation(); setIsCarouselPromoActive(false); setIsEditorialAfficheActive(false); setIsEditorialTweetActive(false); setEditorialSlide(2); }}
-                                            className={`px-2 py-1 text-[8px] font-black uppercase transition-all ${!isCarouselPromoActive && !isEditorialAfficheActive && !isEditorialTweetActive && editorialSlide === 2 ? 'bg-white text-black shadow-md' : 'text-gray-300 hover:text-white'
+                                            onClick={(e) => { e.stopPropagation(); setIsCarouselPromoActive(false); setIsEditorialAfficheActive(false); setIsEditorialTweetActive(false); setIsEditorialBlankActive(false); setEditorialSlide(2); }}
+                                            className={`px-2 py-1 text-[8px] font-black uppercase transition-all ${!isCarouselPromoActive && !isEditorialAfficheActive && !isEditorialTweetActive && !isEditorialBlankActive && editorialSlide === 2 ? 'bg-white text-black shadow-md' : 'text-gray-300 hover:text-white'
                                                 }`}
                                         >
                                             {theme === 'JEU_DJ' ? 'Slide 2 (Révélation)' : 'Slide 2'}
@@ -29623,12 +30145,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 )}
                                 {extraEditorialSlides.map((_, idx) => {
                                     const sNum = idx + 3;
-                                    const isSelected = !isCarouselPromoActive && !isEditorialAfficheActive && !isEditorialTweetActive && editorialSlide === sNum;
+                                    const isSelected = !isCarouselPromoActive && !isEditorialAfficheActive && !isEditorialTweetActive && !isEditorialBlankActive && editorialSlide === sNum;
                                     return (
                                         <div key={sNum} className="flex items-center shrink-0 rounded-xl overflow-hidden bg-white/5 border border-white/10">
                                             <button
                                                 type="button"
-                                                onClick={(e) => { e.stopPropagation(); setIsCarouselPromoActive(false); setIsEditorialAfficheActive(false); setIsEditorialTweetActive(false); setEditorialSlide(sNum); }}
+                                                onClick={(e) => { e.stopPropagation(); setIsCarouselPromoActive(false); setIsEditorialAfficheActive(false); setIsEditorialTweetActive(false); setIsEditorialBlankActive(false); setEditorialSlide(sNum); }}
                                                 className={`px-2.5 py-1 text-[8px] font-black uppercase transition-all ${isSelected ? 'bg-white text-black shadow-md' : 'text-gray-400'
                                                     }`}
                                             >
@@ -29655,6 +30177,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                                 setIsCarouselPromoActive(false);
                                                 setIsEditorialAfficheActive(false);
                                                 setIsEditorialTweetActive(false);
+                                                setIsEditorialBlankActive(false);
                                                 setEditorialSlide(2);
                                                 setTimeout(() => generateImage(), 50);
                                             } else {
@@ -29668,20 +30191,56 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     </button>
                                 )}
                                 {theme !== 'HIGHLIGHTS' && (
-                                    <button
-                                        type="button"
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            setIsCarouselPromoActive(false);
-                                            setIsEditorialTweetActive(false);
-                                            setIsEditorialAfficheActive(true);
-                                            setTimeout(() => generateImage(), 50);
-                                        }}
-                                        className={`px-2.5 py-1 rounded-xl text-[8px] font-black uppercase transition-all shrink-0 ${!isCarouselPromoActive && isEditorialAfficheActive ? 'bg-[#ff3700] text-white shadow-md' : 'text-[#ff3700]'
-                                            }`}
-                                    >
-                                        🖼️ Affiche
-                                    </button>
+                                    <>
+                                        {editorialAffiches.map((aff, idx) => {
+                                            const isAffActive = !isCarouselPromoActive && !isEditorialBlankActive && isEditorialAfficheActive && editorialAfficheIndex === idx;
+                                            return (
+                                                <div key={aff.id || idx} className="flex items-center shrink-0 rounded-xl overflow-hidden bg-white/5 border border-white/10">
+                                                    <button
+                                                        type="button"
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            setIsCarouselPromoActive(false);
+                                                            setIsEditorialTweetActive(false);
+                                                            setIsEditorialBlankActive(false);
+                                                            setEditorialAfficheIndex(idx);
+                                                            setIsEditorialAfficheActive(true);
+                                                            setTimeout(() => generateImage(), 50);
+                                                        }}
+                                                        className={`px-2.5 py-1 text-[8px] font-black uppercase transition-all ${isAffActive ? 'bg-[#ff3700] text-white shadow-md' : 'text-[#ff3700]'}`}
+                                                    >
+                                                        Affiche {editorialAffiches.length > 1 ? idx + 1 : ''}
+                                                    </button>
+                                                    {editorialAffiches.length > 1 && (
+                                                        <button
+                                                            type="button"
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                removeEditorialAffiche(idx);
+                                                            }}
+                                                            className="px-1.5 py-1 text-[8px] font-black text-red-400 hover:bg-red-500/20 border-l border-white/10"
+                                                            title={`Supprimer l'Affiche ${idx + 1}`}
+                                                        >
+                                                            ✕
+                                                        </button>
+                                                    )}
+                                                </div>
+                                            );
+                                        })}
+                                        {editorialAffiches.length < 10 && (
+                                            <button
+                                                type="button"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    addEditorialAffiche();
+                                                }}
+                                                className="px-2 py-1 rounded-xl text-[8px] font-black uppercase transition-all shrink-0 bg-[#ff3700]/20 text-[#ff3700] border border-[#ff3700]/30"
+                                                title="Ajouter une affiche"
+                                            >
+                                                ➕ Affiche
+                                            </button>
+                                        )}
+                                    </>
                                 )}
                                 {theme !== 'HIGHLIGHTS' && (
                                     <button
@@ -29690,6 +30249,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                             e.stopPropagation();
                                             setIsCarouselPromoActive(false);
                                             setIsEditorialAfficheActive(false);
+                                            setIsEditorialBlankActive(false);
                                             setIsEditorialTweetActive(true);
                                             setTimeout(() => generateImage(), 50);
                                         }}
@@ -29699,6 +30259,52 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         🐦 Tweet
                                     </button>
                                 )}
+                                {editorialBlankSlides.map((blank, idx) => {
+                                    const isBlankActive = !isCarouselPromoActive && isEditorialBlankActive && editorialBlankIndex === idx;
+                                    return (
+                                        <div key={blank.id || idx} className="flex items-center shrink-0 rounded-xl overflow-hidden bg-white/5 border border-white/10">
+                                            <button
+                                                type="button"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    setIsCarouselPromoActive(false);
+                                                    setIsEditorialAfficheActive(false);
+                                                    setIsEditorialTweetActive(false);
+                                                    setEditorialBlankIndex(idx);
+                                                    setIsEditorialBlankActive(true);
+                                                    setTimeout(() => generateImage(), 50);
+                                                }}
+                                                className={`px-2.5 py-1 text-[8px] font-black uppercase transition-all ${isBlankActive ? 'bg-purple-600 text-white shadow-md' : 'text-purple-300'}`}
+                                            >
+                                                Vide {editorialBlankSlides.length > 1 ? idx + 1 : ''}
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    removeEditorialBlankSlide(idx);
+                                                }}
+                                                className="px-1.5 py-1 text-[8px] font-black text-red-400 hover:bg-red-500/20 border-l border-white/10"
+                                                title={`Supprimer la Slide Vide ${idx + 1}`}
+                                            >
+                                                ✕
+                                            </button>
+                                        </div>
+                                    );
+                                })}
+                                {editorialBlankSlides.length < 10 && (
+                                    <button
+                                        type="button"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            addEditorialBlankSlide();
+                                        }}
+                                        className="px-2 py-1 rounded-xl text-[8px] font-black uppercase transition-all shrink-0 bg-purple-500/20 text-purple-300 border border-purple-500/30"
+                                        title="Ajouter une slide vide"
+                                    >
+                                        ➕ Vide
+                                    </button>
+                                )}
                                 <button
                                     type="button"
                                     onClick={(e) => {
@@ -29706,6 +30312,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         setIsCarouselPromoActive(true);
                                         setIsEditorialAfficheActive(false);
                                         setIsEditorialTweetActive(false);
+                                        setIsEditorialBlankActive(false);
                                         setTimeout(() => generateImage(), 50);
                                     }}
                                     className={`px-2.5 py-1 rounded-xl text-[8px] font-black uppercase transition-all shrink-0 ${isCarouselPromoActive
