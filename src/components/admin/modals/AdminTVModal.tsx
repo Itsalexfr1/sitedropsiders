@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
     X, Tv, Plus, Trash2, ChevronUp, ChevronDown, Save, ExternalLink, 
     RotateCcw, CheckCircle2, Loader2, AlertCircle, Film, ChevronRight, 
-    Sparkles, Radio, Zap, Eye, Calendar, Home, Video, Shield, ShieldAlert, ShieldCheck, 
+    Sparkles, Radio, Zap, Eye, Calendar, Home, Video, Shield, ShieldAlert, ShieldCheck, Instagram, Camera, 
     Pin, PinOff, MessageSquare, Clock, Lock, User, Upload, 
     Image as ImageIcon, Pencil, LayoutDashboard, Globe, Activity,
     Layers, Palette, Sliders, Search, Check, ListPlus, ArrowUpDown,
@@ -263,6 +263,17 @@ export async function fetchYouTubeTitle(urlOrId: string): Promise<string | null>
     return null;
 }
 
+export interface LineupArtist {
+    id: string;
+    artist: string;
+    image: string; // Photo obligatoire
+    stage: string; // Flux enregistré sélectionné
+    startTime: string;
+    endTime: string;
+    instagram?: string;
+    day?: string;
+}
+
 export interface TakeoverStatePartial {
     enabled?: boolean;
     status?: 'off' | 'edit' | 'live';
@@ -346,6 +357,137 @@ export function AdminTVModal({
     const switchTab = useCallback((tab: 'blocks' | 'promo' | 'main' | 'live') => {
         startTransition(() => setActiveTab(tab));
     }, [startTransition]);
+        // ─── États Lineup avec Photo Obligatoire & Flux Enregistrés ───
+    const [showAddArtistModal, setShowAddArtistModal] = useState(false);
+    const [newArtistName, setNewArtistName] = useState('');
+    const [newArtistImage, setNewArtistImage] = useState('');
+    const [newArtistStage, setNewArtistStage] = useState('Main Stage');
+    const [newArtistStartTime, setNewArtistStartTime] = useState('');
+    const [newArtistEndTime, setNewArtistEndTime] = useState('');
+    const [newArtistInstagram, setNewArtistInstagram] = useState('');
+    const [newArtistDay, setNewArtistDay] = useState(() => new Date().toISOString().split('T')[0]);
+    const [isUploadingArtistImage, setIsUploadingArtistImage] = useState(false);
+    const [artistFormError, setArtistFormError] = useState<string | null>(null);
+
+    // Extraction des flux enregistrés pour le choix des stages
+    const recordedStages = useMemo(() => {
+        const list: string[] = ['Main Stage (Flux Principal)'];
+        if (takeoverState?.channels) {
+            takeoverState.channels.split(/[,;\n]/).forEach((c: string) => {
+                const trimmed = c.trim();
+                if (trimmed && !list.includes(trimmed)) list.push(trimmed);
+            });
+        }
+        if (takeoverState?.streams && Array.isArray(takeoverState.streams)) {
+            takeoverState.streams.forEach((s: any) => {
+                if (s?.name && !list.includes(s.name)) list.push(s.name);
+            });
+        }
+        if (!list.includes('Stage 2')) list.push('Stage 2');
+        if (!list.includes('Stage 3')) list.push('Stage 3');
+        return list;
+    }, [takeoverState?.channels, takeoverState?.streams]);
+
+    // Parse du lineup (compatibilité JSON LineupItem[] ou fallback texte)
+    const parsedLineupArtists = useMemo<LineupArtist[]>(() => {
+        const raw = takeoverState?.lineup;
+        if (!raw) return [];
+        try {
+            const parsed = JSON.parse(raw);
+            if (Array.isArray(parsed)) return parsed;
+        } catch {}
+        return raw.split('\n').filter(Boolean).map((line: string, idx: number) => {
+            let time = '', artist = '', stage = 'Main Stage', image = '', instagram = '';
+            const timeMatch = line.match(/\[(.*?)\]/);
+            if (timeMatch) {
+                time = timeMatch[1];
+                const parts = line.replace(timeMatch[0], '').split('|').map((p: string) => p.trim());
+                artist = parts[0] || '';
+                stage = parts[1] || 'Main Stage';
+                image = parts[2] || '';
+                instagram = parts[3] || '';
+            } else {
+                const parts = line.split('|').map((p: string) => p.trim());
+                artist = parts[0] || '';
+                stage = parts[1] || 'Main Stage';
+                image = parts[2] || '';
+                instagram = parts[3] || '';
+            }
+            const [st, et] = time.includes('-') ? time.split('-').map((t: string) => t.trim()) : [time, ''];
+            return {
+                id: `artist_${idx}_${Date.now()}`,
+                artist,
+                stage,
+                startTime: st,
+                endTime: et,
+                image,
+                instagram,
+                day: new Date().toISOString().split('T')[0]
+            };
+        });
+    }, [takeoverState?.lineup]);
+
+    const handleSaveNewArtist = () => {
+        if (!newArtistName.trim()) {
+            setArtistFormError("Le nom de l'artiste est obligatoire.");
+            return;
+        }
+        if (!newArtistImage.trim()) {
+            setArtistFormError("⚠️ La photo de l'artiste est OBLIGATOIRE.");
+            return;
+        }
+        if (!newArtistStartTime.trim()) {
+            setArtistFormError("L'heure de passage est requise.");
+            return;
+        }
+
+        const newEntry: LineupArtist = {
+            id: `artist_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+            artist: newArtistName.trim().toUpperCase(),
+            image: newArtistImage.trim(),
+            stage: newArtistStage,
+            startTime: newArtistStartTime,
+            endTime: newArtistEndTime || newArtistStartTime,
+            instagram: newArtistInstagram.trim(),
+            day: newArtistDay
+        };
+
+        const updated = [...parsedLineupArtists, newEntry];
+        updateTakeoverField('lineup', JSON.stringify(updated));
+
+        // Reset
+        setNewArtistName('');
+        setNewArtistImage('');
+        setNewArtistStartTime('');
+        setNewArtistEndTime('');
+        setNewArtistInstagram('');
+        setArtistFormError(null);
+        setShowAddArtistModal(false);
+    };
+
+    const handleDeleteArtist = (id: string) => {
+        const updated = parsedLineupArtists.filter(a => a.id !== id);
+        updateTakeoverField('lineup', JSON.stringify(updated));
+    };
+
+    const handleUploadArtistPhoto = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        setIsUploadingArtistImage(true);
+        setArtistFormError(null);
+        try {
+            const url = await uploadFile(file, 'lineup');
+            if (url) {
+                setNewArtistImage(url);
+            }
+        } catch (err: any) {
+            console.error('Upload failed', err);
+            setArtistFormError("Échec upload image. Réessayez.");
+        } finally {
+            setIsUploadingArtistImage(false);
+        }
+    };
+
     const [liveSubTab, setLiveSubTab] = useState<'general' | 'planning' | 'moderation' | 'ticker' | 'bot' | 'mods' | 'access'>('general');
     const [liveSaving, setLiveSaving] = useState(false);
     const [liveSaved, setLiveSaved] = useState(false);
@@ -3618,53 +3760,39 @@ export function AdminTVModal({
                                                 takeoverState?.status === 'live' ? 'text-green-400' :
                                                 takeoverState?.status === 'edit' ? 'text-orange-400' : 'text-white/40'
                                             }`}>
-                                                {takeoverState?.status === 'live' ? '🔴 EN DIRECT – ON AIR' :
-                                                 takeoverState?.status === 'edit' ? '🟠 MODE ÉDITION' :
-                                                 '⚫ HORS LIGNE – OFF'}
+                                                {takeoverState?.status === 'live' ? '🔴 EN DIRECT – ON AIR' : '⚫ HORS LIGNE – OFF'}
                                             </div>
                                             <p className="text-[10px] text-white/40 mt-0.5">
-                                                {takeoverState?.status === 'live' ? 'Le flux vidéo remplace la diffusion continue et le chat est en direct.' :
-                                                 takeoverState?.status === 'edit' ? 'Interface en préparation privée, visible uniquement par les admins.' :
-                                                 'Le site diffuse normalement sa programmation continue.'}
+                                                {takeoverState?.status === 'live' ? 'Le flux vidéo live remplace la programmation continue et le chat est ouvert.' : 'La diffusion continue normale de DropsidersTV est active.'}
                                             </p>
                                         </div>
                                     </div>
 
-                                    {/* Big Radio Status Buttons */}
-                                    <div className="flex items-center gap-1.5 bg-black/60 p-1.5 rounded-xl border border-white/10 shrink-0">
+                                    {/* Big Radio Status Buttons (OFF / ON AIR UNIQUEMENT) */}
+                                    <div className="flex items-center gap-2 bg-black/60 p-1.5 rounded-xl border border-white/10 shrink-0">
                                         <button
                                             type="button"
                                             onClick={() => onUpdateLiveStatus?.('off')}
                                             disabled={isUpdatingTakeover}
-                                            className={`px-4 py-2 rounded-lg text-xs font-black uppercase tracking-wider transition-all ${
-                                                takeoverState?.status === 'off' || !takeoverState?.enabled
-                                                    ? 'bg-red-600 text-white shadow-md shadow-red-600/30 font-black'
+                                            className={`px-5 py-2.5 rounded-lg text-xs font-black uppercase tracking-wider transition-all cursor-pointer ${
+                                                takeoverState?.status !== 'live'
+                                                    ? 'bg-red-600 text-white shadow-md shadow-red-600/40 font-black'
                                                     : 'bg-transparent text-white/40 hover:text-white hover:bg-white/5'
                                             }`}
+                                            title="Désactiver le Live (Repasser sur la programmation continue TV)"
                                         >
                                             OFF
                                         </button>
                                         <button
                                             type="button"
-                                            onClick={() => onUpdateLiveStatus?.('edit')}
-                                            disabled={isUpdatingTakeover}
-                                            className={`px-4 py-2 rounded-lg text-xs font-black uppercase tracking-wider transition-all ${
-                                                takeoverState?.status === 'edit'
-                                                    ? 'bg-orange-500 text-white shadow-md shadow-orange-500/30 font-black'
-                                                    : 'bg-transparent text-white/40 hover:text-white hover:bg-white/5'
-                                            }`}
-                                        >
-                                            ÉDITION
-                                        </button>
-                                        <button
-                                            type="button"
                                             onClick={() => onUpdateLiveStatus?.('live')}
                                             disabled={isUpdatingTakeover}
-                                            className={`px-4 py-2 rounded-lg text-xs font-black uppercase tracking-wider transition-all ${
+                                            className={`px-5 py-2.5 rounded-lg text-xs font-black uppercase tracking-wider transition-all cursor-pointer ${
                                                 takeoverState?.status === 'live'
-                                                    ? 'bg-green-600 text-white shadow-md shadow-green-600/30 font-black animate-pulse'
+                                                    ? 'bg-green-600 text-white shadow-md shadow-green-600/40 font-black animate-pulse'
                                                     : 'bg-transparent text-white/40 hover:text-white hover:bg-white/5'
                                             }`}
+                                            title="Prendre l'antenne en direct (ON AIR)"
                                         >
                                             ON AIR
                                         </button>
@@ -3791,32 +3919,288 @@ export function AdminTVModal({
                                     </div>
                                 )}
 
-                                {/* SUB-TAB: LINEUP & PLANNING */}
+                                {/* SUB-TAB: LINEUP & PLANNING (MODAL & CARDS ARTISTES : PHOTO OBLIGATOIRE, STAGE FLUX ENREGISTRÉS, INSTAGRAM) */}
                                 {liveSubTab === 'planning' && (
                                     <div className="space-y-4 p-4 rounded-2xl bg-white/[0.02] border border-white/5">
-                                        <div>
-                                            <div className="flex items-center justify-between mb-1.5">
-                                                <label className="text-[10px] font-black uppercase tracking-widest text-white/60">
-                                                    Lineup & Horaires de passage
-                                                </label>
-                                                <span className="text-[9px] text-white/40 font-mono">Format : [Heure] Nom Artiste | Infos | Image</span>
+                                        {/* Header section planning */}
+                                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-white/10">
+                                            <div>
+                                                <h3 className="text-sm font-black uppercase tracking-wider text-white flex items-center gap-2">
+                                                    Lineup & Artistes ({parsedLineupArtists.length})
+                                                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-300 border border-amber-500/20 font-bold">
+                                                        Photo obligatoire
+                                                    </span>
+                                                </h3>
+                                                <p className="text-[11px] text-white/50 mt-0.5">
+                                                    Chaque artiste possède sa photo, son heure de passage, sa scène (flux enregistré) et son Instagram.
+                                                </p>
                                             </div>
-                                            <textarea
-                                                rows={8}
-                                                value={takeoverState?.lineup || ''}
-                                                onChange={(e) => updateTakeoverField('lineup', e.target.value)}
-                                                placeholder="[18:00] Warm Up - DJ Set | Scène Principale | https://...
-[19:30] Martin Garrix | Live @ Tomorrowland | https://...
-[21:00] David Guetta | B2B Morten | https://..."
-                                                className="w-full px-3 py-2 rounded-xl bg-black/60 border border-white/10 text-white text-xs font-mono leading-relaxed focus:border-amber-400 outline-none"
-                                            />
-                                            <p className="text-[10px] text-white/30 mt-1">Chaque ligne correspond à un passage d'artiste ou segment horaire dans le planning.</p>
+
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    setArtistFormError(null);
+                                                    setShowAddArtistModal(true);
+                                                }}
+                                                className="px-4 py-2 rounded-xl bg-neon-cyan hover:bg-neon-cyan/90 text-black text-xs font-black uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 shadow-lg shadow-neon-cyan/20 cursor-pointer shrink-0 active:scale-95"
+                                            >
+                                                <Plus className="w-4 h-4" />
+                                                <span>Ajouter un artiste</span>
+                                            </button>
                                         </div>
 
-                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                        {/* MODAL / FORMULAIRE D'AJOUT D'ARTISTE */}
+                                        {showAddArtistModal && (
+                                            <div className="p-4 rounded-2xl bg-black/80 border-2 border-neon-cyan/50 shadow-2xl space-y-4 animate-in fade-in">
+                                                <div className="flex items-center justify-between pb-2 border-b border-white/10">
+                                                    <span className="text-xs font-black uppercase tracking-widest text-neon-cyan flex items-center gap-2">
+                                                        <Plus className="w-4 h-4" />
+                                                        Nouvel Artiste au Lineup
+                                                    </span>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setShowAddArtistModal(false)}
+                                                        className="p-1 rounded-lg hover:bg-white/10 text-white/40 hover:text-white"
+                                                    >
+                                                        <X className="w-4 h-4" />
+                                                    </button>
+                                                </div>
+
+                                                {artistFormError && (
+                                                    <div className="p-2.5 rounded-xl bg-red-500/20 border border-red-500/40 text-red-300 text-xs font-bold flex items-center gap-2">
+                                                        <AlertCircle className="w-4 h-4 shrink-0 text-red-400" />
+                                                        <span>{artistFormError}</span>
+                                                    </div>
+                                                )}
+
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                    {/* Colonne 1: Photo OBLIGATOIRE */}
+                                                    <div className="space-y-2">
+                                                        <label className="block text-[10px] font-black uppercase tracking-widest text-white/70">
+                                                            Photo de l'artiste <span className="text-neon-red font-bold">* (OBLIGATOIRE)</span>
+                                                        </label>
+
+                                                        <div className={`w-full h-36 rounded-xl border-2 ${newArtistImage ? 'border-neon-cyan/50' : 'border-dashed border-red-500/50 bg-red-950/20'} overflow-hidden relative flex flex-col items-center justify-center`}>
+                                                            {newArtistImage ? (
+                                                                <>
+                                                                    <img src={newArtistImage} alt="Preview" className="w-full h-full object-cover" />
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() => setNewArtistImage('')}
+                                                                        className="absolute top-2 right-2 p-1.5 rounded-lg bg-black/80 text-red-400 hover:text-white"
+                                                                        title="Supprimer la photo"
+                                                                    >
+                                                                        <X className="w-3.5 h-3.5" />
+                                                                    </button>
+                                                                </>
+                                                            ) : (
+                                                                <div className="flex flex-col items-center justify-center p-4 text-center">
+                                                                    <div className="w-10 h-10 rounded-full bg-red-500/20 border border-red-500/40 flex items-center justify-center text-red-400 mb-2">
+                                                                        <Camera className="w-5 h-5" />
+                                                                    </div>
+                                                                    <span className="text-xs font-bold text-red-300">Aucune photo sélectionnée</span>
+                                                                    <span className="text-[10px] text-white/40 mt-0.5">La photo est obligatoire pour valider l'artiste</span>
+                                                                </div>
+                                                            )}
+                                                        </div>
+
+                                                        {/* Boutons Upload et URL */}
+                                                        <div className="flex items-center gap-2">
+                                                            <label className="flex-1 py-2 px-3 rounded-xl bg-white/10 hover:bg-white/20 border border-white/10 text-white text-xs font-bold flex items-center justify-center gap-2 cursor-pointer transition-all">
+                                                                <Upload className="w-3.5 h-3.5 text-neon-cyan" />
+                                                                <span>{isUploadingArtistImage ? 'Upload en cours...' : 'Choisir une photo...'}</span>
+                                                                <input
+                                                                    type="file"
+                                                                    accept="image/*"
+                                                                    onChange={handleUploadArtistPhoto}
+                                                                    disabled={isUploadingArtistImage}
+                                                                    className="hidden"
+                                                                />
+                                                            </label>
+
+                                                            <input
+                                                                type="text"
+                                                                value={newArtistImage}
+                                                                onChange={(e) => setNewArtistImage(e.target.value)}
+                                                                placeholder="Ou coller une URL d'image..."
+                                                                className="flex-1 px-3 py-2 rounded-xl bg-black/60 border border-white/10 text-white text-xs focus:border-neon-cyan outline-none"
+                                                            />
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Colonne 2 : Nom, Stage (Flux enregistrés), Horaires, Instagram */}
+                                                    <div className="space-y-3">
+                                                        <div>
+                                                            <label className="block text-[10px] font-black uppercase tracking-widest text-white/70 mb-1">
+                                                                Nom de l'artiste <span className="text-neon-red font-bold">*</span>
+                                                            </label>
+                                                            <input
+                                                                type="text"
+                                                                value={newArtistName}
+                                                                onChange={(e) => setNewArtistName(e.target.value)}
+                                                                placeholder="Ex: MARTIN GARRIX, DAVID GUETTA..."
+                                                                className="w-full px-3 py-2 rounded-xl bg-black/60 border border-white/10 text-white text-xs font-black uppercase tracking-wider focus:border-neon-cyan outline-none"
+                                                            />
+                                                        </div>
+
+                                                        <div>
+                                                            <label className="block text-[10px] font-black uppercase tracking-widest text-white/70 mb-1">
+                                                                Stage / Scène (Flux enregistrés) <span className="text-neon-cyan font-bold">*</span>
+                                                            </label>
+                                                            <select
+                                                                value={newArtistStage}
+                                                                onChange={(e) => setNewArtistStage(e.target.value)}
+                                                                className="w-full px-3 py-2 rounded-xl bg-black/60 border border-white/10 text-white text-xs font-bold focus:border-neon-cyan outline-none"
+                                                            >
+                                                                {recordedStages.map((stg) => (
+                                                                    <option key={stg} value={stg} className="bg-[#121212] text-white">
+                                                                        {stg}
+                                                                    </option>
+                                                                ))}
+                                                            </select>
+                                                        </div>
+
+                                                        {/* Horaires début / fin */}
+                                                        <div className="grid grid-cols-2 gap-2">
+                                                            <div>
+                                                                <label className="block text-[10px] font-black uppercase tracking-widest text-white/70 mb-1">
+                                                                    Heure Début <span className="text-neon-cyan font-bold">*</span>
+                                                                </label>
+                                                                <input
+                                                                    type="text"
+                                                                    value={newArtistStartTime}
+                                                                    onChange={(e) => setNewArtistStartTime(e.target.value)}
+                                                                    placeholder="Ex: 20:00"
+                                                                    className="w-full px-3 py-1.5 rounded-xl bg-black/60 border border-white/10 text-white text-xs font-mono font-bold text-center focus:border-neon-cyan outline-none"
+                                                                />
+                                                            </div>
+                                                            <div>
+                                                                <label className="block text-[10px] font-black uppercase tracking-widest text-white/70 mb-1">
+                                                                    Heure Fin <span className="text-neon-cyan font-bold">*</span>
+                                                                </label>
+                                                                <input
+                                                                    type="text"
+                                                                    value={newArtistEndTime}
+                                                                    onChange={(e) => setNewArtistEndTime(e.target.value)}
+                                                                    placeholder="Ex: 21:30"
+                                                                    className="w-full px-3 py-1.5 rounded-xl bg-black/60 border border-white/10 text-white text-xs font-mono font-bold text-center focus:border-neon-cyan outline-none"
+                                                                />
+                                                            </div>
+                                                        </div>
+
+                                                        {/* Instagram */}
+                                                        <div>
+                                                            <label className="block text-[10px] font-black uppercase tracking-widest text-white/70 mb-1 flex items-center gap-1.5">
+                                                                <Instagram className="w-3 h-3 text-pink-400" />
+                                                                Instagram de l'artiste
+                                                            </label>
+                                                            <input
+                                                                type="text"
+                                                                value={newArtistInstagram}
+                                                                onChange={(e) => setNewArtistInstagram(e.target.value)}
+                                                                placeholder="Ex: @martingarrix ou lien profil"
+                                                                className="w-full px-3 py-2 rounded-xl bg-black/60 border border-white/10 text-white text-xs font-bold focus:border-pink-500 outline-none"
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                {/* Bouton de validation de l'artiste */}
+                                                <div className="pt-2 flex items-center justify-end gap-2 border-t border-white/10">
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setShowAddArtistModal(false)}
+                                                        className="px-4 py-2 rounded-xl text-xs font-bold text-white/60 hover:text-white"
+                                                    >
+                                                        Annuler
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        onClick={handleSaveNewArtist}
+                                                        className="px-6 py-2 rounded-xl bg-neon-cyan hover:bg-neon-cyan/90 text-black text-xs font-black uppercase tracking-wider transition-all shadow-lg active:scale-95 cursor-pointer"
+                                                    >
+                                                        Valider et Ajouter
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {/* LISTE DES CARTES D'ARTISTES PROGRAMMÉS */}
+                                        {parsedLineupArtists.length === 0 ? (
+                                            <div className="py-12 text-center rounded-2xl bg-white/[0.02] border border-white/5 space-y-2">
+                                                <Calendar className="w-10 h-10 mx-auto text-white/20" />
+                                                <p className="text-xs font-bold text-white/50">Aucun artiste programmé pour le moment.</p>
+                                                <p className="text-[10px] text-white/30">Cliquez sur « Ajouter un artiste » pour créer le planning avec photo obligatoire et scène.</p>
+                                            </div>
+                                        ) : (
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-[380px] overflow-y-auto pr-1 custom-scrollbar">
+                                                {parsedLineupArtists.map((item) => (
+                                                    <div
+                                                        key={item.id}
+                                                        className="p-2.5 rounded-2xl bg-white/[0.03] hover:bg-white/[0.06] border border-white/10 flex items-center gap-3 transition-all relative overflow-hidden group"
+                                                    >
+                                                        {/* Photo miniature (Obligatoire) */}
+                                                        <div className="w-20 h-20 rounded-xl overflow-hidden bg-black shrink-0 relative border border-white/15">
+                                                            {item.image ? (
+                                                                <img src={item.image} alt={item.artist} className="w-full h-full object-cover" />
+                                                            ) : (
+                                                                <div className="w-full h-full bg-red-950/40 border border-red-500/50 flex flex-col items-center justify-center text-center p-1">
+                                                                    <AlertCircle className="w-5 h-5 text-red-400 mb-0.5" />
+                                                                    <span className="text-[7px] font-black text-red-400 uppercase">Sans Photo</span>
+                                                                </div>
+                                                            )}
+                                                        </div>
+
+                                                        {/* Détails artiste */}
+                                                        <div className="flex-1 min-w-0">
+                                                            <div className="flex items-center gap-2">
+                                                                <span className="px-2 py-0.5 rounded-md text-[8px] font-black uppercase tracking-wider bg-neon-cyan/15 text-neon-cyan border border-neon-cyan/30 truncate max-w-[140px]">
+                                                                    {item.stage || 'Main Stage'}
+                                                                </span>
+                                                                <span className="text-[10px] font-mono text-white/60 font-bold flex items-center gap-1">
+                                                                    <Clock className="w-3 h-3 text-amber-400" />
+                                                                    {item.startTime} {item.endTime ? `- ${item.endTime}` : ''}
+                                                                </span>
+                                                            </div>
+
+                                                            <h4 className="text-sm font-black text-white uppercase italic tracking-tight truncate mt-1">
+                                                                {item.artist}
+                                                            </h4>
+
+                                                            {item.instagram && (
+                                                                <a
+                                                                    href={item.instagram.startsWith('http') ? item.instagram : `https://instagram.com/${item.instagram.replace('@', '')}`}
+                                                                    target="_blank"
+                                                                    rel="noreferrer"
+                                                                    className="inline-flex items-center gap-1 text-[9px] font-bold text-pink-400 hover:text-pink-300 mt-1 hover:underline truncate"
+                                                                >
+                                                                    <Instagram className="w-3 h-3" />
+                                                                    <span>{item.instagram}</span>
+                                                                </a>
+                                                            )}
+                                                        </div>
+
+                                                        {/* Actions */}
+                                                        <div className="shrink-0 flex items-center gap-1">
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => handleDeleteArtist(item.id)}
+                                                                className="p-2 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 hover:text-red-300 transition-all cursor-pointer"
+                                                                title="Supprimer cet artiste"
+                                                            >
+                                                                <Trash2 className="w-4 h-4" />
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+
+                                        {/* Configuration globale dates de l'événement */}
+                                        <div className="pt-3 border-t border-white/10 grid grid-cols-1 md:grid-cols-3 gap-4">
                                             <div>
                                                 <label className="block text-[10px] font-black uppercase tracking-widest text-white/60 mb-1.5">
-                                                    Date & Heure de début
+                                                    Date & Heure de début générale
                                                 </label>
                                                 <input
                                                     type="datetime-local"
@@ -3827,7 +4211,7 @@ export function AdminTVModal({
                                             </div>
                                             <div>
                                                 <label className="block text-[10px] font-black uppercase tracking-widest text-white/60 mb-1.5">
-                                                    Date & Heure de fin
+                                                    Date & Heure de fin générale
                                                 </label>
                                                 <input
                                                     type="datetime-local"

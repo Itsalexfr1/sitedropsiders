@@ -1617,7 +1617,7 @@ export function DropsidersTVPage() {
                                     ? 'scale(1.3) translateY(-4%)'
                                     : 'scale(1.12) translateY(-3.5%)',
                                 transformOrigin: 'center center',
-                                filter: 'none', opacity: isAdminTVModalOpen ? 0.05 : 1,
+                                filter: 'none', opacity: isAdminTVModalOpen ? 0 : 1, visibility: isAdminTVModalOpen ? 'hidden' : 'visible',
                                 transition: 'transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), filter 0.5s ease'
                             }}
                         >
