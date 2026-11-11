@@ -51,7 +51,7 @@ import { fixEncoding } from '../utils/standardizer';
 import { Downloader } from '../pages/Downloader';
 import { ImageUploadModal } from './ImageUploadModal';
 import { resolveImageUrl } from '../utils/image';
-import { resolveMusicSnippet, searchMusicTracksList, getBeatportToken, type ResolvedMusicData } from '../utils/musicResolver';
+import { resolveMusicSnippet, searchMusicTracksList, searchBeatportByArtistAndTitle, getBeatportToken, type ResolvedMusicData } from '../utils/musicResolver';
 import { fixWebmDuration } from '../utils/fixWebm';
 import recapsData from '../data/recaps.json';
 import { BEATPORT_GENRES, resolveBeatportGenre, cleanTop10TrackTitle } from '../data/beatportGenres';
@@ -588,9 +588,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         startTime: number;
         duration: number;
     };
-    const [slideAudios, setSlideAudios] = useState<Record<number, SlideAudioItem>>({});
-    const slideAudiosRef = useRef<Record<number, SlideAudioItem>>({});
-    const [audioTargetSlide, setAudioTargetSlide] = useState<'global' | number>('global');
+    const [slideAudios, setSlideAudios] = useState<Record<string | number, SlideAudioItem>>({});
+    const slideAudiosRef = useRef<Record<string | number, SlideAudioItem>>({});
+    const [audioTargetSlide, setAudioTargetSlide] = useState<'global' | 'promo' | number>('global');
 
     const [carouselAudioUrl, setCarouselAudioUrl] = useState<string>('');
     const [carouselAudioTitle, setCarouselAudioTitle] = useState<string>('');
@@ -771,7 +771,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         }));
     };
 
-    const switchAudioTarget = (target: 'global' | number) => {
+    const switchAudioTarget = (target: 'global' | 'promo' | number) => {
         if (carouselAudioElementRef.current && isPlayingCarouselPreview) {
             carouselAudioElementRef.current.pause();
             setIsPlayingCarouselPreview(false);
@@ -787,7 +787,13 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         const availableSlides = getAvailableSlideNumbers();
         const activeData = getActiveAudioData();
         const isGlobal = audioTargetSlide === 'global';
-        const targetLabel = isGlobal ? 'Tout le Carrousel (Piste Continue)' : `Slide ${audioTargetSlide}`;
+        const targetLabel = isGlobal
+            ? 'Tout le Carrousel (Piste Continue)'
+            : audioTargetSlide === 'promo'
+                ? 'Slide Promo Outro'
+                : audioTargetSlide === 1
+                    ? 'Slide 1 (Cover)'
+                    : `Slide ${audioTargetSlide}`;
 
         return (
             <div className="p-3 rounded-2xl bg-white/[0.04] border border-white/10 space-y-3">
@@ -831,11 +837,24 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
                                     }`}
                             >
-                                {s === 1 ? '📌 Slide 1' : s === 2 ? '📖 Slide 2' : `📄 Slide ${s}`}
+                                {s === 1 ? '📌 Slide 1 (Cover)' : s === 2 ? '📖 Slide 2' : `📄 Slide ${s}`}
                                 {hasAudio && <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>}
                             </button>
                         );
                     })}
+                    {(isMultiSlideTheme || theme === 'PLANNING') && (
+                        <button
+                            type="button"
+                            onClick={() => switchAudioTarget('promo')}
+                            className={`px-2.5 py-1 rounded-lg font-black uppercase transition-all whitespace-nowrap flex items-center gap-1.5 shrink-0 ${audioTargetSlide === 'promo'
+                                ? 'bg-neon-red text-white shadow-[0_0_10px_rgba(255,0,51,0.5)]'
+                                : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
+                                }`}
+                        >
+                            🔥 Slide Promo
+                            {Boolean(slideAudios['promo']?.url) && <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>}
+                        </button>
+                    )}
                 </div>
 
                 {/* 2 Choix : Upload MP3 OU Beatport */}
@@ -1092,8 +1111,13 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         setAudioWarningAlert(null);
         setIsSearchingBeatportModal(true);
         try {
-            const query = `${beatportArtistInput.trim()} ${beatportTitleInput.trim()}`.trim();
-            const results = await searchMusicTracksList(query, 10);
+            // Recherche par artiste en priorité (filtre Beatport par artist_id)
+            // Si un titre est fourni, il filtre aussi par titre
+            const results = await searchBeatportByArtistAndTitle(
+                beatportArtistInput.trim(),
+                beatportTitleInput.trim(),
+                10
+            );
             setBeatportModalResults(results);
         } catch (err) {
             console.warn('Erreur recherche Beatport modal :', err);
@@ -14915,11 +14939,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         const slidesWithSpecificAudio = availableSlides.filter(s => Boolean(currentSlideAudios[s]?.url));
                         const hasMultipleDistinctAudios = slidesWithSpecificAudio.length > 1;
 
-                        if (hasMultipleDistinctAudios) {
+                        if (hasMultipleDistinctAudios || Boolean(currentSlideAudios['promo']?.url)) {
                             // Mode multi-slides POST : chaque slide joue sa musique dédiée, la dernière continue sur l'Outro Promo
                             const slideDurationSec = editorialSlide1Duration;
                             let cursor = 0;
                             let lastValidAudio = slide1OrGlobalAudio;
+                            const hasPromoAudio = Boolean(currentSlideAudios['promo']?.url);
                             for (let i = 0; i < availableSlides.length; i++) {
                                 const s = availableSlides[i];
                                 if (i > 0) cursor += transitionDurationSec;
@@ -14927,7 +14952,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 if (sAudio?.url) {
                                     lastValidAudio = sAudio;
                                     const isLastSlide = (i === availableSlides.length - 1);
-                                    const segDuration = isLastSlide
+                                    const segDuration = (isLastSlide && !hasPromoAudio)
                                         ? Math.max(slideDurationSec, (totalDuration / 1000) - cursor)
                                         : slideDurationSec;
                                     audioSegments.push({
@@ -14939,12 +14964,34 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 }
                                 cursor += slideDurationSec;
                             }
+                            if (hasPromoAudio) {
+                                cursor += transitionDurationSec;
+                                const promoAudio = currentSlideAudios['promo'];
+                                audioSegments.push({
+                                    url: promoAudio.url,
+                                    startOffset: cursor,
+                                    sourceOffset: promoAudio.startTime || 0,
+                                    duration: Math.max(5, (totalDuration / 1000) - cursor)
+                                });
+                            }
                         } else if (slide1OrGlobalAudio?.url) {
                             // Une seule musique configurée (Slide 1 ou Global) : joue en continu sur tout le carrousel
                             audioSegments.push({
                                 url: slide1OrGlobalAudio.url,
                                 startOffset: 0,
                                 sourceOffset: slide1OrGlobalAudio.startTime || 0,
+                                duration: totalDuration / 1000
+                            });
+                        }
+                    } else if (combinedMode === 'PROMO_ONLY') {
+                        const sAudio = currentSlideAudios['promo']?.url
+                            ? currentSlideAudios['promo']
+                            : slide1OrGlobalAudio;
+                        if (sAudio?.url) {
+                            audioSegments.push({
+                                url: sAudio.url,
+                                startOffset: 0,
+                                sourceOffset: sAudio.startTime || 0,
                                 duration: totalDuration / 1000
                             });
                         }
@@ -26010,7 +26057,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             <div className="flex items-center justify-between">
                                 <span className="text-[10px] font-black uppercase text-gray-300 flex items-center gap-1.5">
                                     <Music className="w-4 h-4 text-[#00f0ff]" />
-                                    Piste Audio & Musique pour la vidéo
+                                    Piste Audio : <span className="text-[#00f0ff]">{audioTargetSlide === 'global' ? 'Tout le Carrousel' : audioTargetSlide === 'promo' ? 'Slide Promo Outro' : audioTargetSlide === 1 ? 'Slide 1 (Cover)' : `Slide ${audioTargetSlide}`}</span>
                                 </span>
                                 {getActiveAudioData().url ? (
                                     <span className="px-2 py-0.5 rounded text-[8px] font-black uppercase bg-[#00ff66]/15 text-[#00ff66] border border-[#00ff66]/30">
@@ -26061,13 +26108,25 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                                 key={s}
                                                 type="button"
                                                 onClick={() => switchAudioTarget(s)}
-                                                className={`px-2.5 py-1 rounded-lg font-black uppercase transition shrink-0 flex items-center gap-1 ${isSel ? 'bg-[#00f0ff] text-black' : 'bg-white/5 text-gray-400 hover:text-white'}`}
+                                                className={`px-2.5 py-1 rounded-lg font-black uppercase transition shrink-0 flex items-center gap-1.5 ${isSel ? 'bg-[#00f0ff] text-black shadow-sm' : 'bg-white/5 text-gray-400 hover:text-white'}`}
                                             >
-                                                Slide {s}
+                                                {s === 1 ? '📌 Slide 1 (Cover)' : s === 2 ? '📖 Slide 2' : `📄 Slide ${s}`}
                                                 {hasSon && <span className="w-1.5 h-1.5 rounded-full bg-[#00ff66]"></span>}
                                             </button>
                                         );
                                     })}
+
+                                    {/* Onglet Slide Promo Outro */}
+                                    {(isMultiSlideTheme || theme === 'PLANNING') && (
+                                        <button
+                                            type="button"
+                                            onClick={() => switchAudioTarget('promo')}
+                                            className={`px-2.5 py-1 rounded-lg font-black uppercase transition shrink-0 flex items-center gap-1.5 ${audioTargetSlide === 'promo' ? 'bg-neon-red text-white shadow-[0_0_10px_rgba(255,0,51,0.5)]' : 'bg-white/5 text-gray-400 hover:text-white'}`}
+                                        >
+                                            🔥 Slide Promo
+                                            {Boolean(slideAudios['promo']?.url) && <span className="w-1.5 h-1.5 rounded-full bg-[#00ff66]"></span>}
+                                        </button>
+                                    )}
                                 </div>
                             )}
 

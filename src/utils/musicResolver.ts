@@ -512,6 +512,186 @@ export async function searchMusicTracksList(query: string, limit: number = 6): P
 }
 
 /**
+ * Recherche des morceaux Beatport PAR ARTISTE (et titre optionnel).
+ * Stratégie :
+ *   1. Recherche l'artiste via type=artists pour obtenir son ID officiel Beatport
+ *   2. Récupère ses tracks via /catalog/tracks/?artist_id=...
+ *   3. Si un titre est fourni, filtre les résultats par correspondance de titre
+ *   4. Fallback : recherche générale avec filtre artiste côté client
+ */
+export async function searchBeatportByArtistAndTitle(
+    artistName: string,
+    titleQuery: string = '',
+    limit: number = 10
+): Promise<ResolvedMusicData[]> {
+    const artistLower = artistName.trim().toLowerCase();
+    if (!artistLower) return [];
+
+    const fetchWithTimeout = async (url: string, init?: RequestInit, ms = 5000) => {
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), ms);
+        try {
+            const res = await fetch(url, { ...init, signal: controller.signal });
+            clearTimeout(timer);
+            return res;
+        } catch (e) {
+            clearTimeout(timer);
+            throw e;
+        }
+    };
+
+    try {
+        const token = await getBeatportToken();
+        if (!token) {
+            // Fallback: recherche générale avec filtre artiste côté client
+            const query = `${artistName} ${titleQuery}`.trim();
+            const all = await searchMusicTracksList(query, limit * 3);
+            const filtered = all.filter(item =>
+                item.artist?.toLowerCase().includes(artistLower)
+            );
+            return (filtered.length > 0 ? filtered : all).slice(0, limit);
+        }
+
+        const headers = { Authorization: `Bearer ${token}`, Accept: 'application/json' };
+        const results: ResolvedMusicData[] = [];
+        const seenIds = new Set<number>();
+
+        // Étape 1 : Chercher l'artiste par nom pour obtenir son ID Beatport
+        let artistId: number | null = null;
+        try {
+            const artistRes = await fetchWithTimeout(
+                `https://api.beatport.com/v4/catalog/search/?q=${encodeURIComponent(artistName)}&type=artists&per_page=5`,
+                { headers }
+            );
+            if (artistRes.ok) {
+                const artistData = await artistRes.json();
+                const artists: any[] = artistData?.artists || [];
+                // Trouver l'artiste dont le nom correspond le mieux (exact ou inclusion)
+                const exactMatch = artists.find((a: any) =>
+                    a.name?.toLowerCase() === artistLower
+                );
+                const partialMatch = artists.find((a: any) =>
+                    a.name?.toLowerCase().includes(artistLower) ||
+                    artistLower.includes(a.name?.toLowerCase() || '')
+                );
+                const bestMatch = exactMatch || partialMatch || artists[0];
+                if (bestMatch?.id) {
+                    artistId = bestMatch.id;
+                }
+            }
+        } catch {
+            // ignore, on continue sans artist_id
+        }
+
+        const formatTrack = (t: any): ResolvedMusicData | null => {
+            if (!t?.id || !t.sample_url) return null;
+            const rawImg = t.release?.image?.uri || '';
+            const coverUrl = rawImg
+                ? rawImg.replace('{w}x{h}', '1400x1400').replace(/500x500/i, '1400x1400')
+                : undefined;
+            const artists = t.artists?.map((a: any) => a.name).join(', ') || '';
+            const mixSuffix = t.mix_name && !t.name?.toLowerCase().includes(t.mix_name.toLowerCase())
+                ? ` (${t.mix_name})`
+                : '';
+            return {
+                audioUrl: t.sample_url,
+                coverUrl,
+                title: (t.name || '') + mixSuffix,
+                artist: artists,
+                album: t.release?.label?.name || t.release?.name,
+                platform: 'beatport',
+                duration: 120
+            };
+        };
+
+        const pushTracks = (list: any[]) => {
+            for (const t of list) {
+                if (!t?.id || seenIds.has(t.id)) continue;
+                seenIds.add(t.id);
+                const fmt = formatTrack(t);
+                if (fmt) results.push(fmt);
+            }
+        };
+
+        // Étape 2 : Récupérer les tracks de l'artiste par ID (si trouvé)
+        if (artistId) {
+            const tracksByArtistUrl = titleQuery.trim()
+                ? `https://api.beatport.com/v4/catalog/tracks/?artist_id=${artistId}&name=${encodeURIComponent(titleQuery.trim())}&per_page=25`
+                : `https://api.beatport.com/v4/catalog/tracks/?artist_id=${artistId}&per_page=25`;
+            try {
+                const tRes = await fetchWithTimeout(tracksByArtistUrl, { headers });
+                if (tRes.ok) {
+                    const tData = await tRes.json();
+                    pushTracks(tData?.results || tData?.tracks || []);
+                }
+            } catch { /* ignore */ }
+
+            // Si titre spécifié et pas assez de résultats, re-cherche sans filtre titre
+            if (titleQuery.trim() && results.length < 3) {
+                try {
+                    const tRes2 = await fetchWithTimeout(
+                        `https://api.beatport.com/v4/catalog/tracks/?artist_id=${artistId}&per_page=25`,
+                        { headers }
+                    );
+                    if (tRes2.ok) {
+                        const tData2 = await tRes2.json();
+                        pushTracks(tData2?.results || tData2?.tracks || []);
+                    }
+                } catch { /* ignore */ }
+            }
+        }
+
+        // Étape 3 : Recherche générale avec filtre artiste côté client (toujours, pour compléter)
+        try {
+            const searchQ = titleQuery.trim() || artistName;
+            const searchRes = await fetchWithTimeout(
+                `https://api.beatport.com/v4/catalog/search/?q=${encodeURIComponent(searchQ)}&type=tracks&per_page=30`,
+                { headers }
+            );
+            if (searchRes.ok) {
+                const searchData = await searchRes.json();
+                const tracks: any[] = searchData?.tracks || [];
+                // Filtrer : garder seulement les tracks dont au moins un artiste correspond
+                const filtered = tracks.filter((t: any) =>
+                    t.artists?.some((a: any) =>
+                        a.name?.toLowerCase().includes(artistLower) ||
+                        artistLower.includes(a.name?.toLowerCase() || '')
+                    )
+                );
+                pushTracks(filtered.length > 0 ? filtered : (artistId ? [] : tracks));
+            }
+        } catch { /* ignore */ }
+
+        // Si titre fourni, trier les résultats : ceux qui matchent le titre en premier
+        if (titleQuery.trim() && results.length > 1) {
+            const titleLower = titleQuery.trim().toLowerCase();
+            results.sort((a, b) => {
+                const aMatch = (a.title || '').toLowerCase().includes(titleLower) ? -1 : 1;
+                const bMatch = (b.title || '').toLowerCase().includes(titleLower) ? -1 : 1;
+                return aMatch - bMatch;
+            });
+        }
+
+        // Si aucun résultat Beatport, fallback global avec filtre artiste
+        if (results.length === 0) {
+            const query = `${artistName} ${titleQuery}`.trim();
+            const all = await searchMusicTracksList(query, limit * 3);
+            const filtered = all.filter(item =>
+                item.artist?.toLowerCase().includes(artistLower)
+            );
+            return (filtered.length > 0 ? filtered : all).slice(0, limit);
+        }
+
+        return results.slice(0, limit);
+    } catch (err) {
+        console.warn('Échec recherche Beatport par artiste :', err);
+        // Fallback total
+        const query = `${artistName} ${titleQuery}`.trim();
+        return searchMusicTracksList(query, limit);
+    }
+}
+
+/**
  * Résout automatiquement un lien de streaming ou fichier audio en extrait audio exploitable
  */
 export async function resolveMusicSnippet(
