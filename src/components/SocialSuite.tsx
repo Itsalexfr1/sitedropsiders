@@ -23566,7 +23566,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         <div className="p-3 bg-black/60 border border-neon-cyan/35 rounded-xl space-y-2.5">
                             <div className="flex items-center justify-between">
                                 <span className="text-[9px] font-black text-white uppercase tracking-wider flex items-center gap-1.5">
-                                    <span className={top10GenMode === 'label' ? "text-[#B86221]" : top10GenMode === 'style' ? "text-[#ffb800]" : "text-neon-cyan"}>🎨</span> Logo Transparent {top10GenMode === 'label' ? 'du Label' : top10GenMode === 'style' ? 'du Genre' : "de l'Artiste"}
+                                    <span className={top10GenMode === 'label' ? "text-[#B86221]" : "text-neon-cyan"}>🎨</span> Logo Transparent {top10GenMode === 'label' ? 'du Label' : "de l'Artiste"}
                                 </span>
                                 {artistLogo && (
                                     <button
@@ -23730,7 +23730,6 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 </div>
                             )}
                         </div>
-                        )}
                     )}
 
                     {/* TRIEUR MAGIQUE SPOTIFY & KWORB (Résout le mauvais tri de Spotify !) */}
