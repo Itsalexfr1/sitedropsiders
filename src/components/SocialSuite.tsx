@@ -6731,79 +6731,26 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                 if (isEditorialBlankRequested) {
                     const isStory = canvas.height > 1500;
-                    // SLIDE VIDE / MÉDIA PUR (Cadre du thème + Logo uniquement, sans texte, pour photos/vidéos)
-                    // 1. Légère vignette d'ambiance cinématographique pour faire ressortir le cadre et le logo
-                    const vig = ctx.createRadialGradient(
-                        canvas.width / 2, canvas.height / 2, canvas.width * 0.25,
-                        canvas.width / 2, canvas.height / 2, canvas.height * 0.78
-                    );
-                    vig.addColorStop(0, 'rgba(0, 0, 0, 0.04)');
-                    vig.addColorStop(0.70, 'rgba(0, 0, 0, 0.22)');
-                    vig.addColorStop(1, 'rgba(0, 0, 0, 0.55)');
-                    ctx.fillStyle = vig;
-                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    // SLIDE VIDE / MÉDIA PUR — badge + logo uniquement, aucun cadre, fond libre pour photo/vidéo
 
-                    // 2. Top Capsule Badge du thème actif (ex: NEWS, FOCUS, RECAP, etc.)
+                    // 1. Dégradé sombre en haut uniquement (badge + logo lisibles)
+                    const blankTopGrad = ctx.createLinearGradient(0, 0, 0, 220);
+                    blankTopGrad.addColorStop(0, 'rgba(0, 0, 0, 0.65)');
+                    blankTopGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+                    ctx.fillStyle = blankTopGrad;
+                    ctx.fillRect(0, 0, canvas.width, 220);
+
+                    // 2. Top Capsule Badge du thème actif
                     const blankBadgeLabel = (baseThemeData[theme]?.label || theme).toUpperCase();
                     const blankBadgeColor = activeColor.color || '#ff0033';
-                    const blankBadgeGrad = activeColor.grad || '255, 0, 51';
-                    drawTopCapsuleBadge(blankBadgeLabel, blankBadgeColor, blankBadgeGrad);
+                    drawTopCapsuleBadge(blankBadgeLabel, blankBadgeColor, activeColor.grad || '255, 0, 51');
 
-                    // 3. Cadre téléphone néon (identique au showFrame des autres slides, avec glow couleur du thème)
-                    ctx.save();
-                    const blankPad = 30;
-                    const blankFrameW = canvas.width - (blankPad * 2);
-                    const blankFrameH = canvas.height - (blankPad * 2);
-                    // Halo néon extérieur
-                    ctx.shadowColor = `rgba(${blankBadgeGrad}, 0.5)`;
-                    ctx.shadowBlur = 22;
-                    ctx.strokeStyle = `rgba(${blankBadgeGrad}, 0.7)`;
-                    ctx.lineWidth = 3;
-                    ctx.beginPath();
-                    ctx.roundRect(blankPad, blankPad, blankFrameW, blankFrameH, 24);
-                    ctx.stroke();
-                    ctx.restore();
-
-                    // Accents d'angle néon lumineux
-                    ctx.save();
-                    const blankCornerLen = 38;
-                    ctx.shadowColor = blankBadgeColor;
-                    ctx.shadowBlur = 14;
-                    ctx.strokeStyle = blankBadgeColor;
-                    ctx.lineWidth = 4;
-                    ctx.lineCap = 'round';
-                    // Top-Left
-                    ctx.beginPath();
-                    ctx.moveTo(blankPad, blankPad + blankCornerLen);
-                    ctx.lineTo(blankPad, blankPad);
-                    ctx.lineTo(blankPad + blankCornerLen, blankPad);
-                    ctx.stroke();
-                    // Top-Right
-                    ctx.beginPath();
-                    ctx.moveTo(canvas.width - blankPad - blankCornerLen, blankPad);
-                    ctx.lineTo(canvas.width - blankPad, blankPad);
-                    ctx.lineTo(canvas.width - blankPad, blankPad + blankCornerLen);
-                    ctx.stroke();
-                    // Bottom-Left
-                    ctx.beginPath();
-                    ctx.moveTo(blankPad, canvas.height - blankPad - blankCornerLen);
-                    ctx.lineTo(blankPad, canvas.height - blankPad);
-                    ctx.lineTo(blankPad + blankCornerLen, canvas.height - blankPad);
-                    ctx.stroke();
-                    // Bottom-Right
-                    ctx.beginPath();
-                    ctx.moveTo(canvas.width - blankPad - blankCornerLen, canvas.height - blankPad);
-                    ctx.lineTo(canvas.width - blankPad, canvas.height - blankPad);
-                    ctx.lineTo(canvas.width - blankPad, canvas.height - blankPad - blankCornerLen);
-                    ctx.stroke();
-                    ctx.restore();
-
-                    // 4. Logo Dropsiders 3D (identique aux autres slides)
+                    // 3. Logo Dropsiders 3D (identique aux autres slides)
                     if (logoRef.current && theme !== 'SPOTLIGHT' && theme !== 'ARTISTE FESTIVAL' && theme !== 'PROMO') {
                         drawDropsiders3DLogo();
                     }
 
-                    // 5. Mention Swipe si active
+                    // 4. Mention Swipe si active
                     if (showSwipeEffective) {
                         const swipeY = canvas.height - (isStory ? 80 : 50);
                         drawAnimatedSwipeIndicator(
