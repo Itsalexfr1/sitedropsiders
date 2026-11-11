@@ -18,37 +18,44 @@ export function RecentNews({ accentColor = 'blue', resolvedColor }: { accentColo
     const [newsData, setNewsData] = useState<any[]>([]);
 
     useEffect(() => {
+        const buildCombined = (news: any[], recaps: any[], interviews: any[]) => {
+            let combined: any[] = [];
+            if (Array.isArray(news)) combined = [...combined, ...news];
+            if (Array.isArray(recaps)) {
+                const writtenRecaps = recaps
+                    .filter(r => (r.summary && r.summary.trim().length > 10) || (r.content && r.content.trim().length > 10))
+                    .map(r => {
+                        let title = r.title || "";
+                        if (!title.toLowerCase().startsWith('récap') && !title.toLowerCase().startsWith('recap')) {
+                            title = `Récap : ${title}`;
+                        }
+                        return { ...r, title: title.toUpperCase() };
+                    });
+                combined = [...combined, ...writtenRecaps];
+            }
+            if (Array.isArray(interviews)) {
+                combined = [...combined, ...interviews.map(i => ({ ...i, category: 'INTERVIEW' }))];
+            }
+            return combined;
+        };
+
+        const onFreshData = (fresh: any[]) => {
+            setNewsData(prev => {
+                const freshStr = JSON.stringify(fresh).slice(0, 500);
+                const prevStr = JSON.stringify(prev).slice(0, 500);
+                if (freshStr === prevStr) return prev;
+                return fresh;
+            });
+        };
+
         const fetchData = async () => {
             try {
                 const [news, recaps, interviews] = await Promise.all([
-                    fetchWithFallback('/api/news'),
-                    fetchWithFallback('/api/recaps'),
-                    fetchWithFallback('/api/interviews')
+                    fetchWithFallback('/api/news', {}, onFreshData),
+                    fetchWithFallback('/api/recaps', {}, onFreshData),
+                    fetchWithFallback('/api/interviews', {}, onFreshData),
                 ]);
-
-                let combinedData: any[] = [];
-
-                if (Array.isArray(news)) combinedData = [...combinedData, ...news];
-                if (Array.isArray(recaps)) {
-                    // Filter "written" recaps only
-                    const writtenRecaps = recaps
-                        .filter(r => (r.summary && r.summary.trim().length > 10) || (r.content && r.content.trim().length > 10))
-                        .map(r => {
-                            let title = r.title || "";
-                            if (!title.toLowerCase().startsWith('récap') && !title.toLowerCase().startsWith('recap')) {
-                                title = `Récap : ${title}`;
-                            }
-                            return { ...r, title: title.toUpperCase() };
-                        });
-                    combinedData = [...combinedData, ...writtenRecaps];
-                }
-
-                if (Array.isArray(interviews)) {
-                    const mappedInterviews = interviews.map(i => ({ ...i, category: 'INTERVIEW' }));
-                    combinedData = [...combinedData, ...mappedInterviews];
-                }
-
-                setNewsData(combinedData);
+                setNewsData(buildCombined(news || [], recaps || [], interviews || []));
             } catch (err) {
                 console.error('Failed to fetch data for recent widget:', err);
             }
