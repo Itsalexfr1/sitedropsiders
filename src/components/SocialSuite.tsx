@@ -23474,69 +23474,24 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     </select>
                                 </div>
 
-                                {/* CHIPS RACCOURCIS 1-CLIC */}
+                                {/* PERSONNALISATION DU STYLE AFFICHÉ EN TITRE */}
                                 <div className="space-y-1">
                                     <span className="text-[7.5px] font-bold text-gray-400 uppercase tracking-wide">
-                                        ⚡ Raccourcis rapides :
-                                    </span>
-                                    <div className="flex flex-wrap gap-1">
-                                        {[
-                                            { label: '🥁 Drum & Bass', query: 'Drum & Bass' },
-                                            { label: '🔥 Hard Dance', query: 'Hard Dance / Hardcore / Neo Rave' },
-                                            { label: '⚡ Hard Techno', query: 'Hard Techno' },
-                                            { label: '🪩 Tech House', query: 'Tech House' },
-                                            { label: '✨ Melodic Techno', query: 'Melodic House & Techno' },
-                                            { label: '🌴 Afro House', query: 'Afro House' },
-                                            { label: '🌀 Psy-Trance', query: 'Psy-Trance' },
-                                            { label: '🚗 UK Garage', query: 'UK Garage / Bassline' }
-                                        ].map(chip => (
-                                            <button
-                                                key={chip.label}
-                                                type="button"
-                                                onClick={() => {
-                                                    setTop10StyleSearch(chip.query);
-                                                    handleAutoFetchStyleTop10(chip.query);
-                                                }}
-                                                className="text-[8px] font-bold px-2 py-1 rounded-lg bg-black/80 border border-[#ffb800]/30 text-amber-200 hover:border-[#ffb800] hover:bg-[#ffb800]/20 transition-all active:scale-95"
-                                            >
-                                                {chip.label}
-                                            </button>
-                                        ))}
-                                    </div>
-                                </div>
-
-                                {/* RECHERCHE LIBRE PAR TEXTE */}
-                                <div className="space-y-1">
-                                    <span className="text-[7.5px] font-bold text-gray-400 uppercase tracking-wide">
-                                        ✍️ Ou taper une recherche personnalisée :
+                                        ✏️ Nom du style affiché sur les visuels :
                                     </span>
                                     <input
                                         type="text"
-                                        list="beatport-genres-datalist"
-                                        value={top10StyleSearch}
-                                        onChange={e => setTop10StyleSearch(e.target.value)}
-                                        onKeyDown={e => {
-                                            if (e.key === 'Enter') handleAutoFetchStyleTop10(top10StyleSearch);
+                                        value={top10IntroArtist}
+                                        onChange={e => {
+                                            const val = e.target.value.toUpperCase();
+                                            setTop10IntroArtist(val);
+                                            top10IntroArtistRef.current = val;
+                                            generateImage();
                                         }}
-                                        placeholder="ex: Drum & Bass, Hard Dance, Techno, DNB..."
-                                        className="w-full bg-black/80 border border-[#ffb800]/35 focus:border-[#ffb800] rounded-xl px-3 py-2 text-white text-[10.5px] font-bold outline-none placeholder:text-gray-500 shadow-inner"
+                                        placeholder={top10StyleSearch || "ex: HARD DANCE, TECHNO, AFRO HOUSE..."}
+                                        className="w-full bg-black/80 border border-[#ffb800]/40 focus:border-[#ffb800] rounded-xl px-3 py-2 text-white text-[10.5px] font-black uppercase outline-none shadow-inner"
                                     />
-                                    <datalist id="beatport-genres-datalist">
-                                        {BEATPORT_GENRES.map(g => (
-                                            <option key={g.id} value={g.name} />
-                                        ))}
-                                    </datalist>
                                 </div>
-
-                                <button
-                                    type="button"
-                                    disabled={isAutoFillingTop10 || !top10StyleSearch.trim()}
-                                    onClick={() => handleAutoFetchStyleTop10(top10StyleSearch)}
-                                    className="w-full py-2.5 bg-gradient-to-r from-[#ffb800] via-[#ffa500] to-[#ff8c00] hover:brightness-110 text-black font-black text-[10px] uppercase rounded-xl transition-all disabled:opacity-40 shadow-md shadow-[#ffb800]/30 active:scale-98 flex items-center justify-center gap-1.5"
-                                >
-                                    <span>{isAutoFillingTop10 ? '⏳' : '⚡'}</span>
-                                    <span>{isAutoFillingTop10 ? 'Génération du Top 10 en cours...' : 'Générer le Top 10 Genre'}</span>
-                                </button>
                             </div>
 
                             <p className="text-[7.5px] text-gray-400 leading-tight">
@@ -23606,8 +23561,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         </div>
                     )}
 
-                    {/* 🎨 LOGO OFFICIEL DE L'ARTISTE (Affiché si mode artiste ou si un logo est déjà présent) */}
-                    {(top10GenMode === 'artist' || top10GenMode === 'label' || top10GenMode === 'style' || Boolean(artistLogo)) && (
+                    {/* 🎨 LOGO OFFICIEL (Affiché uniquement pour Label ou Artiste, retiré pour Genre) */}
+                    {top10GenMode !== 'style' && (
                         <div className="p-3 bg-black/60 border border-neon-cyan/35 rounded-xl space-y-2.5">
                             <div className="flex items-center justify-between">
                                 <span className="text-[9px] font-black text-white uppercase tracking-wider flex items-center gap-1.5">
@@ -23775,6 +23730,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 </div>
                             )}
                         </div>
+                        )}
                     )}
 
                     {/* TRIEUR MAGIQUE SPOTIFY & KWORB (Résout le mauvais tri de Spotify !) */}
@@ -24089,7 +24045,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             </div>
                         )}
 
-                        {/* LOGO DE L'ARTISTE (MÉLANGE IDÉE 1 ET 2) */}
+                        {/* LOGO DE L'ARTISTE (MÉLANGE IDÉE 1 ET 2) - Retiré en mode Genre */}
+                        {top10GenMode !== 'style' && (
                         <div className="p-3 bg-black/70 border border-white/10 rounded-xl space-y-3">
                             <div className="flex items-center justify-between">
                                 <span className="text-[9.5px] font-black text-white uppercase tracking-wider flex items-center gap-1.5">
@@ -24257,6 +24214,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 </div>
                             )}
                         </div>
+                        )}
 
                         {/* Navigation vers le #10 */}
                         <div className="pt-2 flex justify-end border-t border-white/10">
