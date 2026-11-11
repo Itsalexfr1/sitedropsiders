@@ -1247,8 +1247,8 @@ export function renderPromoPhone3D(opts: PromoPhone3DOptions) {
 
     renderStatusBar(ctx, screenX, screenY, screenW, s);
 
-    // Cycle adapté (7.0s pour Outro Reel / Top 10, ou 10.0s pour Promo Post)
-    const cycleTotal = opts.cycleDuration || (isReel ? 7.0 : 10.0);
+    // Cycle adapté (5.5s pour Outro Reel / Top 10, ou 10.0s pour Promo Post)
+    const cycleTotal = opts.cycleDuration || (isReel ? 5.5 : 10.0);
     const slotDuration = cycleTotal / 3;
     const transDuration = Math.min(0.50, slotDuration * 0.22);
 

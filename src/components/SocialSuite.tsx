@@ -6883,7 +6883,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             isReel,
                             tAnim: isStaticPreview ? 0 : animElapsed,
                             isStaticPreview,
-                            cycleDuration: isReel ? 7.0 : 10.0,
+                            cycleDuration: isReel ? 5.5 : 10.0,
                             activeColor,
                             effectiveHeadline,
                             effectiveSubphrase,
@@ -14148,12 +14148,15 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         } else if (combinedMode === 'EDITORIAL' || ((combinedMode === 'TIKTOK' || combinedMode === 'STORY_FAST') && theme !== 'PLANNING')) {
             const isMusicTheme = (theme === 'MUSIQUE');
             const shouldSkipSlide2 = skipEditorialSlide2;
-            const hasAfficheSlide = Boolean(afficheImage && !isMusicTheme);
-            const contentSlideNumbers: number[] = isMusicTheme
+            const isReel = (effectiveTab === 'REEL');
+            const rawSlides: number[] = isMusicTheme
                 ? [1, ...musicTracks.map((_, i) => i + 2)]
                 : (shouldSkipSlide2
                     ? [1, ...extraEditorialSlides.map((_, i) => i + 3)]
                     : [1, 2, ...extraEditorialSlides.map((_, i) => i + 3)]);
+            const contentSlideNumbers: number[] = rawSlides.filter(s => selectedExportSlides[`slide_${s}`] !== false);
+            const hasAfficheSlide = Boolean(afficheImage && !isMusicTheme && selectedExportSlides['slide_affiche'] !== false);
+            const includePromoOutro = selectedExportSlides['promo_outro'] !== false;
             const numContentSlides = contentSlideNumbers.length + (hasAfficheSlide ? 1 : 0);
             const isDevinette = ['JEU', 'JEU_FESTIVAL', 'JEU_DJ'].includes(theme);
             const hasVideoBg = Boolean(bgVideo && !isNaN(bgVideo.duration) && bgVideo.duration > 0);
@@ -14170,38 +14173,37 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 }
             } else if (combinedMode === 'STORY_FAST') {
                 const promoDuration = 5500;
-                const slideDuration = 4000;
+                const slideDuration = 3000;
                 totalDuration = (numContentSlides * slideDuration) + (numContentSlides * currentTransitionDuration) + promoDuration;
             } else {
-                const promoDuration = promoOutroStyle === 'PHONE_3D' ? 10000 : 7000; // 10.0s pour Smartphone 3D, 7.0s pour Instagram
+                const promoDuration = includePromoOutro ? (isReel ? 5500 : (promoOutroStyle === 'PHONE_3D' ? 10000 : 7000)) : 0;
                 const transitionDuration = currentTransitionDuration;
-                let slideDuration = hasVideoBg ? videoDurationMs : Math.round(editorialSlide1Duration * 1000);
+                let slideDuration = isReel ? 3000 : (hasVideoBg ? videoDurationMs : Math.round(editorialSlide1Duration * 1000));
                 if (isDevinette) {
                     slideDuration = Math.min(15000, slideDuration);
                 }
-                const slide2Dur = isDevinette ? 6000 : slideDuration;
-                if (shouldSkipSlide2) {
-                    totalDuration = slideDuration + transitionDuration + promoDuration;
-                } else if (isDevinette) {
-                    totalDuration = slideDuration + transitionDuration + slide2Dur + transitionDuration + promoDuration;
-                } else {
-                    totalDuration = (numContentSlides * slideDuration) + (numContentSlides * transitionDuration) + promoDuration;
-                }
+                const numTransitions = Math.max(0, numContentSlides + (includePromoOutro ? 1 : 0) - 1);
+                totalDuration = (numContentSlides * slideDuration) + (numTransitions * transitionDuration) + promoDuration;
             }
         } else if (combinedMode === 'PLANNING' || ((combinedMode === 'TIKTOK' || combinedMode === 'STORY_FAST') && theme === 'PLANNING')) {
+            const isReel = (effectiveTab === 'REEL');
             const transitionDuration = currentTransitionDuration;
-            const numAgendaSlides = 2 + agendaAffiches.length;
+            const rawAgendaSlides = [1, 2, ...agendaAffiches.map((_, idx) => idx + 3)];
+            const agendaSlidesToProcess = rawAgendaSlides.filter(s => selectedExportSlides[`slide_${s}`] !== false);
+            const includePromoOutro = selectedExportSlides['promo_outro'] !== false;
+            const numAgendaSlides = agendaSlidesToProcess.length;
             if (combinedMode === 'TIKTOK') {
                 const timings = getTikTokSlideTimings(numAgendaSlides);
                 totalDuration = timings.totalDurationMs;
             } else if (combinedMode === 'STORY_FAST') {
                 const promoDuration = 5500;
-                const slideDuration = 4000;
+                const slideDuration = 3000;
                 totalDuration = (numAgendaSlides * slideDuration) + (numAgendaSlides * transitionDuration) + promoDuration;
             } else {
-                const promoDuration = promoOutroStyle === 'PHONE_3D' ? 10000 : 7000; // 10.0s pour Smartphone 3D, 7.0s pour Instagram
-                const slideDuration = 5200;
-                totalDuration = (numAgendaSlides * slideDuration) + (numAgendaSlides * transitionDuration) + promoDuration;
+                const promoDuration = includePromoOutro ? (isReel ? 5500 : (promoOutroStyle === 'PHONE_3D' ? 10000 : 7000)) : 0;
+                const slideDuration = isReel ? 3000 : 5200;
+                const numTransitions = Math.max(0, numAgendaSlides + (includePromoOutro ? 1 : 0) - 1);
+                totalDuration = (numAgendaSlides * slideDuration) + (numTransitions * transitionDuration) + promoDuration;
             }
         } else if (theme.startsWith('TOP 5')) {
             totalDuration = 5 * (16800 + 1200); // 5 slides + transitions
@@ -15764,19 +15766,22 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         } else if (combinedMode === 'EDITORIAL' || ((combinedMode === 'TIKTOK' || combinedMode === 'STORY_FAST') && theme !== 'PLANNING')) {
             const isMusicTheme = (theme === 'MUSIQUE');
             const shouldSkipSlide2 = skipEditorialSlide2;
-            const hasAfficheSlide = Boolean(afficheImage && !isMusicTheme);
-            const contentSlideNumbers: number[] = isMusicTheme
+            const isReel = (effectiveTab === 'REEL');
+            const rawSlides = isMusicTheme
                 ? [1, ...musicTracks.map((_, i) => i + 2)]
                 : (shouldSkipSlide2
                     ? [1, ...extraEditorialSlides.map((_, i) => i + 3)]
                     : [1, 2, ...extraEditorialSlides.map((_, i) => i + 3)]);
+            const contentSlideNumbers: number[] = rawSlides.filter(s => selectedExportSlides[`slide_${s}`] !== false);
+            const hasAfficheSlide = Boolean(afficheImage && !isMusicTheme && selectedExportSlides['slide_affiche'] !== false);
+            const includePromoOutro = selectedExportSlides['promo_outro'] !== false;
             const isDevinette = ['JEU', 'JEU_FESTIVAL', 'JEU_DJ'].includes(theme);
             const transitionDuration = currentTransitionDuration;
             const hasVideoBg = Boolean(bgVideo && !isNaN(bgVideo.duration) && bgVideo.duration > 0);
             const rawVideoDurMs = hasVideoBg ? Math.round(bgVideo!.duration * 1000) : 0;
             const videoDurationMs = isDevinette && hasVideoBg ? Math.min(15000, rawVideoDurMs) : rawVideoDurMs;
-            let promoDuration = promoOutroStyle === 'PHONE_3D' ? 7000 : 5000;
-            let slideDuration = hasVideoBg ? videoDurationMs : Math.round(editorialSlide1Duration * 1000);
+            let promoDuration = isReel ? 5500 : (promoOutroStyle === 'PHONE_3D' ? 7000 : 5000);
+            let slideDuration = isReel ? 3000 : (hasVideoBg ? videoDurationMs : Math.round(editorialSlide1Duration * 1000));
             if (isDevinette) {
                 slideDuration = Math.min(15000, slideDuration);
             }
@@ -15789,8 +15794,20 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 }
                 promoDuration = (hasVideoBg && promoOutroStyle === 'PHONE_3D') ? 7000 : (hasVideoBg ? 5000 : timings.promoDurationMs);
             } else if (combinedMode === 'STORY_FAST') {
-                slideDuration = 4000;
+                slideDuration = 3000;
                 promoDuration = 5500;
+            }
+
+            // Réinitialisation explicite pour démarrer sur la cover / première slide sélectionnée
+            if (contentSlideNumbers.length > 0) {
+                const firstSlide = contentSlideNumbers[0];
+                editorialSlideOverrideRef.current = firstSlide;
+                setEditorialSlide(firstSlide);
+                editorialAfficheOverrideRef.current = false;
+                promoOutroOverrideRef.current = false;
+                setIsEditorialAfficheActive(false);
+                setIsCarouselPromoActive(false);
+                setIsEditorialTweetActive(false);
             }
 
             // 1. Déroulement des slides de contenu (selon contentSlideNumbers)
@@ -15830,7 +15847,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 // Rendu actif frame-par-frame avec le texte qui commence son animation dès le début de la slide
                 const currentSlideDur = (s === 1 && hasVideoBg)
                     ? videoDurationMs
-                    : (isDevinette && s === 2 ? 6000 : slideDuration);
+                    : (isDevinette && s === 2 ? (isReel ? 3000 : 6000) : slideDuration);
                 await renderDuration(currentSlideDur, 0);
             }
 
@@ -15846,67 +15863,66 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             }
 
             // 2. Transition vers le visuel PROMO outro à la fin du Reel (composite fluide)
-            if (isMusicTheme) {
-                stopMusicSegment();
-            }
-            const promoOffsetSec = await renderTransition(transitionDuration, undefined, () => {
-                promoOutroOverrideRef.current = true;
-                animStartTimeRef.current = Date.now();
-            });
-            transitionProgressRef.current = 0;
-
-            // 3. Affichage du visuel promo final pendant promoDuration avec continuité (zéro relance de texte)
-            await renderDuration(promoDuration, 0);
-
-        } else if (combinedMode === 'PLANNING' || ((combinedMode === 'TIKTOK' || combinedMode === 'STORY_FAST') && theme === 'PLANNING')) {
-            const transitionDuration = currentTransitionDuration;
-            let promoDuration = 7000;
-            let slideDuration = 5200;
-            if (combinedMode === 'TIKTOK') {
-                const numAgendaSlides = 2 + agendaAffiches.length;
-                const timings = getTikTokSlideTimings(numAgendaSlides);
-                slideDuration = timings.slideDurationMs;
-                promoDuration = timings.promoDurationMs;
-            } else if (combinedMode === 'STORY_FAST') {
-                slideDuration = 4000;
-                promoDuration = 5500;
-            }
-
-            // 1. Slide 1 (Cover)
-            agendaSlideOverrideRef.current = 1;
-            animStartTimeRef.current = Date.now();
-            await renderDuration(slideDuration);
-
-            // 2. Transition carrousel vers Slide 2 (composite fluide)
-            let currentOffset = await renderTransition(transitionDuration, undefined, () => {
-                agendaSlideOverrideRef.current = 2;
-                animStartTimeRef.current = Date.now();
-            });
-            transitionProgressRef.current = 0;
-
-            // 3. Slide 2 (Lineup / Événements)
-            await renderDuration(slideDuration, 0);
-
-            // 4. Slides Affiches (Slide 3..N)
-            for (let aIdx = 0; aIdx < agendaAffiches.length; aIdx++) {
-                const targetSlide = aIdx + 3;
-                currentOffset = await renderTransition(transitionDuration, undefined, () => {
-                    agendaSlideOverrideRef.current = targetSlide;
+            if (includePromoOutro) {
+                if (isMusicTheme) {
+                    stopMusicSegment();
+                }
+                const promoOffsetSec = await renderTransition(transitionDuration, undefined, () => {
+                    promoOutroOverrideRef.current = true;
                     animStartTimeRef.current = Date.now();
                 });
                 transitionProgressRef.current = 0;
-                await renderDuration(slideDuration, 0);
+
+                // 3. Affichage du visuel promo final pendant promoDuration avec continuité (zéro relance de texte)
+                await renderDuration(promoDuration, 0);
             }
 
-            // 5. Transition vers le visuel PROMO outro à la fin du Reel (composite fluide)
-            const promoOffsetSec = await renderTransition(transitionDuration, undefined, () => {
-                promoOutroOverrideRef.current = true;
-                animStartTimeRef.current = Date.now();
-            });
-            transitionProgressRef.current = 0;
+        } else if (combinedMode === 'PLANNING' || ((combinedMode === 'TIKTOK' || combinedMode === 'STORY_FAST') && theme === 'PLANNING')) {
+            const isReel = (effectiveTab === 'REEL');
+            const transitionDuration = currentTransitionDuration;
+            const rawAgendaSlides = [1, 2, ...agendaAffiches.map((_, idx) => idx + 3)];
+            const agendaSlidesToProcess = rawAgendaSlides.filter(s => selectedExportSlides[`slide_${s}`] !== false);
+            const includePromoOutro = selectedExportSlides['promo_outro'] !== false;
+            let promoDuration = isReel ? 5500 : (promoOutroStyle === 'PHONE_3D' ? 7000 : 5000);
+            let slideDuration = isReel ? 3000 : 5200;
+            if (combinedMode === 'TIKTOK') {
+                const timings = getTikTokSlideTimings(agendaSlidesToProcess.length);
+                slideDuration = timings.slideDurationMs;
+                promoDuration = timings.promoDurationMs;
+            } else if (combinedMode === 'STORY_FAST') {
+                slideDuration = 3000;
+                promoDuration = 5500;
+            }
 
-            // 6. Affichage du visuel promo final pendant promoDuration dès t=0
-            await renderDuration(promoDuration, 0);
+            for (let aIdx = 0; aIdx < agendaSlidesToProcess.length; aIdx++) {
+                const targetSlide = agendaSlidesToProcess[aIdx];
+                if (aIdx === 0) {
+                    agendaSlideOverrideRef.current = targetSlide;
+                    setAgendaSlide(targetSlide);
+                    promoOutroOverrideRef.current = false;
+                    setIsCarouselPromoActive(false);
+                    animStartTimeRef.current = Date.now();
+                    await renderDuration(slideDuration);
+                } else {
+                    await renderTransition(transitionDuration, undefined, () => {
+                        agendaSlideOverrideRef.current = targetSlide;
+                        setAgendaSlide(targetSlide);
+                        animStartTimeRef.current = Date.now();
+                    });
+                    transitionProgressRef.current = 0;
+                    await renderDuration(slideDuration, 0);
+                }
+            }
+
+            // Transition vers le visuel PROMO outro à la fin si sélectionné
+            if (includePromoOutro) {
+                await renderTransition(transitionDuration, undefined, () => {
+                    promoOutroOverrideRef.current = true;
+                    animStartTimeRef.current = Date.now();
+                });
+                transitionProgressRef.current = 0;
+                await renderDuration(promoDuration, 0);
+            }
 
         } else if (theme.startsWith('TOP 5')) {
             for (let i = 0; i < 5; i++) {
@@ -16196,11 +16212,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         await new Promise(r => setTimeout(r, 200));
                     }
                     if (theme === 'PLANNING') {
-                        await startVideoRecording('PLANNING');
+                        await startVideoRecording('PLANNING', { formatTab: targetTab });
                     } else if (['NEWS', 'FOCUS', 'RECAP', 'MUSIQUE', 'INTERVIEW', 'LIVESTREAM', 'CONSEILS', 'REELS', 'CONCOURS', 'TOP 100 DROPSIDERS', 'JEU', 'JEU_FESTIVAL', 'JEU_DJ', 'EVENTS', 'HIGHLIGHTS'].includes(theme)) {
-                        await startVideoRecording('EDITORIAL');
+                        await startVideoRecording('EDITORIAL', { formatTab: targetTab });
                     } else {
-                        await startVideoRecording('NONE');
+                        await startVideoRecording('NONE', { formatTab: targetTab });
                     }
                 } finally {
                     forceDisableSwipeRef.current = false;
@@ -16244,29 +16260,31 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     };
 
     const exportPromoSlideVideo = async (formatTab?: 'PUBLICATION' | 'REEL') => {
-        if (formatTab && formatTab !== activeTab) {
-            setActiveTab(formatTab);
+        const effectiveFormatTab = formatTab || (exportStudioDimension === 'REEL' ? 'REEL' : activeTab);
+        if (effectiveFormatTab && effectiveFormatTab !== activeTab) {
+            setActiveTab(effectiveFormatTab);
             setTimeout(() => {
-                startVideoRecording('PROMO_ONLY');
+                startVideoRecording('PROMO_ONLY', { formatTab: effectiveFormatTab });
             }, 150);
             return;
         }
-        startVideoRecording('PROMO_ONLY');
+        startVideoRecording('PROMO_ONLY', { formatTab: effectiveFormatTab });
     };
 
     const exportCurrentSlideVideo = async (formatTab?: 'PUBLICATION' | 'REEL') => {
+        const effectiveFormatTab = formatTab || (exportStudioDimension === 'REEL' ? 'REEL' : activeTab);
         if (isCarouselPromoActive) {
-            await exportPromoSlideVideo(formatTab);
+            await exportPromoSlideVideo(effectiveFormatTab);
             return;
         }
-        if (formatTab && formatTab !== activeTab) {
-            setActiveTab(formatTab);
+        if (effectiveFormatTab && effectiveFormatTab !== activeTab) {
+            setActiveTab(effectiveFormatTab);
             setTimeout(() => {
-                startVideoRecording('NONE');
+                startVideoRecording('NONE', { formatTab: effectiveFormatTab });
             }, 150);
             return;
         }
-        startVideoRecording('NONE');
+        startVideoRecording('NONE', { formatTab: effectiveFormatTab });
     };
 
     const exportVideoCarouselZip = async (targetFormat?: TabType) => {
@@ -16297,51 +16315,63 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             const cleanTheme = theme.toLowerCase().replace(/\s+/g, '-');
 
             if (theme === 'PLANNING') {
-                slidesToProcess.push({
-                    type: 'AGENDA',
-                    slideNum: 1,
-                    title: 'Slide 1 • Cover Agenda',
-                    filename: `01-agenda-slide1-cover-${formatSuffix}.mp4`
-                });
-                slidesToProcess.push({
-                    type: 'AGENDA',
-                    slideNum: 2,
-                    title: 'Slide 2 • Événements',
-                    filename: `02-agenda-slide2-events-${formatSuffix}.mp4`
-                });
-                for (let i = 0; i < agendaAffiches.length; i++) {
-                    const sNum = i + 3;
-                    const affTitle = agendaAffiches[i]?.title ? agendaAffiches[i].title.toLowerCase().replace(/[^a-z0-9]+/g, '-') : `event-${i + 1}`;
+                if (selectedExportSlides['slide_1'] !== false) {
                     slidesToProcess.push({
                         type: 'AGENDA',
-                        slideNum: sNum,
-                        title: `Slide ${sNum} • Affiche ${agendaAffiches[i]?.title || i + 1}`,
-                        filename: `${String(sNum).padStart(2, '0')}-agenda-slide${sNum}-affiche-${affTitle}-${formatSuffix}.mp4`
+                        slideNum: 1,
+                        title: 'Slide 1 • Cover Agenda',
+                        filename: `01-agenda-slide1-cover-${formatSuffix}.mp4`
                     });
+                }
+                if (selectedExportSlides['slide_2'] !== false) {
+                    slidesToProcess.push({
+                        type: 'AGENDA',
+                        slideNum: 2,
+                        title: 'Slide 2 • Événements',
+                        filename: `02-agenda-slide2-events-${formatSuffix}.mp4`
+                    });
+                }
+                for (let i = 0; i < agendaAffiches.length; i++) {
+                    const sNum = i + 3;
+                    if (selectedExportSlides[`slide_${sNum}`] !== false) {
+                        const affTitle = agendaAffiches[i]?.title ? agendaAffiches[i].title.toLowerCase().replace(/[^a-z0-9]+/g, '-') : `event-${i + 1}`;
+                        slidesToProcess.push({
+                            type: 'AGENDA',
+                            slideNum: sNum,
+                            title: `Slide ${sNum} • Affiche ${agendaAffiches[i]?.title || i + 1}`,
+                            filename: `${String(sNum).padStart(2, '0')}-agenda-slide${sNum}-affiche-${affTitle}-${formatSuffix}.mp4`
+                        });
+                    }
                 }
             } else if (theme === 'EVENTS' || theme === 'AFFICHE') {
-                slidesToProcess.push({
-                    type: 'EVENTS',
-                    slideNum: 1,
-                    title: 'Slide 1 • Post Événement',
-                    filename: `01-event-slide1-post-${formatSuffix}.mp4`
-                });
-                for (let i = 0; i < eventNormalSlidesCount; i++) {
-                    const sNum = i + 2;
+                if (selectedExportSlides['slide_1'] !== false) {
                     slidesToProcess.push({
                         type: 'EVENTS',
-                        slideNum: sNum,
-                        title: `Slide ${sNum} • Détail Événement`,
-                        filename: `${String(sNum).padStart(2, '0')}-event-slide${sNum}-${formatSuffix}.mp4`
+                        slideNum: 1,
+                        title: 'Slide 1 • Post Événement',
+                        filename: `01-event-slide1-post-${formatSuffix}.mp4`
                     });
                 }
+                for (let i = 0; i < eventNormalSlidesCount; i++) {
+                    const sNum = i + 2;
+                    if (selectedExportSlides[`slide_${sNum}`] !== false) {
+                        slidesToProcess.push({
+                            type: 'EVENTS',
+                            slideNum: sNum,
+                            title: `Slide ${sNum} • Détail Événement`,
+                            filename: `${String(sNum).padStart(2, '0')}-event-slide${sNum}-${formatSuffix}.mp4`
+                        });
+                    }
+                }
                 const afficheNum = eventNormalSlidesCount === 0 ? 2 : (2 + eventNormalSlidesCount);
-                slidesToProcess.push({
-                    type: 'AFFICHE',
-                    slideNum: afficheNum,
-                    title: `Slide ${afficheNum} • Affiche Événement`,
-                    filename: `${String(afficheNum).padStart(2, '0')}-event-slide${afficheNum}-affiche-${formatSuffix}.mp4`
-                });
+                if ((afficheImage || isEditorialAfficheActive) && selectedExportSlides['slide_affiche'] !== false && selectedExportSlides[`slide_${afficheNum}`] !== false) {
+                    slidesToProcess.push({
+                        type: 'AFFICHE',
+                        slideNum: afficheNum,
+                        title: `Slide ${afficheNum} • Affiche Événement`,
+                        filename: `${String(afficheNum).padStart(2, '0')}-event-slide${afficheNum}-affiche-${formatSuffix}.mp4`
+                    });
+                }
             } else {
                 const shouldSkipSlide2 = (theme !== 'JEU_DJ') && skipEditorialSlide2;
                 const slidesList: number[] = shouldSkipSlide2
@@ -16349,18 +16379,20 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     : [1, 2, ...extraEditorialSlides.map((_, i) => i + 3)];
 
                 slidesList.forEach((s) => {
-                    const suffix = s === 1
-                        ? (theme === 'JEU_DJ' ? 'silhouette' : 'cover')
-                        : (theme === 'JEU_DJ' && s === 2 ? 'revelation' : `detail-slide${s}`);
-                    slidesToProcess.push({
-                        type: 'EDITORIAL',
-                        slideNum: s,
-                        title: `Slide ${s} • ${suffix}`,
-                        filename: `${String(s).padStart(2, '0')}-${cleanTheme}-slide${s}-${suffix}-${formatSuffix}.mp4`
-                    });
+                    if (selectedExportSlides[`slide_${s}`] !== false) {
+                        const suffix = s === 1
+                            ? (theme === 'JEU_DJ' ? 'silhouette' : 'cover')
+                            : (theme === 'JEU_DJ' && s === 2 ? 'revelation' : `detail-slide${s}`);
+                        slidesToProcess.push({
+                            type: 'EDITORIAL',
+                            slideNum: s,
+                            title: `Slide ${s} • ${suffix}`,
+                            filename: `${String(s).padStart(2, '0')}-${cleanTheme}-slide${s}-${suffix}-${formatSuffix}.mp4`
+                        });
+                    }
                 });
 
-                if (afficheImage || isEditorialAfficheActive) {
+                if ((afficheImage || isEditorialAfficheActive) && selectedExportSlides['slide_affiche'] !== false) {
                     const affSlideNum = slidesList.length + 1;
                     slidesToProcess.push({
                         type: 'AFFICHE',
@@ -16371,14 +16403,16 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 }
             }
 
-            // Slide Outro Promo Dropsiders toujours incluse
-            const promoNum = slidesToProcess.length + 1;
-            slidesToProcess.push({
-                type: 'PROMO',
-                slideNum: promoNum,
-                title: `Slide ${promoNum} • Outro Promo Dropsiders`,
-                filename: `${String(promoNum).padStart(2, '0')}-${cleanTheme}-outro-promo-${formatSuffix}.mp4`
-            });
+            // Slide Outro Promo Dropsiders si sélectionnée
+            if (selectedExportSlides['promo_outro'] !== false) {
+                const promoNum = slidesToProcess.length + 1;
+                slidesToProcess.push({
+                    type: 'PROMO',
+                    slideNum: promoNum,
+                    title: `Slide ${promoNum} • Outro Promo Dropsiders`,
+                    filename: `${String(promoNum).padStart(2, '0')}-${cleanTheme}-outro-promo-${formatSuffix}.mp4`
+                });
+            }
 
             const totalSlides = slidesToProcess.length;
 
@@ -16403,6 +16437,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     editorialSlideOverrideRef.current = null;
                     agendaSlideOverrideRef.current = null;
                     setIsEditorialAfficheActive(false);
+                    setIsEditorialTweetActive(false);
                     await new Promise(r => setTimeout(r, 120));
                     blob = await startVideoRecording('PROMO_ONLY', { returnBlob: true, formatTab: formatToUse });
                 } else if (item.type === 'AFFICHE') {
@@ -16410,7 +16445,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     setIsCarouselPromoActive(false);
                     editorialAfficheOverrideRef.current = true;
                     setIsEditorialAfficheActive(true);
+                    setIsEditorialTweetActive(false);
                     if (item.slideNum) {
+                        editorialSlideOverrideRef.current = item.slideNum;
                         setEditorialSlide(item.slideNum);
                         setEventsSlide(item.slideNum);
                     }
@@ -16419,7 +16456,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 } else if (item.type === 'AGENDA') {
                     promoOutroOverrideRef.current = false;
                     setIsCarouselPromoActive(false);
+                    editorialAfficheOverrideRef.current = false;
                     setIsEditorialAfficheActive(false);
+                    setIsEditorialTweetActive(false);
                     agendaSlideOverrideRef.current = item.slideNum;
                     setAgendaSlide(item.slideNum);
                     await new Promise(r => setTimeout(r, 120));
@@ -16429,6 +16468,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     setIsCarouselPromoActive(false);
                     editorialAfficheOverrideRef.current = false;
                     setIsEditorialAfficheActive(false);
+                    setIsEditorialTweetActive(false);
+                    editorialSlideOverrideRef.current = item.slideNum;
                     setEventsSlide(item.slideNum);
                     setEditorialSlide(item.slideNum);
                     await new Promise(r => setTimeout(r, 120));
@@ -16436,6 +16477,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 } else {
                     promoOutroOverrideRef.current = false;
                     setIsCarouselPromoActive(false);
+                    editorialAfficheOverrideRef.current = false;
+                    setIsEditorialAfficheActive(false);
+                    setIsEditorialTweetActive(false);
                     editorialSlideOverrideRef.current = item.slideNum;
                     setEditorialSlide(item.slideNum);
                     await new Promise(r => setTimeout(r, 120));
@@ -16519,37 +16563,43 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             // 1. Slide 1 : Annonce
             const cleanTheme = theme.toLowerCase().replace(/\s+/g, '-');
             const formatSuffix = isStory ? 'story' : 'post';
-            slidesToProcess.push({
-                type: 'ANNONCE',
-                slideNum: 1,
-                title: 'Slide 1 • Annonce Sortie',
-                filename: `01-${cleanTheme}-annonce-${formatSuffix}.mp4`
-            });
+            if (selectedExportSlides['slide_1'] !== false) {
+                slidesToProcess.push({
+                    type: 'ANNONCE',
+                    slideNum: 1,
+                    title: 'Slide 1 • Annonce Sortie',
+                    filename: `01-${cleanTheme}-annonce-${formatSuffix}.mp4`
+                });
+            }
 
             // 2. Fiches Morceaux (Slides 2 à N)
             musicTracks.forEach((tr, idx) => {
                 const trackNum = idx + 1;
                 const slideNum = idx + 2;
-                const cleanArtist = (tr.artist || '').trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
-                const cleanTitle = (tr.title || `track-${trackNum}`).trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
-                const namePart = [cleanArtist, cleanTitle].filter(Boolean).join('-') || `track-${trackNum}`;
-                slidesToProcess.push({
-                    type: 'TRACK',
-                    slideNum,
-                    trackIdx: idx,
-                    title: `Track ${trackNum} • ${tr.artist ? tr.artist + ' - ' : ''}${tr.title || 'Sans titre'}`,
-                    filename: `${String(slideNum).padStart(2, '0')}-${cleanTheme}-track-${String(trackNum).padStart(2, '0')}-${namePart}-${formatSuffix}.mp4`
-                });
+                if (selectedExportSlides[`slide_${slideNum}`] !== false) {
+                    const cleanArtist = (tr.artist || '').trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+                    const cleanTitle = (tr.title || `track-${trackNum}`).trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+                    const namePart = [cleanArtist, cleanTitle].filter(Boolean).join('-') || `track-${trackNum}`;
+                    slidesToProcess.push({
+                        type: 'TRACK',
+                        slideNum,
+                        trackIdx: idx,
+                        title: `Track ${trackNum} • ${tr.artist ? tr.artist + ' - ' : ''}${tr.title || 'Sans titre'}`,
+                        filename: `${String(slideNum).padStart(2, '0')}-${cleanTheme}-track-${String(trackNum).padStart(2, '0')}-${namePart}-${formatSuffix}.mp4`
+                    });
+                }
             });
 
-            // 3. Outro Promo Dropsiders
-            const promoSlideNum = musicTracks.length + 2;
-            slidesToProcess.push({
-                type: 'PROMO',
-                slideNum: promoSlideNum,
-                title: 'Slide Promo • Outro Dropsiders',
-                filename: `${String(promoSlideNum).padStart(2, '0')}-${cleanTheme}-outro-promo-${formatSuffix}.mp4`
-            });
+            // 3. Outro Promo Dropsiders si sélectionnée
+            if (selectedExportSlides['promo_outro'] !== false) {
+                const promoSlideNum = musicTracks.length + 2;
+                slidesToProcess.push({
+                    type: 'PROMO',
+                    slideNum: promoSlideNum,
+                    title: 'Slide Promo • Outro Dropsiders',
+                    filename: `${String(promoSlideNum).padStart(2, '0')}-${cleanTheme}-outro-promo-${formatSuffix}.mp4`
+                });
+            }
 
             const totalSlides = slidesToProcess.length;
 
@@ -16598,6 +16648,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 } else {
                     promoOutroOverrideRef.current = false;
                     setIsCarouselPromoActive(false);
+                    editorialAfficheOverrideRef.current = false;
+                    setIsEditorialAfficheActive(false);
+                    setIsEditorialTweetActive(false);
                     editorialSlideOverrideRef.current = item.slideNum;
                     setEditorialSlide(item.slideNum);
                     await new Promise(r => setTimeout(r, 120));
@@ -16895,46 +16948,60 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         const zip = exportZip ? new JSZip() : null;
         try {
             // 1. Slide 1 (Cover)
-            setAgendaSlide(1);
-            await new Promise(r => setTimeout(r, 60));
-            await generateImage(format, true);
-            const dataUrl1 = canvasRef.current.toDataURL('image/png');
-            const fileName1 = `${format === 'REEL' ? 'STORY' : 'POST'}-agenda-slide1-cover.png`;
-            if (zip) {
-                zip.file(fileName1, dataUrl1.split(',')[1], { base64: true });
-            } else {
-                const a1 = document.createElement('a');
-                a1.href = dataUrl1;
-                a1.download = fileName1;
-                document.body.appendChild(a1);
-                a1.click();
-                document.body.removeChild(a1);
+            if (!exportZip || selectedExportSlides['slide_1'] !== false) {
+                agendaSlideOverrideRef.current = 1;
+                promoOutroOverrideRef.current = false;
+                setIsCarouselPromoActive(false);
+                setAgendaSlide(1);
+                await new Promise(r => setTimeout(r, 80));
+                await generateImage(format, true);
+                const dataUrl1 = canvasRef.current.toDataURL('image/png');
+                const fileName1 = `${format === 'REEL' ? 'STORY' : 'POST'}-agenda-slide1-cover.png`;
+                if (zip) {
+                    zip.file(fileName1, dataUrl1.split(',')[1], { base64: true });
+                } else {
+                    const a1 = document.createElement('a');
+                    a1.href = dataUrl1;
+                    a1.download = fileName1;
+                    document.body.appendChild(a1);
+                    a1.click();
+                    document.body.removeChild(a1);
+                }
             }
 
             // 2. Slide 2 (Events)
-            await new Promise(r => setTimeout(r, 350));
-            setAgendaSlide(2);
-            await new Promise(r => setTimeout(r, 60));
-            await generateImage(format, true);
-            const dataUrl2 = canvasRef.current.toDataURL('image/png');
-            const fileName2 = `${format === 'REEL' ? 'STORY' : 'POST'}-agenda-slide2-events.png`;
-            if (zip) {
-                zip.file(fileName2, dataUrl2.split(',')[1], { base64: true });
-            } else {
-                const a2 = document.createElement('a');
-                a2.href = dataUrl2;
-                a2.download = fileName2;
-                document.body.appendChild(a2);
-                a2.click();
-                document.body.removeChild(a2);
+            if (!exportZip || selectedExportSlides['slide_2'] !== false) {
+                await new Promise(r => setTimeout(r, 350));
+                agendaSlideOverrideRef.current = 2;
+                promoOutroOverrideRef.current = false;
+                setIsCarouselPromoActive(false);
+                setAgendaSlide(2);
+                await new Promise(r => setTimeout(r, 80));
+                await generateImage(format, true);
+                const dataUrl2 = canvasRef.current.toDataURL('image/png');
+                const fileName2 = `${format === 'REEL' ? 'STORY' : 'POST'}-agenda-slide2-events.png`;
+                if (zip) {
+                    zip.file(fileName2, dataUrl2.split(',')[1], { base64: true });
+                } else {
+                    const a2 = document.createElement('a');
+                    a2.href = dataUrl2;
+                    a2.download = fileName2;
+                    document.body.appendChild(a2);
+                    a2.click();
+                    document.body.removeChild(a2);
+                }
             }
 
             // 3. Slides Affiches (Slide 3..N)
             for (let i = 0; i < agendaAffiches.length; i++) {
                 const sNum = i + 3;
+                if (exportZip && selectedExportSlides[`slide_${sNum}`] === false) continue;
                 await new Promise(r => setTimeout(r, 350));
+                agendaSlideOverrideRef.current = sNum;
+                promoOutroOverrideRef.current = false;
+                setIsCarouselPromoActive(false);
                 setAgendaSlide(sNum);
-                await new Promise(r => setTimeout(r, 60));
+                await new Promise(r => setTimeout(r, 80));
                 await generateImage(format, true);
                 const dataUrlAff = canvasRef.current.toDataURL('image/png');
                 const affTitle = agendaAffiches[i]?.title ? agendaAffiches[i].title.toLowerCase().replace(/[^a-z0-9]+/g, '-') : `event-${i + 1}`;
@@ -16949,6 +17016,22 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     aAff.click();
                     document.body.removeChild(aAff);
                 }
+            }
+
+            // 4. Slide Outro Promo
+            if (exportZip && selectedExportSlides['promo_outro'] !== false && zip) {
+                await new Promise(r => setTimeout(r, 350));
+                agendaSlideOverrideRef.current = null;
+                promoOutroOverrideRef.current = true;
+                setIsCarouselPromoActive(true);
+                await new Promise(r => setTimeout(r, 80));
+                await generateImage(format, true);
+                const dataUrlPromo = canvasRef.current.toDataURL('image/png');
+                const promoNum = 3 + agendaAffiches.length;
+                const fileNamePromo = `${format === 'REEL' ? 'STORY' : 'POST'}-agenda-slide${promoNum}-outro-promo.png`;
+                zip.file(fileNamePromo, dataUrlPromo.split(',')[1], { base64: true });
+                promoOutroOverrideRef.current = false;
+                setIsCarouselPromoActive(false);
             }
 
             if (zip) {
@@ -16966,11 +17049,13 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             console.error(e);
             setErrorMessage("Erreur lors de l'exportation du carrousel.");
         } finally {
+            agendaSlideOverrideRef.current = null;
+            promoOutroOverrideRef.current = false;
             setTimeout(() => {
                 setAgendaSlide(prevSlide);
                 setIsDownloading(false);
                 generateImage();
-            }, 500);
+            }, 300);
         }
     };
 
@@ -17103,7 +17188,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         const prevSlide = artisteFestivalSlide;
         const zip = exportZip ? new JSZip() : null;
         try {
-            const allSlides = [1, 2, ...extraSpotlightSlides];
+            const rawSlides = [1, 2, ...extraSpotlightSlides];
+            const allSlides = exportZip ? rawSlides.filter(s => selectedExportSlides[`slide_${s}`] !== false) : rawSlides;
             for (let i = 0; i < allSlides.length; i++) {
                 const sNum = allSlides[i];
                 handleSwitchSpotlightSlide(sNum);
@@ -17210,37 +17296,50 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         const prevSlide = editorialSlide;
         const prevEventsSlide = eventsSlide;
         const prevAffiche = isEditorialAfficheActive;
+        const prevPromo = isCarouselPromoActive;
         const zip = exportZip ? new JSZip() : null;
         try {
             // 1. Slide 1 (Post)
-            setIsEditorialAfficheActive(false);
-            setEditorialSlide(1);
-            setEventsSlide(1);
-            await new Promise(r => setTimeout(r, 60));
-            await generateImage(format, true);
-            let dataUrl = canvasRef.current.toDataURL('image/png');
-            let fileName = `${format === 'REEL' ? 'STORY' : 'POST'}-event-slide1-post.png`;
-            if (zip) {
-                zip.file(fileName, dataUrl.split(',')[1], { base64: true });
-            } else {
-                let a = document.createElement('a');
-                a.href = dataUrl;
-                a.download = fileName;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
+            if (!exportZip || selectedExportSlides['slide_1'] !== false) {
+                editorialSlideOverrideRef.current = 1;
+                editorialAfficheOverrideRef.current = false;
+                promoOutroOverrideRef.current = false;
+                setIsEditorialAfficheActive(false);
+                setIsCarouselPromoActive(false);
+                setEditorialSlide(1);
+                setEventsSlide(1);
+                await new Promise(r => setTimeout(r, 80));
+                await generateImage(format, true);
+                let dataUrl = canvasRef.current.toDataURL('image/png');
+                let fileName = `${format === 'REEL' ? 'STORY' : 'POST'}-event-slide1-post.png`;
+                if (zip) {
+                    zip.file(fileName, dataUrl.split(',')[1], { base64: true });
+                } else {
+                    let a = document.createElement('a');
+                    a.href = dataUrl;
+                    a.download = fileName;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                }
             }
 
             // 2. Slides normales supplémentaires si ajoutées (Slide 2, 3...)
             for (let i = 0; i < eventNormalSlidesCount; i++) {
                 const sNum = i + 2;
+                if (exportZip && selectedExportSlides[`slide_${sNum}`] === false) continue;
                 await new Promise(r => setTimeout(r, 350));
+                editorialSlideOverrideRef.current = sNum;
+                editorialAfficheOverrideRef.current = false;
+                promoOutroOverrideRef.current = false;
+                setIsEditorialAfficheActive(false);
+                setIsCarouselPromoActive(false);
                 setEditorialSlide(sNum);
                 setEventsSlide(sNum);
-                await new Promise(r => setTimeout(r, 60));
+                await new Promise(r => setTimeout(r, 80));
                 await generateImage(format, true);
-                dataUrl = canvasRef.current.toDataURL('image/png');
-                fileName = `${format === 'REEL' ? 'STORY' : 'POST'}-event-slide${sNum}.png`;
+                const dataUrl = canvasRef.current.toDataURL('image/png');
+                const fileName = `${format === 'REEL' ? 'STORY' : 'POST'}-event-slide${sNum}.png`;
                 if (zip) {
                     zip.file(fileName, dataUrl.split(',')[1], { base64: true });
                 } else {
@@ -17254,26 +17353,50 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             }
 
             // 3. Slide Affiche
-            await new Promise(r => setTimeout(r, 350));
-            editorialAfficheOverrideRef.current = true;
-            setIsEditorialAfficheActive(true);
-            setEventsSlide(2);
-            await new Promise(r => setTimeout(r, 60));
-            await generateImage(format, true);
-            dataUrl = canvasRef.current.toDataURL('image/png');
             const afficheNum = eventNormalSlidesCount === 0 ? 2 : (2 + eventNormalSlidesCount);
-            fileName = `${format === 'REEL' ? 'STORY' : 'POST'}-event-slide${afficheNum}-affiche.png`;
-            if (zip) {
-                zip.file(fileName, dataUrl.split(',')[1], { base64: true });
-            } else {
-                let a = document.createElement('a');
-                a.href = dataUrl;
-                a.download = fileName;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
+            if (!exportZip || (selectedExportSlides['slide_affiche'] !== false && selectedExportSlides[`slide_${afficheNum}`] !== false)) {
+                await new Promise(r => setTimeout(r, 350));
+                editorialSlideOverrideRef.current = null;
+                promoOutroOverrideRef.current = false;
+                setIsCarouselPromoActive(false);
+                editorialAfficheOverrideRef.current = true;
+                setIsEditorialAfficheActive(true);
+                setEventsSlide(2);
+                await new Promise(r => setTimeout(r, 80));
+                await generateImage(format, true);
+                const dataUrl = canvasRef.current.toDataURL('image/png');
+                const fileName = `${format === 'REEL' ? 'STORY' : 'POST'}-event-slide${afficheNum}-affiche.png`;
+                if (zip) {
+                    zip.file(fileName, dataUrl.split(',')[1], { base64: true });
+                } else {
+                    let a = document.createElement('a');
+                    a.href = dataUrl;
+                    a.download = fileName;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                }
+                editorialAfficheOverrideRef.current = false;
+                setIsEditorialAfficheActive(false);
             }
-            editorialAfficheOverrideRef.current = false;
+
+            // 4. Slide Outro Promo
+            if (exportZip && selectedExportSlides['promo_outro'] !== false && zip) {
+                await new Promise(r => setTimeout(r, 350));
+                editorialSlideOverrideRef.current = null;
+                editorialAfficheOverrideRef.current = false;
+                setIsEditorialAfficheActive(false);
+                promoOutroOverrideRef.current = true;
+                setIsCarouselPromoActive(true);
+                await new Promise(r => setTimeout(r, 80));
+                await generateImage(format, true);
+                const dataUrlPromo = canvasRef.current.toDataURL('image/png');
+                const promoNum = afficheNum + 1;
+                const fileNamePromo = `${format === 'REEL' ? 'STORY' : 'POST'}-event-slide${promoNum}-outro-promo.png`;
+                zip.file(fileNamePromo, dataUrlPromo.split(',')[1], { base64: true });
+                promoOutroOverrideRef.current = false;
+                setIsCarouselPromoActive(false);
+            }
 
             if (zip) {
                 const zipBlob = await zip.generateAsync({ type: 'blob', compression: 'DEFLATE', compressionOptions: { level: 6 } });
@@ -17290,13 +17413,17 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             console.error(e);
             setErrorMessage("Erreur lors de l'exportation du carrousel.");
         } finally {
+            editorialSlideOverrideRef.current = null;
+            editorialAfficheOverrideRef.current = false;
+            promoOutroOverrideRef.current = false;
             setTimeout(() => {
                 setEditorialSlide(prevSlide);
                 setEventsSlide(prevEventsSlide);
                 setIsEditorialAfficheActive(prevAffiche);
+                setIsCarouselPromoActive(prevPromo);
                 setIsDownloading(false);
                 generateImage();
-            }, 500);
+            }, 300);
         }
     };
 
@@ -17386,21 +17513,35 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         setIsDownloading(true);
         const prevSlide = editorialSlide;
         const prevAffiche = isEditorialAfficheActive;
+        const prevPromo = isCarouselPromoActive;
+        const prevTweet = isEditorialTweetActive;
         const isMusicTheme = (theme === 'MUSIQUE');
         const shouldSkipSlide2 = (theme !== 'JEU_DJ') && skipEditorialSlide2;
-        const slidesToDownload: number[] = isMusicTheme
+        const allSlides: number[] = isMusicTheme
             ? [1, ...musicTracks.map((_, i) => i + 2)]
             : (shouldSkipSlide2
                 ? [1, ...extraEditorialSlides.map((_, i) => i + 3)]
                 : [1, 2, ...extraEditorialSlides.map((_, i) => i + 3)]);
-        const includeAffiche = Boolean(!isMusicTheme && (afficheImage || isEditorialAfficheActive));
+        const slidesToDownload: number[] = exportZip
+            ? allSlides.filter(s => selectedExportSlides[`slide_${s}`] !== false)
+            : allSlides;
+        const includeAffiche = Boolean(!isMusicTheme && (afficheImage || isEditorialAfficheActive) && (!exportZip || selectedExportSlides['slide_affiche'] !== false));
+        const includePromo = exportZip ? (selectedExportSlides['promo_outro'] !== false && (isMultiSlideTheme || theme === 'PLANNING')) : false;
         const zip = exportZip ? new JSZip() : null;
         try {
             for (let idx = 0; idx < slidesToDownload.length; idx++) {
                 const s = slidesToDownload[idx];
                 if (idx > 0) await new Promise(r => setTimeout(r, 350));
+
+                editorialSlideOverrideRef.current = s;
+                editorialAfficheOverrideRef.current = false;
+                promoOutroOverrideRef.current = false;
+                setIsEditorialAfficheActive(false);
+                setIsCarouselPromoActive(false);
+                setIsEditorialTweetActive(false);
                 setEditorialSlide(s);
-                await new Promise(r => setTimeout(r, 60));
+
+                await new Promise(r => setTimeout(r, 80));
                 await generateImage(format, true);
                 const dataUrl = canvasRef.current.toDataURL('image/png');
                 const suffix = s === 1
@@ -17421,8 +17562,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
             if (includeAffiche) {
                 await new Promise(r => setTimeout(r, 350));
+                promoOutroOverrideRef.current = false;
+                setIsCarouselPromoActive(false);
                 editorialAfficheOverrideRef.current = true;
                 setIsEditorialAfficheActive(true);
+                setIsEditorialTweetActive(false);
                 if (afficheImage) {
                     const resolved = resolveImageUrl(afficheImage);
                     if (!imageCacheRef.current[afficheImage] && !imageCacheRef.current[resolved]) {
@@ -17457,6 +17601,25 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     document.body.removeChild(a);
                 }
                 editorialAfficheOverrideRef.current = false;
+                setIsEditorialAfficheActive(false);
+            }
+
+            if (includePromo && zip) {
+                await new Promise(r => setTimeout(r, 350));
+                editorialSlideOverrideRef.current = null;
+                editorialAfficheOverrideRef.current = false;
+                setIsEditorialAfficheActive(false);
+                setIsEditorialTweetActive(false);
+                promoOutroOverrideRef.current = true;
+                setIsCarouselPromoActive(true);
+                await new Promise(r => setTimeout(r, 80));
+                await generateImage(format, true);
+                const dataUrl = canvasRef.current.toDataURL('image/png');
+                const promoNum = slidesToDownload.length + (includeAffiche ? 2 : 1);
+                const fileNamePromo = `${format === 'REEL' ? 'STORY' : 'POST'}-${theme.toLowerCase().replace(/\s+/g, '-')}-slide${promoNum}-outro-promo.png`;
+                zip.file(fileNamePromo, dataUrl.split(',')[1], { base64: true });
+                promoOutroOverrideRef.current = false;
+                setIsCarouselPromoActive(false);
             }
 
             if (zip) {
@@ -17474,13 +17637,17 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             console.error(e);
             setErrorMessage("Erreur lors de l'exportation du carrousel.");
         } finally {
+            editorialSlideOverrideRef.current = null;
             editorialAfficheOverrideRef.current = false;
+            promoOutroOverrideRef.current = false;
             setTimeout(() => {
                 setEditorialSlide(prevSlide);
                 setIsEditorialAfficheActive(prevAffiche);
+                setIsCarouselPromoActive(prevPromo);
+                setIsEditorialTweetActive(prevTweet);
                 setIsDownloading(false);
                 generateImage();
-            }, 500);
+            }, 300);
         }
     };
 
@@ -26017,7 +26184,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 >
                                     <div className="min-w-0">
                                         <span className="text-[9px] font-black block truncate">🔥 Outro Promo</span>
-                                        <span className="text-[7px] text-gray-400 block truncate">5-7s épurée</span>
+                                        <span className="text-[7px] text-gray-400 block truncate">5-6s épurée</span>
                                     </div>
                                     <div className={`w-4 h-4 rounded-md border flex items-center justify-center shrink-0 ml-1 ${selectedExportSlides.promo_outro !== false ? 'bg-neon-red border-neon-red text-white' : 'border-white/20'}`}>
                                         {selectedExportSlides.promo_outro !== false && <Check className="w-3 h-3 stroke-[3]" />}
