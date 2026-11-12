@@ -844,6 +844,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 ? 'Slide 1 (Cover)'
                                 : `Slide ${audioTargetSlide}`;
 
+        const isInheritingFromSlide1 = !isGlobal && !slideAudios[audioTargetSlide]?.url && Boolean(slideAudios[1]?.url || carouselAudioUrl);
+        const effectiveInheritedAudio = slideAudios[1]?.url ? slideAudios[1] : (carouselAudioUrl ? { url: carouselAudioUrl, title: carouselAudioTitle, artist: carouselAudioArtist, cover: carouselAudioCover, startTime: carouselAudioStartTime, duration: carouselAudioDuration } : null);
+
         return (
             <div className="p-3 rounded-2xl bg-white/[0.04] border border-white/10 space-y-3">
                 <div className="flex items-center justify-between">
@@ -855,10 +858,59 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         <span className="text-[9px] font-mono text-[#00f0ff] bg-[#00f0ff]/10 px-2 py-0.5 rounded border border-[#00f0ff]/30">
                             ✓ Active
                         </span>
+                    ) : isInheritingFromSlide1 ? (
+                        <span className="text-[9px] font-mono text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/30">
+                            🔗 Hérité de Slide 1
+                        </span>
                     ) : (
                         <span className="text-[9px] text-gray-500 font-medium">Optionnelle</span>
                     )}
                 </div>
+
+                {/* Case à cocher : Conserver le son de la vidéo de fond en boucle */}
+                {bgVideo && (
+                    <div 
+                        onClick={() => {
+                            setUseOriginalVideoAudio(!useOriginalVideoAudio);
+                            if (!useOriginalVideoAudio) {
+                                setIsVideoAudioMuted(false);
+                                if (bgVideo) bgVideo.muted = false;
+                            }
+                        }}
+                        className={`p-2.5 rounded-xl border flex items-center justify-between cursor-pointer transition-all ${useOriginalVideoAudio
+                            ? 'bg-[#00ff66]/15 border-[#00ff66]/50 text-white shadow-[0_0_12px_rgba(0,255,102,0.25)]'
+                            : 'bg-white/5 border-white/10 text-gray-400 hover:text-white hover:border-white/20'
+                        }`}
+                    >
+                        <div className="flex items-center gap-2">
+                            <span className="text-base">{useOriginalVideoAudio ? '🔊' : '🔇'}</span>
+                            <div>
+                                <span className="block text-[10px] font-black uppercase text-white">Garder le son de la vidéo de fond</span>
+                                <span className="block text-[8px] text-gray-400">Joue le son de la vidéo en boucle sur toute la story</span>
+                            </div>
+                        </div>
+                        <div className={`w-5 h-5 rounded-md flex items-center justify-center border transition-all ${useOriginalVideoAudio ? 'bg-[#00ff66] border-[#00ff66] text-black font-black text-xs' : 'border-white/20'}`}>
+                            {useOriginalVideoAudio && '✓'}
+                        </div>
+                    </div>
+                )}
+
+                {/* Si la slide actuelle hérite de la Slide 1 sans avoir de son personnalisé */}
+                {isInheritingFromSlide1 && !activeData.url && (
+                    <div className="p-2.5 rounded-xl bg-emerald-950/30 border border-emerald-500/30 flex items-center justify-between gap-2">
+                        <div className="min-w-0">
+                            <span className="block text-[9.5px] font-bold text-emerald-300">
+                                🔗 Cette slide utilise automatiquement le son de la Slide 1 :
+                            </span>
+                            <span className="block text-[9px] text-gray-400 truncate">
+                                "{effectiveInheritedAudio?.title || 'Son principal'}"
+                            </span>
+                        </div>
+                        <span className="text-[8px] font-black uppercase bg-emerald-500/20 text-emerald-300 px-2 py-1 rounded shrink-0">
+                            Par défaut
+                        </span>
+                    </div>
+                )}
 
                 {/* Sélecteur de Cible : Carrousel Global OU Slide par Slide */}
                 <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-[9px] no-scrollbar">
@@ -1171,6 +1223,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const [isExportStudioOpen, setIsExportStudioOpen] = useState<boolean>(false);
     const [exportStudioFormat, setExportStudioFormat] = useState<'PNG' | 'MP4'>('MP4');
     const [exportStudioDimension, setExportStudioDimension] = useState<'POST' | 'REEL'>('POST');
+    const [useOriginalVideoAudio, setUseOriginalVideoAudio] = useState<boolean>(false);
+    const useOriginalVideoAudioRef = useRef<boolean>(false);
+    useEffect(() => { useOriginalVideoAudioRef.current = useOriginalVideoAudio; }, [useOriginalVideoAudio]);
     const [exportStudioType, setExportStudioType] = useState<'SLIDE' | 'ZIP' | 'COMBINED'>('SLIDE');
     const [selectedExportSlides, setSelectedExportSlides] = useState<Record<string, boolean>>({});
     const [modalAudioTargetSlide, setModalAudioTargetSlide] = useState<number | 'global'>('global');
@@ -14481,9 +14536,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             } else {
                 const promoDuration = includePromoOutro ? 10000 : 0;
                 const transitionDuration = currentTransitionDuration;
-                let slideDuration = isReel ? 3000 : (hasVideoBg ? videoDurationMs : Math.round(editorialSlide1Duration * 1000));
+                // Story/Reel ou multi-slides : max 5.0s par slide (même si vidéo de fond), sauf Promo Outro (10s)
+                let slideDuration = isReel
+                    ? 5000
+                    : (hasVideoBg ? Math.min(5000, videoDurationMs) : Math.min(5000, Math.round(editorialSlide1Duration * 1000)));
                 if (isDevinette) {
-                    slideDuration = Math.min(15000, slideDuration);
+                    slideDuration = Math.min(5000, slideDuration);
                 }
                 const numTransitions = Math.max(0, numContentSlides + (includePromoOutro ? 1 : 0) - 1);
                 totalDuration = (numContentSlides * slideDuration) + (numTransitions * transitionDuration) + promoDuration;
@@ -15232,11 +15290,15 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 }
 
                 if (theme !== 'MUSIQUE' && theme !== 'TOP 10 TRACKS') {
+                    // Si l'utilisateur a choisi de garder le son de la vidéo originale, on ne génère pas de timeline MP3
+                    if (useOriginalVideoAudioRef.current && bgVideo) {
+                        return null;
+                    }
                     const currentSlideAudios = slideAudiosRef.current || slideAudios;
                     const availableSlides = getAvailableSlideNumbers();
                     const isReelExport = effectiveTab === 'REEL' || combinedMode === 'TIKTOK' || combinedMode === 'STORY_FAST';
 
-                    // Priorité au son de la Slide 1 (ou son global carrousel)
+                    // Priorité au son de la Slide 1 (ou son global carrousel) : hérité par défaut sur TOUTES les slides
                     const slide1OrGlobalAudio = currentSlideAudios[1]?.url
                         ? currentSlideAudios[1]
                         : (carouselAudioUrl
@@ -16084,9 +16146,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             const rawVideoDurMs = hasVideoBg ? Math.round(bgVideo!.duration * 1000) : 0;
             const videoDurationMs = isDevinette && hasVideoBg ? Math.min(15000, rawVideoDurMs) : rawVideoDurMs;
             let promoDuration = 10000;
-            let slideDuration = isReel ? 3000 : (hasVideoBg ? videoDurationMs : Math.round(editorialSlide1Duration * 1000));
+            // Story/Reel ou multi-slides : max 5.0s par slide (même si vidéo de fond), sauf Promo Outro (10s)
+            let slideDuration = isReel
+                ? 5000
+                : (hasVideoBg ? Math.min(5000, videoDurationMs) : Math.min(5000, Math.round(editorialSlide1Duration * 1000)));
             if (isDevinette) {
-                slideDuration = Math.min(15000, slideDuration);
+                slideDuration = Math.min(5000, slideDuration);
             }
             if (combinedMode === 'TIKTOK') {
                 const numContentSlides = contentSlideNumbers.length + (hasAfficheSlide ? 1 : 0);
@@ -16517,9 +16582,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         // 1. Validation Audio si format MP4
         if (exportStudioFormat === 'MP4') {
             const activeAudio = getActiveAudioData();
+            const hasVideoSound = useOriginalVideoAudio && Boolean(bgVideo);
             const hasAnyAudio = Boolean(
+                hasVideoSound ||
                 activeAudio.url ||
                 carouselAudioUrl ||
+                slideAudios[1]?.url ||
                 Object.values(slideAudios || {}).some(a => Boolean(a?.url)) ||
                 (theme === 'MUSIQUE' && musicTracks.some(t => Boolean(t.audio)))
             );
@@ -26652,7 +26720,13 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         <div className="grid grid-cols-2 gap-2.5">
                             <button
                                 type="button"
-                                onClick={() => setExportStudioDimension('POST')}
+                                onClick={() => {
+                                    setExportStudioDimension('POST');
+                                    if (activeTab !== 'PUBLICATION') {
+                                        setActiveTab('PUBLICATION');
+                                        setTimeout(() => generateImage('PUBLICATION'), 50);
+                                    }
+                                }}
                                 className={`p-3 rounded-2xl border text-left transition flex items-center gap-3 ${exportStudioDimension === 'POST'
                                     ? 'bg-neon-cyan/15 border-neon-cyan text-white shadow-[0_0_15px_rgba(0,240,255,0.25)]'
                                     : 'bg-white/5 border-white/10 text-gray-400 hover:border-white/20 hover:text-white'
@@ -26669,7 +26743,13 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                             <button
                                 type="button"
-                                onClick={() => setExportStudioDimension('REEL')}
+                                onClick={() => {
+                                    setExportStudioDimension('REEL');
+                                    if (activeTab !== 'REEL') {
+                                        setActiveTab('REEL');
+                                        setTimeout(() => generateImage('REEL'), 50);
+                                    }
+                                }}
                                 className={`p-3 rounded-2xl border text-left transition flex items-center gap-3 ${exportStudioDimension === 'REEL'
                                     ? 'bg-neon-purple/15 border-neon-purple text-white shadow-[0_0_15px_rgba(189,0,255,0.25)]'
                                     : 'bg-white/5 border-white/10 text-gray-400 hover:border-white/20 hover:text-white'
