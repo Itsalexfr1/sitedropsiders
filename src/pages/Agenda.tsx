@@ -1,7 +1,6 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSearchParams, Link } from 'react-router-dom';
-import { MapPin, ChevronDown, Filter, ChevronLeft, ChevronRight, X, Edit2, Trash2, CheckSquare, Square, Plus, Calendar, Heart, Search, Instagram, Flame } from 'lucide-react';
-import { useState, useMemo, useEffect } from 'react';
+import { MapPin, ChevronDown, Filter, ChevronLeft, ChevronRight, X, Edit2, Trash2, CheckSquare, Square, Plus, Calendar, Heart, Search, Instagram, Flame } from 'lucide-react';import { useState, useMemo, useEffect } from 'react';
 import { useHoverSound } from '../hooks/useHoverSound';
 import { useLanguage } from '../context/LanguageContext';
 import { getAuthHeaders, isSuperAdmin, hasPermission as checkPerm } from '../utils/auth';
@@ -242,7 +241,6 @@ export function Agenda() {
 
     const CATEGORIES = [
         { id: 'ALL', label: t('agenda.filter_all') },
-        { id: 'MY_SEASON', label: `❤️ MA SÉLECTION (${agendaFavorites.length})` },
         { id: 'LIVE', label: 'LIVE' },
         { id: 'FESTIVAL', label: 'FESTIVAL' },
         { id: 'POOL PARTY', label: 'POOL PARTY' },
@@ -284,9 +282,7 @@ export function Agenda() {
 
                 // Category filter (First, to show correct months)
                 if (activeCategory !== 'ALL') {
-                    if (activeCategory === 'MY_SEASON') {
-                        if (!agendaFavorites.includes(event.id)) return false;
-                    } else if (activeCategory === 'LIVE') {
+                    if (activeCategory === 'LIVE') {
                         if (!event.isLiveDropsiders) return false;
                     } else {
                         const genre = (event.genre || '').toLowerCase();
@@ -498,8 +494,11 @@ export function Agenda() {
                                 className="flex items-center justify-center gap-2.5 px-6 py-4 bg-gradient-to-r from-neon-fuchsia via-[#ee2a7b] to-neon-cyan text-white rounded-2xl font-black uppercase tracking-wider hover:scale-105 transition-all shadow-[0_0_25px_rgba(255,0,255,0.4)] text-xs border border-white/20"
                                 title="Ouvrir mon agenda et carte de saison"
                             >
-                                <Flame className="w-5 h-5 text-white animate-pulse" />
-                                <span>Ma Saison 2026 ({agendaFavorites.length})</span>
+                                <Calendar className="w-5 h-5 text-white" />
+                                <span>Mode Agenda</span>
+                                {agendaFavorites.length > 0 && (
+                                    <span className="ml-1 px-1.5 py-0.5 rounded-full bg-white/25 text-[9px] font-black">{agendaFavorites.length} ❤️</span>
+                                )}
                             </button>
                             {(canEdit || canCreate) && (
                                 <button
