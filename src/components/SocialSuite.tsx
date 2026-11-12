@@ -29428,43 +29428,6 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 )}
                                 {theme !== 'HIGHLIGHTS' && (
                                     <>
-                                        {editorialAffiches.map((aff, idx) => {
-                                            const isAffActive = !isCarouselPromoActive && !isEditorialBlankActive && isEditorialAfficheActive && editorialAfficheIndex === idx;
-                                            return (
-                                                <div key={aff.id || idx} className="relative group">
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => {
-                                                            setIsCarouselPromoActive(false);
-                                                            setIsEditorialTweetActive(false);
-                                                            setIsEditorialBlankActive(false);
-                                                            setEditorialAfficheIndex(idx);
-                                                            setIsEditorialAfficheActive(true);
-                                                            setTimeout(() => generateImage(), 50);
-                                                        }}
-                                                        className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase transition-all flex items-center gap-1.5 ${isAffActive
-                                                            ? 'bg-[#ff3700] text-white shadow-[0_0_12px_rgba(255,55,0,0.5)]'
-                                                            : 'bg-[#ff3700]/10 border border-[#ff3700]/30 text-[#ff3700] hover:bg-[#ff3700]/20'
-                                                            }`}
-                                                    >
-                                                        🖼️ Slide AFFICHE {editorialAffiches.length > 1 ? idx + 1 : ''}
-                                                    </button>
-                                                    {editorialAffiches.length > 1 && (
-                                                        <button
-                                                            type="button"
-                                                            onClick={(e) => {
-                                                                e.stopPropagation();
-                                                                removeEditorialAffiche(idx);
-                                                            }}
-                                                            className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-red-500 hover:bg-red-600 text-white rounded-full text-[9px] font-bold flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-sm"
-                                                            title={`Supprimer l'Affiche ${idx + 1}`}
-                                                        >
-                                                            ✕
-                                                        </button>
-                                                    )}
-                                                </div>
-                                            );
-                                        })}
                                         {editorialAffiches.length < 10 && (
                                             <button
                                                 type="button"
@@ -30153,41 +30116,6 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 )}
                                 {theme !== 'HIGHLIGHTS' && (
                                     <>
-                                        {editorialAffiches.map((aff, idx) => {
-                                            const isAffActive = !isCarouselPromoActive && !isEditorialBlankActive && isEditorialAfficheActive && editorialAfficheIndex === idx;
-                                            return (
-                                                <div key={aff.id || idx} className="flex items-center shrink-0 rounded-xl overflow-hidden bg-white/5 border border-white/10">
-                                                    <button
-                                                        type="button"
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            setIsCarouselPromoActive(false);
-                                                            setIsEditorialTweetActive(false);
-                                                            setIsEditorialBlankActive(false);
-                                                            setEditorialAfficheIndex(idx);
-                                                            setIsEditorialAfficheActive(true);
-                                                            setTimeout(() => generateImage(), 50);
-                                                        }}
-                                                        className={`px-2.5 py-1 text-[8px] font-black uppercase transition-all ${isAffActive ? 'bg-[#ff3700] text-white shadow-md' : 'text-[#ff3700]'}`}
-                                                    >
-                                                        Affiche {editorialAffiches.length > 1 ? idx + 1 : ''}
-                                                    </button>
-                                                    {editorialAffiches.length > 1 && (
-                                                        <button
-                                                            type="button"
-                                                            onClick={(e) => {
-                                                                e.stopPropagation();
-                                                                removeEditorialAffiche(idx);
-                                                            }}
-                                                            className="px-1.5 py-1 text-[8px] font-black text-red-400 hover:bg-red-500/20 border-l border-white/10"
-                                                            title={`Supprimer l'Affiche ${idx + 1}`}
-                                                        >
-                                                            ✕
-                                                        </button>
-                                                    )}
-                                                </div>
-                                            );
-                                        })}
                                         {editorialAffiches.length < 10 && (
                                             <button
                                                 type="button"
