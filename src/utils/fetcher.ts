@@ -1,20 +1,25 @@
-// Cache localStorage pour affichage instantané (stale-while-revalidate côté client)
-const LS_PREFIX = 'dropsiders_cache_';
-const LS_MAX_AGE = 5 * 60 * 1000; // 5 minutes
+import defaultNews from '../data/news.json';
+import defaultRecaps from '../data/recaps.json';
+import defaultAgenda from '../data/agenda.json';
+import defaultGalerie from '../data/galerie.json';
 
-function lsGet(key: string): any | null {
+// Cache localStorage persistant pour affichage instantané (0ms - Stale-While-Revalidate)
+const LS_PREFIX = 'dropsiders_cache_';
+const LS_MAX_AGE = 30 * 24 * 60 * 60 * 1000; // 30 jours (la donnée périmée est affichée immédiatement, puis rafraîchie en tâche de fond)
+
+export function lsGet(key: string): any | null {
     try {
         const raw = localStorage.getItem(LS_PREFIX + key);
         if (!raw) return null;
         const { data, ts } = JSON.parse(raw);
-        if (Date.now() - ts > LS_MAX_AGE) return null; // expiré
+        if (Date.now() - ts > LS_MAX_AGE) return null;
         return data;
     } catch {
         return null;
     }
 }
 
-function lsSet(key: string, data: any) {
+export function lsSet(key: string, data: any) {
     try {
         localStorage.setItem(LS_PREFIX + key, JSON.stringify({ data, ts: Date.now() }));
     } catch {
@@ -23,17 +28,42 @@ function lsSet(key: string, data: any) {
 }
 
 function urlKey(url: string): string {
-    // Supprime le domaine, garde juste le chemin comme clé
     try { return new URL(url, location.origin).pathname; } catch { return url; }
 }
 
 /**
- * Fetcher stale-while-revalidate :
- * 1. Retourne immédiatement les données du cache localStorage si disponibles
- * 2. Lance le fetch réseau en parallèle
- * 3. Met à jour le cache et appelle onUpdate() si les données ont changé
- *
- * Pour un affichage instantané, passe un setter React en `onUpdate`.
+ * Données initiales synchrones garanties en 0ms (Cache LocalStorage prioritaire, sinon bundle JSON)
+ * Permet à React d'afficher les articles dès le frame 0 sans AUCUN spinner ni squelette !
+ */
+export function getInitialNews(): any[] {
+    const cached = lsGet('/api/news');
+    if (Array.isArray(cached) && cached.length > 0) return cached;
+    return defaultNews as any[];
+}
+
+export function getInitialRecaps(): any[] {
+    const cached = lsGet('/api/recaps');
+    if (Array.isArray(cached) && cached.length > 0) return cached;
+    return defaultRecaps as any[];
+}
+
+export function getInitialAgenda(): any[] {
+    const cached = lsGet('/api/agenda');
+    if (Array.isArray(cached) && cached.length > 0) return cached;
+    return defaultAgenda as any[];
+}
+
+export function getInitialGalerie(): any[] {
+    const cached = lsGet('/api/galerie');
+    if (Array.isArray(cached) && cached.length > 0) return cached;
+    return defaultGalerie as any[];
+}
+
+/**
+ * Fetcher Stale-While-Revalidate universel :
+ * 1. Retourne instantanément (0ms) les données en cache ou du bundle local
+ * 2. Déclenche la vérification réseau en arrière-plan sans bloquer l'UI
+ * 3. Appelle onUpdate() de manière transparente si de nouveaux articles sont détectés
  */
 export async function fetchWithFallback(
     url: string,
@@ -43,7 +73,16 @@ export async function fetchWithFallback(
     const key = urlKey(url);
     const cached = lsGet(key);
 
-    // Lance le fetch réseau immédiatement (en parallèle)
+    // Données locales de secours instantanées
+    const fallbackData = 
+        url.includes('/api/news') ? defaultNews :
+        url.includes('/api/recaps') ? defaultRecaps :
+        url.includes('/api/agenda') ? defaultAgenda :
+        url.includes('/api/galerie') ? defaultGalerie : null;
+
+    const instantData = cached || fallbackData;
+
+    // Lance le rafraîchissement réseau en fond
     const networkPromise = (async () => {
         try {
             const res = await fetch(url, options);
@@ -58,49 +97,28 @@ export async function fetchWithFallback(
                 }
             }
         } catch (e) {
-            console.error(`Fetch failed for ${url}:`, e);
+            console.warn(`[fetchWithFallback] Background revalidation failed for ${url}:`, e);
         }
         return null;
     })();
 
-    if (cached) {
-        // Données fraîches en cache → affichage instantané, mise à jour silencieuse en fond
+    if (instantData) {
+        // Affichage immédiat (0ms), revalidation silencieuse en arrière-plan
         networkPromise.then((fresh) => {
             if (fresh && onUpdate) {
-                // Compare sommaire pour éviter un re-render inutile
                 const freshStr = JSON.stringify(fresh).slice(0, 500);
-                const cachedStr = JSON.stringify(cached).slice(0, 500);
-                if (freshStr !== cachedStr) onUpdate(fresh);
+                const localStr = JSON.stringify(instantData).slice(0, 500);
+                if (freshStr !== localStr) {
+                    onUpdate(fresh);
+                }
             }
         });
-        return cached;
+        return instantData;
     }
 
-    // Pas de cache → attend le réseau
+    // Si vraiment aucune donnée locale disponible, on attend le réseau
     const fresh = await networkPromise;
     if (fresh) return fresh;
 
-    // Réseau KO → fallback JSON lazy (hors bundle initial)
-    try {
-        if (url.includes('/api/news')) {
-            const m = await import('../data/news.json');
-            return m.default;
-        }
-        if (url.includes('/api/recaps')) {
-            const m = await import('../data/recaps.json');
-            return m.default;
-        }
-        if (url.includes('/api/agenda')) {
-            const m = await import('../data/agenda.json');
-            return m.default;
-        }
-        if (url.includes('/api/galerie')) {
-            const m = await import('../data/galerie.json');
-            return m.default;
-        }
-    } catch (fe) {
-        console.error(`Fallback load failed for ${url}:`, fe);
-    }
-
-    return null;
+    return fallbackData;
 }

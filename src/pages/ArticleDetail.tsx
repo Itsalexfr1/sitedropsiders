@@ -1,9 +1,10 @@
 import { useParams, Link } from 'react-router-dom';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import { extractIdFromSlug } from '../utils/slugify';
 import { getNewsContent } from '../utils/contentLoader';
 import { trackPageView } from '../utils/analytics';
+import { getInitialNews, fetchWithFallback } from '../utils/fetcher';
 import ArticlePremiumTemplate from '../templates/ArticlePremiumTemplate';
 import { SEO } from '../components/utils/SEO';
 
@@ -12,26 +13,42 @@ export function ArticleDetail() {
     const { id } = useParams();
 
     const articleId = extractIdFromSlug(id || '');
-    const [newsData, setNewsData] = useState<any[]>([]);
-    const [isNewsLoading, setIsNewsLoading] = useState(true);
-    const article = newsData.find(item => 
-        item.id === articleId || 
-        (item.link && item.link.includes(`/${articleId}_`)) ||
-        (item.link && item.link.endsWith(`-${articleId}`))
-    );
+    
+    // Initialisation synchrone instantanée (0ms) depuis le cache LocalStorage ou le bundle
+    const [newsData, setNewsData] = useState<any[]>(() => getInitialNews());
 
-    const [liveContent, setLiveContent] = useState<string | null>(null);
-    const [isLoadingContent, setIsLoadingContent] = useState(true);
+    const article = useMemo(() => {
+        return newsData.find(item => 
+            String(item.id) === String(articleId) || 
+            (item.link && item.link.includes(`/${articleId}_`)) ||
+            (item.link && item.link.endsWith(`-${articleId}`))
+        );
+    }, [newsData, articleId]);
 
+    // Contenu synchrone compilé disponible en 0ms
+    const staticContent = useMemo(() => {
+        if (!articleId) return '';
+        return getNewsContent(articleId) || '';
+    }, [articleId]);
+
+    const [liveContent, setLiveContent] = useState<string | null>(staticContent || null);
+    const [isNewsLoading, setIsNewsLoading] = useState<boolean>(!article && newsData.length === 0);
+    const [isLoadingContent, setIsLoadingContent] = useState<boolean>(!staticContent);
+
+    // Revalidation des news en arrière-plan (sans bloquer l'affichage)
     useEffect(() => {
         const fetchNews = async () => {
             try {
-                const res = await fetch('/api/news');
-                if (res.ok) {
-                    setNewsData(await res.json());
+                const fresh = await fetchWithFallback('/api/news', {}, (updated) => {
+                    if (Array.isArray(updated) && updated.length > 0) {
+                        setNewsData(updated);
+                    }
+                });
+                if (Array.isArray(fresh) && fresh.length > 0) {
+                    setNewsData(fresh);
                 }
             } catch (e) {
-                console.error('Failed to fetch news data:', e);
+                console.warn('[ArticleDetail] Failed to revalidate news list:', e);
             } finally {
                 setIsNewsLoading(false);
             }
@@ -46,32 +63,36 @@ export function ArticleDetail() {
         }
     }, [articleId, article]);
 
-    // Fetch live content from API so edits are always reflected without redeploy
+    // Vérification du contenu mis à jour en direct (ex: modification admin) en arrière-plan
     useEffect(() => {
         if (!articleId) {
             setIsLoadingContent(false);
             return;
         }
-        setIsLoadingContent(true);
+
+        let isMounted = true;
         const fetchContent = async () => {
             try {
                 const res = await fetch(`/api/news/content?id=${articleId}`);
                 if (res.ok) {
                     const data = await res.json();
-                    if (data.content) {
+                    if (isMounted && data.content && data.content.trim()) {
                         setLiveContent(data.content);
-                        setIsLoadingContent(false);
-                        return;
                     }
                 }
             } catch (e) {
-                console.warn('[ArticleDetail] API content fetch failed, falling back to static bundle.', e);
+                // Silencieux : on a déjà le contenu statique affiché
+            } finally {
+                if (isMounted) {
+                    setIsLoadingContent(false);
+                }
             }
-            // Fallback: use bundled content
-            setLiveContent(null);
-            setIsLoadingContent(false);
         };
+
         fetchContent();
+        return () => {
+            isMounted = false;
+        };
     }, [articleId]);
 
     if (isNewsLoading) {

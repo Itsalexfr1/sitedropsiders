@@ -8,15 +8,17 @@ import { standardizeContent } from '../../utils/standardizer';
 import { getCategoryColor } from '../../utils/theme';
 import { useMemo, useState, useEffect } from 'react';
 import { TopTracksLeaderboard } from '../widgets/TopTracksLeaderboard';
-import { fetchWithFallback } from '../../utils/fetcher';
+import { fetchWithFallback, getInitialNews, getInitialAgenda, getInitialRecaps, getInitialGalerie } from '../../utils/fetcher';
 
 
 export function MobileHome() {
     const { t, language } = useLanguage();
-    const [newsData, setNewsData] = useState<any[]>([]);
-    const [agendaData, setAgendaData] = useState<any[]>([]);
-    const [recapsData, setRecapsData] = useState<any[]>([]);
-    const [galerieData, setGalerieData] = useState<any[]>([]);
+    
+    // Affichage immédiat en 0ms
+    const [newsData, setNewsData] = useState<any[]>(() => getInitialNews());
+    const [agendaData, setAgendaData] = useState<any[]>(() => getInitialAgenda());
+    const [recapsData, setRecapsData] = useState<any[]>(() => getInitialRecaps());
+    const [galerieData, setGalerieData] = useState<any[]>(() => getInitialGalerie());
     const [translatedTitles, setTranslatedTitles] = useState<Record<string, string>>({});
 
     useEffect(() => {

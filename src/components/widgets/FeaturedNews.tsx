@@ -6,45 +6,49 @@ import { getArticleLink } from '../../utils/slugify';
 import { translateText } from '../../utils/translate';
 import { resolveImageUrl } from '../../utils/image';
 import { useState, useEffect, useMemo } from 'react';
-import { fetchWithFallback } from '../../utils/fetcher';
+import { fetchWithFallback, getInitialNews, getInitialRecaps } from '../../utils/fetcher';
 import { getCategoryColor } from '../../utils/theme';
 import { standardizeContent } from '../../utils/standardizer';
+
+const buildCombinedNews = (news: any[], recaps: any[], interviews: any[]) => {
+    let combined: any[] = [];
+    if (Array.isArray(news)) combined = [...combined, ...news];
+    if (Array.isArray(recaps)) {
+        const writtenRecaps = recaps
+            .filter(r => (r.summary && r.summary.trim().length > 10) || (r.content && r.content.trim().length > 10))
+            .map(r => {
+                let title = r.title || "";
+                if (!title.toLowerCase().startsWith('récap') && !title.toLowerCase().startsWith('recap')) {
+                    title = `Récap : ${title}`;
+                }
+                return { ...r, title: title.toUpperCase() };
+            });
+        combined = [...combined, ...writtenRecaps];
+    }
+    if (Array.isArray(interviews)) {
+        combined = [...combined, ...interviews.map(i => ({ ...i, category: 'INTERVIEW' }))];
+    }
+    return combined;
+};
 
 export function FeaturedNews({ accentColor = 'red', resolvedColor }: { accentColor?: string, resolvedColor?: string }) {
     const color = resolvedColor || `var(--color-neon-${accentColor})`;
     const { t, language } = useLanguage();
     const playHoverSound = useHoverSound();
-    const [newsData, setNewsData] = useState<any[]>([]);
+    
+    // Initialisation instantanée 0ms (Cache LocalStorage ou Bundle direct)
+    const [newsData, setNewsData] = useState<any[]>(() => {
+        return buildCombinedNews(getInitialNews(), getInitialRecaps(), []);
+    });
 
     useEffect(() => {
-        const buildCombined = (news: any[], recaps: any[], interviews: any[]) => {
-            let combined: any[] = [];
-            if (Array.isArray(news)) combined = [...combined, ...news];
-            if (Array.isArray(recaps)) {
-                const writtenRecaps = recaps
-                    .filter(r => (r.summary && r.summary.trim().length > 10) || (r.content && r.content.trim().length > 10))
-                    .map(r => {
-                        let title = r.title || "";
-                        if (!title.toLowerCase().startsWith('récap') && !title.toLowerCase().startsWith('recap')) {
-                            title = `Récap : ${title}`;
-                        }
-                        return { ...r, title: title.toUpperCase() };
-                    });
-                combined = [...combined, ...writtenRecaps];
-            }
-            if (Array.isArray(interviews)) {
-                combined = [...combined, ...interviews.map(i => ({ ...i, category: 'INTERVIEW' }))];
-            }
-            return combined;
-        };
-
         // Mise à jour silencieuse si l'API retourne de nouvelles données (stale-while-revalidate)
         const onFreshData = (type: 'news' | 'recaps' | 'interviews', fresh: any[]) => {
             setNewsData(prev => {
                 const news = type === 'news' ? fresh : prev.filter(x => !x.summary && x.category !== 'INTERVIEW');
                 const recaps = type === 'recaps' ? fresh : prev.filter(x => x.summary);
                 const interviews = type === 'interviews' ? fresh : prev.filter(x => x.category === 'INTERVIEW');
-                return buildCombined(news, recaps, interviews);
+                return buildCombinedNews(news, recaps, interviews);
             });
         };
 
@@ -55,7 +59,7 @@ export function FeaturedNews({ accentColor = 'red', resolvedColor }: { accentCol
                     fetchWithFallback('/api/recaps', {}, (f) => onFreshData('recaps', f)),
                     fetchWithFallback('/api/interviews', {}, (f) => onFreshData('interviews', f)),
                 ]);
-                setNewsData(buildCombined(news || [], recaps || [], interviews || []));
+                setNewsData(buildCombinedNews(news || [], recaps || [], interviews || []));
             } catch (err) {
                 console.error('Failed to fetch data for featured widget:', err);
             }

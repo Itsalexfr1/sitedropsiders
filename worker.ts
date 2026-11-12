@@ -4974,12 +4974,17 @@ ${urls.map(u => `  <url>
             const file = await fetchGitHubFile(FILE_PATH, gitConfig);
             let news = file ? file.content : [];
             
-            // Si non authentifié, on masque les brouillons
+            // Si non authentifié, on masque les brouillons et on autorise le cache CDN Cloudflare
             if (!authenticated) {
                 news = news.filter((item: any) => !item.isDraft);
+                const cdnHeaders = {
+                    ...headers,
+                    'Cache-Control': 'public, max-age=60, s-maxage=120, stale-while-revalidate=86400'
+                };
+                return new Response(JSON.stringify(news), { status: 200, headers: cdnHeaders });
             }
             
-            return new Response(JSON.stringify(news), { status: 200, headers });
+            return new Response(JSON.stringify(news), { status: 200, headers: { ...headers, 'Cache-Control': 'no-store' } });
         }
 
         // --- EXTENSION API ---
@@ -5016,19 +5021,31 @@ ${urls.map(u => `  <url>
         if (path === '/api/recaps' && request.method === 'GET') {
             const FILE_PATH = 'src/data/recaps.json';
             const file = await fetchGitHubFile(FILE_PATH, gitConfig);
-            return new Response(JSON.stringify(file ? file.content : []), { status: 200, headers });
+            const cdnHeaders = {
+                ...headers,
+                'Cache-Control': 'public, max-age=60, s-maxage=120, stale-while-revalidate=86400'
+            };
+            return new Response(JSON.stringify(file ? file.content : []), { status: 200, headers: cdnHeaders });
         }
 
         if (path === '/api/agenda' && request.method === 'GET') {
             const FILE_PATH = 'src/data/agenda.json';
             const file = await fetchGitHubFile(FILE_PATH, gitConfig);
-            return new Response(JSON.stringify(file ? file.content : []), { status: 200, headers });
+            const cdnHeaders = {
+                ...headers,
+                'Cache-Control': 'public, max-age=60, s-maxage=120, stale-while-revalidate=86400'
+            };
+            return new Response(JSON.stringify(file ? file.content : []), { status: 200, headers: cdnHeaders });
         }
 
         if (path === '/api/galerie' && request.method === 'GET') {
             const FILE_PATH = 'src/data/galerie.json';
             const file = await fetchGitHubFile(FILE_PATH, gitConfig);
-            return new Response(JSON.stringify(file ? file.content : []), { status: 200, headers });
+            const cdnHeaders = {
+                ...headers,
+                'Cache-Control': 'public, max-age=60, s-maxage=120, stale-while-revalidate=86400'
+            };
+            return new Response(JSON.stringify(file ? file.content : []), { status: 200, headers: cdnHeaders });
         }
 
         // --- API: ADMIN OAUTH & 2FA ---
@@ -9793,14 +9810,18 @@ ${urls.map(u => `  <url>
             if (!TOKEN) return new Response(JSON.stringify({ error: 'Config missing' }), { status: 500, headers });
             const id = parseInt(url.searchParams.get('id') || '0');
             if (!id) return new Response(JSON.stringify({ error: 'Missing id' }), { status: 400, headers });
+            const cdnHeaders = {
+                ...headers,
+                'Cache-Control': 'public, max-age=300, s-maxage=600, stale-while-revalidate=86400'
+            };
             for (const filePath of NEWS_CONTENT_FILES) {
                 const cFile = await fetchGitHubFile(filePath, gitConfig);
                 if (cFile && Array.isArray(cFile.content)) {
                     const item = cFile.content.find(i => i.id === id);
-                    if (item) return new Response(JSON.stringify({ content: item.content }), { status: 200, headers });
+                    if (item) return new Response(JSON.stringify({ content: item.content }), { status: 200, headers: cdnHeaders });
                 }
             }
-            return new Response(JSON.stringify({ content: '' }), { status: 200, headers });
+            return new Response(JSON.stringify({ content: '' }), { status: 200, headers: cdnHeaders });
         }
 
         // --- API: GET RECAPS CONTENT ---
@@ -9808,14 +9829,18 @@ ${urls.map(u => `  <url>
             if (!TOKEN) return new Response(JSON.stringify({ error: 'Config missing' }), { status: 500, headers });
             const id = parseInt(url.searchParams.get('id') || '0');
             if (!id) return new Response(JSON.stringify({ error: 'Missing id' }), { status: 400, headers });
+            const cdnHeaders = {
+                ...headers,
+                'Cache-Control': 'public, max-age=300, s-maxage=600, stale-while-revalidate=86400'
+            };
             for (const filePath of RECAPS_CONTENT_FILES) {
                 const cFile = await fetchGitHubFile(filePath, gitConfig);
                 if (cFile && Array.isArray(cFile.content)) {
                     const item = cFile.content.find(i => i.id === id);
-                    if (item) return new Response(JSON.stringify({ content: item.content }), { status: 200, headers });
+                    if (item) return new Response(JSON.stringify({ content: item.content }), { status: 200, headers: cdnHeaders });
                 }
             }
-            return new Response(JSON.stringify({ content: '' }), { status: 200, headers });
+            return new Response(JSON.stringify({ content: '' }), { status: 200, headers: cdnHeaders });
         }
 
         // --- API: PHOTO SUBMISSIONS ---

@@ -14,7 +14,7 @@ import { AdminEditBar } from '../components/admin/AdminEditBar';
 import { resolveImageUrl } from '../utils/image';
 import { getCategoryColor } from '../utils/theme';
 import { Plus, FileText } from 'lucide-react';
-import { fetchWithFallback } from '../utils/fetcher';
+import { fetchWithFallback, getInitialNews } from '../utils/fetcher';
 
 type TabKey = 'all' | 'news' | 'musique' | 'focus' | 'sets-mixes';
 
@@ -31,8 +31,10 @@ export function News() {
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
     const tabParam = searchParams.get('tab') as TabKey;
-    const [newsData, setNewsData] = useState<any[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
+    
+    // Affichage immédiat en 0ms
+    const [newsData, setNewsData] = useState<any[]>(() => getInitialNews());
+    const [isLoading, setIsLoading] = useState<boolean>(() => getInitialNews().length === 0);
     const [currentPage, setCurrentPage] = useState(1);
     const [direction, setDirection] = useState(0);
     const [isAdmin, setIsAdmin] = useState(false);
@@ -68,8 +70,12 @@ export function News() {
 
         const fetchNews = async () => {
             try {
-                const data = await fetchWithFallback('/api/news', { headers: getAuthHeaders() });
-                if (data) {
+                const data = await fetchWithFallback('/api/news', { headers: getAuthHeaders() }, (updated) => {
+                    if (Array.isArray(updated) && updated.length > 0) {
+                        setNewsData(updated);
+                    }
+                });
+                if (data && Array.isArray(data) && data.length > 0) {
                     setNewsData(data);
                 }
             } catch (e) {
