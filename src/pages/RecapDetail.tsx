@@ -1,48 +1,65 @@
 import { useParams, Link } from 'react-router-dom';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import { extractIdFromSlug } from '../utils/slugify';
 import { getRecapContent } from '../utils/contentLoader';
 import { trackPageView } from '../utils/analytics';
+import { getInitialRecaps, fetchWithFallback } from '../utils/fetcher';
 import ArticlePremiumTemplate from '../templates/ArticlePremiumTemplate';
 import { useHoverSound } from '../hooks/useHoverSound';
 import { SEO } from '../components/utils/SEO';
+
+const formatRecapTitle = (item: any) => {
+    let title = item.title || "";
+    if (!title.toLowerCase().startsWith('récap') && !title.toLowerCase().startsWith('recap')) {
+        title = `Récap : ${title}`;
+    }
+    return { ...item, title: title.toUpperCase() };
+};
 
 export function RecapDetail() {
     const { t } = useLanguage();
     const { id } = useParams();
     const playHoverSound = useHoverSound();
-    const [recapsData, setRecapsData] = useState<any[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
-    const [liveContent, setLiveContent] = useState<string | null>(null);
-    const [isLoadingContent, setIsLoadingContent] = useState(true);
-
     const recapId = extractIdFromSlug(id || '');
-    const recap = (recapsData as any[]).find((item: any) => 
-        item.id === recapId || 
-        (item.link && item.link.includes(`/${recapId}_`)) ||
-        (item.link && item.link.endsWith(`-${recapId}`))
-    );
 
+    // Initialisation instantanée 0ms depuis le cache persistant ou le bundle
+    const [recapsData, setRecapsData] = useState<any[]>(() => {
+        return getInitialRecaps().map(formatRecapTitle);
+    });
+
+    const recap = useMemo(() => {
+        return (recapsData as any[]).find((item: any) => 
+            String(item.id) === String(recapId) || 
+            (item.link && item.link.includes(`/${recapId}_`)) ||
+            (item.link && item.link.endsWith(`-${recapId}`))
+        );
+    }, [recapsData, recapId]);
+
+    // Contenu synchrone compilé disponible en 0ms
+    const staticContent = useMemo(() => {
+        if (!recapId) return '';
+        return getRecapContent(recapId) || '';
+    }, [recapId]);
+
+    const [liveContent, setLiveContent] = useState<string | null>(staticContent || null);
+    const [isLoading, setIsLoading] = useState<boolean>(!recap && recapsData.length === 0);
+    const [isLoadingContent, setIsLoadingContent] = useState<boolean>(!staticContent);
+
+    // Revalidation silencieuse en arrière-plan
     useEffect(() => {
         const fetchRecaps = async () => {
             try {
-                const res = await fetch('/api/recaps');
-                if (res.ok) {
-                    const data = await res.json();
-                    if (Array.isArray(data)) {
-                        const formatted = data.map(item => {
-                            let title = item.title || "";
-                            if (!title.toLowerCase().startsWith('récap') && !title.toLowerCase().startsWith('recap')) {
-                                title = `Récap : ${title}`;
-                            }
-                            return { ...item, title: title.toUpperCase() };
-                        });
-                        setRecapsData(formatted);
+                const fresh = await fetchWithFallback('/api/recaps', {}, (updated) => {
+                    if (Array.isArray(updated) && updated.length > 0) {
+                        setRecapsData(updated.map(formatRecapTitle));
                     }
+                });
+                if (Array.isArray(fresh) && fresh.length > 0) {
+                    setRecapsData(fresh.map(formatRecapTitle));
                 }
             } catch (e) {
-                console.error('Error fetching recaps:', e);
+                console.warn('[RecapDetail] Failed to revalidate recaps:', e);
             } finally {
                 setIsLoading(false);
             }
@@ -57,33 +74,36 @@ export function RecapDetail() {
         }
     }, [recapId, recap]);
 
-    // Fetch live content from API so edits are always reflected without redeploy
+    // Vérification de contenu live mis à jour en tâche de fond (ex: admin edit)
     useEffect(() => {
         if (!recapId) {
             setIsLoadingContent(false);
             return;
         }
-        setIsLoadingContent(true);
+
+        let isMounted = true;
         const fetchContent = async () => {
             try {
                 const res = await fetch(`/api/recaps/content?id=${recapId}`);
                 if (res.ok) {
                     const data = await res.json();
                     const content = data.content || (data.recap && data.recap.content) || '';
-                    if (content) {
+                    if (isMounted && content && content.trim()) {
                         setLiveContent(content);
-                        setIsLoadingContent(false);
-                        return;
                     }
                 }
             } catch (e) {
-                console.warn('[RecapDetail] API content fetch failed, falling back to static bundle.', e);
+                // Silencieux : contenu statique déjà affiché en 0ms
+            } finally {
+                if (isMounted) {
+                    setIsLoadingContent(false);
+                }
             }
-            // Fallback: use bundled content
-            setLiveContent(null);
-            setIsLoadingContent(false);
         };
         fetchContent();
+        return () => {
+            isMounted = false;
+        };
     }, [recapId]);
 
     if (isLoading) {

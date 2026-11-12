@@ -1,4 +1,4 @@
-﻿import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate, Link } from 'react-router-dom';
 import { Camera } from 'lucide-react';
 import { useState, useMemo, useEffect } from 'react';
@@ -17,6 +17,8 @@ import { SEO } from '../components/utils/SEO';
 
 const ALBUMS_PER_PAGE = 8;
 
+import { getInitialGalerie, fetchWithFallback } from '../utils/fetcher';
+
 export function Galerie() {
     const { t } = useLanguage();
     const navigate = useNavigate();
@@ -25,19 +27,22 @@ export function Galerie() {
     const [isAdmin, setIsAdmin] = useState(false);
     const [clips, setClips] = useState<any[]>([]);
     const [selectedClip, setSelectedClip] = useState<any>(null);
-    const [galerieData, setGalerieData] = useState<any[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
+    
+    // Affichage immédiat en 0ms
+    const [galerieData, setGalerieData] = useState<any[]>(() => getInitialGalerie());
+    const [isLoading, setIsLoading] = useState<boolean>(() => getInitialGalerie().length === 0);
 
     useEffect(() => {
         const fetchGalerie = async () => {
             try {
-                const res = await fetch('/api/galerie');
-                if (res.ok) {
-                    const data = await res.json();
-                    setGalerieData(data);
+                const fresh = await fetchWithFallback('/api/galerie', {}, (updated) => {
+                    if (Array.isArray(updated) && updated.length > 0) setGalerieData(updated);
+                });
+                if (Array.isArray(fresh) && fresh.length > 0) {
+                    setGalerieData(fresh);
                 }
             } catch (error) {
-                console.error('Failed to fetch galerie data:', error);
+                console.warn('[Galerie] Background revalidation error:', error);
             } finally {
                 setIsLoading(false);
             }

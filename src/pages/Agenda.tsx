@@ -17,6 +17,7 @@ import { SEO } from '../components/utils/SEO';
 import { AdminEditBar } from '../components/admin/AdminEditBar';
 import { resolveImageUrl } from '../utils/image';
 import { useUser } from '../context/UserContext';
+import { getInitialAgenda, fetchWithFallback } from '../utils/fetcher';
 
 export const normalizeAgendaGenre = (g: string | undefined): string => {
     if (!g) return '';
@@ -25,6 +26,14 @@ export const normalizeAgendaGenre = (g: string | undefined): string => {
         return 'Hard Music';
     }
     return g;
+};
+
+const normalizeAgendaEvents = (data: any[]) => {
+    return (Array.isArray(data) ? data : []).map((e: any) => ({
+        ...e,
+        country: e.country && /états-unis|etats-unis|united states/i.test(e.country) ? 'USA' : e.country,
+        location: (e.location || '').replace(/états-unis d'amérique|etats-unis d'amérique|états-unis|etats-unis/gi, 'USA')
+    }));
 };
 
 export function Agenda() {
@@ -48,10 +57,12 @@ export function Agenda() {
     const canCreate = hasPermission('create');
     const canEdit = hasPermission('edit');
     const canDelete = hasPermission('delete');
-    const [agendaData, setAgendaData] = useState<any[]>([]);
+    
+    // Affichage instantané 0ms
+    const [agendaData, setAgendaData] = useState<any[]>(() => normalizeAgendaEvents(getInitialAgenda()));
     const [isSocialSuiteOpen, setIsSocialSuiteOpen] = useState(false);
     const [socialEvent, setSocialEvent] = useState<any | null>(null);
-    const [isLoading, setIsLoading] = useState(true);
+    const [isLoading, setIsLoading] = useState<boolean>(() => getInitialAgenda().length === 0);
     const [selectedEvents, setSelectedEvents] = useState<Set<number>>(new Set());
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [editingEvent, setEditingEvent] = useState<any>(null);
@@ -67,15 +78,13 @@ export function Agenda() {
 
     const fetchAgenda = async () => {
         try {
-            const response = await fetch('/api/agenda');
-            if (response.ok) {
-                const data = await response.json();
-                const normalizedData = (Array.isArray(data) ? data : []).map((e: any) => ({
-                    ...e,
-                    country: e.country && /états-unis|etats-unis|united states/i.test(e.country) ? 'USA' : e.country,
-                    location: (e.location || '').replace(/états-unis d'amérique|etats-unis d'amérique|états-unis|etats-unis/gi, 'USA')
-                }));
-                setAgendaData(normalizedData);
+            const data = await fetchWithFallback('/api/agenda', {}, (fresh) => {
+                if (Array.isArray(fresh) && fresh.length > 0) {
+                    setAgendaData(normalizeAgendaEvents(fresh));
+                }
+            });
+            if (data && Array.isArray(data) && data.length > 0) {
+                setAgendaData(normalizeAgendaEvents(data));
             }
             try {
                 const response = await fetch('/api/settings');

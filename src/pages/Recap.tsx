@@ -13,6 +13,8 @@ import { translateText } from '../utils/translate';
 import { getAuthHeaders } from '../utils/auth';
 import { resolveImageUrl } from '../utils/image';
 
+import { getInitialRecaps, getInitialGalerie, fetchWithFallback } from '../utils/fetcher';
+
 type TabKey = 'all' | 'reportage';
 
 const TABS: { key: TabKey; label: string; activeClass: string; inactiveClass: string }[] = [
@@ -27,27 +29,32 @@ export function Recap() {
     const [direction, setDirection] = useState(0);
     const [activeTab, setActiveTab] = useState<TabKey>('all');
     const [isAdmin, setIsAdmin] = useState(false);
-    const [recapsData, setRecapsData] = useState<any[]>([]);
-    const [galerieData, setGalerieData] = useState<any[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
+    
+    // Affichage immédiat en 0ms
+    const [recapsData, setRecapsData] = useState<any[]>(() => getInitialRecaps());
+    const [galerieData, setGalerieData] = useState<any[]>(() => getInitialGalerie());
+    const [isLoading, setIsLoading] = useState<boolean>(() => getInitialRecaps().length === 0);
 
     useEffect(() => {
         setIsAdmin(localStorage.getItem('admin_auth_v2') === 'true');
     }, []);
 
-    // Fetch recaps & galerie live so new content appears without a redeploy
+    // Revalidation en tâche de fond (stale-while-revalidate)
     useEffect(() => {
         const loadData = async () => {
-            setIsLoading(true);
             try {
-                const [recapsRes, galerieRes] = await Promise.all([
-                    fetch('/api/recaps'),
-                    fetch('/api/galerie'),
+                const [recaps, galerie] = await Promise.all([
+                    fetchWithFallback('/api/recaps', {}, (fresh) => {
+                        if (Array.isArray(fresh) && fresh.length > 0) setRecapsData(fresh);
+                    }),
+                    fetchWithFallback('/api/galerie', {}, (fresh) => {
+                        if (Array.isArray(fresh) && fresh.length > 0) setGalerieData(fresh);
+                    }),
                 ]);
-                if (recapsRes.ok) setRecapsData(await recapsRes.json());
-                if (galerieRes.ok) setGalerieData(await galerieRes.json());
+                if (Array.isArray(recaps) && recaps.length > 0) setRecapsData(recaps);
+                if (Array.isArray(galerie) && galerie.length > 0) setGalerieData(galerie);
             } catch (e) {
-                console.error('[Recap] Failed to fetch data:', e);
+                console.warn('[Recap] Background revalidation error:', e);
             } finally {
                 setIsLoading(false);
             }
