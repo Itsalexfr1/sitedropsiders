@@ -116,3 +116,56 @@ export function triggerBlobDownload(blob: Blob, filename: string): void {
     document.body.removeChild(link);
     setTimeout(() => URL.revokeObjectURL(url), 1500);
 }
+
+/**
+ * Vérifie si le navigateur (notamment mobile iOS Safari / Android Chrome) supporte le partage natif de fichiers
+ */
+export function canShareFiles(): boolean {
+    if (typeof navigator === 'undefined' || typeof (navigator as any).canShare !== 'function') {
+        return false;
+    }
+    try {
+        const file = new File([new Blob(['test'], { type: 'image/png' })], 'test.png', { type: 'image/png' });
+        return (navigator as any).canShare({ files: [file] });
+    } catch {
+        return false;
+    }
+}
+
+/**
+ * Partage natif en Story Instagram / TikTok / Réseaux via Web Share API
+ * Sur smartphone : ouvre directement la feuille de partage système avec le visuel sélectionné
+ * Sur desktop (ou si non supporté) : bascule automatiquement sur le téléchargement classique
+ */
+export async function shareOrDownloadFile(
+    blob: Blob,
+    filename: string,
+    title = 'Dropsiders',
+    text = ''
+): Promise<{ shared: boolean; downloaded: boolean }> {
+    try {
+        const file = new File([blob], filename, { type: blob.type || 'image/png' });
+        if (
+            typeof navigator !== 'undefined' &&
+            typeof (navigator as any).canShare === 'function' &&
+            (navigator as any).canShare({ files: [file] }) &&
+            typeof navigator.share === 'function'
+        ) {
+            await navigator.share({
+                files: [file],
+                title,
+                text
+            });
+            return { shared: true, downloaded: false };
+        }
+    } catch (e: any) {
+        if (e.name === 'AbortError') {
+            // L'utilisateur a simplement fermé la feuille de partage
+            return { shared: false, downloaded: false };
+        }
+        console.warn('Web Share failed, fallback to download:', e);
+    }
+    // Fallback téléchargement classique
+    triggerBlobDownload(blob, filename);
+    return { shared: false, downloaded: true };
+}

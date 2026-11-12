@@ -1,6 +1,6 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSearchParams, Link } from 'react-router-dom';
-import { MapPin, ChevronDown, Filter, ChevronLeft, ChevronRight, X, Edit2, Trash2, CheckSquare, Square, Plus, Calendar, Heart, Search, Instagram } from 'lucide-react';
+import { MapPin, ChevronDown, Filter, ChevronLeft, ChevronRight, X, Edit2, Trash2, CheckSquare, Square, Plus, Calendar, Heart, Search, Instagram, Flame } from 'lucide-react';
 import { useState, useMemo, useEffect } from 'react';
 import { useHoverSound } from '../hooks/useHoverSound';
 import { useLanguage } from '../context/LanguageContext';
@@ -9,6 +9,7 @@ import { AgendaModal } from '../components/AgendaModal';
 import { ConfirmationModal } from '../components/ConfirmationModal';
 import { SocialSuite } from '../components/SocialSuite';
 import { CollaborativeCalendar } from '../components/community/CollaborativeCalendar';
+import { MyFestivalSeasonModal } from '../components/agenda/MyFestivalSeasonModal';
 
 import { extractIdFromSlug } from '../utils/slugify';
 import { trackPageView, trackInteraction } from '../utils/analytics';
@@ -38,7 +39,7 @@ const normalizeAgendaEvents = (data: any[]) => {
 
 export function Agenda() {
     const { t, language } = useLanguage();
-    const { user, toggleAgendaFavorite, isLoggedIn, setIsAuthModalOpen } = useUser();
+    const { user, toggleAgendaFavorite, agendaFavorites = [], isLoggedIn, setIsAuthModalOpen } = useUser();
     const playHoverSound = useHoverSound();
     const [expandedEvent, setExpandedEvent] = useState<number | string | null>(null);
     const [activeCategory, setActiveCategory] = useState('ALL');
@@ -61,6 +62,7 @@ export function Agenda() {
     // Affichage instantané 0ms
     const [agendaData, setAgendaData] = useState<any[]>(() => normalizeAgendaEvents(getInitialAgenda()));
     const [isSocialSuiteOpen, setIsSocialSuiteOpen] = useState(false);
+    const [isMySeasonModalOpen, setIsMySeasonModalOpen] = useState(false);
     const [socialEvent, setSocialEvent] = useState<any | null>(null);
     const [isLoading, setIsLoading] = useState<boolean>(() => getInitialAgenda().length === 0);
     const [selectedEvents, setSelectedEvents] = useState<Set<number>>(new Set());
@@ -189,6 +191,7 @@ export function Agenda() {
 
         const categoryFiltered = explodedAgenda.filter((event: any) => {
             if (activeCategory === 'ALL') return true;
+            if (activeCategory === 'MY_SEASON') return agendaFavorites.includes(event.id);
             if (activeCategory === 'LIVE') return event.isLiveDropsiders;
             const genre = (event.genre || '').toLowerCase();
             const type = (event.type || '').toLowerCase();
@@ -239,6 +242,7 @@ export function Agenda() {
 
     const CATEGORIES = [
         { id: 'ALL', label: t('agenda.filter_all') },
+        { id: 'MY_SEASON', label: `❤️ MA SÉLECTION (${agendaFavorites.length})` },
         { id: 'LIVE', label: 'LIVE' },
         { id: 'FESTIVAL', label: 'FESTIVAL' },
         { id: 'POOL PARTY', label: 'POOL PARTY' },
@@ -280,7 +284,9 @@ export function Agenda() {
 
                 // Category filter (First, to show correct months)
                 if (activeCategory !== 'ALL') {
-                    if (activeCategory === 'LIVE') {
+                    if (activeCategory === 'MY_SEASON') {
+                        if (!agendaFavorites.includes(event.id)) return false;
+                    } else if (activeCategory === 'LIVE') {
                         if (!event.isLiveDropsiders) return false;
                     } else {
                         const genre = (event.genre || '').toLowerCase();
@@ -486,7 +492,15 @@ export function Agenda() {
                             </p>
                         </div>
                         
-                        <div className="flex items-center gap-3 mx-auto sm:mx-0">
+                        <div className="flex flex-wrap items-center gap-3 mx-auto sm:mx-0">
+                            <button
+                                onClick={() => setIsMySeasonModalOpen(true)}
+                                className="flex items-center justify-center gap-2.5 px-6 py-4 bg-gradient-to-r from-neon-fuchsia via-[#ee2a7b] to-neon-cyan text-white rounded-2xl font-black uppercase tracking-wider hover:scale-105 transition-all shadow-[0_0_25px_rgba(255,0,255,0.4)] text-xs border border-white/20"
+                                title="Ouvrir mon agenda et carte de saison"
+                            >
+                                <Flame className="w-5 h-5 text-white animate-pulse" />
+                                <span>Ma Saison 2026 ({agendaFavorites.length})</span>
+                            </button>
                             {(canEdit || canCreate) && (
                                 <button
                                     onClick={() => {
@@ -785,6 +799,22 @@ export function Agenda() {
                                         <div className="absolute inset-0 md:hidden block" onClick={() => { 
                                             setExpandedEvent(expandedEvent === event.compositeId ? null : event.compositeId);
                                         }}>
+                                            {/* Mobile Heart Favorite Button */}
+                                            <button
+                                                type="button"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    toggleAgendaFavorite(event.id);
+                                                }}
+                                                className={`absolute top-4 left-4 z-30 w-10 h-10 rounded-full backdrop-blur-xl border flex items-center justify-center transition-all shadow-lg active:scale-95 ${
+                                                    agendaFavorites.includes(event.id)
+                                                        ? 'bg-neon-fuchsia/80 border-neon-fuchsia text-white shadow-[0_0_20px_rgba(255,0,255,0.6)]'
+                                                        : 'bg-black/60 border-white/20 text-white/80 hover:text-white'
+                                                }`}
+                                                title={agendaFavorites.includes(event.id) ? "Retirer de ma sélection" : "Ajouter à ma sélection"}
+                                            >
+                                                <Heart className={`w-5 h-5 ${agendaFavorites.includes(event.id) ? 'fill-current text-white' : ''}`} />
+                                            </button>
                                             {event.image && (
                                                 <img
                                                     src={resolveImageUrl(event.image)}
@@ -934,16 +964,12 @@ export function Agenda() {
                                                             <button
                                                                 onClick={(e) => {
                                                                     e.stopPropagation();
-                                                                    if (!isLoggedIn) {
-                                                                        setIsAuthModalOpen(true);
-                                                                        return;
-                                                                    }
                                                                     toggleAgendaFavorite(event.id);
                                                                 }}
-                                                                className={`flex w-10 h-10 rounded-xl bg-white/5 border items-center justify-center transition-all group/heart ${user?.agendaFavorites?.includes(event.id) ? `${styles.borderStrong} ${styles.bg}` : `border-white/10 ${styles.hoverBorder}`}`}
-                                                                title={isLoggedIn ? "Ajouter aux favoris" : "Connectez-vous pour ajouter aux favoris"}
+                                                                className={`flex w-10 h-10 rounded-xl bg-white/5 border items-center justify-center transition-all group/heart ${agendaFavorites.includes(event.id) ? `${styles.borderStrong} ${styles.bg}` : `border-white/10 ${styles.hoverBorder}`}`}
+                                                                title={agendaFavorites.includes(event.id) ? "Retirer de ma sélection" : "Ajouter à ma sélection"}
                                                             >
-                                                                <Heart className={`w-5 h-5 transition-colors ${user?.agendaFavorites?.includes(event.id) ? `${styles.text} fill-current` : `text-gray-500 ${styles.groupHoverText}`}`} />
+                                                                <Heart className={`w-5 h-5 transition-colors ${agendaFavorites.includes(event.id) ? `${styles.text} fill-current` : `text-gray-500 ${styles.groupHoverText}`}`} />
                                                             </button>
                                                             {event.type === 'Jeux Concours' ? (
                                                                 <div className="hidden md:flex items-center gap-2">
@@ -1245,6 +1271,13 @@ export function Agenda() {
                     initialTheme={socialEvent ? 'EVENTS' : 'PLANNING'}
                 />
             )}
+            <MyFestivalSeasonModal
+                isOpen={isMySeasonModalOpen}
+                onClose={() => setIsMySeasonModalOpen(false)}
+                events={agendaData}
+                favoriteIds={agendaFavorites}
+                onToggleFavorite={toggleAgendaFavorite}
+            />
             </div >
             <AdminEditBar
                 pageName="Agenda"

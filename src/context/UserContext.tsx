@@ -49,6 +49,7 @@ interface UserContextType {
     updateScore: (gameId: string, score: number) => void;
     toggleTrackId: (trackId: string) => void;
     toggleAgendaFavorite: (eventId: number) => void;
+    agendaFavorites: number[];
     updateUser: (updates: Partial<UserProfile>) => void;
     earnPoints: (xp: number, drops: number) => void;
     deleteAccount: () => Promise<boolean>;
@@ -176,6 +177,13 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     };
     const [notification, setNotification] = useState<{ message: string, type: 'success' | 'error' | 'info' } | null>(null);
     const [pendingBooster, setPendingBooster] = useState<DropsidersCard[] | null>(null);
+    const [guestAgendaFavorites, setGuestAgendaFavorites] = useState<number[]>(() => {
+        try {
+            return JSON.parse(localStorage.getItem('guest_agenda_favorites') || '[]');
+        } catch {
+            return [];
+        }
+    });
 
     // --- NEW: Trades State ---
     const [trades, setTrades] = useState<{ sent: any[], received: any[] }>({ sent: [], received: [] });
@@ -508,6 +516,11 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
                 guestCards = JSON.parse(guestCardsStr);
             } catch (e) {}
         }
+        const guestFavsStr = localStorage.getItem('guest_agenda_favorites');
+        let guestFavs: number[] = [];
+        if (guestFavsStr) {
+            try { guestFavs = JSON.parse(guestFavsStr); } catch {}
+        }
 
         const newUser: UserProfile = {
             id: crypto.randomUUID(),
@@ -516,7 +529,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
             provider: 'email',
             scores: {},
             trackIds: [],
-            agendaFavorites: [],
+            agendaFavorites: guestFavs,
             xp: Number(localStorage.getItem('user_xp')) || 0,
             drops: Number(localStorage.getItem('user_drops')) || 0,
             createdAt: new Date().toISOString(),
@@ -525,6 +538,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
         setUser(newUser);
         saveToRegisteredUsers(newUser);
         localStorage.removeItem('dropsiders_guest_cards');
+        localStorage.removeItem('guest_agenda_favorites');
 
         // Sync with central registry
         try {
@@ -560,6 +574,14 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
                 mergedCards.push(gc);
             }
         });
+
+        const guestFavsStr = localStorage.getItem('guest_agenda_favorites');
+        let guestFavs: number[] = [];
+        if (guestFavsStr) {
+            try { guestFavs = JSON.parse(guestFavsStr); } catch {}
+        }
+        const existingFavs = found?.agendaFavorites || data.agendaFavorites || [];
+        const mergedFavs = Array.from(new Set([...existingFavs, ...guestFavs]));
         
         const newUser: UserProfile = {
             id: data.id || found?.id || crypto.randomUUID(),
@@ -570,7 +592,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
             provider: data.provider || found?.provider,
             scores: data.scores || found?.scores || {},
             trackIds: data.trackIds || found?.trackIds || [],
-            agendaFavorites: data.agendaFavorites || found?.agendaFavorites || [],
+            agendaFavorites: mergedFavs,
             xp: (data.xp !== undefined ? data.xp : found?.xp) || Number(localStorage.getItem('user_xp')) || 0,
             drops: (data.drops !== undefined ? data.drops : found?.drops) || Number(localStorage.getItem('user_drops')) || 0,
             createdAt: data.createdAt || found?.createdAt || new Date().toISOString(),
@@ -579,6 +601,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
         setUser(newUser);
         saveToRegisteredUsers(newUser);
         localStorage.removeItem('dropsiders_guest_cards');
+        localStorage.removeItem('guest_agenda_favorites');
         localStorage.setItem('chat_pseudo', newUser.username);
         localStorage.setItem('chat_email', newUser.email);
         if (newUser.avatar) localStorage.setItem('chat_avatar', newUser.avatar);
@@ -696,11 +719,20 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     };
 
     const toggleAgendaFavorite = async (eventId: number) => {
-        if (!user) return;
-        const exists = user.agendaFavorites.includes(eventId);
+        if (!user) {
+            setGuestAgendaFavorites(prev => {
+                const next = prev.includes(eventId) ? prev.filter(id => id !== eventId) : [...prev, eventId];
+                try {
+                    localStorage.setItem('guest_agenda_favorites', JSON.stringify(next));
+                } catch {}
+                return next;
+            });
+            return;
+        }
+        const exists = (user.agendaFavorites || []).includes(eventId);
         const newFavs = exists 
             ? user.agendaFavorites.filter(id => id !== eventId)
-            : [...user.agendaFavorites, eventId];
+            : [...(user.agendaFavorites || []), eventId];
         
         const updatedUser = { ...user, agendaFavorites: newFavs };
         setUser(updatedUser);
@@ -863,6 +895,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
             updateScore,
             toggleTrackId,
             toggleAgendaFavorite,
+            agendaFavorites: user?.agendaFavorites || guestAgendaFavorites,
             updateUser,
             earnPoints,
             deleteAccount,

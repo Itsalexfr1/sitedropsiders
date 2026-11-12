@@ -51,6 +51,7 @@ import { fixEncoding } from '../utils/standardizer';
 import { Downloader } from '../pages/Downloader';
 import { ImageUploadModal } from './ImageUploadModal';
 import { resolveImageUrl } from '../utils/image';
+import { shareOrDownloadFile } from '../utils/imageExport';
 import { resolveMusicSnippet, searchMusicTracksList, searchBeatportByArtistAndTitle, getBeatportToken, type ResolvedMusicData } from '../utils/musicResolver';
 import { fixWebmDuration } from '../utils/fixWebm';
 import recapsData from '../data/recaps.json';
@@ -16487,6 +16488,28 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         }
     };
 
+    const handleDirectShareStory = async () => {
+        if (!canvasRef.current) return;
+        setIsDownloading(true);
+        try {
+            await generateImage('REEL', true);
+            const blob = await new Promise<Blob | null>(resolve => canvasRef.current!.toBlob(resolve, 'image/png'));
+            if (blob) {
+                await shareOrDownloadFile(
+                    blob,
+                    `dropsiders-story-${Date.now()}.png`,
+                    'Dropsiders Story',
+                    'Partagé depuis le Social Studio Dropsiders'
+                );
+            }
+        } catch (e) {
+            console.error('Direct Story share failed', e);
+        } finally {
+            setIsDownloading(false);
+            setIsExportStudioOpen(false);
+        }
+    };
+
     const executeUnifiedExport = async () => {
         const isReel = exportStudioDimension === 'REEL';
         const targetTab: TabType = isReel ? 'REEL' : 'PUBLICATION';
@@ -27349,7 +27372,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 </div>
 
                 {/* Footer avec Grand Bouton d'Action */}
-                <div className="p-4 sm:p-5 border-t border-white/10 bg-white/[0.02] flex items-center justify-between gap-3">
+                <div className="p-4 sm:p-5 border-t border-white/10 bg-white/[0.02] flex flex-wrap items-center justify-between gap-3">
                     <button
                         type="button"
                         onClick={() => setIsExportStudioOpen(false)}
@@ -27357,6 +27380,19 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     >
                         Annuler
                     </button>
+
+                    {exportStudioFormat === 'PNG' && exportStudioType === 'SLIDE' && (
+                        <button
+                            type="button"
+                            onClick={handleDirectShareStory}
+                            disabled={isDownloading || isVideoRecording}
+                            className="py-3.5 px-4 rounded-2xl bg-gradient-to-r from-neon-fuchsia via-[#ee2a7b] to-neon-cyan text-white font-black text-[10px] uppercase transition-all shadow-lg flex items-center justify-center gap-2 active:scale-98 disabled:opacity-50 hover:brightness-110"
+                            title="Partager directement en Story sur mobile"
+                        >
+                            <Smartphone className="w-4 h-4" />
+                            <span>📱 Partager Story</span>
+                        </button>
+                    )}
 
                     <button
                         type="button"
