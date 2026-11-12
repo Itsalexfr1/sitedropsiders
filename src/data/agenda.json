@@ -531,5 +531,26 @@
     "isSoldOut": false,
     "isLiveDropsiders": false,
     "additionalDates": []
+  },
+  {
+    "id": 1151,
+    "title": "Anyma presents ÆDEN MILLENNIUM ! ",
+    "date": "2027-03-19",
+    "startDate": "2027-03-19",
+    "endDate": "2027-03-19",
+    "venue": "Pyramides de Gizeh",
+    "location": "NÉCROPOLE DE GIZEH",
+    "country": "ÉGYPTE",
+    "type": "Concert",
+    "image": "/uploads/uploads/524a034e12dfe706-906327294_2372193903548361_577.jpg",
+    "url": "https://www.anyma.com/events",
+    "genre": "Melodic Techno",
+    "month": "MARS",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false,
+    "additionalDates": [
+      "2027-03-26"
+    ]
   }
 ]
