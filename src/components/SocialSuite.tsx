@@ -634,6 +634,22 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             for (let i = 0; i < agendaAffiches.length; i++) list.push(i + 3);
             return list;
         }
+        if (theme === 'MUSIQUE') {
+            return [1, ...musicTracks.map((_, i) => i + 2)];
+        }
+        if (theme === 'ARTISTE FESTIVAL' || theme === 'SPOTLIGHT') {
+            return [1, 2, ...extraSpotlightSlides];
+        }
+        if (theme === 'EVENTS' || theme === 'AFFICHE') {
+            const count = eventNormalSlidesCount === 0 ? 1 : 1 + eventNormalSlidesCount;
+            return Array.from({ length: count }, (_, i) => i + 1);
+        }
+        if (theme.startsWith('TOP 5')) {
+            return [1, 2, 3, 4, 5];
+        }
+        if (theme === 'TOP 10 TRACKS') {
+            return Array.from({ length: 11 }, (_, i) => i + 1);
+        }
         const list = [1];
         if (!skipEditorialSlide2 || theme === 'JEU_DJ') list.push(2);
         for (let i = 0; i < extraEditorialSlides.length; i++) {
@@ -28293,59 +28309,170 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                             const dur = audioDurations[activeTrack.audio!] || 120;
                                             const maxStart = Math.max(0, Math.floor(dur - 30));
                                             const isShortSnippet = dur <= 35;
+                                            const curStart = Math.min(activeTrack.audioStartTime || 0, maxStart);
                                             return (
-                                                <div className="space-y-1 pt-0.5">
-                                                    <div className="flex items-center justify-between text-[7.5px] text-gray-400 font-mono">
-                                                        <span>0:00</span>
-                                                        <span className="text-[#00ff66]">
-                                                            {isShortSnippet
-                                                                ? '30s complètes (Déjà au Drop)'
-                                                                : `Démarre à ${formatAudioTime(activeTrack.audioStartTime || 0)} (30s continues sans boucle)`}
+                                                <div className="p-3 rounded-xl bg-black/60 border border-[#00ff66]/20 space-y-2.5">
+                                                    <div className="flex items-center justify-between">
+                                                        <span className="text-[9px] font-black uppercase text-[#00ff66] flex items-center gap-1.5">
+                                                            <Clock className="w-3.5 h-3.5 text-[#00ff66]" />
+                                                            Départ Audio & Drop Finder
                                                         </span>
-                                                        <span>{formatAudioTime(maxStart)}</span>
+                                                        <div className="flex items-center gap-1.5 font-mono text-[8.5px] font-bold">
+                                                            <span className="px-1.5 py-0.5 rounded bg-[#00ff66]/20 text-[#00ff66] border border-[#00ff66]/40">
+                                                                {isShortSnippet
+                                                                    ? '30s (Drop)'
+                                                                    : `${formatAudioTime(curStart)} (${curStart.toFixed(1)}s)`}
+                                                            </span>
+                                                            <span className="text-gray-500">/</span>
+                                                            <span className="text-gray-400">
+                                                                {dur > 0 ? formatAudioTime(dur) : 'Max'}
+                                                            </span>
+                                                        </div>
                                                     </div>
+
                                                     {!isShortSnippet ? (
                                                         <>
-                                                        {/* Waveform visuelle cliquable - MUSIQUE */}
-                                                        <div
-                                                            className="h-7 bg-black/70 rounded-lg p-1.5 flex items-end gap-[3px] border border-white/10 overflow-hidden cursor-pointer"
-                                                            title="Cliquer pour choisir le point de départ"
-                                                            onClick={(e) => {
-                                                                const rect = e.currentTarget.getBoundingClientRect();
-                                                                const ratio = (e.clientX - rect.left) / rect.width;
-                                                                const dur = audioDurations[activeTrack.audio!] || 120;
-                                                                const maxS = Math.max(0, Math.floor(dur - 30));
-                                                                const val = Math.round(ratio * maxS);
-                                                                updateMusicTrack(activeTrackIdx, { audioStartTime: Math.max(0, Math.min(maxS, val)) });
-                                                            }}
-                                                        >
-                                                            {Array.from({ length: 32 }).map((_, i) => {
-                                                                const dur = audioDurations[activeTrack.audio!] || 120;
-                                                                const maxS = Math.max(0, dur > 5 ? dur - 30 : 1);
-                                                                const progress = (Math.min(activeTrack.audioStartTime || 0, maxS) / maxS) * 32;
-                                                                const isPassed = i <= progress;
-                                                                const heights = [35, 60, 45, 80, 100, 70, 50, 90, 85, 60, 75, 95, 100, 80, 60, 90, 85, 70, 95, 100, 60, 40, 80, 90, 75, 55, 65, 80, 95, 70, 50, 40];
-                                                                return (
-                                                                    <div
-                                                                        key={i}
-                                                                        style={{ height: `${heights[i]}%` }}
-                                                                        className={`flex-1 rounded-sm transition-all duration-150 ${isPassed
-                                                                            ? 'bg-gradient-to-t from-[#00ff66] to-[#00f0ff] shadow-[0_0_8px_rgba(0,255,102,0.5)]'
-                                                                            : 'bg-white/15'
+                                                            {/* Waveform visuelle stylisée cliquable */}
+                                                            <div
+                                                                className="h-7 bg-black/70 rounded-lg p-1.5 flex items-end gap-[3px] border border-white/10 overflow-hidden cursor-pointer"
+                                                                title="Cliquer pour choisir le point de départ"
+                                                                onClick={(e) => {
+                                                                    const rect = e.currentTarget.getBoundingClientRect();
+                                                                    const ratio = (e.clientX - rect.left) / rect.width;
+                                                                    const maxS = Math.max(0, dur > 5 ? dur - 30 : 1);
+                                                                    const val = Math.round(ratio * maxS);
+                                                                    const finalVal = Math.max(0, Math.min(maxS, val));
+                                                                    updateMusicTrack(activeTrackIdx, { audioStartTime: finalVal });
+                                                                    if (activeAudioPreviewSrc === activeTrack.audio) {
+                                                                        playAudioPreviewFrom(activeTrack.audio!, finalVal);
+                                                                    }
+                                                                }}
+                                                            >
+                                                                {Array.from({ length: 32 }).map((_, i) => {
+                                                                    const maxS = Math.max(0, dur > 5 ? dur - 30 : 1);
+                                                                    const progress = (curStart / maxS) * 32;
+                                                                    const isPassed = i <= progress;
+                                                                    const heightPercent = [35, 60, 45, 80, 100, 70, 50, 90, 85, 60, 75, 95, 100, 80, 60, 90, 85, 70, 95, 100, 60, 40, 80, 90, 75, 55, 65, 80, 95, 70, 50, 40][i % 32];
+                                                                    return (
+                                                                        <div
+                                                                            key={i}
+                                                                            style={{ height: `${heightPercent}%` }}
+                                                                            className={`flex-1 rounded-sm transition-all duration-150 ${isPassed
+                                                                                ? 'bg-gradient-to-t from-[#00ff66] to-[#00f0ff] shadow-[0_0_8px_rgba(0,255,102,0.5)]'
+                                                                                : 'bg-white/15'
+                                                                            }`}
+                                                                        />
+                                                                    );
+                                                                })}
+                                                            </div>
+
+                                                            {/* Slider Range précis */}
+                                                            <input
+                                                                type="range"
+                                                                min={0}
+                                                                max={maxStart}
+                                                                step={0.5}
+                                                                value={curStart}
+                                                                onChange={(e) => {
+                                                                    const val = parseFloat(e.target.value);
+                                                                    updateMusicTrack(activeTrackIdx, { audioStartTime: val });
+                                                                    if (activeAudioPreviewSrc === activeTrack.audio) {
+                                                                        playAudioPreviewFrom(activeTrack.audio!, val);
+                                                                    }
+                                                                }}
+                                                                className="w-full h-1.5 bg-white/15 rounded-lg appearance-none cursor-pointer accent-[#00ff66]"
+                                                            />
+
+                                                            {/* Raccourcis Instantanés Drop Finder + Ajustement fin */}
+                                                            <div className="flex items-center justify-between gap-1 flex-wrap pt-0.5">
+                                                                <div className="flex items-center gap-1 flex-wrap">
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() => {
+                                                                            updateMusicTrack(activeTrackIdx, { audioStartTime: 0 });
+                                                                            if (activeAudioPreviewSrc === activeTrack.audio) playAudioPreviewFrom(activeTrack.audio!, 0);
+                                                                        }}
+                                                                        className={`px-2 py-1 rounded-lg text-[8px] font-black uppercase transition border ${
+                                                                            curStart === 0
+                                                                                ? 'bg-[#00ff66]/25 border-[#00ff66] text-[#00ff66]'
+                                                                                : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'
                                                                         }`}
-                                                                    />
-                                                                );
-                                                            })}
-                                                        </div>
-                                                        <input
-                                                            type="range"
-                                                            min="0"
-                                                            max={maxStart}
-                                                            step="1"
-                                                            value={Math.min(activeTrack.audioStartTime || 0, maxStart)}
-                                                            onChange={(e) => updateMusicTrack(activeTrackIdx, { audioStartTime: Number(e.target.value) })}
-                                                            className="w-full h-1.5 bg-white/15 rounded-lg appearance-none cursor-pointer accent-[#00ff66]"
-                                                        />
+                                                                    >
+                                                                        ⏪ 0:00 (Intro)
+                                                                    </button>
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() => {
+                                                                            const val = Math.min(maxStart, 15);
+                                                                            updateMusicTrack(activeTrackIdx, { audioStartTime: val });
+                                                                            if (activeAudioPreviewSrc === activeTrack.audio) playAudioPreviewFrom(activeTrack.audio!, val);
+                                                                        }}
+                                                                        className={`px-2 py-1 rounded-lg text-[8px] font-black uppercase transition border ${
+                                                                            Math.round(curStart) === 15
+                                                                                ? 'bg-[#00ff66]/25 border-[#00ff66] text-[#00ff66]'
+                                                                                : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'
+                                                                        }`}
+                                                                    >
+                                                                        ⚡ 15s (Build)
+                                                                    </button>
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() => {
+                                                                            const val = Math.min(maxStart, 30);
+                                                                            updateMusicTrack(activeTrackIdx, { audioStartTime: val });
+                                                                            if (activeAudioPreviewSrc === activeTrack.audio) playAudioPreviewFrom(activeTrack.audio!, val);
+                                                                        }}
+                                                                        className={`px-2 py-1 rounded-lg text-[8px] font-black uppercase transition border ${
+                                                                            Math.round(curStart) === 30
+                                                                                ? 'bg-[#fe0979]/25 border-[#fe0979] text-[#fe0979]'
+                                                                                : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'
+                                                                        }`}
+                                                                    >
+                                                                        🔥 30s (Drop 1)
+                                                                    </button>
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() => {
+                                                                            const val = Math.min(maxStart, 45);
+                                                                            updateMusicTrack(activeTrackIdx, { audioStartTime: val });
+                                                                            if (activeAudioPreviewSrc === activeTrack.audio) playAudioPreviewFrom(activeTrack.audio!, val);
+                                                                        }}
+                                                                        className={`px-2 py-1 rounded-lg text-[8px] font-black uppercase transition border ${
+                                                                            Math.round(curStart) === 45
+                                                                                ? 'bg-purple-500/25 border-purple-400 text-purple-300'
+                                                                                : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'
+                                                                        }`}
+                                                                    >
+                                                                        💥 45s (Drop 2)
+                                                                    </button>
+                                                                </div>
+
+                                                                {/* Ajustement fin -5s / +5s */}
+                                                                <div className="flex items-center gap-1">
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() => {
+                                                                            const next = Math.max(0, curStart - 5);
+                                                                            updateMusicTrack(activeTrackIdx, { audioStartTime: next });
+                                                                            if (activeAudioPreviewSrc === activeTrack.audio) playAudioPreviewFrom(activeTrack.audio!, next);
+                                                                        }}
+                                                                        className="px-1.5 py-1 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-[7.5px] font-black uppercase text-gray-300 active:scale-95"
+                                                                    >
+                                                                        -5s
+                                                                    </button>
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() => {
+                                                                            const next = Math.min(maxStart, curStart + 5);
+                                                                            updateMusicTrack(activeTrackIdx, { audioStartTime: next });
+                                                                            if (activeAudioPreviewSrc === activeTrack.audio) playAudioPreviewFrom(activeTrack.audio!, next);
+                                                                        }}
+                                                                        className="px-1.5 py-1 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-[7.5px] font-black uppercase text-gray-300 active:scale-95"
+                                                                    >
+                                                                        +5s
+                                                                    </button>
+                                                                </div>
+                                                            </div>
                                                         </>
                                                     ) : (
                                                         <div className="text-[7.5px] text-gray-400 italic bg-white/5 px-2 py-1 rounded border border-white/10">
