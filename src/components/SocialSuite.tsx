@@ -27045,10 +27045,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 </div>
                             </div>
 
-                            {/* Si Slide par Slide : liste des onglets slides — flex-wrap pour afficher tous les onglets sans scroll caché */}
+                            {/* Si Slide par Slide : grille scrollable de tous les onglets slides — max-h avec overflow-y-auto pour voir les 10+ onglets */}
                             {audioTargetSlide !== 'global' && (
                                 <div
-                                    className="flex flex-wrap items-center gap-1.5 pb-1 text-[8.5px]"
+                                    className="flex flex-wrap gap-1.5 max-h-28 overflow-y-auto pr-1 custom-scrollbar text-[8.5px]"
                                 >
                                     {getAvailableSlideNumbers().map(s => {
                                         const isSel = audioTargetSlide === s;
