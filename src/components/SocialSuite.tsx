@@ -16807,6 +16807,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 slideNum: number;
                 title: string;
                 filename: string;
+                afficheIndex?: number;
             };
 
             const slidesToProcess: ZipVideoItem[] = [];
