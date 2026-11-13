@@ -27947,9 +27947,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     <button
                                         type="button"
                                         onClick={() => removeMusicTrack(activeTrackIdx)}
-                                        className="text-[9px] font-bold text-red-400 hover:text-red-300 transition-colors uppercase flex items-center gap-1"
+                                        className="px-2.5 py-1 bg-red-500/10 hover:bg-red-500/20 border border-red-500/40 text-red-400 hover:text-red-300 rounded-lg text-[8px] font-black uppercase transition-all flex items-center gap-1 active:scale-95"
+                                        title="Supprimer ce morceau du carrousel"
                                     >
-                                        🗑️ Supprimer
+                                        🗑️ Supprimer Track
                                     </button>
                                 )}
                             </div>
@@ -28302,6 +28303,38 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                                         <span>{formatAudioTime(maxStart)}</span>
                                                     </div>
                                                     {!isShortSnippet ? (
+                                                        <>
+                                                        {/* Waveform visuelle cliquable - MUSIQUE */}
+                                                        <div
+                                                            className="h-7 bg-black/70 rounded-lg p-1.5 flex items-end gap-[3px] border border-white/10 overflow-hidden cursor-pointer"
+                                                            title="Cliquer pour choisir le point de départ"
+                                                            onClick={(e) => {
+                                                                const rect = e.currentTarget.getBoundingClientRect();
+                                                                const ratio = (e.clientX - rect.left) / rect.width;
+                                                                const dur = audioDurations[activeTrack.audio!] || 120;
+                                                                const maxS = Math.max(0, Math.floor(dur - 30));
+                                                                const val = Math.round(ratio * maxS);
+                                                                updateMusicTrack(activeTrackIdx, { audioStartTime: Math.max(0, Math.min(maxS, val)) });
+                                                            }}
+                                                        >
+                                                            {Array.from({ length: 32 }).map((_, i) => {
+                                                                const dur = audioDurations[activeTrack.audio!] || 120;
+                                                                const maxS = Math.max(0, dur > 5 ? dur - 30 : 1);
+                                                                const progress = (Math.min(activeTrack.audioStartTime || 0, maxS) / maxS) * 32;
+                                                                const isPassed = i <= progress;
+                                                                const heights = [35, 60, 45, 80, 100, 70, 50, 90, 85, 60, 75, 95, 100, 80, 60, 90, 85, 70, 95, 100, 60, 40, 80, 90, 75, 55, 65, 80, 95, 70, 50, 40];
+                                                                return (
+                                                                    <div
+                                                                        key={i}
+                                                                        style={{ height: `${heights[i]}%` }}
+                                                                        className={`flex-1 rounded-sm transition-all duration-150 ${isPassed
+                                                                            ? 'bg-gradient-to-t from-[#00ff66] to-[#00f0ff] shadow-[0_0_8px_rgba(0,255,102,0.5)]'
+                                                                            : 'bg-white/15'
+                                                                        }`}
+                                                                    />
+                                                                );
+                                                            })}
+                                                        </div>
                                                         <input
                                                             type="range"
                                                             min="0"
@@ -28311,6 +28344,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                                             onChange={(e) => updateMusicTrack(activeTrackIdx, { audioStartTime: Number(e.target.value) })}
                                                             className="w-full h-1.5 bg-white/15 rounded-lg appearance-none cursor-pointer accent-[#00ff66]"
                                                         />
+                                                        </>
                                                     ) : (
                                                         <div className="text-[7.5px] text-gray-400 italic bg-white/5 px-2 py-1 rounded border border-white/10">
                                                             ℹ️ Extrait 30s officiel complet déjà centré sur le Drop.
