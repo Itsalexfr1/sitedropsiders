@@ -27045,9 +27045,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 </div>
                             </div>
 
-                            {/* Si Slide par Slide : liste des onglets slides */}
+                            {/* Si Slide par Slide : liste des onglets slides — flex-wrap pour afficher tous les onglets sans scroll caché */}
                             {audioTargetSlide !== 'global' && (
-                                <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-[8.5px] no-scrollbar">
+                                <div
+                                    className="flex flex-wrap items-center gap-1.5 pb-1 text-[8.5px]"
+                                >
                                     {getAvailableSlideNumbers().map(s => {
                                         const isSel = audioTargetSlide === s;
                                         const hasSon = Boolean(slideAudios[s]?.url);
