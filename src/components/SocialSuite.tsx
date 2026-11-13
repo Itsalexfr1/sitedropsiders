@@ -1265,6 +1265,15 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         if (afficheImage || isEditorialAfficheActive) {
             map['slide_affiche'] = true;
         }
+        editorialAffiches.forEach((_, idx) => {
+            map[`slide_affiche_${idx}`] = true;
+        });
+        editorialBlankSlides.forEach((_, idx) => {
+            map[`slide_blank_${idx}`] = true;
+        });
+        if (isEditorialTweetActive) {
+            map['slide_tweet'] = true;
+        }
         setSelectedExportSlides(map);
         setExportStudioDimension(activeTab === 'REEL' ? 'REEL' : 'POST');
         setAudioWarningAlert(null);
@@ -15334,23 +15343,57 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             });
                         }
                     } else if (combinedMode === 'EDITORIAL' || combinedMode === 'PLANNING') {
-                        const slidesWithSpecificAudio = availableSlides.filter(s => Boolean(currentSlideAudios[s]?.url));
-                        const hasMultipleDistinctAudios = slidesWithSpecificAudio.length > 1;
+                        // Construire la liste COMPLÈTE ordonnée de tous les slots inclus dans l'export
+                        type SlotAudioKey = number | string;
+                        const orderedSlots: SlotAudioKey[] = [];
+
+                        if (theme === 'PLANNING') {
+                            availableSlides.forEach(s => {
+                                if (selectedExportSlides[`slide_${s}`] !== false) orderedSlots.push(s);
+                            });
+                        } else {
+                            const shouldSkipSlide2 = skipEditorialSlide2;
+                            const rawSlides = (shouldSkipSlide2
+                                ? [1, ...extraEditorialSlides.map((_, i) => i + 3)]
+                                : [1, 2, ...extraEditorialSlides.map((_, i) => i + 3)]);
+                            rawSlides.forEach(s => {
+                                if (selectedExportSlides[`slide_${s}`] !== false) orderedSlots.push(s);
+                            });
+                            editorialAffiches.forEach((aff, affIdx) => {
+                                const key = `slide_affiche_${affIdx}`;
+                                const isSelected = selectedExportSlides[key] !== false && (affIdx > 0 || selectedExportSlides['slide_affiche'] !== false);
+                                if ((aff.image || isEditorialAfficheActive) && isSelected) {
+                                    orderedSlots.push(`affiche_${affIdx}`);
+                                }
+                            });
+                            if (isEditorialTweetActive && selectedExportSlides['slide_tweet'] !== false) {
+                                orderedSlots.push('tweet');
+                            }
+                            editorialBlankSlides.forEach((_, bIdx) => {
+                                const key = `slide_blank_${bIdx}`;
+                                if (selectedExportSlides[key] !== false) {
+                                    orderedSlots.push(`blank_${bIdx}`);
+                                }
+                            });
+                        }
+
+                        const slotsWithSpecificAudio = orderedSlots.filter(s => Boolean(currentSlideAudios[s]?.url));
+                        const hasMultipleDistinctAudios = slotsWithSpecificAudio.length > 1;
 
                         if (hasMultipleDistinctAudios || Boolean(currentSlideAudios['promo']?.url)) {
-                            // Mode multi-slides POST : chaque slide joue sa musique dédiée, la dernière continue sur l'Outro Promo
+                            // Mode multi-slides : chaque slot joue sa musique dédiée (ou hérite de la précédente)
                             const slideDurationSec = editorialSlide1Duration;
                             let cursor = 0;
                             let lastValidAudio = slide1OrGlobalAudio;
                             const hasPromoAudio = Boolean(currentSlideAudios['promo']?.url);
-                            for (let i = 0; i < availableSlides.length; i++) {
-                                const s = availableSlides[i];
+                            for (let i = 0; i < orderedSlots.length; i++) {
+                                const s = orderedSlots[i];
                                 if (i > 0) cursor += transitionDurationSec;
                                 const sAudio = currentSlideAudios[s]?.url ? currentSlideAudios[s] : lastValidAudio;
                                 if (sAudio?.url) {
                                     lastValidAudio = sAudio;
-                                    const isLastSlide = (i === availableSlides.length - 1);
-                                    const segDuration = (isLastSlide && !hasPromoAudio)
+                                    const isLastSlot = (i === orderedSlots.length - 1);
+                                    const segDuration = (isLastSlot && !hasPromoAudio)
                                         ? Math.max(slideDurationSec, (totalDuration / 1000) - cursor)
                                         : slideDurationSec;
                                     audioSegments.push({
@@ -15395,9 +15438,15 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         }
                     } else if (combinedMode === 'NONE') {
                         // Export d'une slide unique (MP4 30s)
-                        const effectiveSlide = editorialSlideOverrideRef.current !== null ? editorialSlideOverrideRef.current : editorialSlide;
-                        const sAudio = currentSlideAudios[effectiveSlide]?.url
-                            ? currentSlideAudios[effectiveSlide]
+                        const targetAudioKey = (editorialAfficheOverrideRef.current && editorialAfficheIndexOverrideRef.current !== null)
+                            ? `affiche_${editorialAfficheIndexOverrideRef.current}`
+                            : (editorialBlankOverrideRef.current && editorialBlankIndexOverrideRef.current !== null)
+                                ? `blank_${editorialBlankIndexOverrideRef.current}`
+                                : (editorialTweetOverrideRef.current)
+                                    ? 'tweet'
+                                    : (editorialSlideOverrideRef.current !== null ? editorialSlideOverrideRef.current : editorialSlide);
+                        const sAudio = currentSlideAudios[targetAudioKey]?.url
+                            ? currentSlideAudios[targetAudioKey]
                             : slide1OrGlobalAudio;
                         if (sAudio?.url) {
                             audioSegments.push({
@@ -16841,15 +16890,22 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     }
                 });
 
-                if ((afficheImage || isEditorialAfficheActive) && selectedExportSlides['slide_affiche'] !== false) {
-                    const affSlideNum = slidesList.length + 1;
-                    slidesToProcess.push({
-                        type: 'AFFICHE',
-                        slideNum: affSlideNum,
-                        title: `Slide ${affSlideNum} • Affiche`,
-                        filename: `${String(affSlideNum).padStart(2, '0')}-${cleanTheme}-slide-affiche-${formatSuffix}.mp4`
-                    });
-                }
+                                for (let affIdx = 0; affIdx < editorialAffiches.length; affIdx++) {
+                    const aff = editorialAffiches[affIdx];
+                    const key = `slide_affiche_${affIdx}`;
+                    const isSelected = selectedExportSlides[key] !== false && (affIdx > 0 || selectedExportSlides['slide_affiche'] !== false);
+                    if ((aff.image || isEditorialAfficheActive) && isSelected) {
+                        const affSlideNum = slidesList.length + affIdx + 1;
+                        const affSuffix = editorialAffiches.length > 1 ? `-${affIdx + 1}` : '';
+                        slidesToProcess.push({
+                            type: 'AFFICHE',
+                            slideNum: affSlideNum,
+                            afficheIndex: affIdx,
+                            title: `Slide ${affSlideNum} • Affiche ${editorialAffiches.length > 1 ? affIdx + 1 : ''}`.trim(),
+                            filename: `${String(affSlideNum).padStart(2, '0')}-${cleanTheme}-slide-affiche${affSuffix}-${formatSuffix}.mp4`
+                        });
+                    }
+            }
             }
 
             // Slide Outro Promo Dropsiders si sélectionnée
@@ -16893,8 +16949,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     promoOutroOverrideRef.current = null;
                     setIsCarouselPromoActive(false);
                     editorialAfficheOverrideRef.current = true;
+                    editorialAfficheIndexOverrideRef.current = item.afficheIndex ?? 0;
                     setIsEditorialAfficheActive(true);
                     setIsEditorialTweetActive(false);
+                    if (item.afficheIndex !== undefined && editorialAffiches[item.afficheIndex]?.image) {
+                        setAfficheImage(editorialAffiches[item.afficheIndex].image);
+                    }
                     if (item.slideNum) {
                         editorialSlideOverrideRef.current = item.slideNum;
                         setEditorialSlide(item.slideNum);
@@ -16902,6 +16962,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     }
                     await new Promise(r => setTimeout(r, 120));
                     blob = await startVideoRecording('NONE', { returnBlob: true, formatTab: formatToUse });
+                    editorialAfficheOverrideRef.current = false;
+                    editorialAfficheIndexOverrideRef.current = null;
                 } else if (item.type === 'AGENDA') {
                     promoOutroOverrideRef.current = null;
                     setIsCarouselPromoActive(false);

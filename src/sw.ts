@@ -5,6 +5,21 @@ declare const self: ServiceWorkerGlobalScope;
 
 precacheAndRoute(self.__WB_MANIFEST);
 
+// ── AUTO-UPDATE : skipWaiting pour éviter le F5 ──────────────────────────────
+// Dès qu'un nouveau SW est installé, il prend immédiatement le contrôle
+self.addEventListener('install', () => {
+    self.skipWaiting();
+});
+self.addEventListener('activate', (event: ExtendableEvent) => {
+    event.waitUntil(self.clients.claim());
+});
+// Accepter aussi le message SKIP_WAITING envoyé par vite-plugin-pwa autoUpdate
+self.addEventListener('message', (event: ExtendableMessageEvent) => {
+    if (event.data && event.data.type === 'SKIP_WAITING') {
+        self.skipWaiting();
+    }
+});
+
 // ── API CACHE : Stale-While-Revalidate ──────────────────────────────────────
 // Les routes API sont servies depuis le cache instantanément,
 // puis rafraîchies en arrière-plan à chaque requête.

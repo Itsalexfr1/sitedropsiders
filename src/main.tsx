@@ -1,6 +1,18 @@
 import { createRoot } from 'react-dom/client'
 // Force cache refresh after build fixes
 (window as any).APP_VERSION = '2.2.0-' + new Date().getTime();
+
+// Auto-reload si nouveau Service Worker détecté
+if ('serviceWorker' in navigator) {
+  let refreshing = false;
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (!refreshing) {
+      refreshing = true;
+      window.location.reload();
+    }
+  });
+}
+
 import './index.css'
 import './styles/article-premium.css'
 import App from './App.tsx'
