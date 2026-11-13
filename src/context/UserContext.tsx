@@ -332,7 +332,8 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
         if (savedUser) {
             try {
                 const parsed = JSON.parse(savedUser);
-                if (!parsed.agendaFavorites) parsed.agendaFavorites = [];
+                if (!Array.isArray(parsed.agendaFavorites)) parsed.agendaFavorites = [];
+                if (!Array.isArray(parsed.trackIds)) parsed.trackIds = [];
                 setUser(parsed);
             } catch (e) {
                 console.error('Failed to parse user data', e);
@@ -425,7 +426,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
                     const res = await fetch(`/api/agenda/favorites?email=${encodeURIComponent(user.email)}`);
                     if (res.ok) {
                         const backendFavs = await res.json();
-                        if (Array.isArray(backendFavs) && JSON.stringify(backendFavs) !== JSON.stringify(user.agendaFavorites)) {
+                        if (Array.isArray(backendFavs) && JSON.stringify(backendFavs) !== JSON.stringify(user.agendaFavorites || [])) {
                             setUser(prev => prev ? { ...prev, agendaFavorites: backendFavs } : null);
                         }
                     }
@@ -710,10 +711,11 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
 
     const toggleTrackId = (trackId: string) => {
         if (!user) return;
-        const exists = user.trackIds.includes(trackId);
+        const currentTracks = Array.isArray(user.trackIds) ? user.trackIds : [];
+        const exists = currentTracks.includes(trackId);
         const newTrackIds = exists 
-            ? user.trackIds.filter(id => id !== trackId)
-            : [...user.trackIds, trackId];
+            ? currentTracks.filter(id => id !== trackId)
+            : [...currentTracks, trackId];
         
         setUser({ ...user, trackIds: newTrackIds });
     };

@@ -2024,6 +2024,18 @@ export default {
             }
         }
 
+        // --- GOOGLE OAUTH REDIRECT ---
+        if (path === '/auth/google' && request.method === 'GET') {
+            const GOOGLE_CLIENT_ID = env.VITE_GOOGLE_CLIENT_ID || '762584383630-nc4f3eaqnvnkus7lk793n2n22qjdpdv3.apps.googleusercontent.com';
+            const redirectUri = url.origin.includes('localhost') ? 'http://localhost:5173' : 'https://dropsiders.fr';
+            const googleAuthUrl = new URL('https://accounts.google.com/o/oauth2/v2/auth');
+            googleAuthUrl.searchParams.set('client_id', GOOGLE_CLIENT_ID);
+            googleAuthUrl.searchParams.set('redirect_uri', redirectUri);
+            googleAuthUrl.searchParams.set('response_type', 'token');
+            googleAuthUrl.searchParams.set('scope', 'email profile');
+            return Response.redirect(googleAuthUrl.toString(), 302);
+        }
+
         // --- DISCORD OAUTH ---
         const DISCORD_CLIENT_ID = '1481163258080788602';
         const DISCORD_REDIRECT_URI = path.startsWith('/auth/discord') 

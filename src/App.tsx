@@ -328,6 +328,10 @@ const router = createBrowserRouter([
       { path: "branding", element: <BrandingPage /> },
       { path: "newsletter", element: <Newsletter /> },
       { path: "unsubscribe", element: <Unsubscribe /> },
+      { path: "auth/google", element: <Navigate to="/connexion" replace /> },
+      { path: "auth/discord", element: <Navigate to="/connexion" replace /> },
+      { path: "auth/*", element: <Navigate to="/connexion" replace /> },
+      { path: "*", element: <Navigate to="/" replace /> },
     ]
   },
   // ── Routes standalone SANS Layout (page publique mix partageable) ──

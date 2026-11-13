@@ -76,11 +76,16 @@ export function UserAuthCard({
         setIsSocialLoading(true);
         setError(null);
 
+        const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || "762584383630-nc4f3eaqnvnkus7lk793n2n22qjdpdv3.apps.googleusercontent.com";
+        const redirectUri = window.location.origin;
+        const googleAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=token&scope=email%20profile`;
+
         const isMobile = window.innerWidth <= 768 || /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
         
         if (isMobile) {
             localStorage.setItem('auth_redirect_path', window.location.pathname + window.location.search);
-            window.location.href = '/auth/google';
+            localStorage.setItem('social_auth_redirect', window.location.pathname + window.location.search);
+            window.location.href = googleAuthUrl;
             return;
         }
 
@@ -90,7 +95,7 @@ export function UserAuthCard({
         const top = window.screenY + (window.outerHeight - height) / 2.5;
 
         const popup = window.open(
-            '/auth/google',
+            googleAuthUrl,
             'google-oauth',
             `width=${width},height=${height},left=${left},top=${top},scrollbars=yes,status=no,resizable=yes`
         );
@@ -130,6 +135,7 @@ export function UserAuthCard({
         
         if (isMobile) {
             localStorage.setItem('auth_redirect_path', window.location.pathname + window.location.search);
+            localStorage.setItem('social_auth_redirect', window.location.pathname + window.location.search);
             window.location.href = '/auth/discord';
             return;
         }
@@ -345,10 +351,10 @@ export function UserAuthCard({
                                 <Heart className="w-3 h-3 text-neon-red" /> Favoris Récents
                             </h4>
                             <div className="space-y-2">
-                                {user?.trackIds.length === 0 ? (
+                                {!user?.trackIds || user.trackIds.length === 0 ? (
                                     <p className="text-xs text-gray-500 italic py-2">Aucun ID sauvegardé pour l'instant...</p>
                                 ) : (
-                                    user?.trackIds.slice(0, 3).map((id, i) => (
+                                    (user.trackIds || []).slice(0, 3).map((id, i) => (
                                         <div key={i} className="flex items-center justify-between p-3 bg-black/20 border border-white/5 rounded-xl">
                                             <span className="text-xs font-bold text-white uppercase tracking-tight truncate max-w-[200px]">{id}</span>
                                             <ChevronRight className="w-3.5 h-3.5 text-gray-600" />

@@ -254,13 +254,13 @@ export function TrackIdForum() {
                                             onClick={() => toggleTrackId(req.result!)}
                                             className={twMerge(
                                                 "p-3 rounded-xl transition-all",
-                                                user?.trackIds.includes(req.result!)
+                                                (user?.trackIds || []).includes(req.result!)
                                                     ? "bg-neon-red text-white shadow-[0_0_15px_rgba(255,0,51,0.4)]"
                                                     : "bg-white/5 text-gray-500 hover:text-white"
                                             )}
                                             title="Sauvegarder dans mon profil"
                                         >
-                                            <Heart className={twMerge("w-4 h-4", user?.trackIds.includes(req.result!) && "fill-current")} />
+                                            <Heart className={twMerge("w-4 h-4", (user?.trackIds || []).includes(req.result!) && "fill-current")} />
                                         </button>
                                     )}
                                 </div>
