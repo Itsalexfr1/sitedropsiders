@@ -552,5 +552,24 @@
     "additionalDates": [
       "2027-03-26"
     ]
+  },
+  {
+    "id": 1152,
+    "title": "AT&T Playoff Playlist Live",
+    "date": "2027-01-23",
+    "startDate": "2027-01-23",
+    "endDate": "2027-01-24",
+    "venue": "Grand Prix Plaza",
+    "location": "LAS VEGAS",
+    "country": "USA",
+    "type": "Festival",
+    "image": "/uploads/uploads/bdad3767b65325de-resize.jpg",
+    "url": "https://collegefootballplayoff.com/sports/2017/11/10/ppl",
+    "genre": "Multi Styles",
+    "month": "JANVIER",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false,
+    "additionalDates": []
   }
 ]
