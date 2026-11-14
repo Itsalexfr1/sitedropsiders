@@ -245,14 +245,15 @@
 
 .image-premium-wrapper {
     position: relative !important;
-    background-color: rgba(0, 0, 0, 0.4);
+    background-color: transparent !important;
     border-radius: 1.5rem !important;
     /* 24px */
     overflow: hidden !important;
-    border: 1px solid rgba(255, 255, 255, 0.05) !important;
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5) !important;
+    border: none !important;
+    box-shadow: none !important;
     transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1) !important;
     width: 100%;
+    max-height: 520px !important;
 }
 
 .image-premium-wrapper img,
@@ -261,6 +262,9 @@
     width: 100% !important;
     height: 100% !important;
     object-fit: cover !important;
+    display: block !important;
+    border-radius: 1.5rem !important;
+    background-color: transparent !important;
 }
 
 .article-body-premium .duo-photos-premium .image-premium-wrapper,
@@ -269,14 +273,16 @@
     width: 50% !important;
     min-width: 0 !important;
     max-width: 50% !important;
-    aspect-ratio: 3/4 !important;
+    max-height: 480px !important;
     margin: 0 !important;
+    background-color: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
 }
 
 .image-premium-wrapper:hover {
     transform: translateY(-2px) scale(1.005) !important;
-    box-shadow: 0 20px 40px -10px rgba(255, 0, 51, 0.25) !important;
-    border-color: rgba(255, 0, 51, 0.4) !important;
+    box-shadow: 0 15px 30px -10px rgba(255, 0, 51, 0.2) !important;
     z-index: 10;
 }
 
@@ -284,7 +290,7 @@
 .grid-photos-premium {
     display: grid !important;
     gap: 1.5rem !important;
-    margin: 4rem auto !important;
+    margin: 3.5rem auto !important;
     width: 100% !important;
 }
 
@@ -296,9 +302,29 @@
     grid-template-columns: repeat(3, 1fr) !important;
 }
 
+.grid-photos-premium.grid-cols-4 {
+    grid-template-columns: repeat(4, 1fr) !important;
+}
+
+.grid-photos-premium .image-premium-wrapper {
+    max-height: 420px !important;
+}
+
+.grid-photos-premium.grid-cols-3 .image-premium-wrapper,
+.grid-photos-premium.grid-cols-4 .image-premium-wrapper {
+    max-height: 360px !important;
+}
+
+@media (max-width: 900px) {
+    .grid-photos-premium.grid-cols-4 {
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
+}
+
 @media (max-width: 640px) {
     .grid-photos-premium.grid-cols-2,
-    .grid-photos-premium.grid-cols-3 {
+    .grid-photos-premium.grid-cols-3,
+    .grid-photos-premium.grid-cols-4 {
         grid-template-columns: 1fr !important;
         gap: 1rem !important;
     }

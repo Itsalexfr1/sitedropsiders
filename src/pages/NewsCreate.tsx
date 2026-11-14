@@ -1035,7 +1035,7 @@ export function NewsCreate() {
         applemusic: '',
         deezer: ''
     });
-    const [duoModal, setDuoModal] = useState({ show: false, urls: ['', ''], widgetIndex: undefined as number | undefined, widgetId: undefined as string | undefined, aspectRatio: '3/4' });
+    const [duoModal, setDuoModal] = useState<{ show: boolean; urls: string[]; widgetIndex?: number; widgetId?: string; aspectRatio: string; fourPhotosLayout?: '2x2' | '1x4'; }>({ show: false, urls: ['', ''], widgetIndex: undefined, widgetId: undefined, aspectRatio: '3/4', fourPhotosLayout: '2x2' });
     const [isLoading, setIsLoading] = useState(isEditing);
 
     // Safety initialization for creation mode
@@ -6521,72 +6521,120 @@ ${generateSocialsHtml()}
                                     </div>
                                 ))}
 
-                                {duoModal.urls.length < 6 && (
+                                {duoModal.urls.length < 8 && (
                                     <button
                                         onClick={() => setDuoModal({ ...duoModal, urls: [...duoModal.urls, ''] })}
                                         className="w-full py-4 rounded-xl border border-dashed border-white/10 text-gray-500 hover:text-white hover:border-white/20 transition-all flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest"
                                     >
-                                        <Plus className="w-4 h-4" /> Ajouter une image
+                                        <Plus className="w-4 h-4" /> Ajouter une image ({duoModal.urls.length}/8)
                                     </button>
+                                )}
+
+                                {duoModal.urls.filter(u => u.trim()).length === 4 && (
+                                    <div>
+                                        <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Disposition pour 4 photos</label>
+                                        <div className="grid grid-cols-2 gap-2">
+                                            <button
+                                                type="button"
+                                                onClick={() => setDuoModal({ ...duoModal, fourPhotosLayout: '2x2' })}
+                                                className={`py-2 rounded-xl text-[10px] font-bold uppercase transition-all ${duoModal.fourPhotosLayout !== '1x4' ? 'bg-neon-purple text-white shadow-lg shadow-purple-500/20' : 'bg-white/5 text-gray-400 hover:bg-white/10'}`}
+                                            >
+                                                2 lignes de 2 (2x2)
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => setDuoModal({ ...duoModal, fourPhotosLayout: '1x4' })}
+                                                className={`py-2 rounded-xl text-[10px] font-bold uppercase transition-all ${duoModal.fourPhotosLayout === '1x4' ? 'bg-neon-purple text-white shadow-lg shadow-purple-500/20' : 'bg-white/5 text-gray-400 hover:bg-white/10'}`}
+                                            >
+                                                1 ligne de 4 (1x4)
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {duoModal.urls.filter(u => u.trim()).length === 6 && (
+                                    <div className="p-2.5 rounded-xl bg-neon-purple/10 border border-neon-purple/20 text-center">
+                                        <span className="text-[10px] font-bold text-neon-purple uppercase tracking-wider">Disposition : 2 lignes de 3 photos</span>
+                                    </div>
+                                )}
+
+                                {duoModal.urls.filter(u => u.trim()).length === 8 && (
+                                    <div className="p-2.5 rounded-xl bg-neon-purple/10 border border-neon-purple/20 text-center">
+                                        <span className="text-[10px] font-bold text-neon-purple uppercase tracking-wider">Disposition : 2 lignes de 4 photos</span>
+                                    </div>
                                 )}
 
                                 <div>
                                     <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Format des images</label>
                                     <div className="grid grid-cols-3 gap-2">
                                         {['1/1', '3/4', '16/9'].map(ratio => (
-                                            <button
-                                                key={ratio}
-                                                type="button"
-                                                onClick={() => setDuoModal({ ...duoModal, aspectRatio: ratio })}
-                                                className={`py-2 rounded-xl text-[10px] font-bold uppercase transition-all ${duoModal.aspectRatio === ratio ? 'bg-neon-purple text-white' : 'bg-white/5 text-gray-400 hover:bg-white/10'}`}
-                                            >
-                                                {ratio}
-                                            </button>
-                                        ))}
-                                    </div>
-                                </div>
-                                <div className="flex gap-4 pt-4">
-                                    <button
-                                        onClick={() => setDuoModal({ show: false, urls: ['', ''], widgetIndex: undefined, widgetId: undefined, aspectRatio: '3/4' })}
-                                        className="flex-1 py-3 rounded-xl border border-white/10 text-gray-500 font-bold uppercase tracking-widest text-[10px] hover:bg-white/5 transition-all"
-                                    >
-                                        Annuler
-                                    </button>
-                                    <button
-                                        onClick={() => {
-                                            const activeUrls = duoModal.urls.filter(u => u.trim());
-                                            if (activeUrls.length < 2) return;
+                                             <button
+                                                 key={ratio}
+                                                 type="button"
+                                                 onClick={() => setDuoModal({ ...duoModal, aspectRatio: ratio })}
+                                                 className={`py-2 rounded-xl text-[10px] font-bold uppercase transition-all ${duoModal.aspectRatio === ratio ? 'bg-neon-purple text-white' : 'bg-white/5 text-gray-400 hover:bg-white/10'}`}
+                                             >
+                                                 {ratio}
+                                             </button>
+                                         ))}
+                                     </div>
+                                 </div>
+                                 <div className="flex gap-4 pt-4">
+                                     <button
+                                         onClick={() => setDuoModal({ show: false, urls: ['', ''], widgetIndex: undefined, widgetId: undefined, aspectRatio: '3/4', fourPhotosLayout: '2x2' })}
+                                         className="flex-1 py-3 rounded-xl border border-white/10 text-gray-500 font-bold uppercase tracking-widest text-[10px] hover:bg-white/5 transition-all"
+                                     >
+                                         Annuler
+                                     </button>
+                                     <button
+                                         onClick={() => {
+                                             const activeUrls = duoModal.urls.filter(u => u.trim());
+                                             if (activeUrls.length < 2) return;
 
-                                            const mediaItems = activeUrls.map((url, idx) => {
-                                                const isV = url.toLowerCase().match(/\.(mp4|webm|ogg|mov)$/) || url.includes('/video/upload/');
-                                                return isV
-                                                    ? `<video src="${url}" autoplay loop muted playsinline class="w-full object-cover" style="aspect-ratio: ${duoModal.aspectRatio} !important;"></video>`
-                                                    : `<img src="${url}" alt="Grid item ${idx + 1}" class="w-full object-cover transform group-hover:scale-105 transition-transform duration-700" style="aspect-ratio: ${duoModal.aspectRatio} !important;" />`;
-                                            });
+                                             const mediaItems = activeUrls.map((url, idx) => {
+                                                 const isV = url.toLowerCase().match(/\.(mp4|webm|ogg|mov)$/) || url.includes('/video/upload/');
+                                                 return isV
+                                                     ? `<video src="${url}" autoplay loop muted playsinline class="w-full object-cover" style="aspect-ratio: ${duoModal.aspectRatio} !important;"></video>`
+                                                     : `<img src="${url}" alt="Grid item ${idx + 1}" class="w-full object-cover transform group-hover:scale-105 transition-transform duration-700" style="aspect-ratio: ${duoModal.aspectRatio} !important;" />`;
+                                             });
 
-                                            // Determine layout classes based on item count
-                                            let layoutClasses = "duo-photos-premium flex flex-row gap-4 my-12";
-                                            let itemClasses = "image-premium-wrapper relative rounded-3xl overflow-hidden shadow-2xl border border-white/5 group flex-1";
-                                            
-                                            if (activeUrls.length > 2) {
-                                                // Grid layout for 3+ items
-                                                const gridCols = activeUrls.length === 2 ? 'grid-cols-2' : activeUrls.length === 3 ? 'grid-cols-3' : activeUrls.length === 4 ? 'grid-cols-2' : 'grid-cols-3';
-                                                layoutClasses = `grid-photos-premium grid ${gridCols} gap-4 my-12`;
-                                                itemClasses = "image-premium-wrapper relative rounded-3xl overflow-hidden shadow-2xl border border-white/5 group";
-                                            }
+                                             // Determine layout classes based on item count
+                                             const count = activeUrls.length;
+                                             let layoutClasses = "duo-photos-premium flex flex-row gap-4 my-8";
+                                             let itemClasses = "image-premium-wrapper relative rounded-2xl overflow-hidden group flex-1";
 
-                                            const itemStyle = `style="aspect-ratio: ${duoModal.aspectRatio} !important;"`;
-                                            const gridWidget = `<div class="${layoutClasses}">\n  ${mediaItems.map(m => `<div class="${itemClasses}" ${itemStyle}>\n    ${m}\n  </div>`).join('\n  ')}\n</div>`;
+                                             if (count === 2) {
+                                                 layoutClasses = "duo-photos-premium flex flex-row gap-4 my-8";
+                                                 itemClasses = "image-premium-wrapper relative rounded-2xl overflow-hidden group flex-1";
+                                             } else if (count === 3) {
+                                                 layoutClasses = "grid-photos-premium grid-cols-3 gap-4 my-8";
+                                                 itemClasses = "image-premium-wrapper relative rounded-2xl overflow-hidden group";
+                                             } else if (count === 4) {
+                                                 const isOneRow = duoModal.fourPhotosLayout === '1x4';
+                                                 layoutClasses = `grid-photos-premium ${isOneRow ? 'grid-cols-4' : 'grid-cols-2'} gap-4 my-8`;
+                                                 itemClasses = "image-premium-wrapper relative rounded-2xl overflow-hidden group";
+                                             } else if (count === 5 || count === 6) {
+                                                 // 6 photos: 2 lignes de 3
+                                                 layoutClasses = "grid-photos-premium grid-cols-3 gap-4 my-8";
+                                                 itemClasses = "image-premium-wrapper relative rounded-2xl overflow-hidden group";
+                                             } else {
+                                                 // 7 ou 8 photos: 2 lignes de 4
+                                                 layoutClasses = "grid-photos-premium grid-cols-4 gap-4 my-8";
+                                                 itemClasses = "image-premium-wrapper relative rounded-2xl overflow-hidden group";
+                                             }
 
-                                            if (duoModal.widgetId) {
-                                                updateWidget(duoModal.widgetId, gridWidget);
-                                            } else if (duoModal.widgetIndex !== undefined) {
-                                                addWidget(duoModal.widgetIndex, gridWidget);
-                                            } else {
-                                                setWidgets([...widgets, { id: Math.random().toString(36).substr(2, 9), content: gridWidget }]);
-                                            }
-                                            setDuoModal({ show: false, urls: ['', ''], widgetIndex: undefined, widgetId: undefined, aspectRatio: '3/4' });
-                                        }}
+                                             const itemStyle = `style="aspect-ratio: ${duoModal.aspectRatio} !important;"`;
+                                             const gridWidget = `<div class="${layoutClasses}">\n  ${mediaItems.map(m => `<div class="${itemClasses}" ${itemStyle}>\n    ${m}\n  </div>`).join('\n  ')}\n</div>`;
+
+                                             if (duoModal.widgetId) {
+                                                 updateWidget(duoModal.widgetId, gridWidget);
+                                             } else if (duoModal.widgetIndex !== undefined) {
+                                                 addWidget(duoModal.widgetIndex, gridWidget);
+                                             } else {
+                                                 setWidgets([...widgets, { id: Math.random().toString(36).substr(2, 9), content: gridWidget }]);
+                                             }
+                                             setDuoModal({ show: false, urls: ['', ''], widgetIndex: undefined, widgetId: undefined, aspectRatio: '3/4', fourPhotosLayout: '2x2' });
+                                         }}
                                         className="flex-1 py-3 rounded-xl bg-neon-purple text-white font-bold uppercase tracking-widest text-[10px] shadow-[0_0_15px_rgba(189,0,255,0.4)] hover:scale-105 transition-all"
                                     >
                                         Confirmer

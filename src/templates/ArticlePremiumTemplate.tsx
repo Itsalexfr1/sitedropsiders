@@ -1419,18 +1419,18 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
                         initial={{ scale: 1.1, opacity: 0 }}
                         animate={{ scale: 1, opacity: 1 }}
                         transition={{ duration: 1.5, ease: "easeOut" }}
-                        className="absolute inset-0 z-0"
+                        className="absolute inset-0 z-0 overflow-hidden"
                     >
                         <img
                             src={resolveImageUrl(article.image)}
                             alt={article.title}
-                            className="w-full h-full object-cover festival-pro-hero"
+                            className="w-full h-full object-cover festival-pro-hero filter blur-md scale-110"
                             onError={(e) => {
                                 (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1514525253344-f814d074e015?q=80&w=1933&auto=format&fit=crop';
                             }}
                         />
-                        <div className="absolute inset-0 bg-dark-bg/40" />
-                        <div className="absolute inset-0 bg-gradient-to-t from-dark-bg via-transparent to-transparent opacity-90" />
+                        <div className="absolute inset-0 bg-dark-bg/50 backdrop-blur-[2px]" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-dark-bg via-dark-bg/40 to-transparent opacity-95" />
                     </motion.div>
                 )}
 
@@ -1786,36 +1786,6 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
                                         </div>
                                         );
                                     })()}
-
-                                {/* Gallery - Show for all articles with multiple images */}
-                                {(article.images && article.images.length > 1) && (
-                                    <div className="mt-20 pt-20 border-t border-white/5">
-                                        <h3 className="text-2xl font-display font-black text-neon-red mb-10 flex flex-col items-center justify-center gap-3 uppercase italic text-center">
-                                            <Camera className="w-8 h-8 text-neon-red" />
-                                            {t('article_detail.gallery_title')}
-                                        </h3>
-                                        <div className="gallery-premium-grid grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                                            {/* Skip first image as it's the cover */}
-                                            {article.images.slice(1).map((img: string, idx: number) => (
-                                                <div
-                                                    key={idx}
-                                                    className="article-gallery-item aspect-square cursor-pointer overflow-hidden rounded-3xl border border-white/10 group shadow-2xl bg-black relative"
-                                                    onClick={() => setSelectedImage(img)}
-                                                >
-                                                    <img
-                                                        src={resolveImageUrl(img)}
-                                                        alt=""
-                                                        className="absolute inset-0 w-full h-full object-cover object-center transition-transform duration-700 group-hover:scale-110"
-                                                        onError={(e) => {
-                                                            (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?q=80&w=2070&auto=format&fit=crop';
-                                                        }}
-                                                    />
-                                                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity z-10" />
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </div>
-                                )}
 
                                 {/* Previous / Next Buttons */}
                                 {(previousArticle || nextArticle) && (
