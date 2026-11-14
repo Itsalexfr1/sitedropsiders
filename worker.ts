@@ -2978,6 +2978,28 @@ ${urls.map(u => `  <url>
             }
         }
 
+        // --- API: CHECK EMAIL (legacy account detection) ---
+        if (path === '/api/users/check-email' && request.method === 'GET') {
+            try {
+                const emailParam = url.searchParams.get('email');
+                if (!emailParam) {
+                    return new Response(JSON.stringify({ error: 'Email requis' }), { status: 400, headers });
+                }
+                const cleanEmail = emailParam.toLowerCase().trim();
+                const key = `community_user_${cleanEmail}`;
+                const userRaw = await env.CHAT_KV.get(key);
+                if (!userRaw) {
+                    return new Response(JSON.stringify({ exists: false, hasPassword: false, isOAuth: false }), { headers });
+                }
+                const user = JSON.parse(userRaw);
+                const isOAuth = (user.provider === 'google' || user.provider === 'discord') && !user.passwordHash;
+                const hasPassword = !!user.passwordHash;
+                return new Response(JSON.stringify({ exists: true, hasPassword, isOAuth, provider: user.provider }), { headers });
+            } catch (err: any) {
+                return new Response(JSON.stringify({ error: err?.message || 'Erreur' }), { status: 500, headers });
+            }
+        }
+
         // --- API: LOGIN USER WITH PASSWORD ---
         if (path === '/api/users/login' && request.method === 'POST') {
             try {
@@ -3009,6 +3031,9 @@ ${urls.map(u => `  <url>
 
                 // If user exists from old passwordless system: set this password on their first login
                 if (!user.passwordHash) {
+                    if (password.length < 6) {
+                        return new Response(JSON.stringify({ error: 'Première connexion sécurisée : veuillez choisir un mot de passe d\'au moins 6 caractères.' }), { status: 400, headers });
+                    }
                     const salt = crypto.randomUUID();
                     const enc = new TextEncoder();
                     const data = enc.encode(`${salt}:${password}:dropsiders_salt_2026`);
@@ -3019,7 +3044,7 @@ ${urls.map(u => `  <url>
                     await env.CHAT_KV.put(key, JSON.stringify(user));
 
                     const { passwordHash: _, salt: __, ...userSafe } = user;
-                    return new Response(JSON.stringify({ success: true, user: userSafe }), { headers });
+                    return new Response(JSON.stringify({ success: true, user: userSafe, isFirstPasswordSet: true }), { headers });
                 }
 
                 // Verify password

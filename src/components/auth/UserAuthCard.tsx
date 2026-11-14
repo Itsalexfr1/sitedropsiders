@@ -15,7 +15,9 @@ import {
     Camera,
     Lock,
     Eye,
-    EyeOff
+    EyeOff,
+    Sparkles,
+    ShieldCheck
 } from 'lucide-react';
 import { useUser } from '../../context/UserContext';
 import axios from 'axios';
@@ -46,12 +48,38 @@ export function UserAuthCard({
     const [authMode, setAuthMode] = useState<'login' | 'register'>(initialMode);
     const [error, setError] = useState<string | null>(null);
     const [subscribeNewsletter, setSubscribeNewsletter] = useState(true);
+    const [isLegacyAccount, setIsLegacyAccount] = useState(false);
 
     useEffect(() => {
         if (initialMode) {
             setAuthMode(initialMode);
         }
     }, [initialMode]);
+
+    // Check if entered email corresponds to a legacy account without password
+    useEffect(() => {
+        const cleanEmail = email.trim().toLowerCase();
+        if (authMode === 'login' && cleanEmail.includes('@') && cleanEmail.includes('.')) {
+            const timer = setTimeout(async () => {
+                try {
+                    const res = await fetch(`/api/users/check-email?email=${encodeURIComponent(cleanEmail)}`);
+                    if (res.ok) {
+                        const data = await res.json();
+                        if (data.exists && !data.hasPassword && !data.isOAuth) {
+                            setIsLegacyAccount(true);
+                        } else {
+                            setIsLegacyAccount(false);
+                        }
+                    }
+                } catch {
+                    setIsLegacyAccount(false);
+                }
+            }, 350);
+            return () => clearTimeout(timer);
+        } else {
+            setIsLegacyAccount(false);
+        }
+    }, [email, authMode]);
 
     const applyGoogleToken = async (accessToken: string) => {
         setIsSocialLoading(true);
@@ -271,6 +299,19 @@ export function UserAuthCard({
             }
         } else {
             // Mode Connexion avec mot de passe
+            if (isLegacyAccount) {
+                if (password.length < 6) {
+                    setError("Veuillez choisir un mot de passe d'au moins 6 caractères pour sécuriser votre compte.");
+                    setIsAuthLoading(false);
+                    return;
+                }
+                if (password !== confirmPassword) {
+                    setError("Les deux mots de passe ne correspondent pas.");
+                    setIsAuthLoading(false);
+                    return;
+                }
+            }
+
             try {
                 const res = await fetch('/api/users/login', {
                     method: 'POST',
@@ -497,6 +538,20 @@ export function UserAuthCard({
                                     </div>
                                 )}
 
+                                {authMode === 'login' && isLegacyAccount && (
+                                    <div className="p-4 bg-neon-purple/10 border border-neon-purple/30 rounded-2xl flex items-start gap-3">
+                                        <Sparkles className="w-5 h-5 text-neon-purple shrink-0 mt-0.5 animate-pulse" />
+                                        <div>
+                                            <p className="text-[11px] font-black text-white uppercase tracking-wider">
+                                                Première connexion sécurisée !
+                                            </p>
+                                            <p className="text-[10px] text-gray-300 font-medium leading-relaxed mt-1">
+                                                Votre compte existe déjà. Définissez un mot de passe (6 car. min) pour sécuriser et accéder à votre espace membre.
+                                            </p>
+                                        </div>
+                                    </div>
+                                )}
+
                                 {authMode === 'register' && (
                                     <div className="group">
                                         <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 block ml-1 italic">Pseudo <span className="text-neon-red">*</span></label>
@@ -530,7 +585,15 @@ export function UserAuthCard({
                                 </div>
 
                                 <div className="group">
-                                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 block ml-1">Mot de Passe <span className="text-neon-red">*</span></label>
+                                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 block ml-1">
+                                        {isLegacyAccount ? (
+                                            <span className="text-neon-purple flex items-center gap-1.5">
+                                                <ShieldCheck className="w-3.5 h-3.5" /> Définir votre Mot de Passe <span className="text-neon-red">*</span>
+                                            </span>
+                                        ) : (
+                                            <>Mot de Passe <span className="text-neon-red">*</span></>
+                                        )}
+                                    </label>
                                     <div className="relative">
                                         <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 group-focus-within:text-neon-red transition-colors" />
                                         <input
@@ -540,7 +603,7 @@ export function UserAuthCard({
                                             value={password}
                                             onChange={(e) => setPassword(e.target.value)}
                                             className="w-full pl-12 pr-12 py-4 bg-white/5 border border-white/10 rounded-2xl text-white font-bold text-sm focus:outline-none focus:border-neon-red/50 transition-all placeholder:text-gray-700"
-                                            placeholder={authMode === 'register' ? '6 caractères minimum' : 'Ton mot de passe'}
+                                            placeholder={authMode === 'register' || isLegacyAccount ? '6 caractères minimum' : 'Ton mot de passe'}
                                         />
                                         <button
                                             type="button"
@@ -552,34 +615,34 @@ export function UserAuthCard({
                                     </div>
                                 </div>
 
-                                {authMode === 'register' && (
-                                    <>
-                                        <div className="group">
-                                            <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 block ml-1">Confirmer le Mot de Passe <span className="text-neon-red">*</span></label>
-                                            <div className="relative">
-                                                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 group-focus-within:text-neon-red transition-colors" />
-                                                <input
-                                                    type={showPassword ? "text" : "password"}
-                                                    required
-                                                    minLength={6}
-                                                    value={confirmPassword}
-                                                    onChange={(e) => setConfirmPassword(e.target.value)}
-                                                    className="w-full pl-12 pr-4 py-4 bg-white/5 border border-white/10 rounded-2xl text-white font-bold text-sm focus:outline-none focus:border-neon-red/50 transition-all placeholder:text-gray-700"
-                                                    placeholder="Répète ton mot de passe"
-                                                />
-                                            </div>
+                                {(authMode === 'register' || isLegacyAccount) && (
+                                    <div className="group">
+                                        <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 block ml-1">Confirmer le Mot de Passe <span className="text-neon-red">*</span></label>
+                                        <div className="relative">
+                                            <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 group-focus-within:text-neon-red transition-colors" />
+                                            <input
+                                                type={showPassword ? "text" : "password"}
+                                                required
+                                                minLength={6}
+                                                value={confirmPassword}
+                                                onChange={(e) => setConfirmPassword(e.target.value)}
+                                                className="w-full pl-12 pr-4 py-4 bg-white/5 border border-white/10 rounded-2xl text-white font-bold text-sm focus:outline-none focus:border-neon-red/50 transition-all placeholder:text-gray-700"
+                                                placeholder="Répète ton mot de passe"
+                                            />
                                         </div>
+                                    </div>
+                                )}
 
-                                        <div className="flex items-center gap-3 bg-white/5 border border-white/10 p-4 rounded-2xl cursor-pointer hover:bg-white/10 transition-colors" onClick={() => setSubscribeNewsletter(!subscribeNewsletter)}>
-                                            <div className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${subscribeNewsletter ? 'bg-neon-red border-neon-red' : 'border-gray-500'}`}>
-                                                {subscribeNewsletter && <svg className="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>}
-                                            </div>
-                                            <div className="flex flex-col">
-                                                <span className="text-[10px] font-black text-white uppercase tracking-widest">M'inscrire à la Newsletter Dropsiders</span>
-                                                <span className="text-[8px] font-bold text-gray-500 uppercase tracking-widest leading-none mt-1">Reçois nos exclusivités par email !</span>
-                                            </div>
+                                {authMode === 'register' && (
+                                    <div className="flex items-center gap-3 bg-white/5 border border-white/10 p-4 rounded-2xl cursor-pointer hover:bg-white/10 transition-colors" onClick={() => setSubscribeNewsletter(!subscribeNewsletter)}>
+                                        <div className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${subscribeNewsletter ? 'bg-neon-red border-neon-red' : 'border-gray-500'}`}>
+                                            {subscribeNewsletter && <svg className="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>}
                                         </div>
-                                    </>
+                                        <div className="flex flex-col">
+                                            <span className="text-[10px] font-black text-white uppercase tracking-widest">M'inscrire à la Newsletter Dropsiders</span>
+                                            <span className="text-[8px] font-bold text-gray-500 uppercase tracking-widest leading-none mt-1">Reçois nos exclusivités par email !</span>
+                                        </div>
+                                    </div>
                                 )}
                             </div>
 
@@ -590,8 +653,10 @@ export function UserAuthCard({
                                     className="w-full py-5 bg-white text-black rounded-2xl font-display font-black text-[10px] uppercase tracking-[0.2em] hover:bg-neon-red hover:text-white transition-all shadow-xl shadow-white/5 disabled:opacity-50 disabled:cursor-wait flex items-center justify-center gap-3"
                                 >
                                     {isAuthLoading ? (
-                                        <><Loader2 className="w-4 h-4 animate-spin" /> {authMode === 'register' ? 'Création...' : 'Connexion...'}</>
-                                    ) : (authMode === 'register' ? 'Créer mon compte' : 'Me connecter')}
+                                        <><Loader2 className="w-4 h-4 animate-spin" /> {authMode === 'register' ? 'Création...' : (isLegacyAccount ? 'Sécurisation...' : 'Connexion...')}</>
+                                    ) : (
+                                        authMode === 'register' ? 'Créer mon compte' : (isLegacyAccount ? 'Sécuriser et me connecter' : 'Me connecter')
+                                    )}
                                 </button>
                                 <p className="text-center text-[9px] text-gray-600 font-black uppercase tracking-widest mt-6">
                                     En créant un compte, vous acceptez nos <span className="text-gray-400 hover:text-white cursor-pointer transition-colors underline">CGU</span>
