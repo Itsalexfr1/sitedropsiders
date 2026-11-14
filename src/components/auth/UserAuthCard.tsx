@@ -12,7 +12,10 @@ import {
     ChevronRight, 
     LogOut, 
     Loader2,
-    Camera
+    Camera,
+    Lock,
+    Eye,
+    EyeOff
 } from 'lucide-react';
 import { useUser } from '../../context/UserContext';
 import axios from 'axios';
@@ -33,6 +36,9 @@ export function UserAuthCard({
     const { user, isLoggedIn, logout, loginSocial } = useUser();
     const [username, setUsername] = useState('');
     const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
     const [avatar, setAvatar] = useState<string | null>(null);
     const [isSocialLoading, setIsSocialLoading] = useState(false);
     const [discordLoading, setDiscordLoading] = useState(false);
@@ -72,60 +78,22 @@ export function UserAuthCard({
         }
     };
 
-    const handleGoogleLogin = () => {
-        setIsSocialLoading(true);
-        setError(null);
-
-        const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || "762584383630-nc4f3eaqnvnkus7lk793n2n22qjdpdv3.apps.googleusercontent.com";
-        const redirectUri = window.location.origin;
-        const googleAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=token&scope=email%20profile`;
-
-        const isMobile = window.innerWidth <= 768 || /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-        
-        if (isMobile) {
-            localStorage.setItem('auth_redirect_path', window.location.pathname + window.location.search);
-            localStorage.setItem('social_auth_redirect', window.location.pathname + window.location.search);
-            window.location.href = googleAuthUrl;
-            return;
+    const googleLogin = useGoogleLogin({
+        onSuccess: async (tokenResponse) => {
+            setIsSocialLoading(true);
+            await applyGoogleToken(tokenResponse.access_token);
+        },
+        onError: (err) => {
+            console.error('Google OAuth error:', err);
+            setError("Erreur ou annulation de la connexion Google.");
+            setIsSocialLoading(false);
         }
+    });
 
-        const width = 500;
-        const height = 650;
-        const left = window.screenX + (window.outerWidth - width) / 2;
-        const top = window.screenY + (window.outerHeight - height) / 2.5;
-
-        const popup = window.open(
-            googleAuthUrl,
-            'google-oauth',
-            `width=${width},height=${height},left=${left},top=${top},scrollbars=yes,status=no,resizable=yes`
-        );
-
-        const handleMessage = (event: MessageEvent) => {
-            if (event.data?.type === 'GOOGLE_AUTH_SUCCESS' && event.data.accessToken) {
-                window.removeEventListener('message', handleMessage);
-                applyGoogleToken(event.data.accessToken);
-            }
-        };
-
-        window.addEventListener('message', handleMessage);
-
-        const checkInterval = setInterval(() => {
-            const token = localStorage.getItem('dropsiders_google_mobile_token');
-            if (token) {
-                localStorage.removeItem('dropsiders_google_mobile_token');
-                clearInterval(checkInterval);
-                window.removeEventListener('message', handleMessage);
-                if (popup && !popup.closed) popup.close();
-                applyGoogleToken(token);
-                return;
-            }
-
-            if (popup?.closed) {
-                clearInterval(checkInterval);
-                window.removeEventListener('message', handleMessage);
-                setIsSocialLoading(false);
-            }
-        }, 500);
+    const handleGoogleLogin = () => {
+        setError(null);
+        setIsSocialLoading(true);
+        googleLogin();
     };
 
     const handleDiscordLogin = () => {
@@ -206,52 +174,129 @@ export function UserAuthCard({
     const handleAuth = async (e: React.FormEvent) => {
         e.preventDefault();
         setError(null);
-        if (!username.trim() || !email.trim()) {
-            setError('Veuillez remplir le pseudo et l\'email.');
+
+        const cleanEmail = email.trim().toLowerCase();
+        if (!cleanEmail) {
+            setError("Veuillez renseigner votre adresse email.");
             return;
         }
-        setIsAuthLoading(true);
-        let finalAvatar = avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(username.trim())}`;
 
-        if (avatar && avatar.startsWith('data:image')) {
+        if (!password) {
+            setError("Veuillez renseigner votre mot de passe.");
+            return;
+        }
+
+        setIsAuthLoading(true);
+
+        if (authMode === 'register') {
+            if (!username.trim()) {
+                setError("Veuillez choisir un pseudo.");
+                setIsAuthLoading(false);
+                return;
+            }
+            if (password.length < 6) {
+                setError("Le mot de passe doit comporter au moins 6 caractères.");
+                setIsAuthLoading(false);
+                return;
+            }
+            if (password !== confirmPassword) {
+                setError("Les deux mots de passe ne correspondent pas.");
+                setIsAuthLoading(false);
+                return;
+            }
+
+            let finalAvatar = avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(username.trim())}`;
+
+            if (avatar && avatar.startsWith('data:image')) {
+                try {
+                    const response = await fetch('/api/upload', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            filename: `avatar_${username.toLowerCase().replace(/[^a-z0-9]/g, '_')}_${Date.now()}.jpg`,
+                            content: avatar,
+                            type: 'image/jpeg',
+                            path: 'membre'
+                        })
+                    });
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        if (data.success && data.url) {
+                            finalAvatar = data.url;
+                        }
+                    }
+                } catch (err) {
+                    console.warn('Avatar upload failed, continuing with generated avatar', err);
+                }
+            }
+
             try {
-                const response = await fetch('/api/upload', {
+                const res = await fetch('/api/users/register', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        filename: `avatar_${username.toLowerCase().replace(/[^a-z0-9]/g, '_')}_${Date.now()}.jpg`,
-                        content: avatar,
-                        type: 'image/jpeg',
-                        path: 'membre'
+                        username: username.trim(),
+                        email: cleanEmail,
+                        password,
+                        avatar: finalAvatar,
+                        newsletter: subscribeNewsletter
                     })
                 });
 
-                if (response.ok) {
-                    const data = await response.json();
-                    if (data.success && data.url) {
-                        finalAvatar = data.url;
-                    }
+                const data = await res.json();
+                if (!res.ok || !data.success) {
+                    setError(data.error || "Erreur lors de la création du compte.");
+                    setIsAuthLoading(false);
+                    return;
                 }
-            } catch (err) {
-                console.warn('Avatar upload failed, continuing with generated avatar', err);
-            }
-        }
 
-        try {
-            loginSocial({
-                username: username.trim(),
-                email: email.trim(),
-                avatar: finalAvatar || undefined,
-                provider: 'email',
-                newsletter: authMode === 'register' ? subscribeNewsletter : undefined
-            });
-            onSuccess?.();
-            onClose?.();
-        } catch (error) {
-            console.error('Auth/Login failed', error);
-            setError('Une erreur est survenue lors de la connexion.');
-        } finally {
-            setIsAuthLoading(false);
+                loginSocial(data.user);
+                onSuccess?.();
+                onClose?.();
+            } catch (err: any) {
+                console.error("Register request failed", err);
+                // Fallback local registration
+                loginSocial({
+                    username: username.trim(),
+                    email: cleanEmail,
+                    avatar: finalAvatar,
+                    provider: 'email',
+                    newsletter: subscribeNewsletter
+                });
+                onSuccess?.();
+                onClose?.();
+            } finally {
+                setIsAuthLoading(false);
+            }
+        } else {
+            // Mode Connexion avec mot de passe
+            try {
+                const res = await fetch('/api/users/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        email: cleanEmail,
+                        password
+                    })
+                });
+
+                const data = await res.json();
+                if (!res.ok || !data.success) {
+                    setError(data.error || "Identifiants invalides.");
+                    setIsAuthLoading(false);
+                    return;
+                }
+
+                loginSocial(data.user);
+                onSuccess?.();
+                onClose?.();
+            } catch (err: any) {
+                console.error("Login request failed", err);
+                setError("Erreur de connexion au serveur. Vérifiez votre connexion.");
+            } finally {
+                setIsAuthLoading(false);
+            }
         }
     };
 
@@ -452,23 +497,25 @@ export function UserAuthCard({
                                     </div>
                                 )}
 
-                                <div className="group">
-                                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 block ml-1 italic">Pseudo <span className="text-neon-red">*</span></label>
-                                    <div className="relative">
-                                        <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 group-focus-within:text-neon-red transition-colors" />
-                                        <input
-                                            type="text"
-                                            required
-                                            value={username}
-                                            onChange={(e) => setUsername(e.target.value)}
-                                            className="w-full pl-12 pr-4 py-4 bg-white/5 border border-white/10 rounded-2xl text-white font-bold text-sm focus:outline-none focus:border-neon-red/50 transition-all placeholder:text-gray-700"
-                                            placeholder="Ton Pseudo Dropsiders"
-                                        />
+                                {authMode === 'register' && (
+                                    <div className="group">
+                                        <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 block ml-1 italic">Pseudo <span className="text-neon-red">*</span></label>
+                                        <div className="relative">
+                                            <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 group-focus-within:text-neon-red transition-colors" />
+                                            <input
+                                                type="text"
+                                                required
+                                                value={username}
+                                                onChange={(e) => setUsername(e.target.value)}
+                                                className="w-full pl-12 pr-4 py-4 bg-white/5 border border-white/10 rounded-2xl text-white font-bold text-sm focus:outline-none focus:border-neon-red/50 transition-all placeholder:text-gray-700"
+                                                placeholder="Ton Pseudo Dropsiders"
+                                            />
+                                        </div>
                                     </div>
-                                </div>
+                                )}
 
                                 <div className="group">
-                                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 block ml-1">Adresse Email</label>
+                                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 block ml-1">Adresse Email <span className="text-neon-red">*</span></label>
                                     <div className="relative">
                                         <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 group-focus-within:text-neon-red transition-colors" />
                                         <input
@@ -482,16 +529,57 @@ export function UserAuthCard({
                                     </div>
                                 </div>
 
-                                {authMode === 'register' && (
-                                    <div className="flex items-center gap-3 bg-white/5 border border-white/10 p-4 rounded-2xl cursor-pointer hover:bg-white/10 transition-colors" onClick={() => setSubscribeNewsletter(!subscribeNewsletter)}>
-                                        <div className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${subscribeNewsletter ? 'bg-neon-red border-neon-red' : 'border-gray-500'}`}>
-                                            {subscribeNewsletter && <svg className="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>}
-                                        </div>
-                                        <div className="flex flex-col">
-                                            <span className="text-[10px] font-black text-white uppercase tracking-widest">M'inscrire à la Newsletter Dropsiders</span>
-                                            <span className="text-[8px] font-bold text-gray-500 uppercase tracking-widest leading-none mt-1">Reçois nos exclusivités par email !</span>
-                                        </div>
+                                <div className="group">
+                                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 block ml-1">Mot de Passe <span className="text-neon-red">*</span></label>
+                                    <div className="relative">
+                                        <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 group-focus-within:text-neon-red transition-colors" />
+                                        <input
+                                            type={showPassword ? "text" : "password"}
+                                            required
+                                            minLength={6}
+                                            value={password}
+                                            onChange={(e) => setPassword(e.target.value)}
+                                            className="w-full pl-12 pr-12 py-4 bg-white/5 border border-white/10 rounded-2xl text-white font-bold text-sm focus:outline-none focus:border-neon-red/50 transition-all placeholder:text-gray-700"
+                                            placeholder={authMode === 'register' ? '6 caractères minimum' : 'Ton mot de passe'}
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowPassword(!showPassword)}
+                                            className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white transition-colors"
+                                        >
+                                            {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                                        </button>
                                     </div>
+                                </div>
+
+                                {authMode === 'register' && (
+                                    <>
+                                        <div className="group">
+                                            <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 block ml-1">Confirmer le Mot de Passe <span className="text-neon-red">*</span></label>
+                                            <div className="relative">
+                                                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 group-focus-within:text-neon-red transition-colors" />
+                                                <input
+                                                    type={showPassword ? "text" : "password"}
+                                                    required
+                                                    minLength={6}
+                                                    value={confirmPassword}
+                                                    onChange={(e) => setConfirmPassword(e.target.value)}
+                                                    className="w-full pl-12 pr-4 py-4 bg-white/5 border border-white/10 rounded-2xl text-white font-bold text-sm focus:outline-none focus:border-neon-red/50 transition-all placeholder:text-gray-700"
+                                                    placeholder="Répète ton mot de passe"
+                                                />
+                                            </div>
+                                        </div>
+
+                                        <div className="flex items-center gap-3 bg-white/5 border border-white/10 p-4 rounded-2xl cursor-pointer hover:bg-white/10 transition-colors" onClick={() => setSubscribeNewsletter(!subscribeNewsletter)}>
+                                            <div className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${subscribeNewsletter ? 'bg-neon-red border-neon-red' : 'border-gray-500'}`}>
+                                                {subscribeNewsletter && <svg className="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>}
+                                            </div>
+                                            <div className="flex flex-col">
+                                                <span className="text-[10px] font-black text-white uppercase tracking-widest">M'inscrire à la Newsletter Dropsiders</span>
+                                                <span className="text-[8px] font-bold text-gray-500 uppercase tracking-widest leading-none mt-1">Reçois nos exclusivités par email !</span>
+                                            </div>
+                                        </div>
+                                    </>
                                 )}
                             </div>
 

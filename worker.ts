@@ -2906,6 +2906,142 @@ ${urls.map(u => `  <url>
             return new Response(JSON.stringify({ success: true, user: userData }), { headers });
         }
 
+        // --- API: REGISTER USER WITH PASSWORD ---
+        if (path === '/api/users/register' && request.method === 'POST') {
+            try {
+                const body = await request.json();
+                const { username, email, password, avatar, newsletter: bodynewsletter } = body;
+                if (!email || !password || !username) {
+                    return new Response(JSON.stringify({ error: 'Pseudo, email et mot de passe requis' }), { status: 400, headers });
+                }
+                if (password.length < 6) {
+                    return new Response(JSON.stringify({ error: 'Le mot de passe doit comporter au moins 6 caractères' }), { status: 400, headers });
+                }
+
+                const cleanEmail = email.toLowerCase().trim();
+                const key = `community_user_${cleanEmail}`;
+
+                // Check if user already exists
+                const existingUserRaw = await env.CHAT_KV.get(key);
+                if (existingUserRaw) {
+                    return new Response(JSON.stringify({ error: 'Un compte existe déjà avec cette adresse email. Veuillez vous connecter.' }), { status: 400, headers });
+                }
+
+                // Hash password with salt
+                const salt = crypto.randomUUID();
+                const enc = new TextEncoder();
+                const data = enc.encode(`${salt}:${password}:dropsiders_salt_2026`);
+                const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+                const passwordHash = Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+
+                const userData = {
+                    id: crypto.randomUUID(),
+                    username: username.trim(),
+                    email: cleanEmail,
+                    avatar: avatar || null,
+                    provider: 'email',
+                    passwordHash,
+                    salt,
+                    scores: {},
+                    trackIds: [],
+                    agendaFavorites: [],
+                    collectedCards: [],
+                    xp: 0,
+                    drops: 0,
+                    createdAt: new Date().toISOString(),
+                    lastSeen: new Date().toISOString()
+                };
+
+                await env.CHAT_KV.put(key, JSON.stringify(userData));
+
+                // Newsletter auto-sub if checked
+                if (bodynewsletter) {
+                    try {
+                        const gitConfigSub = { OWNER: env.GITHUB_OWNER || 'Itsalexfr1', REPO: env.GITHUB_REPO || 'sitedropsiders', TOKEN: env.GITHUB_TOKEN };
+                        const subPath = env.GITHUB_FILE_PATH || 'src/data/subscribers.json';
+                        const fileData = await fetchGitHubFile(subPath, gitConfigSub);
+                        let subs = [];
+                        if (fileData && fileData.content) subs = fileData.content;
+                        if (!subs.find(s => s.email.toLowerCase() === cleanEmail)) {
+                            subs.push({ id: userData.id, email: cleanEmail, date: new Date().toISOString(), source: 'account_register' });
+                            await saveGitHubFile(subPath, subs, 'Auto-subscribe from new account creation', fileData?.sha, gitConfigSub);
+                        }
+                    } catch (e) {
+                        console.error('Newsletter sub error', e);
+                    }
+                }
+
+                const { passwordHash: _, salt: __, ...userSafe } = userData;
+                return new Response(JSON.stringify({ success: true, user: userSafe }), { headers });
+            } catch (err: any) {
+                return new Response(JSON.stringify({ error: err?.message || 'Erreur lors de la création du compte' }), { status: 500, headers });
+            }
+        }
+
+        // --- API: LOGIN USER WITH PASSWORD ---
+        if (path === '/api/users/login' && request.method === 'POST') {
+            try {
+                const body = await request.json();
+                const { email, password } = body;
+                if (!email || !password) {
+                    return new Response(JSON.stringify({ error: 'Email et mot de passe requis' }), { status: 400, headers });
+                }
+
+                const cleanEmail = email.toLowerCase().trim();
+                const key = `community_user_${cleanEmail}`;
+
+                const existingUserRaw = await env.CHAT_KV.get(key);
+                if (!existingUserRaw) {
+                    return new Response(JSON.stringify({ error: 'Aucun compte associé à cette adresse email. Veuillez créer un compte.' }), { status: 404, headers });
+                }
+
+                let user: any = {};
+                try {
+                    user = JSON.parse(existingUserRaw);
+                } catch (e) {
+                    return new Response(JSON.stringify({ error: 'Données de compte corrompues' }), { status: 500, headers });
+                }
+
+                // If user registered with Social OAuth previously without a password
+                if ((user.provider === 'google' || user.provider === 'discord') && !user.passwordHash) {
+                    return new Response(JSON.stringify({ error: `Ce compte a été créé avec ${user.provider.toUpperCase()}. Veuillez utiliser le bouton de connexion ${user.provider.toUpperCase()}.` }), { status: 400, headers });
+                }
+
+                // If user exists from old passwordless system: set this password on their first login
+                if (!user.passwordHash) {
+                    const salt = crypto.randomUUID();
+                    const enc = new TextEncoder();
+                    const data = enc.encode(`${salt}:${password}:dropsiders_salt_2026`);
+                    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+                    user.passwordHash = Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+                    user.salt = salt;
+                    user.lastSeen = new Date().toISOString();
+                    await env.CHAT_KV.put(key, JSON.stringify(user));
+
+                    const { passwordHash: _, salt: __, ...userSafe } = user;
+                    return new Response(JSON.stringify({ success: true, user: userSafe }), { headers });
+                }
+
+                // Verify password
+                const enc = new TextEncoder();
+                const data = enc.encode(`${user.salt || cleanEmail}:${password}:dropsiders_salt_2026`);
+                const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+                const computedHash = Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+
+                if (computedHash !== user.passwordHash) {
+                    return new Response(JSON.stringify({ error: 'Mot de passe incorrect.' }), { status: 401, headers });
+                }
+
+                user.lastSeen = new Date().toISOString();
+                await env.CHAT_KV.put(key, JSON.stringify(user));
+
+                const { passwordHash: _, salt: __, ...userSafe } = user;
+                return new Response(JSON.stringify({ success: true, user: userSafe }), { headers });
+            } catch (err: any) {
+                return new Response(JSON.stringify({ error: err?.message || 'Erreur lors de la connexion' }), { status: 500, headers });
+            }
+        }
+
         // --- API: CLAIM HANDLE ---
         if (path === '/api/users/handle/claim' && request.method === 'POST') {
             const body = await request.json();
