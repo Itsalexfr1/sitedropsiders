@@ -708,19 +708,69 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         if (!file) return;
         const blobUrl = URL.createObjectURL(file);
         const title = file.name.replace(/\.[^/.]+$/, '');
-        const tempAudio = new Audio(blobUrl);
-        tempAudio.addEventListener('loadedmetadata', () => {
-            const duration = tempAudio.duration || 60;
-            updateActiveAudioData(prev => ({
-                ...prev,
-                url: blobUrl,
-                title: title,
-                artist: 'Fichier local',
-                cover: '',
-                startTime: 0,
-                duration: duration
-            }));
-        });
+
+        // Déverrouiller la session audio mobile dès le geste de sélection de l'utilisateur
+        unlockMobileAudioSession();
+
+        // 1. Mise à jour immédiate du state pour ne pas dépendre d'un événement loadedmetadata (souvent bloqué sur mobile)
+        updateActiveAudioData(prev => ({
+            ...prev,
+            url: blobUrl,
+            title: title,
+            artist: 'Fichier local',
+            cover: '',
+            startTime: 0,
+            duration: prev.duration > 0 ? prev.duration : 60
+        }));
+
+        // Si aucun audio carrousel global n'est défini ou si l'on est sur la slide 1 ou global : définir aussi comme audio global
+        if (!carouselAudioUrl || audioTargetSlide === 'global' || audioTargetSlide === 1) {
+            setCarouselAudioUrl(blobUrl);
+            setCarouselAudioTitle(title);
+            setCarouselAudioArtist('Fichier local');
+            setCarouselAudioCover('');
+            setCarouselAudioStartTime(0);
+            carouselAudioStartTimeRef.current = 0;
+            setCarouselAudioDuration(60);
+        }
+
+        // Pré-cache immédiat de l'URL blob
+        audioBlobCacheRef.current.set(blobUrl, blobUrl);
+        setAudioBlobUrls(prev => ({ ...prev, [blobUrl]: blobUrl }));
+
+        // 2. Détection de la durée exacte dès que disponible
+        const tempAudio = new Audio();
+        tempAudio.preload = 'metadata';
+        tempAudio.src = blobUrl;
+        const onMeta = () => {
+            if (tempAudio.duration && isFinite(tempAudio.duration) && tempAudio.duration > 0) {
+                updateActiveAudioData(prev => ({
+                    ...prev,
+                    duration: tempAudio.duration
+                }));
+                if (!carouselAudioUrl || audioTargetSlide === 'global' || audioTargetSlide === 1) {
+                    setCarouselAudioDuration(tempAudio.duration);
+                }
+            }
+        };
+        tempAudio.addEventListener('loadedmetadata', onMeta, { once: true });
+        tempAudio.addEventListener('canplaythrough', onMeta, { once: true });
+        try { tempAudio.load(); } catch { }
+
+        // 3. Pré-décodage PCM en arrière-plan pour l'export vidéo
+        getDecodedAudioBuffer(blobUrl).then(buf => {
+            if (buf && buf.duration && isFinite(buf.duration) && buf.duration > 0) {
+                updateActiveAudioData(prev => ({
+                    ...prev,
+                    duration: buf.duration
+                }));
+                if (!carouselAudioUrl || audioTargetSlide === 'global' || audioTargetSlide === 1) {
+                    setCarouselAudioDuration(buf.duration);
+                }
+            }
+        }).catch(() => { });
+
+        e.target.value = '';
     };
 
     const handleCarouselBeatportSearch = async () => {
@@ -737,6 +787,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     };
 
     const handleSelectCarouselBeatportTrack = (item: ResolvedMusicData) => {
+        unlockMobileAudioSession();
         updateActiveAudioData(prev => ({
             ...prev,
             url: item.audioUrl,
@@ -746,6 +797,15 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             startTime: 0,
             duration: item.duration || 120
         }));
+        if (!carouselAudioUrl || audioTargetSlide === 'global' || audioTargetSlide === 1) {
+            setCarouselAudioUrl(item.audioUrl);
+            setCarouselAudioTitle(item.title || '');
+            setCarouselAudioArtist(item.artist || 'Beatport');
+            setCarouselAudioCover(item.coverUrl || '');
+            setCarouselAudioStartTime(0);
+            carouselAudioStartTimeRef.current = 0;
+            setCarouselAudioDuration(item.duration || 120);
+        }
         setIsCarouselBeatportSearchOpen(false);
         setCarouselBeatportResults([]);
     };
@@ -3599,16 +3659,19 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 const OfflineCtx = (window as any).OfflineAudioContext || (window as any).webkitOfflineAudioContext;
                 if (OfflineCtx) {
                     try {
-                        const decoder: BaseAudioContext = new OfflineCtx(2, 1, 44100);
+                        const decoder: BaseAudioContext = new OfflineCtx(1, 44100, 44100);
                         buf = await decodeWithCtx(decoder, arr.slice(0));
                     } catch (_) { }
                 }
                 if (!buf) {
                     const LiveCtx = (window as any).AudioContext || (window as any).webkitAudioContext;
                     if (LiveCtx) {
-                        const tempCtx: AudioContext = previewAudioPlayerRef.current?.ctx || new LiveCtx();
-                        const isTemp = !previewAudioPlayerRef.current?.ctx;
+                        const tempCtx: AudioContext = audioCtxRef.current || previewAudioPlayerRef.current?.ctx || new LiveCtx();
+                        const isTemp = tempCtx !== audioCtxRef.current && tempCtx !== previewAudioPlayerRef.current?.ctx;
                         try {
+                            if (tempCtx.state === 'suspended') {
+                                await tempCtx.resume().catch(() => { });
+                            }
                             buf = await decodeWithCtx(tempCtx, arr.slice(0));
                         } finally {
                             if (isTemp && typeof tempCtx.close === 'function') {
@@ -14404,7 +14467,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 } catch { }
             }
         }
-        // ── iOS WebKit (Safari / Opera GX / Chrome iOS) : FORCER MediaRecorder si la vidéo a du son ──
+        // ── iOS WebKit (Safari / Opera GX / Chrome iOS) & Mobile : FORCER MediaRecorder si la vidéo ou le carrousel a du son ──
         // Sur iOS, la chaîne WebCodecs → extraction PCM → AudioEncoder AAC / FFmpeg WASM échoue
         // silencieusement (AudioEncoder AAC absent, FFmpeg WASM trop lourd) → MP4 muet.
         // Le MediaRecorder natif d'iOS, lui, produit directement un MP4 H.264 + AAC lisible partout.
@@ -14412,9 +14475,16 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             /iPad|iPhone|iPod/i.test(navigator.userAgent) ||
             (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
         );
+        const currentSlideAudiosForCheck = slideAudiosRef.current || slideAudios;
+        const hasCustomAudioForCheck = Boolean(
+            carouselAudioUrl ||
+            currentSlideAudiosForCheck[1]?.url ||
+            Object.values(currentSlideAudiosForCheck).some(a => Boolean(a?.url))
+        );
         const needsBgVideoAudio = (Boolean(bgVideo) && theme !== 'TOP 10 TRACKS' && theme !== 'MUSIQUE')
             || (theme === 'MUSIQUE' && (!!musicIntroAudio || musicTracks.some(t => !!t.audio)))
-            || (theme === 'TOP 10 TRACKS' && ((top10TracksRef.current && top10TracksRef.current.length === 10) ? top10TracksRef.current : top10Tracks).some(t => Boolean(t.audioUrl || t.videoUrl)));
+            || (theme === 'TOP 10 TRACKS' && ((top10TracksRef.current && top10TracksRef.current.length === 10) ? top10TracksRef.current : top10Tracks).some(t => Boolean(t.audioUrl || t.videoUrl)))
+            || hasCustomAudioForCheck;
         const canUseNativeRecorder = typeof MediaRecorder !== 'undefined'
             && typeof (canvas as any).captureStream === 'function';
         const iosForceMediaRecorder = isIOSWebKitExport && needsBgVideoAudio && canUseNativeRecorder;
@@ -15508,13 +15578,19 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             return null;
         };
 
-        // ── iOS : injection live de la timeline audio MUSIQUE / TOP 10 TRACKS / Carrousel dans le MediaRecorder ──
-        // Sur iPhone, AudioEncoder AAC et FFmpeg WASM échouent → on pré-rend toute la bande son
+        // ── iOS & Mobile : injection live de la timeline audio MUSIQUE / TOP 10 TRACKS / Carrousel dans le MediaRecorder ──
+        // Sur iPhone et mobiles, AudioEncoder AAC et FFmpeg WASM échouent → on pré-rend toute la bande son
         // puis on la joue dans un MediaStreamDestination enregistré en direct (MP4 AAC natif).
-        if (!useWebCodecs && isIOSWebKitExport && !iosBufferAudioSrc && canvasStream && (theme === 'MUSIQUE' || theme === 'TOP 10 TRACKS' || Boolean(carouselAudioUrl) || Object.values(slideAudiosRef.current || slideAudios).some(a => Boolean(a?.url)))) {
+        const currentAudiosToCheck = slideAudiosRef.current || slideAudios;
+        const hasAnyAudioToInject = theme === 'MUSIQUE' || theme === 'TOP 10 TRACKS' || Boolean(carouselAudioUrl) || Object.values(currentAudiosToCheck).some(a => Boolean(a?.url));
+        if (!useWebCodecs && !iosBufferAudioSrc && canvasStream && hasAnyAudioToInject) {
             try {
+                const AudioCtxClass = (window as any).AudioContext || (window as any).webkitAudioContext;
+                if (!audioCtxRef.current || audioCtxRef.current.state === 'closed') {
+                    audioCtxRef.current = new AudioCtxClass();
+                }
                 const actx = audioCtxRef.current;
-                if (actx && actx.state !== 'closed') {
+                if (actx) {
                     if (actx.state === 'suspended') await actx.resume().catch(() => { });
                     const timelineBuf = await renderTimelineAudioBuffer();
                     if (timelineBuf) {
@@ -15533,14 +15609,14 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             iosBufferAudioSrc = tsrc;
                             hasAudioTrack = true;
                             combinedStream = new MediaStream([...canvasStream.getVideoTracks(), iosTracks[0]]);
-                            console.log(`[Export iOS] ✅ Bande son ${theme} injectée dans le MediaRecorder (${timelineBuf.duration.toFixed(1)}s).`);
+                            console.log(`[Export Audio] ✅ Bande son ${theme} injectée dans le MediaRecorder (${timelineBuf.duration.toFixed(1)}s).`);
                         }
                     } else {
-                        console.warn('[Export iOS] Aucune bande son rendue pour', theme);
+                        console.warn('[Export Audio] Aucune bande son rendue pour', theme);
                     }
                 }
             } catch (iosTimelineErr) {
-                console.warn('[Export iOS] Échec injection bande son :', iosTimelineErr);
+                console.warn('[Export Audio] Échec injection bande son :', iosTimelineErr);
             }
         }
 
@@ -15607,20 +15683,20 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 try { iosBufferAudioSrc.disconnect(); } catch { }
             }
 
-            // FAST-PATH iOS : le MediaRecorder natif a produit un MP4 H.264 + AAC avec le son → export direct
-            // (aucun FFmpeg WASM / AudioEncoder nécessaire, qui échouent silencieusement sur iPhone)
-            if (isIOSWebKitExport && !useWebCodecs && hasAudioTrack && (videoBlob.type.includes('mp4') || videoBlob.type.includes('quicktime'))) {
-                console.log('[Export iOS] ✅ MP4 natif avec piste audio AAC, export direct.');
+            // FAST-PATH iOS & Mobile : le MediaRecorder natif a produit un MP4 H.264 + AAC avec le son → export direct
+            // (aucun FFmpeg WASM / AudioEncoder nécessaire, export instantané)
+            if (!useWebCodecs && hasAudioTrack && (videoBlob.type.includes('mp4') || videoBlob.type.includes('quicktime'))) {
+                console.log('[Export] ✅ MP4 natif avec piste audio AAC, export direct.');
                 isVideoRecordingRef.current = false;
                 setIsVideoRecording(false);
                 setRecordingProgress(0);
-                const iosMp4 = videoBlob.type.includes('mp4') ? videoBlob : new Blob([videoBlob], { type: 'video/mp4' });
+                const nativeMp4 = videoBlob.type.includes('mp4') ? videoBlob : new Blob([videoBlob], { type: 'video/mp4' });
                 if (options?.returnBlob) {
-                    if (finalizePromiseResolve) finalizePromiseResolve(iosMp4);
-                    return iosMp4;
+                    if (finalizePromiseResolve) finalizePromiseResolve(nativeMp4);
+                    return nativeMp4;
                 }
-                const url = URL.createObjectURL(iosMp4);
-                setReadyVideoBlob(iosMp4);
+                const url = URL.createObjectURL(nativeMp4);
+                setReadyVideoBlob(nativeMp4);
                 setReadyVideoUrl(url);
                 setActivePanel(null);
                 const exportThemeName = combinedMode === 'PROMO_ONLY' ? 'promo' : combinedMode === 'TIKTOK' ? `tiktok-${theme.toLowerCase().replace(/\s+/g, '-')}` : theme.toLowerCase().replace(/\s+/g, '-');
@@ -15630,8 +15706,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 document.body.appendChild(a);
                 a.click();
                 document.body.removeChild(a);
-                if (finalizePromiseResolve) finalizePromiseResolve(iosMp4);
-                return iosMp4;
+                if (finalizePromiseResolve) finalizePromiseResolve(nativeMp4);
+                return nativeMp4;
             }
 
             // S'assurer que le blob vidéo est bien disponible pour l'extraction audio
