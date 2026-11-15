@@ -1601,6 +1601,21 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         reader.onload = (e) => {
             const url = e.target?.result as string;
             if (!url) return;
+            // Si l'utilisateur est sur une Slide VIDE : mettre à jour STRICTEMENT cette slide vide (zéro pollution de Slide 1)
+            if (isEditorialBlankActive) {
+                updateEditorialBlankSlide(editorialBlankIndex, url);
+                const imgObj = new Image();
+                if (!url.startsWith('blob:') && !url.startsWith('data:')) {
+                    imgObj.crossOrigin = 'anonymous';
+                }
+                imgObj.src = url;
+                imgObj.onload = () => {
+                    imageCacheRef.current[url] = imgObj;
+                    imageCacheRef.current[resolveImageUrl(url)] = imgObj;
+                    generateImage();
+                };
+                return;
+            }
             if (isEditorialAfficheActive || theme === 'AFFICHE' || (theme === 'EVENTS' && eventsSlide === 2)) {
                 setAfficheImage(url);
                 updateEditorialAffiche(editorialAfficheIndex, url);
@@ -5706,7 +5721,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 const activeSlideImgSrc = isCurrentSlideAffiche
                     ? (currentSlideAfficheUrl || bgImage)
                     : isEditorialBlankRequested
-                        ? (currentBlankItem?.image || bgImage)
+                        ? (currentBlankItem?.image || '')
                         : isSpotlightArtistSlide
                             ? (spotlightSlidesData[artisteFestivalSlide]?.bgImage || editorialSlideImages[artisteFestivalSlide] || '')
                             : (theme === 'JEU_DJ' && effectiveEditorialSlide === 2 && (!editorialSlideImages[2] || editorialSlideImages[2] === djOriginalImage))
@@ -5778,7 +5793,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ? ((currentSlideAfficheUrl && (afficheImageRef.current || imageCacheRef.current[currentSlideAfficheUrl] || imageCacheRef.current[resolveImageUrl(currentSlideAfficheUrl)])) || img)
                     : isMusiqueTrackSlide
                         ? (editorialSlideImages[effectiveEditorialSlide] ? img : (musiqueCoverImg || img))
-                        : img;
+                        : isEditorialBlankRequested
+                            ? (currentBlankItem?.image ? (imageCacheRef.current[currentBlankItem.image] || imageCacheRef.current[resolveImageUrl(currentBlankItem.image)] || img) : null)
+                            : img;
                 if (theme === 'JEU_DJ') {
                     if (isCurrentSlideSilhouette) {
                         effectiveImg = djCutoutImgObj || djOriginalImgObj || img || null;
@@ -5988,7 +6005,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 const shouldUseBgVideo = bgVideo &&
                     theme !== 'JEU_DJ' &&
                     (!isMusiqueTrackSlide || (!musiqueCoverImg && !musiqueCoverUrl && !editorialSlideImages[effectiveEditorialSlide])) &&
-                    (!isCurrentSlideAffiche || !hasAfficheVisual);
+                    (!isCurrentSlideAffiche || !hasAfficheVisual) &&
+                    (!isEditorialBlankRequested || (!currentBlankItem?.image && !currentBlankItem?.videoUrl));
                 if (shouldUseBgVideo) {
                     const baseScale = Math.max(canvas.width / bgVideo.videoWidth, canvas.height / bgVideo.videoHeight);
                     const scale = baseScale * bgAnimScale;
@@ -14157,6 +14175,23 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         if (!file) return;
         const url = URL.createObjectURL(file);
 
+        // Si l'utilisateur est sur la Slide VIDE : charger strictement dans la Slide VIDE active (zéro pollution de Slide 1)
+        if (isEditorialBlankActive) {
+            updateEditorialBlankSlide(editorialBlankIndex, url);
+            const img = new Image();
+            if (!url.startsWith('blob:') && !url.startsWith('data:')) {
+                img.crossOrigin = "anonymous";
+            }
+            img.onload = () => {
+                imageCacheRef.current[url] = img;
+                imageCacheRef.current[resolveImageUrl(url)] = img;
+                generateImage();
+            };
+            img.src = url;
+            e.target.value = '';
+            return;
+        }
+
         // Si l'utilisateur est sur la Slide AFFICHE : charger strictement dans l'AFFICHE (zéro pollution de Slide 1)
         if (isEditorialAfficheActive) {
             const img = new Image();
@@ -16874,16 +16909,18 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         const prevEventsSlide = eventsSlide;
         const prevPromoActive = isCarouselPromoActive;
         const prevAfficheActive = isEditorialAfficheActive;
+        const prevBlankActive = isEditorialBlankActive;
 
         try {
             const zip = new JSZip();
 
             type ZipVideoItem = {
-                type: 'AGENDA' | 'EDITORIAL' | 'EVENTS' | 'PROMO' | 'AFFICHE';
+                type: 'AGENDA' | 'EDITORIAL' | 'EVENTS' | 'PROMO' | 'AFFICHE' | 'BLANK';
                 slideNum: number;
                 title: string;
                 filename: string;
                 afficheIndex?: number;
+                blankIndex?: number;
             };
 
             const slidesToProcess: ZipVideoItem[] = [];
@@ -16982,7 +17019,23 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             filename: `${String(affSlideNum).padStart(2, '0')}-${cleanTheme}-slide-affiche${affSuffix}-${formatSuffix}.mp4`
                         });
                     }
-            }
+                }
+
+                for (let bIdx = 0; bIdx < editorialBlankSlides.length; bIdx++) {
+                    const key = `slide_blank_${bIdx}`;
+                    const isSelected = selectedExportSlides[key] !== false;
+                    if (isSelected) {
+                        const blankSlideNum = slidesList.length + editorialAffiches.length + bIdx + 1;
+                        const blankSuffix = editorialBlankSlides.length > 1 ? `-${bIdx + 1}` : '';
+                        slidesToProcess.push({
+                            type: 'BLANK',
+                            slideNum: blankSlideNum,
+                            blankIndex: bIdx,
+                            title: `Slide ${blankSlideNum} • Slide Vide ${editorialBlankSlides.length > 1 ? bIdx + 1 : ''}`.trim(),
+                            filename: `${String(blankSlideNum).padStart(2, '0')}-${cleanTheme}-slide-vide${blankSuffix}-${formatSuffix}.mp4`
+                        });
+                    }
+                }
             }
 
             // Slide Outro Promo Dropsiders si sélectionnée
@@ -17041,6 +17094,18 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     blob = await startVideoRecording('NONE', { returnBlob: true, formatTab: formatToUse });
                     editorialAfficheOverrideRef.current = false;
                     editorialAfficheIndexOverrideRef.current = null;
+                } else if (item.type === 'BLANK') {
+                    promoOutroOverrideRef.current = false;
+                    setIsCarouselPromoActive(false);
+                    editorialBlankOverrideRef.current = true;
+                    editorialBlankIndexOverrideRef.current = item.blankIndex ?? 0;
+                    setIsEditorialBlankActive(true);
+                    setIsEditorialAfficheActive(false);
+                    setIsEditorialTweetActive(false);
+                    await new Promise(r => setTimeout(r, 120));
+                    blob = await startVideoRecording('NONE', { returnBlob: true, formatTab: formatToUse });
+                    editorialBlankOverrideRef.current = false;
+                    editorialBlankIndexOverrideRef.current = null;
                 } else if (item.type === 'AGENDA') {
                     promoOutroOverrideRef.current = false;
                     setIsCarouselPromoActive(false);
@@ -17111,11 +17176,14 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             editorialSlideOverrideRef.current = null;
             agendaSlideOverrideRef.current = null;
             editorialAfficheOverrideRef.current = false;
+            editorialBlankOverrideRef.current = false;
+            editorialBlankIndexOverrideRef.current = null;
             promoOutroOverrideRef.current = null;
             setIsExportingZip(false);
             setZipExportProgress(null);
             setIsCarouselPromoActive(prevPromoActive);
             setIsEditorialAfficheActive(prevAfficheActive);
+            setIsEditorialBlankActive(prevBlankActive);
             setEditorialSlide(prevEditorialSlide);
             setAgendaSlide(prevAgendaSlide);
             setEventsSlide(prevEventsSlide);
@@ -22100,6 +22168,138 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         className={`px-3 py-1.5 rounded-full text-[8px] font-black uppercase transition-all ${showSwipe ? 'border-neon-cyan/40 text-neon-cyan bg-neon-cyan/20' : 'bg-white/5 text-gray-500 border border-white/10'}`}
                     >
                         {showSwipe ? 'ACTIF' : 'MASQUÉ'}
+                    </button>
+                </div>
+            </div>
+        );
+    })();
+
+    const blankSlideEditor = (() => {
+        const currentBlankItem = editorialBlankSlides[editorialBlankIndex];
+        const currentImg = currentBlankItem?.image || '';
+
+        return (
+            <div className="space-y-4">
+                {/* Sélecteur de Slide Vide si plusieurs slides vides */}
+                <div className="p-3 bg-purple-950/30 border border-purple-500/30 rounded-2xl space-y-2">
+                    <div className="flex items-center justify-between">
+                        <span className="text-[9.5px] font-black text-purple-300 uppercase flex items-center gap-1.5">
+                            🎬 Slides Vides ({editorialBlankSlides.length}/10 max)
+                        </span>
+                        {editorialBlankSlides.length < 10 && (
+                            <button
+                                type="button"
+                                onClick={addEditorialBlankSlide}
+                                className="px-2 py-1 rounded-xl text-[8.5px] font-black uppercase bg-purple-600/20 text-purple-300 hover:bg-purple-600/30 border border-purple-500/40 transition-all flex items-center gap-1"
+                            >
+                                ➕ Slide Vide
+                            </button>
+                        )}
+                    </div>
+                    {editorialBlankSlides.length > 1 && (
+                        <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
+                            {editorialBlankSlides.map((blank, idx) => {
+                                const isSel = editorialBlankIndex === idx;
+                                return (
+                                    <div
+                                        key={blank.id || idx}
+                                        className={`flex items-center rounded-xl overflow-hidden border transition-all shrink-0 ${
+                                            isSel
+                                                ? 'bg-purple-600 border-purple-500 text-white shadow-md'
+                                                : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'
+                                        }`}
+                                    >
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setEditorialBlankIndex(idx);
+                                                setTimeout(() => generateImage(), 50);
+                                            }}
+                                            className="px-2.5 py-1 text-[8.5px] font-black uppercase"
+                                        >
+                                            Slide Vide {idx + 1}
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => removeEditorialBlankSlide(idx)}
+                                            className="px-1.5 py-1 text-[8.5px] font-bold hover:bg-red-500 hover:text-white transition-colors"
+                                            title={`Supprimer Slide Vide ${idx + 1}`}
+                                        >
+                                            ✕
+                                        </button>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    )}
+                </div>
+
+                {/* Aperçu et actions de la slide vide courante */}
+                <div className="p-3.5 bg-black/60 border border-purple-500/30 rounded-2xl space-y-3 shadow-xl">
+                    <div className="flex items-center justify-between">
+                        <span className="text-[10px] font-black uppercase text-purple-300 flex items-center gap-1.5">
+                            🖼️ Photo / Média • Slide Vide {editorialBlankSlides.length > 1 ? `${editorialBlankIndex + 1}` : ''}
+                        </span>
+                        {currentImg && (
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    updateEditorialBlankSlide(editorialBlankIndex, '');
+                                }}
+                                className="text-[8.5px] font-black uppercase text-red-400 hover:text-red-300 transition-colors"
+                            >
+                                🗑️ Retirer la photo
+                            </button>
+                        )}
+                    </div>
+
+                    {currentImg ? (
+                        <div className="relative group rounded-xl overflow-hidden border border-purple-500/30 bg-black/40 aspect-[4/5] max-h-48 mx-auto flex items-center justify-center shadow-lg">
+                            <img src={currentImg} alt={`Slide Vide ${editorialBlankIndex + 1}`} className="w-full h-full object-cover" />
+                            <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                                <button
+                                    type="button"
+                                    onClick={() => blankSlideFileInputRef.current?.click()}
+                                    className="px-3 py-1.5 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-[9px] font-black uppercase"
+                                >
+                                    Remplacer
+                                </button>
+                            </div>
+                        </div>
+                    ) : (
+                        <p className="text-[8.5px] text-gray-400">
+                            Aucune image spécifique assignée. Vous pouvez importer une photo dédiée pour cette slide uniquement (n'affecte pas la Cover).
+                        </p>
+                    )}
+
+                    <div className="grid grid-cols-2 gap-2 pt-1">
+                        <button
+                            type="button"
+                            onClick={() => blankSlideFileInputRef.current?.click()}
+                            className="py-3 px-2 border border-dashed border-purple-500/40 hover:border-purple-400 rounded-xl flex items-center justify-center gap-1.5 text-purple-200 text-[9px] font-black uppercase bg-purple-950/20 hover:bg-purple-900/30 transition-all active:scale-98"
+                        >
+                            <Upload className="w-4 h-4 text-purple-400" />
+                            <span>Mon Appareil</span>
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setR2TargetType('background');
+                                setIsR2ModalOpen(true);
+                            }}
+                            className="py-3 px-2 border border-white/10 hover:border-purple-500/40 rounded-xl flex items-center justify-center gap-1.5 text-gray-300 text-[9px] font-black uppercase hover:text-white transition-all bg-white/5 active:scale-98"
+                        >
+                            <ImageIcon className="w-4 h-4 text-purple-400" />
+                            <span>Cloud R2</span>
+                        </button>
+                    </div>
+                    <button
+                        type="button"
+                        onClick={() => setIsDownloaderOpen(true)}
+                        className="w-full py-2.5 border border-dashed border-white/10 hover:border-purple-500/30 rounded-xl flex items-center justify-center gap-2 text-gray-400 text-[8.5px] font-black uppercase hover:text-white transition-all bg-white/5"
+                    >
+                        <LinkIcon className="w-3.5 h-3.5 text-purple-400" />
+                        Télécharger Photo (URL)
                     </button>
                 </div>
             </div>
@@ -28766,7 +28966,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     img.onload = () => {
                                         imageCacheRef.current[url] = img;
                                         imageCacheRef.current[resolveImageUrl(url)] = img;
-                                        if (isEditorialAfficheActive || theme === 'AFFICHE' || (theme === 'EVENTS' && eventsSlide === 2)) {
+                                        if (isEditorialBlankActive) {
+                                            updateEditorialBlankSlide(editorialBlankIndex, url);
+                                        } else if (isEditorialAfficheActive || theme === 'AFFICHE' || (theme === 'EVENTS' && eventsSlide === 2)) {
                                             setAfficheImage(url);
                                             afficheImageRef.current = img;
                                         } else {
@@ -29513,6 +29715,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     tweetEditor
                                 ) : (isEditorialAfficheActive || theme === 'AFFICHE' || (theme === 'EVENTS' && ((eventsSlide === 2 && eventNormalSlidesCount === 0) || isEditorialAfficheActive)) || (theme === 'PLANNING' && agendaSlide >= 3)) ? (
                                     afficheEditor
+                                ) : isEditorialBlankActive ? (
+                                    blankSlideEditor
                                 ) : (
                                     <div className="space-y-3">
                                         {/* Cover pour MUSIQUE (Slide 1 Annonce ou Slide 2+ Morceaux) */}
@@ -31410,6 +31614,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                                 {afficheEditor}
                                                 <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*,video/*" />
                                             </div>
+                                        ) : isEditorialBlankActive ? (
+                                            <div className="space-y-3">
+                                                {blankSlideEditor}
+                                                <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*,video/*" />
+                                            </div>
                                         ) : (
                                             <div className="space-y-3">
                                                 {/* Cover pour MUSIQUE (Slide 1 Annonce ou Slide 2+ Morceaux) — placé en haut comme sur PC */}
@@ -31910,7 +32119,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             img.crossOrigin = "anonymous";
                             img.onload = () => {
                                 imageCacheRef.current[finalUrl] = img;
-                                if (isEditorialAfficheActive) {
+                                imageCacheRef.current[resolveImageUrl(finalUrl)] = img;
+                                if (isEditorialBlankActive) {
+                                    // Si l'utilisateur est sur la Slide VIDE : mettre à jour STRICTEMENT cette slide vide (zéro pollution de Slide 1)
+                                    updateEditorialBlankSlide(editorialBlankIndex, finalUrl);
+                                } else if (isEditorialAfficheActive) {
                                     // Si l'utilisateur a choisi un visuel en étant sur l'affiche, ne toucher qu'à l'affiche
                                     setAfficheImage(finalUrl);
                                     updateEditorialAffiche(editorialAfficheIndex, finalUrl);
