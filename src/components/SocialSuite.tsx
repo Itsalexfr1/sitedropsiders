@@ -15545,11 +15545,15 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         // Export d'une slide unique (MP4 30s)
                         const targetAudioKey = (editorialAfficheOverrideRef.current && editorialAfficheIndexOverrideRef.current !== null)
                             ? `affiche_${editorialAfficheIndexOverrideRef.current}`
-                            : (editorialBlankOverrideRef.current && editorialBlankIndexOverrideRef.current !== null)
-                                ? `blank_${editorialBlankIndexOverrideRef.current}`
-                                : (editorialTweetOverrideRef.current)
-                                    ? 'tweet'
-                                    : (editorialSlideOverrideRef.current !== null ? editorialSlideOverrideRef.current : editorialSlide);
+                            : (isEditorialAfficheActive && !editorialAfficheOverrideRef.current)
+                                ? `affiche_${editorialAfficheIndex}`
+                                : (editorialBlankOverrideRef.current && editorialBlankIndexOverrideRef.current !== null)
+                                    ? `blank_${editorialBlankIndexOverrideRef.current}`
+                                    : (isEditorialBlankActive)
+                                        ? `blank_${editorialBlankIndex}`
+                                        : (editorialTweetOverrideRef.current || isEditorialTweetActive)
+                                            ? 'tweet'
+                                            : (editorialSlideOverrideRef.current !== null ? editorialSlideOverrideRef.current : editorialSlide);
                         const sAudio = currentSlideAudios[targetAudioKey]?.url
                             ? currentSlideAudios[targetAudioKey]
                             : slide1OrGlobalAudio;
