@@ -179,7 +179,7 @@
 .article-section {
     margin-bottom: 40px;
     /* Automatic spacing */
-    clear: none; /* Changed from both to allow journal wrapping */
+    clear: both;
     text-align: center;
 }
 
@@ -656,7 +656,9 @@
 .article-section:has(.gallery-premium-grid),
 .article-section:has(.youtube-player-widget),
 .article-section:has(.video-group-premium),
+.article-section:has(.duo-photos-premium),
 .article-section:has(.grid-photos-premium),
+.article-section:has(.image-premium-wrapper),
 .article-section:has(.music-top-item-premium) {
     clear: both !important;
 }
