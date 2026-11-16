@@ -3067,6 +3067,66 @@ ${urls.map(u => `  <url>
             }
         }
 
+        // --- API: CHANGE USER PASSWORD ---
+        if (path === '/api/users/change-password' && request.method === 'POST') {
+            try {
+                const body = await request.json();
+                const { email, currentPassword, newPassword } = body;
+                if (!email || !newPassword) {
+                    return new Response(JSON.stringify({ error: 'Email et nouveau mot de passe requis.' }), { status: 400, headers });
+                }
+                if (typeof newPassword !== 'string' || newPassword.length < 6) {
+                    return new Response(JSON.stringify({ error: 'Le nouveau mot de passe doit comporter au moins 6 caractères.' }), { status: 400, headers });
+                }
+
+                const cleanEmail = email.toLowerCase().trim();
+                const key = `community_user_${cleanEmail}`;
+                const existingUserRaw = await env.CHAT_KV.get(key);
+                if (!existingUserRaw) {
+                    return new Response(JSON.stringify({ error: 'Compte introuvable.' }), { status: 404, headers });
+                }
+
+                let user: any = {};
+                try {
+                    user = JSON.parse(existingUserRaw);
+                } catch (e) {
+                    return new Response(JSON.stringify({ error: 'Données de compte corrompues.' }), { status: 500, headers });
+                }
+
+                // If user currently has a password hash, verify currentPassword
+                if (user.passwordHash) {
+                    if (!currentPassword) {
+                        return new Response(JSON.stringify({ error: 'Veuillez renseigner votre mot de passe actuel.' }), { status: 400, headers });
+                    }
+                    const enc = new TextEncoder();
+                    const data = enc.encode(`${user.salt || cleanEmail}:${currentPassword}:dropsiders_salt_2026`);
+                    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+                    const computedHash = Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+
+                    if (computedHash !== user.passwordHash) {
+                        return new Response(JSON.stringify({ error: 'Mot de passe actuel incorrect.' }), { status: 401, headers });
+                    }
+                }
+
+                // Generate new salt and hash new password
+                const salt = crypto.randomUUID();
+                const enc = new TextEncoder();
+                const data = enc.encode(`${salt}:${newPassword}:dropsiders_salt_2026`);
+                const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+                const passwordHash = Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+
+                user.passwordHash = passwordHash;
+                user.salt = salt;
+                user.lastSeen = new Date().toISOString();
+
+                await env.CHAT_KV.put(key, JSON.stringify(user));
+
+                return new Response(JSON.stringify({ success: true, message: 'Mot de passe modifié avec succès.' }), { headers });
+            } catch (err: any) {
+                return new Response(JSON.stringify({ error: err?.message || 'Erreur lors du changement de mot de passe.' }), { status: 500, headers });
+            }
+        }
+
         // --- API: CLAIM HANDLE ---
         if (path === '/api/users/handle/claim' && request.method === 'POST') {
             const body = await request.json();

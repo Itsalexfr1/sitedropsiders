@@ -75,6 +75,7 @@ interface UserContextType {
     claimHandle: (handle: string) => Promise<{ success: boolean; error?: string }>;
     createTradeOffer: (toHandle: string, offeredCardId: string, wantedCardId: string) => Promise<{ success: boolean; error?: string }>;
     respondToTrade: (tradeId: string, response: 'accepted' | 'rejected') => Promise<{ success: boolean; error?: string }>;
+    changePassword: (currentPassword: string, newPassword: string) => Promise<{ success: boolean; error?: string }>;
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
@@ -317,6 +318,27 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
         } catch (e) {
             console.error('Failed to respond to trade', e);
             return { success: false, error: 'Erreur de connexion' };
+        }
+    };
+
+    const changePassword = async (currentPassword: string, newPassword: string): Promise<{ success: boolean; error?: string }> => {
+        if (!user || !user.email) return { success: false, error: 'Vous devez être connecté.' };
+        try {
+            const res = await fetch('/api/users/change-password', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: user.email, currentPassword, newPassword })
+            });
+            const data = await res.json();
+            if (res.ok && data.success) {
+                showNotification(data.message || 'Mot de passe modifié avec succès !', 'success');
+                return { success: true };
+            } else {
+                return { success: false, error: data.error || 'Erreur lors du changement de mot de passe.' };
+            }
+        } catch (e: any) {
+            console.error('Failed to change password', e);
+            return { success: false, error: e.message || 'Erreur réseau.' };
         }
     };
 
@@ -922,7 +944,8 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
             loadTrades,
             claimHandle,
             createTradeOffer,
-            respondToTrade
+            respondToTrade,
+            changePassword
         }}>
             {children}
 

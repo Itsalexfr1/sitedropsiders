@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { User, Camera, Shield, Trophy, Music, Calendar, Settings, LogOut, Check, X, Bell, Zap, Edit2, PlayCircle, UploadCloud, Headphones, Download, DownloadCloud, Share2, MessageSquare, Star, Send, Instagram, ArrowLeftRight, BarChart2, Sparkles, CheckCircle2 } from 'lucide-react';
+import { User, Camera, Shield, Trophy, Music, Calendar, Settings, LogOut, Check, X, Bell, Zap, Edit2, PlayCircle, UploadCloud, Headphones, Download, DownloadCloud, Share2, MessageSquare, Star, Send, Instagram, ArrowLeftRight, BarChart2, Sparkles, CheckCircle2, Lock } from 'lucide-react';
 import { usePlayer } from '../context/PlayerContext';
 import { useUser, type DropsidersCard } from '../context/UserContext';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -17,6 +17,7 @@ import { ConfirmationModal } from '../components/ConfirmationModal';
 import { CardPrintOrderModal } from '../components/cards/CardPrintOrderModal';
 import { CardTradeModal } from '../components/cards/CardTradeModal';
 import { TradeInboxPanel } from '../components/cards/TradeInboxPanel';
+import { ChangePasswordModal } from '../components/profile/ChangePasswordModal';
 
 
 const categoryStyles = {
@@ -199,6 +200,7 @@ export function Profile() {
     }, [pendingPlayId, openMixPlayer]);
 
     const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+    const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
 
     // No early return, we handle UI status below
 
@@ -451,6 +453,14 @@ export function Profile() {
                                                     />
                                                 </div>
                                             </div>
+                                            <button 
+                                                type="button"
+                                                onClick={() => setIsPasswordModalOpen(true)}
+                                                className="w-full flex items-center justify-center gap-2 py-3 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-neon-red/40 text-gray-300 hover:text-white rounded-2xl font-black text-[10px] uppercase tracking-wider transition-all group"
+                                            >
+                                                <Lock className="w-3.5 h-3.5 text-neon-red group-hover:scale-110 transition-transform" />
+                                                Modifier mon mot de passe
+                                            </button>
                                             <div className="flex gap-2">
                                                 <button onClick={handleUpdateName} className="flex-1 py-3 bg-neon-green/20 text-neon-green rounded-xl hover:bg-neon-green/40 transition-all font-black text-[10px] uppercase">Enregistrer</button>
                                                 <button onClick={() => setIsEditingName(false)} className="px-4 py-3 bg-white/5 text-gray-500 rounded-xl hover:bg-white/10 transition-all font-black text-[10px] uppercase">Annuler</button>
@@ -484,6 +494,9 @@ export function Profile() {
                                 <div className="pt-6 w-full border-t border-white/5 flex flex-col gap-3">
                                     <button onClick={handleShareProfile} className="flex items-center justify-center gap-3 w-full py-4 bg-neon-cyan/10 hover:bg-neon-cyan/20 border border-neon-cyan/20 text-neon-cyan rounded-2xl font-black uppercase tracking-widest transition-all text-xs group">
                                         <Share2 className="w-4 h-4 group-hover:-translate-y-0.5 transition-transform" /> Partager mon profil
+                                    </button>
+                                    <button onClick={() => setIsPasswordModalOpen(true)} className="flex items-center justify-center gap-3 w-full py-4 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-neon-red/30 text-white rounded-2xl font-black uppercase tracking-widest transition-all text-xs group">
+                                        <Lock className="w-4 h-4 text-neon-red group-hover:scale-110 transition-transform" /> Modifier le mot de passe
                                     </button>
                                     <button onClick={() => logout()} className="flex items-center justify-center gap-3 w-full py-4 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-500 rounded-2xl font-black uppercase tracking-widest transition-all text-xs group">
                                         <LogOut className="w-4 h-4 group-hover:-translate-x-1 transition-transform" /> Se déconnecter
@@ -1182,6 +1195,22 @@ export function Profile() {
                                         
                                         <div className="space-y-4">
                                             <div className="flex items-center justify-between p-6 bg-black/40 border border-white/5 rounded-3xl transition-all hover:border-white/10">
+                                                <div className="space-y-1">
+                                                    <div className="flex items-center gap-2">
+                                                        <Lock className="w-4 h-4 text-neon-red" />
+                                                        <p className="text-xs font-black text-white uppercase tracking-widest">MOT DE PASSE</p>
+                                                    </div>
+                                                    <p className="text-[10px] text-gray-500 uppercase font-bold">Sécurisez votre compte Dropsiders avec un mot de passe fort</p>
+                                                </div>
+                                                <button 
+                                                    onClick={() => setIsPasswordModalOpen(true)}
+                                                    className="px-5 py-2.5 bg-neon-red/20 hover:bg-neon-red/30 border border-neon-red/40 hover:border-neon-red text-neon-red hover:text-white text-[10px] font-black rounded-xl uppercase tracking-wider transition-all"
+                                                >
+                                                    Modifier
+                                                </button>
+                                            </div>
+
+                                            <div className="flex items-center justify-between p-6 bg-black/40 border border-white/5 rounded-3xl transition-all hover:border-white/10">
                                                 <div>
                                                     <p className="text-xs font-black text-white uppercase tracking-widest mb-1">MIME TYPE SESSION</p>
                                                     <p className="text-[10px] text-gray-500 uppercase font-bold">Technologie de stockage : LocalStorage (Chiffré)</p>
@@ -1256,6 +1285,11 @@ export function Profile() {
                 }}
                 onCancel={() => setShowDeleteConfirm(false)}
                 accentColor="neon-red"
+            />
+
+            <ChangePasswordModal 
+                isOpen={isPasswordModalOpen}
+                onClose={() => setIsPasswordModalOpen(false)}
             />
             </div>
 
