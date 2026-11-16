@@ -5674,6 +5674,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
         const effectiveTab = targetTab || activeTab;
         const forceTheme = typeof exportMode === 'string' ? (exportMode as ThemeType) : forceThemeParam;
+        const parentTheme = forceTheme || theme;
         const isPromoRequested = promoOutroOverrideRef.current !== null
             ? promoOutroOverrideRef.current
             : Boolean(isCarouselPromoActive && isMultiSlideTheme);
@@ -6057,9 +6058,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     })() : null))
                     : null;
 
+                const isTopTheme = (parentTheme === 'TOP 10 TRACKS' || parentTheme.startsWith('TOP 10') || parentTheme.startsWith('TOP 5') || theme === 'TOP 10 TRACKS' || promoCategory === 'TOP 10 TRACKS');
                 const shouldUseBgVideo = bgVideo &&
                     theme !== 'JEU_DJ' &&
-                    !isPromoRequested &&
+                    (!isPromoRequested || isTopTheme) &&
                     !isEditorialBlankRequested &&
                     (!isMusiqueTrackSlide || (!musiqueCoverImg && !musiqueCoverUrl && !editorialSlideImages[effectiveEditorialSlide])) &&
                     (!isCurrentSlideAffiche || !hasAfficheVisual);
