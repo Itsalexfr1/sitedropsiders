@@ -575,8 +575,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     };
     const [extraEditorialSlides, setExtraEditorialSlides] = useState<string[]>([]); // Slides 3, 4, 5... (texte de chaque slide)
     const [skipEditorialSlide2, setSkipEditorialSlide2] = useState<boolean>(true); // Masquer Slide 2 par défaut (Slide 1 + Promo uniquement, s'affiche uniquement si ajoutée)
-    const [editorialSlide1Duration, setEditorialSlide1Duration] = useState<number>(20); // Durée Slide 1 par défaut : 20 secondes
-    const [editorialPromoDuration, setEditorialPromoDuration] = useState<number>(7); // Durée Promo (en secondes, fixée à 7s pour l'animation Instagram)
+    const [editorialSlide1Duration, setEditorialSlide1Duration] = useState<number>(4); // Durée Slide 1 par défaut : 4 secondes
+    const [editorialPromoDuration, setEditorialPromoDuration] = useState<number>(10); // Durée Promo (en secondes, fixée à 10s pour l'animation Instagram)
     const [exportFps, setExportFps] = useState<number>(30); // Fluidité vidéo : 30 FPS fluide par défaut (standard Instagram/Reels) ou 60 FPS Studio
     const [exportAccordion, setExportAccordion] = useState<'image' | 'video_slide' | 'video_carousel' | 'tiktok' | null>(null);
 
@@ -13361,15 +13361,26 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             subHeight = subLines.length * subLineHeight;
                             totalTextHeight = titleHeight + gapBetween + subHeight;
                         }
+
+                        // Sécurité anti-remontée vers la date : garantir une marge supérieure aérée et nette
+                        const minSafeTopPadding = isReel ? 50 : 38;
+                        const minAllowedTitleFit = 46;
+                        while (titleFontSize > minAllowedTitleFit && (availableSpace - totalTextHeight < minSafeTopPadding)) {
+                            titleFontSize -= 1;
+                            titleLines = formatTitleLines(titleFontSize);
+                            titleHeight = mainTitleText ? (titleLines.length * Math.round(titleFontSize * (isFocusReelHook ? 1.15 : (isDevinetteReveal ? 1.15 : 1.18)))) : 0;
+                            totalTextHeight = titleHeight + gapBetween + subHeight;
+                        }
                     }
 
                     // Positionnement vertical net et stable sous la barre divider (strictement identique à NEWS pour TOUS les thèmes)
                     // Élimine le grand vide sous la date et garantit que TOUS les thèmes ont la même hauteur de texte
                     // Espacement optimisé sous la barre date (aéré et équilibré, jamais collé à la date)
                     const targetTopPadding = isReel ? 86 : 46;
+                    const minSafeTopPadding = isReel ? 50 : 38;
                     const startPadding = isDevinetteReveal
                         ? Math.max(isReel ? 28 : 22, Math.round((availableSpace - totalTextHeight) / 2))
-                        : Math.max(isReel ? 28 : 22, Math.min(targetTopPadding, availableSpace - totalTextHeight));
+                        : Math.max(minSafeTopPadding, Math.min(targetTopPadding, availableSpace - totalTextHeight));
                     const firstLineFontSize = mainTitleText ? titleFontSize : subFontSize;
                     let curY = dividerY + startPadding + Math.round(firstLineFontSize * 0.82);
 
@@ -14668,13 +14679,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             } else {
                 const promoDuration = includePromoOutro ? 10000 : 0;
                 const transitionDuration = currentTransitionDuration;
-                // Story/Reel ou multi-slides : max 5.0s par slide (même si vidéo de fond), sauf Promo Outro (10s)
-                let slideDuration = isReel
-                    ? 5000
-                    : (hasVideoBg ? Math.min(5000, videoDurationMs) : Math.min(5000, Math.round(editorialSlide1Duration * 1000)));
-                if (isDevinette) {
-                    slideDuration = Math.min(5000, slideDuration);
-                }
+                // Story/Reel ou multi-slides : 4.0s par slide et Promo Outro 10s
+                let slideDuration = 4000;
                 const numTransitions = Math.max(0, numContentSlides + (includePromoOutro ? 1 : 0) - 1);
                 totalDuration = (numContentSlides * slideDuration) + (numTransitions * transitionDuration) + promoDuration;
             }
@@ -14690,11 +14696,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 totalDuration = timings.totalDurationMs;
             } else if (combinedMode === 'STORY_FAST') {
                 const promoDuration = 10000;
-                const slideDuration = 3000;
+                const slideDuration = 4000;
                 totalDuration = (numAgendaSlides * slideDuration) + (numAgendaSlides * transitionDuration) + promoDuration;
             } else {
                 const promoDuration = includePromoOutro ? 10000 : 0;
-                const slideDuration = isReel ? 3000 : 5200;
+                const slideDuration = isReel ? 4000 : 5200;
                 const numTransitions = Math.max(0, numAgendaSlides + (includePromoOutro ? 1 : 0) - 1);
                 totalDuration = (numAgendaSlides * slideDuration) + (numTransitions * transitionDuration) + promoDuration;
             }
@@ -14710,16 +14716,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             if (theme === 'MUSIQUE') {
                 totalDuration = 30000;
             } else if (isReelWithPromo) {
-                let contentDur = (bgVideo && !isNaN(bgVideo.duration) && bgVideo.duration > 0)
-                    ? bgVideo.duration * 1000
-                    : 20000;
-                if (isDevinette) contentDur = Math.min(15000, contentDur);
-                const promoDur = 10000;
-                totalDuration = Math.min(600000, contentDur + currentTransitionDuration + promoDur);
+                let contentDur = 4000; // 4 secondes par slide
+                const promoDur = 10000; // 10 secondes pour promo
+                totalDuration = contentDur + currentTransitionDuration + promoDur;
             } else {
-                let contentDur = (bgVideo && !isNaN(bgVideo.duration) && bgVideo.duration > 0)
-                    ? bgVideo.duration * 1000
-                    : 20000;
+                let contentDur = (effectiveTab === 'REEL' ? 4000 : ((bgVideo && !isNaN(bgVideo.duration) && bgVideo.duration > 0) ? bgVideo.duration * 1000 : 4000));
                 if (isDevinette) contentDur = Math.min(15000, contentDur);
                 totalDuration = contentDur;
                 if (totalDuration > 600000) totalDuration = 600000;
@@ -16328,23 +16329,15 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             const rawVideoDurMs = hasVideoBg ? Math.round(bgVideo!.duration * 1000) : 0;
             const videoDurationMs = isDevinette && hasVideoBg ? Math.min(15000, rawVideoDurMs) : rawVideoDurMs;
             let promoDuration = 10000;
-            // Story/Reel ou multi-slides : max 5.0s par slide (même si vidéo de fond), sauf Promo Outro (10s)
-            let slideDuration = isReel
-                ? 5000
-                : (hasVideoBg ? Math.min(5000, videoDurationMs) : Math.min(5000, Math.round(editorialSlide1Duration * 1000)));
-            if (isDevinette) {
-                slideDuration = Math.min(5000, slideDuration);
-            }
+            // Story/Reel ou multi-slides : 4.0s par slide et Promo Outro (10s)
+            let slideDuration = 4000;
             if (combinedMode === 'TIKTOK') {
                 const numContentSlides = contentSlideNumbers.length + (hasAfficheSlide ? 1 : 0);
                 const timings = getTikTokSlideTimings(numContentSlides);
-                slideDuration = hasVideoBg ? videoDurationMs : timings.slideDurationMs;
-                if (isDevinette) {
-                    slideDuration = Math.min(15000, slideDuration);
-                }
+                slideDuration = timings.slideDurationMs;
                 promoDuration = 10000;
             } else if (combinedMode === 'STORY_FAST') {
-                slideDuration = 3000;
+                slideDuration = 4000;
                 promoDuration = 10000;
             }
 
@@ -16394,10 +16387,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     }
                 }
 
-                // Rendu actif frame-par-frame avec le texte qui commence son animation dès le début de la slide
-                const currentSlideDur = (s === 1 && hasVideoBg)
-                    ? videoDurationMs
-                    : (isDevinette && s === 2 ? (isReel ? 3000 : 6000) : slideDuration);
+                // Rendu actif frame-par-frame : 4 secondes par slide
+                const currentSlideDur = slideDuration;
                 await renderDuration(currentSlideDur, 0);
             }
 
@@ -16623,14 +16614,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             const isReelWithPromo = (effectiveTab === 'REEL' && combinedMode === 'NONE' && theme !== 'PROMO' && theme !== 'MUSIQUE');
             const isDevinette = ['JEU', 'JEU_FESTIVAL', 'JEU_DJ'].includes(theme);
             if (isReelWithPromo) {
-                let contentDur = (bgVideo && !isNaN(bgVideo.duration) && bgVideo.duration > 0)
-                    ? bgVideo.duration * 1000
-                    : 20000;
-                if (isDevinette) contentDur = Math.min(15000, contentDur);
-                const promoDur = 10000;
+                let contentDur = 4000; // 4 secondes par slide
+                const promoDur = 10000; // 10 secondes pour promo
                 const transitionDuration = currentTransitionDuration;
 
-                // 1. Rendu du Reel / vidéo principale (ex: vidéo Highlight de 45s, Devinette max 15s)
+                // 1. Rendu du Reel (4 secondes)
                 await renderDuration(contentDur);
 
                 // 2. Transition fluide vers la slide Promo Dropsiders en fin de vidéo
@@ -16640,10 +16628,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 });
                 transitionProgressRef.current = 0;
 
-                // 3. Rendu de la slide Promo Dropsiders en outro
+                // 3. Rendu de la slide Promo Dropsiders en outro (10 secondes)
                 await renderDuration(promoDur, 0);
             } else {
-                let actualDuration = totalDuration;
+                let actualDuration = (effectiveTab === 'REEL' ? 4000 : totalDuration);
                 if (isDevinette) actualDuration = Math.min(15000, actualDuration);
                 await renderDuration(actualDuration);
             }
@@ -20557,12 +20545,17 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             />
             <div className="flex justify-between items-center gap-2 px-1">
                 <span className="text-[9px] text-white/40 italic">Astuce : entoure un mot de *étoiles* pour le colorer en néon (ex: *EXCLUSIF*)</span>
-                <button
-                    onClick={() => setCustomText(fixEncoding(customText))}
-                    className="flex items-center gap-1.5 px-3 py-1.5 bg-green-500/10 border border-green-500/20 rounded-lg text-green-400 text-[9px] font-black uppercase hover:bg-green-500 hover:text-white transition-all shrink-0"
-                >
-                    <Sparkles className="w-3 h-3" /> Nettoyer
-                </button>
+                <div className="flex items-center gap-2 shrink-0">
+                    <span className="text-[9px] font-mono px-2 py-0.5 rounded-md border bg-white/5 border-white/10 text-gray-400 font-bold">
+                        {customText.replace(/\[[CB]:[^\]]+\]|\[\/[CB]\]|\*/gi, '').length} / 80 car.
+                    </span>
+                    <button
+                        onClick={() => setCustomText(fixEncoding(customText))}
+                        className="flex items-center gap-1.5 px-3 py-1.5 bg-green-500/10 border border-green-500/20 rounded-lg text-green-400 text-[9px] font-black uppercase hover:bg-green-500 hover:text-white transition-all shrink-0"
+                    >
+                        <Sparkles className="w-3 h-3" /> Nettoyer
+                    </button>
+                </div>
             </div>
         </div>
     );
@@ -23640,17 +23633,129 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     </label>
                     <span className="text-[8px] font-bold text-gray-500">Astuce: entoure un mot avec *étoiles*</span>
                 </div>
-                <textarea
-                    ref={conseilsTitleInputRef}
-                    rows={2}
-                    value={conseilsTitle === 'LE TITRE ICI' ? (customText || '') : conseilsTitle}
-                    onChange={e => {
-                        setConseilsTitle(e.target.value);
-                        setCustomText(e.target.value);
-                    }}
-                    placeholder="EX: 3 *FESTIVALS* INCONTOURNABLES"
-                    className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white font-bold uppercase focus:border-neon-cyan/50 outline-none transition-all shadow-md resize-none"
-                />
+                {(() => {
+                    const currentTitle = conseilsTitle === 'LE TITRE ICI' ? (customText || '') : conseilsTitle;
+                    const stripMarkup = (txt: string) => txt.replace(/\[[CB]:[^\]]+\]|\[\/[CB]\]|\*/gi, '');
+                    const cleanTitle = stripMarkup(currentTitle);
+                    const cleanCharsCount = cleanTitle.length;
+                    const MAX_TITLE_CHARS = 80;
+                    const MAX_TITLE_LINES = 4;
+
+                    const calcLines = (txt: string) => {
+                        const clean = stripMarkup(txt);
+                        if (!clean.trim()) return 0;
+                        let count = 0;
+                        clean.split('\n').forEach(paragraph => {
+                            if (!paragraph.trim()) {
+                                count++;
+                                return;
+                            }
+                            const words = paragraph.trim().split(/\s+/);
+                            let curLine = '';
+                            words.forEach(w => {
+                                const test = curLine ? `${curLine} ${w}` : w;
+                                if (test.length > 21) {
+                                    if (curLine) count++;
+                                    curLine = w;
+                                } else {
+                                    curLine = test;
+                                }
+                            });
+                            if (curLine) count++;
+                        });
+                        return count;
+                    };
+
+                    const currentLinesCount = calcLines(currentTitle);
+                    const isCharsOver = cleanCharsCount >= MAX_TITLE_CHARS;
+                    const isLinesOver = currentLinesCount >= MAX_TITLE_LINES;
+
+                    const handleTitleChange = (val: string) => {
+                        // Empêcher plus de 4 paragraphes
+                        const linesArray = val.split('\n');
+                        if (linesArray.length > MAX_TITLE_LINES) {
+                            val = linesArray.slice(0, MAX_TITLE_LINES).join('\n');
+                        }
+
+                        // Empêcher plus de 80 caractères nets
+                        const clean = stripMarkup(val);
+                        if (clean.length > MAX_TITLE_CHARS) {
+                            let counted = 0;
+                            let cutIdx = val.length;
+                            for (let i = 0; i < val.length; i++) {
+                                const ch = val[i];
+                                if (ch === '*' || ch === '[' || ch === ']') continue;
+                                counted++;
+                                if (counted > MAX_TITLE_CHARS) {
+                                    cutIdx = i;
+                                    break;
+                                }
+                            }
+                            val = val.substring(0, cutIdx);
+                        }
+
+                        setConseilsTitle(val);
+                        setCustomText(val);
+                    };
+
+                    return (
+                        <div className="space-y-2">
+                            <textarea
+                                ref={conseilsTitleInputRef}
+                                rows={2}
+                                value={currentTitle}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter') {
+                                        const explicitLines = (e.currentTarget.value.match(/\n/g) || []).length + 1;
+                                        if (explicitLines >= MAX_TITLE_LINES || currentLinesCount >= MAX_TITLE_LINES) {
+                                            e.preventDefault();
+                                        }
+                                    }
+                                }}
+                                onChange={e => handleTitleChange(e.target.value)}
+                                placeholder="EX: 3 *FESTIVALS* INCONTOURNABLES"
+                                className={`w-full bg-white/5 border rounded-xl p-3 text-white font-bold uppercase outline-none transition-all shadow-md resize-none ${
+                                    isCharsOver || isLinesOver ? 'border-amber-500/50 focus:border-amber-500' : 'border-white/10 focus:border-neon-cyan/50'
+                                }`}
+                            />
+
+                            {/* Barre d'indicateurs : 80 car. max + 4 lignes max */}
+                            <div className="flex items-center justify-between px-2.5 py-1.5 bg-white/[0.03] border border-white/5 rounded-xl text-[9px] font-black uppercase tracking-wider">
+                                <div className="flex items-center gap-2">
+                                    <span className="text-gray-400">Caractères :</span>
+                                    <span className={`px-2 py-0.5 rounded-md border text-[9.5px] font-mono transition-all ${
+                                        cleanCharsCount >= MAX_TITLE_CHARS
+                                            ? 'bg-red-500/20 border-red-500/50 text-red-400 shadow-[0_0_8px_rgba(239,68,68,0.4)]'
+                                            : cleanCharsCount > 68
+                                            ? 'bg-amber-500/20 border-amber-500/40 text-amber-300'
+                                            : 'bg-emerald-500/20 border-emerald-500/40 text-emerald-400'
+                                    }`}>
+                                        {cleanCharsCount} / {MAX_TITLE_CHARS}
+                                    </span>
+                                </div>
+
+                                <div className="flex items-center gap-2">
+                                    <span className="text-gray-400">Lignes :</span>
+                                    <span className={`px-2 py-0.5 rounded-md border text-[9.5px] font-mono transition-all ${
+                                        currentLinesCount >= MAX_TITLE_LINES
+                                            ? 'bg-amber-500/20 border-amber-500/40 text-amber-300'
+                                            : 'bg-emerald-500/20 border-emerald-500/40 text-emerald-400'
+                                    }`}>
+                                        {currentLinesCount} / {MAX_TITLE_LINES}
+                                    </span>
+                                </div>
+                            </div>
+
+                            {/* Alerte discrète si limite atteinte */}
+                            {(isCharsOver || isLinesOver) && (
+                                <div className="px-2.5 py-1.5 rounded-lg bg-neon-red/10 border border-neon-red/30 flex items-center gap-2 text-[9px] font-bold text-neon-red">
+                                    <span>🛡️</span>
+                                    <span>Limite optimale atteinte (max {MAX_TITLE_CHARS} car. / {MAX_TITLE_LINES} lignes) pour préserver l'espace sous la date.</span>
+                                </div>
+                            )}
+                        </div>
+                    );
+                })()}
                 {(() => {
                     const currentTitle = conseilsTitle === 'LE TITRE ICI' ? (customText || '') : conseilsTitle;
                     const rawWords = currentTitle ? currentTitle.split(/\s+/).filter(Boolean) : [];
