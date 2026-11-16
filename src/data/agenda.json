@@ -552,5 +552,24 @@
     "isSoldOut": false,
     "isLiveDropsiders": false,
     "additionalDates": []
+  },
+  {
+    "id": 1154,
+    "title": "Terminal V Festival",
+    "date": "2027-06-04",
+    "startDate": "2027-06-04",
+    "endDate": "2027-06-06",
+    "venue": "Glasgow's Clydeside",
+    "location": "GLASGOW",
+    "country": "ECOSSE",
+    "type": "Festival",
+    "image": "/uploads/uploads/2de59020aab1c23e-terminal_v_festival_glasgow_20.jpg",
+    "url": "https://www.skiddle.com/festivals/terminal-v-festival/",
+    "genre": "Techno",
+    "month": "JUIN",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false,
+    "additionalDates": []
   }
 ]
