@@ -533,5 +533,24 @@
     "isSoldOut": false,
     "isLiveDropsiders": false,
     "additionalDates": []
+  },
+  {
+    "id": 1153,
+    "title": "Hard Boat Pres. Bkjn 100% Uptempo Edition",
+    "date": "2027-02-06",
+    "startDate": "2027-02-06",
+    "endDate": "2027-02-06",
+    "venue": "FIDUCIAL Astéria",
+    "location": "LYON",
+    "country": "FRANCE",
+    "type": "Festival",
+    "image": "/uploads/uploads/57f02cb6c2d45eae-bkjn_france_2027_insta_cvyw1q.jpg",
+    "url": "https://shotgun.live/en/festivals/hard-boat-pres-bkjn-100-uptempo-edition",
+    "genre": "Hard Music",
+    "month": "FÉVRIER",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false,
+    "additionalDates": []
   }
 ]
