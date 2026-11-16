@@ -571,5 +571,24 @@
     "isSoldOut": false,
     "isLiveDropsiders": false,
     "additionalDates": []
+  },
+  {
+    "id": 1155,
+    "title": " Mau P Presents Generation Rebrand",
+    "date": "2027-03-06",
+    "startDate": "2027-03-06",
+    "endDate": "2027-03-06",
+    "venue": "Madison Square Garden",
+    "location": "NEW YORK",
+    "country": "USA",
+    "type": "Concert",
+    "image": "/uploads/uploads/629714746e030076-maupmadisonsquaregarden2027_11.jpg",
+    "url": "https://www.ticketmaster.com/event/3B00656EEE6E5E03?utm_medium=affiliate&irgwc=1&afsrc=1&clickid=xyrTqiVY8xyZUhF2CQ2FNV91UkrU1dQFmw1KUk0&camefrom=CFC_BUYAT_219208&impradid=219208&REFERRAL_ID=tmfeedbuyat219208&wt.mc_id=aff_BUYAT_219208&utm_source=219208-Bandsintown&impradname=Bandsintown&ircid=4272",
+    "genre": "House",
+    "month": "MARS",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false,
+    "additionalDates": []
   }
 ]
