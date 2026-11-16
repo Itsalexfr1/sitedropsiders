@@ -575,7 +575,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     };
     const [extraEditorialSlides, setExtraEditorialSlides] = useState<string[]>([]); // Slides 3, 4, 5... (texte de chaque slide)
     const [skipEditorialSlide2, setSkipEditorialSlide2] = useState<boolean>(true); // Masquer Slide 2 par défaut (Slide 1 + Promo uniquement, s'affiche uniquement si ajoutée)
-    const [editorialSlide1Duration, setEditorialSlide1Duration] = useState<number>(4); // Durée Slide 1 par défaut : 4 secondes
+    const [editorialSlide1Duration, setEditorialSlide1Duration] = useState<number>(20); // Durée Slide 1 par défaut : 20 secondes en mode Post (4s en Reel/Story)
     const [editorialPromoDuration, setEditorialPromoDuration] = useState<number>(10); // Durée Promo (en secondes, fixée à 10s pour l'animation Instagram)
     const [exportFps, setExportFps] = useState<number>(30); // Fluidité vidéo : 30 FPS fluide par défaut (standard Instagram/Reels) ou 60 FPS Studio
     const [exportAccordion, setExportAccordion] = useState<'image' | 'video_slide' | 'video_carousel' | 'tiktok' | null>(null);
@@ -3011,6 +3011,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     };
 
     const selectTop10Track = (targetRank: number) => {
+        setIsCarouselPromoActive(false);
         const numRank = Number(targetRank);
         top10ActiveRankRef.current = numRank;
         stopPreviewPlayer();
@@ -14677,10 +14678,13 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 const slideDuration = 3000;
                 totalDuration = (numContentSlides * slideDuration) + (numContentSlides * currentTransitionDuration) + promoDuration;
             } else {
+                const isReel = (effectiveTab === 'REEL');
                 const promoDuration = includePromoOutro ? 10000 : 0;
                 const transitionDuration = currentTransitionDuration;
-                // Story/Reel ou multi-slides : 4.0s par slide et Promo Outro 10s
-                let slideDuration = 4000;
+                // Story/Reel : 4.0s par slide et Promo Outro 10s | Mode Post : 20s par défaut (ou editorialSlide1Duration)
+                let slideDuration = isReel
+                    ? 4000
+                    : (hasVideoBg ? videoDurationMs : Math.round(editorialSlide1Duration * 1000));
                 const numTransitions = Math.max(0, numContentSlides + (includePromoOutro ? 1 : 0) - 1);
                 totalDuration = (numContentSlides * slideDuration) + (numTransitions * transitionDuration) + promoDuration;
             }
@@ -14720,7 +14724,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 const promoDur = 10000; // 10 secondes pour promo
                 totalDuration = contentDur + currentTransitionDuration + promoDur;
             } else {
-                let contentDur = (effectiveTab === 'REEL' ? 4000 : ((bgVideo && !isNaN(bgVideo.duration) && bgVideo.duration > 0) ? bgVideo.duration * 1000 : 4000));
+                let contentDur = (effectiveTab === 'REEL' ? 4000 : ((bgVideo && !isNaN(bgVideo.duration) && bgVideo.duration > 0) ? bgVideo.duration * 1000 : Math.round(editorialSlide1Duration * 1000)));
                 if (isDevinette) contentDur = Math.min(15000, contentDur);
                 totalDuration = contentDur;
                 if (totalDuration > 600000) totalDuration = 600000;
@@ -15395,29 +15399,68 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 }
 
                 if (theme === 'TOP 10 TRACKS') {
-                    const introDuration = 5.0; // 5.0s intro
-                    const singleDur = 7.8; // 10 tracks x 7.8s = 78.0s
                     const currentTracks = (top10TracksRef.current && top10TracksRef.current.length === 10) ? top10TracksRef.current : top10Tracks;
-                    for (let i = 0; i < 10; i++) {
-                        const rank = 10 - i;
-                        const tr = currentTracks.find(t => Number(t.rank) === Number(rank));
-                        const aUrl = tr?.audioUrl || (tr?.videoUrl && tr.videoUrl.match(/\.(mp3|m4a|aac|wav|ogg)/i) ? tr.videoUrl : '');
+                    if (combinedMode === 'PROMO_ONLY' || isCarouselPromoActive) {
+                        // Mode slide unique PROMO : utilise le son du #1
+                        const tr1 = currentTracks.find(t => Number(t.rank) === 1);
+                        const aUrl = tr1?.audioUrl || (tr1?.videoUrl && tr1.videoUrl.match(/\.(mp3|m4a|aac|wav|ogg)/i) ? tr1.videoUrl : '');
                         if (aUrl) {
-                            // Le son du #10 démarre dès le début de l'intro (0s) et continue sur sa slide (3.5s + 4.95s = 8.45s)
-                            // Le track #1 continue sous l'outro téléphone 3D (+7.0s = 11.95s)
-                            const isRank10 = (rank === 10);
-                            const isRank1 = (rank === 1);
-                            const startOffset = isRank10 ? 0 : (introDuration + (i * singleDur));
-                            const trackDuration = isRank10
-                                ? (introDuration + singleDur)
-                                : (isRank1 ? (singleDur + 7.0) : singleDur);
-
                             audioSegments.push({
                                 url: aUrl,
-                                startOffset: startOffset,
-                                sourceOffset: tr?.audioStartTime || tr?.videoStartTime || 0,
-                                duration: trackDuration
+                                startOffset: 0,
+                                sourceOffset: tr1?.audioStartTime || tr1?.videoStartTime || 0,
+                                duration: 10
                             });
+                        }
+                    } else if (combinedMode === 'NONE' && exportStudioType === 'SLIDE' && top10ActiveRank === 0) {
+                        // Mode slide unique INTRO : utilise le son du #10
+                        const tr10 = currentTracks.find(t => Number(t.rank) === 10);
+                        const aUrl = tr10?.audioUrl || (tr10?.videoUrl && tr10.videoUrl.match(/\.(mp3|m4a|aac|wav|ogg)/i) ? tr10.videoUrl : '');
+                        if (aUrl) {
+                            audioSegments.push({
+                                url: aUrl,
+                                startOffset: 0,
+                                sourceOffset: tr10?.audioStartTime || tr10?.videoStartTime || 0,
+                                duration: 10
+                            });
+                        }
+                    } else if (combinedMode === 'NONE' && exportStudioType === 'SLIDE' && top10ActiveRank >= 1 && top10ActiveRank <= 10) {
+                        // Mode slide unique d'une track spécifique (#10 ➔ #1)
+                        const tr = currentTracks.find(t => Number(t.rank) === Number(top10ActiveRank));
+                        const aUrl = tr?.audioUrl || (tr?.videoUrl && tr.videoUrl.match(/\.(mp3|m4a|aac|wav|ogg)/i) ? tr.videoUrl : '');
+                        if (aUrl) {
+                            audioSegments.push({
+                                url: aUrl,
+                                startOffset: 0,
+                                sourceOffset: tr?.audioStartTime || tr?.videoStartTime || 0,
+                                duration: 10
+                            });
+                        }
+                    } else {
+                        // Vidéo complète Reel / Carrousel (Intro + 10 Tracks + Outro)
+                        const introDuration = 5.0; // 5.0s intro
+                        const singleDur = 7.8; // 10 tracks x 7.8s = 78.0s
+                        for (let i = 0; i < 10; i++) {
+                            const rank = 10 - i;
+                            const tr = currentTracks.find(t => Number(t.rank) === Number(rank));
+                            const aUrl = tr?.audioUrl || (tr?.videoUrl && tr.videoUrl.match(/\.(mp3|m4a|aac|wav|ogg)/i) ? tr.videoUrl : '');
+                            if (aUrl) {
+                                // Le son du #10 démarre dès le début de l'intro (0s) et continue sur sa slide (3.5s + 4.95s = 8.45s)
+                                // Le track #1 continue sous l'outro téléphone 3D (+7.0s = 11.95s)
+                                const isRank10 = (rank === 10);
+                                const isRank1 = (rank === 1);
+                                const startOffset = isRank10 ? 0 : (introDuration + (i * singleDur));
+                                const trackDuration = isRank10
+                                    ? (introDuration + singleDur)
+                                    : (isRank1 ? (singleDur + 7.0) : singleDur);
+
+                                audioSegments.push({
+                                    url: aUrl,
+                                    startOffset: startOffset,
+                                    sourceOffset: tr?.audioStartTime || tr?.videoStartTime || 0,
+                                    duration: trackDuration
+                                });
+                            }
                         }
                     }
                 }
@@ -16329,8 +16372,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             const rawVideoDurMs = hasVideoBg ? Math.round(bgVideo!.duration * 1000) : 0;
             const videoDurationMs = isDevinette && hasVideoBg ? Math.min(15000, rawVideoDurMs) : rawVideoDurMs;
             let promoDuration = 10000;
-            // Story/Reel ou multi-slides : 4.0s par slide et Promo Outro (10s)
-            let slideDuration = 4000;
+            // Story/Reel : 4.0s par slide et Promo Outro 10s | Mode Post : 20s par défaut (ou editorialSlide1Duration)
+            let slideDuration = isReel ? 4000 : (hasVideoBg ? videoDurationMs : Math.round(editorialSlide1Duration * 1000));
             if (combinedMode === 'TIKTOK') {
                 const numContentSlides = contentSlideNumbers.length + (hasAfficheSlide ? 1 : 0);
                 const timings = getTikTokSlideTimings(numContentSlides);
@@ -16387,8 +16430,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     }
                 }
 
-                // Rendu actif frame-par-frame : 4 secondes par slide
-                const currentSlideDur = slideDuration;
+                // Rendu actif frame-par-frame : 4s en Reel/Story, 20s en Post
+                const currentSlideDur = (s === 1 && hasVideoBg && !isReel) ? videoDurationMs : slideDuration;
                 await renderDuration(currentSlideDur, 0);
             }
 
@@ -16759,7 +16802,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 carouselAudioUrl ||
                 slideAudios[1]?.url ||
                 Object.values(slideAudios || {}).some(a => Boolean(a?.url)) ||
-                (theme === 'MUSIQUE' && musicTracks.some(t => Boolean(t.audio)))
+                (theme === 'MUSIQUE' && musicTracks.some(t => Boolean(t.audio))) ||
+                (theme === 'TOP 10 TRACKS' && ((top10TracksRef.current && top10TracksRef.current.length === 10) ? top10TracksRef.current : top10Tracks).some(t => Boolean(t.audioUrl || t.videoUrl)))
             );
             if (!hasAnyAudio) {
                 playWarningBeep();
@@ -21245,7 +21289,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         </div>
     );
 
-    const isMultiSlideTheme = ['PLANNING', 'ARTISTE FESTIVAL', 'SPOTLIGHT', 'EVENTS', 'AFFICHE', 'MUSIQUE', 'NEWS', 'FOCUS', 'RECAP', 'INTERVIEW', 'LIVESTREAM', 'CONSEILS', 'REELS', 'CONCOURS', 'TOP 5 STYLES', 'TOP 5 ARTISTE', 'TOP 10 FESTIVAL', 'TOP 100 DROPSIDERS', 'JEU', 'JEU_FESTIVAL', 'JEU_DJ', 'HIGHLIGHTS'].includes(theme);
+    const isMultiSlideTheme = ['PLANNING', 'ARTISTE FESTIVAL', 'SPOTLIGHT', 'EVENTS', 'AFFICHE', 'MUSIQUE', 'NEWS', 'FOCUS', 'RECAP', 'INTERVIEW', 'LIVESTREAM', 'CONSEILS', 'REELS', 'CONCOURS', 'TOP 5 STYLES', 'TOP 5 ARTISTE', 'TOP 10 FESTIVAL', 'TOP 100 DROPSIDERS', 'TOP 10 TRACKS', 'JEU', 'JEU_FESTIVAL', 'JEU_DJ', 'HIGHLIGHTS'].includes(theme);
 
     const slideTransitionQuickBar = (
         <div className="flex items-center gap-1 pl-2 ml-1 border-l border-white/15">
@@ -25263,6 +25307,36 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             );
                         })}
                     </div>
+
+                    {/* Bouton Slide Outro : PROMO DROPSIDERS */}
+                    <button
+                        type="button"
+                        onClick={() => {
+                            setIsCarouselPromoActive(true);
+                            animStartTimeRef.current = Date.now();
+                            setAnimReplayKey(k => k + 1);
+                            setTimeout(() => generateImage(), 30);
+                        }}
+                        className={`w-full py-2.5 px-3 rounded-xl border text-[10px] font-black uppercase transition-all flex items-center justify-between active:scale-[0.99] ${isCarouselPromoActive
+                            ? 'bg-gradient-to-r from-neon-red/30 to-orange-500/20 border-neon-red text-white shadow-[0_0_15px_rgba(255,0,51,0.4)]'
+                            : 'bg-white/5 border-white/10 text-gray-300 hover:text-white hover:bg-white/10'}`}
+                    >
+                        <span className="flex items-center gap-2">
+                            <span className="text-[14px]">🔥</span>
+                            <span className="tracking-wide">Slide Outro : PROMO (7.0s)</span>
+                            <span className="text-[8px] px-1.5 py-0.5 rounded bg-black/40 font-mono border border-neon-red/40 text-neon-red">
+                                Téléphone 3D • Outro Instagram
+                            </span>
+                        </span>
+                        <div className="flex items-center gap-1.5">
+                            <span className="px-1.5 py-0.5 rounded bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 text-[7.5px] font-bold font-mono">
+                                🎵 Son Track #1
+                            </span>
+                            <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded font-mono bg-neon-red text-white shadow-[0_0_8px_rgba(255,0,51,0.5)]">
+                                {isCarouselPromoActive ? '● Active' : 'Éditer ➔'}
+                            </span>
+                        </div>
+                    </button>
                 </div>
 
                 {/* 3. ÉDITION INTRO OU TRACK ACTIVE */}
@@ -27480,6 +27554,33 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                     {/* 5. PISTE AUDIO & MUSIQUE (Uniquement pour exports vidéo MP4) */}
                     {exportStudioFormat === 'MP4' && (
+                        theme === 'TOP 10 TRACKS' ? (
+                            <div className="p-3.5 bg-black/60 border border-neon-cyan/40 rounded-2xl space-y-2.5 shadow-[0_0_20px_rgba(0,240,255,0.15)]">
+                                <div className="flex items-center justify-between">
+                                    <span className="text-[10px] font-black uppercase text-neon-cyan flex items-center gap-1.5">
+                                        <Music className="w-4 h-4 text-neon-cyan" />
+                                        Bande-son Top 10 Countdown (#10 ➔ #1)
+                                    </span>
+                                    <span className="px-2 py-0.5 rounded text-[8px] font-black uppercase bg-[#00ff66]/15 text-[#00ff66] border border-[#00ff66]/30 font-mono">
+                                        ✓ {top10Tracks.filter(t => t.audioUrl || t.videoUrl).length} / 10 Sons Prêts
+                                    </span>
+                                </div>
+                                <div className="p-2.5 bg-black/50 rounded-xl border border-white/10 text-[8.5px] text-gray-300 space-y-1 font-medium">
+                                    <p className="flex items-center gap-1.5 font-bold text-white">
+                                        <span className="text-neon-cyan">🎬 Intro (3.5s) :</span>
+                                        <span className="text-gray-300 font-mono">Joue automatiquement le son du morceau #10</span>
+                                    </p>
+                                    <p className="flex items-center gap-1.5">
+                                        <span className="text-[#00ff66] font-bold">📊 Tracks #10 à #1 :</span>
+                                        <span className="text-gray-400 font-mono">Chaque slide joue son extrait dédié</span>
+                                    </p>
+                                    <p className="flex items-center gap-1.5 font-bold text-white">
+                                        <span className="text-neon-red">🔥 Outro Promo (7.0s) :</span>
+                                        <span className="text-gray-300 font-mono">Continue la track #1 sous l'animation Téléphone 3D</span>
+                                    </p>
+                                </div>
+                            </div>
+                        ) : (
                         <div className={`p-3.5 bg-black/60 border rounded-2xl space-y-3 transition-all ${audioShake ? 'border-neon-red shadow-[0_0_25px_rgba(255,18,65,0.6)] animate-bounce' : 'border-white/15'}`}>
                             <div className="flex items-center justify-between">
                                 <span className="text-[10px] font-black uppercase text-gray-300 flex items-center gap-1.5">
@@ -27907,6 +28008,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 </div>
                             )}
                         </div>
+                        )
                     )}
 
                     {/* 6. STYLE DE TRANSITION VIDÉO (Idée 1) */}
@@ -30678,8 +30780,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 <span className="text-[9px] font-black text-neon-cyan uppercase tracking-wider mr-1">Top 10 :</span>
                                 <button
                                     type="button"
-                                    onClick={() => selectTop10Track(0)}
-                                    className={`px-2.5 py-1 rounded-xl text-[9px] font-black uppercase transition-all ${Number(top10ActiveRank) === 0 ? 'bg-neon-cyan text-black shadow-[0_0_12px_rgba(0,240,255,0.6)]' : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'}`}
+                                    onClick={() => {
+                                        setIsCarouselPromoActive(false);
+                                        selectTop10Track(0);
+                                    }}
+                                    className={`px-2.5 py-1 rounded-xl text-[9px] font-black uppercase transition-all ${!isCarouselPromoActive && Number(top10ActiveRank) === 0 ? 'bg-neon-cyan text-black shadow-[0_0_12px_rgba(0,240,255,0.6)]' : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'}`}
                                 >
                                     🎬 Intro
                                 </button>
@@ -30687,12 +30792,27 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     <button
                                         key={r}
                                         type="button"
-                                        onClick={() => selectTop10Track(r)}
-                                        className={`px-2 py-1 rounded-xl text-[9px] font-black uppercase transition-all ${Number(top10ActiveRank) === r ? 'bg-neon-cyan text-black shadow-[0_0_12px_rgba(0,240,255,0.6)]' : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'}`}
+                                        onClick={() => {
+                                            setIsCarouselPromoActive(false);
+                                            selectTop10Track(r);
+                                        }}
+                                        className={`px-2 py-1 rounded-xl text-[9px] font-black uppercase transition-all ${!isCarouselPromoActive && Number(top10ActiveRank) === r ? 'bg-neon-cyan text-black shadow-[0_0_12px_rgba(0,240,255,0.6)]' : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'}`}
                                     >
                                         #{r}
                                     </button>
                                 ))}
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setIsCarouselPromoActive(true);
+                                        animStartTimeRef.current = Date.now();
+                                        setAnimReplayKey(k => k + 1);
+                                        setTimeout(() => generateImage(), 30);
+                                    }}
+                                    className={`px-2.5 py-1 rounded-xl text-[9px] font-black uppercase transition-all flex items-center gap-1 ${isCarouselPromoActive ? 'bg-gradient-to-r from-neon-red to-orange-500 text-white shadow-[0_0_12px_rgba(255,0,51,0.6)]' : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'}`}
+                                >
+                                    🔥 Promo
+                                </button>
                             </div>
                         )}
                         {activeTab === 'REEL' && theme === 'FOCUS' && (
