@@ -9,7 +9,7 @@ interface ConfirmationModalProps {
     cancelLabel?: string;
     onConfirm: () => void | Promise<void>;
     onCancel: () => void | Promise<void>;
-    accentColor?: 'neon-red' | 'neon-blue' | 'neon-cyan' | 'neon-purple' | 'neon-yellow' | 'neon-fuchsia' | 'neon-pink';
+    accentColor?: 'neon-red' | 'neon-blue' | 'neon-cyan' | 'neon-purple' | 'neon-yellow' | 'neon-fuchsia' | 'neon-pink' | 'neon-orange' | 'neon-green';
     children?: React.ReactNode;
 }
 
@@ -25,7 +25,7 @@ export function ConfirmationModal({
     children
 }: ConfirmationModalProps) {
 
-    const colors = {
+    const colors: Record<string, string> = {
         'neon-red': 'text-neon-red bg-neon-red/20 border-neon-red/30',
         'neon-blue': 'text-neon-blue bg-neon-blue/20 border-neon-blue/30',
         'neon-cyan': 'text-neon-cyan bg-neon-cyan/20 border-neon-cyan/30',
@@ -33,6 +33,8 @@ export function ConfirmationModal({
         'neon-yellow': 'text-neon-yellow bg-neon-yellow/20 border-neon-yellow/30',
         'neon-fuchsia': 'text-neon-fuchsia bg-neon-fuchsia/20 border-neon-fuchsia/30',
         'neon-pink': 'text-neon-pink bg-neon-pink/20 border-neon-pink/30',
+        'neon-orange': 'text-neon-orange bg-neon-orange/20 border-neon-orange/30',
+        'neon-green': 'text-neon-green bg-neon-green/20 border-neon-green/30',
     };
 
     const activeColorClasses = colors[accentColor];

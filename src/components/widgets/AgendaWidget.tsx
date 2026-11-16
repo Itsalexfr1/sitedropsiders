@@ -176,9 +176,9 @@ export function AgendaWidget({ maxItems = 7, accentColor = 'cyan', resolvedColor
         else if (t === 'showcase') color = 'purple';
         else if (t === 'résidence' || t === 'residence') color = 'amber';
         else if (t === 'opening') color = 'orange';
-        else if (t === 'events') color = 'white';
-        else if (t === 'live take over') color = 'fuchsia';
-        else if (t === 'jeux concours') color = 'emerald';
+        else if (t === 'events') color = 'orange';
+        else if (t === 'live take over') color = 'red';
+        else if (t === 'jeux concours') color = 'blue';
         else if (t === 'show') color = 'sky';
         else if (t === 'afterparty') color = 'indigo';
         
