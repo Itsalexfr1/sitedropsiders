@@ -130,7 +130,7 @@ export function Navbar() {
 
     const navItems = [
         { name: navLabels.news || t('nav.news'), path: '/news', color: 'neon-red' },
-        { name: navLabels.agenda || t('nav.agenda'), path: '/agenda', color: 'neon-fuchsia' },
+        { name: navLabels.agenda || t('nav.agenda'), path: '/agenda', color: 'neon-orange' },
         { name: navLabels.interviews || t('nav.interviews'), path: '/interviews', color: 'white' },
         { name: navLabels.recaps || t('nav.recaps'), path: '/recaps', color: 'neon-purple' },
         { name: navLabels.communaute || t('nav.communaute'), path: '/communaute', color: 'neon-cyan' },
@@ -139,14 +139,14 @@ export function Navbar() {
         { name: navLabels.voyage || navLabels.vols || t('nav.voyage'), path: '/voyage', color: 'neon-green' },
         { name: navLabels.team || t('nav.team'), path: '/team', color: 'neon-lime' },
         { name: 'TOP 100', path: '/top-dropsiders', color: 'neon-yellow', isPremium: true },
-        ...(gtaContestMenuVisible ? [{ name: 'GTA 6', path: '/concours-gta6', color: 'neon-pink', isPremium: true }] : []),
+        ...(gtaContestMenuVisible ? [{ name: 'GTA 6', path: '/concours-gta6', color: 'neon-blue', isPremium: true }] : []),
         ...(shopEnabled && !shopPasswordProtected ? [{ name: 'SHOP', path: '/shop', color: 'neon-blue' }] : []),
         ...(((takeoverEnabled && (takeoverSettings as any)?.status === 'live')) && ((takeoverSettings as any)?.showInNavbar !== false) ? [{
             name: 'LIVE',
             path: '/live',
             icon: Video,
             isLive: true,
-            color: 'neon-fuchsia',
+            color: 'neon-red',
             onClick: () => {
                 sessionStorage.removeItem('exited_live');
             }
@@ -437,14 +437,14 @@ export function Navbar() {
                                             <div className="grid grid-cols-3 sm:grid-cols-5 md:grid-cols-9 gap-2">
                                                 {[
                                                     { name: 'Techno', color: 'text-neon-red border-neon-red/20 hover:bg-neon-red/10' },
-                                                    { name: 'House', color: 'text-neon-red border-neon-red/20 hover:bg-neon-red/10' },
-                                                    { name: 'Tech House', color: 'text-neon-green border-neon-green/20 hover:bg-neon-green/10' },
-                                                    { name: 'Progressive', color: 'text-neon-cyan border-neon-cyan/20 hover:bg-neon-cyan/10' },
-                                                    { name: 'Trance', color: 'text-neon-blue border-neon-blue/20 hover:bg-neon-blue/10' },
-                                                    { name: 'Big Room', color: 'text-neon-purple border-neon-purple/20 hover:bg-neon-purple/10' },
+                                                    { name: 'House', color: 'text-neon-pink border-neon-pink/20 hover:bg-neon-pink/10' },
+                                                    { name: 'Tech House', color: 'text-neon-blue border-neon-blue/20 hover:bg-neon-blue/10' },
+                                                    { name: 'Progressive', color: 'text-white border-white/20 hover:bg-white/10' },
+                                                    { name: 'Trance', color: 'text-neon-cyan border-neon-cyan/20 hover:bg-neon-cyan/10' },
+                                                    { name: 'Big Room', color: 'text-neon-indigo border-neon-indigo/20 hover:bg-neon-indigo/10' },
                                                     { name: 'Hardmusic', color: 'text-neon-orange border-neon-orange/20 hover:bg-neon-orange/10' },
-                                                    { name: 'Drum & Bass', color: 'text-neon-green border-neon-green/20 hover:bg-neon-green/10' },
-                                                    { name: 'Multistyle', color: 'text-white border-white/20 hover:bg-white/10' }
+                                                    { name: 'Drum & Bass', color: 'text-neon-emerald border-neon-emerald/20 hover:bg-neon-emerald/10' },
+                                                    { name: 'Multistyle', color: 'text-neon-fuchsia border-neon-fuchsia/20 hover:bg-neon-fuchsia/10' }
                                                 ].map(style => (
                                                     <button
                                                         key={style.name}
@@ -603,13 +603,13 @@ interface NavItemProps {
 
 const getThemeColor = (colorClass: string) => {
     switch (colorClass) {
-        case 'neon-red': return 'rgba(255, 18, 65, 0.15)';
-        case 'neon-green': return 'rgba(57, 255, 20, 0.15)';
-        case 'neon-purple': return 'rgba(191, 0, 255, 0.15)';
-        case 'neon-cyan': return 'rgba(34, 211, 238, 0.15)';
-        case 'neon-blue': return 'rgba(0, 191, 255, 0.15)';
-        case 'neon-yellow': return 'rgba(255, 240, 31, 0.15)';
-        case 'neon-orange': return 'rgba(255, 103, 0, 0.15)';
+        case 'neon-red': return 'rgba(255, 0, 51, 0.15)'; // Social Studio NEWS #ff0033
+        case 'neon-green': return 'rgba(57, 255, 20, 0.15)'; // Social Studio MUSIQUE #39ff14
+        case 'neon-purple': return 'rgba(192, 38, 211, 0.15)'; // Social Studio RECAP #c026d3
+        case 'neon-cyan': return 'rgba(0, 240, 255, 0.15)'; // Social Studio CYAN #00f0ff
+        case 'neon-blue': return 'rgba(0, 140, 255, 0.15)'; // Social Studio CONCOURS #008cff
+        case 'neon-yellow': return 'rgba(255, 230, 0, 0.15)'; // Social Studio FOCUS #ffe600
+        case 'neon-orange': return 'rgba(255, 103, 0, 0.15)'; // Social Studio PLANNING #ff6700
         case 'neon-pink': return 'rgba(255, 0, 127, 0.15)';
         case 'neon-lime': return 'rgba(204, 255, 0, 0.15)';
         case 'neon-emerald': return 'rgba(0, 255, 163, 0.15)';
@@ -620,17 +620,17 @@ const getThemeColor = (colorClass: string) => {
 
 const getThemeBorder = (colorClass: string) => {
     switch (colorClass) {
-        case 'neon-red': return 'rgba(255, 18, 65, 0.3)';
-        case 'neon-green': return 'rgba(57, 255, 20, 0.3)';
-        case 'neon-purple': return 'rgba(191, 0, 255, 0.3)';
-        case 'neon-cyan': return 'rgba(34, 211, 238, 0.3)';
-        case 'neon-blue': return 'rgba(0, 191, 255, 0.3)';
-        case 'neon-yellow': return 'rgba(255, 240, 31, 0.3)';
-        case 'neon-orange': return 'rgba(255, 103, 0, 0.3)';
-        case 'neon-pink': return 'rgba(255, 0, 127, 0.3)';
-        case 'neon-lime': return 'rgba(204, 255, 0, 0.3)';
-        case 'neon-emerald': return 'rgba(0, 255, 163, 0.3)';
-        case 'neon-fuchsia': return 'rgba(255, 0, 255, 0.3)';
+        case 'neon-red': return 'rgba(255, 0, 51, 0.35)';
+        case 'neon-green': return 'rgba(57, 255, 20, 0.35)';
+        case 'neon-purple': return 'rgba(192, 38, 211, 0.35)';
+        case 'neon-cyan': return 'rgba(0, 240, 255, 0.35)';
+        case 'neon-blue': return 'rgba(0, 140, 255, 0.35)';
+        case 'neon-yellow': return 'rgba(255, 230, 0, 0.35)';
+        case 'neon-orange': return 'rgba(255, 103, 0, 0.35)';
+        case 'neon-pink': return 'rgba(255, 0, 127, 0.35)';
+        case 'neon-lime': return 'rgba(204, 255, 0, 0.35)';
+        case 'neon-emerald': return 'rgba(0, 255, 163, 0.35)';
+        case 'neon-fuchsia': return 'rgba(255, 0, 255, 0.35)';
         default: return 'rgba(255, 255, 255, 0.2)';
     }
 };

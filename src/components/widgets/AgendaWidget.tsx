@@ -182,25 +182,25 @@ export function AgendaWidget({ maxItems = 7, accentColor = 'cyan', resolvedColor
         else if (t === 'show') color = 'sky';
         else if (t === 'afterparty') color = 'indigo';
         
-        // Genre Gradients (2 or 3 colors for music styles)
+        // Genre Gradients (Unique for each music style)
         let gradient = undefined;
-        if (g.includes('melodic techno')) gradient = 'linear-gradient(to right, #fff01f, #ffbf00, #ff6700)';
-        else if (g.includes('tech house')) gradient = 'linear-gradient(to right, #0070ff, #00ccff, #00f0ff)';
-        else if (g.includes('afro house')) gradient = 'linear-gradient(to right, #ffbf00, #ff6700, #ff0000)';
-        else if (g.includes('indie dance')) gradient = 'linear-gradient(to right, #00ccff, #bc13fe, #ff00ff)';
-        else if (g.includes('bass music')) gradient = 'linear-gradient(to right, #ccff00, #39ff14, #00ffa3)';
-        else if (g.includes('hard music') || g.includes('hardmusic') || g.includes('hard techno') || g.includes('hardstyle') || g.includes('hardcore')) gradient = 'linear-gradient(to right, #ff6700, #ff0000, #e60026)';
-        else if (g.includes('techno')) gradient = 'linear-gradient(to right, #ff0000, #e60026, #99001f)';
-        else if (g.includes('house')) gradient = 'linear-gradient(to right, #ff007f, #ff00ff, #bc13fe)';
-        else if (g.includes('big room')) gradient = 'linear-gradient(to right, #bc13fe, #6600ff, #0070ff)';
+        if (g.includes('melodic techno')) gradient = 'linear-gradient(to right, #fff01f, #fbbf24, #f59e0b)';
+        else if (g.includes('tech house')) gradient = 'linear-gradient(to right, #0070ff, #00c8ff, #00f0ff)';
+        else if (g.includes('afro house')) gradient = 'linear-gradient(to right, #f59e0b, #d97706, #78350f)';
+        else if (g.includes('indie dance')) gradient = 'linear-gradient(to right, #00f0ff, #a855f7, #ec4899)';
+        else if (g.includes('bass music')) gradient = 'linear-gradient(to right, #a3e635, #22c55e, #15803d)';
+        else if (g.includes('hard music') || g.includes('hardmusic') || g.includes('hard techno') || g.includes('hardstyle') || g.includes('hardcore')) gradient = 'linear-gradient(to right, #ff4500, #ff7700, #ffaa00)';
+        else if (g.includes('techno')) gradient = 'linear-gradient(to right, #ff0033, #b91c1c, #450a0a)';
+        else if (g.includes('house')) gradient = 'linear-gradient(to right, #ff007f, #ff1493, #be123c)';
+        else if (g.includes('big room')) gradient = 'linear-gradient(to right, #6366f1, #4338ca, #1e1b4b)';
         else if (g.includes('trance')) gradient = 'linear-gradient(to right, #00f0ff, #0072ff, #001e80)';
         else if (g.includes('progressive')) gradient = 'linear-gradient(to right, #ffffff, #a1a1aa, #3f3f46)';
-        else if (g.includes('drum')) gradient = 'linear-gradient(to right, #39ff14, #ccff00, #fff01f)';
+        else if (g.includes('drum')) gradient = 'linear-gradient(to right, #00ffa3, #06b6d4, #0ea5e9)';
         else if (g.includes('multi style')) gradient = 'linear-gradient(to right, #ff007a, #7928ca, #00d2ff, #10b981)';
-        else if (g.includes('hybride')) gradient = 'linear-gradient(to right, #fff01f, #ff6700, #ff0000)';
-        else if (g.includes('dubstep')) gradient = 'linear-gradient(to right, #6600ff, #bc13fe, #ff007f)';
+        else if (g.includes('hybride')) gradient = 'linear-gradient(to right, #fff01f, #ff007f, #7928ca)';
+        else if (g.includes('dubstep')) gradient = 'linear-gradient(to right, #581c87, #7c3aed, #c026d3)';
 
-        const isLight = g.includes('bass music') || g.includes('melodic') || g.includes('afro house') || g.includes('progressive');
+        const isLight = g.includes('bass music') || g.includes('melodic') || g.includes('progressive');
 
         return {
             text: `text-neon-${color}`,

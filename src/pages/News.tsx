@@ -136,11 +136,14 @@ export function News() {
     // ── Quick category change ──
     const QUICK_CATEGORIES = [
         { value: 'News', label: 'News', color: 'neon-red' },
+        { value: 'Focus', label: 'Focus', color: 'neon-yellow' },
         { value: 'Recap', label: 'Récap', color: 'neon-purple' },
         { value: 'Musique', label: 'Musique', color: 'neon-green' },
         { value: 'Review', label: 'Review', color: 'neon-green' },
-        { value: 'Interview', label: 'Interview', color: 'neon-purple' },
+        { value: 'Interview', label: 'Interview', color: 'white' },
         { value: 'Sets & Mixes', label: 'Sets & Mixes', color: 'neon-purple' },
+        { value: 'Concours', label: 'Concours', color: 'neon-blue' },
+        { value: 'Events', label: 'Events', color: 'neon-orange' },
         { value: 'Festival', label: 'Festival', color: 'neon-red' },
         { value: 'Actu', label: 'Actu', color: 'neon-red' },
     ];

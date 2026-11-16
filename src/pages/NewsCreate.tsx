@@ -428,7 +428,7 @@ export function NewsCreate() {
             const categoryColors: Record<string, { color: string; grad: string }> = {
                 'news': { color: '#ff0033', grad: '255, 0, 51' },
                 'focus': { color: '#ffe600', grad: '255, 230, 0' },
-                'highlights': { color: '#0070ff', grad: '0, 112, 255' },
+                'highlights': { color: '#38bdf8', grad: '56, 189, 248' },
                 'musique': { color: '#39ff14', grad: '57, 255, 20' },
                 'recap': { color: '#c026d3', grad: '192, 38, 211' },
                 'interview': { color: '#ffffff', grad: '255, 255, 255' },

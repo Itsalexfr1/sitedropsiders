@@ -11,7 +11,7 @@ import { translateText, translateHTML } from '../utils/translate';
 import { getArticleLink, getRecapLink } from '../utils/slugify';
 import { resolveImageUrl } from '../utils/image';
 import { exportPhotoWithFilter, triggerBlobDownload } from '../utils/imageExport';
-import { getCategoryColor } from '../utils/theme';
+import { getCategoryColor, getCategoryColorHex } from '../utils/theme';
 import { ArticleReader } from '../components/widgets/ArticleReader';
 import settings from '../data/settings.json';
 import '../styles/article-premium.css';
@@ -1322,16 +1322,9 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
 
     // Article content processing utils
 
-    const themeColorName = getCategoryColor(article.category || (type === 'recap' ? 'Recap' : 'News'));
-    const themeColorHex = 
-        themeColorName === 'white' ? '#FFFFFF' :
-        themeColorName === 'neon-blue' ? '#00BFFF' :
-        themeColorName === 'neon-yellow' ? '#FFF01F' :
-        themeColorName === 'neon-purple' ? '#BF00FF' :
-        themeColorName === 'neon-cyan' ? '#00FFFF' :
-        themeColorName === 'neon-green' ? '#39FF14' :
-        themeColorName === 'neon-orange' ? '#ff6700' :
-        '#FF1241'; // neon-red default
+    const themeCategory = article.category || (type === 'recap' ? 'Recap' : 'News');
+    const themeColorName = getCategoryColor(themeCategory);
+    const themeColorHex = getCategoryColorHex(themeCategory);
 
     return (
         <div 
