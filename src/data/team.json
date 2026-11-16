@@ -102,5 +102,18 @@
     "email": "harouxtimeo@gmail.com",
     "dropsiders_email": "timeo@crew.dropsiders.fr",
     "mail_enabled": true
+  },
+  {
+    "id": 1794850642273,
+    "name": "hugo_dslm",
+    "role": "RÉDACTEUR",
+    "image": "/uploads/uploads/1a0b378d16f18d95-903822788_1141658745467601_151.jpg",
+    "socials": {
+      "instagram": "https://www.instagram.com/hugo._.ddlm?utm_source=ig_web_button_share_sheet&psln=ZDNlZDc0MzIxNw==",
+      "tiktok": ""
+    },
+    "email": "hugo.dedessuslemoutier@gmail.com",
+    "dropsiders_email": "hugodslm@crew.dropsiders.fr",
+    "mail_enabled": true
   }
 ]
