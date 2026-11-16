@@ -144,10 +144,10 @@
   },
   {
     "email": "hugo.dedessuslemoutier@gmail.com",
-    "dropsiders_email": "hugodslm@crew.dropsiders.fr",
+    "dropsiders_email": "hugo@crew.dropsiders.fr",
     "mail_enabled": true,
-    "username": "hugo_dslm",
-    "pseudo": "hugo_dslm",
+    "username": "HUGO",
+    "pseudo": "HUGO",
     "role": "RÉDACTEUR",
     "permissions": [
       "news_focus",
