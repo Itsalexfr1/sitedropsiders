@@ -1558,6 +1558,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
     const removeEditorialBlankSlide = (idx: number) => {
         const nextSlides = editorialBlankSlides.filter((_, i) => i !== idx);
+        if (blankVideosRef.current[idx]) {
+            try { blankVideosRef.current[idx].pause(); } catch (_) { }
+            delete blankVideosRef.current[idx];
+        }
         setEditorialBlankSlides(nextSlides);
         if (nextSlides.length === 0) {
             setIsEditorialBlankActive(false);
@@ -1568,32 +1572,72 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         setTimeout(() => generateImage(), 50);
     };
 
-    const updateEditorialBlankSlide = (idx: number, imgUrl: string) => {
+    const blankVideosRef = useRef<Record<number, HTMLVideoElement>>({});
+
+    const updateEditorialBlankSlideMedia = (idx: number, media: { image?: string; videoUrl?: string }) => {
         setEditorialBlankSlides(prev => {
             const next = [...prev];
-            if (!next[idx]) next[idx] = { id: `blank_${Date.now()}`, image: imgUrl };
-            else next[idx] = { ...next[idx], image: imgUrl };
+            const currentItem = next[idx] || { id: `blank_${Date.now()}` };
+            if (media.videoUrl !== undefined) {
+                next[idx] = { ...currentItem, videoUrl: media.videoUrl, image: '' };
+                if (media.videoUrl) {
+                    const video = document.createElement('video');
+                    video.crossOrigin = 'anonymous';
+                    video.src = media.videoUrl;
+                    video.loop = true;
+                    video.playsInline = true;
+                    video.muted = isVideoAudioMuted;
+                    video.currentTime = 0;
+                    ensureVideoMountedInDOM(video);
+                    video.play().catch(() => { });
+                    blankVideosRef.current[idx] = video;
+                } else {
+                    if (blankVideosRef.current[idx]) {
+                        try { blankVideosRef.current[idx].pause(); } catch (_) { }
+                        delete blankVideosRef.current[idx];
+                    }
+                }
+            } else if (media.image !== undefined) {
+                next[idx] = { ...currentItem, image: media.image, videoUrl: '' };
+                if (blankVideosRef.current[idx]) {
+                    try { blankVideosRef.current[idx].pause(); } catch (_) { }
+                    delete blankVideosRef.current[idx];
+                }
+                if (media.image) {
+                    const img = new Image();
+                    if (!media.image.startsWith('blob:') && !media.image.startsWith('data:')) {
+                        img.crossOrigin = 'anonymous';
+                    }
+                    img.src = media.image;
+                    img.onload = () => {
+                        imageCacheRef.current[media.image!] = img;
+                        imageCacheRef.current[resolveImageUrl(media.image!)] = img;
+                        generateImage();
+                    };
+                }
+            }
             return next;
         });
         setTimeout(() => generateImage(), 50);
     };
 
+    const updateEditorialBlankSlide = (idx: number, imgUrl: string) => {
+        updateEditorialBlankSlideMedia(idx, { image: imgUrl });
+    };
+
     const handleBlankSlideImageUpload = (file: File, idx: number) => {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            const url = e.target?.result as string;
-            if (!url) return;
-            updateEditorialBlankSlide(idx, url);
-            const imgObj = new Image();
-            imgObj.crossOrigin = 'anonymous';
-            imgObj.src = url;
-            imgObj.onload = () => {
-                imageCacheRef.current[url] = imgObj;
-                imageCacheRef.current[resolveImageUrl(url)] = imgObj;
-                generateImage();
+        const isVideo = file.type.startsWith('video/') || /\.(mp4|mov|webm|m4v|3gp|mkv|avi)$/i.test(file.name);
+        const url = URL.createObjectURL(file);
+        if (isVideo) {
+            updateEditorialBlankSlideMedia(idx, { videoUrl: url });
+        } else {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const dataUrl = e.target?.result as string;
+                if (dataUrl) updateEditorialBlankSlideMedia(idx, { image: dataUrl });
             };
-        };
-        reader.readAsDataURL(file);
+            reader.readAsDataURL(file);
+        }
     };
 
     const handleSlideImageUpload = (file: File) => {
@@ -1603,17 +1647,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             if (!url) return;
             // Si l'utilisateur est sur une Slide VIDE : mettre à jour STRICTEMENT cette slide vide (zéro pollution de Slide 1)
             if (isEditorialBlankActive) {
-                updateEditorialBlankSlide(editorialBlankIndex, url);
-                const imgObj = new Image();
-                if (!url.startsWith('blob:') && !url.startsWith('data:')) {
-                    imgObj.crossOrigin = 'anonymous';
+                const isVideo = file.type.startsWith('video/') || /\.(mp4|mov|webm|m4v|3gp|mkv|avi)$/i.test(file.name);
+                if (isVideo) {
+                    updateEditorialBlankSlideMedia(editorialBlankIndex, { videoUrl: url });
+                } else {
+                    updateEditorialBlankSlideMedia(editorialBlankIndex, { image: url });
                 }
-                imgObj.src = url;
-                imgObj.onload = () => {
-                    imageCacheRef.current[url] = imgObj;
-                    imageCacheRef.current[resolveImageUrl(url)] = imgObj;
-                    generateImage();
-                };
                 return;
             }
             if (isEditorialAfficheActive || theme === 'AFFICHE' || (theme === 'EVENTS' && eventsSlide === 2)) {
@@ -6003,12 +6042,37 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 }
 
                 const hasAfficheVisual = isCurrentSlideAffiche && Boolean(currentSlideAfficheUrl);
+                const blankVideoEl = isEditorialBlankRequested
+                    ? (blankVideosRef.current[effectiveBlankIdx] || (currentBlankItem?.videoUrl ? (() => {
+                        const vid = document.createElement('video');
+                        vid.crossOrigin = 'anonymous';
+                        vid.src = currentBlankItem.videoUrl;
+                        vid.loop = true;
+                        vid.playsInline = true;
+                        vid.muted = isVideoAudioMuted;
+                        ensureVideoMountedInDOM(vid);
+                        vid.play().catch(() => { });
+                        blankVideosRef.current[effectiveBlankIdx] = vid;
+                        return vid;
+                    })() : null))
+                    : null;
+
                 const shouldUseBgVideo = bgVideo &&
                     theme !== 'JEU_DJ' &&
+                    !isPromoRequested &&
+                    !isEditorialBlankRequested &&
                     (!isMusiqueTrackSlide || (!musiqueCoverImg && !musiqueCoverUrl && !editorialSlideImages[effectiveEditorialSlide])) &&
-                    (!isCurrentSlideAffiche || !hasAfficheVisual) &&
-                    (!isEditorialBlankRequested || (!currentBlankItem?.image && !currentBlankItem?.videoUrl));
-                if (shouldUseBgVideo) {
+                    (!isCurrentSlideAffiche || !hasAfficheVisual);
+
+                if (isEditorialBlankRequested && blankVideoEl && (blankVideoEl.videoWidth > 0 || blankVideoEl.readyState >= 2)) {
+                    const baseScale = Math.max(canvas.width / blankVideoEl.videoWidth, canvas.height / blankVideoEl.videoHeight);
+                    const scale = baseScale * bgAnimScale;
+                    const vw = blankVideoEl.videoWidth * scale;
+                    const vh = blankVideoEl.videoHeight * scale;
+                    let x = ((canvas.width - vw) / 2) + bgOffsetX + bgAnimX;
+                    let y = ((canvas.height - vh) / 2) + bgOffsetY + bgAnimY;
+                    ctx.drawImage(blankVideoEl, x, y, vw, vh);
+                } else if (shouldUseBgVideo) {
                     const baseScale = Math.max(canvas.width / bgVideo.videoWidth, canvas.height / bgVideo.videoHeight);
                     const scale = baseScale * bgAnimScale;
                     const vw = bgVideo.videoWidth * scale;
@@ -14187,19 +14251,14 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         if (!file) return;
         const url = URL.createObjectURL(file);
 
-        // Si l'utilisateur est sur la Slide VIDE : charger strictement dans la Slide VIDE active (zéro pollution de Slide 1)
+        // Si l'utilisateur est sur la Slide VIDE : charger STRICTEMENT dans la Slide VIDE active (zéro pollution de Slide 1 / Intro ni Promo)
         if (isEditorialBlankActive) {
-            updateEditorialBlankSlide(editorialBlankIndex, url);
-            const img = new Image();
-            if (!url.startsWith('blob:') && !url.startsWith('data:')) {
-                img.crossOrigin = "anonymous";
+            const isVid = file.type.startsWith('video/') || /\.(mp4|mov|webm|m4v|3gp|mkv|avi)$/i.test(file.name);
+            if (isVid) {
+                updateEditorialBlankSlideMedia(editorialBlankIndex, { videoUrl: url });
+            } else {
+                updateEditorialBlankSlideMedia(editorialBlankIndex, { image: url });
             }
-            img.onload = () => {
-                imageCacheRef.current[url] = img;
-                imageCacheRef.current[resolveImageUrl(url)] = img;
-                generateImage();
-            };
-            img.src = url;
             e.target.value = '';
             return;
         }
@@ -14349,7 +14408,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
     const startVideoRecording = async (
         combinedMode: 'NONE' | 'PLANNING' | 'EDITORIAL' | 'PROMO_ONLY' | 'TIKTOK' | 'STORY_FAST' = 'NONE',
-        options?: { returnBlob?: boolean; formatTab?: TabType }
+        options?: { returnBlob?: boolean; formatTab?: TabType; isSingleSlide?: boolean; targetRank?: number }
     ): Promise<Blob | null> => {
         const canvas = canvasRef.current;
         if (!canvas) return null;
@@ -14636,7 +14695,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         const currentTransitionDuration = getTransitionDuration(slideTransition);
         let totalDuration = 0;
         if (combinedMode === 'PROMO_ONLY') {
-            totalDuration = 10000; // 10.0s fixe partout pour la slide promo
+            totalDuration = (theme === 'TOP 10 TRACKS') ? 7000 : 10000;
         } else if (combinedMode === 'EDITORIAL' || ((combinedMode === 'TIKTOK' || combinedMode === 'STORY_FAST') && theme !== 'PLANNING')) {
             const isMusicTheme = (theme === 'MUSIQUE');
             const shouldSkipSlide2 = skipEditorialSlide2;
@@ -14713,7 +14772,14 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         } else if (theme === 'TOP 10 FESTIVAL') {
             totalDuration = 4 * (16800 + 1200); // 4 slides (Cover + 3 Grid pages)
         } else if (theme === 'TOP 10 TRACKS') {
-            totalDuration = 90000; // Strictement 1 min 30 pile (90s) : Intro (5.0s) + 10 tracks × 7.8s (78s) + 7s Outro Téléphone 3D = 90s pile
+            if (options?.isSingleSlide) {
+                const targetR = options.targetRank !== undefined ? options.targetRank : (top10ActiveRankRef.current ?? top10ActiveRank);
+                totalDuration = targetR === 0 ? 5000 : 7800;
+            } else if (isCarouselPromoActive) {
+                totalDuration = 7000;
+            } else {
+                totalDuration = 90000; // Strictement 1 min 30 pile (90s) : Intro (5.0s) + 10 tracks × 7.8s (78s) + 7s Outro Téléphone 3D = 90s pile
+            }
         } else {
             const isReelWithPromo = (effectiveTab === 'REEL' && combinedMode === 'NONE' && theme !== 'PROMO' && theme !== 'MUSIQUE');
             const isDevinette = ['JEU', 'JEU_FESTIVAL', 'JEU_DJ'].includes(theme);
@@ -15412,29 +15478,32 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 duration: 10
                             });
                         }
-                    } else if (combinedMode === 'NONE' && exportStudioType === 'SLIDE' && top10ActiveRank === 0) {
-                        // Mode slide unique INTRO : utilise le son du #10
-                        const tr10 = currentTracks.find(t => Number(t.rank) === 10);
-                        const aUrl = tr10?.audioUrl || (tr10?.videoUrl && tr10.videoUrl.match(/\.(mp3|m4a|aac|wav|ogg)/i) ? tr10.videoUrl : '');
-                        if (aUrl) {
-                            audioSegments.push({
-                                url: aUrl,
-                                startOffset: 0,
-                                sourceOffset: tr10?.audioStartTime || tr10?.videoStartTime || 0,
-                                duration: 10
-                            });
-                        }
-                    } else if (combinedMode === 'NONE' && exportStudioType === 'SLIDE' && top10ActiveRank >= 1 && top10ActiveRank <= 10) {
-                        // Mode slide unique d'une track spécifique (#10 ➔ #1)
-                        const tr = currentTracks.find(t => Number(t.rank) === Number(top10ActiveRank));
-                        const aUrl = tr?.audioUrl || (tr?.videoUrl && tr.videoUrl.match(/\.(mp3|m4a|aac|wav|ogg)/i) ? tr.videoUrl : '');
-                        if (aUrl) {
-                            audioSegments.push({
-                                url: aUrl,
-                                startOffset: 0,
-                                sourceOffset: tr?.audioStartTime || tr?.videoStartTime || 0,
-                                duration: 10
-                            });
+                    } else if (combinedMode === 'NONE' && (exportStudioType === 'SLIDE' || options?.isSingleSlide)) {
+                        const effRank = options?.targetRank !== undefined ? options.targetRank : (top10ActiveRankRef.current ?? top10ActiveRank);
+                        if (effRank === 0) {
+                            // Mode slide unique INTRO : utilise le son du #10
+                            const tr10 = currentTracks.find(t => Number(t.rank) === 10);
+                            const aUrl = tr10?.audioUrl || (tr10?.videoUrl && tr10.videoUrl.match(/\.(mp3|m4a|aac|wav|ogg)/i) ? tr10.videoUrl : '');
+                            if (aUrl) {
+                                audioSegments.push({
+                                    url: aUrl,
+                                    startOffset: 0,
+                                    sourceOffset: tr10?.audioStartTime || tr10?.videoStartTime || 0,
+                                    duration: 10
+                                });
+                            }
+                        } else if (effRank >= 1 && effRank <= 10) {
+                            // Mode slide unique d'une track spécifique (#10 ➔ #1)
+                            const tr = currentTracks.find(t => Number(t.rank) === Number(effRank));
+                            const aUrl = tr?.audioUrl || (tr?.videoUrl && tr.videoUrl.match(/\.(mp3|m4a|aac|wav|ogg)/i) ? tr.videoUrl : '');
+                            if (aUrl) {
+                                audioSegments.push({
+                                    url: aUrl,
+                                    startOffset: 0,
+                                    sourceOffset: tr?.audioStartTime || tr?.videoStartTime || 0,
+                                    duration: 10
+                                });
+                            }
                         }
                     } else {
                         // Vidéo complète Reel / Carrousel (Intro + 10 Tracks + Outro)
@@ -16326,8 +16395,14 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     }, () => res());
                 });
             }));
-            setTop10ActiveRank(0);
-            top10ActiveRankRef.current = 0;
+            if (!options?.isSingleSlide) {
+                setTop10ActiveRank(0);
+                top10ActiveRankRef.current = 0;
+            } else {
+                const targetR = options.targetRank !== undefined ? options.targetRank : (top10ActiveRankRef.current ?? top10ActiveRank);
+                setTop10ActiveRank(targetR);
+                top10ActiveRankRef.current = targetR;
+            }
             deterministicAnimTimeRef.current = 0;
             isExportRenderingRef.current = true;
             try { await generateImage(effectiveTab); } catch { } finally { isExportRenderingRef.current = false; }
@@ -16595,47 +16670,81 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 });
             }));
 
-            // 0. SLIDE D'INTRO (3.5s) : TITRE + LOGO ARTISTE + DROPSIDERS
-            setTop10ActiveRank(0);
-            top10ActiveRankRef.current = 0;
-            animStartTimeRef.current = Date.now();
-            await renderDuration(introDurMs, 0);
+            if (options?.isSingleSlide) {
+                const targetR = options.targetRank !== undefined ? options.targetRank : (top10ActiveRankRef.current ?? top10ActiveRank);
+                setTop10ActiveRank(targetR);
+                top10ActiveRankRef.current = targetR;
+                animStartTimeRef.current = Date.now();
 
-            // 1. DÉROULEMENT DU COUNTDOWN (#10 ➔ #1) : 49.5s
-            for (let i = 0; i < 10; i++) {
-                const rank = 10 - i;
-                setTop10ActiveRank(rank);
-                top10ActiveRankRef.current = rank;
+                let currentV: HTMLVideoElement | null = null;
+                if (targetR >= 1 && targetR <= 10) {
+                    const tr = currentTracks.find(t => Number(t.rank) === Number(targetR));
+                    if (tr?.videoUrl) {
+                        currentV = getOrCreateTop10Video(targetR, tr.videoUrl);
+                        if (currentV) {
+                            try {
+                                currentV.muted = isVideoAudioMuted;
+                                currentV.currentTime = tr.videoStartTime || 0;
+                                await currentV.play().catch(() => { });
+                            } catch (_) { }
+                        }
+                    }
+                }
+
+                const singleDurMs = targetR === 0 ? introDurMs : singleTrackMs;
+                await renderDuration(singleDurMs, 0);
+
+                if (currentV) {
+                    try { currentV.pause(); currentV.muted = true; } catch (_) { }
+                }
+
+                // Restaurer le rang original dans l'éditeur
+                top10ActiveRankRef.current = originalRank;
+                setTop10ActiveRank(originalRank);
+            } else {
+                // 0. SLIDE D'INTRO (5.0s) : TITRE + LOGO ARTISTE + DROPSIDERS
+                setTop10ActiveRank(0);
+                top10ActiveRankRef.current = 0;
+                animStartTimeRef.current = Date.now();
+                await renderDuration(introDurMs, 0);
+
+                // 1. DÉROULEMENT DU COUNTDOWN (#10 ➔ #1) : 78s
+                let prevVideo: HTMLVideoElement | null = null;
+                for (let i = 0; i < 10; i++) {
+                    const rank = 10 - i;
+                    setTop10ActiveRank(rank);
+                    top10ActiveRankRef.current = rank;
+                    if (prevVideo) {
+                        try { prevVideo.pause(); prevVideo.muted = true; } catch (_) { }
+                    }
+                    const tr = currentTracks.find(t => Number(t.rank) === Number(rank));
+                    let currentV: HTMLVideoElement | null = null;
+                    if (tr?.videoUrl) {
+                        currentV = getOrCreateTop10Video(rank, tr.videoUrl);
+                        if (currentV) {
+                            try {
+                                currentV.muted = isVideoAudioMuted;
+                                currentV.currentTime = tr.videoStartTime || 0;
+                                await currentV.play().catch(() => { });
+                            } catch (_) { }
+                        }
+                    }
+                    prevVideo = currentV;
+                    await renderDuration(singleTrackMs, 0);
+                }
                 if (prevVideo) {
                     try { prevVideo.pause(); prevVideo.muted = true; } catch (_) { }
                 }
-                const tr = currentTracks.find(t => Number(t.rank) === Number(rank));
-                let currentV: HTMLVideoElement | null = null;
-                if (tr?.videoUrl) {
-                    currentV = getOrCreateTop10Video(rank, tr.videoUrl);
-                    if (currentV) {
-                        try {
-                            currentV.muted = isVideoAudioMuted;
-                            currentV.currentTime = tr.videoStartTime || 0;
-                            await currentV.play().catch(() => { });
-                        } catch (_) { }
-                    }
-                }
-                prevVideo = currentV;
-                await renderDuration(singleTrackMs, 0);
-            }
-            if (prevVideo) {
-                try { prevVideo.pause(); prevVideo.muted = true; } catch (_) { }
-            }
 
-            // 2. OUTRO TÉLÉPHONE 3D AUTOMATIQUE (7.0s) : TOTAL 1 MINUTE PILE (3.5s + 49.5s + 7s = 60.0s)
-            promoOutroOverrideRef.current = true;
-            animStartTimeRef.current = Date.now();
-            await renderDuration(7000, 0);
+                // 2. OUTRO TÉLÉPHONE 3D AUTOMATIQUE (7.0s)
+                promoOutroOverrideRef.current = true;
+                animStartTimeRef.current = Date.now();
+                await renderDuration(7000, 0);
 
-            // Restaurer le rang original dans l'éditeur
-            top10ActiveRankRef.current = originalRank;
-            setTop10ActiveRank(originalRank);
+                // Restaurer le rang original dans l'éditeur
+                top10ActiveRankRef.current = originalRank;
+                setTop10ActiveRank(originalRank);
+            }
         } else {
             const effectiveSlide = editorialSlideOverrideRef.current !== null ? editorialSlideOverrideRef.current : editorialSlide;
             if (theme === 'MUSIQUE' && musicAudioEl) {
@@ -16951,18 +17060,45 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             const zip = new JSZip();
 
             type ZipVideoItem = {
-                type: 'AGENDA' | 'EDITORIAL' | 'EVENTS' | 'PROMO' | 'AFFICHE' | 'BLANK';
+                type: 'AGENDA' | 'EDITORIAL' | 'EVENTS' | 'PROMO' | 'AFFICHE' | 'BLANK' | 'TOP10';
                 slideNum: number;
                 title: string;
                 filename: string;
                 afficheIndex?: number;
                 blankIndex?: number;
+                top10Rank?: number;
             };
 
             const slidesToProcess: ZipVideoItem[] = [];
             const cleanTheme = theme.toLowerCase().replace(/\s+/g, '-');
 
-            if (theme === 'PLANNING') {
+            if (theme === 'TOP 10 TRACKS') {
+                if (selectedExportSlides['slide_1'] !== false) {
+                    slidesToProcess.push({
+                        type: 'TOP10',
+                        slideNum: 1,
+                        top10Rank: 0,
+                        title: 'Slide 1 • Intro Top 10',
+                        filename: `01-top-10-slide1-intro-${formatSuffix}.mp4`
+                    });
+                }
+                const currentTracks = (top10TracksRef.current && top10TracksRef.current.length === 10) ? top10TracksRef.current : top10Tracks;
+                for (let r = 10; r >= 1; r--) {
+                    const sIdx = (10 - r) + 2;
+                    if (selectedExportSlides[`slide_${sIdx}`] !== false) {
+                        const tr = currentTracks.find(t => Number(t.rank) === r);
+                        const cleanTitle = tr?.title ? tr.title.toLowerCase().replace(/[^a-z0-9]+/g, '-') : `track-${r}`;
+                        const artistLabel = tr?.artist ? ` • ${tr.artist}` : '';
+                        slidesToProcess.push({
+                            type: 'TOP10',
+                            slideNum: sIdx,
+                            top10Rank: r,
+                            title: `Slide ${sIdx} • Track #${r}${artistLabel}`,
+                            filename: `${String(sIdx).padStart(2, '0')}-top-10-slide${sIdx}-rank-${r}-${cleanTitle}-${formatSuffix}.mp4`
+                        });
+                    }
+                }
+            } else if (theme === 'PLANNING') {
                 if (selectedExportSlides['slide_1'] !== false) {
                     slidesToProcess.push({
                         type: 'AGENDA',
@@ -17142,6 +17278,22 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     blob = await startVideoRecording('NONE', { returnBlob: true, formatTab: formatToUse });
                     editorialBlankOverrideRef.current = false;
                     editorialBlankIndexOverrideRef.current = null;
+                } else if (item.type === 'TOP10') {
+                    promoOutroOverrideRef.current = false;
+                    setIsCarouselPromoActive(false);
+                    setIsEditorialAfficheActive(false);
+                    setIsEditorialTweetActive(false);
+                    setIsEditorialBlankActive(false);
+                    const targetRank = item.top10Rank ?? 0;
+                    setTop10ActiveRank(targetRank);
+                    top10ActiveRankRef.current = targetRank;
+                    await new Promise(r => setTimeout(r, 120));
+                    blob = await startVideoRecording('NONE', {
+                        returnBlob: true,
+                        formatTab: formatToUse,
+                        isSingleSlide: true,
+                        targetRank: targetRank
+                    });
                 } else if (item.type === 'AGENDA') {
                     promoOutroOverrideRef.current = false;
                     setIsCarouselPromoActive(false);
@@ -18215,16 +18367,19 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         const prevTweet = isEditorialTweetActive;
         const prevBlank = isEditorialBlankActive;
         const isMusicTheme = (theme === 'MUSIQUE');
+        const isTop10Theme = (theme === 'TOP 10 TRACKS');
         const shouldSkipSlide2 = (theme !== 'JEU_DJ') && skipEditorialSlide2;
-        const allSlides: number[] = isMusicTheme
-            ? [1, ...musicTracks.map((_, i) => i + 2)]
-            : (shouldSkipSlide2
-                ? [1, ...extraEditorialSlides.map((_, i) => i + 3)]
-                : [1, 2, ...extraEditorialSlides.map((_, i) => i + 3)]);
+        const allSlides: number[] = isTop10Theme
+            ? Array.from({ length: 11 }, (_, i) => i + 1)
+            : isMusicTheme
+                ? [1, ...musicTracks.map((_, i) => i + 2)]
+                : (shouldSkipSlide2
+                    ? [1, ...extraEditorialSlides.map((_, i) => i + 3)]
+                    : [1, 2, ...extraEditorialSlides.map((_, i) => i + 3)]);
         const slidesToDownload: number[] = exportZip
             ? allSlides.filter(s => selectedExportSlides[`slide_${s}`] !== false)
             : allSlides;
-        const includePromo = exportZip ? (selectedExportSlides['promo_outro'] !== false && (isMultiSlideTheme || theme === 'PLANNING')) : false;
+        const includePromo = exportZip ? (selectedExportSlides['promo_outro'] !== false && (isMultiSlideTheme || theme === 'PLANNING' || isTop10Theme)) : false;
         const zip = exportZip ? new JSZip() : null;
         try {
             for (let idx = 0; idx < slidesToDownload.length; idx++) {
@@ -18239,14 +18394,23 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 setIsEditorialBlankActive(false);
                 setIsCarouselPromoActive(false);
                 setIsEditorialTweetActive(false);
-                setEditorialSlide(s);
+
+                if (isTop10Theme) {
+                    const targetRank = s === 1 ? 0 : (12 - s);
+                    setTop10ActiveRank(targetRank);
+                    top10ActiveRankRef.current = targetRank;
+                } else {
+                    setEditorialSlide(s);
+                }
 
                 await new Promise(r => setTimeout(r, 80));
                 await generateImage(format, true);
                 const dataUrl = canvasRef.current.toDataURL('image/png');
-                const suffix = s === 1
-                    ? (isMusicTheme ? 'annonce' : (theme === 'JEU_DJ' ? 'silhouette' : 'cover'))
-                    : (isMusicTheme ? `track-${s - 1}-cover` : (theme === 'JEU_DJ' && s === 2 ? 'revelation' : `detail-slide${s}`));
+                const suffix = isTop10Theme
+                    ? (s === 1 ? 'intro' : `rank-${12 - s}`)
+                    : (s === 1
+                        ? (isMusicTheme ? 'annonce' : (theme === 'JEU_DJ' ? 'silhouette' : 'cover'))
+                        : (isMusicTheme ? `track-${s - 1}-cover` : (theme === 'JEU_DJ' && s === 2 ? 'revelation' : `detail-slide${s}`)));
                 const fileName = `${format === 'REEL' ? 'STORY' : 'POST'}-${theme.toLowerCase().replace(/\s+/g, '-')}-slide${s}-${suffix}.png`;
                 if (zip) {
                     zip.file(fileName, dataUrl.split(',')[1], { base64: true });
@@ -22218,6 +22382,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const blankSlideEditor = (() => {
         const currentBlankItem = editorialBlankSlides[editorialBlankIndex];
         const currentImg = currentBlankItem?.image || '';
+        const currentVid = currentBlankItem?.videoUrl || '';
+        const hasMedia = Boolean(currentImg || currentVid);
 
         return (
             <div className="space-y-4">
@@ -22279,22 +22445,35 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 <div className="p-3.5 bg-black/60 border border-purple-500/30 rounded-2xl space-y-3 shadow-xl">
                     <div className="flex items-center justify-between">
                         <span className="text-[10px] font-black uppercase text-purple-300 flex items-center gap-1.5">
-                            🖼️ Photo / Média • Slide Vide {editorialBlankSlides.length > 1 ? `${editorialBlankIndex + 1}` : ''}
+                            🖼️ Média • Slide Vide {editorialBlankSlides.length > 1 ? `${editorialBlankIndex + 1}` : ''}
                         </span>
-                        {currentImg && (
+                        {hasMedia && (
                             <button
                                 type="button"
                                 onClick={() => {
-                                    updateEditorialBlankSlide(editorialBlankIndex, '');
+                                    updateEditorialBlankSlideMedia(editorialBlankIndex, { image: '', videoUrl: '' });
                                 }}
                                 className="text-[8.5px] font-black uppercase text-red-400 hover:text-red-300 transition-colors"
                             >
-                                🗑️ Retirer la photo
+                                🗑️ Retirer le média
                             </button>
                         )}
                     </div>
 
-                    {currentImg ? (
+                    {currentVid ? (
+                        <div className="relative group rounded-xl overflow-hidden border border-purple-500/30 bg-black/40 aspect-[4/5] max-h-48 mx-auto flex items-center justify-center shadow-lg">
+                            <video src={currentVid} autoPlay loop muted playsInline className="w-full h-full object-cover" />
+                            <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                                <button
+                                    type="button"
+                                    onClick={() => blankSlideFileInputRef.current?.click()}
+                                    className="px-3 py-1.5 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-[9px] font-black uppercase"
+                                >
+                                    Remplacer
+                                </button>
+                            </div>
+                        </div>
+                    ) : currentImg ? (
                         <div className="relative group rounded-xl overflow-hidden border border-purple-500/30 bg-black/40 aspect-[4/5] max-h-48 mx-auto flex items-center justify-center shadow-lg">
                             <img src={currentImg} alt={`Slide Vide ${editorialBlankIndex + 1}`} className="w-full h-full object-cover" />
                             <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
@@ -22309,7 +22488,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         </div>
                     ) : (
                         <p className="text-[8.5px] text-gray-400">
-                            Aucune image spécifique assignée. Vous pouvez importer une photo dédiée pour cette slide uniquement (n'affecte pas la Cover).
+                            Aucun média spécifique assigné. Vous pouvez importer une photo ou vidéo dédiée pour cette slide uniquement (n'affecte pas l'Intro ni la Promo).
                         </p>
                     )}
 
@@ -22340,7 +22519,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         className="w-full py-2.5 border border-dashed border-white/10 hover:border-purple-500/30 rounded-xl flex items-center justify-center gap-2 text-gray-400 text-[8.5px] font-black uppercase hover:text-white transition-all bg-white/5"
                     >
                         <LinkIcon className="w-3.5 h-3.5 text-purple-400" />
-                        Télécharger Photo (URL)
+                        Télécharger Vidéo / Photo (URL)
                     </button>
                 </div>
             </div>
@@ -24189,7 +24368,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         <input
                             type="file"
                             ref={blankSlideFileInputRef}
-                            accept="image/*"
+                            accept="image/*,video/*"
                             className="hidden"
                             onChange={(e) => {
                                 const file = e.target.files?.[0];
@@ -24202,7 +24381,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             className="w-full py-2.5 px-3 border border-dashed border-purple-500/40 hover:border-purple-400 rounded-xl bg-purple-950/20 hover:bg-purple-900/30 text-purple-200 text-[8.5px] font-black uppercase transition-all flex items-center justify-center gap-1.5"
                         >
                             <Upload className="w-3.5 h-3.5 text-purple-400" />
-                            {editorialBlankSlides[editorialBlankIndex]?.image ? `Changer la photo (Slide Vide ${editorialBlankIndex + 1})` : `Importer photo spécifique`}
+                            {(editorialBlankSlides[editorialBlankIndex]?.image || editorialBlankSlides[editorialBlankIndex]?.videoUrl) ? `Changer le média (Slide Vide ${editorialBlankIndex + 1})` : `Importer photo ou vidéo`}
                         </button>
                     </div>
                 </div>
@@ -27446,10 +27625,19 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     >
                                         <div className="min-w-0">
                                             <span className="text-[9px] font-black block truncate">
-                                                {s === 1 ? '📌 Slide 1 (Cover)' : s === 2 ? '📖 Slide 2' : `📄 Slide ${s}`}
+                                                {theme === 'TOP 10 TRACKS'
+                                                    ? (s === 1 ? '🎬 Slide 1 (Intro)' : `🎵 Slide ${s} (Track #${12 - s})`)
+                                                    : (s === 1 ? '📌 Slide 1 (Cover)' : s === 2 ? '📖 Slide 2' : `📄 Slide ${s}`)}
                                             </span>
                                             <span className="text-[7px] text-gray-400 block truncate">
-                                                {theme}
+                                                {theme === 'TOP 10 TRACKS'
+                                                    ? (s === 1
+                                                        ? (top10IntroArtist ? `Intro • ${top10IntroArtist}` : 'Intro Countdown')
+                                                        : (() => {
+                                                            const tr = top10Tracks.find(t => Number(t.rank) === 12 - s);
+                                                            return tr?.artist ? `${tr.artist} - ${tr.title || ''}` : `Morceau #${12 - s}`;
+                                                        })())
+                                                    : theme}
                                             </span>
                                         </div>
                                         <div className={`w-4 h-4 rounded-md border flex items-center justify-center shrink-0 ml-1 ${isChecked ? 'bg-neon-cyan border-neon-cyan text-black' : 'border-white/20'}`}>
@@ -29144,6 +29332,15 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         <div className="flex-1 overflow-y-auto custom-scrollbar">
                             <Downloader isPopup={true} onSelect={(url) => {
                                 const isVideo = url.includes('.mp4') || url.includes('.mov') || url.includes('.webm') || url.includes('video') || url.includes('googlevideo') || url.includes('play') || url.includes('tiktok');
+                                if (isEditorialBlankActive) {
+                                    if (isVideo) {
+                                        updateEditorialBlankSlideMedia(editorialBlankIndex, { videoUrl: url });
+                                    } else {
+                                        updateEditorialBlankSlideMedia(editorialBlankIndex, { image: url });
+                                    }
+                                    setIsDownloaderOpen(false);
+                                    return;
+                                }
                                 if (isVideo) {
                                     const video = document.createElement('video');
                                     video.crossOrigin = "anonymous";
@@ -32334,6 +32531,15 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             setTop5Items(n);
                         }
                     } else if (r2TargetType === 'background') {
+                        if (isEditorialBlankActive) {
+                            const isVid = finalUrl.match(/\.(mp4|webm|mov|ogg)$/i) || finalUrl.includes('/video/upload/');
+                            if (isVid) {
+                                updateEditorialBlankSlideMedia(editorialBlankIndex, { videoUrl: finalUrl });
+                            } else {
+                                updateEditorialBlankSlideMedia(editorialBlankIndex, { image: finalUrl });
+                            }
+                            return;
+                        }
                         if (theme === 'TOP 10 TRACKS') {
                             updateTop10Track(top10ActiveRank, { cover: finalUrl });
                         }
