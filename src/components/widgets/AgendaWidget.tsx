@@ -193,10 +193,10 @@ export function AgendaWidget({ maxItems = 7, accentColor = 'cyan', resolvedColor
         else if (g.includes('techno')) gradient = 'linear-gradient(to right, #ff0000, #e60026, #99001f)';
         else if (g.includes('house')) gradient = 'linear-gradient(to right, #ff007f, #ff00ff, #bc13fe)';
         else if (g.includes('big room')) gradient = 'linear-gradient(to right, #bc13fe, #6600ff, #0070ff)';
-        else if (g.includes('trance')) gradient = 'linear-gradient(to right, #00f0ff, #0070ff, #6600ff)';
+        else if (g.includes('trance')) gradient = 'linear-gradient(to right, #00f0ff, #0072ff, #001e80)';
         else if (g.includes('progressive')) gradient = 'linear-gradient(to right, #ffffff, #a1a1aa, #3f3f46)';
         else if (g.includes('drum')) gradient = 'linear-gradient(to right, #39ff14, #ccff00, #fff01f)';
-        else if (g.includes('multi styles')) gradient = 'linear-gradient(to right, #00f0ff, #0070ff, #bc13fe)';
+        else if (g.includes('multi style')) gradient = 'linear-gradient(to right, #ff007a, #7928ca, #00d2ff, #10b981)';
         else if (g.includes('hybride')) gradient = 'linear-gradient(to right, #fff01f, #ff6700, #ff0000)';
         else if (g.includes('dubstep')) gradient = 'linear-gradient(to right, #6600ff, #bc13fe, #ff007f)';
 
