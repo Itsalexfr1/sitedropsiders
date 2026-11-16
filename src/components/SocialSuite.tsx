@@ -23624,7 +23624,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const conseilsEditor = (
         <div className="space-y-4">
 
-            {/* CADRE TEXTE PRINCIPAL */}
+            {/* CADRE TEXTE PRINCIPAL — Slide 1 uniquement */}
+            {editorialSlide === 1 && (
             <div className="space-y-2 p-3 bg-black/40 border border-white/10 rounded-2xl shadow-lg">
                 <div className="flex items-center justify-between pl-1">
                     <label className="text-[9px] font-black text-neon-cyan uppercase tracking-widest flex items-center gap-1.5">
@@ -23840,6 +23841,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     );
                 })()}
             </div>
+            )}
 
             {/* Si Slide >= 2, Cadre texte spécifique à la Slide */}
             {editorialSlide >= 2 && !isEditorialAfficheActive && (() => {
@@ -23896,14 +23898,36 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 </label>
                                 <span className="text-[8px] font-bold text-gray-500">Astuce: *mot*</span>
                             </div>
-                            <textarea
-                                ref={conseilsSubtextInputRef}
-                                rows={3}
-                                value={currentSlideText}
-                                onChange={e => updateEditorialSlideText(editorialSlide, e.target.value)}
-                                placeholder={editorialSlide === 2 ? "EX: Halloween 2026\n*Electro* to Techno to Hard Techno" : `Texte pour la Slide ${editorialSlide}...`}
-                                className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white italic focus:border-white/40 outline-none transition-all shadow-md resize-none"
-                            />
+                            {(() => {
+                                const SLIDE_MAX_CHARS = 270;
+                                const stripSlideMarkup = (txt: string) => txt.replace(/\[[CB]:[^\]]+\]|\[\/[CB]\]|\*/gi, '');
+                                const cleanSlideText = stripSlideMarkup(currentSlideText);
+                                const cleanSlideCount = cleanSlideText.length;
+                                const slideRatio = cleanSlideCount / SLIDE_MAX_CHARS;
+                                const slideCountColor = slideRatio >= 1 ? 'text-red-400' : slideRatio >= 0.85 ? 'text-amber-400' : 'text-emerald-400';
+                                const handleSlideTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+                                    const raw = e.target.value;
+                                    const cleanRaw = stripSlideMarkup(raw);
+                                    if (cleanRaw.length > SLIDE_MAX_CHARS) return;
+                                    updateEditorialSlideText(editorialSlide, raw);
+                                };
+                                return (
+                                    <div className="space-y-1">
+                                        <textarea
+                                            ref={conseilsSubtextInputRef}
+                                            rows={3}
+                                            value={currentSlideText}
+                                            onChange={handleSlideTextChange}
+                                            placeholder={editorialSlide === 2 ? "EX: Halloween 2026\n*Electro* to Techno to Hard Techno" : `Texte pour la Slide ${editorialSlide}...`}
+                                            className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white italic focus:border-white/40 outline-none transition-all shadow-md resize-none"
+                                        />
+                                        <div className="flex items-center justify-end gap-1.5 pr-1">
+                                            {slideRatio >= 1 && <span className="text-[8px] font-black text-red-400 animate-pulse">🛡️ LIMITE</span>}
+                                            <span className={`text-[9px] font-bold tabular-nums ${slideCountColor}`}>{cleanSlideCount} / {SLIDE_MAX_CHARS} car.</span>
+                                        </div>
+                                    </div>
+                                );
+                            })()}
                             {(() => {
                                 const rawWords = currentSlideText ? currentSlideText.split(/\s+/).filter(Boolean) : [];
                                 if (rawWords.length === 0) return null;

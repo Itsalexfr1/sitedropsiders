@@ -2081,7 +2081,7 @@ Alex (Dropsiders)`;
                                                                 <span>💬</span> Message reçu :
                                                             </div>
                                                             <div 
-                                                                className="text-[13.5px] leading-relaxed text-gray-200 whitespace-pre-wrap break-words"
+                                                                className="email-html-content text-[13.5px] leading-relaxed text-gray-200 whitespace-pre-wrap break-words"
                                                                 dangerouslySetInnerHTML={{ __html: linkify(activeMsg.message) }}
                                                             />
                                                         </div>
