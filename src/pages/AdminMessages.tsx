@@ -220,28 +220,6 @@ export function AdminMessages() {
     const [viewHtmlOriginal, setViewHtmlOriginal] = useState(false);
 
     const [selectedEditorFilter, setSelectedEditorFilter] = useState<string>('all');
-    const [isEditorDropdownOpen, setIsEditorDropdownOpen] = useState(false);
-    const [editorSearchQuery, setEditorSearchQuery] = useState('');
-    const editorDropdownRef = useRef<HTMLDivElement>(null);
-
-    useEffect(() => {
-        const handleClickOutside = (e: MouseEvent) => {
-            if (editorDropdownRef.current && !editorDropdownRef.current.contains(e.target as Node)) {
-                setIsEditorDropdownOpen(false);
-            }
-        };
-        const handleKeyDown = (e: KeyboardEvent) => {
-            if (e.key === 'Escape') setIsEditorDropdownOpen(false);
-        };
-        if (isEditorDropdownOpen) {
-            document.addEventListener('mousedown', handleClickOutside);
-            document.addEventListener('keydown', handleKeyDown);
-        }
-        return () => {
-            document.removeEventListener('mousedown', handleClickOutside);
-            document.removeEventListener('keydown', handleKeyDown);
-        };
-    }, [isEditorDropdownOpen]);
 
     const availableEditors = useMemo(() => {
         const map = new Map<string, {
@@ -1810,273 +1788,140 @@ Alex (Dropsiders)`;
                             </button>
                         ))}
                     </div>
-                    {isAlex && mailboxTab !== 'blocked' && (
-                        <div className="flex items-center gap-1.5 p-2 overflow-x-auto no-scrollbar shrink-0" style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-                            {/* TOUS */}
-                            {(() => {
-                                const isActive = selectedEditorFilter === 'all';
-                                const allCount = mailboxTab === 'sent'
-                                    ? sentMessages.length
-                                    : mailboxTab === 'archived'
-                                        ? messages.filter(m => m.archived).length
-                                        : messages.filter(m => !m.archived).length;
-                                return (
-                                    <button
-                                        onClick={() => { setSelectedEditorFilter('all'); setSelected(null); setSelectedArchived(null); setSelectedSent(null); setIsEditorDropdownOpen(false); }}
-                                        className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-wider transition-all whitespace-nowrap shrink-0"
-                                        style={getEditorTabStyle('all', isActive)}
+                    {isAlex && mailboxTab !== 'blocked' && (() => {
+                        const allCount = mailboxTab === 'sent'
+                            ? sentMessages.length
+                            : mailboxTab === 'archived'
+                                ? messages.filter(m => m.archived).length
+                                : messages.filter(m => !m.archived).length;
+
+                        const generalCount = mailboxTab === 'sent'
+                            ? sentMessages.filter(m => (m.from && m.from.toLowerCase() === 'contact@dropsiders.fr') || (m.authorEmail && m.authorEmail.toLowerCase() === 'contact@dropsiders.fr')).length
+                            : mailboxTab === 'archived'
+                                ? messages.filter(m => m.archived && (!m.recipient || m.recipient.toLowerCase() === 'contact@dropsiders.fr' || m.recipient.toLowerCase() === 'info@dropsiders.fr' || m.recipient.toLowerCase() === 'general')).length
+                                : messages.filter(m => !m.archived && (!m.recipient || m.recipient.toLowerCase() === 'contact@dropsiders.fr' || m.recipient.toLowerCase() === 'info@dropsiders.fr' || m.recipient.toLowerCase() === 'general')).length;
+
+                        const isAllActive = selectedEditorFilter === 'all';
+                        const isGeneralActive = selectedEditorFilter === 'general';
+                        const activeEditor = availableEditors.find(e => e.id === selectedEditorFilter || e.username.toLowerCase() === selectedEditorFilter || e.name.toLowerCase() === selectedEditorFilter);
+                        const isEditorActive = Boolean(activeEditor);
+                        const activeEditorColor = activeEditor ? activeEditor.color : '#00FFFF';
+
+                        return (
+                            <div className="flex items-center gap-1.5 p-2 overflow-x-auto no-scrollbar shrink-0" style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                                {/* TOUS */}
+                                <button
+                                    onClick={() => { setSelectedEditorFilter('all'); setSelected(null); setSelectedArchived(null); setSelectedSent(null); }}
+                                    className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-wider transition-all whitespace-nowrap shrink-0"
+                                    style={getEditorTabStyle('all', isAllActive)}
+                                >
+                                    Tous
+                                    <span 
+                                        className="px-1.5 py-0.5 rounded-full text-[8px] font-black" 
+                                        style={{ 
+                                            background: isAllActive ? 'rgba(0,0,0,0.15)' : 'rgba(255,255,255,0.08)',
+                                            color: isAllActive ? '#000000' : 'rgba(255,255,255,0.4)'
+                                        }}
                                     >
-                                        Tous
-                                        <span 
-                                            className="px-1.5 py-0.5 rounded-full text-[8px] font-black" 
-                                            style={{ 
-                                                background: isActive ? 'rgba(0,0,0,0.15)' : 'rgba(255,255,255,0.08)',
-                                                color: isActive ? '#000000' : 'rgba(255,255,255,0.4)'
+                                        {allCount}
+                                    </span>
+                                </button>
+
+                                {/* CONTACT@DROPSIDERS.FR */}
+                                <button
+                                    onClick={() => { setSelectedEditorFilter('general'); setSelected(null); setSelectedArchived(null); setSelectedSent(null); }}
+                                    className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-wider transition-all whitespace-nowrap shrink-0"
+                                    style={getEditorTabStyle('general', isGeneralActive)}
+                                >
+                                    contact@dropsiders.fr
+                                    <span 
+                                        className="px-1.5 py-0.5 rounded-full text-[8px] font-black" 
+                                        style={{ 
+                                            background: isGeneralActive ? 'rgba(255,255,255,0.25)' : 'rgba(255,255,255,0.08)',
+                                            color: isGeneralActive ? '#ffffff' : 'rgba(255,255,255,0.4)'
+                                        }}
+                                    >
+                                        {generalCount}
+                                    </span>
+                                </button>
+
+                                {/* MENU DÉROULANT ÉDITEURS */}
+                                <div className="relative shrink-0 flex items-center ml-1">
+                                    <div 
+                                        className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border transition-all cursor-pointer relative"
+                                        style={isEditorActive ? {
+                                            background: `linear-gradient(135deg, ${activeEditorColor}25, rgba(0,0,0,0.6))`,
+                                            borderColor: activeEditorColor,
+                                            boxShadow: `0 0 15px ${activeEditorColor}30`
+                                        } : {
+                                            background: 'rgba(255,255,255,0.04)',
+                                            borderColor: 'rgba(255,255,255,0.1)',
+                                            color: 'rgba(255,255,255,0.7)'
+                                        }}
+                                    >
+                                        <User className="w-3 h-3 shrink-0" style={{ color: isEditorActive ? activeEditorColor : 'rgba(255,255,255,0.5)' }} />
+                                        <select
+                                            value={isEditorActive ? activeEditor!.id : 'all'}
+                                            onChange={(e) => {
+                                                setSelectedEditorFilter(e.target.value);
+                                                setSelected(null);
+                                                setSelectedSent(null);
+                                                setSelectedArchived(null);
+                                            }}
+                                            className="bg-transparent text-[9px] font-black uppercase tracking-wider outline-none cursor-pointer pr-4 appearance-none"
+                                            style={{
+                                                color: isEditorActive ? activeEditorColor : 'rgba(255,255,255,0.85)'
                                             }}
                                         >
-                                            {allCount}
-                                        </span>
-                                    </button>
-                                );
-                            })()}
-
-                            {/* CONTACT@DROPSIDERS.FR */}
-                            {(() => {
-                                const isActive = selectedEditorFilter === 'general';
-                                const generalCount = mailboxTab === 'sent'
-                                    ? sentMessages.filter(m => (m.from && m.from.toLowerCase() === 'contact@dropsiders.fr') || (m.authorEmail && m.authorEmail.toLowerCase() === 'contact@dropsiders.fr')).length
-                                    : mailboxTab === 'archived'
-                                        ? messages.filter(m => m.archived && (!m.recipient || m.recipient.toLowerCase() === 'contact@dropsiders.fr' || m.recipient.toLowerCase() === 'info@dropsiders.fr' || m.recipient.toLowerCase() === 'general')).length
-                                        : messages.filter(m => !m.archived && (!m.recipient || m.recipient.toLowerCase() === 'contact@dropsiders.fr' || m.recipient.toLowerCase() === 'info@dropsiders.fr' || m.recipient.toLowerCase() === 'general')).length;
-                                return (
-                                    <button
-                                        onClick={() => { setSelectedEditorFilter('general'); setSelected(null); setSelectedArchived(null); setSelectedSent(null); setIsEditorDropdownOpen(false); }}
-                                        className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-wider transition-all whitespace-nowrap shrink-0"
-                                        style={getEditorTabStyle('general', isActive)}
-                                    >
-                                        contact@dropsiders.fr
-                                        <span 
-                                            className="px-1.5 py-0.5 rounded-full text-[8px] font-black" 
-                                            style={{ 
-                                                background: isActive ? 'rgba(255,255,255,0.25)' : 'rgba(255,255,255,0.08)',
-                                                color: isActive ? '#ffffff' : 'rgba(255,255,255,0.4)'
-                                            }}
-                                        >
-                                            {generalCount}
-                                        </span>
-                                    </button>
-                                );
-                            })()}
-
-                            {/* MENU DÉROULANT ÉDITEURS */}
-                            {(() => {
-                                const activeEditor = availableEditors.find(e => e.id === selectedEditorFilter || e.username.toLowerCase() === selectedEditorFilter || e.name.toLowerCase() === selectedEditorFilter);
-                                const isEditorActive = Boolean(activeEditor);
-                                const activeEditorColor = activeEditor ? activeEditor.color : '#00FFFF';
-                                const isLight = activeEditor ? ['#00ffff', '#39ff14', '#fff01f'].includes(activeEditor.color.toLowerCase()) : false;
-
-                                const activeCount = activeEditor ? (
-                                    mailboxTab === 'sent' 
-                                        ? sentMessages.filter(m => matchEditorForSent(m, activeEditor)).length
-                                        : mailboxTab === 'archived'
-                                            ? messages.filter(m => m.archived && matchEditorForReceived(m, activeEditor)).length
-                                            : messages.filter(m => !m.archived && matchEditorForReceived(m, activeEditor)).length
-                                ) : null;
-
-                                const filteredEditorList = availableEditors.filter(e => {
-                                    if (!editorSearchQuery.trim()) return true;
-                                    const q = editorSearchQuery.toLowerCase().trim();
-                                    return (e.name || '').toLowerCase().includes(q) || 
-                                           (e.username || '').toLowerCase().includes(q) || 
-                                           (e.role || '').toLowerCase().includes(q) || 
-                                           (e.email || '').toLowerCase().includes(q) ||
-                                           (e.dropsiders_email || '').toLowerCase().includes(q);
-                                });
-
-                                return (
-                                    <div className="relative shrink-0" ref={editorDropdownRef}>
-                                        <div className="flex items-center gap-1">
-                                            <button
-                                                type="button"
-                                                onClick={() => setIsEditorDropdownOpen(prev => !prev)}
-                                                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-wider transition-all whitespace-nowrap shrink-0"
-                                                style={isEditorActive ? {
-                                                    background: `linear-gradient(135deg, ${activeEditorColor}, ${activeEditorColor}cc)`,
-                                                    color: isLight ? '#000000' : '#ffffff',
-                                                    boxShadow: `0 4px 15px ${activeEditorColor}40`,
-                                                    border: `1px solid ${activeEditorColor}aa`
-                                                } : {
-                                                    background: 'rgba(255,255,255,0.04)',
-                                                    color: 'rgba(255,255,255,0.7)',
-                                                    border: '1px solid rgba(255,255,255,0.08)'
-                                                }}
-                                            >
-                                                <User className="w-3 h-3 shrink-0" />
-                                                <span>{isEditorActive ? activeEditor!.name : 'Éditeurs'}</span>
-                                                {activeCount !== null && (
-                                                    <span 
-                                                        className="px-1.5 py-0.5 rounded-full text-[8px] font-black"
-                                                        style={{
-                                                            background: isLight ? 'rgba(0,0,0,0.15)' : 'rgba(255,255,255,0.25)',
-                                                            color: isLight ? '#000000' : '#ffffff'
-                                                        }}
-                                                    >
-                                                        {activeCount}
-                                                    </span>
-                                                )}
-                                                <ChevronDown className={`w-3 h-3 transition-transform ${isEditorDropdownOpen ? 'rotate-180' : ''}`} />
-                                            </button>
-
-                                            {isEditorActive && (
-                                                <button
-                                                    type="button"
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        setSelectedEditorFilter('all');
-                                                        setSelected(null);
-                                                        setSelectedSent(null);
-                                                        setSelectedArchived(null);
-                                                    }}
-                                                    title="Réinitialiser le filtre"
-                                                    className="p-1 rounded-lg text-gray-400 hover:text-white hover:bg-white/10 transition-colors"
-                                                >
-                                                    <X className="w-3 h-3" />
-                                                </button>
-                                            )}
-                                        </div>
-
-                                        {/* Dropdown Menu Popover */}
-                                        {isEditorDropdownOpen && (
-                                            <div 
-                                                className="absolute top-full left-0 mt-2 z-50 w-72 sm:w-80 rounded-2xl p-2.5 shadow-2xl backdrop-blur-2xl border"
-                                                style={{
-                                                    background: 'rgba(18, 20, 26, 0.98)',
-                                                    borderColor: 'rgba(255, 255, 255, 0.12)',
-                                                    boxShadow: '0 20px 40px rgba(0,0,0,0.8), 0 0 30px rgba(0,255,255,0.1)'
-                                                }}
-                                            >
-                                                {/* Header */}
-                                                <div className="flex items-center justify-between pb-2 mb-2 border-b border-white/10 px-1">
-                                                    <div>
-                                                        <span className="text-[10px] font-black uppercase tracking-wider text-white flex items-center gap-1.5">
-                                                            <User className="w-3 h-3 text-neon-cyan" />
-                                                            Mails par éditeur
-                                                        </span>
-                                                        <p className="text-[9px] text-gray-400 mt-0.5">Filtrer les messages reçus et envoyés</p>
-                                                    </div>
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => setIsEditorDropdownOpen(false)}
-                                                        className="p-1 rounded-lg text-gray-400 hover:text-white hover:bg-white/10 transition-colors"
-                                                    >
-                                                        <X className="w-3.5 h-3.5" />
-                                                    </button>
-                                                </div>
-
-                                                {/* Search Input */}
-                                                <div className="relative mb-2">
-                                                    <input
-                                                        type="text"
-                                                        value={editorSearchQuery}
-                                                        onChange={(e) => setEditorSearchQuery(e.target.value)}
-                                                        placeholder="Rechercher un éditeur..."
-                                                        className="w-full bg-white/5 border border-white/10 rounded-xl px-2.5 py-1.5 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-neon-cyan/50 transition-colors"
-                                                        autoFocus
-                                                    />
-                                                </div>
-
-                                                {/* Editors List */}
-                                                <div className="max-h-60 overflow-y-auto custom-scrollbar space-y-1">
-                                                    {filteredEditorList.map(ed => {
-                                                        const isSelected = selectedEditorFilter === ed.id || selectedEditorFilter === ed.username.toLowerCase();
-                                                        const rCount = messages.filter(m => !m.archived && matchEditorForReceived(m, ed)).length;
-                                                        const sCount = sentMessages.filter(m => matchEditorForSent(m, ed)).length;
-                                                        const currentCount = mailboxTab === 'sent' 
-                                                            ? sCount 
-                                                            : mailboxTab === 'archived'
-                                                                ? messages.filter(m => m.archived && matchEditorForReceived(m, ed)).length
-                                                                : rCount;
-
-                                                        return (
-                                                            <button
-                                                                key={ed.id}
-                                                                type="button"
-                                                                onClick={() => {
-                                                                    setSelectedEditorFilter(ed.id);
-                                                                    setSelected(null);
-                                                                    setSelectedSent(null);
-                                                                    setSelectedArchived(null);
-                                                                    setIsEditorDropdownOpen(false);
-                                                                }}
-                                                                className={`w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-left transition-all ${
-                                                                    isSelected 
-                                                                        ? 'bg-white/10 border border-white/20' 
-                                                                        : 'hover:bg-white/5 border border-transparent'
-                                                                }`}
-                                                            >
-                                                                <div className="flex items-center gap-2.5 min-w-0">
-                                                                    <div 
-                                                                        className="w-7 h-7 rounded-lg flex items-center justify-center text-[10px] font-black shrink-0 overflow-hidden"
-                                                                        style={{ 
-                                                                            background: `${ed.color}25`, 
-                                                                            color: ed.color,
-                                                                            border: `1px solid ${ed.color}40` 
-                                                                        }}
-                                                                    >
-                                                                        {ed.avatar ? (
-                                                                            <img src={ed.avatar} alt={ed.name} className="w-full h-full object-cover" />
-                                                                        ) : (
-                                                                            ed.name.charAt(0).toUpperCase()
-                                                                        )}
-                                                                    </div>
-                                                                    <div className="min-w-0">
-                                                                        <div className="flex items-center gap-1.5">
-                                                                            <span className="text-xs font-bold text-white truncate">{ed.name}</span>
-                                                                            {ed.role && (
-                                                                                <span className="text-[8px] text-gray-500 uppercase tracking-wider truncate max-w-[100px]">{ed.role}</span>
-                                                                            )}
-                                                                        </div>
-                                                                        <div className="flex items-center gap-2 text-[9px] text-gray-400 mt-0.5">
-                                                                            <span className="flex items-center gap-0.5 text-neon-red/80">
-                                                                                ✉️ {rCount} reçu{rCount > 1 ? 's' : ''}
-                                                                            </span>
-                                                                            <span>·</span>
-                                                                            <span className="flex items-center gap-0.5 text-neon-cyan/80">
-                                                                                ✈️ {sCount} envoyé{sCount > 1 ? 's' : ''}
-                                                                            </span>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-
-                                                                <div className="flex items-center gap-1.5 shrink-0 ml-2">
-                                                                    <span 
-                                                                        className="px-1.5 py-0.5 rounded-full text-[8px] font-black"
-                                                                        style={{
-                                                                            background: isSelected ? ed.color : 'rgba(255,255,255,0.08)',
-                                                                            color: isSelected ? '#000000' : 'rgba(255,255,255,0.5)'
-                                                                        }}
-                                                                    >
-                                                                        {currentCount}
-                                                                    </span>
-                                                                    {isSelected && <Check className="w-3.5 h-3.5 text-white" />}
-                                                                </div>
-                                                            </button>
-                                                        );
-                                                    })}
-
-                                                    {filteredEditorList.length === 0 && (
-                                                        <div className="py-6 text-center text-xs text-gray-500">
-                                                            Aucun éditeur trouvé
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        )}
+                                            <option value="all" className="bg-[#12141a] text-white">
+                                                {isEditorActive ? `👤 ${activeEditor!.name} (sélectionné)` : '👤 Filtrer par éditeur...'}
+                                            </option>
+                                            <optgroup label="── TOUS LES MESSAGES ──" className="bg-[#12141a] text-gray-400 font-bold">
+                                                <option value="all" className="bg-[#12141a] text-white py-1">
+                                                    📥 Tous les e-mails ({allCount})
+                                                </option>
+                                                <option value="general" className="bg-[#12141a] text-white py-1">
+                                                    📬 contact@dropsiders.fr ({generalCount})
+                                                </option>
+                                            </optgroup>
+                                            <optgroup label="── ÉQUIPE DROPSIDERS (REÇUS / ENVOYÉS) ──" className="bg-[#12141a] text-gray-400 font-bold">
+                                                {availableEditors.map(ed => {
+                                                    const rCount = messages.filter(m => !m.archived && matchEditorForReceived(m, ed)).length;
+                                                    const sCount = sentMessages.filter(m => matchEditorForSent(m, ed)).length;
+                                                    return (
+                                                        <option 
+                                                            key={ed.id} 
+                                                            value={ed.id} 
+                                                            className="bg-[#12141a] text-white py-1.5"
+                                                        >
+                                                            {ed.name} — ✉️ {rCount} reçus · ✈️ {sCount} envoyés
+                                                        </option>
+                                                    );
+                                                })}
+                                            </optgroup>
+                                        </select>
+                                        <ChevronDown className="w-3 h-3 shrink-0 -ml-3 pointer-events-none" style={{ color: isEditorActive ? activeEditorColor : 'rgba(255,255,255,0.4)' }} />
                                     </div>
-                                );
-                            })()}
-                        </div>
-                    )}
+
+                                    {isEditorActive && (
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setSelectedEditorFilter('all');
+                                                setSelected(null);
+                                                setSelectedSent(null);
+                                                setSelectedArchived(null);
+                                            }}
+                                            title="Réinitialiser vers Tous"
+                                            className="ml-1 p-1 rounded-lg text-gray-400 hover:text-white hover:bg-white/10 transition-colors"
+                                        >
+                                            <X className="w-3 h-3" />
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
+                        );
+                    })()}
 
                     <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar" style={{ WebkitOverflowScrolling: 'touch', overscrollBehavior: 'contain' }}>
                         {loading ? (
