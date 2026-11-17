@@ -519,6 +519,13 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const [djShowQuestionMark, setDjShowQuestionMark] = useState<boolean>(true);
     const [djAppearanceAnim, setDjAppearanceAnim] = useState<'STROBE' | 'PULSE' | 'FADE' | 'SCAN' | 'IMPACT' | 'STATIC'>('STROBE');
     const [editorialSlideImages, setEditorialSlideImages] = useState<Record<number, string>>({});
+    const [editorialSlideVideos, setEditorialSlideVideos] = useState<Record<number, string>>({});
+    const slideVideosRef = useRef<Record<number, HTMLVideoElement>>({});
+    const [bgVideoContinueAcrossSlides, setBgVideoContinueAcrossSlides] = useState<boolean>(true);
+    const bgVideoContinueAcrossSlidesRef = useRef<boolean>(true);
+    useEffect(() => { bgVideoContinueAcrossSlidesRef.current = bgVideoContinueAcrossSlides; }, [bgVideoContinueAcrossSlides]);
+    const [bgVideoDarkOverlayOnSlide2, setBgVideoDarkOverlayOnSlide2] = useState<number>(45);
+    const [bgVideoBlurOnSlide2, setBgVideoBlurOnSlide2] = useState<number>(0);
     const [editorialSlideCutouts, setEditorialSlideCutouts] = useState<Record<number, string>>({});
     const [editorialSlideTitles, setEditorialSlideTitles] = useState<Record<number, string>>({});
     const [djSlideModes, setDjSlideModes] = useState<Record<number, 'SILHOUETTE' | 'REVEAL'>>({});
@@ -1426,29 +1433,18 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         setAudioWarningAlert(null);
     };
 
-    // ── CALCUL DYNAMIQUE DU RYTHME SPÉCIAL TIKTOK (<60s MAX, SWEET SPOT 15-30s) ───
+    // ── RYTHME TIKTOK : SLIDES 3.5s & PROMO OUTRO 6.8s ───
     const getTikTokSlideTimings = (numSlides: number) => {
-        const promoOutroSec = 3.5; // Outro promo dynamique Dropsiders
+        const promoOutroSec = 6.8; // Outro promo dynamique Dropsiders (6/7 sec)
         const transSec = getTransitionDuration(slideTransition) / 1000;
-        let slideSec = 3.5;
-        if (numSlides <= 2) {
-            slideSec = 4.2;
-        } else if (numSlides <= 4) {
-            slideSec = 3.5;
-        } else if (numSlides <= 6) {
-            slideSec = 3.2;
-        } else if (numSlides <= 8) {
-            slideSec = 2.8;
-        } else {
-            // Plafond strict : la durée totale ne doit JAMAIS dépasser 55s (marge de sécurité TikTok 60s)
-            slideSec = Math.max(2.2, Math.min(2.8, (54 - promoOutroSec - (numSlides * transSec)) / Math.max(1, numSlides)));
-        }
+        const slideSec = 3.5; // Exactement 3.5s par slide
         const totalSec = (numSlides * slideSec) + (numSlides * transSec) + promoOutroSec;
         return {
-            slideDurationMs: Math.round(slideSec * 1000),
-            promoDurationMs: Math.round(promoOutroSec * 1000),
+            slideDurationMs: 3500,
+            promoDurationMs: 6800,
             totalDurationMs: Math.round(totalSec * 1000),
-            slideSec: Math.round(slideSec * 10) / 10,
+            slideSec: 3.5,
+            promoSec: 6.8,
             totalSec: Math.round(totalSec * 10) / 10
         };
     };
@@ -6124,11 +6120,31 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     : null;
 
                 const isTopTheme = (parentTheme === 'TOP 10 TRACKS' || parentTheme.startsWith('TOP 10') || parentTheme.startsWith('TOP 5') || theme === 'TOP 10 TRACKS' || promoCategory === 'TOP 10 TRACKS');
-                const shouldUseBgVideo = bgVideo &&
+                
+                // Vidéo spécifique à la slide active ou vidéo globale
+                const isAllowedSlideForVideo = bgVideoContinueAcrossSlides || effectiveEditorialSlide === 1 || isCarouselPromoActive || theme === 'REELS';
+                const slideSpecificVideoUrl = editorialSlideVideos[effectiveEditorialSlide];
+                const slideSpecificVideoEl = slideSpecificVideoUrl ? (slideVideosRef.current[effectiveEditorialSlide] || (() => {
+                    const vid = document.createElement('video');
+                    vid.crossOrigin = 'anonymous';
+                    vid.src = slideSpecificVideoUrl;
+                    vid.loop = true;
+                    vid.playsInline = true;
+                    vid.muted = isVideoAudioMuted;
+                    ensureVideoMountedInDOM(vid);
+                    vid.play().catch(() => { });
+                    slideVideosRef.current[effectiveEditorialSlide] = vid;
+                    return vid;
+                })()) : null;
+
+                const activeVideoToDraw = slideSpecificVideoEl || (isAllowedSlideForVideo ? bgVideo : null);
+
+                const shouldUseBgVideo = activeVideoToDraw &&
                     theme !== 'JEU_DJ' &&
                     !isEditorialBlankRequested &&
                     (!isMusiqueTrackSlide || (!musiqueCoverImg && !musiqueCoverUrl && !editorialSlideImages[effectiveEditorialSlide])) &&
-                    (!isCurrentSlideAffiche || !hasAfficheVisual);
+                    (!isCurrentSlideAffiche || !hasAfficheVisual) &&
+                    (!editorialSlideImages[effectiveEditorialSlide] || effectiveEditorialSlide === 1);
 
                 if (isEditorialBlankRequested && blankVideoEl && (blankVideoEl.videoWidth > 0 || blankVideoEl.readyState >= 2)) {
                     const baseScale = Math.max(canvas.width / blankVideoEl.videoWidth, canvas.height / blankVideoEl.videoHeight);
@@ -6138,11 +6154,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     let x = ((canvas.width - vw) / 2) + bgOffsetX + bgAnimX;
                     let y = ((canvas.height - vh) / 2) + bgOffsetY + bgAnimY;
                     ctx.drawImage(blankVideoEl, x, y, vw, vh);
-                } else if (shouldUseBgVideo) {
-                    const baseScale = Math.max(canvas.width / bgVideo.videoWidth, canvas.height / bgVideo.videoHeight);
+                } else if (shouldUseBgVideo && activeVideoToDraw) {
+                    const baseScale = Math.max(canvas.width / activeVideoToDraw.videoWidth, canvas.height / activeVideoToDraw.videoHeight);
                     const scale = baseScale * bgAnimScale;
-                    const vw = bgVideo.videoWidth * scale;
-                    const vh = bgVideo.videoHeight * scale;
+                    const vw = activeVideoToDraw.videoWidth * scale;
+                    const vh = activeVideoToDraw.videoHeight * scale;
                     let x = ((canvas.width - vw) / 2) + bgOffsetX + bgAnimX;
                     let y = ((canvas.height - vh) / 2) + bgOffsetY + bgAnimY;
                     if (imgLayoutMode === 'PAR_LIGNES') {
@@ -6154,15 +6170,15 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     }
                     if (theme === 'AFFICHE' || (theme === 'EVENTS' && ((effectiveEventsSlide === 2 && eventNormalSlidesCount === 0) || (editorialAfficheOverrideRef.current !== null ? editorialAfficheOverrideRef.current : isEditorialAfficheActive))) || (theme === 'MUSIQUE' && effectiveEditorialSlide >= 2) || isEditorialAfficheRequested || isEditorialTweetRequested) {
                         const blurBleed = 28;
-                        drawBlurredVideoCrossBrowser(ctx, bgVideo, x - blurBleed, y - blurBleed, vw + blurBleed * 2, vh + blurBleed * 2, 14);
+                        drawBlurredVideoCrossBrowser(ctx, activeVideoToDraw, x - blurBleed, y - blurBleed, vw + blurBleed * 2, vh + blurBleed * 2, 14);
                     } else if (isFocusReelHook && focusHookAlpha > 0.01) {
                         const maxBlur = (focusReelStyle === 'IMPACT') ? 22 : (focusReelStyle === 'GLASS' ? 12 : (focusReelStyle === 'MINIMAL' ? 14 : 18));
                         const currentBlur = Math.round(maxBlur * focusHookAlpha);
                         if (currentBlur > 1) {
                             const blurBleed = 28;
-                            drawBlurredVideoCrossBrowser(ctx, bgVideo, x - blurBleed, y - blurBleed, vw + blurBleed * 2, vh + blurBleed * 2, currentBlur);
+                            drawBlurredVideoCrossBrowser(ctx, activeVideoToDraw, x - blurBleed, y - blurBleed, vw + blurBleed * 2, vh + blurBleed * 2, currentBlur);
                         } else {
-                            ctx.drawImage(bgVideo, x, y, vw, vh);
+                            ctx.drawImage(activeVideoToDraw, x, y, vw, vh);
                         }
                         const overlayDarkness = (focusReelStyle === 'MINIMAL') ? 0.30 : (focusReelStyle === 'GLASS' ? 0.26 : 0.42);
                         ctx.save();
@@ -6170,7 +6186,20 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         ctx.fillRect(0, 0, canvas.width, canvas.height);
                         ctx.restore();
                     } else {
-                        ctx.drawImage(bgVideo, x, y, vw, vh);
+                        if (bgVideoBlurOnSlide2 > 0 && effectiveEditorialSlide >= 2) {
+                            const blurBleed = 28;
+                            drawBlurredVideoCrossBrowser(ctx, activeVideoToDraw, x - blurBleed, y - blurBleed, vw + blurBleed * 2, vh + blurBleed * 2, bgVideoBlurOnSlide2);
+                        } else {
+                            ctx.drawImage(activeVideoToDraw, x, y, vw, vh);
+                        }
+                    }
+
+                    // ── IDÉE 3 : ASSOMBRISSEMENT ADAPTATIF SUR SLIDE 2+ POUR LA LISIBILITÉ DU TEXTE ──
+                    if (effectiveEditorialSlide >= 2 && !isEditorialBlankRequested && bgVideoDarkOverlayOnSlide2 > 0) {
+                        ctx.save();
+                        ctx.fillStyle = `rgba(0, 0, 0, ${bgVideoDarkOverlayOnSlide2 / 100})`;
+                        ctx.fillRect(0, 0, canvas.width, canvas.height);
+                        ctx.restore();
                     }
                 } else if (theme === 'JEU_DJ') {
                     // SILHOUETTE MYSTÈRE & RÉVÉLATION DJ
@@ -14804,13 +14833,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             const videoDurationMs = isDevinette && hasVideoBg ? Math.min(15000, rawVideoDurMs) : rawVideoDurMs;
             if (combinedMode === 'TIKTOK') {
                 const timings = getTikTokSlideTimings(numContentSlides);
-                if (hasVideoBg) {
-                    const promoDuration = 10000;
-                    const otherSlidesDur = (numContentSlides > 1) ? (numContentSlides - 1) * (isDevinette ? Math.min(15000, timings.slideDurationMs) : timings.slideDurationMs) : 0;
-                    totalDuration = videoDurationMs + otherSlidesDur + (numContentSlides * currentTransitionDuration) + promoDuration;
-                } else {
-                    totalDuration = timings.totalDurationMs;
-                }
+                const promoDuration = includePromoOutro ? 6800 : 0;
+                totalDuration = (numContentSlides * timings.slideDurationMs) + (numContentSlides * currentTransitionDuration) + promoDuration;
             } else if (combinedMode === 'STORY_FAST') {
                 const promoDuration = 10000;
                 const slideDuration = 3000;
@@ -16698,7 +16722,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 const numContentSlides = contentSlideNumbers.length + (hasAfficheSlide ? 1 : 0);
                 const timings = getTikTokSlideTimings(numContentSlides);
                 slideDuration = timings.slideDurationMs;
-                promoDuration = 10000;
+                promoDuration = 6800;
             } else if (combinedMode === 'STORY_FAST') {
                 slideDuration = 4000;
                 promoDuration = 10000;
@@ -17482,10 +17506,21 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 const item = slidesToProcess[i];
                 setZipExportProgress({
                     current: i + 1,
-                    total: totalSlides,
+                    total: totalSlides + 1,
                     title: item.title,
                     stage: 'encoding'
                 });
+
+                // Idée 2 : Timecode Seamless si vidéo de fond continue
+                const prevBgStartTime = bgVideoStartTimeRef.current;
+                if (bgVideo && bgVideoContinueAcrossSlidesRef.current && (item.type === 'EDITORIAL' || item.type === 'EVENTS' || item.type === 'AGENDA')) {
+                    const slideDur = editorialSlide1Duration;
+                    const offset = i * slideDur;
+                    const maxDur = Math.max(1, (bgVideo.duration || 30) - 0.5);
+                    const targetSeek = (prevBgStartTime + offset) % maxDur;
+                    bgVideoStartTimeRef.current = targetSeek;
+                    try { bgVideo.currentTime = targetSeek; } catch (_) { }
+                }
 
                 let blob: Blob | null = null;
                 if (item.type === 'PROMO') {
@@ -17608,11 +17643,43 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     blob = await startVideoRecording('NONE', { returnBlob: true, formatTab: formatToUse });
                 }
 
+                bgVideoStartTimeRef.current = prevBgStartTime;
                 if (blob) {
                     zip.file(item.filename, blob);
                 }
 
                 await new Promise(r => setTimeout(r, 250));
+            }
+
+            // ── GÉNÉRATION DE LA VERSION TIKTOK 9:16 COMPLÈTE DANS LE ZIP (Slides 3.5s + Promo 6.8s) ──
+            if (!cancelZipExportRef.current) {
+                setZipExportProgress({
+                    current: totalSlides,
+                    total: totalSlides + 1,
+                    title: '🎬 Assemblage de la version TikTok 9:16 (Slides 3.5s + Promo 7s)...',
+                    stage: 'encoding'
+                });
+                try {
+                    editorialSlideOverrideRef.current = null;
+                    agendaSlideOverrideRef.current = null;
+                    eventsSlideOverrideRef.current = null;
+                    editorialAfficheOverrideRef.current = false;
+                    editorialBlankOverrideRef.current = false;
+                    editorialTweetOverrideRef.current = false;
+                    promoOutroOverrideRef.current = false;
+                    setIsEditorialAfficheActive(false);
+                    setIsEditorialBlankActive(false);
+                    setIsEditorialTweetActive(false);
+                    setIsCarouselPromoActive(false);
+                    await new Promise(r => setTimeout(r, 150));
+                    const tiktokBlob = await startVideoRecording('TIKTOK', { returnBlob: true, formatTab: 'REEL' });
+                    if (tiktokBlob) {
+                        zip.file(`00-${cleanTheme}-tiktok-complet-3.5s-9-16.mp4`, tiktokBlob);
+                        console.log('[Export ZIP] ✅ Version TikTok 9:16 complète ajoutée à l\'archive ZIP !');
+                    }
+                } catch (ttErr) {
+                    console.warn('[Export ZIP] Échec génération version TikTok :', ttErr);
+                }
             }
 
             if (!cancelZipExportRef.current) {
@@ -17761,10 +17828,21 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 const item = slidesToProcess[i];
                 setZipExportProgress({
                     current: i + 1,
-                    total: totalSlides,
+                    total: totalSlides + 1,
                     title: item.title,
                     stage: 'encoding'
                 });
+
+                // Idée 2 : Timecode Seamless si vidéo de fond continue
+                const prevBgStartTime = bgVideoStartTimeRef.current;
+                if (bgVideo && bgVideoContinueAcrossSlidesRef.current && (item.type === 'ANNONCE' || item.type === 'TRACK')) {
+                    const slideDur = editorialSlide1Duration;
+                    const offset = i * slideDur;
+                    const maxDur = Math.max(1, (bgVideo.duration || 30) - 0.5);
+                    const targetSeek = (prevBgStartTime + offset) % maxDur;
+                    bgVideoStartTimeRef.current = targetSeek;
+                    try { bgVideo.currentTime = targetSeek; } catch (_) { }
+                }
 
                 let blob: Blob | null = null;
                 if (item.type === 'PROMO') {
@@ -17790,12 +17868,41 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     blob = await startVideoRecording('NONE', { returnBlob: true, formatTab: formatToUse });
                 }
 
+                bgVideoStartTimeRef.current = prevBgStartTime;
                 if (blob) {
                     zip.file(item.filename, blob);
                 }
 
                 // Pause de récupération GPU & GC mémoire entre 2 vidéos
                 await new Promise(r => setTimeout(r, 250));
+            }
+
+            // ── VERSION TIKTOK 9:16 COMPLÈTE DANS LE PACK MUSIQUE ──
+            if (!cancelZipExportRef.current) {
+                setZipExportProgress({
+                    current: totalSlides,
+                    total: totalSlides + 1,
+                    title: '🎬 Assemblage de la version TikTok 9:16 (Slides 3.5s + Promo 7s)...',
+                    stage: 'encoding'
+                });
+                try {
+                    editorialSlideOverrideRef.current = null;
+                    editorialAfficheOverrideRef.current = false;
+                    editorialBlankOverrideRef.current = false;
+                    editorialTweetOverrideRef.current = false;
+                    promoOutroOverrideRef.current = false;
+                    setIsEditorialAfficheActive(false);
+                    setIsEditorialBlankActive(false);
+                    setIsEditorialTweetActive(false);
+                    setIsCarouselPromoActive(false);
+                    await new Promise(r => setTimeout(r, 150));
+                    const tiktokBlob = await startVideoRecording('TIKTOK', { returnBlob: true, formatTab: 'REEL' });
+                    if (tiktokBlob) {
+                        zip.file(`00-dropsiders-musique-tiktok-complet-3.5s-9-16.mp4`, tiktokBlob);
+                    }
+                } catch (ttErr) {
+                    console.warn('[Export ZIP Musique] Échec génération version TikTok :', ttErr);
+                }
             }
 
             if (!cancelZipExportRef.current) {
@@ -30813,6 +30920,171 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                                     </div>
                                                     <p className="text-[7.5px] text-neon-cyan/80 italic text-center">
                                                         ⏱️ Le clip et l'export MP4 commenceront à {formatVideoTime(bgVideoStartTime)}
+                                                    </p>
+                                                </div>
+
+                                                {/* ── GESTION MULTI-SLIDES DU FOND VIDÉO (IDÉES 1, 2, 3, 4) ── */}
+                                                <div className="bg-black/50 border border-purple-500/30 rounded-2xl p-3 space-y-3 mt-2.5">
+                                                    <div className="flex items-center justify-between">
+                                                        <span className="text-[9.5px] font-black uppercase text-purple-300 flex items-center gap-1.5">
+                                                            <Layers className="w-3.5 h-3.5 text-purple-400" />
+                                                            Vidéo Multi-Slides (Post & Reel)
+                                                        </span>
+                                                        <span className="text-[7.5px] font-mono uppercase px-1.5 py-0.5 rounded bg-purple-500/20 text-purple-300 font-bold border border-purple-500/40">
+                                                            {bgVideoContinueAcrossSlides ? '🌐 Fond Continu' : '📄 Par Slide'}
+                                                        </span>
+                                                    </div>
+
+                                                    {/* Idée 1 : Switch Mode Fond Continu vs Par Slide */}
+                                                    <div className="grid grid-cols-2 gap-1.5">
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => {
+                                                                setBgVideoContinueAcrossSlides(true);
+                                                                setTimeout(() => generateImage(), 50);
+                                                            }}
+                                                            className={`py-2 px-2 rounded-xl border text-[8px] font-black uppercase flex items-center justify-center gap-1 transition ${bgVideoContinueAcrossSlides
+                                                                ? 'bg-[#00ff66]/20 border-[#00ff66] text-white shadow-[0_0_12px_rgba(0,255,102,0.25)]'
+                                                                : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'
+                                                            }`}
+                                                        >
+                                                            <span>🌐</span>
+                                                            <span>Fond Continu</span>
+                                                        </button>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => {
+                                                                setBgVideoContinueAcrossSlides(false);
+                                                                setTimeout(() => generateImage(), 50);
+                                                            }}
+                                                            className={`py-2 px-2 rounded-xl border text-[8px] font-black uppercase flex items-center justify-center gap-1 transition ${!bgVideoContinueAcrossSlides
+                                                                ? 'bg-[#00f0ff]/20 border-[#00f0ff] text-white shadow-[0_0_12px_rgba(0,240,255,0.25)]'
+                                                                : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'
+                                                            }`}
+                                                        >
+                                                            <span>📄</span>
+                                                            <span>Par Slide</span>
+                                                        </button>
+                                                    </div>
+
+                                                    {/* Idée 4 : Sélecteur par slide pour changer ou hériter du fond */}
+                                                    {editorialSlide >= 2 && (
+                                                        <div className="p-2.5 rounded-xl bg-white/[0.04] border border-white/10 space-y-2">
+                                                            <div className="flex items-center justify-between">
+                                                                <span className="text-[8.5px] font-bold text-gray-300">
+                                                                    Fond Slide {editorialSlide} :
+                                                                </span>
+                                                                {editorialSlideImages[editorialSlide] || editorialSlideVideos[editorialSlide] ? (
+                                                                    <span className="text-[7.5px] font-mono text-emerald-400 bg-emerald-500/20 px-1.5 py-0.5 rounded border border-emerald-500/30">
+                                                                        ✨ Personnalisé
+                                                                    </span>
+                                                                ) : bgVideoContinueAcrossSlides ? (
+                                                                    <span className="text-[7.5px] font-mono text-[#00ff66] bg-[#00ff66]/10 px-1.5 py-0.5 rounded border border-[#00ff66]/30">
+                                                                        🔗 Hérité (Slide 1)
+                                                                    </span>
+                                                                ) : (
+                                                                    <span className="text-[7.5px] font-mono text-gray-400 bg-white/5 px-1.5 py-0.5 rounded">
+                                                                        Standard
+                                                                    </span>
+                                                                )}
+                                                            </div>
+
+                                                            <div className="flex gap-1.5">
+                                                                <label className="flex-1 py-1.5 px-2 bg-purple-500/20 hover:bg-purple-500/30 border border-purple-500/40 text-purple-200 rounded-lg text-[8px] font-black uppercase flex items-center justify-center gap-1 cursor-pointer transition">
+                                                                    <Upload className="w-3 h-3" />
+                                                                    <span>Changer fond Slide {editorialSlide}</span>
+                                                                    <input
+                                                                        type="file"
+                                                                        accept="image/*,video/*"
+                                                                        onChange={(e) => {
+                                                                            const f = e.target.files?.[0];
+                                                                            if (!f) return;
+                                                                            const u = URL.createObjectURL(f);
+                                                                            const isV = f.type.startsWith('video/') || /\.(mp4|mov|webm)$/i.test(f.name);
+                                                                            if (isV) {
+                                                                                setEditorialSlideVideos(prev => ({ ...prev, [editorialSlide]: u }));
+                                                                                setEditorialSlideImages(prev => { const n = { ...prev }; delete n[editorialSlide]; return n; });
+                                                                            } else {
+                                                                                setEditorialSlideImages(prev => ({ ...prev, [editorialSlide]: u }));
+                                                                                setEditorialSlideVideos(prev => { const n = { ...prev }; delete n[editorialSlide]; return n; });
+                                                                            }
+                                                                            e.target.value = '';
+                                                                            setTimeout(() => generateImage(), 50);
+                                                                        }}
+                                                                        className="hidden"
+                                                                    />
+                                                                </label>
+
+                                                                {(editorialSlideImages[editorialSlide] || editorialSlideVideos[editorialSlide]) && (
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() => {
+                                                                            setEditorialSlideImages(prev => { const n = { ...prev }; delete n[editorialSlide]; return n; });
+                                                                            setEditorialSlideVideos(prev => { const n = { ...prev }; delete n[editorialSlide]; return n; });
+                                                                            setTimeout(() => generateImage(), 50);
+                                                                        }}
+                                                                        className="py-1.5 px-2 bg-red-500/20 hover:bg-red-500/30 border border-red-500/40 text-red-300 rounded-lg text-[8px] font-black uppercase flex items-center justify-center gap-1 transition"
+                                                                        title="Rétablir la vidéo de fond de la Slide 1"
+                                                                    >
+                                                                        <RotateCcw className="w-3 h-3" />
+                                                                        <span>Rétablir Slide 1</span>
+                                                                    </button>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                    )}
+
+                                                    {/* Idée 3 : Voile sombre adaptatif sur Slide 2+ */}
+                                                    <div className="space-y-1.5 pt-1 border-t border-white/10">
+                                                        <div className="flex items-center justify-between text-[8px] font-black uppercase text-gray-400">
+                                                            <span className="flex items-center gap-1 text-white">
+                                                                <Eye className="w-3 h-3 text-neon-cyan" />
+                                                                Voile sombre Slide 2+ (Lisibilité texte)
+                                                            </span>
+                                                            <span className="text-neon-cyan font-mono font-bold bg-neon-cyan/10 px-1.5 py-0.5 rounded border border-neon-cyan/30">
+                                                                {bgVideoDarkOverlayOnSlide2}%
+                                                            </span>
+                                                        </div>
+                                                        <input
+                                                            type="range"
+                                                            min={0}
+                                                            max={90}
+                                                            step={5}
+                                                            value={bgVideoDarkOverlayOnSlide2}
+                                                            onChange={(e) => {
+                                                                const v = parseInt(e.target.value);
+                                                                setBgVideoDarkOverlayOnSlide2(v);
+                                                                setTimeout(() => generateImage(), 50);
+                                                            }}
+                                                            className="w-full h-1.5 bg-white/10 rounded-lg appearance-none cursor-pointer accent-neon-cyan"
+                                                        />
+                                                        <div className="flex items-center justify-between gap-1">
+                                                            {[0, 30, 45, 65, 80].map((val) => (
+                                                                <button
+                                                                    key={val}
+                                                                    type="button"
+                                                                    onClick={() => {
+                                                                        setBgVideoDarkOverlayOnSlide2(val);
+                                                                        setTimeout(() => generateImage(), 50);
+                                                                    }}
+                                                                    className={`flex-1 py-1 rounded text-[7.5px] font-black uppercase border transition ${
+                                                                        bgVideoDarkOverlayOnSlide2 === val
+                                                                            ? 'bg-neon-cyan/20 border-neon-cyan text-neon-cyan'
+                                                                            : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'
+                                                                    }`}
+                                                                >
+                                                                    {val === 0 ? 'Clair' : `${val}%`}
+                                                                </button>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Idée 2 : Note explicative timecode seamless */}
+                                                    <p className="text-[7.5px] text-gray-400 italic leading-snug">
+                                                        {bgVideoContinueAcrossSlides
+                                                            ? "⚡ Timecode Seamless : lors de l'export carrousel, la vidéo déroule en continu de la Slide 1 à la dernière slide sans jamais recommencer au début."
+                                                            : "📄 Mode indépendant : la vidéo ne joue que sur la Slide 1 ou les slides ayant un fond vidéo dédié."
+                                                        }
                                                     </p>
                                                 </div>
                                             </div>
