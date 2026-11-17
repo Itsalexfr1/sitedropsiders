@@ -161,5 +161,19 @@
     ],
     "created": "2026-11-16T14:54:40.538Z",
     "verified": true
+  },
+  {
+    "email": "tagneresc@gmail.com",
+    "dropsiders_email": "caroline@crew.dropsiders.fr",
+    "mail_enabled": true,
+    "username": "CarolineT",
+    "pseudo": "CarolineT",
+    "role": "RÉDACTEUR",
+    "permissions": [
+      "social_studio",
+      "messages_contact"
+    ],
+    "created": "2026-11-17T20:22:33.702Z",
+    "verified": true
   }
 ]
