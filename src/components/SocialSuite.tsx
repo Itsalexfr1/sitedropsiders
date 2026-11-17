@@ -943,30 +943,67 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     )}
                 </div>
 
-                {/* Case à cocher : Conserver le son de la vidéo de fond en boucle */}
+                {/* Options Audio Vidéo de Fond */}
                 {bgVideo && (
-                    <div 
-                        onClick={() => {
-                            setUseOriginalVideoAudio(!useOriginalVideoAudio);
-                            if (!useOriginalVideoAudio) {
-                                setIsVideoAudioMuted(false);
-                                if (bgVideo) bgVideo.muted = false;
-                            }
-                        }}
-                        className={`p-2.5 rounded-xl border flex items-center justify-between cursor-pointer transition-all ${useOriginalVideoAudio
-                            ? 'bg-[#00ff66]/15 border-[#00ff66]/50 text-white shadow-[0_0_12px_rgba(0,255,102,0.25)]'
-                            : 'bg-white/5 border-white/10 text-gray-400 hover:text-white hover:border-white/20'
-                        }`}
-                    >
-                        <div className="flex items-center gap-2">
-                            <span className="text-base">{useOriginalVideoAudio ? '🔊' : '🔇'}</span>
-                            <div>
-                                <span className="block text-[10px] font-black uppercase text-white">Garder le son de la vidéo de fond</span>
-                                <span className="block text-[8px] text-gray-400">Joue le son de la vidéo en boucle sur toute la story</span>
-                            </div>
+                    <div className="p-2.5 rounded-xl bg-black/40 border border-purple-500/30 space-y-2">
+                        <div className="flex items-center justify-between">
+                            <span className="text-[9px] font-black uppercase text-purple-300 flex items-center gap-1.5">
+                                <Film className="w-3.5 h-3.5 text-purple-400" />
+                                Son Vidéo de Fond
+                            </span>
+                            <span className="text-[7.5px] font-mono uppercase px-1.5 py-0.5 rounded bg-purple-500/20 text-purple-300 font-bold">
+                                {videoAudioExportMode === 'ALL_SLIDES' ? '🔊 Toutes slides' : videoAudioExportMode === 'CURRENT_SLIDE_ONLY' ? '🎯 Slide 1 seule' : '🎵 MP3/Beatport'}
+                            </span>
                         </div>
-                        <div className={`w-5 h-5 rounded-md flex items-center justify-center border transition-all ${useOriginalVideoAudio ? 'bg-[#00ff66] border-[#00ff66] text-black font-black text-xs' : 'border-white/20'}`}>
-                            {useOriginalVideoAudio && '✓'}
+                        <div className="grid grid-cols-3 gap-1.5">
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setVideoAudioExportMode('ALL_SLIDES');
+                                    setIsVideoAudioMuted(false);
+                                    if (bgVideo) bgVideo.muted = false;
+                                }}
+                                className={`py-1.5 px-1 rounded-lg border text-center transition flex flex-col items-center gap-0.5 select-none ${videoAudioExportMode === 'ALL_SLIDES'
+                                    ? 'bg-[#00ff66]/20 border-[#00ff66] text-white shadow-[0_0_10px_rgba(0,255,102,0.25)]'
+                                    : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'
+                                }`}
+                                title="Joue le son de la vidéo en boucle continue sur toutes les slides"
+                            >
+                                <span className="text-xs">🔊</span>
+                                <span className="text-[7.5px] font-black uppercase leading-tight">Toutes</span>
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setVideoAudioExportMode('CURRENT_SLIDE_ONLY');
+                                    setIsVideoAudioMuted(false);
+                                    if (bgVideo) bgVideo.muted = false;
+                                }}
+                                className={`py-1.5 px-1 rounded-lg border text-center transition flex flex-col items-center gap-0.5 select-none ${videoAudioExportMode === 'CURRENT_SLIDE_ONLY'
+                                    ? 'bg-[#00f0ff]/20 border-[#00f0ff] text-white shadow-[0_0_10px_rgba(0,240,255,0.25)]'
+                                    : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'
+                                }`}
+                                title="Joue le son uniquement sur la slide avec la vidéo (Slide 1)"
+                            >
+                                <span className="text-xs">🎯</span>
+                                <span className="text-[7.5px] font-black uppercase leading-tight">Slide 1</span>
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setVideoAudioExportMode('CUSTOM_AUDIO');
+                                    setIsVideoAudioMuted(true);
+                                    if (bgVideo) bgVideo.muted = true;
+                                }}
+                                className={`py-1.5 px-1 rounded-lg border text-center transition flex flex-col items-center gap-0.5 select-none ${videoAudioExportMode === 'CUSTOM_AUDIO'
+                                    ? 'bg-purple-600/30 border-purple-400 text-white shadow-[0_0_10px_rgba(168,85,247,0.3)]'
+                                    : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'
+                                }`}
+                                title="Ignorer le son de la vidéo et mettre un MP3 ou Beatport"
+                            >
+                                <span className="text-xs">🎵</span>
+                                <span className="text-[7.5px] font-black uppercase leading-tight">MP3 / Beatport</span>
+                            </button>
                         </div>
                     </div>
                 )}
@@ -1299,9 +1336,18 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const [isExportStudioOpen, setIsExportStudioOpen] = useState<boolean>(false);
     const [exportStudioFormat, setExportStudioFormat] = useState<'PNG' | 'MP4'>('MP4');
     const [exportStudioDimension, setExportStudioDimension] = useState<'POST' | 'REEL'>('POST');
-    const [useOriginalVideoAudio, setUseOriginalVideoAudio] = useState<boolean>(false);
-    const useOriginalVideoAudioRef = useRef<boolean>(false);
-    useEffect(() => { useOriginalVideoAudioRef.current = useOriginalVideoAudio; }, [useOriginalVideoAudio]);
+    type VideoAudioExportMode = 'ALL_SLIDES' | 'CURRENT_SLIDE_ONLY' | 'CUSTOM_AUDIO';
+    const [videoAudioExportMode, setVideoAudioExportMode] = useState<VideoAudioExportMode>('ALL_SLIDES');
+    const videoAudioExportModeRef = useRef<VideoAudioExportMode>('ALL_SLIDES');
+    const [bgVideoHasAudio, setBgVideoHasAudio] = useState<boolean>(true);
+    const [useOriginalVideoAudio, setUseOriginalVideoAudio] = useState<boolean>(true);
+    const useOriginalVideoAudioRef = useRef<boolean>(true);
+    useEffect(() => {
+        videoAudioExportModeRef.current = videoAudioExportMode;
+        const shouldUseOrig = videoAudioExportMode !== 'CUSTOM_AUDIO';
+        useOriginalVideoAudioRef.current = shouldUseOrig;
+        setUseOriginalVideoAudio(shouldUseOrig);
+    }, [videoAudioExportMode]);
     const [exportStudioType, setExportStudioType] = useState<'SLIDE' | 'ZIP' | 'COMBINED'>('SLIDE');
     const [selectedExportSlides, setSelectedExportSlides] = useState<Record<string, boolean>>({});
     const [modalAudioTargetSlide, setModalAudioTargetSlide] = useState<number | 'global'>('global');
@@ -1755,8 +1801,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const recordingStartTimeRef = useRef<number>(0);
     const agendaSlideOverrideRef = useRef<number | null>(null);
     const editorialSlideOverrideRef = useRef<number | null>(null);
+    const eventsSlideOverrideRef = useRef<number | null>(null);
     const [isEditorialAfficheActive, setIsEditorialAfficheActive] = useState<boolean>(false);
-    const editorialAfficheOverrideRef = useRef<boolean>(false);
+    const editorialAfficheOverrideRef = useRef<boolean | null>(null);
     const transitionProgressRef = useRef<number | null>(null);
     const promoOutroOverrideRef = useRef<boolean | null>(null);
     const transitionTargetRef = useRef<'SLIDE_1_TO_2' | 'SLIDE_2_TO_PROMO' | null>(null);
@@ -1857,13 +1904,13 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const [editorialBlankSlides, setEditorialBlankSlides] = useState<Array<{ id: string; image?: string; videoUrl?: string; title?: string }>>([]);
     const [editorialBlankIndex, setEditorialBlankIndex] = useState<number>(0);
     const [isEditorialBlankActive, setIsEditorialBlankActive] = useState<boolean>(false);
-    const editorialBlankOverrideRef = useRef<boolean>(false);
+    const editorialBlankOverrideRef = useRef<boolean | null>(null);
     const editorialBlankIndexOverrideRef = useRef<number | null>(null);
     const blankSlideFileInputRef = useRef<HTMLInputElement | null>(null);
 
     // TWEET / POST X Theme States (Capture d'écran flottante cadrée avec précision)
     const [isEditorialTweetActive, setIsEditorialTweetActive] = useState<boolean>(false);
-    const editorialTweetOverrideRef = useRef<boolean>(false);
+    const editorialTweetOverrideRef = useRef<boolean | null>(null);
     const [tweetImage, setTweetImage] = useState<string>('');
     const tweetImageRef = useRef<HTMLImageElement | null>(null);
     const tweetFileInputRef = useRef<HTMLInputElement | null>(null);
@@ -5680,9 +5727,24 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             : Boolean(isCarouselPromoActive && isMultiSlideTheme);
         const effectiveTheme = isPromoRequested ? 'PROMO' : (forceTheme || theme);
         const isEditorialCarouselTheme = ['NEWS', 'FOCUS', 'MUSIQUE', 'RECAP', 'INTERVIEW', 'LIVESTREAM', 'CONSEILS', 'REELS', 'CONCOURS', 'TOP 100 DROPSIDERS', 'JEU', 'JEU_FESTIVAL', 'JEU_DJ', 'HIGHLIGHTS', 'EVENTS'].includes(effectiveTheme);
-        const isEditorialAfficheRequested = Boolean(isEditorialCarouselTheme && !isPromoRequested && (editorialAfficheOverrideRef.current || isEditorialAfficheActive));
-        const isEditorialTweetRequested = Boolean(isEditorialCarouselTheme && !isPromoRequested && !isEditorialAfficheRequested && (editorialTweetOverrideRef.current || isEditorialTweetActive));
-        const isEditorialBlankRequested = Boolean(isEditorialCarouselTheme && !isPromoRequested && !isEditorialAfficheRequested && !isEditorialTweetRequested && (editorialBlankOverrideRef.current || isEditorialBlankActive));
+        const isEditorialAfficheRequested = Boolean(
+            isEditorialCarouselTheme &&
+            !isPromoRequested &&
+            (editorialAfficheOverrideRef.current !== null ? editorialAfficheOverrideRef.current : isEditorialAfficheActive)
+        );
+        const isEditorialTweetRequested = Boolean(
+            isEditorialCarouselTheme &&
+            !isPromoRequested &&
+            !isEditorialAfficheRequested &&
+            (editorialTweetOverrideRef.current !== null ? editorialTweetOverrideRef.current : isEditorialTweetActive)
+        );
+        const isEditorialBlankRequested = Boolean(
+            isEditorialCarouselTheme &&
+            !isPromoRequested &&
+            !isEditorialAfficheRequested &&
+            !isEditorialTweetRequested &&
+            (editorialBlankOverrideRef.current !== null ? editorialBlankOverrideRef.current : isEditorialBlankActive)
+        );
 
         try {
             await (async (theme: ThemeType) => {
@@ -5717,6 +5779,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                 const effectiveAgendaSlide = agendaSlideOverrideRef.current !== null ? agendaSlideOverrideRef.current : agendaSlide;
                 const effectiveEditorialSlide = editorialSlideOverrideRef.current !== null ? editorialSlideOverrideRef.current : editorialSlide;
+                const effectiveEventsSlide = eventsSlideOverrideRef.current !== null ? eventsSlideOverrideRef.current : eventsSlide;
                 const effectiveTransitionProgress = transitionProgressRef.current !== null ? transitionProgressRef.current : transitionProgress;
 
                 // Pour MUSIQUE slide >= 2 : récupérer la cover active du morceau pour l'arrière-plan
@@ -5742,7 +5805,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 // Dans le slide AFFICHE ou MUSIQUE slide >= 2, le visuel dédié (affiche ou cover) prend la priorité absolue sur le fond uploadé pour la slide 1 (bgImage) !
                 const isCurrentSlideAffiche = Boolean(
                     theme === 'AFFICHE' ||
-                    (theme === 'EVENTS' && ((eventsSlide === 2 && eventNormalSlidesCount === 0) || isEditorialAfficheActive)) ||
+                    (theme === 'EVENTS' && ((effectiveEventsSlide === 2 && eventNormalSlidesCount === 0) || (editorialAfficheOverrideRef.current !== null ? editorialAfficheOverrideRef.current : isEditorialAfficheActive))) ||
                     isEditorialAfficheRequested ||
                     (theme === 'PLANNING' && effectiveAgendaSlide >= 3)
                 );
@@ -5759,17 +5822,19 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 const currentBlankItem = editorialBlankSlides[effectiveBlankIdx];
 
                 const isSpotlightArtistSlide = (theme === 'SPOTLIGHT' || theme === 'ARTISTE FESTIVAL') && artisteFestivalSlide >= 2;
-                const activeSlideImgSrc = isCurrentSlideAffiche
-                    ? (currentSlideAfficheUrl || bgImage)
-                    : isEditorialBlankRequested
-                        ? (currentBlankItem?.image || '')
-                        : isSpotlightArtistSlide
-                            ? (spotlightSlidesData[artisteFestivalSlide]?.bgImage || editorialSlideImages[artisteFestivalSlide] || '')
-                            : (theme === 'JEU_DJ' && effectiveEditorialSlide === 2 && (!editorialSlideImages[2] || editorialSlideImages[2] === djOriginalImage))
-                                ? (editorialSlideImages[1] || bgImage)
-                                : isMusiqueTrackSlide
-                                    ? (editorialSlideImages[effectiveEditorialSlide] || (musiqueCoverUrl ? musiqueCoverUrl : bgImage))
-                                    : (editorialSlideImages[effectiveEditorialSlide] || bgImage);
+                const activeSlideImgSrc = isPromoRequested
+                    ? (editorialSlideImages[1] || bgImage)
+                    : isCurrentSlideAffiche
+                        ? (currentSlideAfficheUrl || bgImage)
+                        : isEditorialBlankRequested
+                            ? (currentBlankItem?.image || '')
+                            : isSpotlightArtistSlide
+                                ? (spotlightSlidesData[artisteFestivalSlide]?.bgImage || editorialSlideImages[artisteFestivalSlide] || '')
+                                : (theme === 'JEU_DJ' && effectiveEditorialSlide === 2 && (!editorialSlideImages[2] || editorialSlideImages[2] === djOriginalImage))
+                                    ? (editorialSlideImages[1] || bgImage)
+                                    : isMusiqueTrackSlide
+                                        ? (editorialSlideImages[effectiveEditorialSlide] || (musiqueCoverUrl ? musiqueCoverUrl : bgImage))
+                                        : (editorialSlideImages[effectiveEditorialSlide] || bgImage);
                 if (activeSlideImgSrc) {
                     const resolvedSlideImgSrc = resolveImageUrl(activeSlideImgSrc);
                     if (imageCacheRef.current[resolvedSlideImgSrc]) {
@@ -6061,7 +6126,6 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 const isTopTheme = (parentTheme === 'TOP 10 TRACKS' || parentTheme.startsWith('TOP 10') || parentTheme.startsWith('TOP 5') || theme === 'TOP 10 TRACKS' || promoCategory === 'TOP 10 TRACKS');
                 const shouldUseBgVideo = bgVideo &&
                     theme !== 'JEU_DJ' &&
-                    (!isPromoRequested || isTopTheme) &&
                     !isEditorialBlankRequested &&
                     (!isMusiqueTrackSlide || (!musiqueCoverImg && !musiqueCoverUrl && !editorialSlideImages[effectiveEditorialSlide])) &&
                     (!isCurrentSlideAffiche || !hasAfficheVisual);
@@ -6088,7 +6152,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     } else if (imgLayoutMode === 'BAS_LIGNE') {
                         y = ((canvas.height * 0.85 - vh) / 2) + bgOffsetY + bgAnimY;
                     }
-                    if (theme === 'AFFICHE' || (theme === 'EVENTS' && ((eventsSlide === 2 && eventNormalSlidesCount === 0) || isEditorialAfficheActive)) || (theme === 'MUSIQUE' && effectiveEditorialSlide >= 2) || isEditorialAfficheRequested || isEditorialTweetRequested) {
+                    if (theme === 'AFFICHE' || (theme === 'EVENTS' && ((effectiveEventsSlide === 2 && eventNormalSlidesCount === 0) || (editorialAfficheOverrideRef.current !== null ? editorialAfficheOverrideRef.current : isEditorialAfficheActive))) || (theme === 'MUSIQUE' && effectiveEditorialSlide >= 2) || isEditorialAfficheRequested || isEditorialTweetRequested) {
                         const blurBleed = 28;
                         drawBlurredVideoCrossBrowser(ctx, bgVideo, x - blurBleed, y - blurBleed, vw + blurBleed * 2, vh + blurBleed * 2, 14);
                     } else if (isFocusReelHook && focusHookAlpha > 0.01) {
@@ -6446,7 +6510,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         } else if (imgLayoutMode === 'BAS_LIGNE') {
                             y = ((canvas.height * 0.85 - ih) / 2) + bgOffsetY + bgAnimY;
                         }
-                        if (theme === 'AFFICHE' || (theme === 'EVENTS' && ((eventsSlide === 2 && eventNormalSlidesCount === 0) || isEditorialAfficheActive)) || (theme === 'MUSIQUE' && effectiveEditorialSlide >= 2) || isEditorialAfficheRequested || isEditorialTweetRequested) {
+                        if (theme === 'AFFICHE' || (theme === 'EVENTS' && ((effectiveEventsSlide === 2 && eventNormalSlidesCount === 0) || (editorialAfficheOverrideRef.current !== null ? editorialAfficheOverrideRef.current : isEditorialAfficheActive))) || (theme === 'MUSIQUE' && effectiveEditorialSlide >= 2) || isEditorialAfficheRequested || isEditorialTweetRequested) {
                             ctx.save();
                             const blurBleed = 80;
                             const targetW = Math.round(iw + blurBleed * 2);
@@ -7123,7 +7187,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 const isModernEditorialTheme = (
                     (!isEditorialAfficheRequested && !isEditorialBlankRequested && ['NEWS', 'FOCUS', 'RECAP', 'INTERVIEW', 'LIVESTREAM', 'TRACKLIST', 'CONCOURS', 'CONSEILS', 'REELS', 'JEU', 'JEU_FESTIVAL', 'JEU_DJ'].includes(theme)) ||
                     (theme === 'MUSIQUE' && effectiveEditorialSlide === 1) ||
-                    (theme === 'EVENTS' && (eventsSlide !== 2 || eventNormalSlidesCount > 0) && !isEditorialAfficheActive)
+                    (theme === 'EVENTS' && (effectiveEventsSlide !== 2 || eventNormalSlidesCount > 0) && !(editorialAfficheOverrideRef.current !== null ? editorialAfficheOverrideRef.current : isEditorialAfficheActive))
                 );
 
                 // Modern editorial themes (NEWS, FOCUS, MUSIQUE, RECAP, EVENTS, INTERVIEW, LIVESTREAM, ARTISTE FESTIVAL Slide 1, TOP 100, DEVINE CLIP / FESTIVAL / DJ)
@@ -7159,7 +7223,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         ctx.fillRect(0, canvas.height * 0.82, canvas.width, canvas.height * 0.18);
                     }
                 } else {
-                    if (theme !== 'MAP' && theme !== 'HIGHLIGHTS' && theme !== 'CONSEILS' && theme !== 'REELS' && theme !== 'CONCOURS' && theme !== 'TRACKLIST' && theme !== 'SPOTLIGHT' && theme !== 'ARTISTE FESTIVAL' && theme !== 'CITATION' && theme !== 'PROMO' && theme !== 'JEU' && theme !== 'JEU_FESTIVAL' && theme !== 'JEU_DJ' && theme !== 'TOP 100 DROPSIDERS' && theme !== 'AFFICHE' && !(theme === 'EVENTS' && ((eventsSlide === 2 && eventNormalSlidesCount === 0) || isEditorialAfficheActive)) && !(theme === 'MUSIQUE' && effectiveEditorialSlide >= 2) && !isEditorialAfficheRequested && theme !== 'PLANNING') {
+                    if (theme !== 'MAP' && theme !== 'HIGHLIGHTS' && theme !== 'CONSEILS' && theme !== 'REELS' && theme !== 'CONCOURS' && theme !== 'TRACKLIST' && theme !== 'SPOTLIGHT' && theme !== 'ARTISTE FESTIVAL' && theme !== 'CITATION' && theme !== 'PROMO' && theme !== 'JEU' && theme !== 'JEU_FESTIVAL' && theme !== 'JEU_DJ' && theme !== 'TOP 100 DROPSIDERS' && theme !== 'AFFICHE' && !(theme === 'EVENTS' && ((effectiveEventsSlide === 2 && eventNormalSlidesCount === 0) || (editorialAfficheOverrideRef.current !== null ? editorialAfficheOverrideRef.current : isEditorialAfficheActive))) && !(theme === 'MUSIQUE' && effectiveEditorialSlide >= 2) && !isEditorialAfficheRequested && theme !== 'PLANNING') {
                         const gradStart = (theme === 'TOP 5 ARTISTE' || theme === 'TOP 5 STYLES')
                             ? canvas.height * 0.8
                             : canvas.height * 0.4;
@@ -9712,7 +9776,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
 
 
-                } else if (theme === 'AFFICHE' || (theme === 'EVENTS' && ((eventsSlide === 2 && eventNormalSlidesCount === 0) || isEditorialAfficheActive)) || isEditorialAfficheRequested) {
+                } else if (theme === 'AFFICHE' || (theme === 'EVENTS' && ((effectiveEventsSlide === 2 && eventNormalSlidesCount === 0) || (editorialAfficheOverrideRef.current !== null ? editorialAfficheOverrideRef.current : isEditorialAfficheActive))) || isEditorialAfficheRequested) {
                     const isStory = canvas.height > 1500;
 
                     // 1. Dark Vignette overlay (Atmosphère sombre et immersive Dropsiders)
@@ -14282,6 +14346,15 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         const isVideo = file.type.startsWith('video/') || /\.(mp4|mov|webm|m4v|3gp|mkv|avi)$/i.test(file.name);
         if (isVideo) {
             bgVideoBlobRef.current = file;
+            extractAudioBufferFromBlob(file, 1000).then(buf => {
+                const hasSound = Boolean(buf && buf.numberOfChannels > 0 && buf.length > 0);
+                setBgVideoHasAudio(hasSound);
+                if (!hasSound) {
+                    setVideoAudioExportMode('CUSTOM_AUDIO');
+                }
+            }).catch(() => {
+                setBgVideoHasAudio(true);
+            });
             unlockMobileAudioSession();
             const video = document.createElement('video');
             video.crossOrigin = "anonymous";
@@ -14398,10 +14471,14 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             } catch (_) { }
         }
         promoOutroOverrideRef.current = null;
-        editorialAfficheOverrideRef.current = false;
-        editorialTweetOverrideRef.current = false;
+        editorialAfficheOverrideRef.current = null;
+        editorialTweetOverrideRef.current = null;
+        editorialBlankOverrideRef.current = null;
+        editorialAfficheIndexOverrideRef.current = null;
+        editorialBlankIndexOverrideRef.current = null;
         agendaSlideOverrideRef.current = null;
         editorialSlideOverrideRef.current = null;
+        eventsSlideOverrideRef.current = null;
         transitionProgressRef.current = null;
         transitionTargetRef.current = null;
         setTransitionProgress(0);
@@ -15162,18 +15239,34 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         const prevWasEditorialTweetActive = isEditorialTweetActive;
         if (combinedMode === 'PLANNING' || (combinedMode === 'TIKTOK' && theme === 'PLANNING')) {
             agendaSlideOverrideRef.current = 1;
+            editorialSlideOverrideRef.current = null;
+            eventsSlideOverrideRef.current = null;
+            editorialAfficheOverrideRef.current = false;
+            editorialBlankOverrideRef.current = false;
+            editorialTweetOverrideRef.current = false;
+            promoOutroOverrideRef.current = false;
             setIsCarouselPromoActive(false);
             setIsEditorialAfficheActive(false);
             setIsEditorialTweetActive(false);
-            promoOutroOverrideRef.current = false;
         } else if (combinedMode === 'EDITORIAL' || combinedMode === 'TIKTOK') {
             editorialSlideOverrideRef.current = 1;
+            agendaSlideOverrideRef.current = null;
+            eventsSlideOverrideRef.current = null;
+            editorialAfficheOverrideRef.current = false;
+            editorialBlankOverrideRef.current = false;
+            editorialTweetOverrideRef.current = false;
+            promoOutroOverrideRef.current = false;
             setIsCarouselPromoActive(false);
             setIsEditorialAfficheActive(false);
             setIsEditorialTweetActive(false);
-            promoOutroOverrideRef.current = false;
         } else if (combinedMode === 'PROMO_ONLY') {
             promoOutroOverrideRef.current = true;
+            editorialSlideOverrideRef.current = null;
+            agendaSlideOverrideRef.current = null;
+            eventsSlideOverrideRef.current = null;
+            editorialAfficheOverrideRef.current = false;
+            editorialBlankOverrideRef.current = false;
+            editorialTweetOverrideRef.current = false;
             setIsCarouselPromoActive(true);
             setIsEditorialAfficheActive(false);
             setIsEditorialTweetActive(false);
@@ -15183,6 +15276,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             setIsCarouselPromoActive(false);
             setIsEditorialAfficheActive(false);
             setIsEditorialTweetActive(false);
+            editorialAfficheOverrideRef.current = false;
+            editorialBlankOverrideRef.current = false;
+            editorialTweetOverrideRef.current = false;
             promoOutroOverrideRef.current = false;
         }
         transitionProgressRef.current = 0;
@@ -15279,8 +15375,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
                     );
 
-                    // En TOP 10 TRACKS et MUSIQUE, la vidéo de fond est STRICTEMENT visuelle (b-roll muet) : le son vient uniquement des morceaux.
-                    if (theme !== 'TOP 10 TRACKS' && theme !== 'MUSIQUE') {
+                    // En TOP 10 TRACKS et MUSIQUE, ou si l'utilisateur a choisi CUSTOM_AUDIO, la vidéo de fond est STRICTEMENT visuelle (b-roll muet).
+                    if (theme !== 'TOP 10 TRACKS' && theme !== 'MUSIQUE' && videoAudioExportModeRef.current !== 'CUSTOM_AUDIO') {
                         // ── iOS : décodage PCM du fichier vidéo + AudioBufferSource → MediaStreamDestination ──
                         // Évite createMediaElementSource / captureStream (non fiables sur WebKit iOS).
                         if (isIOSWebKit && bgVideoBlob && canvasStream) {
@@ -15394,7 +15490,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 );
                 // Pendant l'export, la vidéo doit impérativement avoir le son actif pour que la piste audio soit capturée
                 // (sauf iOS avec piste PCM injectée : le son vient du buffer décodé, la vidéo reste visuelle)
-                bgVideo.muted = Boolean(iosBufferAudioSrc) || theme === 'MUSIQUE' || theme === 'TOP 10 TRACKS';
+                bgVideo.muted = Boolean(iosBufferAudioSrc) || theme === 'MUSIQUE' || theme === 'TOP 10 TRACKS' || videoAudioExportModeRef.current === 'CUSTOM_AUDIO';
                 bgVideo.volume = 1;
                 try {
                     await bgVideo.play();
@@ -15537,13 +15633,157 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 }
 
                 if (theme !== 'MUSIQUE' && theme !== 'TOP 10 TRACKS') {
-                    // Si l'utilisateur a choisi de garder le son de la vidéo originale, on ne génère pas de timeline MP3
-                    if (useOriginalVideoAudioRef.current && bgVideo) {
-                        return null;
-                    }
+                    const videoAudioMode = videoAudioExportModeRef.current;
                     const currentSlideAudios = slideAudiosRef.current || slideAudios;
                     const availableSlides = getAvailableSlideNumbers();
                     const isReelExport = effectiveTab === 'REEL' || combinedMode === 'TIKTOK' || combinedMode === 'STORY_FAST';
+
+                    // ── OPTION A : ALL_SLIDES (Son de la vidéo sur TOUTES les slides) ──
+                    if (bgVideo && videoAudioMode === 'ALL_SLIDES') {
+                        return null;
+                    }
+
+                    // ── OPTION B : CURRENT_SLIDE_ONLY (Son uniquement sur la slide avec vidéo) ──
+                    if (bgVideo && videoAudioMode === 'CURRENT_SLIDE_ONLY') {
+                        if (combinedMode === 'NONE') {
+                            // Mode slide unique (export d'1 slide dans l'interface ou dans le ZIP MP4)
+                            const isEffectiveAffiche = editorialAfficheOverrideRef.current !== null ? editorialAfficheOverrideRef.current : isEditorialAfficheActive;
+                            const isEffectiveBlank = !isEffectiveAffiche && (editorialBlankOverrideRef.current !== null ? editorialBlankOverrideRef.current : isEditorialBlankActive);
+                            const isEffectiveTweet = !isEffectiveAffiche && !isEffectiveBlank && (editorialTweetOverrideRef.current !== null ? editorialTweetOverrideRef.current : isEditorialTweetActive);
+                            const isEffectivePromo = promoOutroOverrideRef.current !== null ? promoOutroOverrideRef.current : isCarouselPromoActive;
+                            const currentSlideNum = editorialSlideOverrideRef.current !== null ? editorialSlideOverrideRef.current : editorialSlide;
+                            const isVideoSlide = (currentSlideNum === 1 && !isEffectiveAffiche && !isEffectiveBlank && !isEffectiveTweet && !isEffectivePromo) || theme === 'REELS';
+
+                            if (isVideoSlide) {
+                                // C'est la slide vidéo (Slide 1) : Phase 2b extrait son audio
+                                return null;
+                            } else {
+                                // Slide sans vidéo : on ne met pas le son de la vidéo
+                                const targetAudioKey = isEffectivePromo
+                                    ? 'promo'
+                                    : isEffectiveAffiche
+                                        ? `affiche_${editorialAfficheIndexOverrideRef.current !== null ? editorialAfficheIndexOverrideRef.current : editorialAfficheIndex}`
+                                        : isEffectiveBlank
+                                            ? `blank_${editorialBlankIndexOverrideRef.current !== null ? editorialBlankIndexOverrideRef.current : editorialBlankIndex}`
+                                            : isEffectiveTweet
+                                                ? 'tweet'
+                                                : currentSlideNum;
+                                const sAudio = currentSlideAudios[targetAudioKey]?.url ? currentSlideAudios[targetAudioKey] : null;
+                                if (sAudio?.url) {
+                                    audioSegments.push({
+                                        url: sAudio.url,
+                                        startOffset: 0,
+                                        sourceOffset: sAudio.startTime || 0,
+                                        duration: totalDuration / 1000
+                                    });
+                                } else {
+                                    // Silence complet garanti (bloque Phase 2b)
+                                    const OffCtx = (window as any).OfflineAudioContext || (window as any).webkitOfflineAudioContext;
+                                    if (OffCtx) {
+                                        const offCtx = new OffCtx(2, Math.max(1, Math.ceil((totalDuration / 1000) * sampleRate)), sampleRate);
+                                        return await offCtx.startRendering();
+                                    }
+                                    return null;
+                                }
+                            }
+                        } else {
+                            // Mode carrousel fusionné : son vidéo actif UNIQUEMENT sur la Slide 1
+                            let bgBlobToUse: Blob | null = bgVideoBlobRef.current || bgVideoBlob;
+                            if (!bgBlobToUse && bgVideo) {
+                                const bgUrl = bgVideo.currentSrc || bgVideo.src;
+                                if (bgUrl) {
+                                    try {
+                                        const res = await fetch(bgUrl);
+                                        if (res.ok) bgBlobToUse = await res.blob();
+                                    } catch (_) { }
+                                }
+                            }
+                            if (bgBlobToUse) {
+                                try {
+                                    const slide1DurSec = editorialSlide1Duration;
+                                    const extractedSlide1Buf = await extractAudioBufferFromBlob(bgBlobToUse, slide1DurSec * 1000, bgVideoStartTimeRef.current);
+                                    if (extractedSlide1Buf) {
+                                        const totalSec = totalDuration / 1000;
+                                        const totalSamples = Math.ceil(totalSec * sampleRate);
+                                        const OffCtx = (window as any).OfflineAudioContext || (window as any).webkitOfflineAudioContext;
+                                        const offCtx = new OffCtx(2, totalSamples, sampleRate);
+
+                                        // 1. Piste vidéo sur Slide 1 avec fondu sortant fluide à la fin de Slide 1
+                                        const vSrc = offCtx.createBufferSource();
+                                        vSrc.buffer = extractedSlide1Buf;
+                                        const vGain = offCtx.createGain();
+                                        const tFadeStart = Math.max(0, slide1DurSec - 0.15);
+                                        vGain.gain.setValueAtTime(1, 0);
+                                        vGain.gain.setValueAtTime(1, tFadeStart);
+                                        vGain.gain.linearRampToValueAtTime(0, slide1DurSec);
+                                        vGain.gain.setValueAtTime(0, totalSec);
+                                        vSrc.connect(vGain);
+                                        vGain.connect(offCtx.destination);
+                                        vSrc.start(0, 0);
+                                        try { vSrc.stop(slide1DurSec + 0.05); } catch (_) { }
+
+                                        // 2. Si d'autres slides ont un son dédié, on les injecte à leur offset
+                                        const transitionDurationSec = getTransitionDuration(slideTransition) / 1000;
+                                        let cursor = slide1DurSec;
+                                        const shouldSkipSlide2 = skipEditorialSlide2;
+                                        const remainingSlides = (shouldSkipSlide2
+                                            ? extraEditorialSlides.map((_, i) => i + 3)
+                                            : [2, ...extraEditorialSlides.map((_, i) => i + 3)]);
+
+                                        for (const s of remainingSlides) {
+                                            cursor += transitionDurationSec;
+                                            const sAudio = currentSlideAudios[s];
+                                            if (sAudio?.url) {
+                                                const buf = await getDecodedAudioBuffer(sAudio.url);
+                                                if (buf) {
+                                                    const srcNode = offCtx.createBufferSource();
+                                                    srcNode.buffer = buf;
+                                                    const segGain = offCtx.createGain();
+                                                    const segDur = editorialSlide1Duration;
+                                                    const t0 = cursor;
+                                                    const tEnd = t0 + segDur;
+                                                    segGain.gain.setValueAtTime(0, t0);
+                                                    segGain.gain.linearRampToValueAtTime(1, t0 + 0.05);
+                                                    segGain.gain.setValueAtTime(1, Math.max(t0 + 0.06, tEnd - 0.1));
+                                                    segGain.gain.linearRampToValueAtTime(0, tEnd);
+                                                    srcNode.connect(segGain);
+                                                    segGain.connect(offCtx.destination);
+                                                    srcNode.start(t0, sAudio.startTime || 0);
+                                                    try { srcNode.stop(tEnd + 0.05); } catch (_) { }
+                                                }
+                                            }
+                                            cursor += editorialSlide1Duration;
+                                        }
+
+                                        // Outro Promo si audio dédié
+                                        if (currentSlideAudios['promo']?.url) {
+                                            const pAudio = currentSlideAudios['promo'];
+                                            const pBuf = await getDecodedAudioBuffer(pAudio.url);
+                                            if (pBuf) {
+                                                const pSrc = offCtx.createBufferSource();
+                                                pSrc.buffer = pBuf;
+                                                const pGain = offCtx.createGain();
+                                                const pStart = cursor + transitionDurationSec;
+                                                const pDur = Math.max(5, totalSec - pStart);
+                                                pGain.gain.setValueAtTime(0, pStart);
+                                                pGain.gain.linearRampToValueAtTime(1, pStart + 0.05);
+                                                pGain.gain.setValueAtTime(1, Math.max(pStart + 0.06, pStart + pDur - 0.1));
+                                                pGain.gain.linearRampToValueAtTime(0, pStart + pDur);
+                                                pSrc.connect(pGain);
+                                                pGain.connect(offCtx.destination);
+                                                pSrc.start(pStart, pAudio.startTime || 0);
+                                                try { pSrc.stop(pStart + pDur + 0.05); } catch (_) { }
+                                            }
+                                        }
+
+                                        return await offCtx.startRendering();
+                                    }
+                                } catch (curErr) {
+                                    console.warn('[Audio] Échec rendu CURRENT_SLIDE_ONLY :', curErr);
+                                }
+                            }
+                        }
+                    }
 
                     // Priorité au son de la Slide 1 (ou son global carrousel) : hérité par défaut sur TOUTES les slides
                     const slide1OrGlobalAudio = currentSlideAudios[1]?.url
@@ -15658,17 +15898,20 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         }
                     } else if (combinedMode === 'NONE') {
                         // Export d'une slide unique (MP4 30s)
-                        const targetAudioKey = (editorialAfficheOverrideRef.current && editorialAfficheIndexOverrideRef.current !== null)
-                            ? `affiche_${editorialAfficheIndexOverrideRef.current}`
-                            : (isEditorialAfficheActive && !editorialAfficheOverrideRef.current)
-                                ? `affiche_${editorialAfficheIndex}`
-                                : (editorialBlankOverrideRef.current && editorialBlankIndexOverrideRef.current !== null)
-                                    ? `blank_${editorialBlankIndexOverrideRef.current}`
-                                    : (isEditorialBlankActive)
-                                        ? `blank_${editorialBlankIndex}`
-                                        : (editorialTweetOverrideRef.current || isEditorialTweetActive)
-                                            ? 'tweet'
-                                            : (editorialSlideOverrideRef.current !== null ? editorialSlideOverrideRef.current : editorialSlide);
+                        const isEffectiveAffiche = editorialAfficheOverrideRef.current !== null ? editorialAfficheOverrideRef.current : isEditorialAfficheActive;
+                        const isEffectiveBlank = !isEffectiveAffiche && (editorialBlankOverrideRef.current !== null ? editorialBlankOverrideRef.current : isEditorialBlankActive);
+                        const isEffectiveTweet = !isEffectiveAffiche && !isEffectiveBlank && (editorialTweetOverrideRef.current !== null ? editorialTweetOverrideRef.current : isEditorialTweetActive);
+                        const isEffectivePromo = promoOutroOverrideRef.current !== null ? promoOutroOverrideRef.current : isCarouselPromoActive;
+
+                        const targetAudioKey = isEffectivePromo
+                            ? 'promo'
+                            : isEffectiveAffiche
+                                ? `affiche_${editorialAfficheIndexOverrideRef.current !== null ? editorialAfficheIndexOverrideRef.current : editorialAfficheIndex}`
+                                : isEffectiveBlank
+                                    ? `blank_${editorialBlankIndexOverrideRef.current !== null ? editorialBlankIndexOverrideRef.current : editorialBlankIndex}`
+                                    : isEffectiveTweet
+                                        ? 'tweet'
+                                        : (editorialSlideOverrideRef.current !== null ? editorialSlideOverrideRef.current : editorialSlide);
                         const sAudio = currentSlideAudios[targetAudioKey]?.url
                             ? currentSlideAudios[targetAudioKey]
                             : slide1OrGlobalAudio;
@@ -15965,8 +16208,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             finalAudioBuffer = iosPreRenderedTimeline || await renderTimelineAudioBuffer();
             if (finalAudioBuffer) offlineWavBlob = audioBufferToWavBlob(finalAudioBuffer);
 
-            // ── PHASE 2b : EXTRACTION AUDIO DEPUIS bgVideo (si pas de thème MUSIQUE ni TOP 10 TRACKS) ────
-            if (!offlineWavBlob && bgVideoBlob && theme !== 'TOP 10 TRACKS' && !(theme === 'MUSIQUE' && (isCarouselPromoActive || combinedMode === 'PROMO_ONLY'))) {
+            // ── PHASE 2b : EXTRACTION AUDIO DEPUIS bgVideo (si pas de thème MUSIQUE ni TOP 10 TRACKS, et non CUSTOM_AUDIO) ────
+            if (!offlineWavBlob && bgVideoBlob && videoAudioExportModeRef.current !== 'CUSTOM_AUDIO' && theme !== 'TOP 10 TRACKS' && !(theme === 'MUSIQUE' && (isCarouselPromoActive || combinedMode === 'PROMO_ONLY'))) {
                 console.log('[Audio] Extraction haute-fidélité de la piste audio de bgVideo via Web Audio API...');
                 try {
                     const extractedBuf = await extractAudioBufferFromBlob(bgVideoBlob, totalDuration, bgVideoStartTimeRef.current);
@@ -16252,7 +16495,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 '-map', '0:v:0', '-map', '1:a:0',
                                 '-c:a', 'aac', '-b:a', '256k', '-ar', '48000', '-avoid_negative_ts', 'make_zero', 'output.mp4'];
                         }
-                    } else if (bgVideoBlob) {
+                    } else if (bgVideoBlob && videoAudioExportModeRef.current !== 'CUSTOM_AUDIO') {
                         // Fallback FFmpeg audio extraction si decodeAudioData natif a échoué
                         const bgExt = bgVideoBlob.type.includes('webm') ? 'webm' : (bgVideoBlob.type.includes('quicktime') ? 'mov' : 'mp4');
                         const bgFilename = `bg_source.${bgExt}`;
@@ -16467,10 +16710,13 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 editorialSlideOverrideRef.current = firstSlide;
                 setEditorialSlide(firstSlide);
                 editorialAfficheOverrideRef.current = false;
-                promoOutroOverrideRef.current = null;
+                editorialBlankOverrideRef.current = false;
+                editorialTweetOverrideRef.current = false;
+                promoOutroOverrideRef.current = false;
                 setIsEditorialAfficheActive(false);
                 setIsCarouselPromoActive(false);
                 setIsEditorialTweetActive(false);
+                setIsEditorialBlankActive(false);
             }
 
             // 1. Déroulement des slides de contenu (selon contentSlideNumbers)
@@ -16850,7 +17096,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
     const exportStoryFastVideo = async () => {
         const activeAudio = getActiveAudioData();
+        const hasVideoSound = (videoAudioExportMode !== 'CUSTOM_AUDIO') && Boolean(bgVideo);
         const hasAnyAudio = Boolean(
+            hasVideoSound ||
             activeAudio.url ||
             carouselAudioUrl ||
             Object.values(slideAudios || {}).some(a => Boolean(a?.url)) ||
@@ -16906,7 +17154,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         // 1. Validation Audio si format MP4
         if (exportStudioFormat === 'MP4') {
             const activeAudio = getActiveAudioData();
-            const hasVideoSound = useOriginalVideoAudio && Boolean(bgVideo);
+            const hasVideoSound = (videoAudioExportMode !== 'CUSTOM_AUDIO') && Boolean(bgVideo);
             const hasAnyAudio = Boolean(
                 hasVideoSound ||
                 activeAudio.url ||
@@ -17245,8 +17493,13 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     setIsCarouselPromoActive(true);
                     editorialSlideOverrideRef.current = null;
                     agendaSlideOverrideRef.current = null;
+                    eventsSlideOverrideRef.current = null;
+                    editorialAfficheOverrideRef.current = false;
+                    editorialTweetOverrideRef.current = false;
+                    editorialBlankOverrideRef.current = false;
                     setIsEditorialAfficheActive(false);
                     setIsEditorialTweetActive(false);
+                    setIsEditorialBlankActive(false);
                     await new Promise(r => setTimeout(r, 120));
                     blob = await startVideoRecording('PROMO_ONLY', { returnBlob: true, formatTab: formatToUse });
                 } else if (item.type === 'AFFICHE') {
@@ -17254,13 +17507,17 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     setIsCarouselPromoActive(false);
                     editorialAfficheOverrideRef.current = true;
                     editorialAfficheIndexOverrideRef.current = item.afficheIndex ?? 0;
+                    editorialBlankOverrideRef.current = false;
+                    editorialTweetOverrideRef.current = false;
+                    editorialSlideOverrideRef.current = null;
+                    eventsSlideOverrideRef.current = 2;
                     setIsEditorialAfficheActive(true);
                     setIsEditorialTweetActive(false);
+                    setIsEditorialBlankActive(false);
                     if (item.afficheIndex !== undefined && editorialAffiches[item.afficheIndex]?.image) {
                         setAfficheImage(editorialAffiches[item.afficheIndex].image);
                     }
                     if (item.slideNum) {
-                        editorialSlideOverrideRef.current = item.slideNum;
                         setEditorialSlide(item.slideNum);
                         setEventsSlide(item.slideNum);
                     }
@@ -17273,6 +17530,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     setIsCarouselPromoActive(false);
                     editorialBlankOverrideRef.current = true;
                     editorialBlankIndexOverrideRef.current = item.blankIndex ?? 0;
+                    editorialAfficheOverrideRef.current = false;
+                    editorialTweetOverrideRef.current = false;
+                    editorialSlideOverrideRef.current = null;
+                    eventsSlideOverrideRef.current = null;
                     setIsEditorialBlankActive(true);
                     setIsEditorialAfficheActive(false);
                     setIsEditorialTweetActive(false);
@@ -17283,9 +17544,14 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 } else if (item.type === 'TOP10') {
                     promoOutroOverrideRef.current = false;
                     setIsCarouselPromoActive(false);
+                    editorialAfficheOverrideRef.current = false;
+                    editorialTweetOverrideRef.current = false;
+                    editorialBlankOverrideRef.current = false;
+                    eventsSlideOverrideRef.current = null;
                     setIsEditorialAfficheActive(false);
                     setIsEditorialTweetActive(false);
                     setIsEditorialBlankActive(false);
+                    editorialSlideOverrideRef.current = item.slideNum;
                     const targetRank = item.top10Rank ?? 0;
                     setTop10ActiveRank(targetRank);
                     top10ActiveRankRef.current = targetRank;
@@ -17300,8 +17566,13 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     promoOutroOverrideRef.current = false;
                     setIsCarouselPromoActive(false);
                     editorialAfficheOverrideRef.current = false;
+                    editorialTweetOverrideRef.current = false;
+                    editorialBlankOverrideRef.current = false;
+                    editorialSlideOverrideRef.current = null;
+                    eventsSlideOverrideRef.current = null;
                     setIsEditorialAfficheActive(false);
                     setIsEditorialTweetActive(false);
+                    setIsEditorialBlankActive(false);
                     agendaSlideOverrideRef.current = item.slideNum;
                     setAgendaSlide(item.slideNum);
                     await new Promise(r => setTimeout(r, 120));
@@ -17310,8 +17581,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     promoOutroOverrideRef.current = false;
                     setIsCarouselPromoActive(false);
                     editorialAfficheOverrideRef.current = false;
+                    editorialTweetOverrideRef.current = false;
+                    editorialBlankOverrideRef.current = false;
                     setIsEditorialAfficheActive(false);
                     setIsEditorialTweetActive(false);
+                    setIsEditorialBlankActive(false);
+                    eventsSlideOverrideRef.current = item.slideNum;
                     editorialSlideOverrideRef.current = item.slideNum;
                     setEventsSlide(item.slideNum);
                     setEditorialSlide(item.slideNum);
@@ -17321,8 +17596,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     promoOutroOverrideRef.current = false;
                     setIsCarouselPromoActive(false);
                     editorialAfficheOverrideRef.current = false;
+                    editorialTweetOverrideRef.current = false;
+                    editorialBlankOverrideRef.current = false;
+                    eventsSlideOverrideRef.current = null;
                     setIsEditorialAfficheActive(false);
                     setIsEditorialTweetActive(false);
+                    setIsEditorialBlankActive(false);
                     editorialSlideOverrideRef.current = item.slideNum;
                     setEditorialSlide(item.slideNum);
                     await new Promise(r => setTimeout(r, 120));
@@ -17365,8 +17644,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         } finally {
             editorialSlideOverrideRef.current = null;
             agendaSlideOverrideRef.current = null;
-            editorialAfficheOverrideRef.current = false;
-            editorialBlankOverrideRef.current = false;
+            eventsSlideOverrideRef.current = null;
+            editorialAfficheOverrideRef.current = null;
+            editorialBlankOverrideRef.current = null;
+            editorialTweetOverrideRef.current = null;
+            editorialAfficheIndexOverrideRef.current = null;
             editorialBlankIndexOverrideRef.current = null;
             promoOutroOverrideRef.current = null;
             setIsExportingZip(false);
@@ -17487,14 +17769,19 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 let blob: Blob | null = null;
                 if (item.type === 'PROMO') {
                     promoOutroOverrideRef.current = true;
+                    editorialAfficheOverrideRef.current = false;
+                    editorialBlankOverrideRef.current = false;
+                    editorialTweetOverrideRef.current = false;
                     setIsCarouselPromoActive(true);
                     editorialSlideOverrideRef.current = null;
                     await new Promise(r => setTimeout(r, 120));
                     blob = await startVideoRecording('PROMO_ONLY', { returnBlob: true, formatTab: formatToUse });
                 } else {
-                    promoOutroOverrideRef.current = null;
+                    promoOutroOverrideRef.current = false;
                     setIsCarouselPromoActive(false);
                     editorialAfficheOverrideRef.current = false;
+                    editorialBlankOverrideRef.current = false;
+                    editorialTweetOverrideRef.current = false;
                     setIsEditorialAfficheActive(false);
                     setIsEditorialTweetActive(false);
                     editorialSlideOverrideRef.current = item.slideNum;
@@ -17539,6 +17826,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             setErrorMessage("Erreur lors de l'exportation du pack ZIP : " + (err?.message || String(err)));
         } finally {
             editorialSlideOverrideRef.current = null;
+            editorialAfficheOverrideRef.current = null;
+            editorialBlankOverrideRef.current = null;
+            editorialTweetOverrideRef.current = null;
             promoOutroOverrideRef.current = null;
             setIsExportingZip(false);
             setZipExportProgress(null);
@@ -18091,7 +18381,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         const prevAffiche = isEditorialAfficheActive;
         try {
             if (slideNumber === 2) {
+                eventsSlideOverrideRef.current = 2;
                 editorialAfficheOverrideRef.current = true;
+                editorialSlideOverrideRef.current = null;
+                editorialBlankOverrideRef.current = false;
+                editorialTweetOverrideRef.current = false;
+                promoOutroOverrideRef.current = false;
                 setIsEditorialAfficheActive(true);
                 if (afficheImage) {
                     const resolved = resolveImageUrl(afficheImage);
@@ -18113,7 +18408,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     }
                 }
             } else {
+                eventsSlideOverrideRef.current = 1;
+                editorialSlideOverrideRef.current = 1;
                 editorialAfficheOverrideRef.current = false;
+                editorialBlankOverrideRef.current = false;
+                editorialTweetOverrideRef.current = false;
+                promoOutroOverrideRef.current = false;
                 setIsEditorialAfficheActive(false);
             }
             setEventsSlide(slideNumber);
@@ -18131,7 +18431,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             console.error(e);
             setErrorMessage(`Erreur lors du téléchargement de la slide ${slideNumber}.`);
         } finally {
-            editorialAfficheOverrideRef.current = false;
+            eventsSlideOverrideRef.current = null;
+            editorialSlideOverrideRef.current = null;
+            editorialAfficheOverrideRef.current = null;
+            editorialBlankOverrideRef.current = null;
+            editorialTweetOverrideRef.current = null;
+            promoOutroOverrideRef.current = null;
             setIsEditorialAfficheActive(prevAffiche);
             setTimeout(() => {
                 setEventsSlide(prevSlide);
@@ -18153,7 +18458,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             // 1. Slide 1 (Post)
             if (!exportZip || selectedExportSlides['slide_1'] !== false) {
                 editorialSlideOverrideRef.current = 1;
+                eventsSlideOverrideRef.current = 1;
                 editorialAfficheOverrideRef.current = false;
+                editorialBlankOverrideRef.current = false;
+                editorialTweetOverrideRef.current = false;
                 promoOutroOverrideRef.current = false;
                 setIsEditorialAfficheActive(false);
                 setIsCarouselPromoActive(false);
@@ -18181,7 +18489,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 if (exportZip && selectedExportSlides[`slide_${sNum}`] === false) continue;
                 await new Promise(r => setTimeout(r, 350));
                 editorialSlideOverrideRef.current = sNum;
+                eventsSlideOverrideRef.current = sNum;
                 editorialAfficheOverrideRef.current = false;
+                editorialBlankOverrideRef.current = false;
+                editorialTweetOverrideRef.current = false;
                 promoOutroOverrideRef.current = false;
                 setIsEditorialAfficheActive(false);
                 setIsCarouselPromoActive(false);
@@ -18208,9 +18519,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             if (!exportZip || (selectedExportSlides['slide_affiche'] !== false && selectedExportSlides[`slide_${afficheNum}`] !== false)) {
                 await new Promise(r => setTimeout(r, 350));
                 editorialSlideOverrideRef.current = null;
+                eventsSlideOverrideRef.current = 2;
                 promoOutroOverrideRef.current = false;
                 setIsCarouselPromoActive(false);
                 editorialAfficheOverrideRef.current = true;
+                editorialBlankOverrideRef.current = false;
+                editorialTweetOverrideRef.current = false;
                 setIsEditorialAfficheActive(true);
                 setEventsSlide(2);
                 await new Promise(r => setTimeout(r, 80));
@@ -18235,7 +18549,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             if (exportZip && selectedExportSlides['promo_outro'] !== false && zip) {
                 await new Promise(r => setTimeout(r, 350));
                 editorialSlideOverrideRef.current = null;
+                eventsSlideOverrideRef.current = null;
                 editorialAfficheOverrideRef.current = false;
+                editorialBlankOverrideRef.current = false;
+                editorialTweetOverrideRef.current = false;
                 setIsEditorialAfficheActive(false);
                 promoOutroOverrideRef.current = true;
                 setIsCarouselPromoActive(true);
@@ -18265,7 +18582,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             setErrorMessage("Erreur lors de l'exportation du carrousel.");
         } finally {
             editorialSlideOverrideRef.current = null;
-            editorialAfficheOverrideRef.current = false;
+            eventsSlideOverrideRef.current = null;
+            editorialAfficheOverrideRef.current = null;
+            editorialBlankOverrideRef.current = null;
+            editorialTweetOverrideRef.current = null;
             promoOutroOverrideRef.current = null;
             setTimeout(() => {
                 setEditorialSlide(prevSlide);
@@ -18283,6 +18603,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         setIsDownloading(true);
         const prevSlide = editorialSlide;
         try {
+            editorialSlideOverrideRef.current = slideNumber;
+            eventsSlideOverrideRef.current = null;
+            editorialAfficheOverrideRef.current = false;
+            editorialBlankOverrideRef.current = false;
+            editorialTweetOverrideRef.current = false;
+            promoOutroOverrideRef.current = false;
             setEditorialSlide(slideNumber);
             await new Promise(r => setTimeout(r, 60));
             await generateImage(format, true);
@@ -18302,6 +18628,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             console.error(e);
             setErrorMessage(`Erreur lors du téléchargement de la slide ${slideNumber}.`);
         } finally {
+            editorialSlideOverrideRef.current = null;
+            eventsSlideOverrideRef.current = null;
+            editorialAfficheOverrideRef.current = null;
+            editorialBlankOverrideRef.current = null;
+            editorialTweetOverrideRef.current = null;
             promoOutroOverrideRef.current = null;
             setTimeout(() => {
                 setEditorialSlide(prevSlide);
@@ -18316,7 +18647,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         setIsDownloading(true);
         const prevAffiche = isEditorialAfficheActive;
         try {
+            editorialSlideOverrideRef.current = null;
+            eventsSlideOverrideRef.current = 2;
             editorialAfficheOverrideRef.current = true;
+            editorialBlankOverrideRef.current = false;
+            editorialTweetOverrideRef.current = false;
+            promoOutroOverrideRef.current = false;
             setIsEditorialAfficheActive(true);
             if (afficheImage) {
                 const resolved = resolveImageUrl(afficheImage);
@@ -18351,7 +18687,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             console.error(e);
             setErrorMessage("Erreur lors du téléchargement de la slide Affiche.");
         } finally {
-            editorialAfficheOverrideRef.current = false;
+            editorialSlideOverrideRef.current = null;
+            eventsSlideOverrideRef.current = null;
+            editorialAfficheOverrideRef.current = null;
+            editorialBlankOverrideRef.current = null;
+            editorialTweetOverrideRef.current = null;
+            promoOutroOverrideRef.current = null;
             setIsEditorialAfficheActive(prevAffiche);
             setTimeout(() => {
                 setIsDownloading(false);
@@ -18391,6 +18732,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 editorialSlideOverrideRef.current = s;
                 editorialAfficheOverrideRef.current = false;
                 editorialBlankOverrideRef.current = false;
+                editorialTweetOverrideRef.current = false;
                 promoOutroOverrideRef.current = false;
                 setIsEditorialAfficheActive(false);
                 setIsEditorialBlankActive(false);
@@ -18437,6 +18779,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     setIsCarouselPromoActive(false);
                     editorialSlideOverrideRef.current = null;
                     editorialBlankOverrideRef.current = false;
+                    editorialTweetOverrideRef.current = false;
                     setIsEditorialBlankActive(false);
                     setIsEditorialTweetActive(false);
                     editorialAfficheIndexOverrideRef.current = affIdx;
@@ -18536,6 +18879,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     setIsCarouselPromoActive(false);
                     editorialSlideOverrideRef.current = null;
                     editorialAfficheOverrideRef.current = false;
+                    editorialAfficheIndexOverrideRef.current = null;
+                    editorialTweetOverrideRef.current = false;
                     setIsEditorialAfficheActive(false);
                     setIsEditorialTweetActive(false);
                     editorialBlankIndexOverrideRef.current = bIdx;
@@ -18567,7 +18912,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 await new Promise(r => setTimeout(r, 350));
                 editorialSlideOverrideRef.current = null;
                 editorialAfficheOverrideRef.current = false;
+                editorialAfficheIndexOverrideRef.current = null;
                 editorialBlankOverrideRef.current = false;
+                editorialBlankIndexOverrideRef.current = null;
+                editorialTweetOverrideRef.current = false;
                 setIsEditorialAfficheActive(false);
                 setIsEditorialBlankActive(false);
                 setIsEditorialTweetActive(false);
@@ -18599,8 +18947,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             setErrorMessage("Erreur lors de l'exportation du carrousel.");
         } finally {
             editorialSlideOverrideRef.current = null;
-            editorialAfficheOverrideRef.current = false;
-            editorialBlankOverrideRef.current = false;
+            eventsSlideOverrideRef.current = null;
+            editorialAfficheOverrideRef.current = null;
+            editorialBlankOverrideRef.current = null;
+            editorialTweetOverrideRef.current = null;
             editorialAfficheIndexOverrideRef.current = null;
             editorialBlankIndexOverrideRef.current = null;
             promoOutroOverrideRef.current = null;
@@ -27772,14 +28122,132 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             </div>
                         ) : (
                         <div className={`p-3.5 bg-black/60 border rounded-2xl space-y-3 transition-all ${audioShake ? 'border-neon-red shadow-[0_0_25px_rgba(255,18,65,0.6)] animate-bounce' : 'border-white/15'}`}>
+                            {/* OPTION DU SON POUR LES VIDÉOS EN FOND */}
+                            {bgVideo && (
+                                <div className="p-3 bg-gradient-to-r from-purple-950/40 via-black to-[#00f0ff]/10 border border-purple-500/30 rounded-2xl space-y-2.5">
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-[10px] font-black uppercase text-white flex items-center gap-1.5">
+                                            <Film className="w-4 h-4 text-purple-400" />
+                                            Vidéo de Fond : Option Son dans l'Export
+                                        </span>
+                                        <span className={`text-[8px] font-mono uppercase px-2 py-0.5 rounded font-bold border ${
+                                            videoAudioExportMode === 'ALL_SLIDES'
+                                                ? 'bg-[#00ff66]/15 border-[#00ff66]/40 text-[#00ff66]'
+                                                : videoAudioExportMode === 'CURRENT_SLIDE_ONLY'
+                                                    ? 'bg-[#00f0ff]/15 border-[#00f0ff]/40 text-[#00f0ff]'
+                                                    : 'bg-purple-500/20 border-purple-500/40 text-purple-300'
+                                        }`}>
+                                            {videoAudioExportMode === 'ALL_SLIDES' ? '🔊 Son sur tout le carrousel' : videoAudioExportMode === 'CURRENT_SLIDE_ONLY' ? '🎯 Son Slide 1 uniquement' : '🎵 MP3 / Beatport'}
+                                        </span>
+                                    </div>
+
+                                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                                        {/* 1. Son de la vidéo sur toutes les slides */}
+                                        <div
+                                            onClick={() => {
+                                                setVideoAudioExportMode('ALL_SLIDES');
+                                                setIsVideoAudioMuted(false);
+                                                if (bgVideo) bgVideo.muted = false;
+                                            }}
+                                            className={`p-2.5 rounded-xl border flex flex-col justify-between cursor-pointer transition select-none ${
+                                                videoAudioExportMode === 'ALL_SLIDES'
+                                                    ? 'bg-[#00ff66]/15 border-[#00ff66] text-white shadow-[0_0_12px_rgba(0,255,102,0.25)]'
+                                                    : 'bg-white/5 border-white/10 text-gray-400 hover:text-white hover:border-white/20'
+                                            }`}
+                                        >
+                                            <div className="flex items-center justify-between mb-1">
+                                                <span className="text-base">🔊</span>
+                                                <div className={`w-4 h-4 rounded-md border flex items-center justify-center ${
+                                                    videoAudioExportMode === 'ALL_SLIDES' ? 'bg-[#00ff66] border-[#00ff66] text-black font-black text-xs' : 'border-white/20'
+                                                }`}>
+                                                    {videoAudioExportMode === 'ALL_SLIDES' && '✓'}
+                                                </div>
+                                            </div>
+                                            <span className="text-[9.5px] font-black uppercase leading-tight text-white">Toutes les slides</span>
+                                            <span className="text-[7.5px] text-gray-400 mt-1 leading-snug">Joue le son de la vidéo en boucle continue sur toute la vidéo</span>
+                                        </div>
+
+                                        {/* 2. Son uniquement sur la slide correspondante */}
+                                        <div
+                                            onClick={() => {
+                                                setVideoAudioExportMode('CURRENT_SLIDE_ONLY');
+                                                setIsVideoAudioMuted(false);
+                                                if (bgVideo) bgVideo.muted = false;
+                                            }}
+                                            className={`p-2.5 rounded-xl border flex flex-col justify-between cursor-pointer transition select-none ${
+                                                videoAudioExportMode === 'CURRENT_SLIDE_ONLY'
+                                                    ? 'bg-[#00f0ff]/15 border-[#00f0ff] text-white shadow-[0_0_12px_rgba(0,240,255,0.25)]'
+                                                    : 'bg-white/5 border-white/10 text-gray-400 hover:text-white hover:border-white/20'
+                                            }`}
+                                        >
+                                            <div className="flex items-center justify-between mb-1">
+                                                <span className="text-base">🎯</span>
+                                                <div className={`w-4 h-4 rounded-md border flex items-center justify-center ${
+                                                    videoAudioExportMode === 'CURRENT_SLIDE_ONLY' ? 'bg-[#00f0ff] border-[#00f0ff] text-black font-black text-xs' : 'border-white/20'
+                                                }`}>
+                                                    {videoAudioExportMode === 'CURRENT_SLIDE_ONLY' && '✓'}
+                                                </div>
+                                            </div>
+                                            <span className="text-[9.5px] font-black uppercase leading-tight text-white">Slide correspondante</span>
+                                            <span className="text-[7.5px] text-gray-400 mt-1 leading-snug">Le son joue sur sa slide (Slide 1) et se coupe sur les autres</span>
+                                        </div>
+
+                                        {/* 3. Mettre un MP3 via Beatport ou import */}
+                                        <div
+                                            onClick={() => {
+                                                setVideoAudioExportMode('CUSTOM_AUDIO');
+                                                setIsVideoAudioMuted(true);
+                                                if (bgVideo) bgVideo.muted = true;
+                                            }}
+                                            className={`p-2.5 rounded-xl border flex flex-col justify-between cursor-pointer transition select-none ${
+                                                videoAudioExportMode === 'CUSTOM_AUDIO'
+                                                    ? 'bg-purple-600/25 border-purple-400 text-white shadow-[0_0_12px_rgba(168,85,247,0.3)]'
+                                                    : 'bg-white/5 border-white/10 text-gray-400 hover:text-white hover:border-white/20'
+                                            }`}
+                                        >
+                                            <div className="flex items-center justify-between mb-1">
+                                                <span className="text-base">🎵</span>
+                                                <div className={`w-4 h-4 rounded-md border flex items-center justify-center ${
+                                                    videoAudioExportMode === 'CUSTOM_AUDIO' ? 'bg-purple-500 border-purple-500 text-white font-black text-xs' : 'border-white/20'
+                                                }`}>
+                                                    {videoAudioExportMode === 'CUSTOM_AUDIO' && '✓'}
+                                                </div>
+                                            </div>
+                                            <span className="text-[9.5px] font-black uppercase leading-tight text-white">Musique MP3 / Beatport</span>
+                                            <span className="text-[7.5px] text-gray-400 mt-1 leading-snug">Remplacer le son vidéo par un MP3 ou une recherche Beatport</span>
+                                        </div>
+                                    </div>
+
+                                    {/* Message d'état informatif */}
+                                    {videoAudioExportMode === 'ALL_SLIDES' && (
+                                        <div className="p-2 rounded-lg bg-[#00ff66]/10 border border-[#00ff66]/30 text-[8px] text-[#00ff66] flex items-center gap-1.5 font-medium">
+                                            <span>🔊</span>
+                                            <span>Le son original de la vidéo sera exporté en boucle sur toute la durée du carrousel/export.</span>
+                                        </div>
+                                    )}
+                                    {videoAudioExportMode === 'CURRENT_SLIDE_ONLY' && (
+                                        <div className="p-2 rounded-lg bg-[#00f0ff]/10 border border-[#00f0ff]/30 text-[8px] text-[#00f0ff] flex items-center gap-1.5 font-medium">
+                                            <span>🎯</span>
+                                            <span>Le son de la vidéo sera actif uniquement sur la Slide 1. Les autres slides seront silencieuses (ou avec leur audio dédié si configuré).</span>
+                                        </div>
+                                    )}
+                                    {videoAudioExportMode === 'CUSTOM_AUDIO' && (
+                                        <div className="p-2 rounded-lg bg-purple-500/10 border border-purple-500/30 text-[8px] text-purple-300 flex items-center gap-1.5 font-medium">
+                                            <span>🎵</span>
+                                            <span>Le son de la vidéo de fond est désactivé. Utilisez les boutons ci-dessous pour importer un MP3 ou rechercher sur Beatport.</span>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+
                             <div className="flex items-center justify-between">
                                 <span className="text-[10px] font-black uppercase text-gray-300 flex items-center gap-1.5">
                                     <Music className="w-4 h-4 text-[#00f0ff]" />
                                     Piste Audio : <span className="text-[#00f0ff]">{audioTargetSlide === 'global' ? 'Tout le Carrousel' : audioTargetSlide === 'promo' ? 'Slide Promo Outro' : audioTargetSlide === 'tweet' ? 'Slide Tweet' : typeof audioTargetSlide === 'string' && audioTargetSlide.startsWith('affiche_') ? `Slide Affiche ${editorialAffiches.length > 1 ? (parseInt(audioTargetSlide.replace('affiche_', '')) || 0) + 1 : ''}`.trim() : typeof audioTargetSlide === 'string' && audioTargetSlide.startsWith('blank_') ? `Slide Vide ${editorialBlankSlides.length > 1 ? (parseInt(audioTargetSlide.replace('blank_', '')) || 0) + 1 : ''}`.trim() : audioTargetSlide === 1 ? 'Slide 1 (Cover)' : `Slide ${audioTargetSlide}`}</span>
                                 </span>
-                                {getActiveAudioData().url ? (
+                                {getActiveAudioData().url || ((videoAudioExportMode !== 'CUSTOM_AUDIO') && bgVideo) ? (
                                     <span className="px-2 py-0.5 rounded text-[8px] font-black uppercase bg-[#00ff66]/15 text-[#00ff66] border border-[#00ff66]/30">
-                                        ✓ Son détecté
+                                        ✓ Son actif ({videoAudioExportMode !== 'CUSTOM_AUDIO' && bgVideo ? 'Vidéo' : 'MP3/Beatport'})
                                     </span>
                                 ) : (
                                     <span className="px-2 py-0.5 rounded text-[8px] font-black uppercase bg-yellow-500/15 text-yellow-400 border border-yellow-500/30">
@@ -29378,6 +29846,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         .then(blob => {
                                             if (blob) {
                                                 bgVideoBlobRef.current = blob;
+                                                extractAudioBufferFromBlob(blob, 1000).then(buf => {
+                                                    const hasSound = Boolean(buf && buf.numberOfChannels > 0 && buf.length > 0);
+                                                    setBgVideoHasAudio(hasSound);
+                                                    if (!hasSound) setVideoAudioExportMode('CUSTOM_AUDIO');
+                                                }).catch(() => { });
                                                 const blobUrl = URL.createObjectURL(blob);
                                                 video.src = blobUrl;
                                             }
