@@ -521,8 +521,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const [editorialSlideImages, setEditorialSlideImages] = useState<Record<number, string>>({});
     const [editorialSlideVideos, setEditorialSlideVideos] = useState<Record<number, string>>({});
     const slideVideosRef = useRef<Record<number, HTMLVideoElement>>({});
-    const [bgVideoContinueAcrossSlides, setBgVideoContinueAcrossSlides] = useState<boolean>(true);
-    const bgVideoContinueAcrossSlidesRef = useRef<boolean>(true);
+    const [bgVideoContinueAcrossSlides, setBgVideoContinueAcrossSlides] = useState<boolean>(false);
+    const bgVideoContinueAcrossSlidesRef = useRef<boolean>(false);
     useEffect(() => { bgVideoContinueAcrossSlidesRef.current = bgVideoContinueAcrossSlides; }, [bgVideoContinueAcrossSlides]);
     const [bgVideoDarkOverlayOnSlide2, setBgVideoDarkOverlayOnSlide2] = useState<number>(45);
     const [bgVideoBlurOnSlide2, setBgVideoBlurOnSlide2] = useState<number>(0);
@@ -5830,7 +5830,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     ? (editorialSlideImages[1] || bgImage)
                                     : isMusiqueTrackSlide
                                         ? (editorialSlideImages[effectiveEditorialSlide] || (musiqueCoverUrl ? musiqueCoverUrl : bgImage))
-                                        : (editorialSlideImages[effectiveEditorialSlide] || bgImage);
+                                        : (editorialSlideImages[effectiveEditorialSlide] || (effectiveEditorialSlide === 1 ? bgImage : (bgVideoContinueAcrossSlides ? bgImage : '')));
                 if (activeSlideImgSrc) {
                     const resolvedSlideImgSrc = resolveImageUrl(activeSlideImgSrc);
                     if (imageCacheRef.current[resolvedSlideImgSrc]) {
@@ -6121,8 +6121,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                 const isTopTheme = (parentTheme === 'TOP 10 TRACKS' || parentTheme.startsWith('TOP 10') || parentTheme.startsWith('TOP 5') || theme === 'TOP 10 TRACKS' || promoCategory === 'TOP 10 TRACKS');
                 
-                // Vidéo spécifique à la slide active ou vidéo globale
-                const isAllowedSlideForVideo = bgVideoContinueAcrossSlides || effectiveEditorialSlide === 1 || isCarouselPromoActive || theme === 'REELS';
+                // Vidéo spécifique à la slide active ou vidéo globale (seulement sur Slide 1 Cover par défaut)
+                const isCoverSlide = effectiveEditorialSlide === 1 && !isEditorialAfficheRequested && !isEditorialBlankRequested && !isEditorialTweetRequested && !isPromoRequested;
+                const isAllowedSlideForVideo = Boolean(isCoverSlide || (bgVideoContinueAcrossSlides && !isEditorialBlankRequested));
                 const slideSpecificVideoUrl = editorialSlideVideos[effectiveEditorialSlide];
                 const slideSpecificVideoEl = slideSpecificVideoUrl ? (slideVideosRef.current[effectiveEditorialSlide] || (() => {
                     const vid = document.createElement('video');
@@ -14499,6 +14500,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 bgVideo.play().catch(() => { });
             } catch (_) { }
         }
+        forceDisableSwipeRef.current = false;
         promoOutroOverrideRef.current = null;
         editorialAfficheOverrideRef.current = null;
         editorialTweetOverrideRef.current = null;
@@ -14516,7 +14518,14 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
     const startVideoRecording = async (
         combinedMode: 'NONE' | 'PLANNING' | 'EDITORIAL' | 'PROMO_ONLY' | 'TIKTOK' | 'STORY_FAST' = 'NONE',
-        options?: { returnBlob?: boolean; formatTab?: TabType; isSingleSlide?: boolean; targetRank?: number }
+        options?: {
+            returnBlob?: boolean;
+            formatTab?: TabType;
+            isSingleSlide?: boolean;
+            targetRank?: number;
+            targetSlide?: number;
+            disableSwipe?: boolean;
+        }
     ): Promise<Blob | null> => {
         const canvas = canvasRef.current;
         if (!canvas) return null;
@@ -14884,7 +14893,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 totalDuration = 90000; // Strictement 1 min 30 pile (90s) : Intro (5.0s) + 10 tracks × 7.8s (78s) + 7s Outro Téléphone 3D = 90s pile
             }
         } else {
-            const isReelWithPromo = (effectiveTab === 'REEL' && combinedMode === 'NONE' && theme !== 'PROMO' && theme !== 'MUSIQUE');
+            const isReelWithPromo = (effectiveTab === 'REEL' && combinedMode === 'NONE' && theme !== 'PROMO' && theme !== 'MUSIQUE' && !options?.isSingleSlide);
             const isDevinette = ['JEU', 'JEU_FESTIVAL', 'JEU_DJ'].includes(theme);
             if (theme === 'MUSIQUE') {
                 totalDuration = 30000;
@@ -15261,14 +15270,19 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         const prevWasCarouselPromoActive = isCarouselPromoActive;
         const prevWasEditorialAfficheActive = isEditorialAfficheActive;
         const prevWasEditorialTweetActive = isEditorialTweetActive;
+
+        if (options?.disableSwipe) {
+            forceDisableSwipeRef.current = true;
+        }
+
         if (combinedMode === 'PLANNING' || (combinedMode === 'TIKTOK' && theme === 'PLANNING')) {
             agendaSlideOverrideRef.current = 1;
             editorialSlideOverrideRef.current = null;
             eventsSlideOverrideRef.current = null;
-            editorialAfficheOverrideRef.current = false;
-            editorialBlankOverrideRef.current = false;
-            editorialTweetOverrideRef.current = false;
-            promoOutroOverrideRef.current = false;
+            editorialAfficheOverrideRef.current = null;
+            editorialBlankOverrideRef.current = null;
+            editorialTweetOverrideRef.current = null;
+            promoOutroOverrideRef.current = null;
             setIsCarouselPromoActive(false);
             setIsEditorialAfficheActive(false);
             setIsEditorialTweetActive(false);
@@ -15276,10 +15290,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             editorialSlideOverrideRef.current = 1;
             agendaSlideOverrideRef.current = null;
             eventsSlideOverrideRef.current = null;
-            editorialAfficheOverrideRef.current = false;
-            editorialBlankOverrideRef.current = false;
-            editorialTweetOverrideRef.current = false;
-            promoOutroOverrideRef.current = false;
+            editorialAfficheOverrideRef.current = null;
+            editorialBlankOverrideRef.current = null;
+            editorialTweetOverrideRef.current = null;
+            promoOutroOverrideRef.current = null;
             setIsCarouselPromoActive(false);
             setIsEditorialAfficheActive(false);
             setIsEditorialTweetActive(false);
@@ -15288,22 +15302,18 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             editorialSlideOverrideRef.current = null;
             agendaSlideOverrideRef.current = null;
             eventsSlideOverrideRef.current = null;
-            editorialAfficheOverrideRef.current = false;
-            editorialBlankOverrideRef.current = false;
-            editorialTweetOverrideRef.current = false;
+            editorialAfficheOverrideRef.current = null;
+            editorialBlankOverrideRef.current = null;
+            editorialTweetOverrideRef.current = null;
             setIsCarouselPromoActive(true);
             setIsEditorialAfficheActive(false);
             setIsEditorialTweetActive(false);
         } else {
-            setArtisteFestivalSlide(activeTab === 'REEL' ? 2 : 1);
-            setEventsSlide(1);
-            setIsCarouselPromoActive(false);
-            setIsEditorialAfficheActive(false);
-            setIsEditorialTweetActive(false);
-            editorialAfficheOverrideRef.current = false;
-            editorialBlankOverrideRef.current = false;
-            editorialTweetOverrideRef.current = false;
-            promoOutroOverrideRef.current = false;
+            // Mode slide unique : NE JAMAIS écraser les overrides fournis par le caller
+            if (options?.targetSlide !== undefined) {
+                editorialSlideOverrideRef.current = options.targetSlide;
+                setEditorialSlide(options.targetSlide);
+            }
         }
         transitionProgressRef.current = 0;
         cancelVideoExportRef.current = false;
@@ -15816,8 +15826,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             ? { url: carouselAudioUrl, startTime: carouselAudioStartTimeRef.current || carouselAudioStartTime || 0 }
                             : Object.values(currentSlideAudios).find(a => Boolean(a?.url)) || null);
 
-                    if (isReelExport) {
-                        // En REEL / TikTok : le son de la Slide 1 joue en continu sur TOUTE la vidéo (toutes les slides + Outro Promo)
+                    if (isReelExport && combinedMode !== 'NONE') {
+                        // En REEL / TikTok fusionné : le son de la Slide 1 joue en continu sur TOUTE la vidéo (toutes les slides + Outro Promo)
                         if (slide1OrGlobalAudio?.url) {
                             audioSegments.push({
                                 url: slide1OrGlobalAudio.url,
@@ -15938,7 +15948,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         : (editorialSlideOverrideRef.current !== null ? editorialSlideOverrideRef.current : editorialSlide);
                         const sAudio = currentSlideAudios[targetAudioKey]?.url
                             ? currentSlideAudios[targetAudioKey]
-                            : slide1OrGlobalAudio;
+                            : (videoAudioExportModeRef.current === 'CUSTOM_AUDIO' ? slide1OrGlobalAudio : (targetAudioKey === 1 ? slide1OrGlobalAudio : null));
                         if (sAudio?.url) {
                             audioSegments.push({
                                 url: sAudio.url,
@@ -17035,7 +17045,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 }
             }
 
-            const isReelWithPromo = (effectiveTab === 'REEL' && combinedMode === 'NONE' && theme !== 'PROMO' && theme !== 'MUSIQUE');
+            const isReelWithPromo = (effectiveTab === 'REEL' && combinedMode === 'NONE' && theme !== 'PROMO' && theme !== 'MUSIQUE' && !options?.isSingleSlide);
             const isDevinette = ['JEU', 'JEU_FESTIVAL', 'JEU_DJ'].includes(theme);
             if (isReelWithPromo) {
                 let contentDur = 4000; // 4 secondes par slide
@@ -17084,9 +17094,15 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         }
 
         // Nettoyage des états promo et overrides UNIQUEMENT après l'arrêt total de l'enregistrement
+        if (options?.disableSwipe) {
+            forceDisableSwipeRef.current = false;
+        }
         promoOutroOverrideRef.current = null;
-        editorialAfficheOverrideRef.current = false;
-        editorialTweetOverrideRef.current = false;
+        editorialAfficheOverrideRef.current = null;
+        editorialTweetOverrideRef.current = null;
+        editorialBlankOverrideRef.current = null;
+        editorialAfficheIndexOverrideRef.current = null;
+        editorialBlankIndexOverrideRef.current = null;
         if (combinedMode === 'PLANNING' || ((combinedMode === 'TIKTOK' || combinedMode === 'STORY_FAST') && theme === 'PLANNING')) {
             agendaSlideOverrideRef.current = null;
             setAgendaSlide(prevAgendaSlide);
@@ -17529,21 +17545,21 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     editorialSlideOverrideRef.current = null;
                     agendaSlideOverrideRef.current = null;
                     eventsSlideOverrideRef.current = null;
-                    editorialAfficheOverrideRef.current = false;
-                    editorialTweetOverrideRef.current = false;
-                    editorialBlankOverrideRef.current = false;
+                    editorialAfficheOverrideRef.current = null;
+                    editorialTweetOverrideRef.current = null;
+                    editorialBlankOverrideRef.current = null;
                     setIsEditorialAfficheActive(false);
                     setIsEditorialTweetActive(false);
                     setIsEditorialBlankActive(false);
                     await new Promise(r => setTimeout(r, 120));
-                    blob = await startVideoRecording('PROMO_ONLY', { returnBlob: true, formatTab: formatToUse });
+                    blob = await startVideoRecording('PROMO_ONLY', { returnBlob: true, formatTab: formatToUse, isSingleSlide: true });
                 } else if (item.type === 'AFFICHE') {
-                    promoOutroOverrideRef.current = false;
+                    promoOutroOverrideRef.current = null;
                     setIsCarouselPromoActive(false);
                     editorialAfficheOverrideRef.current = true;
                     editorialAfficheIndexOverrideRef.current = item.afficheIndex ?? 0;
-                    editorialBlankOverrideRef.current = false;
-                    editorialTweetOverrideRef.current = false;
+                    editorialBlankOverrideRef.current = null;
+                    editorialTweetOverrideRef.current = null;
                     editorialSlideOverrideRef.current = null;
                     eventsSlideOverrideRef.current = 2;
                     setIsEditorialAfficheActive(true);
@@ -17557,31 +17573,31 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         setEventsSlide(item.slideNum);
                     }
                     await new Promise(r => setTimeout(r, 120));
-                    blob = await startVideoRecording('NONE', { returnBlob: true, formatTab: formatToUse });
-                    editorialAfficheOverrideRef.current = false;
+                    blob = await startVideoRecording('NONE', { returnBlob: true, formatTab: formatToUse, isSingleSlide: true });
+                    editorialAfficheOverrideRef.current = null;
                     editorialAfficheIndexOverrideRef.current = null;
                 } else if (item.type === 'BLANK') {
-                    promoOutroOverrideRef.current = false;
+                    promoOutroOverrideRef.current = null;
                     setIsCarouselPromoActive(false);
                     editorialBlankOverrideRef.current = true;
                     editorialBlankIndexOverrideRef.current = item.blankIndex ?? 0;
-                    editorialAfficheOverrideRef.current = false;
-                    editorialTweetOverrideRef.current = false;
+                    editorialAfficheOverrideRef.current = null;
+                    editorialTweetOverrideRef.current = null;
                     editorialSlideOverrideRef.current = null;
                     eventsSlideOverrideRef.current = null;
                     setIsEditorialBlankActive(true);
                     setIsEditorialAfficheActive(false);
                     setIsEditorialTweetActive(false);
                     await new Promise(r => setTimeout(r, 120));
-                    blob = await startVideoRecording('NONE', { returnBlob: true, formatTab: formatToUse });
-                    editorialBlankOverrideRef.current = false;
+                    blob = await startVideoRecording('NONE', { returnBlob: true, formatTab: formatToUse, isSingleSlide: true });
+                    editorialBlankOverrideRef.current = null;
                     editorialBlankIndexOverrideRef.current = null;
                 } else if (item.type === 'TOP10') {
-                    promoOutroOverrideRef.current = false;
+                    promoOutroOverrideRef.current = null;
                     setIsCarouselPromoActive(false);
-                    editorialAfficheOverrideRef.current = false;
-                    editorialTweetOverrideRef.current = false;
-                    editorialBlankOverrideRef.current = false;
+                    editorialAfficheOverrideRef.current = null;
+                    editorialTweetOverrideRef.current = null;
+                    editorialBlankOverrideRef.current = null;
                     eventsSlideOverrideRef.current = null;
                     setIsEditorialAfficheActive(false);
                     setIsEditorialTweetActive(false);
@@ -17598,11 +17614,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         targetRank: targetRank
                     });
                 } else if (item.type === 'AGENDA') {
-                    promoOutroOverrideRef.current = false;
+                    promoOutroOverrideRef.current = null;
                     setIsCarouselPromoActive(false);
-                    editorialAfficheOverrideRef.current = false;
-                    editorialTweetOverrideRef.current = false;
-                    editorialBlankOverrideRef.current = false;
+                    editorialAfficheOverrideRef.current = null;
+                    editorialTweetOverrideRef.current = null;
+                    editorialBlankOverrideRef.current = null;
                     editorialSlideOverrideRef.current = null;
                     eventsSlideOverrideRef.current = null;
                     setIsEditorialAfficheActive(false);
@@ -17611,13 +17627,13 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     agendaSlideOverrideRef.current = item.slideNum;
                     setAgendaSlide(item.slideNum);
                     await new Promise(r => setTimeout(r, 120));
-                    blob = await startVideoRecording('NONE', { returnBlob: true, formatTab: formatToUse });
+                    blob = await startVideoRecording('NONE', { returnBlob: true, formatTab: formatToUse, isSingleSlide: true, targetSlide: item.slideNum });
                 } else if (item.type === 'EVENTS') {
-                    promoOutroOverrideRef.current = false;
+                    promoOutroOverrideRef.current = null;
                     setIsCarouselPromoActive(false);
-                    editorialAfficheOverrideRef.current = false;
-                    editorialTweetOverrideRef.current = false;
-                    editorialBlankOverrideRef.current = false;
+                    editorialAfficheOverrideRef.current = null;
+                    editorialTweetOverrideRef.current = null;
+                    editorialBlankOverrideRef.current = null;
                     setIsEditorialAfficheActive(false);
                     setIsEditorialTweetActive(false);
                     setIsEditorialBlankActive(false);
@@ -17626,13 +17642,13 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     setEventsSlide(item.slideNum);
                     setEditorialSlide(item.slideNum);
                     await new Promise(r => setTimeout(r, 120));
-                    blob = await startVideoRecording('NONE', { returnBlob: true, formatTab: formatToUse });
+                    blob = await startVideoRecording('NONE', { returnBlob: true, formatTab: formatToUse, isSingleSlide: true, targetSlide: item.slideNum });
                 } else {
-                    promoOutroOverrideRef.current = false;
+                    promoOutroOverrideRef.current = null;
                     setIsCarouselPromoActive(false);
-                    editorialAfficheOverrideRef.current = false;
-                    editorialTweetOverrideRef.current = false;
-                    editorialBlankOverrideRef.current = false;
+                    editorialAfficheOverrideRef.current = null;
+                    editorialTweetOverrideRef.current = null;
+                    editorialBlankOverrideRef.current = null;
                     eventsSlideOverrideRef.current = null;
                     setIsEditorialAfficheActive(false);
                     setIsEditorialTweetActive(false);
@@ -17640,7 +17656,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     editorialSlideOverrideRef.current = item.slideNum;
                     setEditorialSlide(item.slideNum);
                     await new Promise(r => setTimeout(r, 120));
-                    blob = await startVideoRecording('NONE', { returnBlob: true, formatTab: formatToUse });
+                    blob = await startVideoRecording('NONE', { returnBlob: true, formatTab: formatToUse, isSingleSlide: true, targetSlide: item.slideNum });
                 }
 
                 bgVideoStartTimeRef.current = prevBgStartTime;
@@ -17659,26 +17675,29 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     title: '🎬 Assemblage de la version TikTok 9:16 (Slides 3.5s + Promo 7s)...',
                     stage: 'encoding'
                 });
+                forceDisableSwipeRef.current = true;
                 try {
                     editorialSlideOverrideRef.current = null;
                     agendaSlideOverrideRef.current = null;
                     eventsSlideOverrideRef.current = null;
-                    editorialAfficheOverrideRef.current = false;
-                    editorialBlankOverrideRef.current = false;
-                    editorialTweetOverrideRef.current = false;
-                    promoOutroOverrideRef.current = false;
+                    editorialAfficheOverrideRef.current = null;
+                    editorialBlankOverrideRef.current = null;
+                    editorialTweetOverrideRef.current = null;
+                    promoOutroOverrideRef.current = null;
                     setIsEditorialAfficheActive(false);
                     setIsEditorialBlankActive(false);
                     setIsEditorialTweetActive(false);
                     setIsCarouselPromoActive(false);
                     await new Promise(r => setTimeout(r, 150));
-                    const tiktokBlob = await startVideoRecording('TIKTOK', { returnBlob: true, formatTab: 'REEL' });
+                    const tiktokBlob = await startVideoRecording('TIKTOK', { returnBlob: true, formatTab: 'REEL', disableSwipe: true });
                     if (tiktokBlob) {
                         zip.file(`00-${cleanTheme}-tiktok-complet-3.5s-9-16.mp4`, tiktokBlob);
                         console.log('[Export ZIP] ✅ Version TikTok 9:16 complète ajoutée à l\'archive ZIP !');
                     }
                 } catch (ttErr) {
                     console.warn('[Export ZIP] Échec génération version TikTok :', ttErr);
+                } finally {
+                    forceDisableSwipeRef.current = false;
                 }
             }
 
@@ -17847,25 +17866,25 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 let blob: Blob | null = null;
                 if (item.type === 'PROMO') {
                     promoOutroOverrideRef.current = true;
-                    editorialAfficheOverrideRef.current = false;
-                    editorialBlankOverrideRef.current = false;
-                    editorialTweetOverrideRef.current = false;
+                    editorialAfficheOverrideRef.current = null;
+                    editorialBlankOverrideRef.current = null;
+                    editorialTweetOverrideRef.current = null;
                     setIsCarouselPromoActive(true);
                     editorialSlideOverrideRef.current = null;
                     await new Promise(r => setTimeout(r, 120));
-                    blob = await startVideoRecording('PROMO_ONLY', { returnBlob: true, formatTab: formatToUse });
+                    blob = await startVideoRecording('PROMO_ONLY', { returnBlob: true, formatTab: formatToUse, isSingleSlide: true });
                 } else {
-                    promoOutroOverrideRef.current = false;
+                    promoOutroOverrideRef.current = null;
                     setIsCarouselPromoActive(false);
-                    editorialAfficheOverrideRef.current = false;
-                    editorialBlankOverrideRef.current = false;
-                    editorialTweetOverrideRef.current = false;
+                    editorialAfficheOverrideRef.current = null;
+                    editorialBlankOverrideRef.current = null;
+                    editorialTweetOverrideRef.current = null;
                     setIsEditorialAfficheActive(false);
                     setIsEditorialTweetActive(false);
                     editorialSlideOverrideRef.current = item.slideNum;
                     setEditorialSlide(item.slideNum);
                     await new Promise(r => setTimeout(r, 120));
-                    blob = await startVideoRecording('NONE', { returnBlob: true, formatTab: formatToUse });
+                    blob = await startVideoRecording('NONE', { returnBlob: true, formatTab: formatToUse, isSingleSlide: true, targetSlide: item.slideNum });
                 }
 
                 bgVideoStartTimeRef.current = prevBgStartTime;
@@ -17885,23 +17904,26 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     title: '🎬 Assemblage de la version TikTok 9:16 (Slides 3.5s + Promo 7s)...',
                     stage: 'encoding'
                 });
+                forceDisableSwipeRef.current = true;
                 try {
                     editorialSlideOverrideRef.current = null;
-                    editorialAfficheOverrideRef.current = false;
-                    editorialBlankOverrideRef.current = false;
-                    editorialTweetOverrideRef.current = false;
-                    promoOutroOverrideRef.current = false;
+                    editorialAfficheOverrideRef.current = null;
+                    editorialBlankOverrideRef.current = null;
+                    editorialTweetOverrideRef.current = null;
+                    promoOutroOverrideRef.current = null;
                     setIsEditorialAfficheActive(false);
                     setIsEditorialBlankActive(false);
                     setIsEditorialTweetActive(false);
                     setIsCarouselPromoActive(false);
                     await new Promise(r => setTimeout(r, 150));
-                    const tiktokBlob = await startVideoRecording('TIKTOK', { returnBlob: true, formatTab: 'REEL' });
+                    const tiktokBlob = await startVideoRecording('TIKTOK', { returnBlob: true, formatTab: 'REEL', disableSwipe: true });
                     if (tiktokBlob) {
                         zip.file(`00-dropsiders-musique-tiktok-complet-3.5s-9-16.mp4`, tiktokBlob);
                     }
                 } catch (ttErr) {
                     console.warn('[Export ZIP Musique] Échec génération version TikTok :', ttErr);
+                } finally {
+                    forceDisableSwipeRef.current = false;
                 }
             }
 
@@ -31298,6 +31320,25 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     🔥 Slide PROMO
                                 </button>
                                 {slideTransitionQuickBar}
+                                {bgVideo && (
+                                    <div className="flex items-center gap-1.5 pl-2 ml-1 border-l border-white/15">
+                                        <span className="text-[8px] font-black text-purple-300 uppercase tracking-wider hidden sm:inline">Vidéo Cover :</span>
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setBgVideoContinueAcrossSlides(!bgVideoContinueAcrossSlides);
+                                                setTimeout(() => generateImage(), 50);
+                                            }}
+                                            className={`px-2 py-1 rounded-xl text-[8px] font-black uppercase transition-all flex items-center gap-1 border active:scale-95 ${bgVideoContinueAcrossSlides
+                                                ? 'bg-[#00ff66]/20 border-[#00ff66] text-[#00ff66] shadow-[0_0_10px_rgba(0,255,102,0.3)]'
+                                                : 'bg-white/5 border-white/10 text-gray-300 hover:text-white'
+                                                }`}
+                                            title={bgVideoContinueAcrossSlides ? "La vidéo Cover continue sur toutes les slides" : "La vidéo Cover reste uniquement sur la Slide 1 (Cover)"}
+                                        >
+                                            <span>{bgVideoContinueAcrossSlides ? '🌐 Partout' : '📄 Slide 1 seule'}</span>
+                                        </button>
+                                    </div>
+                                )}
                             </div>
                         )}
                         {(theme === 'EVENTS' || theme === 'AFFICHE') && (
@@ -31337,6 +31378,25 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     🔥 Slide PROMO
                                 </button>
                                 {slideTransitionQuickBar}
+                                {bgVideo && (
+                                    <div className="flex items-center gap-1.5 pl-2 ml-1 border-l border-white/15">
+                                        <span className="text-[8px] font-black text-purple-300 uppercase tracking-wider hidden sm:inline">Vidéo Cover :</span>
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setBgVideoContinueAcrossSlides(!bgVideoContinueAcrossSlides);
+                                                setTimeout(() => generateImage(), 50);
+                                            }}
+                                            className={`px-2 py-1 rounded-xl text-[8px] font-black uppercase transition-all flex items-center gap-1 border active:scale-95 ${bgVideoContinueAcrossSlides
+                                                ? 'bg-[#00ff66]/20 border-[#00ff66] text-[#00ff66] shadow-[0_0_10px_rgba(0,255,102,0.3)]'
+                                                : 'bg-white/5 border-white/10 text-gray-300 hover:text-white'
+                                                }`}
+                                            title={bgVideoContinueAcrossSlides ? "La vidéo Cover continue sur toutes les slides" : "La vidéo Cover reste uniquement sur la Slide 1 (Cover)"}
+                                        >
+                                            <span>{bgVideoContinueAcrossSlides ? '🌐 Partout' : '📄 Slide 1 seule'}</span>
+                                        </button>
+                                    </div>
+                                )}
                             </div>
                         )}
                         {theme === 'MUSIQUE' && (
@@ -31392,6 +31452,25 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     🔥 Slide PROMO
                                 </button>
                                 {slideTransitionQuickBar}
+                                {bgVideo && (
+                                    <div className="flex items-center gap-1.5 pl-2 ml-1 border-l border-white/15">
+                                        <span className="text-[8px] font-black text-purple-300 uppercase tracking-wider hidden sm:inline">Vidéo Cover :</span>
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setBgVideoContinueAcrossSlides(!bgVideoContinueAcrossSlides);
+                                                setTimeout(() => generateImage(), 50);
+                                            }}
+                                            className={`px-2 py-1 rounded-xl text-[8px] font-black uppercase transition-all flex items-center gap-1 border active:scale-95 ${bgVideoContinueAcrossSlides
+                                                ? 'bg-[#00ff66]/20 border-[#00ff66] text-[#00ff66] shadow-[0_0_10px_rgba(0,255,102,0.3)]'
+                                                : 'bg-white/5 border-white/10 text-gray-300 hover:text-white'
+                                                }`}
+                                            title={bgVideoContinueAcrossSlides ? "La vidéo Cover continue sur toutes les slides" : "La vidéo Cover reste uniquement sur la Slide 1 (Cover)"}
+                                        >
+                                            <span>{bgVideoContinueAcrossSlides ? '🌐 Partout' : '📄 Slide 1 seule'}</span>
+                                        </button>
+                                    </div>
+                                )}
                             </div>
                         )}
                         {theme === 'PLANNING' && (
@@ -31470,6 +31549,25 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     🔥 Slide PROMO
                                 </button>
                                 {slideTransitionQuickBar}
+                                {bgVideo && (
+                                    <div className="flex items-center gap-1.5 pl-2 ml-1 border-l border-white/15">
+                                        <span className="text-[8px] font-black text-purple-300 uppercase tracking-wider hidden sm:inline">Vidéo Cover :</span>
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setBgVideoContinueAcrossSlides(!bgVideoContinueAcrossSlides);
+                                                setTimeout(() => generateImage(), 50);
+                                            }}
+                                            className={`px-2 py-1 rounded-xl text-[8px] font-black uppercase transition-all flex items-center gap-1 border active:scale-95 ${bgVideoContinueAcrossSlides
+                                                ? 'bg-[#00ff66]/20 border-[#00ff66] text-[#00ff66] shadow-[0_0_10px_rgba(0,255,102,0.3)]'
+                                                : 'bg-white/5 border-white/10 text-gray-300 hover:text-white'
+                                                }`}
+                                            title={bgVideoContinueAcrossSlides ? "La vidéo Cover continue sur toutes les slides" : "La vidéo Cover reste uniquement sur la Slide 1 (Cover)"}
+                                        >
+                                            <span>{bgVideoContinueAcrossSlides ? '🌐 Partout' : '📄 Slide 1 seule'}</span>
+                                        </button>
+                                    </div>
+                                )}
                             </div>
                         )}
                         {['NEWS', 'FOCUS', 'RECAP', 'INTERVIEW', 'LIVESTREAM', 'CONSEILS', 'REELS', 'CONCOURS', 'TOP 100 DROPSIDERS', 'JEU', 'JEU_FESTIVAL', 'JEU_DJ', 'HIGHLIGHTS'].includes(theme) && (
@@ -31717,6 +31815,25 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     🔥 Slide PROMO
                                 </button>
                                 {slideTransitionQuickBar}
+                                {bgVideo && (
+                                    <div className="flex items-center gap-1.5 pl-2 ml-1 border-l border-white/15">
+                                        <span className="text-[8px] font-black text-purple-300 uppercase tracking-wider hidden sm:inline">Vidéo Cover :</span>
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setBgVideoContinueAcrossSlides(!bgVideoContinueAcrossSlides);
+                                                setTimeout(() => generateImage(), 50);
+                                            }}
+                                            className={`px-2 py-1 rounded-xl text-[8px] font-black uppercase transition-all flex items-center gap-1 border active:scale-95 ${bgVideoContinueAcrossSlides
+                                                ? 'bg-[#00ff66]/20 border-[#00ff66] text-[#00ff66] shadow-[0_0_10px_rgba(0,255,102,0.3)]'
+                                                : 'bg-white/5 border-white/10 text-gray-300 hover:text-white'
+                                                }`}
+                                            title={bgVideoContinueAcrossSlides ? "La vidéo Cover continue sur toutes les slides" : "La vidéo Cover reste uniquement sur la Slide 1 (Cover)"}
+                                        >
+                                            <span>{bgVideoContinueAcrossSlides ? '🌐 Partout' : '📄 Slide 1 seule'}</span>
+                                        </button>
+                                    </div>
+                                )}
                             </div>
                         )}
                         {theme === 'TOP 10 TRACKS' && (
