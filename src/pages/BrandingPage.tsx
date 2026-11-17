@@ -192,47 +192,7 @@ export function BrandingPage() {
                     </div>
                 </motion.div>
 
-                {/* 🔴 DYNAMIC LIVE ACCESSIBLE BANNER (Visible only when live is active) */}
-                <AnimatePresence>
-                    {liveData.isLive && (
-                        <motion.div
-                            initial={{ opacity: 0, scale: 0.9, y: 10 }}
-                            animate={{ opacity: 1, scale: 1, y: 0 }}
-                            exit={{ opacity: 0, scale: 0.9, y: 10 }}
-                            className="w-full"
-                        >
-                            <Link to="/live" className="block group">
-                                <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-red-950 via-neon-red to-red-900 border-2 border-neon-red p-4 shadow-[0_0_35px_rgba(255,0,51,0.5)] transition-all duration-300 group-hover:scale-[1.02] group-hover:shadow-[0_0_50px_rgba(255,0,51,0.8)]">
-                                    <div className="absolute top-0 right-0 -mr-6 -mt-6 w-24 h-24 bg-white/10 rounded-full blur-xl animate-pulse" />
-                                    
-                                    <div className="flex items-center justify-between relative z-10">
-                                        <div className="flex items-center gap-3">
-                                            <div className="relative">
-                                                <div className="w-4 h-4 bg-white rounded-full animate-ping opacity-75" />
-                                                <div className="absolute inset-0 w-4 h-4 bg-white rounded-full flex items-center justify-center">
-                                                    <div className="w-2 h-2 bg-neon-red rounded-full" />
-                                                </div>
-                                            </div>
-                                            <div>
-                                                <span className="text-[10px] font-black text-white uppercase tracking-[0.25em] bg-black/40 px-2 py-0.5 rounded-full border border-white/20">
-                                                    🔴 LIVE EN DIRECT
-                                                </span>
-                                                <h3 className="text-sm font-display font-black text-white uppercase tracking-tight mt-1 truncate max-w-[200px]">
-                                                    {liveData.title}
-                                                </h3>
-                                            </div>
-                                        </div>
-
-                                        <div className="flex items-center gap-1 bg-white text-black font-black text-[10px] uppercase tracking-widest px-3.5 py-2.5 rounded-xl shadow-md group-hover:bg-neon-cyan group-hover:text-black transition-colors shrink-0">
-                                            ACCÉDER AU LIVE
-                                            <ExternalLink className="w-3.5 h-3.5" />
-                                        </div>
-                                    </div>
-                                </div>
-                            </Link>
-                        </motion.div>
-                    )}
-                </AnimatePresence>
+                {/* 🔴 DYNAMIC LIVE ACCESSIBLE BANNER (Masqué / Désactivé) */}
 
                 {/* 🔗 LIENS PRINCIPAUX */}
                 <motion.div

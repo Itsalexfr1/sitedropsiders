@@ -8897,9 +8897,12 @@ ${urls.map(u => `  <url>
                     requestUsername.toLowerCase() === 'alexflex30@gmail.com' || 
                     requestUsername.toLowerCase() === 'contact@dropsiders.fr' || 
                     requestUsername.toLowerCase() === 'alex@dropsiders.fr' ||
-                    requestUsername.toLowerCase() === 'alex'
+                    requestUsername.toLowerCase() === 'alex' ||
+                    requestUsername.toLowerCase() === 'alexf' ||
+                    requestUsername.toLowerCase() === 'itsalexfr1'
                 );
-                const isAlex = isMasterPass || isSuperEmail || (requestUsername || '').toLowerCase() === 'alex' || userPermissions.includes('all') || userPermissions.includes('messages') || userPermissions.includes('messages_contact');
+                // Alex seul voit tout (ou superadmin avec permission 'all'). Les permissions 'messages'/'messages_contact' ne donnent PAS accès aux mails des autres.
+                const isAlex = isMasterPass || isSuperEmail || (requestUsername || '').toLowerCase() === 'alex' || userPermissions.includes('all');
 
                 const responseHeaders = {
                     ...headers,
@@ -8911,17 +8914,45 @@ ${urls.map(u => `  <url>
                     return new Response(JSON.stringify(contacts), { status: 200, headers: responseHeaders });
                 }
 
-                // Non-admin editors only see their recipient emails
+                // Pour un éditeur non-admin : il ne voit QUE ses propres emails (son dropsiders_email ou son username), JAMAIS ceux d'Alex ni des autres
                 const editorsFile = await fetchGitHubFile('src/data/editors.json', gitConfig);
-                const editors = editorsFile?.content || [];
-                const editor = editors.find(e => e.username === requestUsername || e.email?.toLowerCase() === requestUsername.toLowerCase());
+                const editors: any[] = Array.isArray(editorsFile?.content) ? editorsFile.content : [];
+                const reqUser = (requestUsername || '').toLowerCase().trim();
+                const editor = editors.find((e: any) => 
+                    (e.username && e.username.toLowerCase().trim() === reqUser) || 
+                    (e.pseudo && e.pseudo.toLowerCase().trim() === reqUser) ||
+                    (e.email && e.email.toLowerCase().trim() === reqUser) ||
+                    (e.dropsiders_email && e.dropsiders_email.toLowerCase().trim() === reqUser)
+                );
 
-                if (!editor) {
+                if (!editor && !reqUser) {
                     return new Response(JSON.stringify([]), { status: 200, headers: responseHeaders });
                 }
 
-                const proEmail = `${editor.username.toLowerCase()}@dropsiders.fr`;
-                const filtered = contacts.filter(c => c && c.recipient && c.recipient.toLowerCase() === proEmail);
+                const allowed = new Set<string>();
+                if (editor) {
+                    if (editor.dropsiders_email) allowed.add(editor.dropsiders_email.toLowerCase().trim());
+                    if (editor.email) allowed.add(editor.email.toLowerCase().trim());
+                    if (editor.username) allowed.add(`${editor.username.toLowerCase().trim()}@dropsiders.fr`);
+                    if (editor.pseudo) allowed.add(`${editor.pseudo.toLowerCase().trim()}@dropsiders.fr`);
+                } else if (reqUser) {
+                    allowed.add(`${reqUser}@dropsiders.fr`);
+                    allowed.add(`${reqUser}@crew.dropsiders.fr`);
+                }
+                const edName = (editor?.username || editor?.pseudo || reqUser || '').toLowerCase().trim();
+
+                const filtered = contacts.filter((c: any) => {
+                    if (!c || !c.recipient) return false;
+                    const r = c.recipient.toLowerCase().trim();
+                    if (!r || r === 'contact@dropsiders.fr' || r === 'info@dropsiders.fr' || r === 'general' || r.startsWith('alex@')) {
+                        return false; // Réservé à Alex
+                    }
+                    if (allowed.has(r)) return true;
+                    if (edName && r.includes(edName)) return true;
+                    const prefix = r.split('@')[0];
+                    if (prefix && edName && edName.includes(prefix)) return true;
+                    return false;
+                });
                 return new Response(JSON.stringify(filtered), { status: 200, headers: responseHeaders });
             } catch (e: any) {
                 return new Response(JSON.stringify({ error: e?.message || 'Erreur serveur' }), { status: 500, headers });
@@ -8939,11 +8970,37 @@ ${urls.map(u => `  <url>
                     requestUsername.toLowerCase() === 'alexflex30@gmail.com' || 
                     requestUsername.toLowerCase() === 'contact@dropsiders.fr' || 
                     requestUsername.toLowerCase() === 'alex@dropsiders.fr' ||
-                    requestUsername.toLowerCase() === 'alex'
+                    requestUsername.toLowerCase() === 'alex' ||
+                    requestUsername.toLowerCase() === 'alexf' ||
+                    requestUsername.toLowerCase() === 'itsalexfr1'
                 );
-                const isAlex = isMasterPass || isSuperEmail || (requestUsername || '').toLowerCase() === 'alex' || userPermissions.includes('all') || userPermissions.includes('messages') || userPermissions.includes('messages_contact');
+                const isAlex = isMasterPass || isSuperEmail || (requestUsername || '').toLowerCase() === 'alex' || userPermissions.includes('all');
 
                 let unauthorized = false;
+
+                // Si non-Alex, récupérer l'identité autorisée de l'éditeur
+                let allowedEditorEmails = new Set<string>();
+                let editorShortName = '';
+                if (!isAlex) {
+                    const editorsFile = await fetchGitHubFile('src/data/editors.json', gitConfig);
+                    const editors: any[] = Array.isArray(editorsFile?.content) ? editorsFile.content : [];
+                    const reqUser = (requestUsername || '').toLowerCase().trim();
+                    const editor = editors.find((e: any) => 
+                        (e.username && e.username.toLowerCase().trim() === reqUser) || 
+                        (e.pseudo && e.pseudo.toLowerCase().trim() === reqUser) ||
+                        (e.email && e.email.toLowerCase().trim() === reqUser) ||
+                        (e.dropsiders_email && e.dropsiders_email.toLowerCase().trim() === reqUser)
+                    );
+                    if (editor) {
+                        if (editor.dropsiders_email) allowedEditorEmails.add(editor.dropsiders_email.toLowerCase().trim());
+                        if (editor.email) allowedEditorEmails.add(editor.email.toLowerCase().trim());
+                        if (editor.username) allowedEditorEmails.add(`${editor.username.toLowerCase().trim()}@dropsiders.fr`);
+                    } else if (reqUser) {
+                        allowedEditorEmails.add(`${reqUser}@dropsiders.fr`);
+                    }
+                    editorShortName = (editor?.username || editor?.pseudo || reqUser || '').toLowerCase().trim();
+                }
+
                 const res = await mutateGitHubJsonFile<any[]>(
                     CONTACTS_PATH,
                     (contacts) => {
@@ -8954,8 +9011,10 @@ ${urls.map(u => `  <url>
                         }
 
                         if (!isAlex) {
-                            const userEmail = requestUsername ? `${requestUsername.toLowerCase()}@dropsiders.fr` : null;
-                            if (!msg.recipient || msg.recipient.toLowerCase() !== userEmail) {
+                            const r = (msg.recipient || '').toLowerCase().trim();
+                            const isAuthorized = r && r !== 'contact@dropsiders.fr' && r !== 'info@dropsiders.fr' && !r.startsWith('alex@') &&
+                                (allowedEditorEmails.has(r) || (editorShortName && r.includes(editorShortName)));
+                            if (!isAuthorized) {
                                 unauthorized = true;
                                 return { updatedData: list, commitMessage: '', shouldSave: false };
                             }
@@ -9037,12 +9096,37 @@ ${urls.map(u => `  <url>
                     requestUsername.toLowerCase() === 'alexflex30@gmail.com' || 
                     requestUsername.toLowerCase() === 'contact@dropsiders.fr' || 
                     requestUsername.toLowerCase() === 'alex@dropsiders.fr' ||
-                    requestUsername.toLowerCase() === 'alex'
+                    requestUsername.toLowerCase() === 'alex' ||
+                    requestUsername.toLowerCase() === 'alexf' ||
+                    requestUsername.toLowerCase() === 'itsalexfr1'
                 );
-                const isAlex = isMasterPass || isSuperEmail || (requestUsername || '').toLowerCase() === 'alex' || userPermissions.includes('all') || userPermissions.includes('messages') || userPermissions.includes('messages_contact');
+                const isAlex = isMasterPass || isSuperEmail || (requestUsername || '').toLowerCase() === 'alex' || userPermissions.includes('all');
 
                 let deletedCount = 0;
                 let unauthorized = false;
+
+                // Si non-Alex, récupérer l'identité autorisée de l'éditeur
+                let allowedEditorEmails = new Set<string>();
+                let editorShortName = '';
+                if (!isAlex) {
+                    const editorsFile = await fetchGitHubFile('src/data/editors.json', gitConfig);
+                    const editors: any[] = Array.isArray(editorsFile?.content) ? editorsFile.content : [];
+                    const reqUser = (requestUsername || '').toLowerCase().trim();
+                    const editor = editors.find((e: any) => 
+                        (e.username && e.username.toLowerCase().trim() === reqUser) || 
+                        (e.pseudo && e.pseudo.toLowerCase().trim() === reqUser) ||
+                        (e.email && e.email.toLowerCase().trim() === reqUser) ||
+                        (e.dropsiders_email && e.dropsiders_email.toLowerCase().trim() === reqUser)
+                    );
+                    if (editor) {
+                        if (editor.dropsiders_email) allowedEditorEmails.add(editor.dropsiders_email.toLowerCase().trim());
+                        if (editor.email) allowedEditorEmails.add(editor.email.toLowerCase().trim());
+                        if (editor.username) allowedEditorEmails.add(`${editor.username.toLowerCase().trim()}@dropsiders.fr`);
+                    } else if (reqUser) {
+                        allowedEditorEmails.add(`${reqUser}@dropsiders.fr`);
+                    }
+                    editorShortName = (editor?.username || editor?.pseudo || reqUser || '').toLowerCase().trim();
+                }
 
                 const res = await mutateGitHubJsonFile<any[]>(
                     CONTACTS_PATH,
@@ -9050,8 +9134,12 @@ ${urls.map(u => `  <url>
                         const list = Array.isArray(contacts) ? contacts : [];
 
                         if (!isAlex) {
-                            const userEmail = requestUsername ? `${requestUsername.toLowerCase()}@dropsiders.fr` : null;
-                            const forbidden = list.find(c => targetSet.has(String(c.id).trim()) && (!c.recipient || c.recipient.toLowerCase() !== userEmail));
+                            const forbidden = list.find(c => {
+                                if (!targetSet.has(String(c.id).trim())) return false;
+                                const r = (c.recipient || '').toLowerCase().trim();
+                                if (!r || r === 'contact@dropsiders.fr' || r === 'info@dropsiders.fr' || r.startsWith('alex@')) return true; // Interdit!
+                                return !allowedEditorEmails.has(r) && (!editorShortName || !r.includes(editorShortName));
+                            });
                             if (forbidden) {
                                 unauthorized = true;
                                 return { updatedData: list, commitMessage: '', shouldSave: false };
@@ -9354,13 +9442,108 @@ ${urls.map(u => `  <url>
                     );
                 } catch (e) {
                     console.error('Failed to mark replied in DB:', e);
-                    // We don't return error here because the email WAS sent successfully
+                }
+
+                // Record in sent_messages.json
+                try {
+                    const SENT_PATH = 'src/data/sent_messages.json';
+                    const sentRecord = {
+                        id: String(Date.now()),
+                        to: to,
+                        from: replyToEmail,
+                        subject: subject,
+                        body: message,
+                        date: new Date().toISOString(),
+                        signer: effectiveSignerName,
+                        author: requestUsername || effectiveSignerName || 'Alex',
+                        authorEmail: replyToEmail,
+                        attachments: (brevoAttachments || []).map((a: any) => ({ name: a.name, size: 0 }))
+                    };
+
+                    await mutateGitHubJsonFile<any[]>(
+                        SENT_PATH,
+                        (currentSent) => {
+                            const list = Array.isArray(currentSent) ? currentSent : [];
+                            const nextList = [sentRecord, ...list].slice(0, 300);
+                            return {
+                                updatedData: nextList,
+                                commitMessage: `Record sent message to: ${to} [skip ci] [CF-Pages-Skip]`
+                            };
+                        },
+                        gitConfig
+                    );
+                } catch (sentErr) {
+                    console.warn('Failed to record sent message in DB:', sentErr);
                 }
 
                 return new Response(JSON.stringify({ success: true }), { status: 200, headers });
             } catch (e: any) {
                 console.error('Reply API Global Error:', e);
                 return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
+            }
+        }
+
+        if (path === '/api/contacts/sent' && request.method === 'GET') {
+            try {
+                const file = await fetchGitHubFile('src/data/sent_messages.json', { ...gitConfig, bypassCache: true }) || { content: [] };
+                const sentList: any[] = Array.isArray(file.content) ? file.content : [];
+
+                const isMasterPass = requestPassword && requestPassword === adminPassword;
+                const isSuperEmail = requestUsername && (
+                    requestUsername.toLowerCase() === 'alexflex30@gmail.com' || 
+                    requestUsername.toLowerCase() === 'contact@dropsiders.fr' || 
+                    requestUsername.toLowerCase() === 'alex@dropsiders.fr' ||
+                    requestUsername.toLowerCase() === 'alex' ||
+                    requestUsername.toLowerCase() === 'alexf' ||
+                    requestUsername.toLowerCase() === 'itsalexfr1'
+                );
+                const isAlex = isMasterPass || isSuperEmail || (requestUsername || '').toLowerCase() === 'alex' || userPermissions.includes('all');
+
+                const responseHeaders = {
+                    ...headers,
+                    'Cache-Control': 'no-store, no-cache, must-revalidate, max-age=0',
+                    'Pragma': 'no-cache'
+                };
+
+                // Alex seul voit TOUS les mails envoyés de tout le monde
+                if (isAlex) {
+                    return new Response(JSON.stringify(sentList), { status: 200, headers: responseHeaders });
+                }
+
+                // Pour les autres : ils ne voient QUE leurs propres emails envoyés
+                const editorsFile = await fetchGitHubFile('src/data/editors.json', gitConfig);
+                const editors: any[] = Array.isArray(editorsFile?.content) ? editorsFile.content : [];
+                const reqUser = (requestUsername || '').toLowerCase().trim();
+                const editor = editors.find((e: any) => 
+                    (e.username && e.username.toLowerCase().trim() === reqUser) || 
+                    (e.pseudo && e.pseudo.toLowerCase().trim() === reqUser) ||
+                    (e.email && e.email.toLowerCase().trim() === reqUser) ||
+                    (e.dropsiders_email && e.dropsiders_email.toLowerCase().trim() === reqUser)
+                );
+
+                const allowed = new Set<string>();
+                if (editor) {
+                    if (editor.dropsiders_email) allowed.add(editor.dropsiders_email.toLowerCase().trim());
+                    if (editor.email) allowed.add(editor.email.toLowerCase().trim());
+                    if (editor.username) allowed.add(`${editor.username.toLowerCase().trim()}@dropsiders.fr`);
+                } else if (reqUser) {
+                    allowed.add(`${reqUser}@dropsiders.fr`);
+                }
+                const edName = (editor?.username || editor?.pseudo || reqUser || '').toLowerCase().trim();
+
+                const filtered = sentList.filter((s: any) => {
+                    if (!s) return false;
+                    const author = (s.author || '').toLowerCase().trim();
+                    const signer = (s.signer || '').toLowerCase().trim();
+                    const from = (s.authorEmail || s.from || '').toLowerCase().trim();
+                    if (edName && (author === edName || signer.includes(edName))) return true;
+                    if (from && allowed.has(from)) return true;
+                    return false;
+                });
+
+                return new Response(JSON.stringify(filtered), { status: 200, headers: responseHeaders });
+            } catch (e: any) {
+                return new Response(JSON.stringify([]), { status: 200, headers });
             }
         }
 

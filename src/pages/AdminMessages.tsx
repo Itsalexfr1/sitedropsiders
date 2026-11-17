@@ -113,7 +113,7 @@ export function AdminMessages() {
     const [isLoading, setIsLoading] = useState(true);
 
     // Editors state for signatures
-    const [editors, setEditors] = useState<{name: string; username: string; email?: string}[]>([]);
+    const [editors, setEditors] = useState<{name: string; username: string; email?: string; pseudo?: string; dropsiders_email?: string}[]>([]);
 
     useEffect(() => {
         fetchEditors();
@@ -184,7 +184,7 @@ export function AdminMessages() {
         return blockedSenders.includes(email.toLowerCase().trim());
     };
 
-    const [sentMessages, setSentMessages] = useState<{ id: string; to: string; subject: string; body: string; date: string; signer: string; attachments?: { name: string; url?: string; size: number }[] }[]>(() => {
+    const [sentMessages, setSentMessages] = useState<{ id: string; to: string; from?: string; subject: string; body: string; date: string; signer: string; author?: string; authorEmail?: string; attachments?: { name: string; url?: string; size: number }[] }[]>(() => {
         try { return JSON.parse(localStorage.getItem('dropsiders_sent_messages') || '[]'); } catch { return []; }
     });
     
@@ -223,6 +223,32 @@ export function AdminMessages() {
             (e.email && e.email.toLowerCase() === adminUser.toLowerCase())
         );
     }, [editors, adminUser]);
+
+    // Seul Alex voit tous les messages envoyés de tout le monde. Les autres ne voient QUE les leurs.
+    const filteredSentMessages = useMemo(() => {
+        if (isAlex) return sentMessages;
+        if (!currentEditor) {
+            const myU = (adminUser || '').toLowerCase().trim();
+            return sentMessages.filter((m: any) => {
+                const a = (m.author || '').toLowerCase().trim();
+                return a && a === myU;
+            });
+        }
+        const myName = (currentEditor.username || '').toLowerCase().trim();
+        const myPseudo = (currentEditor.pseudo || '').toLowerCase().trim();
+        const myEmail = (currentEditor.email || '').toLowerCase().trim();
+        const myDropsiders = (currentEditor.dropsiders_email || '').toLowerCase().trim();
+        return sentMessages.filter((m: any) => {
+            const author = (m.author || '').toLowerCase().trim();
+            const signer = (m.signer || '').toLowerCase().trim();
+            const authorEmail = (m.authorEmail || m.from || '').toLowerCase().trim();
+            if (myName && (author === myName || signer.includes(myName))) return true;
+            if (myPseudo && (author === myPseudo || signer.includes(myPseudo))) return true;
+            if (myEmail && authorEmail === myEmail) return true;
+            if (myDropsiders && authorEmail === myDropsiders) return true;
+            return false;
+        });
+    }, [sentMessages, isAlex, currentEditor, adminUser]);
 
     const currentSignerInfo = useMemo(() => {
         const defaultAlex = {
@@ -410,18 +436,44 @@ export function AdminMessages() {
         }
     };
 
+    const fetchSentMessages = async () => {
+        try {
+            const res = await apiFetch(`/api/contacts/sent?t=${Date.now()}`, {
+                headers: getAuthHeaders(),
+                cache: 'no-store'
+            });
+            if (res.ok) {
+                const data = await res.json();
+                if (Array.isArray(data)) {
+                    setSentMessages(prev => {
+                        const serverIds = new Set(data.map((d: any) => String(d.id)));
+                        const localOnly = prev.filter(m => !serverIds.has(String(m.id)));
+                        const merged = [...data, ...localOnly];
+                        try { localStorage.setItem('dropsiders_sent_messages', JSON.stringify(merged)); } catch {}
+                        return merged;
+                    });
+                }
+            }
+        } catch (e) {
+            console.error('Error fetching sent messages:', e);
+        }
+    };
+
     useEffect(() => {
         fetchMessages(false);
+        fetchSentMessages();
         fetchBlockedSenders();
 
         // Real-time polling: automatically check for new messages & emails every 12 seconds
         const pollInterval = setInterval(() => {
             fetchMessages(false);
+            fetchSentMessages();
         }, 12000);
 
         // Immediate refresh when tab/window gains focus
         const handleFocus = () => {
             fetchMessages(false);
+            fetchSentMessages();
         };
         window.addEventListener('focus', handleFocus);
 
@@ -612,7 +664,7 @@ export function AdminMessages() {
 
     const toggleSelectAll = () => {
         const currentList = mailboxTab === 'inbox' ? filteredMessages
-            : mailboxTab === 'sent' ? sentMessages
+            : mailboxTab === 'sent' ? filteredSentMessages
             : filteredArchivedMessages;
         if (bulkSelected.size === currentList.length) {
             setBulkSelected(new Set());
@@ -750,7 +802,9 @@ export function AdminMessages() {
                     subject: isNewMail ? mailSubject : `Re: ${selected?.subject}`,
                     body: replyBody,
                     date: new Date().toISOString(),
-                    signer: signatureName || 'Dropsiders',
+                    signer: signatureName || (currentEditor ? currentEditor.username : 'Dropsiders'),
+                    author: adminUser || (isAlex ? 'Alex' : (currentEditor?.username || 'Alex')),
+                    authorEmail: senderEmail,
                     attachments: attachments.map(a => ({ name: a.name, size: a.size }))
                 };
                 setSentMessages(prev => {
@@ -1298,7 +1352,33 @@ Alex (Dropsiders)`;
 
     const filteredMessages = useMemo(() => {
         const inbox = messages.filter(m => !m.archived);
-        if (!isAlex) return inbox;
+        if (!isAlex) {
+            // Strict non-Alex filter: only messages belonging to this editor, NEVER Alex or general messages
+            if (!currentEditor) {
+                const myU = (adminUser || '').toLowerCase().trim();
+                return inbox.filter(m => {
+                    if (!m.recipient) return false;
+                    const r = m.recipient.toLowerCase().trim();
+                    if (!r || r === 'contact@dropsiders.fr' || r === 'info@dropsiders.fr' || r === 'general' || r.startsWith('alex@')) return false;
+                    return myU && r.includes(myU);
+                });
+            }
+            const myDropsiders = (currentEditor.dropsiders_email || '').toLowerCase().trim();
+            const myEmail = (currentEditor.email || '').toLowerCase().trim();
+            const myUser = (currentEditor.username || '').toLowerCase().trim();
+            const myPseudo = (currentEditor.pseudo || '').toLowerCase().trim();
+            return inbox.filter(m => {
+                if (!m.recipient) return false;
+                const r = m.recipient.toLowerCase().trim();
+                if (!r || r === 'contact@dropsiders.fr' || r === 'info@dropsiders.fr' || r === 'general' || r.startsWith('alex@')) {
+                    return false;
+                }
+                return (myDropsiders && r === myDropsiders) || 
+                       (myEmail && r === myEmail) || 
+                       (myUser && r.includes(myUser)) ||
+                       (myPseudo && r.includes(myPseudo));
+            });
+        }
         if (selectedEditorFilter === 'all') return inbox;
         if (selectedEditorFilter === 'general') {
             return inbox.filter(m => !m.recipient || m.recipient.toLowerCase() === 'contact@dropsiders.fr' || m.recipient.toLowerCase() === 'info@dropsiders.fr' || m.recipient.toLowerCase() === 'general');
@@ -1308,13 +1388,38 @@ Alex (Dropsiders)`;
         return inbox.filter(m => {
             if (!m.recipient) return false;
             const recip = m.recipient.toLowerCase();
-            return recip === `${filterLower}@dropsiders.fr` || recip === filterLower;
+            return recip === `${filterLower}@dropsiders.fr` || recip === `${filterLower}@crew.dropsiders.fr` || recip === filterLower || recip.includes(filterLower);
         });
-    }, [messages, isAlex, selectedEditorFilter]);
+    }, [messages, isAlex, selectedEditorFilter, currentEditor, adminUser]);
 
     const filteredArchivedMessages = useMemo(() => {
         const archived = messages.filter(m => m.archived);
-        if (!isAlex) return archived;
+        if (!isAlex) {
+            if (!currentEditor) {
+                const myU = (adminUser || '').toLowerCase().trim();
+                return archived.filter(m => {
+                    if (!m.recipient) return false;
+                    const r = m.recipient.toLowerCase().trim();
+                    if (!r || r === 'contact@dropsiders.fr' || r === 'info@dropsiders.fr' || r === 'general' || r.startsWith('alex@')) return false;
+                    return myU && r.includes(myU);
+                });
+            }
+            const myDropsiders = (currentEditor.dropsiders_email || '').toLowerCase().trim();
+            const myEmail = (currentEditor.email || '').toLowerCase().trim();
+            const myUser = (currentEditor.username || '').toLowerCase().trim();
+            const myPseudo = (currentEditor.pseudo || '').toLowerCase().trim();
+            return archived.filter(m => {
+                if (!m.recipient) return false;
+                const r = m.recipient.toLowerCase().trim();
+                if (!r || r === 'contact@dropsiders.fr' || r === 'info@dropsiders.fr' || r === 'general' || r.startsWith('alex@')) {
+                    return false;
+                }
+                return (myDropsiders && r === myDropsiders) || 
+                       (myEmail && r === myEmail) || 
+                       (myUser && r.includes(myUser)) ||
+                       (myPseudo && r.includes(myPseudo));
+            });
+        }
         if (selectedEditorFilter === 'all') return archived;
         if (selectedEditorFilter === 'general') {
             return archived.filter(m => !m.recipient || m.recipient.toLowerCase() === 'contact@dropsiders.fr' || m.recipient.toLowerCase() === 'info@dropsiders.fr' || m.recipient.toLowerCase() === 'general');
@@ -1323,9 +1428,9 @@ Alex (Dropsiders)`;
         return archived.filter(m => {
             if (!m.recipient) return false;
             const recip = m.recipient.toLowerCase();
-            return recip === `${filterLower}@dropsiders.fr` || recip === filterLower;
+            return recip === `${filterLower}@dropsiders.fr` || recip === `${filterLower}@crew.dropsiders.fr` || recip === filterLower || recip.includes(filterLower);
         });
-    }, [messages, isAlex, selectedEditorFilter]);
+    }, [messages, isAlex, selectedEditorFilter, currentEditor, adminUser]);
 
     const unreadCount = filteredMessages.filter(m => !m.read).length;
 
@@ -1476,8 +1581,8 @@ Alex (Dropsiders)`;
                     <div className="flex shrink-0 px-2 pt-2 gap-1 overflow-x-auto no-scrollbar" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
                         {[
                             { id: 'inbox', label: 'Reçus', icon: <Inbox className="w-3 h-3 shrink-0" />, count: filteredMessages.length, color: '#ff1241', active: mailboxTab === 'inbox', onClick: () => { setMailboxTab('inbox'); setSelectedSent(null); setSelectedArchived(null); } },
-                            { id: 'sent', label: 'Envoyés', icon: <Send className="w-3 h-3 shrink-0" />, count: sentMessages.length, color: '#00FFFF', active: mailboxTab === 'sent', onClick: () => { setMailboxTab('sent'); setSelected(null); setSelectedArchived(null); } },
-                            { id: 'archived', label: 'Archivés', icon: <Archive className="w-3 h-3 shrink-0" />, count: archivedMessages.length, color: '#BF00FF', active: mailboxTab === 'archived', onClick: () => { setMailboxTab('archived'); setSelected(null); setSelectedSent(null); } },
+                            { id: 'sent', label: 'Envoyés', icon: <Send className="w-3 h-3 shrink-0" />, count: filteredSentMessages.length, color: '#00FFFF', active: mailboxTab === 'sent', onClick: () => { setMailboxTab('sent'); setSelected(null); setSelectedArchived(null); } },
+                            { id: 'archived', label: 'Archivés', icon: <Archive className="w-3 h-3 shrink-0" />, count: filteredArchivedMessages.length, color: '#BF00FF', active: mailboxTab === 'archived', onClick: () => { setMailboxTab('archived'); setSelected(null); setSelectedSent(null); } },
                             { id: 'blocked', label: 'Bloqués', icon: <Ban className="w-3 h-3 shrink-0" />, count: blockedSenders.length, color: '#ef4444', active: mailboxTab === 'blocked', onClick: () => { setMailboxTab('blocked'); setSelected(null); setSelectedSent(null); setSelectedArchived(null); } }
                         ].map(tab => (
                             <button
@@ -1547,7 +1652,7 @@ Alex (Dropsiders)`;
                                 </div>
                             </div>
                         ) : mailboxTab === 'sent' ? (
-                            sentMessages.length === 0 ? (
+                            filteredSentMessages.length === 0 ? (
                                 <div className="flex flex-col items-center justify-center h-64 gap-3">
                                     <div className="w-12 h-12 rounded-2xl flex items-center justify-center" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
                                         <Send className="w-5 h-5 text-gray-600" />
@@ -1556,7 +1661,7 @@ Alex (Dropsiders)`;
                                 </div>
                             ) : (
                                 <div>
-                                    {sentMessages.map(msg => (
+                                    {filteredSentMessages.map(msg => (
                                         <div
                                             key={msg.id}
                                             onClick={() => setSelectedSent(msg)}

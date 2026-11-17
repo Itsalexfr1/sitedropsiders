@@ -657,6 +657,13 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
             .replace(/ç/g, 'ç')
             .replace(/https?:\/\/(www\.)?dropsiders\.fr/g, '');
 
+        // Remove any hover-scale/zoom classes on article images to ensure they remain fixed
+        finalHtml = finalHtml
+            .replace(/transform group-hover:scale-\d+/g, '')
+            .replace(/group-hover:scale-\d+/g, '')
+            .replace(/hover:scale-\d+/g, '')
+            .replace(/transition-transform duration-\d+/g, '');
+
         // Apply Premium Standardizer (Keywords, Links)
         finalHtml = standardizeText(finalHtml);
 

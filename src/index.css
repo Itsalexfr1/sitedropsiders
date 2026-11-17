@@ -1,4 +1,4 @@
-@import "tailwindcss";
+﻿@import "tailwindcss";
 
 :root {
   --bg-primary: #0a0a0a;
@@ -394,7 +394,7 @@ body {
     gap: 0.5rem;
   }
 
-  /* Force Zéro sur tous les conteneurs générés - SAUF DUO PHOTOS, VIDÉOS ET PLAYERS */
+  /* Force ZÃ©ro sur tous les conteneurs gÃ©nÃ©rÃ©s - SAUF DUO PHOTOS, VIDÃ‰OS ET PLAYERS */
   .article-body-premium div:not(.duo-photos-premium):not(.youtube-player-widget):not(.spotify-compact-widget):not(.beatport-compact-widget):not(.applemusic-compact-widget):not(.deezer-compact-widget):not(.youtube-gallery-grid):not(.gallery-premium-grid):not(.spotify-player-widget):not(.media-player-widget):not(.video-wrapper):not([class*="festival-"]),
   .article-body-premium section,
   .article-body-premium article,
@@ -411,7 +411,7 @@ body {
     overflow: visible !important;
   }
 
-  /* Paragraphes Centrés - Petit espace constant */
+  /* Paragraphes CentrÃ©s - Petit espace constant */
   .article-body-premium p {
     @apply text-center text-gray-300 leading-[1.8] text-base md:text-lg font-light mx-auto;
     margin-bottom: 45px !important;
@@ -507,7 +507,7 @@ body {
     box-shadow: 0 0 50px rgba(0, 255, 163, 0.25) !important;
   }
 
-  /* Titres Internes - Force compacité */
+  /* Titres Internes - Force compacitÃ© */
   .article-body-premium h1 {
     display: none !important;
   }
@@ -567,7 +567,7 @@ body {
   .article-body-premium picture {
     @apply shadow-2xl mx-auto block;
     image-rendering: -webkit-optimize-contrast;
-    will-change: transform, filter;
+    /* will-change removed: stacking context issue */
     margin: 4rem auto !important;
     display: block !important;
     float: none !important;
@@ -576,12 +576,12 @@ body {
     max-width: 100% !important;
     height: auto;
     border-radius: 12px !important;
-    position: relative !important;
+    position: static !important;
     padding: 0 !important;
     object-fit: cover !important;
   }
 
-  /* === EFFET FESTIVAL PRO (ACTIVÉ LORS DE LA CRÉATION/ÉDITION) === */
+  /* === EFFET FESTIVAL PRO (ACTIVÃ‰ LORS DE LA CRÃ‰ATION/Ã‰DITION) === */
   .pro-filter-active .article-body-premium img,
   .pro-filter-active .gallery-premium-grid img,
   .pro-filter-active .article-gallery-item img,
@@ -595,7 +595,7 @@ body {
     justify-items: center !important;
   }
 
-  /* YouTube Gallery Grid - Grille multi-vidéos dans les articles */
+  /* YouTube Gallery Grid - Grille multi-vidÃ©os dans les articles */
   .youtube-gallery-grid {
     display: grid !important;
     gap: 1.5rem !important;
@@ -695,7 +695,7 @@ body {
     width: 100% !important;
   }
 
-  /* Forcer la largeur des colonnes à 100% pour éviter le côte à côte */
+  /* Forcer la largeur des colonnes Ã  100% pour Ã©viter le cÃ´te Ã  cÃ´te */
   .article-body-premium .jw-columns,
   .article-body-premium .jw-column {
     display: block !important;
@@ -956,7 +956,7 @@ body {
 /* --- MOBILE PERFORMANCE OPTIMIZATIONS (Safari-Optimized) --- */
 @media (max-width: 1024px) {
 
-  /* Garder le même fond sombre que sur PC */
+  /* Garder le mÃªme fond sombre que sur PC */
   :root {
     --color-dark-bg: #0a0a0a;
   }
@@ -1241,5 +1241,6 @@ iframe#tv-yt-player {
   transform: scale(1.25);
   box-shadow: 0 0 14px #ff7700, 0 0 24px rgba(255, 102, 0, 1);
 }
+
 
 

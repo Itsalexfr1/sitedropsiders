@@ -4379,6 +4379,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const [isCarouselPromoActive, setIsCarouselPromoActive] = useState<boolean>(false);
     const [promoBgImage, setPromoBgImage] = useState<string>('');
     const [promoBgVideo, setPromoBgVideo] = useState<HTMLVideoElement | null>(null);
+    const promoBgImageRef = useRef<string>('');
+    const promoBgVideoRef = useRef<HTMLVideoElement | null>(null);
     const promoBgVideoBlobRef = useRef<Blob | null>(null);
 
     useEffect(() => {
@@ -5834,8 +5836,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 const currentBlankItem = editorialBlankSlides[effectiveBlankIdx];
 
                 const isSpotlightArtistSlide = (theme === 'SPOTLIGHT' || theme === 'ARTISTE FESTIVAL') && artisteFestivalSlide >= 2;
+                const effectivePromoBgImage = promoBgImageRef.current || promoBgImage;
+                const effectivePromoBgVideo = promoBgVideoRef.current || promoBgVideo;
                 const activeSlideImgSrc = isPromoRequested
-                    ? (promoBgImage || editorialSlideImages[1] || bgImage)
+                    ? (effectivePromoBgImage || editorialSlideImages[1] || bgImage)
                     : isCurrentSlideAffiche
                         ? (currentSlideAfficheUrl || bgImage)
                         : isEditorialBlankRequested
@@ -6137,9 +6141,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                 const isTopTheme = (parentTheme === 'TOP 10 TRACKS' || parentTheme.startsWith('TOP 10') || parentTheme.startsWith('TOP 5') || theme === 'TOP 10 TRACKS' || promoCategory === 'TOP 10 TRACKS');
                 
-                // Vidéo spécifique à la slide active ou vidéo globale (seulement sur Slide 1 Cover par défaut)
+                // Vidéo spécifique à la slide active ou vidéo globale (Slide 1 Cover, et Promo si héritée ou dédiée)
                 const isCoverSlide = effectiveEditorialSlide === 1 && !isEditorialAfficheRequested && !isEditorialBlankRequested && !isEditorialTweetRequested && !isPromoRequested;
-                const isAllowedSlideForVideo = Boolean(isCoverSlide || (bgVideoContinueAcrossSlides && !isEditorialBlankRequested && !isPromoRequested));
+                const activePromoVideo = isPromoRequested ? (effectivePromoBgVideo || (!effectivePromoBgImage ? bgVideo : null)) : null;
+                const isAllowedSlideForVideo = Boolean(isCoverSlide || (isPromoRequested && Boolean(activePromoVideo)) || (bgVideoContinueAcrossSlides && !isEditorialBlankRequested));
                 const slideSpecificVideoUrl = editorialSlideVideos[effectiveEditorialSlide];
                 const slideSpecificVideoEl = slideSpecificVideoUrl ? (slideVideosRef.current[effectiveEditorialSlide] || (() => {
                     const vid = document.createElement('video');
@@ -6154,15 +6159,16 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     return vid;
                 })()) : null;
 
-                const activeVideoToDraw = slideSpecificVideoEl || (isAllowedSlideForVideo ? bgVideo : null);
+                const activeVideoToDraw = isPromoRequested ? activePromoVideo : (slideSpecificVideoEl || (isAllowedSlideForVideo ? bgVideo : null));
 
-                const shouldUseBgVideo = activeVideoToDraw &&
+                const shouldUseBgVideo = Boolean(
+                    activeVideoToDraw &&
                     theme !== 'JEU_DJ' &&
                     !isEditorialBlankRequested &&
-                    !isPromoRequested &&
                     (!isMusiqueTrackSlide || (!musiqueCoverImg && !musiqueCoverUrl && !editorialSlideImages[effectiveEditorialSlide])) &&
                     (!isCurrentSlideAffiche || !hasAfficheVisual) &&
-                    (!editorialSlideImages[effectiveEditorialSlide] || effectiveEditorialSlide === 1);
+                    (!editorialSlideImages[effectiveEditorialSlide] || effectiveEditorialSlide === 1 || isPromoRequested)
+                );
 
                 if (isEditorialBlankRequested && blankVideoEl && (blankVideoEl.videoWidth > 0 || blankVideoEl.readyState >= 2)) {
                     const baseScale = Math.max(canvas.width / blankVideoEl.videoWidth, canvas.height / blankVideoEl.videoHeight);
@@ -6172,15 +6178,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     let x = ((canvas.width - vw) / 2) + bgOffsetX + bgAnimX;
                     let y = ((canvas.height - vh) / 2) + bgOffsetY + bgAnimY;
                     ctx.drawImage(blankVideoEl, x, y, vw, vh);
-                } else if (isPromoRequested && promoBgVideo && (promoBgVideo.videoWidth > 0 || promoBgVideo.readyState >= 2)) {
-                    const baseScale = Math.max(canvas.width / promoBgVideo.videoWidth, canvas.height / promoBgVideo.videoHeight);
-                    const scale = baseScale * bgAnimScale;
-                    const vw = promoBgVideo.videoWidth * scale;
-                    const vh = promoBgVideo.videoHeight * scale;
-                    let x = ((canvas.width - vw) / 2) + bgOffsetX + bgAnimX;
-                    let y = ((canvas.height - vh) / 2) + bgOffsetY + bgAnimY;
-                    ctx.drawImage(promoBgVideo, x, y, vw, vh);
-                } else if (shouldUseBgVideo && activeVideoToDraw) {
+                } else if (shouldUseBgVideo && activeVideoToDraw && (activeVideoToDraw.videoWidth > 0 || activeVideoToDraw.readyState >= 2)) {
                     const baseScale = Math.max(canvas.width / activeVideoToDraw.videoWidth, canvas.height / activeVideoToDraw.videoHeight);
                     const scale = baseScale * bgAnimScale;
                     const vw = activeVideoToDraw.videoWidth * scale;
@@ -13481,11 +13479,13 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     const titleLineHeight = Math.round(titleFontSize * (isFocusReelHook ? 1.15 : (isDevinetteReveal ? 1.15 : 1.18)));
                     let titleHeight = mainTitleText ? (titleLines.length * titleLineHeight) : 0;
 
-                    // 2. Définition et préparation du Sous-titre / Réponse (64px sur la Révélation pour être identique au Titre et à NEWS)
+                    // 2. Définition et préparation du Sous-titre / Réponse (taille harmonisée et constante sur les slides de détail)
                     const subFontWeight = isDevinetteReveal ? '900' : '400';
                     let subFontSize = isDevinetteReveal
                         ? 64
-                        : (!mainTitleText ? (isReel ? 64 : 58) : (isEditorialCarouselTheme ? 40 : 34));
+                        : (!mainTitleText 
+                            ? ((effectiveEditorialSlide >= 2 && isEditorialCarouselTheme) ? (isReel ? 44 : 40) : (isReel ? 64 : 58))
+                            : (isEditorialCarouselTheme ? 40 : 34));
 
                     const formatSubLines = (fSize: number) => {
                         ctx.font = `italic ${subFontWeight} ${fSize}px "Montserrat", sans-serif`;
@@ -14247,7 +14247,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             anim = requestAnimationFrame(loop);
         } else { generateImage(); }
         return () => cancelAnimationFrame(anim);
-    }, [bgImage, bgVideo, customText, theme, showSwipe, showArticleLink, articleLinkText, showVoteLink, top5Items, currentPreviewIndex, activeTab, rotation, themeColor, isVideoRecording, transitionProgress, showText, planningDate, planningItems, agendaMonth, agendaBadgeText, agendaSlide, agendaCoverBadge, agendaCoverTitle, agendaCoverYear, agendaCoverGenres, agendaCoverCta, showAgendaCoverCta, artisteFestivalSlide, extraSpotlightSlides, spotlightSlidesData, festivalIntroTitle, eventsSlide, editorialSlide, isEditorialAfficheActive, isEditorialTweetActive, isEditorialBlankActive, editorialAffiches, editorialAfficheIndex, editorialBlankSlides, editorialBlankIndex, showTitleOnSlide2, showMusicDate, editorialDate, showDividerDate, citationAuthor, citationMedia, extraEditorialSlides, musicTracks, top10Tracks, top10ActiveRank, top10Title, top10IntroTitle, top10IntroArtist, top10ColoredWords, top10LogoScale, top10Subtitle, top10TrackDuration, top10TestingRank, top10GenMode, top10Badge, top10LabelSearch, top10StyleSearch, top10ArtistSearch, top100Rank, top100ArtistName, top100Category, top100Badge, top100AnimKey, calendarMonth, calendarEvents, isRetouchMode, retouchPath, isTransparent, showBottomLogo, artistLogo, festivalLogo, bgOffsetX, bgOffsetY, artistNameText, festivalNameText, isArtistLogoNegative, mapFestivalText, mapCityCountry, mapZoom, mapLatitude, mapLongitude, mapStyle, isMapLoading, mapPinColor, mapLabelText, showMapPin, showMapLabel, mapAnimMode, isMapAnimPlaying, mapScrubTime, mapAnimDuration, mapDestLatitude, mapDestLongitude, mapDestFestivalText, mapDestVenue, mapDestCity, mapDestCountry, mapDestPinColor, imgLayoutMode, quizColor1, quizColor2, showFrame, focusReelStyle, conseilsTitle, conseilsSubtext, isConseilsLargeTitle, concoursFestivalName, concoursFestivalHandle, concoursBottomColor, concoursLateralText, concoursLateralOpacity, concoursBadgeTextColor, concoursMode, concoursGTAHeadline, concoursGTATitle, concoursGTAPlatformText, concoursGTACondition1, concoursGTACondition2, concoursGTACondition3, concoursGTACondition4, afficheImage, afficheGlow, afficheBorderColor, afficheMode, afficheScale, afficheOffsetY, tweetImage, tweetScale, tweetOffsetY, tweetGlow, tweetHeadline, tweetBadge, tweetBorderColor, tweetTranslation, showTweetTranslation, tweetAnimMode, textAnimation, animReplayKey, bgAnimation, cdjPlayerRing, musicBgMotion, isCarouselPromoActive, promoCustomPhrase, promoCustomSubphrase, promoOutroStyle, isPromoAnimPlaying, promoCategory, showPromoHook, showPromoHeadline, showPromoLine1, showPromoLine2, djCutoutImage, djOriginalImage, djSilhouetteColor, djGlowIntensity, djShowQuestionMark, djAppearanceAnim, editorialSlideImages, editorialSlideCutouts, editorialSlideTitles, djSlideModes, agendaAffiches, highlightsSlideArtists, highlightsColorArtist, highlightsColorFestival, highlightsColorCity, highlightsColorCountry, highlightsColorDate, afficheImgZoom, afficheImgPanX, afficheImgPanY]);
+    }, [bgImage, bgVideo, customText, theme, showSwipe, showArticleLink, articleLinkText, showVoteLink, top5Items, currentPreviewIndex, activeTab, rotation, themeColor, isVideoRecording, transitionProgress, showText, planningDate, planningItems, agendaMonth, agendaBadgeText, agendaSlide, agendaCoverBadge, agendaCoverTitle, agendaCoverYear, agendaCoverGenres, agendaCoverCta, showAgendaCoverCta, artisteFestivalSlide, extraSpotlightSlides, spotlightSlidesData, festivalIntroTitle, eventsSlide, editorialSlide, isEditorialAfficheActive, isEditorialTweetActive, isEditorialBlankActive, editorialAffiches, editorialAfficheIndex, editorialBlankSlides, editorialBlankIndex, showTitleOnSlide2, showMusicDate, editorialDate, showDividerDate, citationAuthor, citationMedia, extraEditorialSlides, musicTracks, top10Tracks, top10ActiveRank, top10Title, top10IntroTitle, top10IntroArtist, top10ColoredWords, top10LogoScale, top10Subtitle, top10TrackDuration, top10TestingRank, top10GenMode, top10Badge, top10LabelSearch, top10StyleSearch, top10ArtistSearch, top100Rank, top100ArtistName, top100Category, top100Badge, top100AnimKey, calendarMonth, calendarEvents, isRetouchMode, retouchPath, isTransparent, showBottomLogo, artistLogo, festivalLogo, bgOffsetX, bgOffsetY, artistNameText, festivalNameText, isArtistLogoNegative, mapFestivalText, mapCityCountry, mapZoom, mapLatitude, mapLongitude, mapStyle, isMapLoading, mapPinColor, mapLabelText, showMapPin, showMapLabel, mapAnimMode, isMapAnimPlaying, mapScrubTime, mapAnimDuration, mapDestLatitude, mapDestLongitude, mapDestFestivalText, mapDestVenue, mapDestCity, mapDestCountry, mapDestPinColor, imgLayoutMode, quizColor1, quizColor2, showFrame, focusReelStyle, conseilsTitle, conseilsSubtext, isConseilsLargeTitle, concoursFestivalName, concoursFestivalHandle, concoursBottomColor, concoursLateralText, concoursLateralOpacity, concoursBadgeTextColor, concoursMode, concoursGTAHeadline, concoursGTATitle, concoursGTAPlatformText, concoursGTACondition1, concoursGTACondition2, concoursGTACondition3, concoursGTACondition4, afficheImage, afficheGlow, afficheBorderColor, afficheMode, afficheScale, afficheOffsetY, tweetImage, tweetScale, tweetOffsetY, tweetGlow, tweetHeadline, tweetBadge, tweetBorderColor, tweetTranslation, showTweetTranslation, tweetAnimMode, textAnimation, animReplayKey, bgAnimation, cdjPlayerRing, musicBgMotion, isCarouselPromoActive, promoCustomPhrase, promoCustomSubphrase, promoOutroStyle, isPromoAnimPlaying, promoCategory, showPromoHook, showPromoHeadline, showPromoLine1, showPromoLine2, djCutoutImage, djOriginalImage, djSilhouetteColor, djGlowIntensity, djShowQuestionMark, djAppearanceAnim, editorialSlideImages, editorialSlideCutouts, editorialSlideTitles, djSlideModes, agendaAffiches, highlightsSlideArtists, highlightsColorArtist, highlightsColorFestival, highlightsColorCity, highlightsColorCountry, highlightsColorDate, afficheImgZoom, afficheImgPanX, afficheImgPanY, promoBgImage, promoBgVideo]);
 
     // Rejouer l'animation de texte proprement depuis le début à chaque changement de slide, track ou de thème
     useEffect(() => {
@@ -14384,14 +14384,23 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 video.playsInline = true;
                 video.muted = true;
                 ensureVideoMountedInDOM(video);
-                video.play().catch(() => { });
+                promoBgVideoRef.current = video;
+                promoBgImageRef.current = '';
                 setPromoBgVideo(video);
                 setPromoBgImage('');
+                video.onloadeddata = () => {
+                    video.play().catch(() => { });
+                    generateImage();
+                };
+                video.play().catch(() => { });
             } else {
                 const img = new Image();
                 img.crossOrigin = "anonymous";
                 img.onload = () => {
                     imageCacheRef.current[url] = img;
+                    imageCacheRef.current[resolveImageUrl(url)] = img;
+                    promoBgImageRef.current = url;
+                    promoBgVideoRef.current = null;
                     setPromoBgImage(url);
                     setPromoBgVideo(null);
                     generateImage();
@@ -16112,7 +16121,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         : (editorialSlideOverrideRef.current !== null ? editorialSlideOverrideRef.current : editorialSlide);
                         const sAudio = currentSlideAudios[targetAudioKey]?.url
                             ? currentSlideAudios[targetAudioKey]
-                            : (videoAudioExportModeRef.current === 'CUSTOM_AUDIO' ? slide1OrGlobalAudio : (targetAudioKey === 1 ? slide1OrGlobalAudio : null));
+                            : (videoAudioExportModeRef.current === 'ALL_SLIDES' || videoAudioExportModeRef.current === 'CUSTOM_AUDIO' || !bgVideo || targetAudioKey === 1 || isEffectivePromo
+                                ? slide1OrGlobalAudio
+                                : null);
                         if (sAudio?.url) {
                             audioSegments.push({
                                 url: sAudio.url,
@@ -33492,13 +33503,19 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 video.playsInline = true;
                                 video.currentTime = 0;
                                 ensureVideoMountedInDOM(video);
+                                promoBgVideoRef.current = video;
+                                promoBgImageRef.current = '';
+                                setPromoBgVideo(video);
+                                setPromoBgImage('');
+                                video.onloadeddata = () => {
+                                    video.play().catch(() => { });
+                                    generateImage();
+                                };
                                 video.play().catch(() => { });
                                 fetch(finalUrl)
                                     .then(r => r.ok ? r.blob() : null)
                                     .then(b => { if (b) promoBgVideoBlobRef.current = b; })
                                     .catch(() => { });
-                                setPromoBgVideo(video);
-                                setPromoBgImage('');
                                 setTimeout(() => generateImage(), 50);
                             } else {
                                 const img = new Image();
@@ -33506,6 +33523,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 img.onload = () => {
                                     imageCacheRef.current[finalUrl] = img;
                                     imageCacheRef.current[resolveImageUrl(finalUrl)] = img;
+                                    promoBgImageRef.current = finalUrl;
+                                    promoBgVideoRef.current = null;
                                     setPromoBgImage(finalUrl);
                                     setPromoBgVideo(null);
                                     generateImage();

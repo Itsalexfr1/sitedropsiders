@@ -1634,7 +1634,7 @@ export function NewsCreate() {
 
         const content = `<div class="premium-image-float-container" ${sectionWrapperAttribs} style="${sectionWrapperStyles}">
   <div class="${layoutClasses} ${aspectClass}">
-    <img src="${url}" alt="Image" class="${imgClass} transform group-hover:scale-105 transition-transform duration-700" />
+    <img src="${url}" alt="Image" class="${imgClass}" />
   </div>
 </div>`;
 
@@ -2118,7 +2118,7 @@ export function NewsCreate() {
 
             content = `<div class="premium-image-float-container" ${sectionWrapperAttribs} style="${sectionWrapperStyles}">
   <div class="${layoutClasses} ${aspectClass}">
-    <img src="${url}" alt="Image" class="${imgClass} transform group-hover:scale-105 transition-transform duration-700" />
+    <img src="${url}" alt="Image" class="${imgClass}" />
   </div>
 </div>`;
         } else if (type === 'video' && url) {
@@ -2160,7 +2160,7 @@ ${videoIds.map(id => `  <div class="youtube-player-widget">
             const colClass = cols === 2 ? 'grid-cols-2' : cols === 3 ? 'grid-cols-3' : 'grid-cols-2 lg:grid-cols-4';
             content = `<div class="gallery-premium-grid grid grid-cols-1 ${colClass} gap-6 my-12" data-cols="${cols}">
 ${urlList.map(u => `  <div class="article-gallery-item aspect-square relative overflow-hidden rounded-2xl border border-white/10 group shadow-2xl">
-<img src="${u}" class="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
+<img src="${u}" class="absolute inset-0 w-full h-full object-cover" />
   </div>`).join('\n')
                 }
 </div>`;
@@ -4353,7 +4353,7 @@ ${generateSocialsHtml()}
                                                     </div>
                                                 ) : (
                                                     <div className="relative rounded-2xl overflow-hidden border border-white/10 bg-black/40 p-4 shadow-xl">
-                                                        <div className="article-body-premium transform scale-[0.8] origin-top opacity-90 pointer-events-none mb-[-20%]" dangerouslySetInnerHTML={{ __html: standardizeContent(widget.content) }} />
+                                                        <div className="article-body-premium opacity-90 pointer-events-none" dangerouslySetInnerHTML={{ __html: standardizeContent(widget.content) }} />
                                                         <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-[2px]">
                                                             <div className="bg-white/10 backdrop-blur-md rounded-full p-4 border border-white/20">
                                                                 <ImageIcon className="w-8 h-8 text-white" />
@@ -5299,7 +5299,7 @@ ${generateSocialsHtml()}
                                                     </div>
                                                 ) : (
                                                     <div className="relative rounded-2xl overflow-hidden border border-white/10 bg-black/40 p-4 shadow-xl">
-                                                        <div className="article-body-premium transform scale-[0.8] origin-top opacity-90 pointer-events-none mb-[-20%]" dangerouslySetInnerHTML={{ __html: standardizeContent(widget.content) }} />
+                                                        <div className="article-body-premium opacity-90 pointer-events-none" dangerouslySetInnerHTML={{ __html: standardizeContent(widget.content) }} />
                                                     </div>
                                                 )
                                             )}
