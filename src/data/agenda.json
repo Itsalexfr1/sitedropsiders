@@ -590,5 +590,24 @@
     "isSoldOut": false,
     "isLiveDropsiders": false,
     "additionalDates": []
+  },
+  {
+    "id": 1156,
+    "title": "So W'Happy 2027",
+    "date": "2027-07-02",
+    "startDate": "2027-07-02",
+    "endDate": "2027-07-04",
+    "venue": "",
+    "location": "RONGY",
+    "country": "BELGIQUE",
+    "type": "Festival",
+    "image": "/uploads/uploads/7163d6e978914004-snapgram_io_8n8jkypl10pn.jpg",
+    "url": "https://my.weezevent.com/so-whappy-festival-2027?fbclid=IwY2xjawUWGWtwZG9mBWV4dG4DYWVtAjEwAGJyaWQRMEVwdm9WZmtmandtNm9GOUlzcnRjBmFwcF9pZBAyMjIwMzkxNzg4MjAwODkyAAEefBvd-fzkyd99-6yZbqqUigy4LuKQbddVmT1P7jWEZGcJILYW5g1RZg6jVks_aem_0i_LnNbHvRu8dZ3A_ID7ig",
+    "genre": "Hard Music",
+    "month": "JUILLET",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false,
+    "additionalDates": []
   }
 ]
