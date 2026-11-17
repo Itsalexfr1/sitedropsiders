@@ -1,20 +1,25 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Mail, Trash2, Reply, Send, X, User, Clock, Calendar, MessageSquare, CheckCircle, CheckCircle2, Check, AlertCircle, ShieldAlert, Inbox, Plus, Archive, FileText, Video, Paperclip, ExternalLink, File as FileIcon, Eye, Ban, ShieldCheck, Camera, RotateCw, Sparkles } from 'lucide-react';
+import { ArrowLeft, Mail, Trash2, Reply, Send, X, User, Clock, Calendar, MessageSquare, CheckCircle, CheckCircle2, Check, AlertCircle, ShieldAlert, Inbox, Plus, Archive, FileText, Video, Paperclip, ExternalLink, File as FileIcon, Eye, Ban, ShieldCheck, Camera, RotateCw, Sparkles, ChevronDown } from 'lucide-react';
 import { getAuthHeaders, isSuperAdmin, apiFetch, hasPermission } from '../utils/auth';
 import teamData from '../data/team.json';
 
 const EDITOR_COLORS = ['#FF1241', '#00FFFF', '#BF00FF', '#39FF14', '#FFF01F', '#FF5E00', '#E91E63', '#2196F3', '#FF9800', '#4CAF50'];
 
 const getEditorColor = (username: string) => {
-    const normalized = username.toLowerCase();
-    if (normalized === 'alex') return '#FF1241';
+    const normalized = (username || '').toLowerCase().trim();
+    if (normalized === 'alex' || normalized.includes('alexandre')) return '#FF1241';
     if (normalized === 'tanguy') return '#00FFFF';
     if (normalized === 'julien') return '#BF00FF';
     if (normalized === 'tiffany') return '#39FF14';
     if (normalized === 'kevin') return '#FFF01F';
-    if (normalized === 'guiyoome') return '#FF5E00';
+    if (normalized === 'guiyoome' || normalized.includes('guillaume') || normalized.includes('guyhome')) return '#FF5E00';
+    if (normalized === 'maori') return '#E91E63';
+    if (normalized === 'justin') return '#2196F3';
+    if (normalized === 'timeo') return '#FF9800';
+    if (normalized === 'hugo') return '#00E5FF';
+    if (normalized === 'caroline') return '#F50057';
     let hash = 0;
     for (let i = 0; i < normalized.length; i++) {
         hash = normalized.charCodeAt(i) + ((hash << 5) - hash);
@@ -215,6 +220,187 @@ export function AdminMessages() {
     const [viewHtmlOriginal, setViewHtmlOriginal] = useState(false);
 
     const [selectedEditorFilter, setSelectedEditorFilter] = useState<string>('all');
+    const [isEditorDropdownOpen, setIsEditorDropdownOpen] = useState(false);
+    const [editorSearchQuery, setEditorSearchQuery] = useState('');
+    const editorDropdownRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const handleClickOutside = (e: MouseEvent) => {
+            if (editorDropdownRef.current && !editorDropdownRef.current.contains(e.target as Node)) {
+                setIsEditorDropdownOpen(false);
+            }
+        };
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') setIsEditorDropdownOpen(false);
+        };
+        if (isEditorDropdownOpen) {
+            document.addEventListener('mousedown', handleClickOutside);
+            document.addEventListener('keydown', handleKeyDown);
+        }
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+            document.removeEventListener('keydown', handleKeyDown);
+        };
+    }, [isEditorDropdownOpen]);
+
+    const availableEditors = useMemo(() => {
+        const map = new Map<string, {
+            id: string;
+            name: string;
+            username: string;
+            pseudo?: string;
+            email?: string;
+            dropsiders_email?: string;
+            role?: string;
+            avatar?: string;
+            color: string;
+        }>();
+
+        // 1. Toujours inclure Alex en premier
+        map.set('alex', {
+            id: 'alex',
+            name: 'Alex',
+            username: 'Alex',
+            pseudo: 'Alex',
+            email: 'alexflex30@gmail.com',
+            dropsiders_email: 'alex@dropsiders.fr',
+            role: 'Fondateur',
+            color: getEditorColor('alex')
+        });
+
+        // 2. Membres de team.json
+        if (Array.isArray(teamData)) {
+            teamData.forEach((t: any) => {
+                const rawName = (t.name || '').trim();
+                const key = rawName.toLowerCase();
+                if (!key) return;
+                const existing = map.get(key) || {} as any;
+                map.set(key, {
+                    id: key,
+                    name: t.name,
+                    username: t.name,
+                    pseudo: t.name,
+                    email: t.email || existing.email,
+                    dropsiders_email: t.dropsiders_email || existing.dropsiders_email,
+                    role: t.role || existing.role,
+                    avatar: t.image || existing.avatar,
+                    color: getEditorColor(t.name)
+                });
+            });
+        }
+
+        // 3. Éditeurs de /api/editors
+        if (Array.isArray(editors)) {
+            editors.forEach((e: any) => {
+                const rawName = (e.username || e.name || e.pseudo || '').trim();
+                const key = rawName.toLowerCase();
+                if (!key) return;
+                const existing = map.get(key) || {} as any;
+                map.set(key, {
+                    id: key,
+                    name: e.name || e.username || existing.name || rawName,
+                    username: e.username || e.name || existing.username || rawName,
+                    pseudo: e.pseudo || existing.pseudo,
+                    email: e.email || existing.email,
+                    dropsiders_email: e.dropsiders_email || existing.dropsiders_email,
+                    role: e.role || existing.role,
+                    avatar: (e as any).avatar || existing.avatar,
+                    color: getEditorColor(rawName)
+                });
+            });
+        }
+
+        const list = Array.from(map.values());
+        return list.sort((a, b) => {
+            if (a.id === 'alex') return -1;
+            if (b.id === 'alex') return 1;
+            return a.name.localeCompare(b.name, 'fr');
+        });
+    }, [editors]);
+
+    const matchEditorForSent = (msg: any, ed: { username?: string; name?: string; pseudo?: string; email?: string; dropsiders_email?: string; id?: string }) => {
+        const author = (msg.author || '').toLowerCase().trim();
+        const signer = (msg.signer || '').toLowerCase().trim();
+        const authorEmail = (msg.authorEmail || '').toLowerCase().trim();
+        const from = (msg.from || '').toLowerCase().trim();
+
+        const u = (ed.username || '').toLowerCase().trim();
+        const n = (ed.name || '').toLowerCase().trim();
+        const p = (ed.pseudo || '').toLowerCase().trim();
+        const id = (ed.id || '').toLowerCase().trim();
+        const dEmail = (ed.dropsiders_email || '').toLowerCase().trim();
+        const pEmail = (ed.email || '').toLowerCase().trim();
+
+        if (author) {
+            if (u && author === u) return true;
+            if (n && author === n) return true;
+            if (p && author === p) return true;
+            if (id && author === id) return true;
+            if (dEmail && author === dEmail) return true;
+            if (pEmail && author === pEmail) return true;
+            if ((u === 'alex' || id === 'alex') && (author.includes('alex') || author.includes('itsalexfr1'))) return true;
+        }
+
+        if (authorEmail) {
+            if (dEmail && authorEmail === dEmail) return true;
+            if (pEmail && authorEmail === pEmail) return true;
+            if (u && (authorEmail.includes(u) || authorEmail.startsWith(`${u}@`))) return true;
+        }
+
+        if (from) {
+            if (dEmail && from === dEmail) return true;
+            if (pEmail && from === pEmail) return true;
+            if (u && (from.includes(u) || from.startsWith(`${u}@`))) return true;
+        }
+
+        if (signer) {
+            if (u && (signer === u || signer.includes(u))) return true;
+            if (n && (signer === n || signer.includes(n))) return true;
+            if (p && (signer === p || signer.includes(p))) return true;
+            if (id && (signer === id || signer.includes(id))) return true;
+            if ((u === 'alex' || id === 'alex') && (signer.includes('alex') || signer.includes('alexandre'))) return true;
+        }
+
+        if (u.includes('(')) {
+            const words = u.replace(/[()]/g, ' ').split(/\s+/).filter(w => w.length > 2);
+            for (const w of words) {
+                if (author.includes(w) || signer.includes(w) || authorEmail.includes(w) || from.includes(w)) return true;
+            }
+        }
+
+        return false;
+    };
+
+    const matchEditorForReceived = (msg: ContactMessage, ed: { username?: string; name?: string; pseudo?: string; email?: string; dropsiders_email?: string; id?: string }) => {
+        if (!msg.recipient) return false;
+        const r = msg.recipient.toLowerCase().trim();
+        if (!r) return false;
+
+        const u = (ed.username || '').toLowerCase().trim();
+        const n = (ed.name || '').toLowerCase().trim();
+        const p = (ed.pseudo || '').toLowerCase().trim();
+        const id = (ed.id || '').toLowerCase().trim();
+        const dEmail = (ed.dropsiders_email || '').toLowerCase().trim();
+        const pEmail = (ed.email || '').toLowerCase().trim();
+
+        if (dEmail && r === dEmail) return true;
+        if (pEmail && r === pEmail) return true;
+
+        if (u && (r === u || r.includes(u) || r === `${u}@dropsiders.fr` || r === `${u}@crew.dropsiders.fr`)) return true;
+        if (n && (r === n || r.includes(n) || r === `${n}@dropsiders.fr` || r === `${n}@crew.dropsiders.fr`)) return true;
+        if (p && (r === p || r.includes(p))) return true;
+        if (id && (r === id || r.includes(id))) return true;
+        if ((u === 'alex' || id === 'alex') && (r.includes('alex') || r.includes('alexflex30'))) return true;
+
+        if (u.includes('(')) {
+            const words = u.replace(/[()]/g, ' ').split(/\s+/).filter(w => w.length > 2);
+            for (const w of words) {
+                if (r.includes(w)) return true;
+            }
+        }
+
+        return false;
+    };
 
     const currentEditor = useMemo(() => {
         if (!adminUser) return null;
@@ -224,9 +410,26 @@ export function AdminMessages() {
         );
     }, [editors, adminUser]);
 
-    // Seul Alex voit tous les messages envoyés de tout le monde. Les autres ne voient QUE les leurs.
+    // Pour Alex : filtre selon l'éditeur sélectionné (ou 'all' ou 'general'). Pour les autres : leurs propres messages uniquement.
     const filteredSentMessages = useMemo(() => {
-        if (isAlex) return sentMessages;
+        if (isAlex) {
+            if (selectedEditorFilter === 'all') return sentMessages;
+            if (selectedEditorFilter === 'general') {
+                return sentMessages.filter(m => (m.from && m.from.toLowerCase() === 'contact@dropsiders.fr') || (m.authorEmail && m.authorEmail.toLowerCase() === 'contact@dropsiders.fr'));
+            }
+            const targetEditor = availableEditors.find(e => e.id === selectedEditorFilter || e.username.toLowerCase() === selectedEditorFilter || e.name.toLowerCase() === selectedEditorFilter);
+            if (targetEditor) {
+                return sentMessages.filter(m => matchEditorForSent(m, targetEditor));
+            }
+            const filterLower = selectedEditorFilter.toLowerCase();
+            return sentMessages.filter(m => {
+                const author = (m.author || '').toLowerCase();
+                const signer = (m.signer || '').toLowerCase();
+                const authorEmail = (m.authorEmail || '').toLowerCase();
+                const from = (m.from || '').toLowerCase();
+                return author.includes(filterLower) || signer.includes(filterLower) || authorEmail.includes(filterLower) || from.includes(filterLower);
+            });
+        }
         if (!currentEditor) {
             const myU = (adminUser || '').toLowerCase().trim();
             return sentMessages.filter((m: any) => {
@@ -248,7 +451,7 @@ export function AdminMessages() {
             if (myDropsiders && authorEmail === myDropsiders) return true;
             return false;
         });
-    }, [sentMessages, isAlex, currentEditor, adminUser]);
+    }, [sentMessages, isAlex, currentEditor, adminUser, selectedEditorFilter, availableEditors]);
 
     const currentSignerInfo = useMemo(() => {
         const defaultAlex = {
@@ -1383,6 +1586,10 @@ Alex (Dropsiders)`;
         if (selectedEditorFilter === 'general') {
             return inbox.filter(m => !m.recipient || m.recipient.toLowerCase() === 'contact@dropsiders.fr' || m.recipient.toLowerCase() === 'info@dropsiders.fr' || m.recipient.toLowerCase() === 'general');
         }
+        const targetEditor = availableEditors.find(e => e.id === selectedEditorFilter || e.username.toLowerCase() === selectedEditorFilter || e.name.toLowerCase() === selectedEditorFilter);
+        if (targetEditor) {
+            return inbox.filter(m => matchEditorForReceived(m, targetEditor));
+        }
         // Dynamic: match by username or email
         const filterLower = selectedEditorFilter.toLowerCase();
         return inbox.filter(m => {
@@ -1390,7 +1597,7 @@ Alex (Dropsiders)`;
             const recip = m.recipient.toLowerCase();
             return recip === `${filterLower}@dropsiders.fr` || recip === `${filterLower}@crew.dropsiders.fr` || recip === filterLower || recip.includes(filterLower);
         });
-    }, [messages, isAlex, selectedEditorFilter, currentEditor, adminUser]);
+    }, [messages, isAlex, selectedEditorFilter, currentEditor, adminUser, availableEditors]);
 
     const filteredArchivedMessages = useMemo(() => {
         const archived = messages.filter(m => m.archived);
@@ -1424,13 +1631,17 @@ Alex (Dropsiders)`;
         if (selectedEditorFilter === 'general') {
             return archived.filter(m => !m.recipient || m.recipient.toLowerCase() === 'contact@dropsiders.fr' || m.recipient.toLowerCase() === 'info@dropsiders.fr' || m.recipient.toLowerCase() === 'general');
         }
+        const targetEditor = availableEditors.find(e => e.id === selectedEditorFilter || e.username.toLowerCase() === selectedEditorFilter || e.name.toLowerCase() === selectedEditorFilter);
+        if (targetEditor) {
+            return archived.filter(m => matchEditorForReceived(m, targetEditor));
+        }
         const filterLower = selectedEditorFilter.toLowerCase();
         return archived.filter(m => {
             if (!m.recipient) return false;
             const recip = m.recipient.toLowerCase();
             return recip === `${filterLower}@dropsiders.fr` || recip === `${filterLower}@crew.dropsiders.fr` || recip === filterLower || recip.includes(filterLower);
         });
-    }, [messages, isAlex, selectedEditorFilter, currentEditor, adminUser]);
+    }, [messages, isAlex, selectedEditorFilter, currentEditor, adminUser, availableEditors]);
 
     const unreadCount = filteredMessages.filter(m => !m.read).length;
 
@@ -1599,47 +1810,271 @@ Alex (Dropsiders)`;
                             </button>
                         ))}
                     </div>
-                    {isAlex && (
+                    {isAlex && mailboxTab !== 'blocked' && (
                         <div className="flex items-center gap-1.5 p-2 overflow-x-auto no-scrollbar shrink-0" style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-                            {[
-                                { id: 'all', label: 'Tous', emoji: '📥' },
-                                { id: 'general', label: 'contact@dropsiders.fr', emoji: '📬' }
-                            ].map(filter => {
-                                const isActive = selectedEditorFilter === filter.id;
-                                const msgCount = filter.id === 'all'
-                                    ? messages.filter(m => !m.archived).length
-                                    : messages.filter(m => !m.archived && (!m.recipient || m.recipient.toLowerCase() === 'contact@dropsiders.fr' || m.recipient.toLowerCase() === 'info@dropsiders.fr' || m.recipient.toLowerCase() === 'general')).length;
-
-                                const color = filter.id === 'general' ? '#ff1241' : getEditorColor(filter.id);
-                                const isLightColor = ['#00ffff', '#39ff14', '#fff01f'].includes(color.toLowerCase());
-                                const tabStyle = getEditorTabStyle(filter.id, isActive);
-
+                            {/* TOUS */}
+                            {(() => {
+                                const isActive = selectedEditorFilter === 'all';
+                                const allCount = mailboxTab === 'sent'
+                                    ? sentMessages.length
+                                    : mailboxTab === 'archived'
+                                        ? messages.filter(m => m.archived).length
+                                        : messages.filter(m => !m.archived).length;
                                 return (
                                     <button
-                                        key={filter.id}
-                                        onClick={() => { setSelectedEditorFilter(filter.id); setSelected(null); setSelectedArchived(null); }}
+                                        onClick={() => { setSelectedEditorFilter('all'); setSelected(null); setSelectedArchived(null); setSelectedSent(null); setIsEditorDropdownOpen(false); }}
                                         className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-wider transition-all whitespace-nowrap shrink-0"
-                                        style={tabStyle}
+                                        style={getEditorTabStyle('all', isActive)}
                                     >
-                                        {filter.label}
-                                        {msgCount !== null && (
-                                            <span 
-                                                className="px-1.5 py-0.5 rounded-full text-[8px] font-black" 
-                                                style={{ 
-                                                    background: isActive 
-                                                        ? (isLightColor || filter.id === 'all' ? 'rgba(0,0,0,0.15)' : 'rgba(255,255,255,0.25)') 
-                                                        : 'rgba(255,255,255,0.08)',
-                                                    color: isActive 
-                                                        ? (isLightColor || filter.id === 'all' ? '#000000' : '#ffffff') 
-                                                        : 'rgba(255,255,255,0.4)'
-                                                }}
-                                            >
-                                                {msgCount}
-                                            </span>
-                                        )}
+                                        Tous
+                                        <span 
+                                            className="px-1.5 py-0.5 rounded-full text-[8px] font-black" 
+                                            style={{ 
+                                                background: isActive ? 'rgba(0,0,0,0.15)' : 'rgba(255,255,255,0.08)',
+                                                color: isActive ? '#000000' : 'rgba(255,255,255,0.4)'
+                                            }}
+                                        >
+                                            {allCount}
+                                        </span>
                                     </button>
                                 );
-                            })}
+                            })()}
+
+                            {/* CONTACT@DROPSIDERS.FR */}
+                            {(() => {
+                                const isActive = selectedEditorFilter === 'general';
+                                const generalCount = mailboxTab === 'sent'
+                                    ? sentMessages.filter(m => (m.from && m.from.toLowerCase() === 'contact@dropsiders.fr') || (m.authorEmail && m.authorEmail.toLowerCase() === 'contact@dropsiders.fr')).length
+                                    : mailboxTab === 'archived'
+                                        ? messages.filter(m => m.archived && (!m.recipient || m.recipient.toLowerCase() === 'contact@dropsiders.fr' || m.recipient.toLowerCase() === 'info@dropsiders.fr' || m.recipient.toLowerCase() === 'general')).length
+                                        : messages.filter(m => !m.archived && (!m.recipient || m.recipient.toLowerCase() === 'contact@dropsiders.fr' || m.recipient.toLowerCase() === 'info@dropsiders.fr' || m.recipient.toLowerCase() === 'general')).length;
+                                return (
+                                    <button
+                                        onClick={() => { setSelectedEditorFilter('general'); setSelected(null); setSelectedArchived(null); setSelectedSent(null); setIsEditorDropdownOpen(false); }}
+                                        className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-wider transition-all whitespace-nowrap shrink-0"
+                                        style={getEditorTabStyle('general', isActive)}
+                                    >
+                                        contact@dropsiders.fr
+                                        <span 
+                                            className="px-1.5 py-0.5 rounded-full text-[8px] font-black" 
+                                            style={{ 
+                                                background: isActive ? 'rgba(255,255,255,0.25)' : 'rgba(255,255,255,0.08)',
+                                                color: isActive ? '#ffffff' : 'rgba(255,255,255,0.4)'
+                                            }}
+                                        >
+                                            {generalCount}
+                                        </span>
+                                    </button>
+                                );
+                            })()}
+
+                            {/* MENU DÉROULANT ÉDITEURS */}
+                            {(() => {
+                                const activeEditor = availableEditors.find(e => e.id === selectedEditorFilter || e.username.toLowerCase() === selectedEditorFilter || e.name.toLowerCase() === selectedEditorFilter);
+                                const isEditorActive = Boolean(activeEditor);
+                                const activeEditorColor = activeEditor ? activeEditor.color : '#00FFFF';
+                                const isLight = activeEditor ? ['#00ffff', '#39ff14', '#fff01f'].includes(activeEditor.color.toLowerCase()) : false;
+
+                                const activeCount = activeEditor ? (
+                                    mailboxTab === 'sent' 
+                                        ? sentMessages.filter(m => matchEditorForSent(m, activeEditor)).length
+                                        : mailboxTab === 'archived'
+                                            ? messages.filter(m => m.archived && matchEditorForReceived(m, activeEditor)).length
+                                            : messages.filter(m => !m.archived && matchEditorForReceived(m, activeEditor)).length
+                                ) : null;
+
+                                const filteredEditorList = availableEditors.filter(e => {
+                                    if (!editorSearchQuery.trim()) return true;
+                                    const q = editorSearchQuery.toLowerCase().trim();
+                                    return (e.name || '').toLowerCase().includes(q) || 
+                                           (e.username || '').toLowerCase().includes(q) || 
+                                           (e.role || '').toLowerCase().includes(q) || 
+                                           (e.email || '').toLowerCase().includes(q) ||
+                                           (e.dropsiders_email || '').toLowerCase().includes(q);
+                                });
+
+                                return (
+                                    <div className="relative shrink-0" ref={editorDropdownRef}>
+                                        <div className="flex items-center gap-1">
+                                            <button
+                                                type="button"
+                                                onClick={() => setIsEditorDropdownOpen(prev => !prev)}
+                                                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-wider transition-all whitespace-nowrap shrink-0"
+                                                style={isEditorActive ? {
+                                                    background: `linear-gradient(135deg, ${activeEditorColor}, ${activeEditorColor}cc)`,
+                                                    color: isLight ? '#000000' : '#ffffff',
+                                                    boxShadow: `0 4px 15px ${activeEditorColor}40`,
+                                                    border: `1px solid ${activeEditorColor}aa`
+                                                } : {
+                                                    background: 'rgba(255,255,255,0.04)',
+                                                    color: 'rgba(255,255,255,0.7)',
+                                                    border: '1px solid rgba(255,255,255,0.08)'
+                                                }}
+                                            >
+                                                <User className="w-3 h-3 shrink-0" />
+                                                <span>{isEditorActive ? activeEditor!.name : 'Éditeurs'}</span>
+                                                {activeCount !== null && (
+                                                    <span 
+                                                        className="px-1.5 py-0.5 rounded-full text-[8px] font-black"
+                                                        style={{
+                                                            background: isLight ? 'rgba(0,0,0,0.15)' : 'rgba(255,255,255,0.25)',
+                                                            color: isLight ? '#000000' : '#ffffff'
+                                                        }}
+                                                    >
+                                                        {activeCount}
+                                                    </span>
+                                                )}
+                                                <ChevronDown className={`w-3 h-3 transition-transform ${isEditorDropdownOpen ? 'rotate-180' : ''}`} />
+                                            </button>
+
+                                            {isEditorActive && (
+                                                <button
+                                                    type="button"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        setSelectedEditorFilter('all');
+                                                        setSelected(null);
+                                                        setSelectedSent(null);
+                                                        setSelectedArchived(null);
+                                                    }}
+                                                    title="Réinitialiser le filtre"
+                                                    className="p-1 rounded-lg text-gray-400 hover:text-white hover:bg-white/10 transition-colors"
+                                                >
+                                                    <X className="w-3 h-3" />
+                                                </button>
+                                            )}
+                                        </div>
+
+                                        {/* Dropdown Menu Popover */}
+                                        {isEditorDropdownOpen && (
+                                            <div 
+                                                className="absolute top-full left-0 mt-2 z-50 w-72 sm:w-80 rounded-2xl p-2.5 shadow-2xl backdrop-blur-2xl border"
+                                                style={{
+                                                    background: 'rgba(18, 20, 26, 0.98)',
+                                                    borderColor: 'rgba(255, 255, 255, 0.12)',
+                                                    boxShadow: '0 20px 40px rgba(0,0,0,0.8), 0 0 30px rgba(0,255,255,0.1)'
+                                                }}
+                                            >
+                                                {/* Header */}
+                                                <div className="flex items-center justify-between pb-2 mb-2 border-b border-white/10 px-1">
+                                                    <div>
+                                                        <span className="text-[10px] font-black uppercase tracking-wider text-white flex items-center gap-1.5">
+                                                            <User className="w-3 h-3 text-neon-cyan" />
+                                                            Mails par éditeur
+                                                        </span>
+                                                        <p className="text-[9px] text-gray-400 mt-0.5">Filtrer les messages reçus et envoyés</p>
+                                                    </div>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setIsEditorDropdownOpen(false)}
+                                                        className="p-1 rounded-lg text-gray-400 hover:text-white hover:bg-white/10 transition-colors"
+                                                    >
+                                                        <X className="w-3.5 h-3.5" />
+                                                    </button>
+                                                </div>
+
+                                                {/* Search Input */}
+                                                <div className="relative mb-2">
+                                                    <input
+                                                        type="text"
+                                                        value={editorSearchQuery}
+                                                        onChange={(e) => setEditorSearchQuery(e.target.value)}
+                                                        placeholder="Rechercher un éditeur..."
+                                                        className="w-full bg-white/5 border border-white/10 rounded-xl px-2.5 py-1.5 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-neon-cyan/50 transition-colors"
+                                                        autoFocus
+                                                    />
+                                                </div>
+
+                                                {/* Editors List */}
+                                                <div className="max-h-60 overflow-y-auto custom-scrollbar space-y-1">
+                                                    {filteredEditorList.map(ed => {
+                                                        const isSelected = selectedEditorFilter === ed.id || selectedEditorFilter === ed.username.toLowerCase();
+                                                        const rCount = messages.filter(m => !m.archived && matchEditorForReceived(m, ed)).length;
+                                                        const sCount = sentMessages.filter(m => matchEditorForSent(m, ed)).length;
+                                                        const currentCount = mailboxTab === 'sent' 
+                                                            ? sCount 
+                                                            : mailboxTab === 'archived'
+                                                                ? messages.filter(m => m.archived && matchEditorForReceived(m, ed)).length
+                                                                : rCount;
+
+                                                        return (
+                                                            <button
+                                                                key={ed.id}
+                                                                type="button"
+                                                                onClick={() => {
+                                                                    setSelectedEditorFilter(ed.id);
+                                                                    setSelected(null);
+                                                                    setSelectedSent(null);
+                                                                    setSelectedArchived(null);
+                                                                    setIsEditorDropdownOpen(false);
+                                                                }}
+                                                                className={`w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-left transition-all ${
+                                                                    isSelected 
+                                                                        ? 'bg-white/10 border border-white/20' 
+                                                                        : 'hover:bg-white/5 border border-transparent'
+                                                                }`}
+                                                            >
+                                                                <div className="flex items-center gap-2.5 min-w-0">
+                                                                    <div 
+                                                                        className="w-7 h-7 rounded-lg flex items-center justify-center text-[10px] font-black shrink-0 overflow-hidden"
+                                                                        style={{ 
+                                                                            background: `${ed.color}25`, 
+                                                                            color: ed.color,
+                                                                            border: `1px solid ${ed.color}40` 
+                                                                        }}
+                                                                    >
+                                                                        {ed.avatar ? (
+                                                                            <img src={ed.avatar} alt={ed.name} className="w-full h-full object-cover" />
+                                                                        ) : (
+                                                                            ed.name.charAt(0).toUpperCase()
+                                                                        )}
+                                                                    </div>
+                                                                    <div className="min-w-0">
+                                                                        <div className="flex items-center gap-1.5">
+                                                                            <span className="text-xs font-bold text-white truncate">{ed.name}</span>
+                                                                            {ed.role && (
+                                                                                <span className="text-[8px] text-gray-500 uppercase tracking-wider truncate max-w-[100px]">{ed.role}</span>
+                                                                            )}
+                                                                        </div>
+                                                                        <div className="flex items-center gap-2 text-[9px] text-gray-400 mt-0.5">
+                                                                            <span className="flex items-center gap-0.5 text-neon-red/80">
+                                                                                ✉️ {rCount} reçu{rCount > 1 ? 's' : ''}
+                                                                            </span>
+                                                                            <span>·</span>
+                                                                            <span className="flex items-center gap-0.5 text-neon-cyan/80">
+                                                                                ✈️ {sCount} envoyé{sCount > 1 ? 's' : ''}
+                                                                            </span>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+
+                                                                <div className="flex items-center gap-1.5 shrink-0 ml-2">
+                                                                    <span 
+                                                                        className="px-1.5 py-0.5 rounded-full text-[8px] font-black"
+                                                                        style={{
+                                                                            background: isSelected ? ed.color : 'rgba(255,255,255,0.08)',
+                                                                            color: isSelected ? '#000000' : 'rgba(255,255,255,0.5)'
+                                                                        }}
+                                                                    >
+                                                                        {currentCount}
+                                                                    </span>
+                                                                    {isSelected && <Check className="w-3.5 h-3.5 text-white" />}
+                                                                </div>
+                                                            </button>
+                                                        );
+                                                    })}
+
+                                                    {filteredEditorList.length === 0 && (
+                                                        <div className="py-6 text-center text-xs text-gray-500">
+                                                            Aucun éditeur trouvé
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                );
+                            })()}
                         </div>
                     )}
 
@@ -1657,7 +2092,9 @@ Alex (Dropsiders)`;
                                     <div className="w-12 h-12 rounded-2xl flex items-center justify-center" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
                                         <Send className="w-5 h-5 text-gray-600" />
                                     </div>
-                                    <p className="text-xs font-bold text-gray-600 uppercase tracking-widest">Aucun message envoyé</p>
+                                    <p className="text-xs font-bold text-gray-600 uppercase tracking-widest">
+                                        {selectedEditorFilter !== 'all' ? 'Aucun message envoyé pour ce filtre' : 'Aucun message envoyé'}
+                                    </p>
                                 </div>
                             ) : (
                                 <div>
@@ -1682,6 +2119,25 @@ Alex (Dropsiders)`;
                                                         <span className="text-[9px] flex-shrink-0 ml-2" style={{ color: 'rgba(255,255,255,0.3)' }}>{new Date(msg.date).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' })}</span>
                                                     </div>
                                                     <p className="text-[11px] font-semibold truncate" style={{ color: 'rgba(255,255,255,0.5)' }}>{msg.subject}</p>
+                                                    <div className="flex items-center gap-1.5 mt-1">
+                                                        {(msg.signer || msg.author) && (
+                                                            <span 
+                                                                className="text-[8px] font-black uppercase px-1.5 py-0.5 rounded"
+                                                                style={{ 
+                                                                    background: `${getEditorColor(msg.signer || msg.author || '')}18`, 
+                                                                    border: `1px solid ${getEditorColor(msg.signer || msg.author || '')}40`, 
+                                                                    color: getEditorColor(msg.signer || msg.author || '') 
+                                                                }}
+                                                            >
+                                                                Par {msg.signer || msg.author}
+                                                            </span>
+                                                        )}
+                                                        {msg.from && (
+                                                            <span className="text-[8px] font-mono text-gray-500 truncate max-w-[130px]">
+                                                                {msg.from}
+                                                            </span>
+                                                        )}
+                                                    </div>
                                                     <p className="text-[10px] truncate mt-0.5" style={{ color: 'rgba(255,255,255,0.25)' }}>{msg.body.slice(0, 55)}…</p>
                                                 </div>
                                             </div>
@@ -1839,7 +2295,9 @@ Alex (Dropsiders)`;
                                 <div className="w-12 h-12 rounded-2xl flex items-center justify-center" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
                                     <MessageSquare className="w-5 h-5 text-gray-600" />
                                 </div>
-                                <p className="text-xs font-bold text-gray-600 uppercase tracking-widest">Aucun message</p>
+                                <p className="text-xs font-bold text-gray-600 uppercase tracking-widest">
+                                    {selectedEditorFilter !== 'all' ? 'Aucun message pour ce filtre' : 'Aucun message'}
+                                </p>
                             </div>
                         ) : (
                             <div>
