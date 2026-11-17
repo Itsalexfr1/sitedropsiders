@@ -259,6 +259,7 @@ export function AdminTeam() {
     const [editingPerson, setEditingPerson] = useState<UnifiedPerson | null>(null);
     const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
     const [deleteTarget, setDeleteTarget] = useState<UnifiedPerson | null>(null);
+    const [deleteCommunityTarget, setDeleteCommunityTarget] = useState<any | null>(null);
     const [sendingInviteEmail, setSendingInviteEmail] = useState<string | null>(null);
     const [showCustomPerms, setShowCustomPerms] = useState(false);
 
@@ -809,6 +810,34 @@ export function AdminTeam() {
         }
     };
 
+    // Delete Community Member
+    const handleDeleteCommunityUser = async (commUser: any) => {
+        const email = commUser.email?.trim();
+        if (!email) return;
+        setIsSaving(true);
+        try {
+            const res = await apiFetch('/api/users/delete', {
+                method: 'POST',
+                headers: getAuthHeaders(),
+                body: JSON.stringify({ email })
+            });
+            if (res.ok) {
+                setCommunityUsers(prev => prev.filter(u => u.email?.toLowerCase() !== email.toLowerCase()));
+                setStatusMessage({ text: `Le compte ${commUser.username || commUser.pseudo || email} a été supprimé avec succès.`, type: 'success' });
+                await fetchData();
+            } else {
+                setStatusMessage({ text: 'Erreur lors de la suppression du compte.', type: 'error' });
+            }
+        } catch (e) {
+            console.error('Erreur suppression compte', e);
+            setStatusMessage({ text: 'Erreur réseau lors de la suppression.', type: 'error' });
+        } finally {
+            setIsSaving(false);
+            setDeleteCommunityTarget(null);
+            setTimeout(() => setStatusMessage(null), 4000);
+        }
+    };
+
     return (
         <div className="min-h-screen bg-[#070707] text-white pt-28 pb-36 px-4 md:px-12 selection:bg-neon-red/30">
             {/* Ambient Lighting */}
@@ -1029,25 +1058,32 @@ export function AdminTeam() {
                                                 )}
                                             </div>
 
-                                            {/* Action Button: Give rights or modify rights */}
-                                            <div className="pt-3 border-t border-white/5 mt-2">
+                                            {/* Action Buttons: Give/modify rights + Delete Account */}
+                                            <div className="flex items-center gap-2 pt-3 border-t border-white/5 mt-2">
                                                 {existingStaff ? (
                                                     <button
                                                         onClick={() => openEditModal(existingStaff)}
-                                                        className="w-full py-2.5 px-4 bg-neon-purple/15 hover:bg-neon-purple border border-neon-purple/40 text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2 group-hover:shadow-[0_0_15px_rgba(191,0,255,0.3)]"
+                                                        className="flex-1 min-w-0 py-2.5 px-3 bg-neon-purple/15 hover:bg-neon-purple border border-neon-purple/40 text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-1.5 group-hover:shadow-[0_0_15px_rgba(191,0,255,0.3)] truncate"
                                                     >
-                                                        <Shield className="w-3.5 h-3.5" />
-                                                        Modifier les Droits
+                                                        <Shield className="w-3.5 h-3.5 shrink-0" />
+                                                        <span className="truncate">Modifier Droits</span>
                                                     </button>
                                                 ) : (
                                                     <button
                                                         onClick={() => openAddModalForCommunityUser(commUser)}
-                                                        className="w-full py-2.5 px-4 bg-gradient-to-r from-neon-cyan to-blue-500 text-black hover:text-white font-black rounded-xl text-[10px] uppercase tracking-widest transition-all flex items-center justify-center gap-2 hover:scale-[1.02] shadow-[0_0_20px_rgba(0,255,255,0.25)]"
+                                                        className="flex-1 min-w-0 py-2.5 px-3 bg-gradient-to-r from-neon-cyan to-blue-500 text-black hover:text-white font-black rounded-xl text-[10px] uppercase tracking-widest transition-all flex items-center justify-center gap-1.5 hover:scale-[1.02] shadow-[0_0_20px_rgba(0,255,255,0.25)] truncate"
                                                     >
-                                                        <Plus className="w-3.5 h-3.5" />
-                                                        Donner les Droits Admin
+                                                        <Plus className="w-3.5 h-3.5 shrink-0" />
+                                                        <span className="truncate">Droits Admin</span>
                                                     </button>
                                                 )}
+                                                <button
+                                                    onClick={() => setDeleteCommunityTarget(commUser)}
+                                                    className="p-2.5 bg-red-500/10 hover:bg-red-500 text-red-400 hover:text-white border border-red-500/30 rounded-xl transition-all flex items-center justify-center shrink-0 shadow-sm hover:shadow-[0_0_15px_rgba(239,68,68,0.4)]"
+                                                    title="Supprimer définitivement ce compte"
+                                                >
+                                                    <Trash2 className="w-3.5 h-3.5" />
+                                                </button>
                                             </div>
                                         </motion.div>
                                     );
@@ -1821,6 +1857,20 @@ export function AdminTeam() {
                     if (deleteTarget) handleDeletePerson(deleteTarget);
                 }}
                 onCancel={() => setDeleteTarget(null)}
+                accentColor="neon-red"
+            />
+
+            {/* Delete Community User Confirmation Modal */}
+            <ConfirmationModal
+                isOpen={deleteCommunityTarget !== null}
+                title="Supprimer ce compte"
+                message={`Voulez-vous vraiment supprimer définitivement le compte de ${deleteCommunityTarget?.username || deleteCommunityTarget?.pseudo || deleteCommunityTarget?.name || deleteCommunityTarget?.email} (${deleteCommunityTarget?.email}) ? Cette action effacera l'ensemble de ses données, de ses scores et de ses accès.`}
+                confirmLabel="Supprimer définitivement"
+                cancelLabel="Annuler"
+                onConfirm={() => {
+                    if (deleteCommunityTarget) handleDeleteCommunityUser(deleteCommunityTarget);
+                }}
+                onCancel={() => setDeleteCommunityTarget(null)}
                 accentColor="neon-red"
             />
         </div>

@@ -4716,6 +4716,30 @@ export function AdminDashboard() {
                                       {u.email || "—"}
                                     </div>
                                   </div>
+                                  <button
+                                    onClick={async (e) => {
+                                      e.stopPropagation();
+                                      if (!window.confirm(`Supprimer le compte de ${u.username || u.email} ?`)) return;
+                                      const email = u.email;
+                                      if (email) {
+                                        await fetch('/api/users/delete', {
+                                          method: 'POST',
+                                          headers: { 'Content-Type': 'application/json' },
+                                          body: JSON.stringify({ email })
+                                        });
+                                      }
+                                      try {
+                                        const current = JSON.parse(localStorage.getItem("dropsiders_registered_users") || "[]");
+                                        const updated = current.filter((x: any) => x.email !== u.email && x.id !== u.id);
+                                        localStorage.setItem("dropsiders_registered_users", JSON.stringify(updated));
+                                        window.location.reload();
+                                      } catch {}
+                                    }}
+                                    className="p-1.5 text-gray-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors shrink-0"
+                                    title="Supprimer ce compte"
+                                  >
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                  </button>
                                 </div>
                               ))}
                             </div>

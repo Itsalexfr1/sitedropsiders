@@ -1775,7 +1775,7 @@ export default {
             path.startsWith('/api/news/update') ||
             path.startsWith('/api/recaps/update') ||
             path.startsWith('/api/agenda/update') ||
-            path.endsWith('/delete') ||
+            (path.endsWith('/delete') && path !== '/api/users/delete') ||
             path === '/api/subscribers' ||
             path === '/api/spotify/update' ||
             path === '/api/team/update' ||
@@ -1897,8 +1897,7 @@ export default {
                 // --- PERMISSIONS MAPPING & CHECKS ---
 
                 // --- STRICT PERMISSION: EDITORS CAN NEVER DELETE ANYTHING ---
-                const isDeletePath = path.endsWith('/delete') || 
-                    path.includes('/delete') || 
+                const isDeletePath = ((path.endsWith('/delete') || path.includes('/delete')) && path !== '/api/users/delete') || 
                     path === '/api/photos/delete' || 
                     path === '/api/shop/delete' || 
                     path === '/api/r2/delete' || 
@@ -3461,14 +3460,33 @@ ${urls.map(u => `  <url>
             if (!email) return new Response(JSON.stringify({ error: 'Email requis' }), { status: 400, headers });
 
             const cleanEmail = email.toLowerCase().trim();
+
+            // Check if requester is an editor who is trying to delete someone else's account
+            if (authenticated && !hasAll && requestUsername) {
+                const isSelf = requestUsername.toLowerCase() === cleanEmail;
+                if (!isSelf) {
+                    return new Response(JSON.stringify({ error: "Action refusée : vous ne pouvez supprimer que votre propre compte." }), { status: 403, headers });
+                }
+            }
             
             // Delete from KV
             await env.CHAT_KV.delete(`community_user_${cleanEmail}`);
             await env.CHAT_KV.delete(`community_player_xp_${cleanEmail}`);
             await env.CHAT_KV.delete(`user_mixes:${cleanEmail}`);
             
-            // Note: We don't automatically delete from GitHub subscribers for safety, 
-            // but we could if requested. For now, we focus on profile/game data.
+            // Also clean up any editor record if found
+            try {
+                const editorsFile = await fetchGitHubFile(EDITORS_PATH, gitConfig);
+                if (editorsFile && Array.isArray(editorsFile.content)) {
+                    const matchIdx = editorsFile.content.findIndex((e: any) => e.email?.toLowerCase() === cleanEmail || e.username?.toLowerCase() === cleanEmail);
+                    if (matchIdx !== -1) {
+                        const updated = editorsFile.content.filter((e: any) => e.email?.toLowerCase() !== cleanEmail && e.username?.toLowerCase() !== cleanEmail);
+                        await saveGitHubFile(EDITORS_PATH, updated, `Remove editor upon user account deletion: ${cleanEmail}`, editorsFile.sha, gitConfig);
+                    }
+                }
+            } catch (err) {
+                console.warn('Error syncing editors deletion:', err);
+            }
 
             return new Response(JSON.stringify({ success: true }), { headers });
         }

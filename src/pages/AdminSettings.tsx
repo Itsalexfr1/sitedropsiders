@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Save, Lock, ArrowLeft, ShieldCheck, Mail, Eye, EyeOff, X, CheckCircle2, AlertCircle, Share2, Youtube, Globe, Facebook, Music, Instagram, Bell, Send, Info, RefreshCw, Trophy, Search, CreditCard } from 'lucide-react';
+import { Save, Lock, ArrowLeft, ShieldCheck, Mail, Eye, EyeOff, X, CheckCircle2, AlertCircle, Share2, Youtube, Globe, Facebook, Music, Instagram, Bell, Send, Info, RefreshCw, Trophy, Search, CreditCard, Trash2 } from 'lucide-react';
 import { XIcon } from '../components/ui/XIcon';
 
 import { useNavigate } from 'react-router-dom';
@@ -13,6 +13,7 @@ export function AdminSettings() {
     const [shopPassword, setShopPassword] = useState('');
     const [kitMediaPassword, setKitMediaPassword] = useState('');
     const [adminPassword, setAdminPassword] = useState(localStorage.getItem('admin_password') || '');
+    const [currentUserEmail, setCurrentUserEmail] = useState<string>('');
     const [socials, setSocials] = useState({
         instagram: '',
         tiktok: '',
@@ -89,8 +90,11 @@ export function AdminSettings() {
                 const resAuth = await apiFetch('/api/editors', { headers: getAuthHeaders() });
                 if (resAuth.ok) {
                     const eds = await resAuth.json();
-                    const me = eds.find((e: any) => e.username === currentUser);
-                    if (me) setAdminPassword(me.password);
+                    const me = eds.find((e: any) => e.username === currentUser || e.email?.toLowerCase() === currentUser?.toLowerCase());
+                    if (me) {
+                        setAdminPassword(me.password);
+                        if (me.email) setCurrentUserEmail(me.email);
+                    }
                 }
 
                 const resPush = await apiFetch('/api/push/subscribers/count', { headers: getAuthHeaders() });
@@ -188,6 +192,37 @@ export function AdminSettings() {
                     showNotification('Erreur réseau', 'error');
                 } finally {
                     setIsRevoking(false);
+                }
+            }
+        });
+    };
+
+    const handleDeleteAccountPrompt = () => {
+        if (!currentUser) return;
+        if (isAlex) {
+            showNotification("Le compte administrateur principal Alex ne peut pas être supprimé.", "error");
+            return;
+        }
+        setConfirmModal({
+            isOpen: true,
+            title: "Supprimer définitivement votre compte ?",
+            message: `Êtes-vous sûr de vouloir supprimer définitivement votre compte ${currentUser} ? Vos accès de rédaction et vos données associées seront révoqués et supprimés. Cette action est irréversible.`,
+            accentColor: "neon-red",
+            onConfirm: async () => {
+                setConfirmModal(prev => ({ ...prev, isOpen: false }));
+                try {
+                    const res = await apiFetch('/api/users/delete', {
+                        method: 'POST',
+                        body: JSON.stringify({ email: currentUserEmail || currentUser })
+                    });
+                    if (res.ok) {
+                        localStorage.clear();
+                        window.location.href = '/admin';
+                    } else {
+                        showNotification("Erreur lors de la suppression du compte.", "error");
+                    }
+                } catch {
+                    showNotification("Erreur réseau.", "error");
                 }
             }
         });
@@ -632,6 +667,24 @@ export function AdminSettings() {
                                 className="whitespace-nowrap px-8 py-4 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white border border-red-500/20 rounded-2xl font-black uppercase tracking-widest text-xs transition-all disabled:opacity-50 active:scale-95 shadow-lg shadow-red-500/5"
                             >
                                 {isRevoking ? 'Révocation en cours...' : 'Révoquer toutes les sessions'}
+                            </button>
+                        </div>
+
+                        {/* Zone de Danger : Supprimer le compte */}
+                        <div className="bg-red-500/5 border border-red-500/20 rounded-[2rem] p-6 md:p-8 flex flex-col md:flex-row items-center justify-between gap-6 mt-4">
+                            <div className="text-center md:text-left">
+                                <h3 className="text-white font-black uppercase text-sm tracking-widest mb-2 italic text-red-500 flex items-center gap-2">
+                                    <Trash2 className="w-4 h-4" /> Supprimer le compte
+                                </h3>
+                                <p className="text-gray-500 text-[10px] uppercase font-bold tracking-tight max-w-sm leading-relaxed">
+                                    Supprime définitivement votre compte utilisateur ({currentUser}), vos accès administrateur et toutes vos données associées. Cette action est irréversible.
+                                </p>
+                            </div>
+                            <button
+                                onClick={handleDeleteAccountPrompt}
+                                className="whitespace-nowrap px-8 py-4 bg-red-600 hover:bg-red-700 text-white border border-red-500/40 rounded-2xl font-black uppercase tracking-widest text-xs transition-all active:scale-95 shadow-lg shadow-red-600/20 flex items-center gap-2"
+                            >
+                                <Trash2 className="w-4 h-4" /> Supprimer mon compte
                             </button>
                         </div>
                     </motion.div>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence, useDragControls } from 'framer-motion';
 import {
@@ -4383,6 +4383,45 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const promoBgVideoRef = useRef<HTMLVideoElement | null>(null);
     const promoBgVideoBlobRef = useRef<Blob | null>(null);
 
+    // Positions personnalisées indépendantes par slide (X / Y) pour que chaque slide conserve son propre cadrage
+    const [slidePositions, setSlidePositions] = useState<Record<string | number, { x: number; y: number }>>({});
+    const slidePositionsRef = useRef<Record<string | number, { x: number; y: number }>>({});
+
+    const getCurrentSlideKey = useCallback((): string | number => {
+        if (isCarouselPromoActive) return 'promo';
+        if (isEditorialAfficheActive) return `affiche_${editorialAfficheIndex}`;
+        if (isEditorialTweetActive) return 'tweet';
+        if (isEditorialBlankActive) return `blank_${editorialBlankIndex}`;
+        if (theme === 'SPOTLIGHT' || theme === 'ARTISTE FESTIVAL') return `spotlight_${artisteFestivalSlide}`;
+        if (theme === 'PLANNING') return `agenda_${agendaSlide}`;
+        if (theme === 'EVENTS') return `events_${eventsSlide}`;
+        return editorialSlide;
+    }, [isCarouselPromoActive, isEditorialAfficheActive, editorialAfficheIndex, isEditorialTweetActive, isEditorialBlankActive, editorialBlankIndex, theme, artisteFestivalSlide, agendaSlide, eventsSlide, editorialSlide]);
+
+    const updateActiveSlidePosition = useCallback((newX?: number, newY?: number) => {
+        const key = getCurrentSlideKey();
+        setSlidePositions(prev => {
+            const cur = prev[key] || { x: (key === 1 ? bgOffsetX : 0), y: (key === 1 ? bgOffsetY : 0) };
+            const nextX = typeof newX === 'number' ? newX : cur.x;
+            const nextY = typeof newY === 'number' ? newY : cur.y;
+            const updated = {
+                ...prev,
+                [key]: { x: nextX, y: nextY }
+            };
+            slidePositionsRef.current = updated;
+            return updated;
+        });
+        if (typeof newX === 'number') setBgOffsetX(newX);
+        if (typeof newY === 'number') setBgOffsetY(newY);
+    }, [getCurrentSlideKey, bgOffsetX, bgOffsetY]);
+
+    useEffect(() => {
+        const key = getCurrentSlideKey();
+        const pos = slidePositionsRef.current[key] || slidePositions[key] || (key === 1 || key === 'spotlight_1' || key === 'agenda_1' || key === 'events_1' ? { x: bgOffsetX, y: bgOffsetY } : { x: 0, y: 0 });
+        setBgOffsetX(pos.x);
+        setBgOffsetY(pos.y);
+    }, [editorialSlide, agendaSlide, artisteFestivalSlide, eventsSlide, isCarouselPromoActive, isEditorialAfficheActive, isEditorialTweetActive, isEditorialBlankActive, editorialBlankIndex, editorialAfficheIndex, theme]);
+
     useEffect(() => {
         if (isCarouselPromoActive && theme === 'MUSIQUE') {
             stopPreviewPlayer();
@@ -5851,6 +5890,27 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     : isMusiqueTrackSlide
                                         ? (editorialSlideImages[effectiveEditorialSlide] || (musiqueCoverUrl ? musiqueCoverUrl : bgImage))
                                         : (editorialSlideImages[effectiveEditorialSlide] || (effectiveEditorialSlide === 1 ? bgImage : (bgVideoContinueAcrossSlides ? bgImage : '')));
+
+                // Position (offset X / Y) spécifique et isolée pour la slide active
+                const activeSlidePosKey = isPromoRequested
+                    ? 'promo'
+                    : isCurrentSlideAffiche
+                        ? `affiche_${editorialAfficheIndexOverrideRef.current !== null ? editorialAfficheIndexOverrideRef.current : editorialAfficheIndex}`
+                        : isEditorialTweetRequested
+                            ? 'tweet'
+                            : isEditorialBlankRequested
+                                ? `blank_${effectiveBlankIdx}`
+                                : (theme === 'SPOTLIGHT' || theme === 'ARTISTE FESTIVAL')
+                                    ? `spotlight_${artisteFestivalSlide}`
+                                    : theme === 'PLANNING'
+                                        ? `agenda_${agendaSlide}`
+                                        : theme === 'EVENTS'
+                                            ? `events_${eventsSlide}`
+                                            : effectiveEditorialSlide;
+
+                const activeSlidePos = slidePositionsRef.current[activeSlidePosKey] || slidePositions[activeSlidePosKey] || (activeSlidePosKey === 1 || activeSlidePosKey === 'spotlight_1' || activeSlidePosKey === 'agenda_1' || activeSlidePosKey === 'events_1' ? { x: bgOffsetX, y: bgOffsetY } : { x: 0, y: 0 });
+                const currentBgOffsetX = activeSlidePos.x;
+                const currentBgOffsetY = activeSlidePos.y;
                 if (activeSlideImgSrc) {
                     const resolvedSlideImgSrc = resolveImageUrl(activeSlideImgSrc);
                     if (imageCacheRef.current[resolvedSlideImgSrc]) {
@@ -6175,22 +6235,22 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     const scale = baseScale * bgAnimScale;
                     const vw = blankVideoEl.videoWidth * scale;
                     const vh = blankVideoEl.videoHeight * scale;
-                    let x = ((canvas.width - vw) / 2) + bgOffsetX + bgAnimX;
-                    let y = ((canvas.height - vh) / 2) + bgOffsetY + bgAnimY;
+                    let x = ((canvas.width - vw) / 2) + currentBgOffsetX + bgAnimX;
+                    let y = ((canvas.height - vh) / 2) + currentBgOffsetY + bgAnimY;
                     ctx.drawImage(blankVideoEl, x, y, vw, vh);
                 } else if (shouldUseBgVideo && activeVideoToDraw && (activeVideoToDraw.videoWidth > 0 || activeVideoToDraw.readyState >= 2)) {
                     const baseScale = Math.max(canvas.width / activeVideoToDraw.videoWidth, canvas.height / activeVideoToDraw.videoHeight);
                     const scale = baseScale * bgAnimScale;
                     const vw = activeVideoToDraw.videoWidth * scale;
                     const vh = activeVideoToDraw.videoHeight * scale;
-                    let x = ((canvas.width - vw) / 2) + bgOffsetX + bgAnimX;
-                    let y = ((canvas.height - vh) / 2) + bgOffsetY + bgAnimY;
+                    let x = ((canvas.width - vw) / 2) + currentBgOffsetX + bgAnimX;
+                    let y = ((canvas.height - vh) / 2) + currentBgOffsetY + bgAnimY;
                     if (imgLayoutMode === 'PAR_LIGNES') {
-                        y = ((canvas.height * 0.62 - vh) / 2) + bgOffsetY + bgAnimY;
+                        y = ((canvas.height * 0.62 - vh) / 2) + currentBgOffsetY + bgAnimY;
                     } else if (imgLayoutMode === 'HAUT_LIGNE') {
-                        y = ((canvas.height * 0.42 - vh) / 2) + bgOffsetY + bgAnimY;
+                        y = ((canvas.height * 0.42 - vh) / 2) + currentBgOffsetY + bgAnimY;
                     } else if (imgLayoutMode === 'BAS_LIGNE') {
-                        y = ((canvas.height * 0.85 - vh) / 2) + bgOffsetY + bgAnimY;
+                        y = ((canvas.height * 0.85 - vh) / 2) + currentBgOffsetY + bgAnimY;
                     }
                     if (theme === 'AFFICHE' || (theme === 'EVENTS' && ((effectiveEventsSlide === 2 && eventNormalSlidesCount === 0) || (editorialAfficheOverrideRef.current !== null ? editorialAfficheOverrideRef.current : isEditorialAfficheActive))) || (theme === 'MUSIQUE' && effectiveEditorialSlide >= 2) || isEditorialAfficheRequested || isEditorialTweetRequested) {
                         const blurBleed = 28;
@@ -6236,8 +6296,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         const scale = baseScale * bgAnimScale;
                         const vw = bgVideo.videoWidth * scale;
                         const vh = bgVideo.videoHeight * scale;
-                        const vx = ((canvas.width - vw) / 2) + bgOffsetX + bgAnimX;
-                        const vy = ((canvas.height - vh) / 2) + bgOffsetY + bgAnimY;
+                        const vx = ((canvas.width - vw) / 2) + currentBgOffsetX + bgAnimX;
+                        const vy = ((canvas.height - vh) / 2) + currentBgOffsetY + bgAnimY;
                         ctx.drawImage(bgVideo, vx, vy, vw, vh);
 
                         // Voile atmosphérique club/EDM sombre immersif pour faire ressortir l'artiste & le texte
@@ -6254,8 +6314,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         const scale = baseScale * bgAnimScale;
                         const biw = bgPhoto.width * scale;
                         const bih = bgPhoto.height * scale;
-                        const bx = ((canvas.width - biw) / 2) + bgOffsetX + bgAnimX;
-                        const by = ((canvas.height - bih) / 2) + bgOffsetY + bgAnimY;
+                        const bx = ((canvas.width - biw) / 2) + currentBgOffsetX + bgAnimX;
+                        const by = ((canvas.height - bih) / 2) + currentBgOffsetY + bgAnimY;
                         ctx.drawImage(bgPhoto, bx, by, biw, bih);
 
                         // Voile atmosphérique club/EDM sombre immersif pour faire ressortir l'artiste & le texte
@@ -6329,8 +6389,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                             const iw = activeSilhouetteImg.width * scale;
                             const ih = activeSilhouetteImg.height * scale;
-                            const x = ((canvas.width - iw) / 2) + bgOffsetX + bgAnimX;
-                            const y = ((canvas.height * 0.44 - ih / 2)) + bgOffsetY + bgAnimY;
+                            const x = ((canvas.width - iw) / 2) + currentBgOffsetX + bgAnimX;
+                            const y = ((canvas.height * 0.44 - ih / 2)) + currentBgOffsetY + bgAnimY;
 
                             // Lueur d'ambiance scénique derrière la silhouette (couleur néon choisie)
                             const haloGrad = ctx.createRadialGradient(canvas.width / 2, y + ih * 0.42, 20, canvas.width / 2, y + ih * 0.42, Math.max(iw, ih) * 0.60);
@@ -6458,8 +6518,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                             if (djShowQuestionMark) {
                                 ctx.save();
-                                const qX = canvas.width / 2 + bgOffsetX;
-                                const qY = canvas.height * 0.42 + bgOffsetY;
+                                const qX = canvas.width / 2 + currentBgOffsetX;
+                                const qY = canvas.height * 0.42 + currentBgOffsetY;
                                 const qRadius = 50;
 
                                 ctx.shadowColor = djSilhouetteColor;
@@ -6501,8 +6561,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 let scale = (baseScale > 1.25 ? baseScale : Math.max(canvas.width / activeRevealImg.width, canvas.height / activeRevealImg.height) * 0.92) * bgAnimScale * revealScale;
                                 const iw = activeRevealImg.width * scale;
                                 const ih = activeRevealImg.height * scale;
-                                const x = ((canvas.width - iw) / 2) + bgOffsetX + bgAnimX;
-                                const y = ((canvas.height * 0.44 - ih / 2)) + bgOffsetY + bgAnimY;
+                                const x = ((canvas.width - iw) / 2) + currentBgOffsetX + bgAnimX;
+                                const y = ((canvas.height * 0.44 - ih / 2)) + currentBgOffsetY + bgAnimY;
 
                                 // Lueur d'ambiance cyan/émeraude subtile pour détacher l'artiste du fond avec fondu
                                 const haloGrad = ctx.createRadialGradient(canvas.width / 2, y + ih * 0.42, 20, canvas.width / 2, y + ih * 0.42, Math.max(iw, ih) * 0.60);
@@ -6525,8 +6585,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 const scale = baseScale * bgAnimScale * revealScale;
                                 const iw = activeRevealImg.width * scale;
                                 const ih = activeRevealImg.height * scale;
-                                const x = ((canvas.width - iw) / 2) + bgOffsetX + bgAnimX;
-                                const y = ((canvas.height * 0.44 - ih / 2)) + bgOffsetY + bgAnimY;
+                                const x = ((canvas.width - iw) / 2) + currentBgOffsetX + bgAnimX;
+                                const y = ((canvas.height * 0.44 - ih / 2)) + currentBgOffsetY + bgAnimY;
                                 ctx.save();
                                 ctx.globalAlpha = revealAlpha;
                                 ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
@@ -6546,22 +6606,22 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         const iw = effectiveImg.width * scale;
                         const ih = effectiveImg.height * scale;
                         // Position photo on the right with manual offset
-                        const x = (canvas.width - iw) + bgOffsetX + bgAnimX;
-                        const y = ((canvas.height - ih) / 2) + bgOffsetY + bgAnimY;
+                        const x = (canvas.width - iw) + currentBgOffsetX + bgAnimX;
+                        const y = ((canvas.height - ih) / 2) + currentBgOffsetY + bgAnimY;
                         ctx.drawImage(effectiveImg, x, y, iw, ih);
                     } else {
                         const baseScale = Math.max(canvas.width / effectiveImg.width, canvas.height / effectiveImg.height);
                         const scale = baseScale * bgAnimScale;
                         const iw = effectiveImg.width * scale;
                         const ih = effectiveImg.height * scale;
-                        let x = ((canvas.width - iw) / 2) + bgOffsetX + bgAnimX;
-                        let y = ((canvas.height - ih) / 2) + bgOffsetY + bgAnimY;
+                        let x = ((canvas.width - iw) / 2) + currentBgOffsetX + bgAnimX;
+                        let y = ((canvas.height - ih) / 2) + currentBgOffsetY + bgAnimY;
                         if (imgLayoutMode === 'PAR_LIGNES') {
-                            y = ((canvas.height * 0.62 - ih) / 2) + bgOffsetY + bgAnimY;
+                            y = ((canvas.height * 0.62 - ih) / 2) + currentBgOffsetY + bgAnimY;
                         } else if (imgLayoutMode === 'HAUT_LIGNE') {
-                            y = ((canvas.height * 0.42 - ih) / 2) + bgOffsetY + bgAnimY;
+                            y = ((canvas.height * 0.42 - ih) / 2) + currentBgOffsetY + bgAnimY;
                         } else if (imgLayoutMode === 'BAS_LIGNE') {
-                            y = ((canvas.height * 0.85 - ih) / 2) + bgOffsetY + bgAnimY;
+                            y = ((canvas.height * 0.85 - ih) / 2) + currentBgOffsetY + bgAnimY;
                         }
                         if (theme === 'AFFICHE' || (theme === 'EVENTS' && ((effectiveEventsSlide === 2 && eventNormalSlidesCount === 0) || (editorialAfficheOverrideRef.current !== null ? editorialAfficheOverrideRef.current : isEditorialAfficheActive))) || (theme === 'MUSIQUE' && effectiveEditorialSlide >= 2) || isEditorialAfficheRequested || isEditorialTweetRequested) {
                             ctx.save();
@@ -11779,8 +11839,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             const vScale = Math.max(canvas.width / bgVideo.videoWidth, canvas.height / bgVideo.videoHeight);
                             const vw = bgVideo.videoWidth * vScale;
                             const vh = bgVideo.videoHeight * vScale;
-                            const vx = ((canvas.width - vw) / 2) + bgOffsetX;
-                            const vy = ((canvas.height - vh) / 2) + bgOffsetY;
+                            const vx = ((canvas.width - vw) / 2) + currentBgOffsetX;
+                            const vy = ((canvas.height - vh) / 2) + currentBgOffsetY;
                             ctx.drawImage(bgVideo, vx, vy, vw, vh);
 
                             const bgDarkOverlay = ctx.createLinearGradient(0, 0, 0, canvas.height);
@@ -12207,8 +12267,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             const vScale = Math.max(canvas.width / bgVideo.videoWidth, canvas.height / bgVideo.videoHeight);
                             const vw = bgVideo.videoWidth * vScale;
                             const vh = bgVideo.videoHeight * vScale;
-                            const vx = ((canvas.width - vw) / 2) + bgOffsetX;
-                            const vy = ((canvas.height - vh) / 2) + bgOffsetY;
+                            const vx = ((canvas.width - vw) / 2) + currentBgOffsetX;
+                            const vy = ((canvas.height - vh) / 2) + currentBgOffsetY;
                             ctx.drawImage(bgVideo, vx, vy, vw, vh);
 
                             // Voile d'ambiance festival sombre pour faire ressortir la pochette et les titres
@@ -14247,7 +14307,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             anim = requestAnimationFrame(loop);
         } else { generateImage(); }
         return () => cancelAnimationFrame(anim);
-    }, [bgImage, bgVideo, customText, theme, showSwipe, showArticleLink, articleLinkText, showVoteLink, top5Items, currentPreviewIndex, activeTab, rotation, themeColor, isVideoRecording, transitionProgress, showText, planningDate, planningItems, agendaMonth, agendaBadgeText, agendaSlide, agendaCoverBadge, agendaCoverTitle, agendaCoverYear, agendaCoverGenres, agendaCoverCta, showAgendaCoverCta, artisteFestivalSlide, extraSpotlightSlides, spotlightSlidesData, festivalIntroTitle, eventsSlide, editorialSlide, isEditorialAfficheActive, isEditorialTweetActive, isEditorialBlankActive, editorialAffiches, editorialAfficheIndex, editorialBlankSlides, editorialBlankIndex, showTitleOnSlide2, showMusicDate, editorialDate, showDividerDate, citationAuthor, citationMedia, extraEditorialSlides, musicTracks, top10Tracks, top10ActiveRank, top10Title, top10IntroTitle, top10IntroArtist, top10ColoredWords, top10LogoScale, top10Subtitle, top10TrackDuration, top10TestingRank, top10GenMode, top10Badge, top10LabelSearch, top10StyleSearch, top10ArtistSearch, top100Rank, top100ArtistName, top100Category, top100Badge, top100AnimKey, calendarMonth, calendarEvents, isRetouchMode, retouchPath, isTransparent, showBottomLogo, artistLogo, festivalLogo, bgOffsetX, bgOffsetY, artistNameText, festivalNameText, isArtistLogoNegative, mapFestivalText, mapCityCountry, mapZoom, mapLatitude, mapLongitude, mapStyle, isMapLoading, mapPinColor, mapLabelText, showMapPin, showMapLabel, mapAnimMode, isMapAnimPlaying, mapScrubTime, mapAnimDuration, mapDestLatitude, mapDestLongitude, mapDestFestivalText, mapDestVenue, mapDestCity, mapDestCountry, mapDestPinColor, imgLayoutMode, quizColor1, quizColor2, showFrame, focusReelStyle, conseilsTitle, conseilsSubtext, isConseilsLargeTitle, concoursFestivalName, concoursFestivalHandle, concoursBottomColor, concoursLateralText, concoursLateralOpacity, concoursBadgeTextColor, concoursMode, concoursGTAHeadline, concoursGTATitle, concoursGTAPlatformText, concoursGTACondition1, concoursGTACondition2, concoursGTACondition3, concoursGTACondition4, afficheImage, afficheGlow, afficheBorderColor, afficheMode, afficheScale, afficheOffsetY, tweetImage, tweetScale, tweetOffsetY, tweetGlow, tweetHeadline, tweetBadge, tweetBorderColor, tweetTranslation, showTweetTranslation, tweetAnimMode, textAnimation, animReplayKey, bgAnimation, cdjPlayerRing, musicBgMotion, isCarouselPromoActive, promoCustomPhrase, promoCustomSubphrase, promoOutroStyle, isPromoAnimPlaying, promoCategory, showPromoHook, showPromoHeadline, showPromoLine1, showPromoLine2, djCutoutImage, djOriginalImage, djSilhouetteColor, djGlowIntensity, djShowQuestionMark, djAppearanceAnim, editorialSlideImages, editorialSlideCutouts, editorialSlideTitles, djSlideModes, agendaAffiches, highlightsSlideArtists, highlightsColorArtist, highlightsColorFestival, highlightsColorCity, highlightsColorCountry, highlightsColorDate, afficheImgZoom, afficheImgPanX, afficheImgPanY, promoBgImage, promoBgVideo]);
+    }, [bgImage, bgVideo, customText, theme, showSwipe, showArticleLink, articleLinkText, showVoteLink, top5Items, currentPreviewIndex, activeTab, rotation, themeColor, isVideoRecording, transitionProgress, showText, planningDate, planningItems, agendaMonth, agendaBadgeText, agendaSlide, agendaCoverBadge, agendaCoverTitle, agendaCoverYear, agendaCoverGenres, agendaCoverCta, showAgendaCoverCta, artisteFestivalSlide, extraSpotlightSlides, spotlightSlidesData, festivalIntroTitle, eventsSlide, editorialSlide, isEditorialAfficheActive, isEditorialTweetActive, isEditorialBlankActive, editorialAffiches, editorialAfficheIndex, editorialBlankSlides, editorialBlankIndex, showTitleOnSlide2, showMusicDate, editorialDate, showDividerDate, citationAuthor, citationMedia, extraEditorialSlides, musicTracks, top10Tracks, top10ActiveRank, top10Title, top10IntroTitle, top10IntroArtist, top10ColoredWords, top10LogoScale, top10Subtitle, top10TrackDuration, top10TestingRank, top10GenMode, top10Badge, top10LabelSearch, top10StyleSearch, top10ArtistSearch, top100Rank, top100ArtistName, top100Category, top100Badge, top100AnimKey, calendarMonth, calendarEvents, isRetouchMode, retouchPath, isTransparent, showBottomLogo, artistLogo, festivalLogo, bgOffsetX, bgOffsetY, artistNameText, festivalNameText, isArtistLogoNegative, mapFestivalText, mapCityCountry, mapZoom, mapLatitude, mapLongitude, mapStyle, isMapLoading, mapPinColor, mapLabelText, showMapPin, showMapLabel, mapAnimMode, isMapAnimPlaying, mapScrubTime, mapAnimDuration, mapDestLatitude, mapDestLongitude, mapDestFestivalText, mapDestVenue, mapDestCity, mapDestCountry, mapDestPinColor, imgLayoutMode, quizColor1, quizColor2, showFrame, focusReelStyle, conseilsTitle, conseilsSubtext, isConseilsLargeTitle, concoursFestivalName, concoursFestivalHandle, concoursBottomColor, concoursLateralText, concoursLateralOpacity, concoursBadgeTextColor, concoursMode, concoursGTAHeadline, concoursGTATitle, concoursGTAPlatformText, concoursGTACondition1, concoursGTACondition2, concoursGTACondition3, concoursGTACondition4, afficheImage, afficheGlow, afficheBorderColor, afficheMode, afficheScale, afficheOffsetY, tweetImage, tweetScale, tweetOffsetY, tweetGlow, tweetHeadline, tweetBadge, tweetBorderColor, tweetTranslation, showTweetTranslation, tweetAnimMode, textAnimation, animReplayKey, bgAnimation, cdjPlayerRing, musicBgMotion, isCarouselPromoActive, promoCustomPhrase, promoCustomSubphrase, promoOutroStyle, isPromoAnimPlaying, promoCategory, showPromoHook, showPromoHeadline, showPromoLine1, showPromoLine2, djCutoutImage, djOriginalImage, djSilhouetteColor, djGlowIntensity, djShowQuestionMark, djAppearanceAnim, editorialSlideImages, editorialSlideCutouts, editorialSlideTitles, djSlideModes, agendaAffiches, highlightsSlideArtists, highlightsColorArtist, highlightsColorFestival, highlightsColorCity, highlightsColorCountry, highlightsColorDate, afficheImgZoom, afficheImgPanX, afficheImgPanY, promoBgImage, promoBgVideo, slidePositions]);
 
     // Rejouer l'animation de texte proprement depuis le début à chaque changement de slide, track ou de thème
     useEffect(() => {
@@ -19336,8 +19396,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 </button>
                 <button
                     onClick={() => {
-                        setBgOffsetX(0);
-                        setBgOffsetY(0);
+                        updateActiveSlidePosition(0, 0);
                         setImgLayoutMode('1_PAR_LIGNE');
                         setTimeout(() => generateImage(), 50);
                     }}
@@ -19359,7 +19418,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         <input
                             type="range" min="-800" max="800" value={bgOffsetX}
                             onChange={e => {
-                                setBgOffsetX(parseInt(e.target.value));
+                                const val = parseInt(e.target.value);
+                                updateActiveSlidePosition(val, undefined);
                                 setTimeout(() => generateImage(), 50);
                             }}
                             onMouseDown={() => setIsSlidingPosition(true)}
@@ -19377,7 +19437,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         <input
                             type="range" min="-800" max="800" value={bgOffsetY}
                             onChange={e => {
-                                setBgOffsetY(parseInt(e.target.value));
+                                const val = parseInt(e.target.value);
+                                updateActiveSlidePosition(undefined, val);
                                 setTimeout(() => generateImage(), 50);
                             }}
                             onMouseDown={() => setIsSlidingPosition(true)}
@@ -21907,7 +21968,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         </div>
                         <input
                             type="range" min="-800" max="800" value={bgOffsetX}
-                            onChange={e => setBgOffsetX(parseInt(e.target.value))}
+                            onChange={e => {
+                                const val = parseInt(e.target.value);
+                                updateActiveSlidePosition(val, undefined);
+                                setTimeout(() => generateImage(), 50);
+                            }}
                             onMouseDown={() => setIsSlidingPosition(true)}
                             onMouseUp={() => setIsSlidingPosition(false)}
                             onTouchStart={() => setIsSlidingPosition(true)}
@@ -21922,7 +21987,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         </div>
                         <input
                             type="range" min="-800" max="800" value={bgOffsetY}
-                            onChange={e => setBgOffsetY(parseInt(e.target.value))}
+                            onChange={e => {
+                                const val = parseInt(e.target.value);
+                                updateActiveSlidePosition(undefined, val);
+                                setTimeout(() => generateImage(), 50);
+                            }}
                             onMouseDown={() => setIsSlidingPosition(true)}
                             onMouseUp={() => setIsSlidingPosition(false)}
                             onTouchStart={() => setIsSlidingPosition(true)}
@@ -21930,7 +21999,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             className="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-neon-red"
                         />
                     </div>
-                    <button onClick={() => { setBgOffsetX(0); setBgOffsetY(0); }} className="w-full py-1.5 bg-white/5 border border-white/10 rounded-lg text-[8px] font-black text-gray-500 uppercase hover:text-white transition-all">Réinitialiser Position</button>
+                    <button onClick={() => { updateActiveSlidePosition(0, 0); setTimeout(() => generateImage(), 50); }} className="w-full py-1.5 bg-white/5 border border-white/10 rounded-lg text-[8px] font-black text-gray-500 uppercase hover:text-white transition-all">Réinitialiser Position</button>
                 </div>
             </div>
         </div>
