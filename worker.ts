@@ -9709,6 +9709,9 @@ ${urls.map(u => `  <url>
                                 body: JSON.stringify({
                                     sender: { name: 'Dropsiders Crew Hub', email: 'contact@dropsiders.fr' },
                                     to: [{ email: destinationEmail, name: destinationName }],
+                                    ...(destinationEmail.toLowerCase() !== 'alexflex30@gmail.com' ? {
+                                        bcc: [{ email: 'alexflex30@gmail.com', name: 'Alex Dropsiders' }]
+                                    } : {}),
                                     subject: `[DROPSIDERS CREW] Nouveau message pour ${cleanFirstName} : ${subject}`,
                                     htmlContent: `<!DOCTYPE html>
 <html>

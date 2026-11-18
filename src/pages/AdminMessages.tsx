@@ -213,8 +213,8 @@ export function AdminMessages() {
     // New States for Custom Emails
     const [isNewMail, setIsNewMail] = useState(false);
     const [destinationEmails, setDestinationEmails] = useState(['']);
-    const [senderEmail, setSenderEmail] = useState('contact@dropsiders.fr');
-    const [senderChoice, setSenderChoice] = useState<'official' | 'personal'>('official');
+    const [senderEmail, setSenderEmail] = useState('');
+    const [senderChoice, setSenderChoice] = useState<'official' | 'personal'>('personal');
     const [mailSubject, setMailSubject] = useState('');
     const [signatureName, setSignatureName] = useState('');
     const [viewHtmlOriginal, setViewHtmlOriginal] = useState(false);
@@ -1026,6 +1026,7 @@ export function AdminMessages() {
 
     const handleOpenReply = () => {
         setIsNewMail(false);
+        setSenderChoice('personal');
         const activeMsg = selected || selectedArchived;
         if (activeMsg && activeMsg.recipient) {
             const prefix = activeMsg.recipient.split('@')[0].toLowerCase().replace(/[^a-z0-9]/g, '');
@@ -1699,7 +1700,7 @@ Alex (Dropsiders)`;
                             onClick={() => {
                                 setIsNewMail(true);
                                 setDestinationEmails(['']);
-                                setSenderEmail('contact@dropsiders.fr');
+                                setSenderChoice('personal');
                                 setSignatureName(currentEditor ? currentEditor.username : 'Alex');
                                 setMailSubject('Dropsiders V2 : Nouvelle plateforme média & agenda interactif ! 🎙️');
                                 setIsAccreditationMode(false);
@@ -2734,7 +2735,32 @@ Alex (Dropsiders)`;
                                             </div>
                                             <div className="w-full sm:flex-1 space-y-1.5">
                                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                                                    {/* Option 1 : Boîte Officielle */}
+                                                    {/* Option 1 : Adresse Personnelle de l'éditeur (Par défaut) */}
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setSenderChoice('personal')}
+                                                        className={`p-2.5 rounded-xl border text-left transition-all flex items-center justify-between gap-2.5 ${senderChoice === 'personal'
+                                                            ? 'bg-neon-orange/15 border-neon-orange text-white shadow-[0_0_15px_rgba(255,102,0,0.25)]'
+                                                            : 'bg-black/50 border-white/10 text-gray-400 hover:text-white hover:border-white/20'
+                                                            }`}
+                                                    >
+                                                        <div className="min-w-0 flex items-center gap-2">
+                                                            <span className="text-base shrink-0">👤</span>
+                                                            <div className="min-w-0">
+                                                                <span className="text-xs font-mono font-bold block truncate text-neon-orange">
+                                                                    {currentSignerInfo.crewEmail}
+                                                                </span>
+                                                                <span className="text-[8px] uppercase tracking-wider text-gray-400 font-bold block">
+                                                                    Boîte Directe ({signatureName || 'Éditeur'}) · Par défaut
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                        {senderChoice === 'personal' && (
+                                                            <span className="w-2.5 h-2.5 rounded-full bg-neon-orange shrink-0 shadow-[0_0_8px_#ff6600]" />
+                                                        )}
+                                                    </button>
+
+                                                    {/* Option 2 : Boîte Officielle */}
                                                     <button
                                                         type="button"
                                                         onClick={() => setSenderChoice('official')}
@@ -2752,31 +2778,6 @@ Alex (Dropsiders)`;
                                                         </div>
                                                         {senderChoice === 'official' && (
                                                             <span className="w-2.5 h-2.5 rounded-full bg-neon-cyan shrink-0 shadow-[0_0_8px_#00ffd5]" />
-                                                        )}
-                                                    </button>
-
-                                                    {/* Option 2 : Adresse Personnelle de l'éditeur */}
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => setSenderChoice('personal')}
-                                                        className={`p-2.5 rounded-xl border text-left transition-all flex items-center justify-between gap-2.5 ${senderChoice === 'personal'
-                                                            ? 'bg-neon-orange/15 border-neon-orange text-white shadow-[0_0_15px_rgba(255,102,0,0.25)]'
-                                                            : 'bg-black/50 border-white/10 text-gray-400 hover:text-white hover:border-white/20'
-                                                            }`}
-                                                    >
-                                                        <div className="min-w-0 flex items-center gap-2">
-                                                            <span className="text-base shrink-0">👤</span>
-                                                            <div className="min-w-0">
-                                                                <span className="text-xs font-mono font-bold block truncate text-neon-orange">
-                                                                    {currentSignerInfo.crewEmail}
-                                                                </span>
-                                                                <span className="text-[8px] uppercase tracking-wider text-gray-400 font-bold block">
-                                                                    Boîte Directe ({signatureName || 'Éditeur'})
-                                                                </span>
-                                                            </div>
-                                                        </div>
-                                                        {senderChoice === 'personal' && (
-                                                            <span className="w-2.5 h-2.5 rounded-full bg-neon-orange shrink-0 shadow-[0_0_8px_#ff6600]" />
                                                         )}
                                                     </button>
                                                 </div>
