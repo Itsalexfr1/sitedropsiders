@@ -632,6 +632,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 carouselAudioElementRef.current.pause();
                 carouselAudioElementRef.current.src = '';
             }
+            if (beatportPreviewAudioRef.current) {
+                beatportPreviewAudioRef.current.pause();
+                beatportPreviewAudioRef.current.src = '';
+            }
         };
     }, []);
 
@@ -1393,6 +1397,173 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         setIsExportStudioOpen(true);
     };
 
+    // ── LECTEUR AUDIO PRÉ-ÉCOUTE BEATPORT (ÉCOUTER AVANT DE CHOISIR) ──────────
+    const [beatportPreviewPlayingUrl, setBeatportPreviewPlayingUrl] = useState<string | null>(null);
+    const beatportPreviewAudioRef = useRef<HTMLAudioElement | null>(null);
+
+    const toggleBeatportPreview = (audioUrl: string) => {
+        if (!audioUrl) return;
+        if (beatportPreviewPlayingUrl === audioUrl) {
+            if (beatportPreviewAudioRef.current) {
+                beatportPreviewAudioRef.current.pause();
+            }
+            setBeatportPreviewPlayingUrl(null);
+        } else {
+            if (!beatportPreviewAudioRef.current) {
+                beatportPreviewAudioRef.current = new Audio();
+                beatportPreviewAudioRef.current.onended = () => setBeatportPreviewPlayingUrl(null);
+                beatportPreviewAudioRef.current.onerror = () => setBeatportPreviewPlayingUrl(null);
+            }
+            beatportPreviewAudioRef.current.pause();
+            beatportPreviewAudioRef.current.src = audioUrl;
+            beatportPreviewAudioRef.current.currentTime = 0;
+            beatportPreviewAudioRef.current.volume = 1.0;
+            beatportPreviewAudioRef.current.play().then(() => {
+                setBeatportPreviewPlayingUrl(audioUrl);
+            }).catch(err => {
+                console.warn("Échec lecture preview Beatport :", err);
+                setBeatportPreviewPlayingUrl(null);
+            });
+        }
+    };
+
+    const stopBeatportPreview = () => {
+        if (beatportPreviewAudioRef.current) {
+            beatportPreviewAudioRef.current.pause();
+            beatportPreviewAudioRef.current.src = '';
+        }
+        setBeatportPreviewPlayingUrl(null);
+    };
+
+    // ── MODALE POPUP RECHERCHE BEATPORT TRACK (AVEC PRÉ-ÉCOUTE ET CHOIX) ─────
+    const [isBeatportTrackModalOpen, setIsBeatportTrackModalOpen] = useState<boolean>(false);
+    const [beatportTrackTargetIdx, setBeatportTrackTargetIdx] = useState<number>(0);
+    const [beatportTrackArtistInput, setBeatportTrackArtistInput] = useState<string>('');
+    const [beatportTrackTitleInput, setBeatportTrackTitleInput] = useState<string>('');
+    const [isSearchingBeatportTrack, setIsSearchingBeatportTrack] = useState<boolean>(false);
+    const [beatportTrackResults, setBeatportTrackResults] = useState<ResolvedMusicData[]>([]);
+    const [beatportTrackSearchError, setBeatportTrackSearchError] = useState<string | null>(null);
+
+    const openBeatportTrackModal = (trackIdx: number, initialQuery?: string) => {
+        setBeatportTrackTargetIdx(trackIdx);
+        const tr = musicTracks[trackIdx];
+        let artist = tr?.artist || '';
+        let title = tr?.title || '';
+
+        if (initialQuery && !initialQuery.match(/^https?:\/\//i) && !initialQuery.startsWith('blob:')) {
+            const clean = initialQuery.trim();
+            if (clean.includes(' - ')) {
+                const parts = clean.split(' - ');
+                artist = parts[0]?.trim() || artist;
+                title = parts.slice(1).join(' - ')?.trim() || title;
+            } else if (!artist && !title) {
+                artist = clean;
+            } else if (!title) {
+                title = clean;
+            }
+        }
+
+        setBeatportTrackArtistInput(artist);
+        setBeatportTrackTitleInput(title);
+        setBeatportTrackSearchError(null);
+        setIsBeatportTrackModalOpen(true);
+
+        // Si un artiste ou un titre est déjà présent, lancer directement la recherche
+        if (artist.trim() || title.trim()) {
+            handleBeatportTrackSearch(artist.trim(), title.trim());
+        }
+    };
+
+    const handleBeatportTrackSearch = async (overrideArtist?: string, overrideTitle?: string) => {
+        const artist = (typeof overrideArtist === 'string' ? overrideArtist : beatportTrackArtistInput).trim();
+        const title = (typeof overrideTitle === 'string' ? overrideTitle : beatportTrackTitleInput).trim();
+
+        if (!artist && !title) {
+            playWarningBeep();
+            setBeatportTrackSearchError("Veuillez saisir un nom d'artiste ou un titre pour lancer la recherche.");
+            return;
+        }
+
+        setBeatportTrackSearchError(null);
+        setIsSearchingBeatportTrack(true);
+        stopBeatportPreview();
+
+        try {
+            let results: ResolvedMusicData[] = [];
+            if (artist) {
+                // Même recherche officielle que dans export : searchBeatportByArtistAndTitle
+                results = await searchBeatportByArtistAndTitle(artist, title, 15);
+            }
+            if (results.length === 0) {
+                const combinedQuery = `${artist} ${title}`.trim();
+                results = await searchMusicTracksList(combinedQuery, 15);
+            }
+            setBeatportTrackResults(results);
+            if (results.length === 0) {
+                setBeatportTrackSearchError("Aucun extrait Beatport trouvé. Essayez de modifier l'artiste ou le titre.");
+            }
+        } catch (err) {
+            console.warn("Erreur recherche Beatport track :", err);
+            setBeatportTrackSearchError("Erreur lors de la recherche sur Beatport.");
+        } finally {
+            setIsSearchingBeatportTrack(false);
+        }
+    };
+
+    const closeBeatportTrackModal = () => {
+        stopBeatportPreview();
+        setIsBeatportTrackModalOpen(false);
+    };
+
+    const handleSelectBeatportTrackResult = (item: ResolvedMusicData) => {
+        const trackIdx = beatportTrackTargetIdx;
+        const tr = musicTracks[trackIdx];
+        stopBeatportPreview();
+
+        const patch: Partial<MusicTrackSlide> = {
+            audio: item.audioUrl,
+            audioStartTime: 0
+        };
+        if (item.title) {
+            patch.title = item.title;
+        }
+        if (item.artist) {
+            patch.artist = item.artist;
+        }
+        if (item.album) {
+            patch.label = item.album;
+        }
+        if (item.coverUrl) {
+            patch.cover = item.coverUrl;
+            if (trackIdx === 0) {
+                setAfficheImage(item.coverUrl);
+            }
+        }
+
+        updateMusicTrack(trackIdx, patch);
+
+        if (item.duration) {
+            setAudioDurations(prev => ({ ...prev, [item.audioUrl]: item.duration! }));
+        }
+
+        getPreloadedAudioBlobUrl(item.audioUrl).then(blobUrl => {
+            if (blobUrl && blobUrl !== item.audioUrl) {
+                updateMusicTrack(trackIdx, { audio: blobUrl });
+            }
+        });
+
+        setMusicResolveInfo({
+            trackIdx,
+            title: item.title || tr?.title || '',
+            artist: item.artist || tr?.artist || '',
+            coverUrl: item.coverUrl,
+            platform: 'beatport'
+        });
+
+        setTimeout(() => generateImage(), 50);
+        setIsBeatportTrackModalOpen(false);
+    };
+
     const handleBeatportModalSearch = async () => {
         if (!beatportArtistInput.trim()) {
             playWarningBeep();
@@ -1403,14 +1574,21 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         }
         setAudioWarningAlert(null);
         setIsSearchingBeatportModal(true);
+        stopBeatportPreview();
         try {
             // Recherche par artiste en priorité (filtre Beatport par artist_id)
             // Si un titre est fourni, il filtre aussi par titre
-            const results = await searchBeatportByArtistAndTitle(
+            let results = await searchBeatportByArtistAndTitle(
                 beatportArtistInput.trim(),
                 beatportTitleInput.trim(),
                 10
             );
+            if (results.length === 0) {
+                results = await searchMusicTracksList(
+                    `${beatportArtistInput.trim()} ${beatportTitleInput.trim()}`.trim(),
+                    10
+                );
+            }
             setBeatportModalResults(results);
         } catch (err) {
             console.warn('Erreur recherche Beatport modal :', err);
@@ -1420,6 +1598,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     };
 
     const handleSelectBeatportModalTrack = (item: ResolvedMusicData) => {
+        stopBeatportPreview();
         updateActiveAudioData(prev => ({
             ...prev,
             url: item.audioUrl,
@@ -23408,7 +23587,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         <div className="flex justify-end pt-0.5">
                             <button
                                 type="button"
-                                onClick={() => handleExtractTrackData(activeTrackIdx, '')}
+                                onClick={() => openBeatportTrackModal(activeTrackIdx)}
                                 disabled={isResolvingAudio}
                                 className="text-[8px] text-[#00ff66] hover:underline font-bold"
                             >
@@ -28023,7 +28202,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     </div>
                     <button
                         type="button"
-                        onClick={() => setIsExportStudioOpen(false)}
+                        onClick={() => {
+                            stopBeatportPreview();
+                            setIsExportStudioOpen(false);
+                        }}
                         className="w-8 h-8 rounded-full bg-white/5 hover:bg-white/15 border border-white/10 flex items-center justify-center text-gray-400 hover:text-white transition group"
                     >
                         <X className="w-4 h-4 group-hover:rotate-90 transition-transform duration-200" />
@@ -28727,30 +28909,69 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     {/* Résultats Beatport */}
                                     {beatportModalResults.length > 0 && (
                                         <div className="space-y-1.5 max-h-44 overflow-y-auto pr-1 pt-1 custom-scrollbar">
-                                            {beatportModalResults.map((item, idx) => (
-                                                <div
-                                                    key={idx}
-                                                    onClick={() => handleSelectBeatportModalTrack(item)}
-                                                    className="flex items-center justify-between p-2 rounded-xl bg-white/5 hover:bg-emerald-500/15 border border-white/5 hover:border-emerald-500/30 cursor-pointer transition group"
-                                                >
-                                                    <div className="flex items-center gap-2.5 min-w-0">
-                                                        {item.coverUrl ? (
-                                                            <img src={item.coverUrl} alt={item.title} className="w-8 h-8 rounded-lg object-cover flex-shrink-0" />
-                                                        ) : (
-                                                            <div className="w-8 h-8 rounded-lg bg-emerald-950/60 flex items-center justify-center text-emerald-400 flex-shrink-0">
-                                                                <Music className="w-4 h-4" />
+                                            {beatportModalResults.map((item, idx) => {
+                                                const isPlaying = beatportPreviewPlayingUrl === item.audioUrl;
+                                                return (
+                                                    <div
+                                                        key={idx}
+                                                        className={`flex items-center justify-between p-2 rounded-xl transition group ${
+                                                            isPlaying
+                                                                ? 'bg-emerald-500/20 border border-emerald-400'
+                                                                : 'bg-white/5 hover:bg-emerald-500/15 border border-white/5 hover:border-emerald-500/30'
+                                                        }`}
+                                                    >
+                                                        <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                                                            {item.coverUrl ? (
+                                                                <img src={item.coverUrl} alt={item.title} className="w-8 h-8 rounded-lg object-cover flex-shrink-0" />
+                                                            ) : (
+                                                                <div className="w-8 h-8 rounded-lg bg-emerald-950/60 flex items-center justify-center text-emerald-400 flex-shrink-0">
+                                                                    <Music className="w-4 h-4" />
+                                                                </div>
+                                                            )}
+                                                            <div className="min-w-0 flex-1">
+                                                                <span className="text-[10px] font-black text-white block truncate">{item.title}</span>
+                                                                <span className="text-[8px] text-gray-400 block truncate">{item.artist}</span>
                                                             </div>
-                                                        )}
-                                                        <div className="min-w-0">
-                                                            <span className="text-[10px] font-black text-white block truncate">{item.title}</span>
-                                                            <span className="text-[8px] text-gray-400 block truncate">{item.artist}</span>
+                                                        </div>
+                                                        <div className="flex items-center gap-1.5 shrink-0 ml-2">
+                                                            {item.audioUrl && (
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        toggleBeatportPreview(item.audioUrl);
+                                                                    }}
+                                                                    className={`px-2 py-1 rounded-lg text-[8px] font-black uppercase flex items-center gap-1 transition ${
+                                                                        isPlaying
+                                                                            ? 'bg-[#00f0ff] text-black shadow-[0_0_10px_rgba(0,240,255,0.4)]'
+                                                                            : 'bg-white/10 hover:bg-white/20 text-white'
+                                                                    }`}
+                                                                    title={isPlaying ? "Mettre en pause" : "Écouter l'extrait (120s)"}
+                                                                >
+                                                                    {isPlaying ? (
+                                                                        <>
+                                                                            <Pause className="w-2.5 h-2.5" />
+                                                                            <span>Pause</span>
+                                                                        </>
+                                                                    ) : (
+                                                                        <>
+                                                                            <Play className="w-2.5 h-2.5 text-emerald-400" />
+                                                                            <span>Écouter</span>
+                                                                        </>
+                                                                    )}
+                                                                </button>
+                                                            )}
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => handleSelectBeatportModalTrack(item)}
+                                                                className="px-2 py-1 rounded-lg text-[8px] font-black uppercase bg-emerald-500/20 text-emerald-300 group-hover:bg-emerald-500 group-hover:text-black transition shrink-0"
+                                                            >
+                                                                Choisir
+                                                            </button>
                                                         </div>
                                                     </div>
-                                                    <span className="px-2 py-1 rounded-lg text-[8px] font-black uppercase bg-emerald-500/20 text-emerald-300 group-hover:bg-emerald-500 group-hover:text-black transition shrink-0 ml-2">
-                                                        Choisir
-                                                    </span>
-                                                </div>
-                                            ))}
+                                                );
+                                            })}
                                         </div>
                                     )}
                                 </div>
@@ -29009,7 +29230,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 <div className="p-4 sm:p-5 border-t border-white/10 bg-white/[0.02] flex flex-wrap items-center justify-between gap-3">
                     <button
                         type="button"
-                        onClick={() => setIsExportStudioOpen(false)}
+                        onClick={() => {
+                            stopBeatportPreview();
+                            setIsExportStudioOpen(false);
+                        }}
                         className="py-3 px-4 rounded-2xl bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white font-black text-[9px] uppercase transition"
                     >
                         Annuler
@@ -29312,23 +29536,33 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         onChange={e => {
                                             const val = e.target.value;
                                             setMusicIntroAudio(val);
-                                            if (val.match(/(spotify|beatport|soundcloud|deezer|music\.apple|youtube|youtu\.be)/i)) {
+                                            if (val.match(/^https?:\/\//i) && val.match(/(spotify|beatport\.com|soundcloud|deezer|music\.apple|youtube|youtu\.be)/i)) {
                                                 handleResolveIntroAudio(val);
                                             }
                                         }}
                                         onKeyDown={(e) => {
                                             if (e.key === 'Enter') {
-                                                handleResolveIntroAudio(musicIntroAudio);
+                                                if (musicIntroAudio.match(/^https?:\/\//i) && musicIntroAudio.match(/(spotify|beatport\.com|soundcloud|deezer|music\.apple|youtube|youtu\.be)/i)) {
+                                                    handleResolveIntroAudio(musicIntroAudio);
+                                                } else {
+                                                    openBeatportTrackModal(0, musicIntroAudio);
+                                                }
                                             }
                                         }}
                                         className="flex-1 bg-black/40 border border-white/10 rounded-xl p-2.5 text-white text-[9px] font-mono placeholder-gray-500 outline-none focus:border-[#00ff66]/50 transition-all"
                                     />
                                     <button
                                         type="button"
-                                        onClick={() => handleResolveIntroAudio(musicIntroAudio)}
+                                        onClick={() => {
+                                            if (musicIntroAudio.match(/^https?:\/\//i) && musicIntroAudio.match(/(spotify|beatport\.com|soundcloud|deezer|music\.apple|youtube|youtu\.be)/i)) {
+                                                handleResolveIntroAudio(musicIntroAudio);
+                                            } else {
+                                                openBeatportTrackModal(0, musicIntroAudio);
+                                            }
+                                        }}
                                         disabled={isResolvingAudio}
                                         className="px-3 py-2 bg-[#00ff66] hover:bg-[#33ff85] text-black font-black text-[9px] uppercase rounded-xl transition-all flex items-center gap-1 disabled:opacity-50 shadow-md active:scale-95 whitespace-nowrap"
-                                        title="Rechercher le son sur Beatport"
+                                        title="Rechercher le son sur Beatport avec écoute et sélection"
                                     >
                                         {isResolvingAudio ? <span className="animate-spin">⏳</span> : <span>🔍 Chercher le Son (Beatport)</span>}
                                     </button>
@@ -29605,23 +29839,35 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         onChange={e => {
                                             const val = e.target.value;
                                             updateMusicTrack(activeTrackIdx, { audio: val });
-                                            if (val.match(/(spotify|beatport|soundcloud|deezer|music\.apple|youtube|youtu\.be)/i)) {
+                                            if (val.match(/^https?:\/\//i) && val.match(/(spotify|beatport\.com|soundcloud|deezer|music\.apple|youtube|youtu\.be)/i)) {
                                                 handleResolveMusicAudio(activeTrackIdx, val);
                                             }
                                         }}
                                         onKeyDown={e => {
                                             if (e.key === 'Enter') {
-                                                handleResolveMusicAudio(activeTrackIdx, activeTrack.audio || '');
+                                                const val = activeTrack.audio || '';
+                                                if (val.match(/^https?:\/\//i) && val.match(/(spotify|beatport\.com|soundcloud|deezer|music\.apple|youtube|youtu\.be)/i)) {
+                                                    handleResolveMusicAudio(activeTrackIdx, val);
+                                                } else {
+                                                    openBeatportTrackModal(activeTrackIdx, val);
+                                                }
                                             }
                                         }}
                                         className="flex-1 bg-black/40 border border-white/10 rounded-xl p-2.5 text-white text-[9px] font-mono placeholder-gray-500 outline-none focus:border-[#00ff66]/50 transition-all"
                                     />
                                     <button
                                         type="button"
-                                        onClick={() => handleResolveMusicAudio(activeTrackIdx, activeTrack.audio || '')}
+                                        onClick={() => {
+                                            const val = activeTrack.audio || '';
+                                            if (val.match(/^https?:\/\//i) && val.match(/(spotify|beatport\.com|soundcloud|deezer|music\.apple|youtube|youtu\.be)/i)) {
+                                                handleResolveMusicAudio(activeTrackIdx, val);
+                                            } else {
+                                                openBeatportTrackModal(activeTrackIdx, val);
+                                            }
+                                        }}
                                         disabled={isResolvingAudio}
                                         className="px-3 py-2 bg-[#00ff66] hover:bg-[#33ff85] text-black font-black text-[9px] uppercase rounded-xl transition-all flex items-center gap-1 disabled:opacity-50 shadow-md active:scale-95 whitespace-nowrap"
-                                        title="Chercher directement sur Beatport l'extrait 120s avec le drop"
+                                        title="Ouvrir la recherche Beatport (popup) pour écouter et choisir un morceau"
                                     >
                                         {isResolvingAudio ? (
                                             <span className="animate-spin">⏳</span>
@@ -29636,7 +29882,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             {(activeTrack.title || activeTrack.artist) && !activeTrack.audio && (
                                 <button
                                     type="button"
-                                    onClick={() => handleResolveMusicAudio(activeTrackIdx, '')}
+                                    onClick={() => openBeatportTrackModal(activeTrackIdx)}
                                     disabled={isResolvingAudio}
                                     className="w-full py-2 bg-[#00ff66]/10 hover:bg-[#00ff66]/20 border border-[#00ff66]/30 text-[#00ff66] font-black text-[9px] uppercase rounded-xl transition-all flex items-center justify-center gap-1.5 active:scale-95"
                                 >
@@ -30078,6 +30324,245 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             </div>
         );
     })();
+
+    // ── MODALE POPUP RECHERCHE BEATPORT TRACK ────────────────────────────────
+    const beatportTrackModal = (
+        <AnimatePresence>
+            {isBeatportTrackModalOpen && (
+                <div className="fixed inset-0 z-[600] flex items-center justify-center p-3 sm:p-6 bg-black/85 backdrop-blur-md">
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.95, y: 15 }}
+                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                        exit={{ opacity: 0, scale: 0.95, y: 15 }}
+                        className="bg-[#0b0c10] border border-[#00ff66]/40 rounded-3xl p-5 sm:p-7 max-w-2xl w-full shadow-[0_0_50px_rgba(0,255,102,0.2)] relative overflow-hidden flex flex-col max-h-[88vh]"
+                    >
+                        {/* Barre supérieure lumineuse néon */}
+                        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#00ff66] via-teal-400 to-[#00f0ff]" />
+
+                        {/* En-tête */}
+                        <div className="flex justify-between items-start mb-4">
+                            <div className="flex items-center gap-3">
+                                <div className="p-3 bg-[#00ff66]/15 border border-[#00ff66]/30 rounded-2xl text-[#00ff66] shadow-[0_0_15px_rgba(0,255,102,0.2)]">
+                                    <Music className="w-5 h-5" />
+                                </div>
+                                <div>
+                                    <div className="flex items-center gap-2">
+                                        <h2 className="text-xl sm:text-2xl font-display font-black text-white uppercase italic tracking-tight">
+                                            Recherche <span className="text-[#00ff66]">Beatport</span>
+                                        </h2>
+                                        <span className="px-2 py-0.5 rounded-full bg-[#00ff66]/20 border border-[#00ff66]/40 text-[#00ff66] text-[9px] font-black uppercase tracking-wider">
+                                            Track {beatportTrackTargetIdx + 1}
+                                        </span>
+                                    </div>
+                                    <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mt-0.5">
+                                        Catalogue Officiel • Extraits 120s centrés sur le Drop
+                                    </p>
+                                </div>
+                            </div>
+                            <button
+                                type="button"
+                                onClick={closeBeatportTrackModal}
+                                className="p-2.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-gray-400 hover:text-white transition-all"
+                            >
+                                <X className="w-5 h-5" />
+                            </button>
+                        </div>
+
+                        {/* Formulaire de recherche identique à l'export */}
+                        <div className="p-3.5 bg-white/[0.03] border border-white/10 rounded-2xl space-y-3 mb-3">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                                <div>
+                                    <label className="text-[9px] font-black uppercase text-gray-400 block mb-1 flex items-center justify-between">
+                                        <span>👤 Nom de l'artiste</span>
+                                        <span className="text-[#00ff66] text-[8px] font-bold">Recommandé</span>
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={beatportTrackArtistInput}
+                                        onChange={e => setBeatportTrackArtistInput(e.target.value)}
+                                        onKeyDown={e => e.key === 'Enter' && handleBeatportTrackSearch()}
+                                        placeholder="Ex: APØLLO, Fisher, Charlotte de Witte..."
+                                        className="w-full bg-black/60 border border-white/20 focus:border-[#00ff66] rounded-xl px-3 py-2 text-xs text-white placeholder-gray-500 outline-none transition font-medium"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="text-[9px] font-black uppercase text-gray-400 block mb-1">
+                                        🎵 Titre du morceau (Optionnel)
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={beatportTrackTitleInput}
+                                        onChange={e => setBeatportTrackTitleInput(e.target.value)}
+                                        onKeyDown={e => e.key === 'Enter' && handleBeatportTrackSearch()}
+                                        placeholder="Ex: Innerbloom, Losing It, Frequency..."
+                                        className="w-full bg-black/60 border border-white/20 focus:border-[#00ff66] rounded-xl px-3 py-2 text-xs text-white placeholder-gray-500 outline-none transition font-medium"
+                                    />
+                                </div>
+                            </div>
+
+                            <button
+                                type="button"
+                                onClick={() => handleBeatportTrackSearch()}
+                                disabled={isSearchingBeatportTrack || (!beatportTrackArtistInput.trim() && !beatportTrackTitleInput.trim())}
+                                className="w-full py-2.5 bg-gradient-to-r from-[#00ff66] to-teal-400 hover:brightness-110 active:scale-[0.99] text-black font-black text-xs uppercase rounded-xl transition shadow-[0_4px_20px_rgba(0,255,102,0.25)] flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                {isSearchingBeatportTrack ? (
+                                    <>
+                                        <span className="animate-spin text-sm">⏳</span>
+                                        <span>Recherche en cours sur Beatport...</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <Search className="w-4 h-4" />
+                                        <span>Rechercher sur Beatport</span>
+                                    </>
+                                )}
+                            </button>
+                        </div>
+
+                        {/* Alerte Erreur / Info */}
+                        {beatportTrackSearchError && (
+                            <div className="mb-3 p-2.5 bg-neon-red/10 border border-neon-red/30 rounded-xl text-neon-red text-[10px] font-bold flex items-center gap-2">
+                                <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                                <span>{beatportTrackSearchError}</span>
+                            </div>
+                        )}
+
+                        {/* Liste des Résultats */}
+                        <div className="flex-1 overflow-y-auto pr-1 space-y-2 custom-scrollbar min-h-[200px]">
+                            {isSearchingBeatportTrack ? (
+                                <div className="space-y-2 py-4">
+                                    {[1, 2, 3].map(n => (
+                                        <div key={n} className="p-3 bg-white/5 border border-white/5 rounded-2xl animate-pulse flex items-center gap-3">
+                                            <div className="w-12 h-12 bg-white/10 rounded-xl shrink-0" />
+                                            <div className="flex-1 space-y-2">
+                                                <div className="h-3 bg-white/10 rounded w-2/3" />
+                                                <div className="h-2.5 bg-white/10 rounded w-1/3" />
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : beatportTrackResults.length > 0 ? (
+                                <div className="space-y-2">
+                                    <div className="flex items-center justify-between text-[9px] font-black uppercase text-gray-400 px-1">
+                                        <span className="text-[#00ff66] flex items-center gap-1.5">
+                                            <Sparkles className="w-3 h-3" />
+                                            {beatportTrackResults.length} morceau{beatportTrackResults.length > 1 ? 'x' : ''} trouvé{beatportTrackResults.length > 1 ? 's' : ''}
+                                        </span>
+                                        <span className="text-[8px] text-gray-500">Écoutez avant de faire votre choix</span>
+                                    </div>
+                                    {beatportTrackResults.map((item, idx) => {
+                                        const isPlaying = beatportPreviewPlayingUrl === item.audioUrl;
+                                        return (
+                                            <div
+                                                key={idx}
+                                                className={`p-3 rounded-2xl border transition-all flex items-center justify-between gap-3 ${
+                                                    isPlaying
+                                                        ? 'bg-[#00ff66]/15 border-[#00ff66] shadow-[0_0_20px_rgba(0,255,102,0.2)]'
+                                                        : 'bg-white/[0.04] hover:bg-white/[0.07] border-white/10 hover:border-[#00ff66]/40'
+                                                }`}
+                                            >
+                                                <div className="flex items-center gap-3 min-w-0 flex-1">
+                                                    {item.coverUrl ? (
+                                                        <img
+                                                            src={item.coverUrl}
+                                                            alt={item.title}
+                                                            className={`w-12 h-12 rounded-xl object-cover shrink-0 border ${
+                                                                isPlaying ? 'border-[#00ff66] shadow-[0_0_10px_rgba(0,255,102,0.4)]' : 'border-white/10'
+                                                            }`}
+                                                        />
+                                                    ) : (
+                                                        <div className="w-12 h-12 rounded-xl bg-emerald-950/60 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shrink-0">
+                                                            <Music className="w-5 h-5" />
+                                                        </div>
+                                                    )}
+                                                    <div className="min-w-0 flex-1">
+                                                        <div className="flex items-center gap-1.5">
+                                                            <p className="text-xs font-black text-white truncate">{item.title}</p>
+                                                            {isPlaying && (
+                                                                <span className="px-1.5 py-0.2 rounded bg-[#00ff66] text-black text-[7.5px] font-black uppercase animate-pulse">
+                                                                    Lecture
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                        <p className="text-[10px] text-gray-300 font-bold truncate mt-0.5">{item.artist}</p>
+                                                        <div className="flex items-center gap-2 mt-1 text-[8px] text-gray-400">
+                                                            <span className="text-[#00ff66] font-black uppercase">🎧 120s Drop</span>
+                                                            {item.album && (
+                                                                <>
+                                                                    <span>•</span>
+                                                                    <span className="truncate max-w-[140px]">{item.album}</span>
+                                                                </>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <div className="flex items-center gap-2 shrink-0">
+                                                    {item.audioUrl && (
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => toggleBeatportPreview(item.audioUrl)}
+                                                            className={`px-3 py-2 rounded-xl text-[9.5px] font-black uppercase flex items-center gap-1.5 transition-all shadow-md active:scale-95 ${
+                                                                isPlaying
+                                                                    ? 'bg-[#00f0ff] hover:bg-[#33f3ff] text-black shadow-[0_0_15px_rgba(0,240,255,0.5)]'
+                                                                    : 'bg-white/10 hover:bg-white/20 text-white border border-white/15'
+                                                            }`}
+                                                            title={isPlaying ? "Mettre en pause" : "Écouter l'extrait (120s Drop)"}
+                                                        >
+                                                            {isPlaying ? (
+                                                                <>
+                                                                    <Pause className="w-3.5 h-3.5" />
+                                                                    <span>Pause</span>
+                                                                </>
+                                                            ) : (
+                                                                <>
+                                                                    <Play className="w-3.5 h-3.5 text-[#00ff66]" />
+                                                                    <span>Écouter</span>
+                                                                </>
+                                                            )}
+                                                        </button>
+                                                    )}
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => handleSelectBeatportTrackResult(item)}
+                                                        className="px-3.5 py-2 bg-[#00ff66] hover:bg-[#33ff85] active:scale-95 text-black font-black text-[9.5px] uppercase rounded-xl transition-all shadow-[0_0_15px_rgba(0,255,102,0.3)] flex items-center gap-1"
+                                                    >
+                                                        <Check className="w-3.5 h-3.5" />
+                                                        <span>Choisir</span>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            ) : (
+                                <div className="py-10 text-center space-y-2">
+                                    <div className="w-12 h-12 rounded-full bg-white/5 border border-white/10 flex items-center justify-center mx-auto text-gray-500">
+                                        <Search className="w-5 h-5" />
+                                    </div>
+                                    <p className="text-xs font-bold text-gray-400">Lancez une recherche ci-dessus pour afficher les morceaux Beatport.</p>
+                                    <p className="text-[9px] text-gray-500">Vous pourrez écouter chaque extrait 120s centré sur le drop avant de valider.</p>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Pied de modale */}
+                        <div className="pt-3 border-t border-white/10 flex items-center justify-between text-[9px] text-gray-500 font-bold uppercase mt-2">
+                            <span>Beatport Official API v4</span>
+                            <button
+                                type="button"
+                                onClick={closeBeatportTrackModal}
+                                className="text-gray-400 hover:text-white transition underline"
+                            >
+                                Fermer
+                            </button>
+                        </div>
+                    </motion.div>
+                </div>
+            )}
+        </AnimatePresence>
+    );
 
     // Shared downloader modal
     const downloaderModal = (
@@ -33387,6 +33872,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
             {/* Shared downloader modal (visible on both) */}
             {exportStudioModal}
+            {beatportTrackModal}
             {downloaderModal}
             {recapPickerModal}
             {agendaPickerModal}
