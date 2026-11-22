@@ -17244,8 +17244,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     let slideAudioUrl = '';
                     let slideAudioStartTime = 0;
                     if (s === 1) {
-                        slideAudioUrl = musicIntroAudio || '';
-                        slideAudioStartTime = musicIntroAudioStartTime || 0;
+                        slideAudioUrl = musicIntroAudio || musicTracks[0]?.audio || '';
+                        slideAudioStartTime = musicIntroAudio ? (musicIntroAudioStartTime || 0) : (musicTracks[0]?.audioStartTime || 0);
                     } else if (s >= 2) {
                         const trIdx = s - 2;
                         slideAudioUrl = musicTracks[trIdx]?.audio || '';
@@ -17508,8 +17508,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 let singleAudioUrl = '';
                 let singleAudioStartTime = 0;
                 if (effectiveSlide === 1) {
-                    singleAudioUrl = musicIntroAudio || '';
-                    singleAudioStartTime = musicIntroAudioStartTime || 0;
+                    singleAudioUrl = musicIntroAudio || musicTracks[0]?.audio || '';
+                    singleAudioStartTime = musicIntroAudio ? (musicIntroAudioStartTime || 0) : (musicTracks[0]?.audioStartTime || 0);
                 } else if (effectiveSlide >= 2) {
                     const trIdx = effectiveSlide - 2;
                     singleAudioUrl = musicTracks[trIdx]?.audio || '';
