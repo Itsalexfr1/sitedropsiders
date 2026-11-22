@@ -802,7 +802,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         updateActiveAudioData(prev => ({
             ...prev,
             url: item.audioUrl,
-            title: item.title || '',
+            title: cleanTrackTitle(item.title || ''),
             artist: item.artist || 'Beatport',
             cover: item.coverUrl || '',
             startTime: 0,
@@ -1364,6 +1364,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const [modalAudioTargetSlide, setModalAudioTargetSlide] = useState<number | 'global'>('global');
     const [modalAudioSourceTab, setModalAudioSourceTab] = useState<'BEATPORT' | 'MP3'>('BEATPORT');
     const [beatportArtistInput, setBeatportArtistInput] = useState<string>('');
+    const [beatportLabelInput, setBeatportLabelInput] = useState<string>('');
     const [beatportTitleInput, setBeatportTitleInput] = useState<string>('');
     const [isSearchingBeatportModal, setIsSearchingBeatportModal] = useState<boolean>(false);
     const [beatportModalResults, setBeatportModalResults] = useState<ResolvedMusicData[]>([]);
@@ -1435,10 +1436,64 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         setBeatportPreviewPlayingUrl(null);
     };
 
+    /**
+     * Nettoie automatiquement le titre d'un morceau :
+     * - Supprime "Original Mix" (en parenthèses, crochets, ou seul)
+     * - Supprime "Extended Mix" (idem)
+     * - Dans "Extended Remix / VIP / Dub / Version / Edit", retire "Extended" mais garde le reste
+     *   ex : "(Dimension Extended Remix)" → "(Dimension Remix)"
+     */
+    const cleanTrackTitle = (title: string): string => {
+        if (!title) return '';
+        let t = title;
+
+        // 1. "Extended Remix", "Extended VIP", "Extended Dub", "Extended Version", "Extended Edit" → garder sans "Extended"
+        t = t.replace(/\bextended\s+(remix|vip|dub|version|edit)\b/gi, '$1');
+
+        // 2. "- Extended Mix" ou "- Original Mix" standalone après un tiret
+        t = t.replace(/\s*-\s*extended\s+mix\b/gi, '');
+        t = t.replace(/\s*-\s*original\s+mix\b/gi, '');
+
+        // 3. "(Original Mix)", "[Original Mix]", "{Original Mix}"
+        t = t.replace(/[\(\[\{]\s*original\s+mix\s*[\)\]\}]/gi, '');
+        // 4. "(Extended Mix)", "[Extended Mix]", "{Extended Mix}"
+        t = t.replace(/[\(\[\{]\s*extended\s+mix\s*[\)\]\}]/gi, '');
+
+        // 5. Standalone "original mix" / "extended mix" sans délimiteur
+        t = t.replace(/\boriginal\s+mix\b/gi, '');
+        t = t.replace(/\bextended\s+mix\b/gi, '');
+
+        // 6. Nettoyer parenthèses/crochets vides restants
+        t = t.replace(/[\(\[\{]\s*[\)\]\}]/g, '');
+
+        // 7. Nettoyer tirets et espaces traînants
+        t = t.replace(/\s*-\s*$/, '');
+        t = t.replace(/\s{2,}/g, ' ');
+
+        return t.trim();
+    };
+
+    const formatBeatportDate = (rawDate?: string) => {
+        if (!rawDate) return null;
+        try {
+            const parts = rawDate.split('T')[0].split('-');
+            if (parts.length === 3) {
+                const year = parts[0];
+                const month = parts[1];
+                const day = parts[2];
+                return `${day}/${month}/${year}`;
+            }
+            return rawDate;
+        } catch {
+            return rawDate;
+        }
+    };
+
     // ── MODALE POPUP RECHERCHE BEATPORT TRACK (AVEC PRÉ-ÉCOUTE ET CHOIX) ─────
     const [isBeatportTrackModalOpen, setIsBeatportTrackModalOpen] = useState<boolean>(false);
     const [beatportTrackTargetIdx, setBeatportTrackTargetIdx] = useState<number>(0);
     const [beatportTrackArtistInput, setBeatportTrackArtistInput] = useState<string>('');
+    const [beatportTrackLabelInput, setBeatportTrackLabelInput] = useState<string>('');
     const [beatportTrackTitleInput, setBeatportTrackTitleInput] = useState<string>('');
     const [isSearchingBeatportTrack, setIsSearchingBeatportTrack] = useState<boolean>(false);
     const [beatportTrackResults, setBeatportTrackResults] = useState<ResolvedMusicData[]>([]);
@@ -1449,6 +1504,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         const tr = musicTracks[trackIdx];
         let artist = tr?.artist || '';
         let title = tr?.title || '';
+        let label = tr?.label || '';
 
         if (initialQuery && !initialQuery.match(/^https?:\/\//i) && !initialQuery.startsWith('blob:')) {
             const clean = initialQuery.trim();
@@ -1464,23 +1520,25 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         }
 
         setBeatportTrackArtistInput(artist);
+        setBeatportTrackLabelInput(label);
         setBeatportTrackTitleInput(title);
         setBeatportTrackSearchError(null);
         setIsBeatportTrackModalOpen(true);
 
-        // Si un artiste ou un titre est déjà présent, lancer directement la recherche
-        if (artist.trim() || title.trim()) {
-            handleBeatportTrackSearch(artist.trim(), title.trim());
+        // Si un artiste ou un label est déjà présent, lancer directement la recherche
+        if (artist.trim() || label.trim() || title.trim()) {
+            handleBeatportTrackSearch(artist.trim(), title.trim(), label.trim());
         }
     };
 
-    const handleBeatportTrackSearch = async (overrideArtist?: string, overrideTitle?: string) => {
+    const handleBeatportTrackSearch = async (overrideArtist?: string, overrideTitle?: string, overrideLabel?: string) => {
         const artist = (typeof overrideArtist === 'string' ? overrideArtist : beatportTrackArtistInput).trim();
         const title = (typeof overrideTitle === 'string' ? overrideTitle : beatportTrackTitleInput).trim();
+        const label = (typeof overrideLabel === 'string' ? overrideLabel : beatportTrackLabelInput).trim();
 
-        if (!artist && !title) {
+        if (!artist && !label) {
             playWarningBeep();
-            setBeatportTrackSearchError("Veuillez saisir un nom d'artiste ou un titre pour lancer la recherche.");
+            setBeatportTrackSearchError("Veuillez renseigner un artiste ou un label pour lancer la recherche.");
             return;
         }
 
@@ -1490,17 +1548,15 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
         try {
             let results: ResolvedMusicData[] = [];
-            if (artist) {
-                // Même recherche officielle que dans export : searchBeatportByArtistAndTitle
-                results = await searchBeatportByArtistAndTitle(artist, title, 15);
-            }
+            // Recherche officielle Beatport : jusqu'à 50 titres par artiste et/ou label (+ titre optionnel)
+            results = await searchBeatportByArtistAndTitle(artist, title, 50, label);
             if (results.length === 0) {
-                const combinedQuery = `${artist} ${title}`.trim();
-                results = await searchMusicTracksList(combinedQuery, 15);
+                const combinedQuery = [artist, label, title].filter(Boolean).join(' ');
+                results = await searchMusicTracksList(combinedQuery, 50);
             }
             setBeatportTrackResults(results);
             if (results.length === 0) {
-                setBeatportTrackSearchError("Aucun extrait Beatport trouvé. Essayez de modifier l'artiste ou le titre.");
+                setBeatportTrackSearchError("Aucun extrait Beatport trouvé. Essayez de modifier l'artiste, le label ou le titre.");
             }
         } catch (err) {
             console.warn("Erreur recherche Beatport track :", err);
@@ -1525,7 +1581,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             audioStartTime: 0
         };
         if (item.title) {
-            patch.title = item.title;
+            patch.title = cleanTrackTitle(item.title);
         }
         if (item.artist) {
             patch.artist = item.artist;
@@ -1554,7 +1610,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
         setMusicResolveInfo({
             trackIdx,
-            title: item.title || tr?.title || '',
+            title: cleanTrackTitle(item.title || tr?.title || ''),
             artist: item.artist || tr?.artist || '',
             coverUrl: item.coverUrl,
             platform: 'beatport'
@@ -1565,9 +1621,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     };
 
     const handleBeatportModalSearch = async () => {
-        if (!beatportArtistInput.trim()) {
+        if (!beatportArtistInput.trim() && !beatportLabelInput.trim()) {
             playWarningBeep();
-            setAudioWarningAlert("Le nom de l'artiste est obligatoire pour la recherche Beatport !");
+            setAudioWarningAlert("Veuillez renseigner un artiste ou un label pour la recherche Beatport !");
             setAudioShake(true);
             setTimeout(() => setAudioShake(false), 800);
             return;
@@ -1576,18 +1632,15 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         setIsSearchingBeatportModal(true);
         stopBeatportPreview();
         try {
-            // Recherche par artiste en priorité (filtre Beatport par artist_id)
-            // Si un titre est fourni, il filtre aussi par titre
             let results = await searchBeatportByArtistAndTitle(
                 beatportArtistInput.trim(),
                 beatportTitleInput.trim(),
-                10
+                50,
+                beatportLabelInput.trim()
             );
             if (results.length === 0) {
-                results = await searchMusicTracksList(
-                    `${beatportArtistInput.trim()} ${beatportTitleInput.trim()}`.trim(),
-                    10
-                );
+                const combined = [beatportArtistInput.trim(), beatportLabelInput.trim(), beatportTitleInput.trim()].filter(Boolean).join(' ');
+                results = await searchMusicTracksList(combined, 50);
             }
             setBeatportModalResults(results);
         } catch (err) {
@@ -1602,7 +1655,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         updateActiveAudioData(prev => ({
             ...prev,
             url: item.audioUrl,
-            title: item.title || '',
+            title: cleanTrackTitle(item.title || ''),
             artist: item.artist || beatportArtistInput.trim() || 'Beatport',
             cover: item.coverUrl || '',
             startTime: 0,
@@ -15161,10 +15214,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 const isReel = (effectiveTab === 'REEL');
                 const promoDuration = includePromoOutro ? 10000 : 0;
                 const transitionDuration = currentTransitionDuration;
-                // Story/Reel : 4.0s par slide et Promo Outro 10s | Mode Post : 20s par défaut (ou editorialSlide1Duration)
-                let slideDuration = isReel
-                    ? 4000
-                    : (hasVideoBg ? videoDurationMs : Math.round(editorialSlide1Duration * 1000));
+                // MUSIQUE : toujours 15s par slide (reel ou post). Autres thèmes : Reel=4s, Post=editorialSlide1Duration
+                let slideDuration = isMusicTheme
+                    ? 15000
+                    : (isReel ? 4000 : (hasVideoBg ? videoDurationMs : Math.round(editorialSlide1Duration * 1000)));
                 const numTransitions = Math.max(0, numContentSlides + (includePromoOutro ? 1 : 0) - 1);
                 totalDuration = (numContentSlides * slideDuration) + (numTransitions * transitionDuration) + promoDuration;
             }
@@ -15966,10 +16019,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                 if (theme === 'MUSIQUE' && hasAnyMusicAudio) {
                     if (combinedMode === 'EDITORIAL' || combinedMode === 'TIKTOK') {
-                        // Mode carrousel MUSIQUE : chaque slide a son extrait (durée slideDurationSec)
+                        // Mode carrousel MUSIQUE : 15s par slide (ou TikTok timings). Dernière slide : son continue sur la promo
                         const slideDurationSec = combinedMode === 'TIKTOK'
                             ? (getTikTokSlideTimings(1 + musicTracks.length).slideDurationMs / 1000)
-                            : editorialSlide1Duration;
+                            : 15;
+                        const promoDurationSec = 10; // durée promo outro
                         let cursor = 0;
                         const allSlides = [1, ...musicTracks.map((_, i) => i + 2)];
                         for (let i = 0; i < allSlides.length; i++) {
@@ -15982,12 +16036,13 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 ? (musicIntroAudio ? (musicIntroAudioStartTime || 0) : (musicTracks[0]?.audioStartTime || 0))
                                 : (musicTracks[s - 2]?.audioStartTime || 0);
                             if (audioUrl) {
-                                // Chaque extrait audio joue pendant la durée de la slide et s'arrête avant la slide promo outro
+                                // Dernière slide : son continue pendant la slide promo (slideDurationSec + promoDurationSec)
+                                const isLastSlide = (i === allSlides.length - 1);
                                 audioSegments.push({
                                     url: audioUrl,
                                     startOffset: cursor,
                                     sourceOffset: srcOffset,
-                                    duration: slideDurationSec
+                                    duration: isLastSlide ? (slideDurationSec + transitionDurationSec + promoDurationSec) : slideDurationSec
                                 });
                             }
                             cursor += slideDurationSec;
@@ -17140,8 +17195,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             const rawVideoDurMs = hasVideoBg ? Math.round(bgVideo!.duration * 1000) : 0;
             const videoDurationMs = isDevinette && hasVideoBg ? Math.min(15000, rawVideoDurMs) : rawVideoDurMs;
             let promoDuration = 10000;
-            // Story/Reel : 4.0s par slide et Promo Outro 10s | Mode Post : 20s par défaut (ou editorialSlide1Duration)
-            let slideDuration = isReel ? 4000 : (hasVideoBg ? videoDurationMs : Math.round(editorialSlide1Duration * 1000));
+            // MUSIQUE : toujours 15s par slide (reel ou post). Autres thèmes : Reel=4s, Post=editorialSlide1Duration
+            let slideDuration = isMusicTheme
+                ? 15000
+                : (isReel ? 4000 : (hasVideoBg ? videoDurationMs : Math.round(editorialSlide1Duration * 1000)));
             if (combinedMode === 'TIKTOK') {
                 const numContentSlides = contentSlideNumbers.length + (hasAfficheSlide ? 1 : 0);
                 const timings = getTikTokSlideTimings(numContentSlides);
@@ -17201,8 +17258,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     }
                 }
 
-                // Rendu actif frame-par-frame : 4s en Reel/Story, 20s en Post
-                const currentSlideDur = (s === 1 && hasVideoBg && !isReel) ? videoDurationMs : slideDuration;
+                // Rendu actif frame-par-frame : MUSIQUE=15s, Reel=4s, Post=editorialSlide1Duration
+                // Pour MUSIQUE, slide 1 = même durée que les autres (15s), sauf vidéo bg sur les autres thèmes
+                const currentSlideDur = (!isMusicTheme && s === 1 && hasVideoBg && !isReel) ? videoDurationMs : slideDuration;
                 await renderDuration(currentSlideDur, 0);
             }
 
@@ -17257,9 +17315,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
             // 2. Transition vers le visuel PROMO outro à la fin du Reel (composite fluide)
             if (includePromoOutro) {
-                if (isMusicTheme) {
-                    stopMusicSegment();
-                }
+                // MUSIQUE : l'audio de la dernière track continue sur la slide promo (pas de stopMusicSegment)
                 const promoOffsetSec = await renderTransition(transitionDuration, undefined, () => {
                     promoOutroOverrideRef.current = true;
                     animStartTimeRef.current = Date.now();
@@ -17268,6 +17324,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                 // 3. Affichage du visuel promo final pendant promoDuration avec continuité (zéro relance de texte)
                 await renderDuration(promoDuration, 0);
+
+                // MUSIQUE : stopper l'audio proprement après la slide promo
+                if (isMusicTheme) {
+                    stopMusicSegment();
+                }
             }
 
         } else if (combinedMode === 'PLANNING' || ((combinedMode === 'TIKTOK' || combinedMode === 'STORY_FAST') && theme === 'PLANNING')) {
@@ -28868,10 +28929,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         <Sparkles className="w-3 h-3" />
                                         Recherche Beatport Officielle (Extrait 120s)
                                     </div>
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                                         <div>
                                             <label className="text-[8px] font-black uppercase text-gray-400 block mb-1">
-                                                👤 Nom de l'artiste <span className="text-neon-red">*</span> (Obligatoire)
+                                                👤 Nom de l'artiste <span className="text-emerald-400 text-[7px] font-bold">({beatportLabelInput.trim() ? 'Optionnel' : 'Requis'})</span>
                                             </label>
                                             <input
                                                 type="text"
@@ -28879,6 +28940,19 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                                 onChange={e => setBeatportArtistInput(e.target.value)}
                                                 onKeyDown={e => e.key === 'Enter' && handleBeatportModalSearch()}
                                                 placeholder="Ex: Charlotte de Witte, Fisher..."
+                                                className="w-full bg-white/10 border border-white/20 focus:border-emerald-400 rounded-lg px-2.5 py-1.5 text-xs text-white placeholder-gray-500 outline-none transition"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="text-[8px] font-black uppercase text-gray-400 block mb-1">
+                                                🏷️ Label <span className="text-teal-400 text-[7px] font-bold">({beatportArtistInput.trim() ? 'Optionnel' : 'Requis'})</span>
+                                            </label>
+                                            <input
+                                                type="text"
+                                                value={beatportLabelInput}
+                                                onChange={e => setBeatportLabelInput(e.target.value)}
+                                                onKeyDown={e => e.key === 'Enter' && handleBeatportModalSearch()}
+                                                placeholder="Ex: Spinnin, Mau5trap..."
                                                 className="w-full bg-white/10 border border-white/20 focus:border-emerald-400 rounded-lg px-2.5 py-1.5 text-xs text-white placeholder-gray-500 outline-none transition"
                                             />
                                         </div>
@@ -28899,7 +28973,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     <button
                                         type="button"
                                         onClick={handleBeatportModalSearch}
-                                        disabled={isSearchingBeatportModal || !beatportArtistInput.trim()}
+                                        disabled={isSearchingBeatportModal || (!beatportArtistInput.trim() && !beatportLabelInput.trim())}
                                         className="w-full py-2 bg-gradient-to-r from-emerald-500 to-teal-500 hover:brightness-110 active:scale-98 text-black font-black text-[9.5px] uppercase rounded-xl transition shadow-md flex items-center justify-center gap-1.5 disabled:opacity-50"
                                     >
                                         <Search className="w-3.5 h-3.5" />
@@ -28930,7 +29004,21 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                                             )}
                                                             <div className="min-w-0 flex-1">
                                                                 <span className="text-[10px] font-black text-white block truncate">{item.title}</span>
-                                                                <span className="text-[8px] text-gray-400 block truncate">{item.artist}</span>
+                                                                <div className="flex items-center gap-1.5 text-[8px] text-gray-400 truncate">
+                                                                    <span>{item.artist}</span>
+                                                                    {item.album && (
+                                                                        <>
+                                                                            <span>•</span>
+                                                                            <span className="text-gray-300">🏷️ {item.album}</span>
+                                                                        </>
+                                                                    )}
+                                                                    {item.releaseDate && (
+                                                                        <>
+                                                                            <span>•</span>
+                                                                            <span className="text-teal-300 font-mono font-bold">📅 {formatBeatportDate(item.releaseDate)}</span>
+                                                                        </>
+                                                                    )}
+                                                                </div>
                                                             </div>
                                                         </div>
                                                         <div className="flex items-center gap-1.5 shrink-0 ml-2">
@@ -29744,53 +29832,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             </div>
                         </div>
 
-                        {/* SECTION B : TEXTES DU SON (TITRE + ARTISTE + LABEL) */}
-                        <div className="space-y-3 bg-white/5 border border-white/10 rounded-2xl p-4">
-                            <label className="text-[10px] font-black text-white uppercase tracking-widest flex items-center gap-1.5">
-                                ✍️ Informations du Morceau (Slide {editorialSlide})
-                            </label>
-
-                            {/* 1. Titre du Morceau */}
-                            <div className="space-y-1">
-                                <div className="flex items-center justify-between text-[9px] font-bold uppercase text-gray-400">
-                                    <span>Titre du Morceau</span>
-                                    <span className="text-[8px] text-[#00ff66] font-normal">*mot* en vert</span>
-                                </div>
-                                <input
-                                    type="text"
-                                    placeholder="Ex: STROBE (DIMENSION REMIX)..."
-                                    value={activeTrack.title}
-                                    onChange={e => updateMusicTrack(activeTrackIdx, { title: e.target.value })}
-                                    className="w-full bg-black/40 border border-white/10 rounded-xl p-2.5 text-white text-[10px] font-black placeholder-gray-500 outline-none focus:border-[#00ff66]/50 transition-all uppercase"
-                                />
-                            </div>
-
-                            {/* 2. Nom de l'Artiste */}
-                            <div className="space-y-1">
-                                <span className="text-[9px] font-bold uppercase text-gray-400 block">Artiste(s)</span>
-                                <input
-                                    type="text"
-                                    placeholder="Ex: DEADMAU5, DIMENSION..."
-                                    value={activeTrack.artist}
-                                    onChange={e => updateMusicTrack(activeTrackIdx, { artist: e.target.value })}
-                                    className="w-full bg-black/40 border border-white/10 rounded-xl p-2.5 text-[#00ff66] text-[10px] font-bold placeholder-gray-500 outline-none focus:border-[#00ff66]/50 transition-all uppercase"
-                                />
-                            </div>
-
-                            {/* 3. Label Discographique */}
-                            <div className="space-y-1">
-                                <span className="text-[9px] font-bold uppercase text-gray-400 block">Label Discographique</span>
-                                <input
-                                    type="text"
-                                    placeholder="Ex: MAU5TRAP, SPINNIN' RECORDS, STMPD..."
-                                    value={activeTrack.label}
-                                    onChange={e => updateMusicTrack(activeTrackIdx, { label: e.target.value })}
-                                    className="w-full bg-black/40 border border-white/10 rounded-xl p-2.5 text-white text-[9px] font-medium placeholder-gray-500 outline-none focus:border-[#00ff66]/50 transition-all uppercase"
-                                />
-                            </div>
-                        </div>
-
-                        {/* SECTION C : EXTRAIT AUDIO DU MORCEAU (MP3 / WAV / LIEN DIRECT) */}
+                        {/* SECTION B : EXTRAIT AUDIO DU MORCEAU (MP3 / WAV / LIEN DIRECT) */}
                         <div className="space-y-3 bg-white/5 border border-white/10 rounded-2xl p-4">
                             <div className="flex items-center justify-between">
                                 <label className="text-[10px] font-black text-[#00ff66] uppercase tracking-widest flex items-center gap-1.5">
@@ -30279,6 +30321,52 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             )}
                         </div>
 
+                        {/* SECTION C : INFORMATIONS DU MORCEAU (TITRE + ARTISTE + LABEL) */}
+                        <div className="space-y-3 bg-white/5 border border-white/10 rounded-2xl p-4">
+                            <label className="text-[10px] font-black text-white uppercase tracking-widest flex items-center gap-1.5">
+                                ✍️ Informations du Morceau (Slide {editorialSlide})
+                            </label>
+
+                            {/* 1. Titre du Morceau */}
+                            <div className="space-y-1">
+                                <div className="flex items-center justify-between text-[9px] font-bold uppercase text-gray-400">
+                                    <span>Titre du Morceau</span>
+                                    <span className="text-[8px] text-[#00ff66] font-normal">*mot* en vert</span>
+                                </div>
+                                <input
+                                    type="text"
+                                    placeholder="Ex: STROBE (DIMENSION REMIX)..."
+                                    value={activeTrack.title}
+                                    onChange={e => updateMusicTrack(activeTrackIdx, { title: e.target.value })}
+                                    className="w-full bg-black/40 border border-white/10 rounded-xl p-2.5 text-white text-[10px] font-black placeholder-gray-500 outline-none focus:border-[#00ff66]/50 transition-all uppercase"
+                                />
+                            </div>
+
+                            {/* 2. Nom de l'Artiste */}
+                            <div className="space-y-1">
+                                <span className="text-[9px] font-bold uppercase text-gray-400 block">Artiste(s)</span>
+                                <input
+                                    type="text"
+                                    placeholder="Ex: DEADMAU5, DIMENSION..."
+                                    value={activeTrack.artist}
+                                    onChange={e => updateMusicTrack(activeTrackIdx, { artist: e.target.value })}
+                                    className="w-full bg-black/40 border border-white/10 rounded-xl p-2.5 text-[#00ff66] text-[10px] font-bold placeholder-gray-500 outline-none focus:border-[#00ff66]/50 transition-all uppercase"
+                                />
+                            </div>
+
+                            {/* 3. Label Discographique */}
+                            <div className="space-y-1">
+                                <span className="text-[9px] font-bold uppercase text-gray-400 block">Label Discographique</span>
+                                <input
+                                    type="text"
+                                    placeholder="Ex: MAU5TRAP, SPINNIN' RECORDS, STMPD..."
+                                    value={activeTrack.label}
+                                    onChange={e => updateMusicTrack(activeTrackIdx, { label: e.target.value })}
+                                    className="w-full bg-black/40 border border-white/10 rounded-xl p-2.5 text-white text-[9px] font-medium placeholder-gray-500 outline-none focus:border-[#00ff66]/50 transition-all uppercase"
+                                />
+                            </div>
+                        </div>
+
 
                         {/* SECTION D : IMAGE DE FOND / AMBIANCE */}
                         <div className="space-y-3 bg-white/5 border border-white/10 rounded-2xl p-4">
@@ -30368,21 +30456,39 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             </button>
                         </div>
 
-                        {/* Formulaire de recherche identique à l'export */}
+                        {/* Formulaire de recherche avec Artiste, Label et Titre */}
                         <div className="p-3.5 bg-white/[0.03] border border-white/10 rounded-2xl space-y-3 mb-3">
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
                                 <div>
                                     <label className="text-[9px] font-black uppercase text-gray-400 block mb-1 flex items-center justify-between">
                                         <span>👤 Nom de l'artiste</span>
-                                        <span className="text-[#00ff66] text-[8px] font-bold">Recommandé</span>
+                                        <span className={`text-[8px] font-bold ${beatportTrackLabelInput.trim() ? 'text-gray-500' : 'text-[#00ff66]'}`}>
+                                            {beatportTrackLabelInput.trim() ? 'Optionnel' : 'Requis'}
+                                        </span>
                                     </label>
                                     <input
                                         type="text"
                                         value={beatportTrackArtistInput}
                                         onChange={e => setBeatportTrackArtistInput(e.target.value)}
                                         onKeyDown={e => e.key === 'Enter' && handleBeatportTrackSearch()}
-                                        placeholder="Ex: APØLLO, Fisher, Charlotte de Witte..."
+                                        placeholder="Ex: Fisher, Deadmau5, Dimension..."
                                         className="w-full bg-black/60 border border-white/20 focus:border-[#00ff66] rounded-xl px-3 py-2 text-xs text-white placeholder-gray-500 outline-none transition font-medium"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="text-[9px] font-black uppercase text-gray-400 block mb-1 flex items-center justify-between">
+                                        <span>🏷️ Label discographique</span>
+                                        <span className={`text-[8px] font-bold ${beatportTrackArtistInput.trim() ? 'text-gray-500' : 'text-teal-400'}`}>
+                                            {beatportTrackArtistInput.trim() ? 'Optionnel' : 'Requis'}
+                                        </span>
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={beatportTrackLabelInput}
+                                        onChange={e => setBeatportTrackLabelInput(e.target.value)}
+                                        onKeyDown={e => e.key === 'Enter' && handleBeatportTrackSearch()}
+                                        placeholder="Ex: Mau5trap, Spinnin', STMPD..."
+                                        className="w-full bg-black/60 border border-white/20 focus:border-teal-400 rounded-xl px-3 py-2 text-xs text-white placeholder-gray-500 outline-none transition font-medium"
                                     />
                                 </div>
                                 <div>
@@ -30394,7 +30500,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         value={beatportTrackTitleInput}
                                         onChange={e => setBeatportTrackTitleInput(e.target.value)}
                                         onKeyDown={e => e.key === 'Enter' && handleBeatportTrackSearch()}
-                                        placeholder="Ex: Innerbloom, Losing It, Frequency..."
+                                        placeholder="Ex: Strobe, Losing It, Frequency..."
                                         className="w-full bg-black/60 border border-white/20 focus:border-[#00ff66] rounded-xl px-3 py-2 text-xs text-white placeholder-gray-500 outline-none transition font-medium"
                                     />
                                 </div>
@@ -30403,7 +30509,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             <button
                                 type="button"
                                 onClick={() => handleBeatportTrackSearch()}
-                                disabled={isSearchingBeatportTrack || (!beatportTrackArtistInput.trim() && !beatportTrackTitleInput.trim())}
+                                disabled={isSearchingBeatportTrack || (!beatportTrackArtistInput.trim() && !beatportTrackLabelInput.trim())}
                                 className="w-full py-2.5 bg-gradient-to-r from-[#00ff66] to-teal-400 hover:brightness-110 active:scale-[0.99] text-black font-black text-xs uppercase rounded-xl transition shadow-[0_4px_20px_rgba(0,255,102,0.25)] flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                                 {isSearchingBeatportTrack ? (
@@ -30486,12 +30592,18 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                                             )}
                                                         </div>
                                                         <p className="text-[10px] text-gray-300 font-bold truncate mt-0.5">{item.artist}</p>
-                                                        <div className="flex items-center gap-2 mt-1 text-[8px] text-gray-400">
+                                                        <div className="flex items-center gap-2 mt-1 text-[8px] text-gray-400 flex-wrap">
                                                             <span className="text-[#00ff66] font-black uppercase">🎧 120s Drop</span>
                                                             {item.album && (
                                                                 <>
                                                                     <span>•</span>
-                                                                    <span className="truncate max-w-[140px]">{item.album}</span>
+                                                                    <span className="truncate max-w-[150px] text-gray-300 font-semibold">🏷️ {item.album}</span>
+                                                                </>
+                                                            )}
+                                                            {item.releaseDate && (
+                                                                <>
+                                                                    <span>•</span>
+                                                                    <span className="text-teal-300 font-mono font-bold">📅 {formatBeatportDate(item.releaseDate)}</span>
                                                                 </>
                                                             )}
                                                         </div>
