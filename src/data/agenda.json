@@ -419,25 +419,6 @@
     "additionalDates": []
   },
   {
-    "id": 298,
-    "title": "Time Warp Germany 2026",
-    "date": "2026-11-21",
-    "startDate": "2026-11-21",
-    "endDate": "2026-11-22",
-    "venue": "Maimarkthalle",
-    "location": "MANNHEIM",
-    "country": "Allemagne",
-    "type": "Festival",
-    "image": "/uploads/f7007ecb28433f78-504691852_1287660722723180_554.jpg",
-    "url": "https://www.time-warp.de",
-    "genre": "Techno",
-    "month": "NOVEMBRE",
-    "isWeekly": false,
-    "isSoldOut": false,
-    "isLiveDropsiders": false,
-    "additionalDates": []
-  },
-  {
     "id": 299,
     "title": "Awakenings Eindhoven 2027",
     "date": "2027-01-23",
