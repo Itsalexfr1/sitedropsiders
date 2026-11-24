@@ -590,5 +590,24 @@
     "isSoldOut": false,
     "isLiveDropsiders": false,
     "additionalDates": []
+  },
+  {
+    "id": 1160,
+    "title": "John Summit - Ctrl Escape Arena Tour",
+    "date": "2027-02-23",
+    "startDate": "2027-02-23",
+    "endDate": "2027-02-23",
+    "venue": "Zenith",
+    "location": "PARIS",
+    "country": "FRANCE",
+    "type": "Concert",
+    "image": "/uploads/uploads/d689e35e1b659c28-annonce____johnsummit__figure_.jpg",
+    "url": "https://www.livenation.fr/john-summit-tickets-adp1416190",
+    "genre": "Tech House",
+    "month": "FÉVRIER",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false,
+    "additionalDates": []
   }
 ]
