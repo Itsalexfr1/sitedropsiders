@@ -623,7 +623,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     }, [carouselAudioStartTime]);
 
     useEffect(() => {
-        setAudioTargetSlide(editorialSlide);
+        setAudioTargetSlide(prev => prev === 'global' ? 'global' : editorialSlide);
     }, [editorialSlide]);
 
     useEffect(() => {
@@ -667,6 +667,53 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             list.push(i + 3);
         }
         return list;
+    };
+
+    const getSlideTimeOffset = (targetKey: string | number, customDurSec?: number): number => {
+        const dur = customDurSec || editorialSlide1Duration || 4;
+        if (theme === 'PLANNING') {
+            if (typeof targetKey === 'number') {
+                return Math.max(0, targetKey - 1) * dur;
+            }
+            if (targetKey === 'promo') {
+                return (2 + agendaAffiches.length) * dur;
+            }
+            return 0;
+        }
+
+        const shouldSkipSlide2 = (theme !== 'JEU_DJ') && skipEditorialSlide2;
+        const rawSlides = shouldSkipSlide2
+            ? [1, ...extraEditorialSlides.map((_, i) => i + 3)]
+            : [1, 2, ...extraEditorialSlides.map((_, i) => i + 3)];
+
+        if (typeof targetKey === 'number') {
+            const idx = rawSlides.indexOf(targetKey);
+            return idx > 0 ? idx * dur : 0;
+        }
+
+        let baseOffset = rawSlides.length * dur;
+        if (typeof targetKey === 'string' && targetKey.startsWith('affiche_')) {
+            const affIdx = parseInt(targetKey.replace('affiche_', '')) || 0;
+            return baseOffset + (affIdx * dur);
+        }
+        baseOffset += editorialAffiches.length * dur;
+
+        if (targetKey === 'tweet') {
+            return baseOffset;
+        }
+        if (isEditorialTweetActive) baseOffset += dur;
+
+        if (typeof targetKey === 'string' && targetKey.startsWith('blank_')) {
+            const bIdx = parseInt(targetKey.replace('blank_', '')) || 0;
+            return baseOffset + (bIdx * dur);
+        }
+        baseOffset += editorialBlankSlides.length * dur;
+
+        if (targetKey === 'promo') {
+            return baseOffset;
+        }
+
+        return 0;
     };
 
     const getActiveAudioData = (): SlideAudioItem => {
@@ -823,7 +870,15 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
     const toggleCarouselAudioPreview = () => {
         const activeData = getActiveAudioData();
-        if (!activeData.url) return;
+        const effectiveAudio = activeData.url
+            ? activeData
+            : (slideAudios[1]?.url
+                ? slideAudios[1]
+                : (carouselAudioUrl
+                    ? { url: carouselAudioUrl, title: carouselAudioTitle, artist: carouselAudioArtist, cover: carouselAudioCover, startTime: carouselAudioStartTimeRef.current || carouselAudioStartTime || 0, duration: carouselAudioDuration }
+                    : null));
+
+        if (!effectiveAudio?.url) return;
         let aud = carouselAudioElementRef.current;
         if (!aud) {
             aud = new Audio();
@@ -834,8 +889,13 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             aud.pause();
             setIsPlayingCarouselPreview(false);
         } else {
-            aud.src = activeData.url;
-            aud.currentTime = activeData.startTime;
+            aud.src = effectiveAudio.url;
+            const isUsingSharedAudio = !activeData.url || audioTargetSlide === 'global' || audioTargetSlide === 1;
+            const currentSlideKey = isCarouselPromoActive ? 'promo' : isEditorialAfficheActive ? `affiche_${editorialAfficheIndex}` : isEditorialTweetActive ? 'tweet' : isEditorialBlankActive ? `blank_${editorialBlankIndex}` : editorialSlide;
+            const slideOffset = (isUsingSharedAudio && audioTargetSlide !== 'global') ? getSlideTimeOffset(currentSlideKey) : 0;
+            const maxD = effectiveAudio.duration && isFinite(effectiveAudio.duration) && effectiveAudio.duration > 0 ? effectiveAudio.duration : 300;
+            const finalTime = ((effectiveAudio.startTime || 0) + slideOffset) % maxD;
+            aud.currentTime = finalTime;
             aud.volume = 1.0;
             aud.play().then(() => {
                 setIsPlayingCarouselPreview(true);
@@ -860,7 +920,13 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     };
 
     const switchAudioTarget = (target: 'global' | 'promo' | string | number) => {
-        if (carouselAudioElementRef.current && isPlayingCarouselPreview) {
+        const prevUrl = (getActiveAudioData().url || slideAudios[1]?.url || carouselAudioUrl || '');
+        const nextData = target === 'global' ? { url: carouselAudioUrl } : (slideAudios[target] || {});
+        const nextUrl = (nextData.url || slideAudios[1]?.url || carouselAudioUrl || '');
+        const isSameSharedStream = Boolean(prevUrl && nextUrl && prevUrl === nextUrl);
+
+        // Ne couper la lecture que si on bascule sur un fichier audio différent
+        if (carouselAudioElementRef.current && isPlayingCarouselPreview && !isSameSharedStream) {
             carouselAudioElementRef.current.pause();
             setIsPlayingCarouselPreview(false);
         }
@@ -1020,19 +1086,23 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 )}
 
                 {/* Si la slide actuelle hérite de la Slide 1 sans avoir de son personnalisé */}
-                {isInheritingFromSlide1 && !activeData.url && (
+                {isInheritingFromSlide1 && !activeData.url && effectiveInheritedAudio?.url && (
                     <div className="p-2.5 rounded-xl bg-emerald-950/30 border border-emerald-500/30 flex items-center justify-between gap-2">
                         <div className="min-w-0">
                             <span className="block text-[9.5px] font-bold text-emerald-300">
-                                🔗 Cette slide utilise automatiquement le son de la Slide 1 :
+                                🔗 Piste continue : le morceau continue sur cette slide (+{getSlideTimeOffset(audioTargetSlide).toFixed(1)}s)
                             </span>
                             <span className="block text-[9px] text-gray-400 truncate">
                                 "{effectiveInheritedAudio?.title || 'Son principal'}"
                             </span>
                         </div>
-                        <span className="text-[8px] font-black uppercase bg-emerald-500/20 text-emerald-300 px-2 py-1 rounded shrink-0">
-                            Par défaut
-                        </span>
+                        <button
+                            type="button"
+                            onClick={toggleCarouselAudioPreview}
+                            className={`px-2.5 py-1 rounded-lg text-[9.5px] font-black uppercase flex items-center gap-1 shrink-0 transition ${isPlayingCarouselPreview ? 'bg-[#00f0ff] text-black shadow-[0_0_10px_rgba(0,240,255,0.4)]' : 'bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/40'}`}
+                        >
+                            {isPlayingCarouselPreview ? 'Pause' : <><Play className="w-3 h-3" /> Écouter</>}
+                        </button>
                     </div>
                 )}
 
@@ -6008,27 +6078,27 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         const parentTheme = forceTheme || theme;
         const isPromoRequested = Boolean(
             promoOutroOverrideRef.current === true ||
-            (promoOutroOverrideRef.current === null && isCarouselPromoActive && isMultiSlideTheme)
+            (promoOutroOverrideRef.current !== false && promoOutroOverrideRef.current === null && isCarouselPromoActive && isMultiSlideTheme)
         );
         const effectiveTheme = isPromoRequested ? 'PROMO' : (forceTheme || theme);
         const isEditorialCarouselTheme = ['NEWS', 'FOCUS', 'MUSIQUE', 'RECAP', 'INTERVIEW', 'LIVESTREAM', 'CONSEILS', 'REELS', 'CONCOURS', 'TOP 100 DROPSIDERS', 'JEU', 'JEU_FESTIVAL', 'JEU_DJ', 'HIGHLIGHTS', 'EVENTS'].includes(effectiveTheme);
         const isEditorialAfficheRequested = Boolean(
             isEditorialCarouselTheme &&
             !isPromoRequested &&
-            (editorialAfficheOverrideRef.current === true || (editorialAfficheOverrideRef.current === null && isEditorialAfficheActive))
+            (editorialAfficheOverrideRef.current === true || (editorialAfficheOverrideRef.current !== false && editorialAfficheOverrideRef.current === null && isEditorialAfficheActive))
         );
         const isEditorialTweetRequested = Boolean(
             isEditorialCarouselTheme &&
             !isPromoRequested &&
             !isEditorialAfficheRequested &&
-            (editorialTweetOverrideRef.current === true || (editorialTweetOverrideRef.current === null && isEditorialTweetActive))
+            (editorialTweetOverrideRef.current === true || (editorialTweetOverrideRef.current !== false && editorialTweetOverrideRef.current === null && isEditorialTweetActive))
         );
         const isEditorialBlankRequested = Boolean(
             isEditorialCarouselTheme &&
             !isPromoRequested &&
             !isEditorialAfficheRequested &&
             !isEditorialTweetRequested &&
-            (editorialBlankOverrideRef.current === true || (editorialBlankOverrideRef.current === null && isEditorialBlankActive))
+            (editorialBlankOverrideRef.current === true || (editorialBlankOverrideRef.current !== false && editorialBlankOverrideRef.current === null && isEditorialBlankActive))
         );
 
         try {
@@ -14887,6 +14957,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             afficheIndex?: number;
             isBlank?: boolean;
             blankIndex?: number;
+            audioOffset?: number;
         }
     ): Promise<Blob | null> => {
         const canvas = canvasRef.current;
@@ -15701,22 +15772,22 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             agendaSlideOverrideRef.current = 1;
             editorialSlideOverrideRef.current = null;
             eventsSlideOverrideRef.current = null;
-            editorialAfficheOverrideRef.current = null;
-            editorialBlankOverrideRef.current = null;
-            editorialTweetOverrideRef.current = null;
-            promoOutroOverrideRef.current = null;
+            editorialAfficheOverrideRef.current = false;
+            editorialBlankOverrideRef.current = false;
+            editorialTweetOverrideRef.current = false;
+            promoOutroOverrideRef.current = false;
             setIsCarouselPromoActive(false);
             setIsEditorialAfficheActive(false);
             setIsEditorialTweetActive(false);
             setIsEditorialBlankActive(false);
-        } else if (combinedMode === 'EDITORIAL' || combinedMode === 'TIKTOK') {
+        } else if (combinedMode === 'EDITORIAL' || combinedMode === 'TIKTOK' || combinedMode === 'STORY_FAST') {
             editorialSlideOverrideRef.current = 1;
             agendaSlideOverrideRef.current = null;
             eventsSlideOverrideRef.current = null;
-            editorialAfficheOverrideRef.current = null;
-            editorialBlankOverrideRef.current = null;
-            editorialTweetOverrideRef.current = null;
-            promoOutroOverrideRef.current = null;
+            editorialAfficheOverrideRef.current = false;
+            editorialBlankOverrideRef.current = false;
+            editorialTweetOverrideRef.current = false;
+            promoOutroOverrideRef.current = false;
             setIsCarouselPromoActive(false);
             setIsEditorialAfficheActive(false);
             setIsEditorialTweetActive(false);
@@ -15726,9 +15797,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             editorialSlideOverrideRef.current = null;
             agendaSlideOverrideRef.current = null;
             eventsSlideOverrideRef.current = null;
-            editorialAfficheOverrideRef.current = null;
-            editorialBlankOverrideRef.current = null;
-            editorialTweetOverrideRef.current = null;
+            editorialAfficheOverrideRef.current = false;
+            editorialBlankOverrideRef.current = false;
+            editorialTweetOverrideRef.current = false;
             setIsCarouselPromoActive(true);
             setIsEditorialAfficheActive(false);
             setIsEditorialTweetActive(false);
@@ -15736,9 +15807,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         } else if (options?.isAffiche) {
             editorialAfficheOverrideRef.current = true;
             editorialAfficheIndexOverrideRef.current = options.afficheIndex ?? 0;
-            editorialBlankOverrideRef.current = null;
-            editorialTweetOverrideRef.current = null;
-            promoOutroOverrideRef.current = null;
+            editorialBlankOverrideRef.current = false;
+            editorialTweetOverrideRef.current = false;
+            promoOutroOverrideRef.current = false;
             editorialSlideOverrideRef.current = null;
             eventsSlideOverrideRef.current = 2;
             setIsEditorialAfficheActive(true);
@@ -15748,9 +15819,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         } else if (options?.isBlank) {
             editorialBlankOverrideRef.current = true;
             editorialBlankIndexOverrideRef.current = options.blankIndex ?? 0;
-            editorialAfficheOverrideRef.current = null;
-            editorialTweetOverrideRef.current = null;
-            promoOutroOverrideRef.current = null;
+            editorialAfficheOverrideRef.current = false;
+            editorialTweetOverrideRef.current = false;
+            promoOutroOverrideRef.current = false;
             editorialSlideOverrideRef.current = null;
             eventsSlideOverrideRef.current = null;
             setIsEditorialBlankActive(true);
@@ -15763,10 +15834,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 editorialSlideOverrideRef.current = options.targetSlide;
                 setEditorialSlide(options.targetSlide);
             }
-            editorialAfficheOverrideRef.current = null;
-            editorialBlankOverrideRef.current = null;
-            editorialTweetOverrideRef.current = null;
-            promoOutroOverrideRef.current = null;
+            editorialAfficheOverrideRef.current = false;
+            editorialBlankOverrideRef.current = false;
+            editorialTweetOverrideRef.current = false;
+            promoOutroOverrideRef.current = false;
             setIsEditorialAfficheActive(false);
             setIsEditorialBlankActive(false);
             setIsEditorialTweetActive(false);
@@ -16287,11 +16358,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     }
 
                     // Priorité au son de la Slide 1 (ou son global carrousel) : hérité par défaut sur TOUTES les slides
-                    const slide1OrGlobalAudio = currentSlideAudios[1]?.url
+                    const slide1OrGlobalAudio: SlideAudioItem | null = currentSlideAudios[1]?.url
                         ? currentSlideAudios[1]
                         : (carouselAudioUrl
-                            ? { url: carouselAudioUrl, startTime: carouselAudioStartTimeRef.current || carouselAudioStartTime || 0 }
-                            : Object.values(currentSlideAudios).find(a => Boolean(a?.url)) || null);
+                            ? { url: carouselAudioUrl, title: carouselAudioTitle, artist: carouselAudioArtist, cover: carouselAudioCover, startTime: carouselAudioStartTimeRef.current || carouselAudioStartTime || 0, duration: carouselAudioDuration }
+                            : (Object.values(currentSlideAudios).find(a => Boolean(a?.url)) || null));
 
                     if (isReelExport && combinedMode !== 'NONE') {
                         // En REEL / TikTok fusionné : le son de la Slide 1 joue en continu sur TOUTE la vidéo (toutes les slides + Outro Promo)
@@ -16386,14 +16457,22 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             });
                         }
                     } else if (combinedMode === 'PROMO_ONLY') {
-                        const sAudio = currentSlideAudios['promo']?.url
+                        const hasPromoSpecific = Boolean(currentSlideAudios['promo']?.url);
+                        const sAudio = hasPromoSpecific
                             ? currentSlideAudios['promo']
                             : slide1OrGlobalAudio;
                         if (sAudio?.url) {
+                            const isInheritingOrGlobal = !hasPromoSpecific;
+                            const additionalOffset = (isInheritingOrGlobal && options?.audioOffset !== undefined)
+                                ? options.audioOffset
+                                : (isInheritingOrGlobal ? getSlideTimeOffset('promo') : 0);
+                            const audioDurVal = (sAudio as any)?.duration;
+                            const maxAudioDur = audioDurVal && isFinite(audioDurVal) && audioDurVal > 0 ? audioDurVal : 300;
+                            const finalSourceOffset = ((sAudio.startTime || 0) + additionalOffset) % maxAudioDur;
                             audioSegments.push({
                                 url: sAudio.url,
                                 startOffset: 0,
-                                sourceOffset: sAudio.startTime || 0,
+                                sourceOffset: finalSourceOffset,
                                 duration: totalDuration / 1000
                             });
                         }
@@ -16413,16 +16492,24 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     : isEffectiveTweet
                                         ? 'tweet'
                                         : (editorialSlideOverrideRef.current !== null ? editorialSlideOverrideRef.current : editorialSlide);
-                        const sAudio = currentSlideAudios[targetAudioKey]?.url
+                        const hasDedicatedAudio = Boolean(currentSlideAudios[targetAudioKey]?.url);
+                        const sAudio = hasDedicatedAudio
                             ? currentSlideAudios[targetAudioKey]
                             : (videoAudioExportModeRef.current === 'ALL_SLIDES' || videoAudioExportModeRef.current === 'CUSTOM_AUDIO' || !bgVideo || targetAudioKey === 1 || isEffectivePromo
                                 ? slide1OrGlobalAudio
                                 : null);
                         if (sAudio?.url) {
+                            const isInheritingOrGlobal = !hasDedicatedAudio;
+                            const additionalOffset = (isInheritingOrGlobal && options?.audioOffset !== undefined)
+                                ? options.audioOffset
+                                : (isInheritingOrGlobal ? getSlideTimeOffset(targetAudioKey) : 0);
+                            const audioDurVal = (sAudio as any)?.duration;
+                            const maxAudioDur = audioDurVal && isFinite(audioDurVal) && audioDurVal > 0 ? audioDurVal : 300;
+                            const finalSourceOffset = ((sAudio.startTime || 0) + additionalOffset) % maxAudioDur;
                             audioSegments.push({
                                 url: sAudio.url,
                                 startOffset: 0,
-                                sourceOffset: sAudio.startTime || 0,
+                                sourceOffset: finalSourceOffset,
                                 duration: totalDuration / 1000
                             });
                         }
@@ -17214,10 +17301,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 const firstSlide = contentSlideNumbers[0];
                 editorialSlideOverrideRef.current = firstSlide;
                 setEditorialSlide(firstSlide);
-                editorialAfficheOverrideRef.current = null;
-                editorialBlankOverrideRef.current = null;
-                editorialTweetOverrideRef.current = null;
-                promoOutroOverrideRef.current = null;
+                editorialAfficheOverrideRef.current = false;
+                editorialBlankOverrideRef.current = false;
+                editorialTweetOverrideRef.current = false;
+                promoOutroOverrideRef.current = false;
                 setIsEditorialAfficheActive(false);
                 setIsCarouselPromoActive(false);
                 setIsEditorialTweetActive(false);
@@ -17231,11 +17318,19 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 if (i > 0) {
                     slideStartOffsetSec = await renderTransition(transitionDuration, undefined, () => {
                         editorialSlideOverrideRef.current = s;
+                        editorialAfficheOverrideRef.current = false;
+                        editorialBlankOverrideRef.current = false;
+                        editorialTweetOverrideRef.current = false;
+                        promoOutroOverrideRef.current = false;
                         animStartTimeRef.current = Date.now();
                     });
                     transitionProgressRef.current = 0;
                 } else {
                     editorialSlideOverrideRef.current = s;
+                    editorialAfficheOverrideRef.current = false;
+                    editorialBlankOverrideRef.current = false;
+                    editorialTweetOverrideRef.current = false;
+                    promoOutroOverrideRef.current = false;
                     animStartTimeRef.current = Date.now();
                 }
 
@@ -17274,12 +17369,14 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 await renderTransition(transitionDuration, undefined, () => {
                     editorialAfficheIndexOverrideRef.current = affIdx;
                     editorialAfficheOverrideRef.current = true;
-                    editorialBlankOverrideRef.current = null;
+                    editorialBlankOverrideRef.current = false;
+                    editorialTweetOverrideRef.current = false;
+                    promoOutroOverrideRef.current = false;
                     animStartTimeRef.current = Date.now();
                 });
                 transitionProgressRef.current = 0;
                 await renderDuration(slideDuration, 0);
-                editorialAfficheOverrideRef.current = null;
+                editorialAfficheOverrideRef.current = false;
                 editorialAfficheIndexOverrideRef.current = null;
             }
 
@@ -17287,13 +17384,14 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             if (isEditorialTweetActive && selectedExportSlides['slide_tweet'] !== false && !isMusicTheme) {
                 await renderTransition(transitionDuration, undefined, () => {
                     editorialTweetOverrideRef.current = true;
-                    editorialAfficheOverrideRef.current = null;
-                    editorialBlankOverrideRef.current = null;
+                    editorialAfficheOverrideRef.current = false;
+                    editorialBlankOverrideRef.current = false;
+                    promoOutroOverrideRef.current = false;
                     animStartTimeRef.current = Date.now();
                 });
                 transitionProgressRef.current = 0;
                 await renderDuration(slideDuration, 0);
-                editorialTweetOverrideRef.current = null;
+                editorialTweetOverrideRef.current = false;
             }
 
             // 1c. Transition vers la / les Slides Vides si présentes (Photo/Vidéo brute sous cadre)
@@ -17304,12 +17402,14 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 await renderTransition(transitionDuration, undefined, () => {
                     editorialBlankIndexOverrideRef.current = bIdx;
                     editorialBlankOverrideRef.current = true;
-                    editorialAfficheOverrideRef.current = null;
+                    editorialAfficheOverrideRef.current = false;
+                    editorialTweetOverrideRef.current = false;
+                    promoOutroOverrideRef.current = false;
                     animStartTimeRef.current = Date.now();
                 });
                 transitionProgressRef.current = 0;
                 await renderDuration(slideDuration, 0);
-                editorialBlankOverrideRef.current = null;
+                editorialBlankOverrideRef.current = false;
                 editorialBlankIndexOverrideRef.current = null;
             }
 
@@ -17318,6 +17418,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 // MUSIQUE : l'audio de la dernière track continue sur la slide promo (pas de stopMusicSegment)
                 const promoOffsetSec = await renderTransition(transitionDuration, undefined, () => {
                     promoOutroOverrideRef.current = true;
+                    editorialAfficheOverrideRef.current = false;
+                    editorialBlankOverrideRef.current = false;
+                    editorialTweetOverrideRef.current = false;
                     animStartTimeRef.current = Date.now();
                 });
                 transitionProgressRef.current = 0;
@@ -17353,13 +17456,14 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 if (aIdx === 0) {
                     agendaSlideOverrideRef.current = targetSlide;
                     setAgendaSlide(targetSlide);
-                    promoOutroOverrideRef.current = null;
+                    promoOutroOverrideRef.current = false;
                     setIsCarouselPromoActive(false);
                     animStartTimeRef.current = Date.now();
                     await renderDuration(slideDuration);
                 } else {
                     await renderTransition(transitionDuration, undefined, () => {
                         agendaSlideOverrideRef.current = targetSlide;
+                        promoOutroOverrideRef.current = false;
                         setAgendaSlide(targetSlide);
                         animStartTimeRef.current = Date.now();
                     });
@@ -17997,13 +18101,15 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     try { bgVideo.currentTime = targetSeek; } catch (_) { }
                 }
 
+                const slideAudioOffset = i * editorialSlide1Duration;
                 let blob: Blob | null = null;
                 if (item.type === 'PROMO') {
                     blob = await startVideoRecording('PROMO_ONLY', {
                         returnBlob: true,
                         formatTab: formatToUse,
                         isSingleSlide: true,
-                        isPromo: true
+                        isPromo: true,
+                        audioOffset: slideAudioOffset
                     });
                 } else if (item.type === 'AFFICHE') {
                     if (item.afficheIndex !== undefined && editorialAffiches[item.afficheIndex]?.image) {
@@ -18015,7 +18121,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         isSingleSlide: true,
                         targetSlide: item.slideNum,
                         isAffiche: true,
-                        afficheIndex: item.afficheIndex
+                        afficheIndex: item.afficheIndex,
+                        audioOffset: slideAudioOffset
                     });
                 } else if (item.type === 'BLANK') {
                     blob = await startVideoRecording('NONE', {
@@ -18024,7 +18131,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         isSingleSlide: true,
                         targetSlide: item.slideNum,
                         isBlank: true,
-                        blankIndex: item.blankIndex
+                        blankIndex: item.blankIndex,
+                        audioOffset: slideAudioOffset
                     });
                 } else if (item.type === 'TOP10') {
                     const targetRank = item.top10Rank ?? 0;
@@ -18043,7 +18151,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         returnBlob: true,
                         formatTab: formatToUse,
                         isSingleSlide: true,
-                        targetSlide: item.slideNum
+                        targetSlide: item.slideNum,
+                        audioOffset: slideAudioOffset
                     });
                 } else if (item.type === 'EVENTS') {
                     eventsSlideOverrideRef.current = item.slideNum;
@@ -18051,14 +18160,16 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         returnBlob: true,
                         formatTab: formatToUse,
                         isSingleSlide: true,
-                        targetSlide: item.slideNum
+                        targetSlide: item.slideNum,
+                        audioOffset: slideAudioOffset
                     });
                 } else {
                     blob = await startVideoRecording('NONE', {
                         returnBlob: true,
                         formatTab: formatToUse,
                         isSingleSlide: true,
-                        targetSlide: item.slideNum
+                        targetSlide: item.slideNum,
+                        audioOffset: slideAudioOffset
                     });
                 }
 
@@ -18454,8 +18565,13 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         if (!canvasRef.current) return;
         setIsDownloading(true);
         try {
-            const isAfficheActive = isEditorialAfficheActive || theme === 'AFFICHE' || (theme === 'EVENTS' && eventsSlide === 2);
-            if (isAfficheActive) {
+            const isPromoActive = isCarouselPromoActive && isMultiSlideTheme;
+            const isAfficheActive = !isPromoActive && (isEditorialAfficheActive || theme === 'AFFICHE' || (theme === 'EVENTS' && eventsSlide === 2));
+            if (isPromoActive) {
+                promoOutroOverrideRef.current = true;
+                editorialAfficheOverrideRef.current = false;
+            } else if (isAfficheActive) {
+                promoOutroOverrideRef.current = false;
                 editorialAfficheOverrideRef.current = true;
                 if (afficheImage) {
                     const resolved = resolveImageUrl(afficheImage);
@@ -18476,14 +18592,19 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         afficheImageRef.current = imageCacheRef.current[resolved];
                     }
                 }
+            } else {
+                promoOutroOverrideRef.current = false;
+                editorialAfficheOverrideRef.current = false;
             }
             await new Promise(r => setTimeout(r, 60));
             await generateImage(format, true);
-            const fileName = isAfficheActive
-                ? `${format === 'REEL' ? 'STORY' : 'POST'}-${theme.toLowerCase().replace(/\s+/g, '-')}-slide-affiche.png`
-                : (theme === 'PLANNING'
-                    ? `${format === 'REEL' ? 'STORY' : 'POST'}-agenda-slide${agendaSlide}-${agendaSlide === 1 ? 'cover' : 'events'}.png`
-                    : `${format === 'REEL' ? 'STORY' : 'POST'}-${theme.toLowerCase().replace(/\s+/g, '-')}.png`);
+            const fileName = isPromoActive
+                ? `${format === 'REEL' ? 'STORY' : 'POST'}-${theme.toLowerCase().replace(/\s+/g, '-')}-slide-promo.png`
+                : (isAfficheActive
+                    ? `${format === 'REEL' ? 'STORY' : 'POST'}-${theme.toLowerCase().replace(/\s+/g, '-')}-slide-affiche.png`
+                    : (theme === 'PLANNING'
+                        ? `${format === 'REEL' ? 'STORY' : 'POST'}-agenda-slide${agendaSlide}-${agendaSlide === 1 ? 'cover' : 'events'}.png`
+                        : `${format === 'REEL' ? 'STORY' : 'POST'}-${theme.toLowerCase().replace(/\s+/g, '-')}.png`));
             const isMobile = /iPad|iPhone|iPod|Android/.test(navigator.userAgent) || ('maxTouchPoints' in navigator && navigator.maxTouchPoints > 0);
 
             if (isMobile && navigator.share) {
@@ -18515,6 +18636,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             setErrorMessage("Erreur lors de l'exportation PNG.");
         } finally {
             editorialAfficheOverrideRef.current = null;
+            promoOutroOverrideRef.current = null;
             setTimeout(() => {
                 setIsDownloading(false);
                 generateImage(); // Restore preview with overlays
@@ -18574,6 +18696,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         setIsDownloading(true);
         const prevSlide = agendaSlide;
         try {
+            agendaSlideOverrideRef.current = slideNumber;
+            promoOutroOverrideRef.current = false;
             setAgendaSlide(slideNumber);
             await new Promise(r => setTimeout(r, 60));
             await generateImage(format, true);
@@ -18613,7 +18737,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             // 1. Slide 1 (Cover)
             if (!exportZip || selectedExportSlides['slide_1'] !== false) {
                 agendaSlideOverrideRef.current = 1;
-                promoOutroOverrideRef.current = null;
+                promoOutroOverrideRef.current = false;
                 setIsCarouselPromoActive(false);
                 setAgendaSlide(1);
                 await new Promise(r => setTimeout(r, 80));
@@ -18636,7 +18760,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             if (!exportZip || selectedExportSlides['slide_2'] !== false) {
                 await new Promise(r => setTimeout(r, 350));
                 agendaSlideOverrideRef.current = 2;
-                promoOutroOverrideRef.current = null;
+                promoOutroOverrideRef.current = false;
                 setIsCarouselPromoActive(false);
                 setAgendaSlide(2);
                 await new Promise(r => setTimeout(r, 80));
@@ -18661,7 +18785,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 if (exportZip && selectedExportSlides[`slide_${sNum}`] === false) continue;
                 await new Promise(r => setTimeout(r, 350));
                 agendaSlideOverrideRef.current = sNum;
-                promoOutroOverrideRef.current = null;
+                promoOutroOverrideRef.current = false;
                 setIsCarouselPromoActive(false);
                 setAgendaSlide(sNum);
                 await new Promise(r => setTimeout(r, 80));
@@ -18822,6 +18946,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         setIsDownloading(true);
         const prevSlide = artisteFestivalSlide;
         try {
+            promoOutroOverrideRef.current = false;
             handleSwitchSpotlightSlide(slideNumber);
             await new Promise(r => setTimeout(r, 80));
             await generateImage(format, true);
@@ -18852,12 +18977,13 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         const prevSlide = artisteFestivalSlide;
         const zip = exportZip ? new JSZip() : null;
         try {
-            promoOutroOverrideRef.current = null;
+            promoOutroOverrideRef.current = false;
             setIsCarouselPromoActive(false);
             const rawSlides = [1, 2, ...extraSpotlightSlides];
             const allSlides = exportZip ? rawSlides.filter(s => selectedExportSlides[`slide_${s}`] !== false) : rawSlides;
             for (let i = 0; i < allSlides.length; i++) {
                 const sNum = allSlides[i];
+                promoOutroOverrideRef.current = false;
                 handleSwitchSpotlightSlide(sNum);
                 await new Promise(r => setTimeout(r, 120));
                 await generateImage(format, true);
@@ -18910,9 +19036,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 eventsSlideOverrideRef.current = 2;
                 editorialAfficheOverrideRef.current = true;
                 editorialSlideOverrideRef.current = null;
-                editorialBlankOverrideRef.current = null;
-                editorialTweetOverrideRef.current = null;
-                promoOutroOverrideRef.current = null;
+                editorialBlankOverrideRef.current = false;
+                editorialTweetOverrideRef.current = false;
+                promoOutroOverrideRef.current = false;
                 setIsEditorialAfficheActive(true);
                 if (afficheImage) {
                     const resolved = resolveImageUrl(afficheImage);
@@ -18936,10 +19062,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             } else {
                 eventsSlideOverrideRef.current = 1;
                 editorialSlideOverrideRef.current = 1;
-                editorialAfficheOverrideRef.current = null;
-                editorialBlankOverrideRef.current = null;
-                editorialTweetOverrideRef.current = null;
-                promoOutroOverrideRef.current = null;
+                editorialAfficheOverrideRef.current = false;
+                editorialBlankOverrideRef.current = false;
+                editorialTweetOverrideRef.current = false;
+                promoOutroOverrideRef.current = false;
                 setIsEditorialAfficheActive(false);
             }
             setEventsSlide(slideNumber);
@@ -18985,10 +19111,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             if (!exportZip || selectedExportSlides['slide_1'] !== false) {
                 editorialSlideOverrideRef.current = 1;
                 eventsSlideOverrideRef.current = 1;
-                editorialAfficheOverrideRef.current = null;
-                editorialBlankOverrideRef.current = null;
-                editorialTweetOverrideRef.current = null;
-                promoOutroOverrideRef.current = null;
+                editorialAfficheOverrideRef.current = false;
+                editorialBlankOverrideRef.current = false;
+                editorialTweetOverrideRef.current = false;
+                promoOutroOverrideRef.current = false;
                 setIsEditorialAfficheActive(false);
                 setIsCarouselPromoActive(false);
                 setEditorialSlide(1);
@@ -19016,10 +19142,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 await new Promise(r => setTimeout(r, 350));
                 editorialSlideOverrideRef.current = sNum;
                 eventsSlideOverrideRef.current = sNum;
-                editorialAfficheOverrideRef.current = null;
-                editorialBlankOverrideRef.current = null;
-                editorialTweetOverrideRef.current = null;
-                promoOutroOverrideRef.current = null;
+                editorialAfficheOverrideRef.current = false;
+                editorialBlankOverrideRef.current = false;
+                editorialTweetOverrideRef.current = false;
+                promoOutroOverrideRef.current = false;
                 setIsEditorialAfficheActive(false);
                 setIsCarouselPromoActive(false);
                 setEditorialSlide(sNum);
@@ -19046,11 +19172,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 await new Promise(r => setTimeout(r, 350));
                 editorialSlideOverrideRef.current = null;
                 eventsSlideOverrideRef.current = 2;
-                promoOutroOverrideRef.current = null;
+                promoOutroOverrideRef.current = false;
                 setIsCarouselPromoActive(false);
                 editorialAfficheOverrideRef.current = true;
-                editorialBlankOverrideRef.current = null;
-                editorialTweetOverrideRef.current = null;
+                editorialBlankOverrideRef.current = false;
+                editorialTweetOverrideRef.current = false;
                 setIsEditorialAfficheActive(true);
                 setEventsSlide(2);
                 await new Promise(r => setTimeout(r, 80));
@@ -19076,9 +19202,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 await new Promise(r => setTimeout(r, 350));
                 editorialSlideOverrideRef.current = null;
                 eventsSlideOverrideRef.current = null;
-                editorialAfficheOverrideRef.current = null;
-                editorialBlankOverrideRef.current = null;
-                editorialTweetOverrideRef.current = null;
+                editorialAfficheOverrideRef.current = false;
+                editorialBlankOverrideRef.current = false;
+                editorialTweetOverrideRef.current = false;
                 setIsEditorialAfficheActive(false);
                 promoOutroOverrideRef.current = true;
                 setIsCarouselPromoActive(true);
@@ -19131,10 +19257,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         try {
             editorialSlideOverrideRef.current = slideNumber;
             eventsSlideOverrideRef.current = null;
-            editorialAfficheOverrideRef.current = null;
-            editorialBlankOverrideRef.current = null;
-            editorialTweetOverrideRef.current = null;
-            promoOutroOverrideRef.current = null;
+            editorialAfficheOverrideRef.current = false;
+            editorialBlankOverrideRef.current = false;
+            editorialTweetOverrideRef.current = false;
+            promoOutroOverrideRef.current = false;
             setEditorialSlide(slideNumber);
             await new Promise(r => setTimeout(r, 60));
             await generateImage(format, true);
@@ -19176,9 +19302,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             editorialSlideOverrideRef.current = null;
             eventsSlideOverrideRef.current = 2;
             editorialAfficheOverrideRef.current = true;
-            editorialBlankOverrideRef.current = null;
-            editorialTweetOverrideRef.current = null;
-            promoOutroOverrideRef.current = null;
+            editorialBlankOverrideRef.current = false;
+            editorialTweetOverrideRef.current = false;
+            promoOutroOverrideRef.current = false;
             setIsEditorialAfficheActive(true);
             if (afficheImage) {
                 const resolved = resolveImageUrl(afficheImage);
@@ -19256,10 +19382,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 if (idx > 0) await new Promise(r => setTimeout(r, 350));
 
                 editorialSlideOverrideRef.current = s;
-                editorialAfficheOverrideRef.current = null;
-                editorialBlankOverrideRef.current = null;
-                editorialTweetOverrideRef.current = null;
-                promoOutroOverrideRef.current = null;
+                editorialAfficheOverrideRef.current = false;
+                editorialBlankOverrideRef.current = false;
+                editorialTweetOverrideRef.current = false;
+                promoOutroOverrideRef.current = false;
                 setIsEditorialAfficheActive(false);
                 setIsEditorialBlankActive(false);
                 setIsCarouselPromoActive(false);
@@ -19301,11 +19427,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 const isSelected = selectedExportSlides[key] !== false && (affIdx > 0 || selectedExportSlides['slide_affiche'] !== false);
                 if (!isMusicTheme && (aff.image || isEditorialAfficheActive) && (!exportZip || isSelected)) {
                     await new Promise(r => setTimeout(r, 300));
-                    promoOutroOverrideRef.current = null;
+                    promoOutroOverrideRef.current = false;
                     setIsCarouselPromoActive(false);
                     editorialSlideOverrideRef.current = null;
-                    editorialBlankOverrideRef.current = null;
-                    editorialTweetOverrideRef.current = null;
+                    editorialBlankOverrideRef.current = false;
+                    editorialTweetOverrideRef.current = false;
                     setIsEditorialBlankActive(false);
                     setIsEditorialTweetActive(false);
                     editorialAfficheIndexOverrideRef.current = affIdx;
@@ -19352,12 +19478,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             // Export de la Slide Tweet 𝕏 si active
             if (isEditorialTweetActive && (!exportZip || selectedExportSlides['slide_tweet'] !== false) && !isMusicTheme) {
                 await new Promise(r => setTimeout(r, 300));
-                promoOutroOverrideRef.current = null;
+                promoOutroOverrideRef.current = false;
                 setIsCarouselPromoActive(false);
                 editorialSlideOverrideRef.current = null;
-                editorialBlankOverrideRef.current = null;
+                editorialBlankOverrideRef.current = false;
                 setIsEditorialBlankActive(false);
-                editorialAfficheOverrideRef.current = null;
+                editorialAfficheOverrideRef.current = false;
                 setIsEditorialAfficheActive(false);
                 editorialTweetOverrideRef.current = true;
                 setIsEditorialTweetActive(true);
@@ -19401,12 +19527,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 const isSelected = selectedExportSlides[key] !== false;
                 if (!exportZip || isSelected) {
                     await new Promise(r => setTimeout(r, 300));
-                    promoOutroOverrideRef.current = null;
+                    promoOutroOverrideRef.current = false;
                     setIsCarouselPromoActive(false);
                     editorialSlideOverrideRef.current = null;
-                    editorialAfficheOverrideRef.current = null;
+                    editorialAfficheOverrideRef.current = false;
                     editorialAfficheIndexOverrideRef.current = null;
-                    editorialTweetOverrideRef.current = null;
+                    editorialTweetOverrideRef.current = false;
                     setIsEditorialAfficheActive(false);
                     setIsEditorialTweetActive(false);
                     editorialBlankIndexOverrideRef.current = bIdx;
@@ -19437,11 +19563,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             if (includePromo && zip) {
                 await new Promise(r => setTimeout(r, 350));
                 editorialSlideOverrideRef.current = null;
-                editorialAfficheOverrideRef.current = null;
+                editorialAfficheOverrideRef.current = false;
                 editorialAfficheIndexOverrideRef.current = null;
-                editorialBlankOverrideRef.current = null;
+                editorialBlankOverrideRef.current = false;
                 editorialBlankIndexOverrideRef.current = null;
-                editorialTweetOverrideRef.current = null;
+                editorialTweetOverrideRef.current = false;
                 setIsEditorialAfficheActive(false);
                 setIsEditorialBlankActive(false);
                 setIsEditorialTweetActive(false);
