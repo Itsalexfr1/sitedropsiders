@@ -571,5 +571,24 @@
     "isSoldOut": false,
     "isLiveDropsiders": false,
     "additionalDates": []
+  },
+  {
+    "id": 1159,
+    "title": "EDC Mexico 2027",
+    "date": "2027-02-19",
+    "startDate": "2027-02-19",
+    "endDate": "2027-02-21",
+    "venue": "AUTODROMO HERMANOS RODRIGUEZ",
+    "location": "MEXICO",
+    "country": "MEXIQUE",
+    "type": "Festival",
+    "image": "/uploads/uploads/72e1cf8014d0cd23-_est_s_listx_para_3_d_as_de_di.jpg",
+    "url": "https://mexico.edc.com/en/",
+    "genre": "Multi Styles",
+    "month": "FÉVRIER",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false,
+    "additionalDates": []
   }
 ]
