@@ -571,5 +571,24 @@
     "isSoldOut": false,
     "isLiveDropsiders": false,
     "additionalDates": []
+  },
+  {
+    "id": 1158,
+    "title": "Tomorrowland 2027 - Week End 2",
+    "date": "2027-07-23",
+    "startDate": "2027-07-23",
+    "endDate": "2027-07-25",
+    "venue": "De Schorre",
+    "location": "BOOM",
+    "country": "BELGIQUE",
+    "type": "Festival",
+    "image": "/uploads/uploads/e5273ae50aad7746-tomorrowlandbelgium2027dates.png",
+    "url": "https://belgium.tomorrowland.com/fr/bienvenue/",
+    "genre": "Multi Styles",
+    "month": "JUILLET",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false,
+    "additionalDates": []
   }
 ]
