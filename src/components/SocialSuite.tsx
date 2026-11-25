@@ -16148,7 +16148,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 duration: 10
                             });
                         }
-                    } else if (combinedMode === 'NONE' && (exportStudioType === 'SLIDE' || options?.isSingleSlide)) {
+                    } else if (combinedMode === 'NONE' && options?.isSingleSlide) {
                         const effRank = options?.targetRank !== undefined ? options.targetRank : (top10ActiveRankRef.current ?? top10ActiveRank);
                         if (effRank === 0) {
                             // Mode slide unique INTRO : utilise le son du #10
