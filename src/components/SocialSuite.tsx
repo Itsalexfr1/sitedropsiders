@@ -521,8 +521,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const [editorialSlideImages, setEditorialSlideImages] = useState<Record<number, string>>({});
     const [editorialSlideVideos, setEditorialSlideVideos] = useState<Record<number, string>>({});
     const slideVideosRef = useRef<Record<number, HTMLVideoElement>>({});
-    const [bgVideoContinueAcrossSlides, setBgVideoContinueAcrossSlides] = useState<boolean>(false);
-    const bgVideoContinueAcrossSlidesRef = useRef<boolean>(false);
+    const [bgVideoContinueAcrossSlides, setBgVideoContinueAcrossSlides] = useState<boolean>(true);
+    const bgVideoContinueAcrossSlidesRef = useRef<boolean>(true);
     useEffect(() => { bgVideoContinueAcrossSlidesRef.current = bgVideoContinueAcrossSlides; }, [bgVideoContinueAcrossSlides]);
     const [bgVideoDarkOverlayOnSlide2, setBgVideoDarkOverlayOnSlide2] = useState<number>(45);
     const [bgVideoBlurOnSlide2, setBgVideoBlurOnSlide2] = useState<number>(0);
@@ -671,6 +671,19 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
     const getSlideTimeOffset = (targetKey: string | number, customDurSec?: number): number => {
         const dur = customDurSec || editorialSlide1Duration || 4;
+        if (theme === 'TOP 10 TRACKS') {
+            const introDur = 5.0;
+            const trackDur = top10TrackDurationRef.current || top10TrackDuration || 7.8;
+            if (targetKey === 0 || targetKey === 'intro') return 0;
+            if (typeof targetKey === 'number' && targetKey >= 1 && targetKey <= 10) {
+                const trackIdx = 10 - targetKey;
+                return introDur + (trackIdx * trackDur);
+            }
+            if (targetKey === 'promo') {
+                return introDur + (10 * trackDur);
+            }
+            return 0;
+        }
         if (theme === 'PLANNING') {
             if (typeof targetKey === 'number') {
                 return Math.max(0, targetKey - 1) * dur;
@@ -15391,7 +15404,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         const renderDuration = async (durationMs: number, startOffsetSec: number = 0): Promise<void> => {
             const isCoverSlide = (editorialSlideOverrideRef.current !== null ? editorialSlideOverrideRef.current : editorialSlide) === 1 &&
                 !promoOutroOverrideRef.current && !editorialAfficheOverrideRef.current && !editorialBlankOverrideRef.current && !editorialTweetOverrideRef.current;
-            const isAllowedSlideForVideo = Boolean(isCoverSlide || (bgVideoContinueAcrossSlides && !editorialBlankOverrideRef.current && !promoOutroOverrideRef.current));
+            const isAllowedSlideForVideo = Boolean(isCoverSlide || (promoOutroOverrideRef.current && Boolean(promoBgVideo)) || (bgVideoContinueAcrossSlides && !editorialBlankOverrideRef.current));
             const hasPlayingBgVideo = Boolean(isAllowedSlideForVideo && bgVideo && !isNaN(bgVideo.duration) && bgVideo.duration > 0);
             const hasPlayingPromoVideo = Boolean(promoOutroOverrideRef.current && promoBgVideo && !isNaN(promoBgVideo.duration) && promoBgVideo.duration > 0);
 
@@ -15403,7 +15416,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 const numFrames = Math.max(1, Math.round((durationMs / 1000) * fps));
                 const frameInterval = 1000 / fps;
                 if (bgVideo && hasPlayingBgVideo) {
-                    const targetTime = bgVideoStartTimeRef.current + startOffsetSec;
+                    const maxDur = Math.max(1, (bgVideo.duration || 30) - 0.1);
+                    const targetTime = (bgVideoStartTimeRef.current + startOffsetSec) % maxDur;
                     bgVideo.pause();
                     bgVideo.currentTime = targetTime;
                     await new Promise<void>((resolve) => {
@@ -15441,9 +15455,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     if (cancelVideoExportRef.current) throw new Error('EXPORT_CANCELLED');
                     // Cadence fluide en temps réel alignée sur le décodage matériel de la vidéo de fond
                     if (hasPlayingBgVideo && bgVideo) {
-                        // Empêcher la vidéo de dévier ou de boucler à 0:00
-                        if (bgVideo.currentTime < bgVideoStartTimeRef.current - 0.2 || bgVideo.currentTime >= (bgVideo.duration - 0.1)) {
-                            bgVideo.currentTime = bgVideoStartTimeRef.current + (f / fps);
+                        const maxDur = Math.max(1, (bgVideo.duration || 30) - 0.1);
+                        const targetVTime = (bgVideoStartTimeRef.current + startOffsetSec + (f / fps)) % maxDur;
+                        if (Math.abs(bgVideo.currentTime - targetVTime) > 0.35) {
+                            bgVideo.currentTime = targetVTime;
                         }
                         const targetMs = f * frameInterval;
                         const now = performance.now() - segmentStartTime;
@@ -15488,9 +15503,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     }
                 }
             } else {
-                const hasPlayingBgVideo = Boolean(bgVideo && !isNaN(bgVideo.duration) && bgVideo.duration > 0);
+                const hasPlayingBgVideo = Boolean(isAllowedSlideForVideo && bgVideo && !isNaN(bgVideo.duration) && bgVideo.duration > 0);
                 if (bgVideo && hasPlayingBgVideo) {
-                    const targetTime = bgVideoStartTimeRef.current + startOffsetSec;
+                    const maxDur = Math.max(1, (bgVideo.duration || 30) - 0.1);
+                    const targetTime = (bgVideoStartTimeRef.current + startOffsetSec) % maxDur;
                     bgVideo.pause();
                     bgVideo.currentTime = targetTime;
                     await new Promise<void>((resolve) => {
@@ -15514,8 +15530,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         const elapsed = now - start;
                         if (elapsed >= durationMs) { resolve(); return; }
                         if (hasPlayingBgVideo && bgVideo) {
-                            if (bgVideo.currentTime < bgVideoStartTimeRef.current - 0.2 || bgVideo.currentTime >= (bgVideo.duration - 0.1)) {
-                                bgVideo.currentTime = bgVideoStartTimeRef.current + (elapsed / 1000);
+                            const maxDur = Math.max(1, (bgVideo.duration || 30) - 0.1);
+                            const targetVTime = (bgVideoStartTimeRef.current + startOffsetSec + (elapsed / 1000)) % maxDur;
+                            if (Math.abs(bgVideo.currentTime - targetVTime) > 0.45) {
+                                bgVideo.currentTime = targetVTime;
                             }
                         }
                         if (now - lastRender >= frameInterval - 1 && !isRendering) {
@@ -17311,6 +17329,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 setIsEditorialBlankActive(false);
             }
 
+            let accumulatedSlideOffset = 0;
             // 1. Déroulement des slides de contenu (selon contentSlideNumbers)
             for (let i = 0; i < contentSlideNumbers.length; i++) {
                 const s = contentSlideNumbers[i];
@@ -17325,6 +17344,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         animStartTimeRef.current = Date.now();
                     });
                     transitionProgressRef.current = 0;
+                    accumulatedSlideOffset += transitionDuration / 1000;
                 } else {
                     editorialSlideOverrideRef.current = s;
                     editorialAfficheOverrideRef.current = false;
@@ -17356,7 +17376,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 // Rendu actif frame-par-frame : MUSIQUE=15s, Reel=4s, Post=editorialSlide1Duration
                 // Pour MUSIQUE, slide 1 = même durée que les autres (15s), sauf vidéo bg sur les autres thèmes
                 const currentSlideDur = (!isMusicTheme && s === 1 && hasVideoBg && !isReel) ? videoDurationMs : slideDuration;
-                await renderDuration(currentSlideDur, 0);
+                await renderDuration(currentSlideDur, accumulatedSlideOffset);
+                accumulatedSlideOffset += currentSlideDur / 1000;
             }
 
             // 1b. Transition vers la / les Slides Affiches si présentes
@@ -17375,7 +17396,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     animStartTimeRef.current = Date.now();
                 });
                 transitionProgressRef.current = 0;
-                await renderDuration(slideDuration, 0);
+                accumulatedSlideOffset += transitionDuration / 1000;
+                await renderDuration(slideDuration, accumulatedSlideOffset);
+                accumulatedSlideOffset += slideDuration / 1000;
                 editorialAfficheOverrideRef.current = false;
                 editorialAfficheIndexOverrideRef.current = null;
             }
@@ -17390,7 +17413,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     animStartTimeRef.current = Date.now();
                 });
                 transitionProgressRef.current = 0;
-                await renderDuration(slideDuration, 0);
+                accumulatedSlideOffset += transitionDuration / 1000;
+                await renderDuration(slideDuration, accumulatedSlideOffset);
+                accumulatedSlideOffset += slideDuration / 1000;
                 editorialTweetOverrideRef.current = false;
             }
 
@@ -17408,7 +17433,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     animStartTimeRef.current = Date.now();
                 });
                 transitionProgressRef.current = 0;
-                await renderDuration(slideDuration, 0);
+                accumulatedSlideOffset += transitionDuration / 1000;
+                await renderDuration(slideDuration, accumulatedSlideOffset);
+                accumulatedSlideOffset += slideDuration / 1000;
                 editorialBlankOverrideRef.current = false;
                 editorialBlankIndexOverrideRef.current = null;
             }
@@ -17424,9 +17451,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     animStartTimeRef.current = Date.now();
                 });
                 transitionProgressRef.current = 0;
+                accumulatedSlideOffset += transitionDuration / 1000;
 
                 // 3. Affichage du visuel promo final pendant promoDuration avec continuité (zéro relance de texte)
-                await renderDuration(promoDuration, 0);
+                await renderDuration(promoDuration, accumulatedSlideOffset);
+                accumulatedSlideOffset += promoDuration / 1000;
 
                 // MUSIQUE : stopper l'audio proprement après la slide promo
                 if (isMusicTheme) {
@@ -17451,6 +17480,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 promoDuration = 10000;
             }
 
+            let accumulatedAgendaOffset = 0;
             for (let aIdx = 0; aIdx < agendaSlidesToProcess.length; aIdx++) {
                 const targetSlide = agendaSlidesToProcess[aIdx];
                 if (aIdx === 0) {
@@ -17459,7 +17489,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     promoOutroOverrideRef.current = false;
                     setIsCarouselPromoActive(false);
                     animStartTimeRef.current = Date.now();
-                    await renderDuration(slideDuration);
+                    await renderDuration(slideDuration, accumulatedAgendaOffset);
+                    accumulatedAgendaOffset += slideDuration / 1000;
                 } else {
                     await renderTransition(transitionDuration, undefined, () => {
                         agendaSlideOverrideRef.current = targetSlide;
@@ -17468,7 +17499,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         animStartTimeRef.current = Date.now();
                     });
                     transitionProgressRef.current = 0;
-                    await renderDuration(slideDuration, 0);
+                    accumulatedAgendaOffset += transitionDuration / 1000;
+                    await renderDuration(slideDuration, accumulatedAgendaOffset);
+                    accumulatedAgendaOffset += slideDuration / 1000;
                 }
             }
 
@@ -17479,10 +17512,13 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     animStartTimeRef.current = Date.now();
                 });
                 transitionProgressRef.current = 0;
-                await renderDuration(promoDuration, 0);
+                accumulatedAgendaOffset += transitionDuration / 1000;
+                await renderDuration(promoDuration, accumulatedAgendaOffset);
+                accumulatedAgendaOffset += promoDuration / 1000;
             }
 
         } else if (theme.startsWith('TOP 5')) {
+            let accumulatedTop5Offset = 0;
             for (let i = 0; i < 5; i++) {
                 let startOffset = 0;
                 if (i > 0) {
@@ -17491,12 +17527,15 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         setCurrentPreviewIndex(i);
                     });
                     transitionProgressRef.current = 0;
+                    accumulatedTop5Offset += durationTransition / 1000;
                 } else {
                     setCurrentPreviewIndex(i);
                 }
-                await renderDuration(16800, startOffset);
+                await renderDuration(16800, accumulatedTop5Offset);
+                accumulatedTop5Offset += 16.8;
             }
         } else if (theme === 'TOP 10 FESTIVAL') {
+            let accumulatedTop10FestOffset = 0;
             for (let i = 0; i < 11; i++) {
                 let startOffset = 0;
                 if (i > 0) {
@@ -17505,9 +17544,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         setCurrentPreviewIndex(i);
                     });
                     transitionProgressRef.current = 0;
+                    accumulatedTop10FestOffset += durationTransition / 1000;
                 } else {
                     setCurrentPreviewIndex(i);
                 }
+                await renderDuration(8000, accumulatedTop10FestOffset);
+                accumulatedTop10FestOffset += 8.0;
             }
         } else if (theme === 'TOP 10 TRACKS') {
             const introDurMs = 5000; // 5.0s d'Intro
@@ -17553,7 +17595,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 }
 
                 const singleDurMs = targetR === 0 ? introDurMs : singleTrackMs;
-                await renderDuration(singleDurMs, 0);
+                const slideOffset = bgVideoContinueAcrossSlidesRef.current ? getSlideTimeOffset(targetR) : 0;
+                await renderDuration(singleDurMs, slideOffset);
 
                 if (currentV) {
                     try { currentV.pause(); currentV.muted = true; } catch (_) { }
@@ -17563,11 +17606,13 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 top10ActiveRankRef.current = originalRank;
                 setTop10ActiveRank(originalRank);
             } else {
+                let accumulatedTop10Offset = 0;
                 // 0. SLIDE D'INTRO (5.0s) : TITRE + LOGO ARTISTE + DROPSIDERS
                 setTop10ActiveRank(0);
                 top10ActiveRankRef.current = 0;
                 animStartTimeRef.current = Date.now();
-                await renderDuration(introDurMs, 0);
+                await renderDuration(introDurMs, accumulatedTop10Offset);
+                accumulatedTop10Offset += introDurMs / 1000;
 
                 // 1. DÉROULEMENT DU COUNTDOWN (#10 ➔ #1) : 78s
                 let prevVideo: HTMLVideoElement | null = null;
@@ -17591,7 +17636,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         }
                     }
                     prevVideo = currentV;
-                    await renderDuration(singleTrackMs, 0);
+                    await renderDuration(singleTrackMs, accumulatedTop10Offset);
+                    accumulatedTop10Offset += singleTrackMs / 1000;
                 }
                 if (prevVideo) {
                     try { prevVideo.pause(); prevVideo.muted = true; } catch (_) { }
@@ -17600,7 +17646,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 // 2. OUTRO TÉLÉPHONE 3D AUTOMATIQUE (7.0s)
                 promoOutroOverrideRef.current = true;
                 animStartTimeRef.current = Date.now();
-                await renderDuration(7000, 0);
+                await renderDuration(7000, accumulatedTop10Offset);
 
                 // Restaurer le rang original dans l'éditeur
                 top10ActiveRankRef.current = originalRank;
@@ -17632,7 +17678,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 const transitionDuration = currentTransitionDuration;
 
                 // 1. Rendu du Reel (4 secondes)
-                await renderDuration(contentDur);
+                await renderDuration(contentDur, 0);
 
                 // 2. Transition fluide vers la slide Promo Dropsiders en fin de vidéo
                 const promoOffsetSec = await renderTransition(transitionDuration, undefined, () => {
@@ -17641,12 +17687,16 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 });
                 transitionProgressRef.current = 0;
 
-                // 3. Rendu de la slide Promo Dropsiders en outro (10 secondes)
-                await renderDuration(promoDur, 0);
+                // 3. Rendu de la slide Promo Dropsiders en outro (10 secondes) avec offset cumulé
+                const outroOffsetSec = (contentDur + transitionDuration) / 1000;
+                await renderDuration(promoDur, outroOffsetSec);
             } else {
                 let actualDuration = (effectiveTab === 'REEL' ? 4000 : totalDuration);
                 if (isDevinette) actualDuration = Math.min(15000, actualDuration);
-                await renderDuration(actualDuration);
+                const effectiveSlideOffset = (bgVideoContinueAcrossSlidesRef.current && (options?.isSingleSlide || options?.targetSlide !== undefined))
+                    ? (options?.audioOffset !== undefined ? options.audioOffset : getSlideTimeOffset(options?.targetSlide ?? editorialSlide))
+                    : (options?.audioOffset ?? 0);
+                await renderDuration(actualDuration, effectiveSlideOffset);
             }
         }
 
@@ -18092,11 +18142,21 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                 // Idée 2 : Timecode Seamless si vidéo de fond continue
                 const prevBgStartTime = bgVideoStartTimeRef.current;
-                if (bgVideo && bgVideoContinueAcrossSlidesRef.current && (item.type === 'EDITORIAL' || item.type === 'EVENTS' || item.type === 'AGENDA')) {
-                    const slideDur = editorialSlide1Duration;
-                    const offset = i * slideDur;
+                if (bgVideo && bgVideoContinueAcrossSlidesRef.current) {
+                    let slideOffset = 0;
+                    if (item.type === 'TOP10') {
+                        slideOffset = getSlideTimeOffset(item.top10Rank ?? 0);
+                    } else if (item.type === 'PROMO') {
+                        slideOffset = getSlideTimeOffset('promo');
+                    } else if (item.type === 'AFFICHE') {
+                        slideOffset = getSlideTimeOffset(`affiche_${item.afficheIndex ?? 0}`);
+                    } else if (item.type === 'BLANK') {
+                        slideOffset = getSlideTimeOffset(`blank_${item.blankIndex ?? 0}`);
+                    } else {
+                        slideOffset = getSlideTimeOffset(item.slideNum);
+                    }
                     const maxDur = Math.max(1, (bgVideo.duration || 30) - 0.5);
-                    const targetSeek = (prevBgStartTime + offset) % maxDur;
+                    const targetSeek = (prevBgStartTime + slideOffset) % maxDur;
                     bgVideoStartTimeRef.current = targetSeek;
                     try { bgVideo.currentTime = targetSeek; } catch (_) { }
                 }
@@ -18362,8 +18422,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                 // Idée 2 : Timecode Seamless si vidéo de fond continue
                 const prevBgStartTime = bgVideoStartTimeRef.current;
-                if (bgVideo && bgVideoContinueAcrossSlidesRef.current && (item.type === 'ANNONCE' || item.type === 'TRACK')) {
-                    const slideDur = editorialSlide1Duration;
+                if (bgVideo && bgVideoContinueAcrossSlidesRef.current && (item.type === 'ANNONCE' || item.type === 'TRACK' || item.type === 'PROMO')) {
+                    const slideDur = 15;
                     const offset = i * slideDur;
                     const maxDur = Math.max(1, (bgVideo.duration || 30) - 0.5);
                     const targetSeek = (prevBgStartTime + offset) % maxDur;
@@ -32763,6 +32823,25 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 >
                                     🔥 Promo
                                 </button>
+                                {bgVideo && (
+                                    <div className="flex items-center gap-1.5 pl-2 ml-1 border-l border-white/15">
+                                        <span className="text-[8px] font-black text-purple-300 uppercase tracking-wider hidden sm:inline">Vidéo Fond :</span>
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setBgVideoContinueAcrossSlides(!bgVideoContinueAcrossSlides);
+                                                setTimeout(() => generateImage(), 50);
+                                            }}
+                                            className={`px-2 py-1 rounded-xl text-[8px] font-black uppercase transition-all flex items-center gap-1 border active:scale-95 ${bgVideoContinueAcrossSlides
+                                                ? 'bg-[#00ff66]/20 border-[#00ff66] text-[#00ff66] shadow-[0_0_10px_rgba(0,255,102,0.3)]'
+                                                : 'bg-white/5 border-white/10 text-gray-300 hover:text-white'
+                                                }`}
+                                            title={bgVideoContinueAcrossSlides ? "La vidéo de fond continue sur toutes les slides" : "La vidéo de fond reste uniquement sur la Slide 1"}
+                                        >
+                                            <span>{bgVideoContinueAcrossSlides ? '🌐 Partout' : '📄 Intro seule'}</span>
+                                        </button>
+                                    </div>
+                                )}
                             </div>
                         )}
                         {activeTab === 'REEL' && theme === 'FOCUS' && (
