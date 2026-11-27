@@ -16119,39 +16119,147 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             const sampleRate = 48000;
             try {
                 // Construire la liste de segments audio avec leur offset temporel (en secondes)
-                type AudioSegment = { url: string; startOffset: number; sourceOffset: number; duration?: number };
+                type AudioSegment = {
+                    url: string;
+                    startOffset: number;
+                    sourceOffset: number;
+                    duration?: number;
+                    fadeInStart?: number;
+                    fadeInEnd?: number;
+                    fadeOutStart?: number;
+                    fadeOutEnd?: number;
+                };
                 const audioSegments: AudioSegment[] = [];
                 const transitionDurationSec = getTransitionDuration(slideTransition) / 1000;
 
                 if (theme === 'MUSIQUE' && hasAnyMusicAudio) {
-                    if (combinedMode === 'EDITORIAL' || combinedMode === 'TIKTOK') {
-                        // Mode carrousel MUSIQUE : 15s par slide (ou TikTok timings). Dernière slide : son continue sur la promo
+                    if (combinedMode === 'EDITORIAL' || combinedMode === 'TIKTOK' || combinedMode === 'STORY_FAST') {
+                        // Mode Reel / Carrousel vidéo MUSIQUE : fondu enchaîné (crossfade) fluide entre chaque morceau au lieu d'un cut !
                         const slideDurationSec = combinedMode === 'TIKTOK'
                             ? (getTikTokSlideTimings(1 + musicTracks.length).slideDurationMs / 1000)
-                            : 15;
-                        const promoDurationSec = 10; // durée promo outro
-                        let cursor = 0;
-                        const allSlides = [1, ...musicTracks.map((_, i) => i + 2)];
-                        for (let i = 0; i < allSlides.length; i++) {
-                            const s = allSlides[i];
-                            if (i > 0) cursor += transitionDurationSec;
-                            const audioUrl = s === 1
+                            : (combinedMode === 'STORY_FAST' ? 4 : 15);
+                        const promoDurationSec = 10;
+                        const includePromoOutro = selectedExportSlides['promo_outro'] !== false;
+
+                        // Slides sélectionnées pour l'export
+                        const rawSlides = [1, ...musicTracks.map((_, i) => i + 2)];
+                        const slidesToUse = rawSlides.filter(s => selectedExportSlides[`slide_${s}`] !== false);
+
+                        // Durée du crossfade selon la durée des slides (2.0s sur les slides 15s de Reel, 0.9s sur TikTok 3.5s)
+                        const crossfadeSec = Math.min(2.0, Math.max(0.7, slideDurationSec * 0.14));
+
+                        // 1. Calculer la timeline visuelle de chaque slide
+                        type SlideTimeSlot = {
+                            slideNum: number;
+                            audioUrl: string;
+                            audioStartTime: number;
+                            visualStart: number;
+                            visualEnd: number;
+                        };
+
+                        const slots: SlideTimeSlot[] = [];
+                        let curTime = 0;
+                        for (let i = 0; i < slidesToUse.length; i++) {
+                            const s = slidesToUse[i];
+                            if (i > 0) curTime += transitionDurationSec;
+                            const aUrl = s === 1
                                 ? (musicIntroAudio || musicTracks[0]?.audio || '')
                                 : (musicTracks[s - 2]?.audio || '');
-                            const srcOffset = s === 1
+                            const aStart = s === 1
                                 ? (musicIntroAudio ? (musicIntroAudioStartTime || 0) : (musicTracks[0]?.audioStartTime || 0))
                                 : (musicTracks[s - 2]?.audioStartTime || 0);
-                            if (audioUrl) {
-                                // Dernière slide : son continue pendant la slide promo (slideDurationSec + promoDurationSec)
-                                const isLastSlide = (i === allSlides.length - 1);
-                                audioSegments.push({
-                                    url: audioUrl,
-                                    startOffset: cursor,
-                                    sourceOffset: srcOffset,
-                                    duration: isLastSlide ? (slideDurationSec + transitionDurationSec + promoDurationSec) : slideDurationSec
+                            const vStart = curTime;
+                            const vEnd = curTime + slideDurationSec;
+                            slots.push({
+                                slideNum: s,
+                                audioUrl: aUrl,
+                                audioStartTime: aStart,
+                                visualStart: vStart,
+                                visualEnd: vEnd
+                            });
+                            curTime += slideDurationSec;
+                        }
+
+                        // 2. Regrouper les slides consécutives partageant la même musique (ex: Slide 1 Annonce & Slide 2 Track 1)
+                        type AudioGroup = {
+                            url: string;
+                            sourceOffset: number;
+                            startBound: number;
+                            endBound: number;
+                        };
+
+                        const groups: AudioGroup[] = [];
+                        for (const slot of slots) {
+                            if (!slot.audioUrl) continue;
+                            const lastG = groups[groups.length - 1];
+                            if (lastG && lastG.url === slot.audioUrl) {
+                                // Même morceau : prolonger en continu sans aucune coupure
+                                lastG.endBound = slot.visualEnd;
+                            } else {
+                                groups.push({
+                                    url: slot.audioUrl,
+                                    sourceOffset: slot.audioStartTime,
+                                    startBound: slot.visualStart,
+                                    endBound: slot.visualEnd
                                 });
                             }
-                            cursor += slideDurationSec;
+                        }
+
+                        if (groups.length > 0 && includePromoOutro) {
+                            // Si la slide promo outro est présente, la dernière musique continue dessus
+                            groups[groups.length - 1].endBound += transitionDurationSec + promoDurationSec;
+                        }
+
+                        // 3. Générer les segments avec fondu enchaîné (crossfade)
+                        for (let gIdx = 0; gIdx < groups.length; gIdx++) {
+                            const g = groups[gIdx];
+                            const isFirst = (gIdx === 0);
+                            const isLast = (gIdx === groups.length - 1);
+
+                            // Début du segment
+                            let segStart = g.startBound;
+                            let fadeInStart = g.startBound;
+                            let fadeInEnd = g.startBound + 0.15; // Doux fondu d'entrée initial
+
+                            if (!isFirst) {
+                                // Fondu enchaîné centré sur la transition entre les 2 morceaux
+                                const boundary = g.startBound - (transitionDurationSec / 2);
+                                segStart = Math.max(0, boundary - (crossfadeSec / 2));
+                                fadeInStart = segStart;
+                                fadeInEnd = boundary + (crossfadeSec / 2);
+                            }
+
+                            // Fin du segment
+                            let segEnd = g.endBound;
+                            let fadeOutStart = g.endBound - 0.15;
+                            let fadeOutEnd = g.endBound;
+
+                            if (!isLast) {
+                                const nextG = groups[gIdx + 1];
+                                const boundary = nextG.startBound - (transitionDurationSec / 2);
+                                fadeOutStart = Math.max(segStart + 0.1, boundary - (crossfadeSec / 2));
+                                fadeOutEnd = boundary + (crossfadeSec / 2);
+                                segEnd = fadeOutEnd;
+                            } else {
+                                // Dernier morceau : fondu sortant final doux
+                                const finalFadeDur = Math.min(1.5, Math.max(0.6, (g.endBound - segStart) * 0.12));
+                                fadeOutStart = Math.max(segStart + 0.1, g.endBound - finalFadeDur);
+                                fadeOutEnd = g.endBound;
+                                segEnd = g.endBound;
+                            }
+
+                            const segDuration = Math.max(0.1, segEnd - segStart);
+
+                            audioSegments.push({
+                                url: g.url,
+                                startOffset: segStart,
+                                sourceOffset: g.sourceOffset,
+                                duration: segDuration,
+                                fadeInStart: fadeInStart,
+                                fadeInEnd: fadeInEnd,
+                                fadeOutStart: fadeOutStart,
+                                fadeOutEnd: fadeOutEnd
+                            });
                         }
                     } else if (combinedMode === 'PROMO_ONLY' || isCarouselPromoActive) {
                         // Strictement aucun son pour la slide promo dans MUSIQUE
@@ -16577,10 +16685,33 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         const segDur = seg.duration ? Math.min(seg.duration, Math.max(0, totalSec - t0)) : (totalSec - t0);
                         const tEnd = t0 + segDur;
 
-                        gain.gain.setValueAtTime(0, t0);
-                        gain.gain.linearRampToValueAtTime(1, t0 + 0.04);
-                        gain.gain.setValueAtTime(1, Math.max(t0 + 0.05, tEnd - 0.08));
-                        gain.gain.linearRampToValueAtTime(0, tEnd);
+                        if (seg.fadeInEnd !== undefined && seg.fadeOutStart !== undefined) {
+                            // 🎧 Fondu enchaîné (Crossfade DJ) avec courbe égal-puissance ultra fluide (zéro coupure ni creux sonore)
+                            const inStart = Math.max(0, seg.fadeInStart ?? t0);
+                            const inEnd = Math.max(inStart + 0.02, seg.fadeInEnd);
+                            const outStart = Math.min(tEnd - 0.02, Math.max(inEnd, seg.fadeOutStart));
+                            const outEnd = Math.max(outStart + 0.02, seg.fadeOutEnd ?? tEnd);
+
+                            // Initial silence
+                            gain.gain.setValueAtTime(0, inStart);
+                            // Rentrée progressive avec point médian égal-puissance (0.72)
+                            const inMid = inStart + (inEnd - inStart) * 0.5;
+                            gain.gain.linearRampToValueAtTime(0.72, inMid);
+                            gain.gain.linearRampToValueAtTime(1.0, inEnd);
+
+                            // Maintien au volume maximal (100%)
+                            gain.gain.setValueAtTime(1.0, outStart);
+
+                            // Sortie progressive avec point médian égal-puissance (0.72)
+                            const outMid = outStart + (outEnd - outStart) * 0.5;
+                            gain.gain.linearRampToValueAtTime(0.72, outMid);
+                            gain.gain.linearRampToValueAtTime(0, outEnd);
+                        } else {
+                            gain.gain.setValueAtTime(0, t0);
+                            gain.gain.linearRampToValueAtTime(1, t0 + 0.04);
+                            gain.gain.setValueAtTime(1, Math.max(t0 + 0.05, tEnd - 0.08));
+                            gain.gain.linearRampToValueAtTime(0, tEnd);
+                        }
 
                         if (buf.duration - offset < segDur) {
                             src.loop = true;
@@ -29800,7 +29931,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             <span className="text-[#00ff66] font-black">CARROUSEL MUSIQUE</span>
                             <span>({totalSlides}/20 max)</span>
                         </span>
-                        <span className="text-[7.5px] text-gray-500">Gérer via la barre en haut ➔</span>
+                        <span className="text-[7.5px] text-[#00ff66] font-bold flex items-center gap-1 bg-[#00ff66]/10 px-2 py-0.5 rounded-full border border-[#00ff66]/20">
+                            🎧 Fondu enchaîné DJ (Crossfade)
+                        </span>
                     </div>
 
                     <div className="flex flex-wrap gap-1.5 max-h-48 overflow-y-auto custom-scrollbar p-0.5">
