@@ -106,9 +106,7 @@ export async function fetchWithFallback(
         // Affichage immédiat (0ms), revalidation silencieuse en arrière-plan
         networkPromise.then((fresh) => {
             if (fresh && onUpdate) {
-                const freshStr = JSON.stringify(fresh).slice(0, 500);
-                const localStr = JSON.stringify(instantData).slice(0, 500);
-                if (freshStr !== localStr) {
+                if (JSON.stringify(fresh) !== JSON.stringify(instantData)) {
                     onUpdate(fresh);
                 }
             }

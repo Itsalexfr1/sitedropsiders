@@ -448,6 +448,50 @@ const WIKI_FESTIVALS_PATH = 'src/data/wiki_festivals.json';
 const INTERVIEW_QUESTIONS_PATH = 'src/data/interview_questions.json';
 const SAVED_ARTISTS_PATH = 'src/data/saved_artists.json';
 
+async function getKvOrGitHubList(env: any, kvKey: string, filePath: string, gitConfig: any): Promise<any[]> {
+    if (env.DATA_KV) {
+        try {
+            const cached = await env.DATA_KV.get(kvKey, { type: 'json' });
+            if (Array.isArray(cached)) return cached;
+        } catch (e) {
+            console.warn(`[DATA_KV] Failed to read ${kvKey}:`, e);
+        }
+    }
+    const file = await fetchGitHubFile(filePath, gitConfig);
+    const data = file && Array.isArray(file.content) ? file.content : [];
+    if (env.DATA_KV && data.length > 0) {
+        try {
+            await env.DATA_KV.put(kvKey, JSON.stringify(data));
+        } catch (e) {
+            console.warn(`[DATA_KV] Failed to seed ${kvKey}:`, e);
+        }
+    }
+    return data;
+}
+
+async function syncGitHubBackup(filePath: string, data: any, commitMsg: string, gitConfig: any) {
+    if (!gitConfig?.TOKEN) return;
+    try {
+        const existing = await fetchGitHubFile(filePath, { ...gitConfig, bypassCache: true });
+        await saveGitHubFile(filePath, data, commitMsg, existing?.sha || null, gitConfig);
+    } catch (e) {
+        console.warn(`[GitHub Backup] Failed for ${filePath}:`, e);
+    }
+}
+
+async function saveKvAndSyncGitHub(env: any, ctx: any, kvKey: string, filePath: string, data: any, commitMsg: string, gitConfig: any): Promise<{ ok: boolean; error?: string }> {
+    if (env.DATA_KV) {
+        await env.DATA_KV.put(kvKey, JSON.stringify(data));
+        if (gitConfig?.TOKEN) {
+            ctx.waitUntil(syncGitHubBackup(filePath, data, commitMsg, gitConfig));
+        }
+        return { ok: true };
+    }
+    if (!gitConfig?.TOKEN) return { ok: false, error: 'Config missing' };
+    const existing = await fetchGitHubFile(filePath, gitConfig);
+    return await saveGitHubFile(filePath, data, commitMsg, existing?.sha || null, gitConfig);
+}
+
 // Simple un-expiring cache per isolate for performance
 const githubCache = new Map();
 
@@ -5221,16 +5265,14 @@ ${urls.map(u => `  <url>
         }
 
         if (path === '/api/news' && request.method === 'GET') {
-            const FILE_PATH = 'src/data/news.json';
-            const file = await fetchGitHubFile(FILE_PATH, gitConfig);
-            let news = file ? file.content : [];
+            let news = await getKvOrGitHubList(env, 'news', 'src/data/news.json', gitConfig);
             
-            // Si non authentifié, on masque les brouillons et on autorise le cache CDN Cloudflare
+            // Si non authentifié, on masque les brouillons et on autorise un court cache CDN Cloudflare
             if (!authenticated) {
                 news = news.filter((item: any) => !item.isDraft);
                 const cdnHeaders = {
                     ...headers,
-                    'Cache-Control': 'public, max-age=60, s-maxage=120, stale-while-revalidate=86400'
+                    'Cache-Control': 'public, max-age=5, s-maxage=10, stale-while-revalidate=30'
                 };
                 return new Response(JSON.stringify(news), { status: 200, headers: cdnHeaders });
             }
@@ -5240,8 +5282,7 @@ ${urls.map(u => `  <url>
 
         // --- EXTENSION API ---
         if (path === '/api/extension/latest' && request.method === 'GET') {
-            const newsFile = await fetchGitHubFile('src/data/news.json', gitConfig);
-            const news = newsFile ? newsFile.content : [];
+            const news = await getKvOrGitHubList(env, 'news', 'src/data/news.json', gitConfig);
             const latestNews = news.length > 0 ? news[0] : null;
             
             const manualPush = await env.CHAT_KV.get('extension_manual_push');
@@ -5280,13 +5321,12 @@ ${urls.map(u => `  <url>
         }
 
         if (path === '/api/agenda' && request.method === 'GET') {
-            const FILE_PATH = 'src/data/agenda.json';
-            const file = await fetchGitHubFile(FILE_PATH, gitConfig);
+            const agendaContent = await getKvOrGitHubList(env, 'agenda', 'src/data/agenda.json', gitConfig);
             const cdnHeaders = {
                 ...headers,
-                'Cache-Control': 'public, max-age=60, s-maxage=120, stale-while-revalidate=86400'
+                'Cache-Control': 'public, max-age=5, s-maxage=10, stale-while-revalidate=30'
             };
-            return new Response(JSON.stringify(file ? file.content : []), { status: 200, headers: cdnHeaders });
+            return new Response(JSON.stringify(agendaContent || []), { status: 200, headers: cdnHeaders });
         }
 
         if (path === '/api/galerie' && request.method === 'GET') {
@@ -7594,7 +7634,7 @@ ${urls.map(u => `  <url>
 
         // --- API: CREATE NEWS ---
         if (path === '/api/news/create' && request.method === 'POST') {
-            if (!TOKEN) return new Response(JSON.stringify({ error: 'Config missing' }), { status: 500, headers });
+            if (!env.DATA_KV && !TOKEN) return new Response(JSON.stringify({ error: 'Config missing' }), { status: 500, headers });
             const NEWS_PATH = 'src/data/news.json';
 
             try {
@@ -7602,9 +7642,8 @@ ${urls.map(u => `  <url>
                 const { title, date, summary, content, image, category, isFeatured, isFocus, isDraft, author, youtubeId: bodyYoutubeId, showVideo, year, sendPush, isReview, isProFilter } = body;
                 if (!title || !content) return new Response(JSON.stringify({ error: 'Missing required fields' }), { status: 400, headers });
 
-                // 1. Update news.json (Metadata only)
-                const newsFile = await fetchGitHubFile(NEWS_PATH, gitConfig) || { content: [], sha: null };
-                let currentNews = newsFile.content;
+                // 1. Update news metadata (DATA_KV + background GitHub sync)
+                let currentNews = await getKvOrGitHubList(env, 'news', NEWS_PATH, gitConfig);
 
                 // Handle exclusive featured logic: if new is featured, others lose it
                 if (isFeatured) {
@@ -7641,15 +7680,23 @@ ${urls.map(u => `  <url>
                 };
 
                 const updatedNews = [newArticle, ...currentNews];
-                const metaSaved = await saveGitHubFile(NEWS_PATH, updatedNews, `Add news: ${title}`, newsFile.sha, gitConfig);
+                const metaSaved = await saveKvAndSyncGitHub(env, ctx, 'news', NEWS_PATH, updatedNews, `Add news: ${title}`, gitConfig);
                 if (!metaSaved.ok) return new Response(JSON.stringify({ error: 'Error saving metadata: ' + metaSaved.error }), { status: 500, headers });
 
-                // 2. Save Content to separated file
-                const contentFile = await fetchGitHubFile(NEWS_CONTENT_TARGET, gitConfig);
-                if (contentFile) {
-                    const newContentItem = { id: newId, content: content };
-                    const updatedContentFile = [...contentFile.content, newContentItem];
-                    await saveGitHubFile(NEWS_CONTENT_TARGET, updatedContentFile, `Add news content: ${newId}`, contentFile.sha, gitConfig);
+                // 2. Save Content to DATA_KV immediately + sync to GitHub in background
+                if (env.DATA_KV) {
+                    await env.DATA_KV.put(`news_content_${newId}`, content);
+                }
+                if (TOKEN) {
+                    ctx.waitUntil((async () => {
+                        try {
+                            const contentFile = await fetchGitHubFile(NEWS_CONTENT_TARGET, { ...gitConfig, bypassCache: true });
+                            if (contentFile) {
+                                const updatedContentFile = [...contentFile.content, { id: newId, content: content }];
+                                await saveGitHubFile(NEWS_CONTENT_TARGET, updatedContentFile, `Add news content: ${newId}`, contentFile.sha, gitConfig);
+                            }
+                        } catch (e) { console.warn('[GitHub Backup] Add news content failed:', e); }
+                    })());
                 }
 
                 if (sendPush) {
@@ -7741,7 +7788,7 @@ ${urls.map(u => `  <url>
 
         // --- API: UPDATE NEWS ---
         if (path === '/api/news/update' && request.method === 'POST') {
-            if (!TOKEN) return new Response(JSON.stringify({ error: 'Config missing' }), { status: 500, headers });
+            if (!env.DATA_KV && !TOKEN) return new Response(JSON.stringify({ error: 'Config missing' }), { status: 500, headers });
             const FILE_PATH = 'src/data/news.json';
             try {
                 const body = await request.json();
@@ -7749,10 +7796,7 @@ ${urls.map(u => `  <url>
                 if (!id) return new Response(JSON.stringify({ error: 'Missing ID' }), { status: 400, headers });
 
                 // 1. Update Metadata
-                const newsFile = await fetchGitHubFile(FILE_PATH, gitConfig);
-                if (!newsFile) return new Response(JSON.stringify({ error: 'Error fetching' }), { status: 502, headers });
-
-                let currentData = newsFile.content;
+                let currentData = await getKvOrGitHubList(env, 'news', FILE_PATH, gitConfig);
 
                 // Handle exclusive featured logic: if updated item becomes featured, others lose it
                 if (isFeatured) {
@@ -7824,31 +7868,39 @@ ${urls.map(u => `  <url>
                     author: hasAll ? (author || existing.author || requestUsername || 'Alex') : (existing.author || requestUsername)
                 };
 
-                await saveGitHubFile(FILE_PATH, currentData, `Update news: ${title || existing.title}`, newsFile.sha, gitConfig);
+                const metaSaved = await saveKvAndSyncGitHub(env, ctx, 'news', FILE_PATH, currentData, `Update news: ${title || existing.title}`, gitConfig);
+                if (!metaSaved.ok) return new Response(JSON.stringify({ error: 'Error saving metadata: ' + metaSaved.error }), { status: 500, headers });
 
-                // 2. Update Content (Search in all content files)
-                // If content is provided, we need to find where it is and update it
+                // 2. Update Content (DATA_KV immediately + GitHub backup in background)
                 if (content) {
-                    let contentUpdated = false;
-                    for (const filePath of NEWS_CONTENT_FILES) {
-                        const cFile = await fetchGitHubFile(filePath, gitConfig);
-                        if (cFile) {
-                            const cIndex = cFile.content.findIndex((item: any) => String(item.id) === String(id));
-                            if (cIndex !== -1) {
-                                cFile.content[cIndex].content = content;
-                                await saveGitHubFile(filePath, cFile.content, `Update news content: ${id}`, cFile.sha, gitConfig);
-                                contentUpdated = true;
-                                break;
-                            }
-                        }
+                    if (env.DATA_KV) {
+                        await env.DATA_KV.put(`news_content_${id}`, content);
                     }
-                    // If content not found in any file (legacy?), add it to target file
-                    if (!contentUpdated) {
-                        const targetFile = await fetchGitHubFile(NEWS_CONTENT_TARGET, gitConfig);
-                        if (targetFile) {
-                            const updatedContentFile = [...targetFile.content, { id, content }];
-                            await saveGitHubFile(NEWS_CONTENT_TARGET, updatedContentFile, `Add missing news content: ${id}`, targetFile.sha, gitConfig);
-                        }
+                    if (TOKEN) {
+                        ctx.waitUntil((async () => {
+                            try {
+                                let contentUpdated = false;
+                                for (const filePath of NEWS_CONTENT_FILES) {
+                                    const cFile = await fetchGitHubFile(filePath, { ...gitConfig, bypassCache: true });
+                                    if (cFile) {
+                                        const cIndex = cFile.content.findIndex((item: any) => String(item.id) === String(id));
+                                        if (cIndex !== -1) {
+                                            cFile.content[cIndex].content = content;
+                                            await saveGitHubFile(filePath, cFile.content, `Update news content: ${id}`, cFile.sha, gitConfig);
+                                            contentUpdated = true;
+                                            break;
+                                        }
+                                    }
+                                }
+                                if (!contentUpdated) {
+                                    const targetFile = await fetchGitHubFile(NEWS_CONTENT_TARGET, { ...gitConfig, bypassCache: true });
+                                    if (targetFile) {
+                                        const updatedContentFile = [...targetFile.content, { id, content }];
+                                        await saveGitHubFile(NEWS_CONTENT_TARGET, updatedContentFile, `Add missing news content: ${id}`, targetFile.sha, gitConfig);
+                                    }
+                                }
+                            } catch (e) { console.warn('[GitHub Backup] Update news content failed:', e); }
+                        })());
                     }
                 }
 
@@ -7940,17 +7992,14 @@ ${urls.map(u => `  <url>
 
         // --- API: UPDATE AGENDA ---
         if (path === '/api/agenda/bulk-update' && request.method === 'POST') {
-            if (!TOKEN) return new Response(JSON.stringify({ error: 'Config missing' }), { status: 500, headers });
+            if (!env.DATA_KV && !TOKEN) return new Response(JSON.stringify({ error: 'Config missing' }), { status: 500, headers });
             const FILE_PATH = 'src/data/agenda.json';
             try {
                 const body = await request.json();
                 const { ids, genre, type } = body;
                 if (!ids || !Array.isArray(ids)) return new Response(JSON.stringify({ error: 'Missing IDs' }), { status: 400, headers });
 
-                const agendaFile = await fetchGitHubFile(FILE_PATH, gitConfig);
-                if (!agendaFile) return new Response(JSON.stringify({ error: 'Error fetching' }), { status: 502, headers });
-
-                let currentData = agendaFile.content;
+                let currentData = await getKvOrGitHubList(env, 'agenda', FILE_PATH, gitConfig);
                 let count = 0;
 
                 ids.forEach(id => {
@@ -7963,7 +8012,7 @@ ${urls.map(u => `  <url>
                 });
 
                 if (count > 0) {
-                    const saveRes = await saveGitHubFile(FILE_PATH, currentData, `Bulk update agenda: ${count} items`, agendaFile.sha, gitConfig);
+                    const saveRes = await saveKvAndSyncGitHub(env, ctx, 'agenda', FILE_PATH, currentData, `Bulk update agenda: ${count} items`, gitConfig);
                     if (!saveRes.ok) return new Response(JSON.stringify({ error: 'Error saving', detail: saveRes.error }), { status: 502, headers });
                 }
 
@@ -7974,7 +8023,7 @@ ${urls.map(u => `  <url>
         }
 
         if (path === '/api/agenda/update' && request.method === 'POST') {
-            if (!TOKEN) return new Response(JSON.stringify({ error: 'Config missing' }), { status: 500, headers });
+            if (!env.DATA_KV && !TOKEN) return new Response(JSON.stringify({ error: 'Config missing' }), { status: 500, headers });
             const FILE_PATH = 'src/data/agenda.json';
             try {
                 const body = await request.json();
@@ -7988,10 +8037,7 @@ ${urls.map(u => `  <url>
                 };
                 const cleanCountry = normalizeCountryVal(country);
 
-                const agendaFile = await fetchGitHubFile(FILE_PATH, gitConfig);
-                if (!agendaFile) return new Response(JSON.stringify({ error: 'Error fetching' }), { status: 502, headers });
-
-                let currentData = agendaFile.content;
+                let currentData = await getKvOrGitHubList(env, 'agenda', FILE_PATH, gitConfig);
                 const index = currentData.findIndex(item => String(item.id) === String(id));
                 if (index === -1) return new Response(JSON.stringify({ error: 'Item not found' }), { status: 404, headers });
 
@@ -8072,7 +8118,7 @@ ${urls.map(u => `  <url>
                     return true;
                 });
 
-                const saved = await saveGitHubFile(FILE_PATH, currentData, `Update agenda: ${title || existing.title}`, agendaFile.sha, gitConfig);
+                const saved = await saveKvAndSyncGitHub(env, ctx, 'agenda', FILE_PATH, currentData, `Update agenda: ${title || existing.title}`, gitConfig);
                 if (saved.ok) {
                     if (body.sendPush) {
                         ctx.waitUntil(sendPushNotification(env, {
@@ -8091,7 +8137,7 @@ ${urls.map(u => `  <url>
 
         // --- API: CREATE AGENDA ---
         if ((path === '/api/agenda/create' || path === '/api/agenda') && request.method === 'POST') {
-            if (!TOKEN) return new Response(JSON.stringify({ error: 'Config missing' }), { status: 500, headers });
+            if (!env.DATA_KV && !TOKEN) return new Response(JSON.stringify({ error: 'Config missing' }), { status: 500, headers });
             const FILE_PATH = 'src/data/agenda.json';
             try {
                 const body = await request.json();
@@ -8105,8 +8151,7 @@ ${urls.map(u => `  <url>
                 };
                 const cleanCountry = normalizeCountryVal(country);
 
-                const agendaFile = await fetchGitHubFile(FILE_PATH, gitConfig) || { content: [], sha: null };
-                let currentData = agendaFile.content;
+                let currentData = await getKvOrGitHubList(env, 'agenda', FILE_PATH, gitConfig);
                 let maxId = currentData.reduce((max, item) => (item.id > max ? item.id : max), 0);
 
                 if (isWeekly && startDate && endDate && startDate !== endDate) {
@@ -8176,7 +8221,7 @@ ${urls.map(u => `  <url>
                     return true;
                 });
 
-                const saved = await saveGitHubFile(FILE_PATH, currentData, `Add agenda: ${title}`, agendaFile.sha, gitConfig);
+                const saved = await saveKvAndSyncGitHub(env, ctx, 'agenda', FILE_PATH, currentData, `Add agenda: ${title}`, gitConfig);
                 if (saved.ok) {
                     if (body.sendPush) {
                         ctx.waitUntil(sendPushNotification(env, {
@@ -8195,17 +8240,14 @@ ${urls.map(u => `  <url>
 
         // --- API: UPDATE RESIDENCE PHOTOS ---
         if (path === '/api/agenda/update-residence-photos' && request.method === 'POST') {
-            if (!TOKEN) return new Response(JSON.stringify({ error: 'Config missing' }), { status: 500, headers });
+            if (!env.DATA_KV && !TOKEN) return new Response(JSON.stringify({ error: 'Config missing' }), { status: 500, headers });
             const FILE_PATH = 'src/data/agenda.json';
             try {
                 const body = await request.json();
                 const { title, location, image } = body;
                 if (!title || !location || !image) return new Response(JSON.stringify({ error: 'Missing title/location/image' }), { status: 400, headers });
 
-                const agendaFile = await fetchGitHubFile(FILE_PATH, gitConfig);
-                if (!agendaFile) return new Response(JSON.stringify({ error: 'Error fetching' }), { status: 502, headers });
-
-                const currentData = agendaFile.content;
+                const currentData = await getKvOrGitHubList(env, 'agenda', FILE_PATH, gitConfig);
                 let updatedCount = 0;
                 const newData = currentData.map(item => {
                     const isCorrectResidence = (item.title === title && item.location === location);
@@ -8220,7 +8262,7 @@ ${urls.map(u => `  <url>
 
                 if (updatedCount === 0) return new Response(JSON.stringify({ error: 'No residence found' }), { status: 404, headers });
 
-                const saved = await saveGitHubFile(FILE_PATH, newData, `Update residence photos: ${title} @ ${location} (${updatedCount} items)`, agendaFile.sha, gitConfig);
+                const saved = await saveKvAndSyncGitHub(env, ctx, 'agenda', FILE_PATH, newData, `Update residence photos: ${title} @ ${location} (${updatedCount} items)`, gitConfig);
                 if (saved.ok) {
                     return new Response(JSON.stringify({ success: true, count: updatedCount }), { status: 200, headers });
                 } else {
@@ -8231,17 +8273,14 @@ ${urls.map(u => `  <url>
 
         // --- API: BULK UPDATE YEAR ---
         if (path === '/api/admin/bulk-update-year' && request.method === 'POST') {
-            if (!TOKEN) return new Response(JSON.stringify({ error: 'Config missing' }), { status: 500, headers });
+            if (!env.DATA_KV && !TOKEN) return new Response(JSON.stringify({ error: 'Config missing' }), { status: 500, headers });
             try {
                 const body = await request.json();
                 const { type, oldYear, newYear } = body;
                 if (!type || !oldYear || !newYear) return new Response(JSON.stringify({ error: 'Missing params' }), { status: 400, headers });
 
                 const FILE_PATH = type === 'agenda' ? 'src/data/agenda.json' : 'src/data/news.json';
-                const file = await fetchGitHubFile(FILE_PATH, gitConfig);
-                if (!file) return new Response(JSON.stringify({ error: 'Error fetching' }), { status: 502, headers });
-
-                const currentData = file.content;
+                const currentData = await getKvOrGitHubList(env, type === 'agenda' ? 'agenda' : 'news', FILE_PATH, gitConfig);
                 let updatedCount = 0;
                 const newData = currentData.map(item => {
                     let hasChanged = false;
@@ -8288,7 +8327,7 @@ ${urls.map(u => `  <url>
 
                 if (updatedCount === 0) return new Response(JSON.stringify({ error: `Aucun élément trouvé pour l'année ${oldYear}` }), { status: 404, headers });
 
-                const saved = await saveGitHubFile(FILE_PATH, newData, `Bulk update year ${oldYear} -> ${newYear} (${updatedCount} items)`, file.sha, gitConfig);
+                const saved = await saveKvAndSyncGitHub(env, ctx, type === 'agenda' ? 'agenda' : 'news', FILE_PATH, newData, `Bulk update year ${oldYear} -> ${newYear} (${updatedCount} items)`, gitConfig);
                 if (saved.ok) {
                     return new Response(JSON.stringify({ success: true, count: updatedCount }), { status: 200, headers });
                 } else {
@@ -10124,7 +10163,7 @@ ${urls.map(u => `  <url>
         // --- API: DELETE CONTENT ---
         const contentDeletePaths = ['/api/news/delete', '/api/recaps/delete', '/api/agenda/delete', '/api/galerie/delete'];
         if (contentDeletePaths.includes(path) && request.method === 'POST') {
-            if (!TOKEN) return new Response(JSON.stringify({ error: 'Config missing' }), { status: 500, headers });
+            if (!env.DATA_KV && !TOKEN) return new Response(JSON.stringify({ error: 'Config missing' }), { status: 500, headers });
             if (!hasAll) return new Response(JSON.stringify({ error: "Permission refusée : les éditeurs ne peuvent rien supprimer." }), { status: 403, headers });
 
             try {
@@ -10137,48 +10176,73 @@ ${urls.map(u => `  <url>
 
                 let FILE_PATH = '';
                 let CONTENT_FILES = [];
+                let kvKey = '';
 
                 if (path.includes('/news')) {
                     FILE_PATH = 'src/data/news.json';
                     CONTENT_FILES = NEWS_CONTENT_FILES;
+                    kvKey = 'news';
                 } else if (path.includes('/recaps')) {
                     FILE_PATH = 'src/data/recaps.json';
                     CONTENT_FILES = RECAPS_CONTENT_FILES;
                 } else if (path.includes('/agenda')) {
                     FILE_PATH = 'src/data/agenda.json';
+                    kvKey = 'agenda';
                 } else if (path.includes('/galerie')) {
                     FILE_PATH = 'src/data/galerie.json';
                 }
 
                 if (!FILE_PATH) return new Response(JSON.stringify({ error: 'Invalid path' }), { status: 400, headers });
 
-                // 1. Delete Metadata
-                const file = await fetchGitHubFile(FILE_PATH, gitConfig);
-                if (!file) return new Response(JSON.stringify({ error: 'Error fetching metadata file' }), { status: 502, headers });
-
-                const initialCount = file.content.length;
-                const updatedData = file.content.filter(item => !idsToDelete.includes(String(item.id)));
-                
-                if (updatedData.length === initialCount) {
-                    return new Response(JSON.stringify({ error: 'No items found in metadata for specified IDs' }), { status: 404, headers });
-                }
-
                 const commitMsg = idsToDelete.length > 1 
                     ? `Delete ${idsToDelete.length} items from ${FILE_PATH}`
                     : `Delete content: ${idsToDelete[0]}`;
 
-                await saveGitHubFile(FILE_PATH, updatedData, commitMsg, file.sha, gitConfig);
+                // 1. Delete Metadata
+                if (kvKey) {
+                    const currentData = await getKvOrGitHubList(env, kvKey, FILE_PATH, gitConfig);
+                    const initialCount = currentData.length;
+                    const updatedData = currentData.filter(item => !idsToDelete.includes(String(item.id)));
+                    if (updatedData.length === initialCount) {
+                        return new Response(JSON.stringify({ error: 'No items found in metadata for specified IDs' }), { status: 404, headers });
+                    }
+                    await saveKvAndSyncGitHub(env, ctx, kvKey, FILE_PATH, updatedData, commitMsg, gitConfig);
+                } else {
+                    const file = await fetchGitHubFile(FILE_PATH, gitConfig);
+                    if (!file) return new Response(JSON.stringify({ error: 'Error fetching metadata file' }), { status: 502, headers });
+
+                    const initialCount = file.content.length;
+                    const updatedData = file.content.filter(item => !idsToDelete.includes(String(item.id)));
+                    
+                    if (updatedData.length === initialCount) {
+                        return new Response(JSON.stringify({ error: 'No items found in metadata for specified IDs' }), { status: 404, headers });
+                    }
+
+                    await saveGitHubFile(FILE_PATH, updatedData, commitMsg, file.sha, gitConfig);
+                }
 
                 // 2. Delete Content (News/Recaps)
-                if (CONTENT_FILES.length > 0) {
-                    for (const cp of CONTENT_FILES) {
-                        const cf = await fetchGitHubFile(cp, gitConfig);
-                        if (cf) {
-                            const newCfContent = cf.content.filter(item => !idsToDelete.includes(String(item.id)));
-                            if (newCfContent.length !== cf.content.length) {
-                                await saveGitHubFile(cp, newCfContent, `Cleanup bodies from ${cp} for ${idsToDelete.length} items`, cf.sha, gitConfig);
+                if (kvKey === 'news' && env.DATA_KV) {
+                    for (const delId of idsToDelete) {
+                        await env.DATA_KV.delete(`news_content_${delId}`);
+                    }
+                }
+                if (CONTENT_FILES.length > 0 && TOKEN) {
+                    const deleteContentGitHub = async () => {
+                        for (const cp of CONTENT_FILES) {
+                            const cf = await fetchGitHubFile(cp, { ...gitConfig, bypassCache: true });
+                            if (cf) {
+                                const newCfContent = cf.content.filter(item => !idsToDelete.includes(String(item.id)));
+                                if (newCfContent.length !== cf.content.length) {
+                                    await saveGitHubFile(cp, newCfContent, `Cleanup bodies from ${cp} for ${idsToDelete.length} items`, cf.sha, gitConfig);
+                                }
                             }
                         }
+                    };
+                    if (kvKey === 'news') {
+                        ctx.waitUntil(deleteContentGitHub());
+                    } else {
+                        await deleteContentGitHub();
                     }
                 }
 
@@ -10244,18 +10308,29 @@ ${urls.map(u => `  <url>
 
         // --- API: GET NEWS CONTENT ---
         if (path === '/api/news/content' && request.method === 'GET') {
-            if (!TOKEN) return new Response(JSON.stringify({ error: 'Config missing' }), { status: 500, headers });
+            if (!env.DATA_KV && !TOKEN) return new Response(JSON.stringify({ error: 'Config missing' }), { status: 500, headers });
             const id = parseInt(url.searchParams.get('id') || '0');
             if (!id) return new Response(JSON.stringify({ error: 'Missing id' }), { status: 400, headers });
             const cdnHeaders = {
                 ...headers,
-                'Cache-Control': 'public, max-age=300, s-maxage=600, stale-while-revalidate=86400'
+                'Cache-Control': 'public, max-age=5, s-maxage=10, stale-while-revalidate=60'
             };
+            if (env.DATA_KV) {
+                const kvContent = await env.DATA_KV.get(`news_content_${id}`);
+                if (kvContent !== null) {
+                    return new Response(JSON.stringify({ content: kvContent }), { status: 200, headers: cdnHeaders });
+                }
+            }
             for (const filePath of NEWS_CONTENT_FILES) {
                 const cFile = await fetchGitHubFile(filePath, gitConfig);
                 if (cFile && Array.isArray(cFile.content)) {
                     const item = cFile.content.find(i => i.id === id);
-                    if (item) return new Response(JSON.stringify({ content: item.content }), { status: 200, headers: cdnHeaders });
+                    if (item) {
+                        if (env.DATA_KV && item.content) {
+                            await env.DATA_KV.put(`news_content_${id}`, item.content);
+                        }
+                        return new Response(JSON.stringify({ content: item.content }), { status: 200, headers: cdnHeaders });
+                    }
                 }
             }
             return new Response(JSON.stringify({ content: '' }), { status: 200, headers: cdnHeaders });
