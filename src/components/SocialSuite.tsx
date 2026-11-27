@@ -379,7 +379,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         }
     }, [activeTab, theme]);
     const [showVoteLink, setShowVoteLink] = useState(false);
-    const [customText, setCustomText] = useState(title || '');
+    const [customText, setCustomText] = useState(() => {
+        if (initialTheme === 'MUSIQUE' && (!title || title === 'NEWS DROPSIDERS' || title === 'LE TITRE ICI')) {
+            return 'LES *SORTIES* DE LA *SEMAINE* !';
+        }
+        return title || '';
+    });
     const [bgImage, setBgImage] = useState<string>(() => resolveImageUrl(imageUrl));
 
     useEffect(() => {
@@ -563,8 +568,20 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const [citationAuthor, setCitationAuthor] = useState('');
     const [citationMedia, setCitationMedia] = useState('pour Dropsiders');
     const citationTextareaRef = useRef<HTMLTextAreaElement | null>(null);
-    const [conseilsTitle, setConseilsTitle] = useState('LE TITRE ICI');
-    const [conseilsSubtext, setConseilsSubtext] = useState('');
+    const [conseilsTitle, setConseilsTitle] = useState(() => {
+        if (initialTheme === 'MUSIQUE' && (!title || title === 'NEWS DROPSIDERS' || title === 'LE TITRE ICI')) {
+            return 'LES *SORTIES* DE LA *SEMAINE* !';
+        }
+        return 'LE TITRE ICI';
+    });
+    const [conseilsSubtext, setConseilsSubtext] = useState(() => {
+        if (initialTheme === 'MUSIQUE') {
+            const now = new Date();
+            const dStr = now.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+            return dStr.charAt(0).toUpperCase() + dStr.slice(1);
+        }
+        return '';
+    });
     const conseilsTitleInputRef = useRef<HTMLTextAreaElement | null>(null);
     const conseilsSubtextInputRef = useRef<HTMLTextAreaElement | null>(null);
     const [isConseilsLargeTitle, setIsConseilsLargeTitle] = useState(false);
@@ -17944,6 +17961,141 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         startVideoRecording('NONE', { formatTab: effectiveFormatTab });
     };
 
+    const buildInstagramCaptionText = (targetTheme: ThemeType): string | null => {
+        if (targetTheme === 'MUSIQUE') {
+            const cleanTitle = (conseilsTitle === 'LE TITRE ICI' ? 'LES SORTIES DE LA SEMAINE !' : conseilsTitle)
+                .replace(/\[[CB]:[^\]]+\]|\[\/[CB]\]|\*/gi, '')
+                .trim();
+            const validTracks = musicTracks.filter(t => (t.artist && t.artist.trim()) || (t.title && t.title.trim()));
+            const tracksToFormat = validTracks.length > 0 ? validTracks : musicTracks;
+            const trackLines = tracksToFormat.map((tr, idx) => {
+                const num = String(idx + 1).padStart(2, '0');
+                const artist = (tr.artist || '').trim();
+                const trackTitle = (tr.title || '').trim();
+                const label = (tr.label || '').trim();
+                let line = '';
+                if (artist && trackTitle) {
+                    line = `${num}. ${artist} - ${trackTitle}`;
+                } else if (artist) {
+                    line = `${num}. ${artist}`;
+                } else if (trackTitle) {
+                    line = `${num}. ${trackTitle}`;
+                } else {
+                    line = `${num}. Morceau ${idx + 1}`;
+                }
+                if (label) {
+                    line += ` [${label}]`;
+                }
+                return line;
+            });
+
+            const sub = (conseilsSubtext || '').trim();
+            const lines: string[] = [
+                `💿 ${cleanTitle || 'LES SORTIES DE LA SEMAINE !'}`
+            ];
+            if (sub) {
+                lines.push(`📅 ${sub}`);
+            }
+            lines.push('');
+            lines.push(trackLines.join('\n'));
+            lines.push('');
+            lines.push('💬 Quel est ton son préféré cette semaine ? Dis-le nous en commentaire ! 👇');
+            lines.push('🎧 Écoute toutes les nouveautés sur dropsiders.fr (lien en bio 📲)');
+            lines.push('');
+            lines.push('#dropsiders #musique #sortiesdelasemaine #newmusic #newmusicfriday #edm #electronicmusic #electro #housemusic #techno');
+            return lines.join('\n');
+        }
+
+        if (targetTheme === 'TOP 10 TRACKS') {
+            const currentTracks = (top10TracksRef.current && top10TracksRef.current.length === 10) ? top10TracksRef.current : top10Tracks;
+            const isStyle = (top10GenModeRef.current || top10GenMode) === 'style';
+            const isLabel = (top10GenModeRef.current || top10GenMode) === 'label';
+
+            let subject = '';
+            if (isStyle) {
+                subject = (top10IntroArtist || top10StyleSearch || '').trim();
+            } else if (isLabel) {
+                subject = (top10LabelSearch || top10IntroArtist || '').trim();
+            } else {
+                subject = (top10IntroArtist || top10ArtistSearch || '').trim();
+            }
+
+            const sorted = [...currentTracks]
+                .filter(t => (t.title && t.title.trim()) || (t.artist && t.artist.trim()))
+                .sort((a, b) => Number(a.rank) - Number(b.rank));
+
+            const tracksToFormat = sorted.length > 0 ? sorted : currentTracks;
+            const trackLines = tracksToFormat.map((tr) => {
+                const rankStr = String(tr.rank).padStart(2, '0');
+                const artist = (tr.artist || '').trim();
+                const trackTitle = (tr.title || '').trim();
+                const streams = (tr.streams || '').trim();
+                let line = `${rankStr}. `;
+                if (artist && trackTitle) {
+                    line += `${artist} - ${trackTitle}`;
+                } else {
+                    line += artist || trackTitle || `Track #${tr.rank}`;
+                }
+                if (streams) {
+                    line += ` (${streams})`;
+                }
+                return line;
+            });
+
+            let header = '🏆 TOP 10 TRACKS';
+            if (subject) {
+                header += ` • ${subject.toUpperCase()}`;
+            }
+            if (isStyle) {
+                header += ' (BEATPORT)';
+            }
+
+            const sub = (top10Subtitle || '').trim();
+            const tagSubject = subject ? `#${subject.toLowerCase().replace(/[^a-z0-9]+/g, '')}` : '';
+
+            const lines: string[] = [header];
+            if (sub) {
+                lines.push(`⚡ ${sub}`);
+            }
+            lines.push('');
+            lines.push(trackLines.join('\n'));
+            lines.push('');
+            lines.push('💬 Quel morceau mérite la 1ère place selon toi ? Donne ton avis en commentaire ! 👇');
+            lines.push('🎧 Retrouve le classement complet et écoute les extraits sur dropsiders.fr (lien en bio 📲)');
+            lines.push('');
+            lines.push(`#dropsiders #top10 #beatport ${tagSubject} #electronicmusic #edm #dj #electronic`.replace(/\s+/g, ' ').trim());
+            return lines.join('\n');
+        }
+
+        if (targetTheme === 'TOP 5 ARTISTE' || targetTheme === 'TOP 5 STYLES') {
+            const valid = top5Items.filter(item => (item.main && item.main.trim()) || (item.sub && item.sub.trim()));
+            if (valid.length > 0) {
+                const lines = valid.map((item, idx) => {
+                    const num = String(idx + 1).padStart(2, '0');
+                    const main = (item.main || '').trim();
+                    const sub = (item.sub || '').trim();
+                    const val = (item.value || '').trim();
+                    let l = `${num}. ${main}`;
+                    if (sub) l += ` - ${sub}`;
+                    if (val) l += ` (${val})`;
+                    return l;
+                });
+                return [
+                    `🏆 ${targetTheme} • DROPSIDERS`,
+                    '',
+                    lines.join('\n'),
+                    '',
+                    "💬 Qu'en penses-tu ? Donne ton avis en commentaire ! 👇",
+                    '📲 Retrouve nos classements sur dropsiders.fr',
+                    '',
+                    '#dropsiders #classement #top5 #electronicmusic #edm'
+                ].join('\n');
+            }
+        }
+
+        return null;
+    };
+
     const exportVideoCarouselZip = async (targetFormat?: TabType) => {
         if (!canvasRef.current || isExportingZip || isVideoRecording) return;
         setIsExportingZip(true);
@@ -18270,6 +18422,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             }
 
             if (!cancelZipExportRef.current) {
+                const instagramCaption = buildInstagramCaptionText(theme);
+                if (instagramCaption) {
+                    zip.file('titres-instagram.txt', '\uFEFF' + instagramCaption);
+                }
+
                 setZipExportProgress({
                     current: totalSlides,
                     total: totalSlides,
@@ -18496,6 +18653,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             }
 
             if (!cancelZipExportRef.current) {
+                const instagramCaption = buildInstagramCaptionText('MUSIQUE');
+                if (instagramCaption) {
+                    zip.file('titres-instagram.txt', '\uFEFF' + instagramCaption);
+                }
+
                 setZipExportProgress({
                     current: totalSlides,
                     total: totalSlides,
@@ -18882,6 +19044,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             }
 
             if (zip) {
+                const instagramCaption = buildInstagramCaptionText(theme);
+                if (instagramCaption) {
+                    zip.file('titres-instagram.txt', '\uFEFF' + instagramCaption);
+                }
+
                 const zipBlob = await zip.generateAsync({ type: 'blob', compression: 'DEFLATE', compressionOptions: { level: 6 } });
                 const zipUrl = URL.createObjectURL(zipBlob);
                 const aZip = document.createElement('a');
@@ -19063,6 +19230,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             }
 
             if (zip) {
+                const instagramCaption = buildInstagramCaptionText(theme);
+                if (instagramCaption) {
+                    zip.file('titres-instagram.txt', '\uFEFF' + instagramCaption);
+                }
+
                 const zipBlob = await zip.generateAsync({ type: 'blob', compression: 'DEFLATE', compressionOptions: { level: 6 } });
                 const zipUrl = URL.createObjectURL(zipBlob);
                 const aZip = document.createElement('a');
@@ -19279,6 +19451,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             }
 
             if (zip) {
+                const instagramCaption = buildInstagramCaptionText(theme);
+                if (instagramCaption) {
+                    zip.file('titres-instagram.txt', '\uFEFF' + instagramCaption);
+                }
+
                 const zipBlob = await zip.generateAsync({ type: 'blob', compression: 'DEFLATE', compressionOptions: { level: 6 } });
                 const zipUrl = URL.createObjectURL(zipBlob);
                 const aZip = document.createElement('a');
@@ -19644,6 +19821,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             }
 
             if (zip) {
+                const instagramCaption = buildInstagramCaptionText(theme);
+                if (instagramCaption) {
+                    zip.file('titres-instagram.txt', '\uFEFF' + instagramCaption);
+                }
+
                 const zipBlob = await zip.generateAsync({ type: 'blob', compression: 'DEFLATE', compressionOptions: { level: 6 } });
                 const zipUrl = URL.createObjectURL(zipBlob);
                 const aZip = document.createElement('a');
@@ -19781,8 +19963,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 setConseilsSubtext('POUR PARTICIPER :\n1. *Like* ce post & *abonne-toi* à @dropsiders\n2. *Identifie 2 potes* en commentaire\n3. *Partage en story* pour doubler tes chances !\nTirage au sort le dimanche 25 octobre.');
             }
         } else if (newTheme === 'MUSIQUE') {
-            if (!conseilsTitle || conseilsTitle === 'LE TITRE ICI' || conseilsTitle.includes('CLIP') || conseilsTitle.includes('FESTIVAL') || conseilsTitle.includes('PASS VIP')) {
-                const defT = '*LES SORTIES* DE LA SEMAINE';
+            if (!conseilsTitle || conseilsTitle === 'LE TITRE ICI' || conseilsTitle.includes('CLIP') || conseilsTitle.includes('FESTIVAL') || conseilsTitle.includes('PASS VIP') || conseilsTitle === '*LES SORTIES* DE LA SEMAINE' || conseilsTitle === 'NEWS DROPSIDERS') {
+                const defT = 'LES *SORTIES* DE LA *SEMAINE* !';
                 setConseilsTitle(defT);
                 setCustomText(defT);
             }
@@ -29709,6 +29891,30 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         </div>
 
 
+
+                        {/* Modèle rapide 1-clic Sorties de la Semaine */}
+                        <div className="p-2.5 bg-[#00ff66]/10 border border-[#00ff66]/25 rounded-xl flex items-center justify-between shadow-sm gap-2">
+                            <span className="text-[8.5px] font-black uppercase text-[#00ff66] tracking-wider flex items-center gap-1.5">
+                                ⚡ Titre Sorties de la Semaine :
+                            </span>
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    const defT = 'LES *SORTIES* DE LA *SEMAINE* !';
+                                    setConseilsTitle(defT);
+                                    setCustomText(defT);
+                                    const now = new Date();
+                                    const dStr = now.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+                                    const cap = dStr.charAt(0).toUpperCase() + dStr.slice(1);
+                                    setConseilsSubtext(cap);
+                                    setTimeout(() => generateImage(), 50);
+                                }}
+                                className="py-1 px-2.5 bg-[#00ff66] hover:bg-[#33ff85] text-black font-black text-[8.5px] uppercase rounded-lg transition-all active:scale-95 shadow-sm truncate"
+                                title="Appliquer le titre officiel avec Sorties et Semaine en vert et le point d'exclamation"
+                            >
+                                ✨ LES *SORTIES* DE LA *SEMAINE* !
+                            </button>
+                        </div>
 
                         {/* Titre & Sous-titre de l'annonce */}
                         {conseilsEditor}
