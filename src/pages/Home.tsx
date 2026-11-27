@@ -85,112 +85,149 @@ export function Home() {
         return `var(--color-neon-${color})`;
     };
 
-    const renderSection = (item: any) => {
-        const { id, columns = '1fr', accentColor = 'red' } = item;
-        const color = resolveColor(accentColor);
+    const renderEditorialDesktop = () => {
+        const enabledMap = new Map<string, any>();
+        layout.filter((item: any) => item.enabled).forEach((item: any) => enabledMap.set(item.id, item));
 
-        switch (id) {
-            case 'hero':
-                return <Hero key="hero" videoId={item.videoId} videoUrl={item.videoUrl} accentColor={accentColor} resolvedColor={color} />;
-            case 'news_grid':
-                return (
-                    <section key="news_grid" className="w-full px-4 sm:px-6 lg:px-12 xl:px-16 2xl:px-24">
-                        <div 
-                            className="grid grid-cols-1 gap-8 items-stretch"
-                            style={{ 
-                                display: 'grid',
-                                gridTemplateColumns: window.innerWidth > 1024 ? (columns === '1fr' ? '1.5fr 1fr' : (columns || '1fr').toString().replace('_', ' ')) : '1fr'
-                            }}
-                        >
-                            <FeaturedNews accentColor={accentColor} resolvedColor={color} />
-                            <RecentNews accentColor={item.accentColor2 || 'blue'} resolvedColor={resolveColor(item.accentColor2 || 'blue')} />
-                        </div>
-                    </section>
-                );
-            case 'recap_agenda_grid':
-                const gridColsStyle = { 
-                    display: 'grid',
-                    gridTemplateColumns: window.innerWidth > 1024 ? (columns === '1fr' ? '1.5fr 1fr' : (columns || '1fr').toString().replace('_', ' ')) : '1fr'
-                };
-                return (
-                    <section key="recap_agenda_grid" className="w-full px-4 sm:px-6 lg:px-12 xl:px-16 2xl:px-24 space-y-8">
-                        {/* Ligne 1 : Instagram & Agenda (en vis-à-vis direct) */}
-                        <div 
-                            className="grid grid-cols-1 gap-8 items-start"
-                            style={gridColsStyle}
-                        >
-                            <InstagramWidget accentColor="pink" resolvedColor="var(--color-neon-pink)" username={socials?.instagram} />
-                            <AgendaWidget maxItems={item.maxAgendaItems || 7} accentColor={item.accentColor2 || 'red'} resolvedColor={resolveColor(item.accentColor2 || 'red')} />
-                        </div>
+        const heroItem = enabledMap.get('hero');
+        const newsItem = enabledMap.get('news_grid');
+        const recapAgendaItem = enabledMap.get('recap_agenda_grid');
+        const interviewsItem = enabledMap.get('interviews');
+        const instagramItem = enabledMap.get('instagram');
+        const tiktokItem = enabledMap.get('tiktok');
+        const spotifyItem = enabledMap.get('spotify');
+        const wikiItem = enabledMap.get('wiki_widget');
 
-                        {/* Ligne 2 : TikTok & Top 10 Tracks (alignement horizontal garanti au pixel près) */}
-                        <div 
-                            className="grid grid-cols-1 gap-8 items-start"
-                            style={gridColsStyle}
-                        >
-                            <TikTokWidget accentColor="cyan" resolvedColor="var(--color-neon-cyan)" username={socials?.tiktok} />
-                            <TopTracksLeaderboard resolvedColor={color} />
-                        </div>
-                    </section>
-                );
-            case 'interviews':
-                return (
-                    <section key="interviews" className="w-full px-4 sm:px-6 lg:px-12 xl:px-16 2xl:px-24 py-8">
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
-                            <InterviewWidget accentColor={accentColor} resolvedColor={color} featuredInterviews={item.featuredInterviews} />
-                            <RecapWidget accentColor="purple" resolvedColor="var(--color-neon-purple)" />
-                        </div>
-                    </section>
-                );
-            case 'social_grid':
-                // Instagram + TikTok are now rendered inside recap_agenda_grid left column
-                return null;
-            case 'instagram':
-                return (
-                    <section key="instagram" className="w-full px-4 sm:px-6 lg:px-12 xl:px-16 2xl:px-24">
-                        <InstagramWidget accentColor={accentColor} resolvedColor={color} username={socials?.instagram} />
-                    </section>
-                );
-            case 'tiktok':
-                return (
-                    <section key="tiktok" className="w-full px-4 sm:px-6 lg:px-12 xl:px-16 2xl:px-24">
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-stretch">
-                            <div className="w-full">
-                                <TikTokWidget accentColor={accentColor} resolvedColor={color} username={socials?.tiktok} />
-                            </div>
-                            <div className="w-full">
-                                <TopTracksLeaderboard resolvedColor={color} />
-                            </div>
-                        </div>
-                    </section>
-                );
-            case 'spotify':
-                return (
-                    <section key="spotify" className="bg-dark-bg/5 py-8 relative z-10 w-full">
-                        <div className="w-full px-4 sm:px-6 lg:px-12 xl:px-16 2xl:px-24 mb-10">
-                            <div className="h-[1px] w-full bg-red-900/40" />
-                        </div>
+        const showInstagram = Boolean(recapAgendaItem || instagramItem);
+        const showTiktok = Boolean(recapAgendaItem || tiktokItem);
+        const hasRightSidebar = Boolean(recapAgendaItem || tiktokItem);
+
+        return (
+            <div className="pb-16">
+                {/* 1. HERO FULL-BLEED */}
+                {heroItem && (
+                    <Hero
+                        videoId={heroItem.videoId}
+                        videoUrl={heroItem.videoUrl}
+                        accentColor={heroItem.accentColor || 'red'}
+                        resolvedColor={resolveColor(heroItem.accentColor || 'red')}
+                    />
+                )}
+
+                {/* 2. À LA UNE & DERNIÈRES ACTUS (ancré directement sous le Hero) */}
+                {newsItem && (
+                    <section className="relative w-full border-b border-white/[0.06] bg-gradient-to-b from-white/[0.02] to-transparent py-10 md:py-12">
                         <div className="w-full px-4 sm:px-6 lg:px-12 xl:px-16 2xl:px-24">
-                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-stretch">
+                            <div
+                                className="grid grid-cols-1 gap-8 xl:gap-10 items-stretch"
+                                style={{
+                                    gridTemplateColumns: window.innerWidth > 1024
+                                        ? (newsItem.columns === '1fr' || !newsItem.columns ? '1.5fr 1fr' : newsItem.columns.toString().replace('_', ' '))
+                                        : '1fr'
+                                }}
+                            >
+                                <FeaturedNews
+                                    accentColor={newsItem.accentColor || 'red'}
+                                    resolvedColor={resolveColor(newsItem.accentColor || 'red')}
+                                />
+                                <RecentNews
+                                    accentColor={newsItem.accentColor2 || 'blue'}
+                                    resolvedColor={resolveColor(newsItem.accentColor2 || 'blue')}
+                                />
+                            </div>
+                        </div>
+                    </section>
+                )}
+
+                {/* 3. CORPS MAGAZINE ASYMÉTRIQUE : Flux éditorial (gauche) + Sidebar sticky Agenda & Charts (droite) */}
+                {(interviewsItem || showInstagram || showTiktok || hasRightSidebar) && (
+                    <section className="w-full px-4 sm:px-6 lg:px-12 xl:px-16 2xl:px-24 py-12 md:py-16">
+                        <div className={`grid grid-cols-1 ${hasRightSidebar ? 'lg:grid-cols-12 gap-10 xl:gap-14 items-start' : ''}`}>
+                            {/* Colonne principale : Interviews, Récaps & Social Strip */}
+                            <div className={`${hasRightSidebar ? 'lg:col-span-7 xl:col-span-8' : ''} space-y-14`}>
+                                {interviewsItem && (
+                                    <div className="grid grid-cols-1 xl:grid-cols-2 gap-10 items-start">
+                                        <InterviewWidget
+                                            accentColor={interviewsItem.accentColor || 'red'}
+                                            resolvedColor={resolveColor(interviewsItem.accentColor || 'red')}
+                                            featuredInterviews={interviewsItem.featuredInterviews}
+                                        />
+                                        <RecapWidget
+                                            accentColor="purple"
+                                            resolvedColor="var(--color-neon-purple)"
+                                        />
+                                    </div>
+                                )}
+
+                                {(showInstagram || showTiktok) && (
+                                    <div className={`${interviewsItem ? 'border-t border-white/[0.06] pt-12' : ''} grid grid-cols-1 md:grid-cols-2 gap-10 items-start`}>
+                                        {showInstagram && (
+                                            <InstagramWidget
+                                                accentColor={instagramItem?.accentColor || 'pink'}
+                                                resolvedColor={resolveColor(instagramItem?.accentColor || 'pink')}
+                                                username={socials?.instagram}
+                                            />
+                                        )}
+                                        {showTiktok && (
+                                            <TikTokWidget
+                                                accentColor={tiktokItem?.accentColor || 'cyan'}
+                                                resolvedColor={resolveColor(tiktokItem?.accentColor || 'cyan')}
+                                                username={socials?.tiktok}
+                                            />
+                                        )}
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Sidebar éditoriale sticky : Agenda + Top 10 Tracks */}
+                            {hasRightSidebar && (
+                                <aside className="lg:col-span-5 xl:col-span-4 lg:border-l lg:border-white/[0.06] lg:pl-10 space-y-12 lg:sticky lg:top-24">
+                                    {recapAgendaItem && (
+                                        <AgendaWidget
+                                            maxItems={recapAgendaItem.maxAgendaItems || 7}
+                                            accentColor={recapAgendaItem.accentColor2 || 'red'}
+                                            resolvedColor={resolveColor(recapAgendaItem.accentColor2 || 'red')}
+                                        />
+                                    )}
+                                    <div className={recapAgendaItem ? 'border-t border-white/[0.06] pt-10' : ''}>
+                                        <TopTracksLeaderboard
+                                            resolvedColor={resolveColor((recapAgendaItem || tiktokItem)?.accentColor || 'red')}
+                                        />
+                                    </div>
+                                </aside>
+                            )}
+                        </div>
+                    </section>
+                )}
+
+                {/* 4. BANDEAU PLEINE LARGEUR MUSIQUE & MIXES */}
+                {spotifyItem && (
+                    <section className="relative z-10 w-full border-y border-white/[0.06] bg-gradient-to-b from-white/[0.025] via-black/30 to-transparent py-14">
+                        <div className="w-full px-4 sm:px-6 lg:px-12 xl:px-16 2xl:px-24">
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 xl:gap-14 items-stretch">
                                 <div className="w-full">
-                                    <SpotifyWidget accentColor={accentColor} resolvedColor={color} hideTabs={true} />
+                                    <SpotifyWidget
+                                        accentColor={spotifyItem.accentColor || 'red'}
+                                        resolvedColor={resolveColor(spotifyItem.accentColor || 'red')}
+                                        hideTabs={true}
+                                    />
                                 </div>
-                                <div className="w-full">
+                                <div className="w-full lg:border-l lg:border-white/[0.06] lg:pl-10">
                                     <CommunityMixesLeaderboard />
                                 </div>
                             </div>
                         </div>
                     </section>
-                );
-            case 'wiki_widget':
-                return (
-                    <section key="wiki_widget" className="w-full px-4 sm:px-6 lg:px-12 xl:px-16 2xl:px-24 py-12">
-                        <WikiWidget resolvedColor={color} />
+                )}
+
+                {/* 5. WIKI & SCÈNE ÉLECTRO */}
+                {wikiItem && (
+                    <section className="w-full px-4 sm:px-6 lg:px-12 xl:px-16 2xl:px-24 py-14">
+                        <WikiWidget resolvedColor={resolveColor(wikiItem.accentColor || 'red')} />
                     </section>
-                );
-            default:
-                return null;
-        }
+                )}
+            </div>
+        );
     };
 
     return (
@@ -199,12 +236,7 @@ export function Home() {
             {isMobile ? (
                 <MobileHome />
             ) : (
-                <div className="space-y-4 md:space-y-8 pb-12">
-                    {layout
-                        .filter((item: any) => item.enabled)
-                        .map((item: any) => renderSection(item))
-                    }
-                </div>
+                renderEditorialDesktop()
             )}
             <AdminEditBar
                 pageName="Accueil"
