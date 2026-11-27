@@ -5311,13 +5311,12 @@ ${urls.map(u => `  <url>
         }
 
         if (path === '/api/recaps' && request.method === 'GET') {
-            const FILE_PATH = 'src/data/recaps.json';
-            const file = await fetchGitHubFile(FILE_PATH, gitConfig);
+            const recapsContent = await getKvOrGitHubList(env, 'recaps', 'src/data/recaps.json', gitConfig);
             const cdnHeaders = {
                 ...headers,
-                'Cache-Control': 'public, max-age=60, s-maxage=120, stale-while-revalidate=86400'
+                'Cache-Control': 'public, max-age=5, s-maxage=10, stale-while-revalidate=30'
             };
-            return new Response(JSON.stringify(file ? file.content : []), { status: 200, headers: cdnHeaders });
+            return new Response(JSON.stringify(recapsContent || []), { status: 200, headers: cdnHeaders });
         }
 
         if (path === '/api/agenda' && request.method === 'GET') {
@@ -5330,13 +5329,12 @@ ${urls.map(u => `  <url>
         }
 
         if (path === '/api/galerie' && request.method === 'GET') {
-            const FILE_PATH = 'src/data/galerie.json';
-            const file = await fetchGitHubFile(FILE_PATH, gitConfig);
+            const galerieContent = await getKvOrGitHubList(env, 'galerie', 'src/data/galerie.json', gitConfig);
             const cdnHeaders = {
                 ...headers,
-                'Cache-Control': 'public, max-age=60, s-maxage=120, stale-while-revalidate=86400'
+                'Cache-Control': 'public, max-age=5, s-maxage=10, stale-while-revalidate=30'
             };
-            return new Response(JSON.stringify(file ? file.content : []), { status: 200, headers: cdnHeaders });
+            return new Response(JSON.stringify(galerieContent || []), { status: 200, headers: cdnHeaders });
         }
 
         // --- API: ADMIN OAUTH & 2FA ---
@@ -7717,7 +7715,7 @@ ${urls.map(u => `  <url>
 
         // --- API: CREATE RECAP ---
         if (path === '/api/recaps/create' && request.method === 'POST') {
-            if (!TOKEN) return new Response(JSON.stringify({ error: 'Config missing' }), { status: 500, headers });
+            if (!env.DATA_KV && !TOKEN) return new Response(JSON.stringify({ error: 'Config missing' }), { status: 500, headers });
             const FILE_PATH = 'src/data/recaps.json';
 
             try {
@@ -7725,9 +7723,8 @@ ${urls.map(u => `  <url>
                 const { title, date, summary, content, image, festival, location, country, youtubeId, category, isFeatured, author, showVideo, year } = body;
                 if (!title) return new Response(JSON.stringify({ error: 'Missing title' }), { status: 400, headers });
 
-                // 1. Update recaps.json
-                const recapsFile = await fetchGitHubFile(FILE_PATH, gitConfig) || { content: [], sha: null };
-                let currentData = recapsFile.content;
+                // 1. Update recaps metadata
+                let currentData = await getKvOrGitHubList(env, 'recaps', FILE_PATH, gitConfig);
 
                 // Handle exclusive featured logic: if new is featured, others lose it
                 if (isFeatured) {
@@ -7760,15 +7757,25 @@ ${urls.map(u => `  <url>
                 };
 
                 const updatedData = [newItem, ...currentData];
-                const metaSaved = await saveGitHubFile(FILE_PATH, updatedData, `Add recap: ${title}`, recapsFile.sha, gitConfig);
+                const metaSaved = await saveKvAndSyncGitHub(env, ctx, 'recaps', FILE_PATH, updatedData, `Add recap: ${title}`, gitConfig);
                 if (!metaSaved.ok) return new Response(JSON.stringify({ error: 'Error saving metadata: ' + metaSaved.error }), { status: 500, headers });
 
                 // 2. Save Content
-                const contentFile = await fetchGitHubFile(RECAPS_CONTENT_TARGET, gitConfig);
-                if (contentFile) {
-                    const newContentItem = { id: newId, content: content };
-                    const updatedContentFile = [...contentFile.content, newContentItem];
-                    await saveGitHubFile(RECAPS_CONTENT_TARGET, updatedContentFile, `Add recap content: ${newId}`, contentFile.sha, gitConfig);
+                if (content) {
+                    if (env.DATA_KV) {
+                        await env.DATA_KV.put(`recaps_content_${newId}`, content);
+                    }
+                    if (TOKEN) {
+                        ctx.waitUntil((async () => {
+                            try {
+                                const contentFile = await fetchGitHubFile(RECAPS_CONTENT_TARGET, { ...gitConfig, bypassCache: true });
+                                if (contentFile) {
+                                    const updatedContentFile = [...contentFile.content, { id: newId, content: content }];
+                                    await saveGitHubFile(RECAPS_CONTENT_TARGET, updatedContentFile, `Add recap content: ${newId}`, contentFile.sha, gitConfig);
+                                }
+                            } catch (e) { console.warn('[GitHub Backup] Add recap content failed:', e); }
+                        })());
+                    }
                 }
 
                 if (body.sendPush) {
@@ -7919,7 +7926,7 @@ ${urls.map(u => `  <url>
 
         // --- API: UPDATE RECAPS ---
         if (path === '/api/recaps/update' && request.method === 'POST') {
-            if (!TOKEN) return new Response(JSON.stringify({ error: 'Config missing' }), { status: 500, headers });
+            if (!env.DATA_KV && !TOKEN) return new Response(JSON.stringify({ error: 'Config missing' }), { status: 500, headers });
             const FILE_PATH = 'src/data/recaps.json';
             try {
                 const body = await request.json();
@@ -7927,10 +7934,7 @@ ${urls.map(u => `  <url>
                 if (!id) return new Response(JSON.stringify({ error: 'Missing ID' }), { status: 400, headers });
 
                 // 1. Update Metadata
-                const recapsFile = await fetchGitHubFile(FILE_PATH, gitConfig);
-                if (!recapsFile) return new Response(JSON.stringify({ error: 'Error fetching' }), { status: 502, headers });
-
-                let currentData = recapsFile.content;
+                let currentData = await getKvOrGitHubList(env, 'recaps', FILE_PATH, gitConfig);
 
                 // Handle exclusive featured logic: if updated item becomes featured, others lose it
                 if (isFeatured) {
@@ -7960,29 +7964,39 @@ ${urls.map(u => `  <url>
                     author: author || existing.author || requestUsername || 'Alex'
                 };
 
-                await saveGitHubFile(FILE_PATH, currentData, `Update recap: ${title || existing.title}`, recapsFile.sha, gitConfig);
+                const metaSaved = await saveKvAndSyncGitHub(env, ctx, 'recaps', FILE_PATH, currentData, `Update recap: ${title || existing.title}`, gitConfig);
+                if (!metaSaved.ok) return new Response(JSON.stringify({ error: 'Error saving metadata: ' + metaSaved.error }), { status: 500, headers });
 
                 // 2. Update Content
                 if (content) {
-                    let contentUpdated = false;
-                    for (const filePath of RECAPS_CONTENT_FILES) {
-                        const cFile = await fetchGitHubFile(filePath, gitConfig);
-                        if (cFile) {
-                            const cIndex = cFile.content.findIndex((item: any) => String(item.id) === String(id));
-                            if (cIndex !== -1) {
-                                cFile.content[cIndex].content = content;
-                                await saveGitHubFile(filePath, cFile.content, `Update recap content: ${id}`, cFile.sha, gitConfig);
-                                contentUpdated = true;
-                                break;
-                            }
-                        }
+                    if (env.DATA_KV) {
+                        await env.DATA_KV.put(`recaps_content_${id}`, content);
                     }
-                    if (!contentUpdated) {
-                        const targetFile = await fetchGitHubFile(RECAPS_CONTENT_TARGET, gitConfig);
-                        if (targetFile) {
-                            const updatedContentFile = [...targetFile.content, { id, content }];
-                            await saveGitHubFile(RECAPS_CONTENT_TARGET, updatedContentFile, `Add missing recap content: ${id}`, targetFile.sha, gitConfig);
-                        }
+                    if (TOKEN) {
+                        ctx.waitUntil((async () => {
+                            try {
+                                let contentUpdated = false;
+                                for (const filePath of RECAPS_CONTENT_FILES) {
+                                    const cFile = await fetchGitHubFile(filePath, { ...gitConfig, bypassCache: true });
+                                    if (cFile) {
+                                        const cIndex = cFile.content.findIndex((item: any) => String(item.id) === String(id));
+                                        if (cIndex !== -1) {
+                                            cFile.content[cIndex].content = content;
+                                            await saveGitHubFile(filePath, cFile.content, `Update recap content: ${id}`, cFile.sha, gitConfig);
+                                            contentUpdated = true;
+                                            break;
+                                        }
+                                    }
+                                }
+                                if (!contentUpdated) {
+                                    const targetFile = await fetchGitHubFile(RECAPS_CONTENT_TARGET, { ...gitConfig, bypassCache: true });
+                                    if (targetFile) {
+                                        const updatedContentFile = [...targetFile.content, { id, content }];
+                                        await saveGitHubFile(RECAPS_CONTENT_TARGET, updatedContentFile, `Add missing recap content: ${id}`, targetFile.sha, gitConfig);
+                                    }
+                                }
+                            } catch (e) { console.warn('[GitHub Backup] Update recap content failed:', e); }
+                        })());
                     }
                 }
 
@@ -8471,14 +8485,14 @@ ${urls.map(u => `  <url>
 
         // --- API: CREATE OR UPDATE GALERIE ---
         if ((path === '/api/galerie/create' || path === '/api/galerie/update') && request.method === 'POST') {
-            if (!TOKEN) return new Response(JSON.stringify({ error: 'Config missing' }), { status: 500, headers });
+            if (!env.DATA_KV && !TOKEN) return new Response(JSON.stringify({ error: 'Config missing' }), { status: 500, headers });
             const FILE_PATH = 'src/data/galerie.json';
             try {
                 const body = await request.json();
                 const { id, title, date, category, cover, images, hoverMedia, author, isProFilter } = body;
                 if (!title) return new Response(JSON.stringify({ error: 'Missing title' }), { status: 400, headers });
 
-                const galerieFile = await fetchGitHubFile(FILE_PATH, gitConfig) || { content: [], sha: null };
+                const currentGalleries = await getKvOrGitHubList(env, 'galerie', FILE_PATH, gitConfig);
                 const newId = id || title.toLowerCase().replace(/[^a-z0-9]+/g, '-');
 
                 const newItem = {
@@ -8494,15 +8508,15 @@ ${urls.map(u => `  <url>
                 };
 
                 let updatedData;
-                const existingIndex = galerieFile.content.findIndex((item: any) => String(item.id) === String(newId));
+                const existingIndex = currentGalleries.findIndex((item: any) => String(item.id) === String(newId));
                 if (existingIndex !== -1) {
-                    updatedData = [...galerieFile.content];
+                    updatedData = [...currentGalleries];
                     updatedData[existingIndex] = { ...updatedData[existingIndex], ...newItem };
                 } else {
-                    updatedData = [newItem, ...galerieFile.content];
+                    updatedData = [newItem, ...currentGalleries];
                 }
 
-                const saved = await saveGitHubFile(FILE_PATH, updatedData, `Save galerie: ${title}`, galerieFile.sha, gitConfig);
+                const saved = await saveKvAndSyncGitHub(env, ctx, 'galerie', FILE_PATH, updatedData, `Save galerie: ${title}`, gitConfig);
                 if (saved.ok) {
                     return new Response(JSON.stringify({ success: true, item: newItem }), { status: 200, headers });
                 } else {
@@ -10185,11 +10199,13 @@ ${urls.map(u => `  <url>
                 } else if (path.includes('/recaps')) {
                     FILE_PATH = 'src/data/recaps.json';
                     CONTENT_FILES = RECAPS_CONTENT_FILES;
+                    kvKey = 'recaps';
                 } else if (path.includes('/agenda')) {
                     FILE_PATH = 'src/data/agenda.json';
                     kvKey = 'agenda';
                 } else if (path.includes('/galerie')) {
                     FILE_PATH = 'src/data/galerie.json';
+                    kvKey = 'galerie';
                 }
 
                 if (!FILE_PATH) return new Response(JSON.stringify({ error: 'Invalid path' }), { status: 400, headers });
@@ -10222,9 +10238,10 @@ ${urls.map(u => `  <url>
                 }
 
                 // 2. Delete Content (News/Recaps)
-                if (kvKey === 'news' && env.DATA_KV) {
+                if ((kvKey === 'news' || kvKey === 'recaps') && env.DATA_KV) {
+                    const prefix = kvKey === 'news' ? 'news_content_' : 'recaps_content_';
                     for (const delId of idsToDelete) {
-                        await env.DATA_KV.delete(`news_content_${delId}`);
+                        await env.DATA_KV.delete(`${prefix}${delId}`);
                     }
                 }
                 if (CONTENT_FILES.length > 0 && TOKEN) {
@@ -10239,7 +10256,7 @@ ${urls.map(u => `  <url>
                             }
                         }
                     };
-                    if (kvKey === 'news') {
+                    if (kvKey === 'news' || kvKey === 'recaps') {
                         ctx.waitUntil(deleteContentGitHub());
                     } else {
                         await deleteContentGitHub();
@@ -10338,18 +10355,29 @@ ${urls.map(u => `  <url>
 
         // --- API: GET RECAPS CONTENT ---
         if (path === '/api/recaps/content' && request.method === 'GET') {
-            if (!TOKEN) return new Response(JSON.stringify({ error: 'Config missing' }), { status: 500, headers });
+            if (!env.DATA_KV && !TOKEN) return new Response(JSON.stringify({ error: 'Config missing' }), { status: 500, headers });
             const id = parseInt(url.searchParams.get('id') || '0');
             if (!id) return new Response(JSON.stringify({ error: 'Missing id' }), { status: 400, headers });
             const cdnHeaders = {
                 ...headers,
-                'Cache-Control': 'public, max-age=300, s-maxage=600, stale-while-revalidate=86400'
+                'Cache-Control': 'public, max-age=5, s-maxage=10, stale-while-revalidate=60'
             };
+            if (env.DATA_KV) {
+                const kvContent = await env.DATA_KV.get(`recaps_content_${id}`);
+                if (kvContent !== null) {
+                    return new Response(JSON.stringify({ content: kvContent }), { status: 200, headers: cdnHeaders });
+                }
+            }
             for (const filePath of RECAPS_CONTENT_FILES) {
                 const cFile = await fetchGitHubFile(filePath, gitConfig);
                 if (cFile && Array.isArray(cFile.content)) {
                     const item = cFile.content.find(i => i.id === id);
-                    if (item) return new Response(JSON.stringify({ content: item.content }), { status: 200, headers: cdnHeaders });
+                    if (item) {
+                        if (env.DATA_KV && item.content) {
+                            await env.DATA_KV.put(`recaps_content_${id}`, item.content);
+                        }
+                        return new Response(JSON.stringify({ content: item.content }), { status: 200, headers: cdnHeaders });
+                    }
                 }
             }
             return new Response(JSON.stringify({ content: '' }), { status: 200, headers: cdnHeaders });
@@ -10409,9 +10437,8 @@ ${urls.map(u => `  <url>
                 if (!submission) return new Response(JSON.stringify({ error: 'Submission not found' }), { status: 404, headers });
 
                 if (action === 'approve') {
-                    // Add to galerie.json
-                    const galFile = await fetchGitHubFile(GALERIE_PATH, gitConfig) || { content: [], sha: null };
-                    const galleries = Array.isArray(galFile.content) ? galFile.content : [];
+                    // Add to galerie (DATA_KV + GitHub backup)
+                    const galleries = await getKvOrGitHubList(env, 'galerie', GALERIE_PATH, gitConfig);
 
                     const year = (submission as any).year || new Date().getFullYear().toString();
                     const galleryTitle = `COMMUNAUTÉ @ ${submission.festivalName.toUpperCase()} ${year}`;
@@ -10434,7 +10461,7 @@ ${urls.map(u => `  <url>
                         }
                     }
 
-                    const savedGal = await saveGitHubFile(GALERIE_PATH, galleries, `Approve photo for ${galleryTitle}`, galFile.sha, gitConfig);
+                    const savedGal = await saveKvAndSyncGitHub(env, ctx, 'galerie', GALERIE_PATH, galleries, `Approve photo for ${galleryTitle}`, gitConfig);
                     if (!savedGal.ok) return new Response(JSON.stringify({ error: 'Failed to update gallery: ' + savedGal.error }), { status: 500, headers });
 
                     // Save anecdote to KV
