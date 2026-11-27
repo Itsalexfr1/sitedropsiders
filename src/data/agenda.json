@@ -609,5 +609,24 @@
     "isSoldOut": false,
     "isLiveDropsiders": false,
     "additionalDates": []
+  },
+  {
+    "id": 1161,
+    "title": "Grand Theft Auto VI: A Night With Justic",
+    "date": "2026-12-03",
+    "startDate": "2026-12-03",
+    "endDate": "2026-12-03",
+    "venue": "Mia Mao",
+    "location": "PARIS",
+    "country": "FRANCE",
+    "type": "Events",
+    "image": "/uploads/uploads/c0c85d87f158a603-1440x1080_artwork_release_vf_l.jpg",
+    "url": "https://miamao.fr/show/grand-theft-auto-vi-a-night-with-justice/",
+    "genre": "House",
+    "month": "DÉCEMBRE",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false,
+    "additionalDates": []
   }
 ]
