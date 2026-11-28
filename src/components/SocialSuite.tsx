@@ -3448,18 +3448,16 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             ? rawList.split(/\r?\n/)
             : rawList.split(/\)\s{2,}/).map((s, idx, arr) => (idx < arr.length - 1 ? s + ')' : s));
 
-        const lines = rawEntries
+        const entries = rawEntries
             .map(l => l
                 .replace(/^\s*(?:#?\d{1,2}\s*[.):\-–]\s*)/, '')
                 // Retire les annotations de streams/écoutes type "(~99,3 millions d'écoutes...)"
                 .replace(/\(\s*~?[\d,.\s]+(?:millions?|milliards?|m|k)?\s*(?:d['’])?(?:écoutes|ecoutes|streams|vues)[^)]*\)/gi, '')
-                .replace(/[—–]/g, ' ')
-                .replace(/\s{2,}/g, ' ')
                 .trim()
             )
             .filter(Boolean)
             .slice(0, 10);
-        if (lines.length === 0) return;
+        if (entries.length === 0) return;
 
         setIsAutoFillingTop10(true);
         setTop10ActiveRank(0);
@@ -3473,29 +3471,131 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         setTop10Title('');
         top10TitleRef.current = '';
 
-        try {
-            const results = await Promise.all(
-                lines.map(async (line) => {
-                    try {
-                        const found = await searchBeatportSnippet(line, 'beatport');
-                        return { line, found };
-                    } catch {
-                        return { line, found: null };
+        const normalizeStr = (s: string) =>
+            (s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+
+        const searchFastForLine = async (rawLine: string, bpToken: string | null) => {
+            // Séparer Artiste / Titre si séparateur "—" ou " - " présent
+            const parts = rawLine.split(/\s*[—–]\s*|\s+-\s+/);
+            const fallbackArtist = parts.length >= 2 ? parts[0].trim() : '';
+            const fallbackTitle = parts.length >= 2 ? parts.slice(1).join(' - ').trim() : rawLine;
+
+            // Nettoyer la requête pour Beatport (retirer feat., ponctuation superflue)
+            const cleanForQuery = rawLine
+                .replace(/\(\s*feat\.?[^)]*\)/gi, ' ')
+                .replace(/\[\s*feat\.?[^\]]*\]/gi, ' ')
+                .replace(/[—–&]/g, ' ')
+                .replace(/\s{2,}/g, ' ')
+                .trim();
+
+            const queryTokens = normalizeStr(cleanForQuery)
+                .split(/[^a-z0-9']+/)
+                .filter(w => w.length >= 2);
+
+            const scoreTrack = (title: string, artist: string) => {
+                const tNorm = normalizeStr(title);
+                const aNorm = normalizeStr(artist);
+                let s = 0;
+                for (const tok of queryTokens) {
+                    if (tNorm.includes(tok)) s += 55;
+                    if (aNorm.includes(tok)) s += 70;
+                }
+                return s;
+            };
+
+            if (bpToken) {
+                try {
+                    const searchQueries = [cleanForQuery];
+                    if (fallbackTitle && fallbackTitle !== cleanForQuery) {
+                        searchQueries.push(fallbackTitle.replace(/\(\s*feat\.?[^)]*\)/gi, ' ').trim());
                     }
-                })
-            );
+                    let candidates: any[] = [];
+                    for (const sq of searchQueries) {
+                        const res = await fetch(`https://api.beatport.com/v4/catalog/search/?q=${encodeURIComponent(sq)}&type=tracks&per_page=25`, {
+                            headers: { Authorization: `Bearer ${bpToken}`, Accept: 'application/json' }
+                        });
+                        if (res.ok) {
+                            const data: any = await res.json();
+                            if (Array.isArray(data?.tracks) && data.tracks.length > 0) {
+                                candidates = candidates.concat(data.tracks);
+                            }
+                        }
+                    }
+                    if (candidates.length > 0) {
+                        let best: any = null;
+                        let bestScore = -1;
+                        for (const t of candidates) {
+                            const tTitle = t.name || '';
+                            const tArtist = Array.isArray(t.artists) ? t.artists.map((a: any) => a.name).join(', ') : '';
+                            let sc = scoreTrack(tTitle, tArtist);
+                            if (t.sample_url) sc += 25;
+                            if (t.release?.image?.uri || t.image?.uri) sc += 15;
+                            if (sc > bestScore) {
+                                bestScore = sc;
+                                best = t;
+                            }
+                        }
+                        if (best && bestScore >= 60) {
+                            const rawImg = best.release?.image?.uri || best.image?.uri || '';
+                            const cUrl = rawImg ? rawImg.replace('{w}x{h}', '1400x1400').replace(/500x500/i, '1400x1400') : '';
+                            return {
+                                title: cleanTop10TrackTitle(best.name || fallbackTitle, best.mix_name),
+                                artist: Array.isArray(best.artists) ? best.artists.map((a: any) => a.name).join(', ') : fallbackArtist,
+                                coverUrl: cUrl,
+                                audioUrl: best.sample_url || ''
+                            };
+                        }
+                    }
+                } catch (_) {}
+            }
+
+            // Fallback iTunes si Beatport ne trouve pas
+            try {
+                const itRes = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(cleanForQuery)}&entity=song&limit=5`);
+                if (itRes.ok) {
+                    const itData: any = await itRes.json();
+                    const first = (itData?.results || []).find((x: any) => x.previewUrl) || itData?.results?.[0];
+                    if (first) {
+                        const cUrl = first.artworkUrl100 ? first.artworkUrl100.replace('100x100bb', '1000x1000bb') : '';
+                        return {
+                            title: first.trackName || fallbackTitle,
+                            artist: first.artistName || fallbackArtist,
+                            coverUrl: cUrl,
+                            audioUrl: first.previewUrl || ''
+                        };
+                    }
+                }
+            } catch (_) {}
+
+            return {
+                title: fallbackTitle,
+                artist: fallbackArtist,
+                coverUrl: '',
+                audioUrl: ''
+            };
+        };
+
+        try {
+            const bpToken = await getBeatportToken();
+            // Traitement par lots de 5 pour ne jamais saturer la file de connexions du navigateur
+            const results: Array<{ title: string; artist: string; coverUrl: string; audioUrl: string }> = [];
+            for (let b = 0; b < entries.length; b += 5) {
+                const batch = entries.slice(b, b + 5);
+                const batchRes = await Promise.all(batch.map(line => searchFastForLine(line, bpToken)));
+                results.push(...batchRes);
+            }
 
             const count = results.length;
             const mapped: Top10TrackItem[] = [];
             for (let i = 0; i < count; i++) {
                 const rank = count - i;
-                const { line, found } = results[count - 1 - i]; // Inversion pour compte à rebours 10 -> 1
-                const cUrl = found?.coverUrl || '';
-                const aUrl = found?.audioUrl || '';
+                const found = results[count - 1 - i]; // Inversion pour compte à rebours 10 -> 1
+                const cUrl = found.coverUrl || '';
+                const aUrl = found.audioUrl || '';
                 mapped.push({
                     rank,
-                    title: cleanTop10TrackTitle(found?.title || line).toUpperCase(),
-                    artist: (found?.artist || '').toUpperCase(),
+                    title: (found.title || `TRACK #${rank}`).toUpperCase(),
+                    artist: (found.artist || '').toUpperCase(),
                     cover: cUrl,
                     audioUrl: aUrl,
                     sourceUrl: aUrl,
