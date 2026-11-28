@@ -26202,6 +26202,116 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         />
                     </div>
 
+                    {/* Titre Intro (Slide 1) */}
+                    <div className="space-y-1">
+                        <label className="text-[8.5px] font-black text-gray-400 uppercase tracking-wider">
+                            Titre de l&apos;Intro (Slide 1)
+                        </label>
+                        <input
+                            ref={top10IntroTitleInputRef}
+                            type="text"
+                            value={top10IntroTitle}
+                            onChange={e => {
+                                const val = e.target.value.toUpperCase();
+                                setTop10IntroTitle(val);
+                                top10IntroTitleRef.current = val;
+                                generateImage();
+                            }}
+                            placeholder="TOP 10 DES TRACKS LES PLUS TÉLÉCHARGÉES SUR BEATPORT"
+                            className="w-full bg-white/5 border border-white/10 rounded-xl p-2.5 text-white font-black uppercase text-[11px] outline-none"
+                        />
+                    </div>
+
+                    {/* CHOIX DES MOTS EN COULEUR ACCENT DYNAMIQUE POUR L'INTRO */}
+                    {(() => {
+                        const currentTitle = top10IntroTitle || '';
+                        const rawWords = currentTitle ? currentTitle.split(/\s+/).filter(Boolean) : [];
+                        if (rawWords.length === 0) return null;
+                        return (
+                            <div className="space-y-1.5 pt-1">
+                                <div className="flex items-center justify-between">
+                                    <span className="text-[9px] font-black text-gray-400 uppercase tracking-wider flex items-center gap-1.5">
+                                        <span
+                                            className="w-2 h-2 rounded-full inline-block animate-pulse"
+                                            style={{ backgroundColor: top10CurrentAccentHex, boxShadow: `0 0 8px ${top10CurrentAccentHex}` }}
+                                        />
+                                        Clique pour illuminer un mot {top10ColorLabel} :
+                                    </span>
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            const el = top10IntroTitleInputRef.current;
+                                            if (!el) return;
+                                            const start = el.selectionStart;
+                                            const end = el.selectionEnd;
+                                            if (start == null || end == null || start === end) return;
+                                            const sel = currentTitle.substring(start, end);
+                                            const rep = (sel.startsWith('*') && sel.endsWith('*') && sel.length >= 2) ? sel.slice(1, -1) : `*${sel.trim()}*`;
+                                            const updated = currentTitle.substring(0, start) + rep + currentTitle.substring(end);
+                                            setTop10IntroTitle(updated.toUpperCase());
+                                            top10IntroTitleRef.current = updated.toUpperCase();
+                                            setTimeout(() => generateImage(), 30);
+                                        }}
+                                        className="text-[9px] font-bold text-gray-400 hover:text-white transition-colors underline flex items-center gap-1"
+                                        title="Sélectionne du texte dans le champ ci-dessus puis clique ici"
+                                    >
+                                        Colorer sélection
+                                    </button>
+                                </div>
+                                <div className="flex flex-wrap gap-1.5 p-2 bg-black/40 border border-white/10 rounded-xl max-h-28 overflow-y-auto">
+                                    {rawWords.map((word, idx) => {
+                                        const isHighlighted = word.includes('*') || (!currentTitle.includes('*') && (word === 'TOP' || word === '10' || word.startsWith('STREAM') || word.startsWith('JOU') || word.startsWith('TÉLÉCHARG') || word.startsWith('TELECHARG') || word.startsWith('BEATPORT')));
+                                        const cleanWord = word.replace(/\*/g, '');
+                                        return (
+                                            <button
+                                                key={idx}
+                                                type="button"
+                                                onClick={() => {
+                                                    let baseTitle = currentTitle;
+                                                    if (!baseTitle.includes('*')) {
+                                                        baseTitle = baseTitle.replace(/\b(TOP\s*10|TOP|10|STREAM\S*|JOU\S*|T[EÉ]L[EÉ]CHARG\S*|BEATPORT\S*)\b/gi, '*$1*');
+                                                    }
+                                                    const parts = baseTitle.split(/(\s+)/);
+                                                    let curIdx = 0;
+                                                    const res = parts.map(p => {
+                                                        if (/^\s+$/.test(p) || !p) return p;
+                                                        if (curIdx === idx) {
+                                                            curIdx++;
+                                                            if (p.includes('*')) {
+                                                                return p.replace(/\*/g, '');
+                                                            } else {
+                                                                return `*${p}*`;
+                                                            }
+                                                        }
+                                                        curIdx++;
+                                                        return p;
+                                                    });
+                                                    const updated = res.join('');
+                                                    setTop10IntroTitle(updated.toUpperCase());
+                                                    top10IntroTitleRef.current = updated.toUpperCase();
+                                                    setTimeout(() => generateImage(), 30);
+                                                }}
+                                                className={`px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all border ${isHighlighted
+                                                    ? 'shadow-md'
+                                                    : 'bg-white/5 border-white/10 text-gray-400 hover:text-white hover:bg-white/10 hover:border-white/20'
+                                                    }`}
+                                                style={isHighlighted ? {
+                                                    backgroundColor: `rgba(${top10CurrentAccentRgb}, 0.25)`,
+                                                    borderColor: top10CurrentAccentHex,
+                                                    color: top10CurrentAccentHex,
+                                                    boxShadow: `0 0 10px rgba(${top10CurrentAccentRgb}, 0.45)`,
+                                                } : {}}
+                                                title={isHighlighted ? "Cliquer pour repasser en blanc" : `Cliquer pour illuminer ${top10ColorLabel}`}
+                                            >
+                                                {cleanWord}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        );
+                    })()}
+
                     <div className="space-y-1">
                         <label className="text-[8.5px] font-black text-gray-400 uppercase tracking-wider">
                             Titre des Tracks (Slides #10 à #1)
@@ -26929,120 +27039,6 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 {isTestingIntro ? 'Lecture 3.5s...' : '▶ Tester l\'intro (3.5s)'}
                             </button>
                         </div>
-
-                        {/* Titre Intro */}
-                        <div className="space-y-1">
-                            <label className="text-[8.5px] font-black text-gray-300 uppercase tracking-wider">
-                                Titre de l'Intro
-                            </label>
-                            <input
-                                ref={top10IntroTitleInputRef}
-                                type="text"
-                                value={top10IntroTitle}
-                                onChange={e => {
-                                    setTop10IntroTitle(e.target.value.toUpperCase());
-                                    top10IntroTitleRef.current = e.target.value.toUpperCase();
-                                    generateImage();
-                                }}
-                                placeholder="TOP 10 DES TRACKS LES PLUS TÉLÉCHARGÉES SUR BEATPORT"
-                                className="w-full bg-black/60 border border-white/10 rounded-xl p-2.5 text-white font-black uppercase text-[11px] outline-none"
-                            />
-                        </div>
-
-                        {/* CHOIX DES MOTS EN COULEUR ACCENT DYNAMIQUE */}
-                        {(() => {
-                            const currentTitle = top10IntroTitle || '';
-                            const rawWords = currentTitle ? currentTitle.split(/\s+/).filter(Boolean) : [];
-                            if (rawWords.length === 0) return null;
-                            const isStyleMode = top10GenMode === 'style';
-                            const isLabelMode = top10GenMode === 'label';
-                            const accentHex = isLabelMode ? '#B86221' : (isStyleMode ? '#FFB800' : '#00F0FF');
-                            const accentRgb = isLabelMode ? '184, 98, 33' : (isStyleMode ? '255, 184, 0' : '0, 240, 255');
-                            const modeName = isStyleMode ? 'en or festival' : (isLabelMode ? 'en bronze cuivré' : 'en bleu néon');
-                            return (
-                                <div className="space-y-1.5 pt-1">
-                                    <div className="flex items-center justify-between">
-                                        <span className="text-[9px] font-black text-gray-400 uppercase tracking-wider flex items-center gap-1.5">
-                                            <span
-                                                className="w-2 h-2 rounded-full inline-block animate-pulse"
-                                                style={{ backgroundColor: accentHex, boxShadow: `0 0 8px ${accentHex}` }}
-                                            />
-                                            Clique pour illuminer un mot {modeName} :
-                                        </span>
-                                        <button
-                                            type="button"
-                                            onClick={() => {
-                                                const el = top10IntroTitleInputRef.current;
-                                                if (!el) return;
-                                                const start = el.selectionStart;
-                                                const end = el.selectionEnd;
-                                                if (start == null || end == null || start === end) return;
-                                                const sel = currentTitle.substring(start, end);
-                                                const rep = (sel.startsWith('*') && sel.endsWith('*') && sel.length >= 2) ? sel.slice(1, -1) : `*${sel.trim()}*`;
-                                                const updated = currentTitle.substring(0, start) + rep + currentTitle.substring(end);
-                                                setTop10IntroTitle(updated.toUpperCase());
-                                                top10IntroTitleRef.current = updated.toUpperCase();
-                                                setTimeout(() => generateImage(), 30);
-                                            }}
-                                            className="text-[9px] font-bold text-gray-400 hover:text-white transition-colors underline flex items-center gap-1"
-                                            title="Sélectionne du texte dans le champ ci-dessus puis clique ici"
-                                        >
-                                            Colorer sélection
-                                        </button>
-                                    </div>
-                                    <div className="flex flex-wrap gap-1.5 p-2 bg-black/40 border border-white/10 rounded-xl max-h-28 overflow-y-auto">
-                                        {rawWords.map((word, idx) => {
-                                            const isHighlighted = word.includes('*') || (!currentTitle.includes('*') && (word === 'TOP' || word === '10' || word.startsWith('STREAM') || word.startsWith('JOU') || word.startsWith('TÉLÉCHARG') || word.startsWith('TELECHARG') || word.startsWith('BEATPORT')));
-                                            const cleanWord = word.replace(/\*/g, '');
-                                            return (
-                                                <button
-                                                    key={idx}
-                                                    type="button"
-                                                    onClick={() => {
-                                                        let baseTitle = currentTitle;
-                                                        if (!baseTitle.includes('*')) {
-                                                            baseTitle = baseTitle.replace(/\b(TOP\s*10|TOP|10|STREAM\S*|JOU\S*|T[EÉ]L[EÉ]CHARG\S*|BEATPORT\S*)\b/gi, '*$1*');
-                                                        }
-                                                        const parts = baseTitle.split(/(\s+)/);
-                                                        let curIdx = 0;
-                                                        const res = parts.map(p => {
-                                                            if (/^\s+$/.test(p) || !p) return p;
-                                                            if (curIdx === idx) {
-                                                                curIdx++;
-                                                                if (p.includes('*')) {
-                                                                    return p.replace(/\*/g, '');
-                                                                } else {
-                                                                    return `*${p}*`;
-                                                                }
-                                                            }
-                                                            curIdx++;
-                                                            return p;
-                                                        });
-                                                        const updated = res.join('');
-                                                        setTop10IntroTitle(updated.toUpperCase());
-                                                        top10IntroTitleRef.current = updated.toUpperCase();
-                                                        setTimeout(() => generateImage(), 30);
-                                                    }}
-                                                    className={`px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all border ${isHighlighted
-                                                        ? 'shadow-md'
-                                                        : 'bg-white/5 border-white/10 text-gray-400 hover:text-white hover:bg-white/10 hover:border-white/20'
-                                                        }`}
-                                                    style={isHighlighted ? {
-                                                        backgroundColor: `rgba(${accentRgb}, 0.25)`,
-                                                        borderColor: accentHex,
-                                                        color: accentHex,
-                                                        boxShadow: `0 0 10px rgba(${accentRgb}, 0.45)`,
-                                                    } : {}}
-                                                    title={isHighlighted ? "Cliquer pour repasser en blanc" : `Cliquer pour illuminer ${modeName}`}
-                                                >
-                                                    {cleanWord}
-                                                </button>
-                                            );
-                                        })}
-                                    </div>
-                                </div>
-                            );
-                        })()}
 
                         {/* Nom de l'Artiste — affiché uniquement en mode Label ou Artiste */}
                         {top10GenMode !== 'style' && (
