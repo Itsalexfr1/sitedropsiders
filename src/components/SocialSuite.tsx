@@ -2629,6 +2629,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const [top10UrlSearch, setTop10UrlSearch] = useState<string>('');
     const top10UrlSearchRef = useRef<string>(top10UrlSearch);
     top10UrlSearchRef.current = top10UrlSearch;
+    const [top10EditorTab, setTop10EditorTab] = useState<'theme' | 'tracks' | 'advanced'>('theme');
     const [top10RawTextImport, setTop10RawTextImport] = useState<string>('');
     const [showRawTextImportModal, setShowRawTextImportModal] = useState<boolean>(false);
 
@@ -26240,309 +26241,108 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         const podiumColor = activeTrack.rank === 1 ? 'text-amber-400' : activeTrack.rank === 2 ? 'text-gray-300' : activeTrack.rank === 3 ? 'text-amber-600' : '';
         const podiumBorder = activeTrack.rank === 1 ? 'border-amber-400/60 shadow-[0_0_15px_rgba(255,215,0,0.3)]' : activeTrack.rank === 2 ? 'border-gray-300/60' : activeTrack.rank === 3 ? 'border-amber-600/60' : '';
 
+
+        const handleTextUpperChange = (
+            el: HTMLInputElement | HTMLTextAreaElement,
+            setter: (val: string) => void,
+            refObj?: React.MutableRefObject<string>
+        ) => {
+            const start = el.selectionStart;
+            const end = el.selectionEnd;
+            const val = el.value.toUpperCase();
+            setter(val);
+            if (refObj) refObj.current = val;
+            generateImage();
+            requestAnimationFrame(() => {
+                try {
+                    if (el && typeof el.setSelectionRange === 'function') {
+                        el.setSelectionRange(start, end);
+                    }
+                } catch (_) {}
+            });
+        };
+
+        const handleTrackFieldUpperChange = (
+            el: HTMLInputElement,
+            rank: number,
+            field: 'title' | 'artist'
+        ) => {
+            const start = el.selectionStart;
+            const end = el.selectionEnd;
+            const val = el.value.toUpperCase();
+            updateTop10Track(rank, { [field]: val });
+            requestAnimationFrame(() => {
+                try {
+                    if (el && typeof el.setSelectionRange === 'function') {
+                        el.setSelectionRange(start, end);
+                    }
+                } catch (_) {}
+            });
+        };
+
         return (
             <div className="space-y-4">
-                {/* 1. PARAMÈTRES GLOBAUX DU TOP 10 */}
-                <div className="p-3.5 bg-black/40 border border-white/10 rounded-2xl shadow-lg space-y-3">
-                    <div className="flex items-center justify-between">
-                        <span className="text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5" style={{ color: top10CurrentAccentHex }}>
-                            🔥 Configuration Générale Top 10
-                        </span>
-                        <div className="flex items-center gap-2">
-                            <button
-                                type="button"
-                                onClick={() => {
-                                    setTop10Tracks(DEFAULT_TOP_10_TRACKS);
-                                    top10TracksRef.current = DEFAULT_TOP_10_TRACKS;
-                                    try { localStorage.setItem('dropsiders_top10_tracks_v7', JSON.stringify(DEFAULT_TOP_10_TRACKS)); } catch (_) { }
-                                    setTimeout(() => generateImage(), 50);
-                                }}
-                                className="px-2 py-1 bg-red-500/10 hover:bg-red-500/25 border border-red-500/30 text-red-400 hover:text-white rounded-lg text-[8.5px] font-black uppercase transition-all"
-                                title="Réinitialiser toutes les 10 pistes à vide"
-                            >
-                                ✕ TOUT EFFACER (VIDER LE TOP 10)
-                            </button>
-                            <span className="text-[9px] font-bold font-mono" style={{ color: top10CurrentAccentHex }}>
-                                1 min pile (60s)
-                            </span>
-                        </div>
-                    </div>
 
-                    <div className="space-y-1">
-                        <label className="text-[8.5px] font-black text-gray-400 uppercase tracking-wider">
-                            Badge Capsule Haut Gauche
-                        </label>
-                        <input
-                            type="text"
-                            value={top10Badge}
-                            onChange={e => {
-                                const val = e.target.value.toUpperCase();
-                                setTop10Badge(val);
-                                top10BadgeRef.current = val;
-                                generateImage();
-                            }}
-                            placeholder="TOP 10 TRACKS"
-                            className="w-full bg-white/5 border border-white/10 rounded-xl p-2.5 text-white font-black uppercase text-[11px] outline-none"
-                            style={{ borderColor: undefined }}
-                        />
-                    </div>
-
-                    {/* Titre Intro (Slide 1) */}
-                    <div className="space-y-1">
-                        <div className="flex items-center justify-between">
-                            <label className="text-[8.5px] font-black text-gray-400 uppercase tracking-wider">
-                                Titre de l&apos;Intro (Slide 1)
-                            </label>
-                            <span className="text-[7.5px] font-bold text-gray-500 uppercase">Entrée = à la ligne</span>
-                        </div>
-                        <textarea
-                            ref={top10IntroTitleInputRef}
-                            rows={2}
-                            value={top10IntroTitle}
-                            onChange={e => {
-                                const val = e.target.value.toUpperCase();
-                                setTop10IntroTitle(val);
-                                top10IntroTitleRef.current = val;
-                                generateImage();
-                            }}
-                            placeholder="TOP 10 DES TRACKS LES PLUS TÉLÉCHARGÉES SUR BEATPORT"
-                            className="w-full bg-white/5 border border-white/10 rounded-xl p-2.5 text-white font-black uppercase text-[11px] outline-none resize-y leading-snug"
-                        />
-                    </div>
-
-                    {/* CHOIX DES MOTS EN COULEUR ACCENT DYNAMIQUE POUR L'INTRO */}
-                    {(() => {
-                        const currentTitle = top10IntroTitle || '';
-                        const rawWords = currentTitle ? currentTitle.split(/\s+/).filter(Boolean) : [];
-                        if (rawWords.length === 0) return null;
-                        return (
-                            <div className="space-y-1.5 pt-1">
-                                <div className="flex items-center justify-between">
-                                    <span className="text-[9px] font-black text-gray-400 uppercase tracking-wider flex items-center gap-1.5">
-                                        <span
-                                            className="w-2 h-2 rounded-full inline-block animate-pulse"
-                                            style={{ backgroundColor: top10CurrentAccentHex, boxShadow: `0 0 8px ${top10CurrentAccentHex}` }}
-                                        />
-                                        Clique pour illuminer un mot {top10ColorLabel} :
-                                    </span>
-                                    <button
-                                        type="button"
-                                        onClick={() => {
-                                            const el = top10IntroTitleInputRef.current;
-                                            if (!el) return;
-                                            const start = el.selectionStart;
-                                            const end = el.selectionEnd;
-                                            if (start == null || end == null || start === end) return;
-                                            const sel = currentTitle.substring(start, end);
-                                            const rep = (sel.startsWith('*') && sel.endsWith('*') && sel.length >= 2) ? sel.slice(1, -1) : `*${sel.trim()}*`;
-                                            const updated = currentTitle.substring(0, start) + rep + currentTitle.substring(end);
-                                            setTop10IntroTitle(updated.toUpperCase());
-                                            top10IntroTitleRef.current = updated.toUpperCase();
-                                            setTimeout(() => generateImage(), 30);
-                                        }}
-                                        className="text-[9px] font-bold text-gray-400 hover:text-white transition-colors underline flex items-center gap-1"
-                                        title="Sélectionne du texte dans le champ ci-dessus puis clique ici"
-                                    >
-                                        Colorer sélection
-                                    </button>
-                                </div>
-                                <div className="flex flex-wrap gap-1.5 p-2 bg-black/40 border border-white/10 rounded-xl max-h-28 overflow-y-auto">
-                                    {rawWords.map((word, idx) => {
-                                        const isHighlighted = word.includes('*') || (!currentTitle.includes('*') && (word === 'TOP' || word === '10' || word.startsWith('STREAM') || word.startsWith('JOU') || word.startsWith('TÉLÉCHARG') || word.startsWith('TELECHARG') || word.startsWith('BEATPORT')));
-                                        const cleanWord = word.replace(/\*/g, '');
-                                        return (
-                                            <button
-                                                key={idx}
-                                                type="button"
-                                                onClick={() => {
-                                                    let baseTitle = currentTitle;
-                                                    if (!baseTitle.includes('*')) {
-                                                        baseTitle = baseTitle.replace(/\b(TOP\s*10|TOP|10|STREAM\S*|JOU\S*|T[EÉ]L[EÉ]CHARG\S*|BEATPORT\S*)\b/gi, '*$1*');
-                                                    }
-                                                    const parts = baseTitle.split(/(\s+)/);
-                                                    let curIdx = 0;
-                                                    const res = parts.map(p => {
-                                                        if (/^\s+$/.test(p) || !p) return p;
-                                                        if (curIdx === idx) {
-                                                            curIdx++;
-                                                            if (p.includes('*')) {
-                                                                return p.replace(/\*/g, '');
-                                                            } else {
-                                                                return `*${p}*`;
-                                                            }
-                                                        }
-                                                        curIdx++;
-                                                        return p;
-                                                    });
-                                                    const updated = res.join('');
-                                                    setTop10IntroTitle(updated.toUpperCase());
-                                                    top10IntroTitleRef.current = updated.toUpperCase();
-                                                    setTimeout(() => generateImage(), 30);
-                                                }}
-                                                className={`px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all border ${isHighlighted
-                                                    ? 'shadow-md'
-                                                    : 'bg-white/5 border-white/10 text-gray-400 hover:text-white hover:bg-white/10 hover:border-white/20'
-                                                    }`}
-                                                style={isHighlighted ? {
-                                                    backgroundColor: `rgba(${top10CurrentAccentRgb}, 0.25)`,
-                                                    borderColor: top10CurrentAccentHex,
-                                                    color: top10CurrentAccentHex,
-                                                    boxShadow: `0 0 10px rgba(${top10CurrentAccentRgb}, 0.45)`,
-                                                } : {}}
-                                                title={isHighlighted ? "Cliquer pour repasser en blanc" : `Cliquer pour illuminer ${top10ColorLabel}`}
-                                            >
-                                                {cleanWord}
-                                            </button>
-                                        );
-                                    })}
-                                </div>
-                            </div>
-                        );
-                    })()}
-
-                    {/* Titre des Tracks (Slides #10 à #1) — masqué en mode Autre car fait doublon avec la capsule */}
-                    {!isOtherMode && (
-                        <>
-                            <div className="space-y-1">
-                                <label className="text-[8.5px] font-black text-gray-400 uppercase tracking-wider">
-                                    Titre des Tracks (Slides #10 à #1)
-                                </label>
-                                <input
-                                    ref={top10TracksTitleInputRef}
-                                    type="text"
-                                    value={top10Title}
-                                    onChange={e => {
-                                        const val = e.target.value.toUpperCase();
-                                        setTop10Title(val);
-                                        top10TitleRef.current = val;
-                                        generateImage();
-                                    }}
-                                    placeholder="ex: TOP 10 TRACKS"
-                                    className="w-full bg-white/5 border border-white/10 rounded-xl p-2.5 text-white font-black uppercase text-[11px] outline-none"
-                                />
-                            </div>
-
-                            {/* CHOIX DES MOTS EN COULEUR ACCENT POUR LES TRACKS */}
-                            {(() => {
-                                const currentTrackTitle = top10Title || '';
-                                const trackWords = currentTrackTitle ? currentTrackTitle.split(/\s+/).filter(Boolean) : [];
-                                if (trackWords.length === 0) return null;
-                                return (
-                                    <div className="space-y-1.5 pt-1">
-                                        <div className="flex items-center justify-between">
-                                            <span className="text-[9px] font-black text-gray-400 uppercase tracking-wider flex items-center gap-1.5">
-                                                <span
-                                                    className="w-2 h-2 rounded-full inline-block animate-pulse"
-                                                    style={{ backgroundColor: top10CurrentAccentHex, boxShadow: `0 0 8px ${top10CurrentAccentHex}` }}
-                                                />
-                                                Clique pour illuminer un mot {top10ColorLabel} :
-                                            </span>
-                                            <button
-                                                type="button"
-                                                onClick={() => {
-                                                    const el = top10TracksTitleInputRef.current;
-                                                    if (!el) return;
-                                                    const start = el.selectionStart;
-                                                    const end = el.selectionEnd;
-                                                    if (start == null || end == null || start === end) return;
-                                                    const sel = currentTrackTitle.substring(start, end);
-                                                    const rep = (sel.startsWith('*') && sel.endsWith('*') && sel.length >= 2) ? sel.slice(1, -1) : `*${sel.trim()}*`;
-                                                    const updated = currentTrackTitle.substring(0, start) + rep + currentTrackTitle.substring(end);
-                                                    setTop10Title(updated.toUpperCase());
-                                                    top10TitleRef.current = updated.toUpperCase();
-                                                    setTimeout(() => generateImage(), 30);
-                                                }}
-                                                className="text-[9px] font-bold text-gray-400 hover:text-white transition-colors underline flex items-center gap-1"
-                                                title="Sélectionne du texte dans le champ ci-dessus puis clique ici"
-                                            >
-                                                Colorer sélection
-                                            </button>
-                                        </div>
-                                        <div className="flex flex-wrap gap-1.5 p-2 bg-black/40 border border-white/10 rounded-xl max-h-28 overflow-y-auto">
-                                            {trackWords.map((word, idx) => {
-                                                const isHighlighted = word.includes('*') || (!currentTrackTitle.includes('*') && (word === 'TOP' || word === '10'));
-                                                const cleanWord = word.replace(/\*/g, '');
-                                                return (
-                                                    <button
-                                                        key={idx}
-                                                        type="button"
-                                                        onClick={() => {
-                                                            let baseTitle = currentTrackTitle;
-                                                            if (!baseTitle.includes('*')) {
-                                                                baseTitle = baseTitle.replace(/\b(TOP\s*10|TOP|10)\b/gi, '*$1*');
-                                                            }
-                                                            const parts = baseTitle.split(/(\s+)/);
-                                                            let curIdx = 0;
-                                                            const res = parts.map(p => {
-                                                                if (/^\s+$/.test(p) || !p) return p;
-                                                                if (curIdx === idx) {
-                                                                    curIdx++;
-                                                                    if (p.includes('*')) {
-                                                                        return p.replace(/\*/g, '');
-                                                                    } else {
-                                                                        return `*${p}*`;
-                                                                    }
-                                                                }
-                                                                curIdx++;
-                                                                return p;
-                                                            });
-                                                            const updated = res.join('');
-                                                            setTop10Title(updated.toUpperCase());
-                                                            top10TitleRef.current = updated.toUpperCase();
-                                                            setTimeout(() => generateImage(), 30);
-                                                        }}
-                                                        className={`px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all border ${isHighlighted
-                                                            ? 'shadow-md'
-                                                            : 'bg-white/5 border-white/10 text-gray-400 hover:text-white hover:bg-white/10 hover:border-white/20'
-                                                            }`}
-                                                        style={isHighlighted ? {
-                                                            backgroundColor: `rgba(${top10CurrentAccentRgb}, 0.25)`,
-                                                            borderColor: top10CurrentAccentHex,
-                                                            color: top10CurrentAccentHex,
-                                                            boxShadow: `0 0 10px rgba(${top10CurrentAccentRgb}, 0.45)`,
-                                                        } : {}}
-                                                        title={isHighlighted ? "Cliquer pour repasser en blanc" : `Cliquer pour illuminer ${top10ColorLabel}`}
-                                                    >
-                                                        {cleanWord}
-                                                    </button>
-                                                );
-                                            })}
-                                        </div>
-                                    </div>
-                                );
-                            })()}
-                        </>
-                    )}
-
-                    {/* Durée strictement fixe à 1 minute pile (60s) */}
-                    <div
-                        className="p-3 rounded-xl space-y-1 border"
-                        style={{
-                            backgroundColor: `rgba(${top10CurrentAccentRgb}, 0.08)`,
-                            borderColor: `rgba(${top10CurrentAccentRgb}, 0.30)`,
-                        }}
+                {/* ─── NAVIGATION PAR ONGLETS TOP 10 (OPTION A) ─── */}
+                <div className="sticky top-0 z-20 flex items-center gap-1.5 p-1 bg-black/90 backdrop-blur-md border border-white/10 rounded-2xl shadow-2xl">
+                    <button
+                        type="button"
+                        onClick={() => setTop10EditorTab('theme')}
+                        className={`flex-1 py-2 px-2 rounded-xl text-[9.5px] font-black uppercase transition-all flex items-center justify-center gap-1.5 ${
+                            top10EditorTab === 'theme'
+                                ? 'text-black font-black shadow-lg'
+                                : 'text-gray-400 hover:text-white hover:bg-white/5'
+                        }`}
+                        style={top10EditorTab === 'theme' ? {
+                            backgroundColor: top10CurrentAccentHex,
+                            boxShadow: `0 0 14px rgba(${top10CurrentAccentRgb}, 0.5)`
+                        } : {}}
                     >
-                        <div className="flex items-center justify-between">
-                            <span className="text-[9px] font-black uppercase tracking-wider flex items-center gap-1.5" style={{ color: top10CurrentAccentHex }}>
-                                ⏱️ Durée Totale : 1 Minute 30 Pile (90s)
-                            </span>
-                            <span
-                                className="px-1.5 py-0.5 text-[7.5px] font-black uppercase rounded"
-                                style={{
-                                    backgroundColor: `rgba(${top10CurrentAccentRgb}, 0.20)`,
-                                    color: top10CurrentAccentHex,
-                                }}
-                            >
-                                Verrouillé 90s
-                            </span>
-                        </div>
-                        <p className="text-[8px] text-gray-300 font-mono">
-                            Intro (5.0s) + 10 tracks × 7.8s (78s) + 7s Outro Téléphone 3D = 90s pile.
-                        </p>
-                    </div>
+                        <span>🎬</span>
+                        <span>1. Thème & Titres</span>
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => setTop10EditorTab('tracks')}
+                        className={`flex-1 py-2 px-2 rounded-xl text-[9.5px] font-black uppercase transition-all flex items-center justify-center gap-1.5 ${
+                            top10EditorTab === 'tracks'
+                                ? 'text-black font-black shadow-lg'
+                                : 'text-gray-400 hover:text-white hover:bg-white/5'
+                        }`}
+                        style={top10EditorTab === 'tracks' ? {
+                            backgroundColor: top10CurrentAccentHex,
+                            boxShadow: `0 0 14px rgba(${top10CurrentAccentRgb}, 0.5)`
+                        } : {}}
+                    >
+                        <span>🎵</span>
+                        <span>2. Morceaux (#10-#1)</span>
+                        <span className="text-[8px] px-1.5 py-0.2 rounded bg-black/30 font-mono">
+                            {top10Tracks.filter(t => t.audioUrl || t.videoUrl || t.title).length}/10
+                        </span>
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => setTop10EditorTab('advanced')}
+                        className={`py-2 px-3 rounded-xl text-[9.5px] font-black uppercase transition-all flex items-center justify-center gap-1.5 ${
+                            top10EditorTab === 'advanced'
+                                ? 'text-black font-black shadow-lg'
+                                : 'text-gray-400 hover:text-white hover:bg-white/5'
+                        }`}
+                        style={top10EditorTab === 'advanced' ? {
+                            backgroundColor: top10CurrentAccentHex,
+                            boxShadow: `0 0 14px rgba(${top10CurrentAccentRgb}, 0.5)`
+                        } : {}}
+                    >
+                        <span>⚙️</span>
+                        <span>3. Avancé</span>
+                    </button>
                 </div>
 
-                {/* AUTO-GÉNÉRATEUR TOP 10 100% DYNAMIQUE */}
+
+                {/* ══════════ ONGLET 1 : THÈME & TITRES ══════════ */}
+                {top10EditorTab === 'theme' && (
+                    <div className="space-y-4">
+                        {/* AUTO-GÉNÉRATEUR TOP 10 100% DYNAMIQUE */}
                 <div
                     className="p-3.5 bg-gradient-to-br from-black/80 via-black/40 to-black/80 rounded-2xl shadow-xl space-y-3 border"
                     style={{ borderColor: `rgba(${top10CurrentAccentRgb}, 0.40)` }}
@@ -26974,56 +26774,275 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         </div>
                     )}
 
-                    {/* TRIEUR MAGIQUE SPOTIFY & KWORB (Résout le mauvais tri de Spotify !) */}
-                    <div className="pt-2 border-t border-white/10 space-y-2">
-                        <button
-                            type="button"
-                            onClick={() => setShowRawTextImportModal(!showRawTextImportModal)}
-                            className="w-full py-1.5 px-2.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-left text-gray-300 hover:text-white transition-all flex items-center justify-between group text-[8.5px] font-black uppercase tracking-wider"
-                        >
-                            <span className="flex items-center gap-1.5 text-neon-cyan">
-                                📋 Coller liste Spotify / Kworb (Trieur de streams auto)
-                            </span>
-                            <span className="text-gray-400 group-hover:text-white text-[10px]">
-                                {showRawTextImportModal ? '▲ Masquer' : '▼ Ouvrir'}
-                            </span>
-                        </button>
+                </div>
+                        {/* CONFIGURATION DES TITRES & TEXTES */}
+                <div className="p-3.5 bg-black/40 border border-white/10 rounded-2xl shadow-lg space-y-3">
+                    <div className="flex items-center justify-between">
+                        <span className="text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5" style={{ color: top10CurrentAccentHex }}>
+                            ✍️ Titres & Textes du Top 10
+                        </span>
+                        <span className="text-[9px] font-bold font-mono" style={{ color: top10CurrentAccentHex }}>
+                            {isOtherMode ? 'Mode Personnalisé' : isStyleMode ? 'Mode Genre' : isLabelMode ? 'Mode Label' : 'Mode Artiste'}
+                        </span>
+                    </div>
 
-                        {showRawTextImportModal && (
-                            <div className="p-2.5 bg-black/70 border border-neon-cyan/30 rounded-xl space-y-2 animate-fadeIn">
-                                <p className="text-[7.5px] text-gray-400 leading-tight">
-                                    💡 <strong className="text-white">Astuce Spotify mal rangé :</strong> Copiez simplement le tableau des titres depuis Spotify Desktop ou Kworb (avec les chiffres de streams) et collez-le ici. L'outil trie automatiquement du plus streamé au moins streamé, remplit les 10 positions (#10 ➔ #1), ajoute les streams et télécharge les pochettes HD !
-                                </p>
-                                <textarea
-                                    value={top10RawTextImport}
-                                    onChange={e => setTop10RawTextImport(e.target.value)}
-                                    rows={4}
-                                    placeholder={"Collez ici vos lignes copiées de Spotify ou Kworb...\nExemple:\nIn the Name of Love\t1826620962\t3:18\nScared to Be Lonely\t1553619964\t3:40\nSummer Days\t753363223\t2:43"}
-                                    className="w-full bg-black/80 border border-white/10 rounded-xl p-2 text-white text-[9.5px] font-mono focus:border-neon-cyan outline-none resize-none placeholder:text-gray-600"
-                                />
-                                <div className="flex items-center justify-between gap-2">
+                    <div className="space-y-1">
+                        <label className="text-[8.5px] font-black text-gray-400 uppercase tracking-wider">
+                            Badge Capsule Haut Gauche
+                        </label>
+                        <input
+                            type="text"
+                            value={top10Badge}
+                            onChange={e => handleTextUpperChange(e.currentTarget, setTop10Badge, top10BadgeRef)}
+                            placeholder="TOP 10 TRACKS"
+                            className="w-full bg-white/5 border border-white/10 rounded-xl p-2.5 text-white font-black uppercase text-[11px] outline-none"
+                        />
+                    </div>
+
+                    {/* Titre Intro (Slide 1) */}
+                    <div className="space-y-1">
+                        <div className="flex items-center justify-between">
+                            <label className="text-[8.5px] font-black text-gray-400 uppercase tracking-wider">
+                                Titre de l&apos;Intro (Slide 1)
+                            </label>
+                            <span className="text-[7.5px] font-bold text-gray-500 uppercase">Entrée = à la ligne</span>
+                        </div>
+                        <textarea
+                            ref={top10IntroTitleInputRef}
+                            rows={2}
+                            value={top10IntroTitle}
+                            onChange={e => handleTextUpperChange(e.currentTarget, setTop10IntroTitle, top10IntroTitleRef)}
+                            placeholder="TOP 10 DES TRACKS LES PLUS TÉLÉCHARGÉES SUR BEATPORT"
+                            className="w-full bg-white/5 border border-white/10 rounded-xl p-2.5 text-white font-black uppercase text-[11px] outline-none resize-y leading-snug"
+                        />
+                    </div>
+                    {/* CHOIX DES MOTS EN COULEUR ACCENT DYNAMIQUE POUR L'INTRO */}
+                    {(() => {
+                        const currentTitle = top10IntroTitle || '';
+                        const rawWords = currentTitle ? currentTitle.split(/\s+/).filter(Boolean) : [];
+                        if (rawWords.length === 0) return null;
+                        return (
+                            <div className="space-y-1.5 pt-1">
+                                <div className="flex items-center justify-between">
+                                    <span className="text-[9px] font-black text-gray-400 uppercase tracking-wider flex items-center gap-1.5">
+                                        <span
+                                            className="w-2 h-2 rounded-full inline-block animate-pulse"
+                                            style={{ backgroundColor: top10CurrentAccentHex, boxShadow: `0 0 8px ${top10CurrentAccentHex}` }}
+                                        />
+                                        Clique pour illuminer un mot {top10ColorLabel} :
+                                    </span>
                                     <button
                                         type="button"
-                                        onClick={() => { setTop10RawTextImport(''); setShowRawTextImportModal(false); }}
-                                        className="text-[8px] text-gray-400 hover:text-white uppercase font-bold"
+                                        onClick={() => {
+                                            const el = top10IntroTitleInputRef.current;
+                                            if (!el) return;
+                                            const start = el.selectionStart;
+                                            const end = el.selectionEnd;
+                                            if (start == null || end == null || start === end) return;
+                                            const sel = currentTitle.substring(start, end);
+                                            const rep = (sel.startsWith('*') && sel.endsWith('*') && sel.length >= 2) ? sel.slice(1, -1) : `*${sel.trim()}*`;
+                                            const updated = currentTitle.substring(0, start) + rep + currentTitle.substring(end);
+                                            setTop10IntroTitle(updated.toUpperCase());
+                                            top10IntroTitleRef.current = updated.toUpperCase();
+                                            setTimeout(() => generateImage(), 30);
+                                        }}
+                                        className="text-[9px] font-bold text-gray-400 hover:text-white transition-colors underline flex items-center gap-1"
+                                        title="Sélectionne du texte dans le champ ci-dessus puis clique ici"
                                     >
-                                        Annuler
-                                    </button>
-                                    <button
-                                        type="button"
-                                        disabled={isAutoFillingTop10 || !top10RawTextImport.trim()}
-                                        onClick={() => handleImportAndSortRawTracks(top10RawTextImport, top10ArtistSearch)}
-                                        className="py-1.5 px-3 bg-neon-cyan text-black text-[9px] font-black uppercase rounded-xl hover:bg-neon-cyan/80 transition-all disabled:opacity-40 shadow-md shadow-neon-cyan/20 active:scale-95"
-                                    >
-                                        {isAutoFillingTop10 ? '⏳ Analyse en cours...' : '🚀 Trier & Remplir le Top 10'}
+                                        Colorer sélection
                                     </button>
                                 </div>
+                                <div className="flex flex-wrap gap-1.5 p-2 bg-black/40 border border-white/10 rounded-xl max-h-28 overflow-y-auto">
+                                    {rawWords.map((word, idx) => {
+                                        const isHighlighted = word.includes('*') || (!currentTitle.includes('*') && (word === 'TOP' || word === '10' || word.startsWith('STREAM') || word.startsWith('JOU') || word.startsWith('TÉLÉCHARG') || word.startsWith('TELECHARG') || word.startsWith('BEATPORT')));
+                                        const cleanWord = word.replace(/\*/g, '');
+                                        return (
+                                            <button
+                                                key={idx}
+                                                type="button"
+                                                onClick={() => {
+                                                    let baseTitle = currentTitle;
+                                                    if (!baseTitle.includes('*')) {
+                                                        baseTitle = baseTitle.replace(/\b(TOP\s*10|TOP|10|STREAM\S*|JOU\S*|T[EÉ]L[EÉ]CHARG\S*|BEATPORT\S*)\b/gi, '*$1*');
+                                                    }
+                                                    const parts = baseTitle.split(/(\s+)/);
+                                                    let curIdx = 0;
+                                                    const res = parts.map(p => {
+                                                        if (/^\s+$/.test(p) || !p) return p;
+                                                        if (curIdx === idx) {
+                                                            curIdx++;
+                                                            if (p.includes('*')) {
+                                                                return p.replace(/\*/g, '');
+                                                            } else {
+                                                                return `*${p}*`;
+                                                            }
+                                                        }
+                                                        curIdx++;
+                                                        return p;
+                                                    });
+                                                    const updated = res.join('');
+                                                    setTop10IntroTitle(updated.toUpperCase());
+                                                    top10IntroTitleRef.current = updated.toUpperCase();
+                                                    setTimeout(() => generateImage(), 30);
+                                                }}
+                                                className={`px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all border ${isHighlighted
+                                                    ? 'shadow-md'
+                                                    : 'bg-white/5 border-white/10 text-gray-400 hover:text-white hover:bg-white/10 hover:border-white/20'
+                                                    }`}
+                                                style={isHighlighted ? {
+                                                    backgroundColor: `rgba(${top10CurrentAccentRgb}, 0.25)`,
+                                                    borderColor: top10CurrentAccentHex,
+                                                    color: top10CurrentAccentHex,
+                                                    boxShadow: `0 0 10px rgba(${top10CurrentAccentRgb}, 0.45)`,
+                                                } : {}}
+                                                title={isHighlighted ? "Cliquer pour repasser en blanc" : `Cliquer pour illuminer ${top10ColorLabel}`}
+                                            >
+                                                {cleanWord}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
                             </div>
-                        )}
-                    </div>
-                </div>
+                        );
+                    })()}
 
-                {/* 2. SÉLECTEUR DE TRACKS & INTRO (#10 ➔ #1) */}
+                    {/* Titre des Tracks (Slides #10 à #1) — masqué en mode Autre car fait doublon avec la capsule */}
+                    {!isOtherMode && (
+                        <>
+                            <div className="space-y-1">
+                                <label className="text-[8.5px] font-black text-gray-400 uppercase tracking-wider">
+                                    Titre des Tracks (Slides #10 à #1)
+                                </label>
+                                <input
+                                    ref={top10TracksTitleInputRef}
+                                    type="text"
+                                    value={top10Title}
+                                    onChange={e => {
+                                        const val = e.target.value.toUpperCase();
+                                        setTop10Title(val);
+                                        top10TitleRef.current = val;
+                                        generateImage();
+                                    }}
+                                    placeholder="ex: TOP 10 TRACKS"
+                                    className="w-full bg-white/5 border border-white/10 rounded-xl p-2.5 text-white font-black uppercase text-[11px] outline-none"
+                                />
+                            </div>
+
+                            {/* CHOIX DES MOTS EN COULEUR ACCENT POUR LES TRACKS */}
+                            {(() => {
+                                const currentTrackTitle = top10Title || '';
+                                const trackWords = currentTrackTitle ? currentTrackTitle.split(/\s+/).filter(Boolean) : [];
+                                if (trackWords.length === 0) return null;
+                                return (
+                                    <div className="space-y-1.5 pt-1">
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-[9px] font-black text-gray-400 uppercase tracking-wider flex items-center gap-1.5">
+                                                <span
+                                                    className="w-2 h-2 rounded-full inline-block animate-pulse"
+                                                    style={{ backgroundColor: top10CurrentAccentHex, boxShadow: `0 0 8px ${top10CurrentAccentHex}` }}
+                                                />
+                                                Clique pour illuminer un mot {top10ColorLabel} :
+                                            </span>
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    const el = top10TracksTitleInputRef.current;
+                                                    if (!el) return;
+                                                    const start = el.selectionStart;
+                                                    const end = el.selectionEnd;
+                                                    if (start == null || end == null || start === end) return;
+                                                    const sel = currentTrackTitle.substring(start, end);
+                                                    const rep = (sel.startsWith('*') && sel.endsWith('*') && sel.length >= 2) ? sel.slice(1, -1) : `*${sel.trim()}*`;
+                                                    const updated = currentTrackTitle.substring(0, start) + rep + currentTrackTitle.substring(end);
+                                                    setTop10Title(updated.toUpperCase());
+                                                    top10TitleRef.current = updated.toUpperCase();
+                                                    setTimeout(() => generateImage(), 30);
+                                                }}
+                                                className="text-[9px] font-bold text-gray-400 hover:text-white transition-colors underline flex items-center gap-1"
+                                                title="Sélectionne du texte dans le champ ci-dessus puis clique ici"
+                                            >
+                                                Colorer sélection
+                                            </button>
+                                        </div>
+                                        <div className="flex flex-wrap gap-1.5 p-2 bg-black/40 border border-white/10 rounded-xl max-h-28 overflow-y-auto">
+                                            {trackWords.map((word, idx) => {
+                                                const isHighlighted = word.includes('*') || (!currentTrackTitle.includes('*') && (word === 'TOP' || word === '10'));
+                                                const cleanWord = word.replace(/\*/g, '');
+                                                return (
+                                                    <button
+                                                        key={idx}
+                                                        type="button"
+                                                        onClick={() => {
+                                                            let baseTitle = currentTrackTitle;
+                                                            if (!baseTitle.includes('*')) {
+                                                                baseTitle = baseTitle.replace(/\b(TOP\s*10|TOP|10)\b/gi, '*$1*');
+                                                            }
+                                                            const parts = baseTitle.split(/(\s+)/);
+                                                            let curIdx = 0;
+                                                            const res = parts.map(p => {
+                                                                if (/^\s+$/.test(p) || !p) return p;
+                                                                if (curIdx === idx) {
+                                                                    curIdx++;
+                                                                    if (p.includes('*')) {
+                                                                        return p.replace(/\*/g, '');
+                                                                    } else {
+                                                                        return `*${p}*`;
+                                                                    }
+                                                                }
+                                                                curIdx++;
+                                                                return p;
+                                                            });
+                                                            const updated = res.join('');
+                                                            setTop10Title(updated.toUpperCase());
+                                                            top10TitleRef.current = updated.toUpperCase();
+                                                            setTimeout(() => generateImage(), 30);
+                                                        }}
+                                                        className={`px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all border ${isHighlighted
+                                                            ? 'shadow-md'
+                                                            : 'bg-white/5 border-white/10 text-gray-400 hover:text-white hover:bg-white/10 hover:border-white/20'
+                                                            }`}
+                                                        style={isHighlighted ? {
+                                                            backgroundColor: `rgba(${top10CurrentAccentRgb}, 0.25)`,
+                                                            borderColor: top10CurrentAccentHex,
+                                                            color: top10CurrentAccentHex,
+                                                            boxShadow: `0 0 10px rgba(${top10CurrentAccentRgb}, 0.45)`,
+                                                        } : {}}
+                                                        title={isHighlighted ? "Cliquer pour repasser en blanc" : `Cliquer pour illuminer ${top10ColorLabel}`}
+                                                    >
+                                                        {cleanWord}
+                                                    </button>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+                                );
+                            })()}
+                        </>
+                    )}
+                </div>
+                        {/* RACCOURCI VERS L'ONGLET MORCEAUX */}
+                <button
+                    type="button"
+                    onClick={() => setTop10EditorTab('tracks')}
+                    className="w-full py-3.5 px-4 rounded-2xl font-black uppercase text-[10.5px] tracking-wider transition-all flex items-center justify-center gap-2 border shadow-lg hover:brightness-110 active:scale-98"
+                    style={{
+                        backgroundColor: `rgba(${top10CurrentAccentRgb}, 0.20)`,
+                        borderColor: top10CurrentAccentHex,
+                        color: top10CurrentAccentHex,
+                        boxShadow: `0 0 16px rgba(${top10CurrentAccentRgb}, 0.35)`
+                    }}
+                >
+                    <span>🎵 Voir & Régler les 10 Morceaux (#10 à #1)</span>
+                    <span>➔</span>
+                </button>
+                    </div>
+                )}
+
+
+                {/* ══════════ ONGLET 2 : MORCEAUX (#10-#1) ══════════ */}
+                {top10EditorTab === 'tracks' && (
+                    <div className="space-y-4">
+                        {/* 2. SÉLECTEUR DE TRACKS & INTRO (#10 ➔ #1) */}
                 <div className="p-3.5 bg-black/40 border border-white/10 rounded-2xl shadow-lg space-y-2">
                     <div className="flex items-center justify-between">
                         <label className="text-[9px] font-black text-white uppercase tracking-wider">
@@ -27573,7 +27592,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             <input
                                 type="text"
                                 value={activeTrack.artist}
-                                onChange={e => updateTop10Track(activeTrack.rank, { artist: e.target.value.toUpperCase() })}
+                                onChange={e => handleTrackFieldUpperChange(e.currentTarget, activeTrack.rank, 'artist')}
                                 placeholder="EX: NOM DE L'ARTISTE (OU AUTO DÉTECTÉ)"
                                 className="w-full bg-white/5 border border-white/10 rounded-xl p-2.5 text-white font-black uppercase text-[11px] tracking-wider focus:border-neon-cyan/50 outline-none"
                             />
@@ -27588,7 +27607,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             <input
                                 type="text"
                                 value={activeTrack.title}
-                                onChange={e => updateTop10Track(activeTrack.rank, { title: e.target.value.toUpperCase() })}
+                                onChange={e => handleTrackFieldUpperChange(e.currentTarget, activeTrack.rank, 'title')}
                                 placeholder="EX: TITRE DU MORCEAU (OU AUTO DÉTECTÉ)"
                                 className="w-full bg-white/5 border border-white/10 rounded-xl p-2.5 text-white font-black uppercase text-[11px] tracking-wider focus:border-neon-cyan/50 outline-none"
                             />
@@ -27884,6 +27903,126 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         </div>
                     </div>
                 )}
+                        {/* 5. BOUTON EXPORT VIDÉO REEL 9:16 (1 MIN PILE / 60S) */}
+                <button
+                    type="button"
+                    onClick={() => startVideoRecording('NONE')}
+                    className="w-full py-3.5 bg-gradient-to-r from-neon-red via-red-600 to-amber-500 hover:brightness-110 text-white rounded-2xl text-[11px] font-black uppercase tracking-wider transition-all flex items-center justify-center gap-2 shadow-[0_0_25px_rgba(255,0,51,0.4)] active:scale-98"
+                >
+                    <Sparkles className="w-4 h-4" /> 🎬 EXPORTER VIDÉO TOP 10 (9:16 - 1 MIN / 60S)
+                </button>
+                <p className="text-[7.5px] text-center text-gray-500 font-mono">
+                    Enchaîne l'Intro (3.5s) + les 10 tracks (#10 ➔ #1) puis l'outro interactive Téléphone 3D (60s pile)
+                </p>
+                    </div>
+                )}
+
+
+                {/* ══════════ ONGLET 3 : AVANCÉ ══════════ */}
+                {top10EditorTab === 'advanced' && (
+                    <div className="space-y-4">
+                        {/* Durée strictement fixe à 1 minute pile (60s) */}
+                    <div
+                        className="p-3 rounded-xl space-y-1 border"
+                        style={{
+                            backgroundColor: `rgba(${top10CurrentAccentRgb}, 0.08)`,
+                            borderColor: `rgba(${top10CurrentAccentRgb}, 0.30)`,
+                        }}
+                    >
+                        <div className="flex items-center justify-between">
+                            <span className="text-[9px] font-black uppercase tracking-wider flex items-center gap-1.5" style={{ color: top10CurrentAccentHex }}>
+                                ⏱️ Durée Totale : 1 Minute 30 Pile (90s)
+                            </span>
+                            <span
+                                className="px-1.5 py-0.5 text-[7.5px] font-black uppercase rounded"
+                                style={{
+                                    backgroundColor: `rgba(${top10CurrentAccentRgb}, 0.20)`,
+                                    color: top10CurrentAccentHex,
+                                }}
+                            >
+                                Verrouillé 90s
+                            </span>
+                        </div>
+                        <p className="text-[8px] text-gray-300 font-mono">
+                            Intro (5.0s) + 10 tracks × 7.8s (78s) + 7s Outro Téléphone 3D = 90s pile.
+                        </p>
+                    </div>
+                        <div className="p-3.5 bg-black/40 border border-white/10 rounded-2xl shadow-lg space-y-3">
+                    {/* TRIEUR MAGIQUE SPOTIFY & KWORB (Résout le mauvais tri de Spotify !) */}
+                    <div className="pt-2 border-t border-white/10 space-y-2">
+                        <button
+                            type="button"
+                            onClick={() => setShowRawTextImportModal(!showRawTextImportModal)}
+                            className="w-full py-1.5 px-2.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-left text-gray-300 hover:text-white transition-all flex items-center justify-between group text-[8.5px] font-black uppercase tracking-wider"
+                        >
+                            <span className="flex items-center gap-1.5 text-neon-cyan">
+                                📋 Coller liste Spotify / Kworb (Trieur de streams auto)
+                            </span>
+                            <span className="text-gray-400 group-hover:text-white text-[10px]">
+                                {showRawTextImportModal ? '▲ Masquer' : '▼ Ouvrir'}
+                            </span>
+                        </button>
+
+                        {showRawTextImportModal && (
+                            <div className="p-2.5 bg-black/70 border border-neon-cyan/30 rounded-xl space-y-2 animate-fadeIn">
+                                <p className="text-[7.5px] text-gray-400 leading-tight">
+                                    💡 <strong className="text-white">Astuce Spotify mal rangé :</strong> Copiez simplement le tableau des titres depuis Spotify Desktop ou Kworb (avec les chiffres de streams) et collez-le ici. L'outil trie automatiquement du plus streamé au moins streamé, remplit les 10 positions (#10 ➔ #1), ajoute les streams et télécharge les pochettes HD !
+                                </p>
+                                <textarea
+                                    value={top10RawTextImport}
+                                    onChange={e => setTop10RawTextImport(e.target.value)}
+                                    rows={4}
+                                    placeholder={"Collez ici vos lignes copiées de Spotify ou Kworb...\nExemple:\nIn the Name of Love\t1826620962\t3:18\nScared to Be Lonely\t1553619964\t3:40\nSummer Days\t753363223\t2:43"}
+                                    className="w-full bg-black/80 border border-white/10 rounded-xl p-2 text-white text-[9.5px] font-mono focus:border-neon-cyan outline-none resize-none placeholder:text-gray-600"
+                                />
+                                <div className="flex items-center justify-between gap-2">
+                                    <button
+                                        type="button"
+                                        onClick={() => { setTop10RawTextImport(''); setShowRawTextImportModal(false); }}
+                                        className="text-[8px] text-gray-400 hover:text-white uppercase font-bold"
+                                    >
+                                        Annuler
+                                    </button>
+                                    <button
+                                        type="button"
+                                        disabled={isAutoFillingTop10 || !top10RawTextImport.trim()}
+                                        onClick={() => handleImportAndSortRawTracks(top10RawTextImport, top10ArtistSearch)}
+                                        className="py-1.5 px-3 bg-neon-cyan text-black text-[9px] font-black uppercase rounded-xl hover:bg-neon-cyan/80 transition-all disabled:opacity-40 shadow-md shadow-neon-cyan/20 active:scale-95"
+                                    >
+                                        {isAutoFillingTop10 ? '⏳ Analyse en cours...' : '🚀 Trier & Remplir le Top 10'}
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </div>
+                        {/* ZONE DE DANGER : VIDER TOUT LE TOP 10 */}
+                <div className="p-3.5 bg-red-950/20 border border-red-500/30 rounded-2xl space-y-2">
+                    <div className="flex items-center justify-between">
+                        <span className="text-[10px] font-black text-red-400 uppercase tracking-wider flex items-center gap-1.5">
+                            ⚠️ Zone de Réinitialisation
+                        </span>
+                    </div>
+                    <p className="text-[8px] text-gray-400 leading-tight">
+                        Réinitialise les 10 pistes et vide l'ensemble des titres, artistes, extraits audio et pochettes.
+                    </p>
+                    <button
+                        type="button"
+                        onClick={() => {
+                            if (window.confirm('Es-tu sûr de vouloir vider l\'ensemble du Top 10 ?')) {
+                                setTop10Tracks(DEFAULT_TOP_10_TRACKS);
+                                top10TracksRef.current = DEFAULT_TOP_10_TRACKS;
+                                try { localStorage.setItem('dropsiders_top10_tracks_v7', JSON.stringify(DEFAULT_TOP_10_TRACKS)); } catch (_) { }
+                                setTimeout(() => generateImage(), 50);
+                            }
+                        }}
+                        className="w-full py-2.5 bg-red-500/20 hover:bg-red-500/30 border border-red-500/40 text-red-300 hover:text-white rounded-xl text-[9px] font-black uppercase transition-all"
+                    >
+                        ✕ TOUT EFFACER (VIDER LE TOP 10)
+                    </button>
+                </div>
+                    </div>
+                )}
 
                 {/* 4. MODALE RECHERCHE DE LOGO WEB */}
                 {showTop10LogoModal && (
@@ -27965,18 +28104,6 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         </div>
                     </div>
                 )}
-
-                {/* 5. BOUTON EXPORT VIDÉO REEL 9:16 (1 MIN PILE / 60S) */}
-                <button
-                    type="button"
-                    onClick={() => startVideoRecording('NONE')}
-                    className="w-full py-3.5 bg-gradient-to-r from-neon-red via-red-600 to-amber-500 hover:brightness-110 text-white rounded-2xl text-[11px] font-black uppercase tracking-wider transition-all flex items-center justify-center gap-2 shadow-[0_0_25px_rgba(255,0,51,0.4)] active:scale-98"
-                >
-                    <Sparkles className="w-4 h-4" /> 🎬 EXPORTER VIDÉO TOP 10 (9:16 - 1 MIN / 60S)
-                </button>
-                <p className="text-[7.5px] text-center text-gray-500 font-mono">
-                    Enchaîne l'Intro (3.5s) + les 10 tracks (#10 ➔ #1) puis l'outro interactive Téléphone 3D (60s pile)
-                </p>
             </div>
         );
     })();
