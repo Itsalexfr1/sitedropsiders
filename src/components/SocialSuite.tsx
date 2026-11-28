@@ -52,7 +52,7 @@ import { Downloader } from '../pages/Downloader';
 import { ImageUploadModal } from './ImageUploadModal';
 import { resolveImageUrl } from '../utils/image';
 import { shareOrDownloadFile } from '../utils/imageExport';
-import { resolveMusicSnippet, searchMusicTracksList, searchBeatportByArtistAndTitle, getBeatportToken, type ResolvedMusicData } from '../utils/musicResolver';
+import { resolveMusicSnippet, searchMusicTracksList, searchBeatportByArtistAndTitle, searchBeatportSnippet, getBeatportToken, type ResolvedMusicData } from '../utils/musicResolver';
 import { fixWebmDuration } from '../utils/fixWebm';
 import recapsData from '../data/recaps.json';
 import { BEATPORT_GENRES, resolveBeatportGenre, cleanTop10TrackTitle } from '../data/beatportGenres';
@@ -2629,6 +2629,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const [top10UrlSearch, setTop10UrlSearch] = useState<string>('');
     const top10UrlSearchRef = useRef<string>(top10UrlSearch);
     top10UrlSearchRef.current = top10UrlSearch;
+    const [top10ListSearch, setTop10ListSearch] = useState<string>('');
     const [top10EditorTab, setTop10EditorTab] = useState<'theme' | 'tracks' | 'advanced'>('theme');
     const [top10RawTextImport, setTop10RawTextImport] = useState<string>('');
     const [showRawTextImportModal, setShowRawTextImportModal] = useState<boolean>(false);
@@ -3437,6 +3438,82 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 localStorage.setItem('dropsiders_top10_tracks_v7', JSON.stringify(resolvedTracks));
             } catch (_) { }
         }
+        setIsAutoFillingTop10(false);
+        generateImage();
+    };
+
+    const handleAutoFetchListTop10 = async (rawList: string) => {
+        const lines = rawList
+            .split(/\r?\n/)
+            .map(l => l.replace(/^\s*(?:#?\d{1,2}\s*[.):\-–]\s*)/, '').trim())
+            .filter(Boolean)
+            .slice(0, 10);
+        if (lines.length === 0) return;
+
+        setIsAutoFillingTop10(true);
+        setTop10ActiveRank(0);
+        top10ActiveRankRef.current = 0;
+
+        // Effacer le logo et le sous-titre pour le mode Autre
+        setArtistLogo('');
+        artistLogoRef.current = null;
+        setTop10IntroArtist('');
+        top10IntroArtistRef.current = '';
+        setTop10Title('');
+        top10TitleRef.current = '';
+
+        try {
+            const results = await Promise.all(
+                lines.map(async (line) => {
+                    try {
+                        const found = await searchBeatportSnippet(line, 'beatport');
+                        return { line, found };
+                    } catch {
+                        return { line, found: null };
+                    }
+                })
+            );
+
+            const count = results.length;
+            const mapped: Top10TrackItem[] = [];
+            for (let i = 0; i < count; i++) {
+                const rank = count - i;
+                const { line, found } = results[count - 1 - i]; // Inversion pour compte à rebours 10 -> 1
+                const cUrl = found?.coverUrl || '';
+                const aUrl = found?.audioUrl || '';
+                mapped.push({
+                    rank,
+                    title: cleanTop10TrackTitle(found?.title || line).toUpperCase(),
+                    artist: (found?.artist || '').toUpperCase(),
+                    cover: cUrl,
+                    audioUrl: aUrl,
+                    sourceUrl: aUrl,
+                    videoStartTime: 0,
+                    audioStartTime: 0,
+                    streams: ''
+                });
+                if (cUrl) {
+                    loadCorsSafeImage(cUrl, (img) => {
+                        imageCacheRef.current[cUrl] = img;
+                        generateImage();
+                    });
+                }
+                if (aUrl) {
+                    getPreloadedAudioBlobUrl(aUrl).catch(() => null);
+                }
+            }
+
+            if (mapped.length > 0) {
+                setTop10Tracks(mapped);
+                top10TracksRef.current = mapped;
+                try {
+                    localStorage.setItem('dropsiders_top10_tracks_v7', JSON.stringify(mapped));
+                } catch (_) { }
+            }
+        } catch (e) {
+            console.warn("Échec recherche Beatport par liste :", e);
+        }
+
         setIsAutoFillingTop10(false);
         generateImage();
     };
@@ -26600,6 +26677,31 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             <p className="text-[7.5px] text-gray-400 leading-tight">
                                 ✨ <span className="text-pink-400 font-bold">Mode Autre</span> : Récupération automatique des 10 morceaux depuis le lien Beatport, sans cadre artiste/label supplémentaire !
                             </p>
+
+                            {/* Recherche par liste (10 titres à la ligne) */}
+                            <div className="pt-2 border-t border-pink-500/20 space-y-1.5">
+                                <label className="text-[8.5px] font-black text-pink-400 uppercase tracking-wider flex items-center justify-between">
+                                    <span>📝 Ou colle ta liste (1 titre par ligne, du N°1 au N°10) :</span>
+                                    <span className="text-[7.5px] text-gray-400 font-mono">
+                                        {top10ListSearch.split(/\r?\n/).filter(l => l.trim()).slice(0, 10).length}/10 lignes
+                                    </span>
+                                </label>
+                                <textarea
+                                    rows={4}
+                                    value={top10ListSearch}
+                                    onChange={e => setTop10ListSearch(e.target.value)}
+                                    placeholder={"Justice - Flower In A Hurricane\nEtienne De Crecy - Sexy Magic\nJustice - Pusher\n..."}
+                                    className="w-full bg-black/80 border border-pink-500/40 focus:border-pink-500 rounded-xl px-3 py-2 text-white text-[10.5px] font-bold outline-none placeholder:text-gray-500 shadow-inner resize-y leading-snug"
+                                />
+                                <button
+                                    type="button"
+                                    disabled={isAutoFillingTop10 || !top10ListSearch.trim()}
+                                    onClick={() => handleAutoFetchListTop10(top10ListSearch)}
+                                    className="w-full py-2 px-3 bg-gradient-to-r from-pink-500 to-rose-600 hover:brightness-110 text-white font-black text-[9.5px] uppercase rounded-xl transition-all disabled:opacity-40 shadow-md shadow-pink-500/30 active:scale-95 flex items-center justify-center gap-1.5"
+                                >
+                                    <span>{isAutoFillingTop10 ? '⏳ Recherche Beatport en cours...' : '⚡ Chercher la liste sur Beatport'}</span>
+                                </button>
+                            </div>
                         </div>
                     )}
 
