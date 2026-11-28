@@ -3387,6 +3387,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         artistLogoRef.current = null;
         setTop10IntroArtist('');
         top10IntroArtistRef.current = '';
+        setTop10Title('');
+        top10TitleRef.current = '';
 
         let resolvedTracks: Top10TrackItem[] | null = null;
 
@@ -12795,90 +12797,92 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         // 1. Top-Left Badge Dropsiders (Effets News avec couleur néon dynamique)
                         drawTopCapsuleBadge((top10BadgeRef.current || top10Badge || 'TOP 10 TRACKS').toUpperCase(), top10AccentColor, top10AccentRgb);
 
-                        // 2. Header Titre Principal (TOP 10 TRACKS par défaut, sans doublon artiste)
-                        ctx.save();
-                        ctx.textAlign = 'center';
-                        ctx.textBaseline = 'middle';
+                        // 2. Header Titre Principal (TOP 10 TRACKS par défaut, sans doublon artiste - masqué en mode Autre car fait doublon avec la capsule)
+                        if (!isOtherMode) {
+                            ctx.save();
+                            ctx.textAlign = 'center';
+                            ctx.textBaseline = 'middle';
 
-                        const rawTracksTitle = (top10TitleRef.current || top10Title || '').trim();
-                        const cleanTracksTitle = rawTracksTitle.replace(/\*/g, '').trim().toUpperCase();
-                        const isDefaultOrIntroTitle = !cleanTracksTitle ||
-                            cleanTracksTitle === 'TOP 10 TRACKS' ||
-                            cleanTracksTitle.includes('LES PLUS STREAMÉES') ||
-                            cleanTracksTitle.includes('LES PLUS JOUÉES') ||
-                            cleanTracksTitle.includes('TÉLÉCHARG') ||
-                            cleanTracksTitle.includes('TELECHARG') ||
-                            cleanTracksTitle.includes('BEATPORT') ||
-                            cleanTracksTitle.startsWith('TOP 10 DES TRACKS') ||
-                            cleanTracksTitle.endsWith('• TOP 10 TRACKS') ||
-                            cleanTracksTitle === 'ARTISTE • TOP 10 TRACKS';
+                            const rawTracksTitle = (top10TitleRef.current || top10Title || '').trim();
+                            const cleanTracksTitle = rawTracksTitle.replace(/\*/g, '').trim().toUpperCase();
+                            const isDefaultOrIntroTitle = !cleanTracksTitle ||
+                                cleanTracksTitle === 'TOP 10 TRACKS' ||
+                                cleanTracksTitle.includes('LES PLUS STREAMÉES') ||
+                                cleanTracksTitle.includes('LES PLUS JOUÉES') ||
+                                cleanTracksTitle.includes('TÉLÉCHARG') ||
+                                cleanTracksTitle.includes('TELECHARG') ||
+                                cleanTracksTitle.includes('BEATPORT') ||
+                                cleanTracksTitle.startsWith('TOP 10 DES TRACKS') ||
+                                cleanTracksTitle.endsWith('• TOP 10 TRACKS') ||
+                                cleanTracksTitle === 'ARTISTE • TOP 10 TRACKS';
 
-                        const t10Title = isDefaultOrIntroTitle ? 'TOP 10 TRACKS' : rawTracksTitle.toUpperCase();
+                            const t10Title = isDefaultOrIntroTitle ? 'TOP 10 TRACKS' : rawTracksTitle.toUpperCase();
 
-                        // En mode style, le titre est centré verticalement et légèrement plus grand (sans doublon de style en dessous)
-                        const t10TitleY = 260;
-                        let t10FontSize = 34;
-                        ctx.font = `900 ${t10FontSize}px "Montserrat", sans-serif`;
-                        if ('letterSpacing' in ctx) (ctx as any).letterSpacing = '3px';
-                        let t10W = ctx.measureText(t10Title.replace(/\*/g, '')).width;
-                        if (t10W > 920) {
-                            t10FontSize = Math.max(22, Math.floor(t10FontSize * (920 / t10W)));
+                            // En mode style, le titre est centré verticalement et légèrement plus grand (sans doublon de style en dessous)
+                            const t10TitleY = 260;
+                            let t10FontSize = 34;
                             ctx.font = `900 ${t10FontSize}px "Montserrat", sans-serif`;
-                        }
-                        if (!isStaticPngExport && textAnimation !== 'NONE') {
-                            applyTextAnimCtx(ctx, 0.0, canvas.width / 2, t10TitleY, trackAnimTime);
-                        }
-
-                        ctx.textAlign = 'left';
-                        ctx.textBaseline = 'middle';
-                        const trackSegments = parseTop10TitleSegments(t10Title);
-                        const totalTrackW = trackSegments.reduce((sum, s) => sum + ctx.measureText(s.text).width, 0);
-                        let trackCurX = (canvas.width - totalTrackW) / 2;
-
-                        trackSegments.forEach(seg => {
-                            const segW = ctx.measureText(seg.text).width;
-                            const color = seg.isHighlighted ? top10AccentColor : '#ffffff';
-
-                            // 1. Ombre portée profonde diffuse
-                            ctx.save();
-                            ctx.shadowColor = 'rgba(0, 0, 0, 0.98)';
-                            ctx.shadowBlur = 18;
-                            ctx.shadowOffsetX = 0;
-                            ctx.shadowOffsetY = 6;
-                            ctx.fillStyle = color;
-                            ctx.fillText(seg.text, trackCurX, t10TitleY);
-                            ctx.restore();
-
-                            // 2. Ombre de contact nette vers le bas
-                            ctx.save();
-                            ctx.shadowColor = 'rgba(0, 0, 0, 0.92)';
-                            ctx.shadowBlur = 5;
-                            ctx.shadowOffsetX = 0;
-                            ctx.shadowOffsetY = 3;
-                            ctx.fillStyle = color;
-                            ctx.fillText(seg.text, trackCurX, t10TitleY);
-                            ctx.restore();
-
-                            // 3. Lueur néon si mis en valeur (Bleu pour Artiste, Or Festival pour Style)
-                            if (seg.isHighlighted) {
-                                ctx.save();
-                                ctx.shadowColor = `rgba(${top10AccentRgb}, 0.85)`;
-                                ctx.shadowBlur = 16;
-                                ctx.fillStyle = top10AccentColor;
-                                ctx.fillText(seg.text, trackCurX, t10TitleY);
-                                ctx.restore();
+                            if ('letterSpacing' in ctx) (ctx as any).letterSpacing = '3px';
+                            let t10W = ctx.measureText(t10Title.replace(/\*/g, '')).width;
+                            if (t10W > 920) {
+                                t10FontSize = Math.max(22, Math.floor(t10FontSize * (920 / t10W)));
+                                ctx.font = `900 ${t10FontSize}px "Montserrat", sans-serif`;
+                            }
+                            if (!isStaticPngExport && textAnimation !== 'NONE') {
+                                applyTextAnimCtx(ctx, 0.0, canvas.width / 2, t10TitleY, trackAnimTime);
                             }
 
-                            // 4. Texte net au premier plan
-                            ctx.save();
-                            ctx.shadowColor = 'transparent';
-                            ctx.fillStyle = color;
-                            ctx.fillText(seg.text, trackCurX, t10TitleY);
-                            ctx.restore();
+                            ctx.textAlign = 'left';
+                            ctx.textBaseline = 'middle';
+                            const trackSegments = parseTop10TitleSegments(t10Title);
+                            const totalTrackW = trackSegments.reduce((sum, s) => sum + ctx.measureText(s.text).width, 0);
+                            let trackCurX = (canvas.width - totalTrackW) / 2;
 
-                            trackCurX += segW;
-                        });
-                        ctx.restore();
+                            trackSegments.forEach(seg => {
+                                const segW = ctx.measureText(seg.text).width;
+                                const color = seg.isHighlighted ? top10AccentColor : '#ffffff';
+
+                                // 1. Ombre portée profonde diffuse
+                                ctx.save();
+                                ctx.shadowColor = 'rgba(0, 0, 0, 0.98)';
+                                ctx.shadowBlur = 18;
+                                ctx.shadowOffsetX = 0;
+                                ctx.shadowOffsetY = 6;
+                                ctx.fillStyle = color;
+                                ctx.fillText(seg.text, trackCurX, t10TitleY);
+                                ctx.restore();
+
+                                // 2. Ombre de contact nette vers le bas
+                                ctx.save();
+                                ctx.shadowColor = 'rgba(0, 0, 0, 0.92)';
+                                ctx.shadowBlur = 5;
+                                ctx.shadowOffsetX = 0;
+                                ctx.shadowOffsetY = 3;
+                                ctx.fillStyle = color;
+                                ctx.fillText(seg.text, trackCurX, t10TitleY);
+                                ctx.restore();
+
+                                // 3. Lueur néon si mis en valeur (Bleu pour Artiste, Or Festival pour Style)
+                                if (seg.isHighlighted) {
+                                    ctx.save();
+                                    ctx.shadowColor = `rgba(${top10AccentRgb}, 0.85)`;
+                                    ctx.shadowBlur = 16;
+                                    ctx.fillStyle = top10AccentColor;
+                                    ctx.fillText(seg.text, trackCurX, t10TitleY);
+                                    ctx.restore();
+                                }
+
+                                // 4. Texte net au premier plan
+                                ctx.save();
+                                ctx.shadowColor = 'transparent';
+                                ctx.fillStyle = color;
+                                ctx.fillText(seg.text, trackCurX, t10TitleY);
+                                ctx.restore();
+
+                                trackCurX += segW;
+                            });
+                            ctx.restore();
+                        }
 
                         // 2b. Ligne 2 : Logo Officiel (ou nom stylé) de l'Artiste / Label / Genre
                         {
@@ -26396,114 +26400,119 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         );
                     })()}
 
-                    <div className="space-y-1">
-                        <label className="text-[8.5px] font-black text-gray-400 uppercase tracking-wider">
-                            Titre des Tracks (Slides #10 à #1)
-                        </label>
-                        <input
-                            ref={top10TracksTitleInputRef}
-                            type="text"
-                            value={top10Title}
-                            onChange={e => {
-                                const val = e.target.value.toUpperCase();
-                                setTop10Title(val);
-                                top10TitleRef.current = val;
-                                generateImage();
-                            }}
-                            placeholder="ex: TOP 10 TRACKS"
-                            className="w-full bg-white/5 border border-white/10 rounded-xl p-2.5 text-white font-black uppercase text-[11px] outline-none"
-                        />
-                    </div>
+                    {/* Titre des Tracks (Slides #10 à #1) — masqué en mode Autre car fait doublon avec la capsule */}
+                    {!isOtherMode && (
+                        <>
+                            <div className="space-y-1">
+                                <label className="text-[8.5px] font-black text-gray-400 uppercase tracking-wider">
+                                    Titre des Tracks (Slides #10 à #1)
+                                </label>
+                                <input
+                                    ref={top10TracksTitleInputRef}
+                                    type="text"
+                                    value={top10Title}
+                                    onChange={e => {
+                                        const val = e.target.value.toUpperCase();
+                                        setTop10Title(val);
+                                        top10TitleRef.current = val;
+                                        generateImage();
+                                    }}
+                                    placeholder="ex: TOP 10 TRACKS"
+                                    className="w-full bg-white/5 border border-white/10 rounded-xl p-2.5 text-white font-black uppercase text-[11px] outline-none"
+                                />
+                            </div>
 
-                    {/* CHOIX DES MOTS EN COULEUR ACCENT POUR LES TRACKS */}
-                    {(() => {
-                        const currentTrackTitle = top10Title || '';
-                        const trackWords = currentTrackTitle ? currentTrackTitle.split(/\s+/).filter(Boolean) : [];
-                        if (trackWords.length === 0) return null;
-                        return (
-                            <div className="space-y-1.5 pt-1">
-                                <div className="flex items-center justify-between">
-                                    <span className="text-[9px] font-black text-gray-400 uppercase tracking-wider flex items-center gap-1.5">
-                                        <span
-                                            className="w-2 h-2 rounded-full inline-block animate-pulse"
-                                            style={{ backgroundColor: top10CurrentAccentHex, boxShadow: `0 0 8px ${top10CurrentAccentHex}` }}
-                                        />
-                                        Clique pour illuminer un mot {top10ColorLabel} :
-                                    </span>
-                                    <button
-                                        type="button"
-                                        onClick={() => {
-                                            const el = top10TracksTitleInputRef.current;
-                                            if (!el) return;
-                                            const start = el.selectionStart;
-                                            const end = el.selectionEnd;
-                                            if (start == null || end == null || start === end) return;
-                                            const sel = currentTrackTitle.substring(start, end);
-                                            const rep = (sel.startsWith('*') && sel.endsWith('*') && sel.length >= 2) ? sel.slice(1, -1) : `*${sel.trim()}*`;
-                                            const updated = currentTrackTitle.substring(0, start) + rep + currentTrackTitle.substring(end);
-                                            setTop10Title(updated.toUpperCase());
-                                            top10TitleRef.current = updated.toUpperCase();
-                                            setTimeout(() => generateImage(), 30);
-                                        }}
-                                        className="text-[9px] font-bold text-gray-400 hover:text-white transition-colors underline flex items-center gap-1"
-                                        title="Sélectionne du texte dans le champ ci-dessus puis clique ici"
-                                    >
-                                        Colorer sélection
-                                    </button>
-                                </div>
-                                <div className="flex flex-wrap gap-1.5 p-2 bg-black/40 border border-white/10 rounded-xl max-h-28 overflow-y-auto">
-                                    {trackWords.map((word, idx) => {
-                                        const isHighlighted = word.includes('*') || (!currentTrackTitle.includes('*') && (word === 'TOP' || word === '10'));
-                                        const cleanWord = word.replace(/\*/g, '');
-                                        return (
+                            {/* CHOIX DES MOTS EN COULEUR ACCENT POUR LES TRACKS */}
+                            {(() => {
+                                const currentTrackTitle = top10Title || '';
+                                const trackWords = currentTrackTitle ? currentTrackTitle.split(/\s+/).filter(Boolean) : [];
+                                if (trackWords.length === 0) return null;
+                                return (
+                                    <div className="space-y-1.5 pt-1">
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-[9px] font-black text-gray-400 uppercase tracking-wider flex items-center gap-1.5">
+                                                <span
+                                                    className="w-2 h-2 rounded-full inline-block animate-pulse"
+                                                    style={{ backgroundColor: top10CurrentAccentHex, boxShadow: `0 0 8px ${top10CurrentAccentHex}` }}
+                                                />
+                                                Clique pour illuminer un mot {top10ColorLabel} :
+                                            </span>
                                             <button
-                                                key={idx}
                                                 type="button"
                                                 onClick={() => {
-                                                    let baseTitle = currentTrackTitle;
-                                                    if (!baseTitle.includes('*')) {
-                                                        baseTitle = baseTitle.replace(/\b(TOP\s*10|TOP|10)\b/gi, '*$1*');
-                                                    }
-                                                    const parts = baseTitle.split(/(\s+)/);
-                                                    let curIdx = 0;
-                                                    const res = parts.map(p => {
-                                                        if (/^\s+$/.test(p) || !p) return p;
-                                                        if (curIdx === idx) {
-                                                            curIdx++;
-                                                            if (p.includes('*')) {
-                                                                return p.replace(/\*/g, '');
-                                                            } else {
-                                                                return `*${p}*`;
-                                                            }
-                                                        }
-                                                        curIdx++;
-                                                        return p;
-                                                    });
-                                                    const updated = res.join('');
+                                                    const el = top10TracksTitleInputRef.current;
+                                                    if (!el) return;
+                                                    const start = el.selectionStart;
+                                                    const end = el.selectionEnd;
+                                                    if (start == null || end == null || start === end) return;
+                                                    const sel = currentTrackTitle.substring(start, end);
+                                                    const rep = (sel.startsWith('*') && sel.endsWith('*') && sel.length >= 2) ? sel.slice(1, -1) : `*${sel.trim()}*`;
+                                                    const updated = currentTrackTitle.substring(0, start) + rep + currentTrackTitle.substring(end);
                                                     setTop10Title(updated.toUpperCase());
                                                     top10TitleRef.current = updated.toUpperCase();
                                                     setTimeout(() => generateImage(), 30);
                                                 }}
-                                                className={`px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all border ${isHighlighted
-                                                    ? 'shadow-md'
-                                                    : 'bg-white/5 border-white/10 text-gray-400 hover:text-white hover:bg-white/10 hover:border-white/20'
-                                                    }`}
-                                                style={isHighlighted ? {
-                                                    backgroundColor: `rgba(${top10CurrentAccentRgb}, 0.25)`,
-                                                    borderColor: top10CurrentAccentHex,
-                                                    color: top10CurrentAccentHex,
-                                                    boxShadow: `0 0 10px rgba(${top10CurrentAccentRgb}, 0.45)`,
-                                                } : {}}
-                                                title={isHighlighted ? "Cliquer pour repasser en blanc" : `Cliquer pour illuminer ${top10ColorLabel}`}
+                                                className="text-[9px] font-bold text-gray-400 hover:text-white transition-colors underline flex items-center gap-1"
+                                                title="Sélectionne du texte dans le champ ci-dessus puis clique ici"
                                             >
-                                                {cleanWord}
+                                                Colorer sélection
                                             </button>
-                                        );
-                                    })}
-                                </div>
-                            </div>
-                        );
-                    })()}
+                                        </div>
+                                        <div className="flex flex-wrap gap-1.5 p-2 bg-black/40 border border-white/10 rounded-xl max-h-28 overflow-y-auto">
+                                            {trackWords.map((word, idx) => {
+                                                const isHighlighted = word.includes('*') || (!currentTrackTitle.includes('*') && (word === 'TOP' || word === '10'));
+                                                const cleanWord = word.replace(/\*/g, '');
+                                                return (
+                                                    <button
+                                                        key={idx}
+                                                        type="button"
+                                                        onClick={() => {
+                                                            let baseTitle = currentTrackTitle;
+                                                            if (!baseTitle.includes('*')) {
+                                                                baseTitle = baseTitle.replace(/\b(TOP\s*10|TOP|10)\b/gi, '*$1*');
+                                                            }
+                                                            const parts = baseTitle.split(/(\s+)/);
+                                                            let curIdx = 0;
+                                                            const res = parts.map(p => {
+                                                                if (/^\s+$/.test(p) || !p) return p;
+                                                                if (curIdx === idx) {
+                                                                    curIdx++;
+                                                                    if (p.includes('*')) {
+                                                                        return p.replace(/\*/g, '');
+                                                                    } else {
+                                                                        return `*${p}*`;
+                                                                    }
+                                                                }
+                                                                curIdx++;
+                                                                return p;
+                                                            });
+                                                            const updated = res.join('');
+                                                            setTop10Title(updated.toUpperCase());
+                                                            top10TitleRef.current = updated.toUpperCase();
+                                                            setTimeout(() => generateImage(), 30);
+                                                        }}
+                                                        className={`px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all border ${isHighlighted
+                                                            ? 'shadow-md'
+                                                            : 'bg-white/5 border-white/10 text-gray-400 hover:text-white hover:bg-white/10 hover:border-white/20'
+                                                            }`}
+                                                        style={isHighlighted ? {
+                                                            backgroundColor: `rgba(${top10CurrentAccentRgb}, 0.25)`,
+                                                            borderColor: top10CurrentAccentHex,
+                                                            color: top10CurrentAccentHex,
+                                                            boxShadow: `0 0 10px rgba(${top10CurrentAccentRgb}, 0.45)`,
+                                                        } : {}}
+                                                        title={isHighlighted ? "Cliquer pour repasser en blanc" : `Cliquer pour illuminer ${top10ColorLabel}`}
+                                                    >
+                                                        {cleanWord}
+                                                    </button>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+                                );
+                            })()}
+                        </>
+                    )}
 
                     {/* Durée strictement fixe à 1 minute pile (60s) */}
                     <div
