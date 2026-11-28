@@ -2084,12 +2084,20 @@ export default {
             path === '/api/push/broadcast' ||
             path === '/api/extension/push' ||
             path === '/api/admin/users' ||
-            path === '/api/admin/users/approve-mix'
+            path === '/api/admin/users/approve-mix' ||
+            path === '/api/social-studio/editor-info' ||
+            path === '/api/social-studio/export-upload' ||
+            path === '/api/social-studio/export-multipart/create' ||
+            path === '/api/social-studio/export-multipart/part' ||
+            path === '/api/social-studio/export-multipart/complete' ||
+            path === '/api/social-studio/export-send-email'
         );
 
         let authenticated = false;
         let userPermissions: string[] = [];
         let hasAll = false;
+        let authenticatedEditorEmail = '';
+        let authenticatedEditorUsername = '';
 
         const requestSessionId = request.headers.get('X-Session-ID');
         const hasAuthHeaders = !!(requestSessionId || requestPassword || requestUsername);
@@ -2100,6 +2108,8 @@ export default {
             if (isMasterPass) {
                 authenticated = true;
                 userPermissions = ['all'];
+                authenticatedEditorUsername = requestUsername || 'alex';
+                authenticatedEditorEmail = requestUsername && requestUsername.includes('@') ? requestUsername : 'contact@dropsiders.fr';
             }
             else {
                 const settingsFile = await fetchGitHubFile('src/data/settings.json', gitConfig);
@@ -2110,6 +2120,8 @@ export default {
                     if (isSuperEmail || requestUsername === 'alex' || !requestUsername) {
                         authenticated = true;
                         userPermissions = ['all'];
+                        authenticatedEditorUsername = requestUsername || 'alex';
+                        authenticatedEditorEmail = isSuperEmail ? requestUsername : 'contact@dropsiders.fr';
                     }
                 }
             }
@@ -2125,6 +2137,8 @@ export default {
                         if (isPasswordMatch || isSessionMatch) {
                              authenticated = true;
                              userPermissions = editor.permissions || [];
+                             authenticatedEditorUsername = editor.username || requestUsername;
+                             authenticatedEditorEmail = editor.email || (requestUsername.includes('@') ? requestUsername : '');
                         }
                     }
                 }
@@ -4355,6 +4369,273 @@ ${urls.map(u => `  <url>
                 console.error('Multipart complete error:', e);
                 return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
             }
+        }
+
+        // --- API: SOCIAL STUDIO TEMPORARY EXPORTS (24h, Editors only, any file size) ---
+        if (path === '/api/social-studio/editor-info' && request.method === 'GET') {
+            return new Response(JSON.stringify({
+                email: authenticatedEditorEmail || '',
+                username: authenticatedEditorUsername || ''
+            }), { headers });
+        }
+
+        if (path === '/api/social-studio/export-upload' && request.method === 'PUT') {
+            try {
+                if (!env.R2) throw new Error('R2 binding unavailable');
+                const rawFilename = url.searchParams.get('filename') || `dropsiders-export-${Date.now()}`;
+                const safeFilename = rawFilename.replace(/[^\w.\-() ]+/g, '_').slice(0, 180) || 'export.bin';
+                const contentType = url.searchParams.get('contentType') || request.headers.get('Content-Type') || 'application/octet-stream';
+                const size = Number(url.searchParams.get('size') || request.headers.get('Content-Length') || 0);
+                const token = crypto.randomUUID().replace(/-/g, '');
+                const key = `social-exports/${token}/${safeFilename}`;
+
+                await env.R2.put(key, request.body, {
+                    httpMetadata: {
+                        contentType,
+                        contentDisposition: `attachment; filename="${safeFilename.replace(/"/g, '')}"`,
+                    },
+                });
+
+                const now = Date.now();
+                const expiresAt = now + 24 * 60 * 60 * 1000;
+                const meta = {
+                    token,
+                    key,
+                    filename: safeFilename,
+                    contentType,
+                    size,
+                    createdAt: now,
+                    expiresAt,
+                    createdBy: authenticatedEditorEmail || authenticatedEditorUsername || 'editor',
+                    downloads: 0,
+                };
+                await env.DATA_KV.put(`social_export:${token}`, JSON.stringify(meta));
+
+                const downloadUrl = `${url.origin}/api/social-studio/download/${token}`;
+                return new Response(JSON.stringify({ success: true, token, downloadUrl, expiresAt }), { headers });
+            } catch (e: any) {
+                return new Response(JSON.stringify({ error: e?.message || 'Upload failed' }), { status: 500, headers });
+            }
+        }
+
+        if (path === '/api/social-studio/export-multipart/create' && request.method === 'POST') {
+            try {
+                if (!env.R2) throw new Error('R2 binding unavailable');
+                const body = await request.json() as any;
+                const rawFilename = String(body?.filename || `dropsiders-export-${Date.now()}`);
+                const safeFilename = rawFilename.replace(/[^\w.\-() ]+/g, '_').slice(0, 180) || 'export.bin';
+                const contentType = String(body?.contentType || 'application/octet-stream');
+                const token = crypto.randomUUID().replace(/-/g, '');
+                const key = `social-exports/${token}/${safeFilename}`;
+
+                const mpu = await env.R2.createMultipartUpload(key, {
+                    httpMetadata: {
+                        contentType,
+                        contentDisposition: `attachment; filename="${safeFilename.replace(/"/g, '')}"`,
+                    },
+                });
+
+                return new Response(JSON.stringify({
+                    success: true,
+                    token,
+                    key,
+                    uploadId: mpu.uploadId,
+                    filename: safeFilename,
+                }), { headers });
+            } catch (e: any) {
+                return new Response(JSON.stringify({ error: e?.message || 'Multipart create failed' }), { status: 500, headers });
+            }
+        }
+
+        if (path === '/api/social-studio/export-multipart/part' && request.method === 'PUT') {
+            try {
+                if (!env.R2) throw new Error('R2 binding unavailable');
+                const key = url.searchParams.get('key') || '';
+                const uploadId = url.searchParams.get('uploadId') || '';
+                const partNumber = Number(url.searchParams.get('partNumber') || '0');
+                if (!key.startsWith('social-exports/') || !uploadId || partNumber < 1) {
+                    return new Response(JSON.stringify({ error: 'Paramètres invalides' }), { status: 400, headers });
+                }
+                const mpu = env.R2.resumeMultipartUpload(key, uploadId);
+                const uploadedPart = await mpu.uploadPart(partNumber, request.body);
+                return new Response(JSON.stringify({
+                    partNumber: uploadedPart.partNumber,
+                    etag: uploadedPart.etag,
+                }), { headers });
+            } catch (e: any) {
+                return new Response(JSON.stringify({ error: e?.message || 'Part upload failed' }), { status: 500, headers });
+            }
+        }
+
+        if (path === '/api/social-studio/export-multipart/complete' && request.method === 'POST') {
+            try {
+                if (!env.R2) throw new Error('R2 binding unavailable');
+                const body = await request.json() as any;
+                const { token, key, uploadId, parts, filename, contentType, size } = body || {};
+                if (!token || !String(key || '').startsWith('social-exports/') || !uploadId || !Array.isArray(parts)) {
+                    return new Response(JSON.stringify({ error: 'Paramètres invalides' }), { status: 400, headers });
+                }
+
+                const mpu = env.R2.resumeMultipartUpload(key, uploadId);
+                await mpu.complete(parts);
+
+                const safeFilename = String(filename || 'export.bin').replace(/[^\w.\-() ]+/g, '_').slice(0, 180);
+                const now = Date.now();
+                const expiresAt = now + 24 * 60 * 60 * 1000;
+                const meta = {
+                    token,
+                    key,
+                    filename: safeFilename,
+                    contentType: String(contentType || 'application/octet-stream'),
+                    size: Number(size || 0),
+                    createdAt: now,
+                    expiresAt,
+                    createdBy: authenticatedEditorEmail || authenticatedEditorUsername || 'editor',
+                    downloads: 0,
+                };
+                await env.DATA_KV.put(`social_export:${token}`, JSON.stringify(meta));
+
+                const downloadUrl = `${url.origin}/api/social-studio/download/${token}`;
+                return new Response(JSON.stringify({ success: true, token, downloadUrl, expiresAt }), { headers });
+            } catch (e: any) {
+                return new Response(JSON.stringify({ error: e?.message || 'Multipart complete failed' }), { status: 500, headers });
+            }
+        }
+
+        if (path === '/api/social-studio/export-send-email' && request.method === 'POST') {
+            try {
+                if (!env.BREVO_API_KEY) {
+                    return new Response(JSON.stringify({ error: 'BREVO_API_KEY non configurée' }), { status: 500, headers });
+                }
+                const body = await request.json() as any;
+                const { token, recipients, note } = body || {};
+                if (!token) {
+                    return new Response(JSON.stringify({ error: 'Token manquant' }), { status: 400, headers });
+                }
+
+                const rawMeta = await env.DATA_KV.get(`social_export:${token}`);
+                if (!rawMeta) {
+                    return new Response(JSON.stringify({ error: 'Export introuvable ou expiré' }), { status: 404, headers });
+                }
+                const meta = JSON.parse(rawMeta);
+                if (Date.now() > meta.expiresAt) {
+                    return new Response(JSON.stringify({ error: 'Ce lien a expiré' }), { status: 410, headers });
+                }
+
+                const rawList: string[] = Array.isArray(recipients)
+                    ? recipients
+                    : String(recipients || '').split(/[,;\s]+/);
+                const validEmails = Array.from(new Set(
+                    rawList.map(e => e.trim().toLowerCase()).filter(e => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e))
+                ));
+                if (validEmails.length === 0) {
+                    return new Response(JSON.stringify({ error: 'Aucune adresse e-mail valide' }), { status: 400, headers });
+                }
+
+                const downloadUrl = `${url.origin}/api/social-studio/download/${token}`;
+                const ext = (meta.filename.split('.').pop() || 'FICHIER').toUpperCase();
+                const sizeMb = meta.size > 0
+                    ? (meta.size >= 1024 * 1024 ? `${(meta.size / (1024 * 1024)).toFixed(1)} Mo` : `${Math.max(1, Math.round(meta.size / 1024))} Ko`)
+                    : 'Prêt';
+                const expireDateStr = new Date(meta.expiresAt).toLocaleString('fr-FR', {
+                    timeZone: 'Europe/Paris',
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                });
+                const escapedNote = note ? String(note).replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\n/g, '<br/>') : '';
+                const escapedFilename = String(meta.filename).replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+                const brevoRes = await fetch('https://api.brevo.com/v3/smtp/email', {
+                    method: 'POST',
+                    headers: {
+                        'accept': 'application/json',
+                        'api-key': env.BREVO_API_KEY,
+                        'content-type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        sender: { name: 'Dropsiders Social Studio', email: 'contact@dropsiders.fr' },
+                        to: validEmails.map(email => ({ email })),
+                        subject: `Votre export Social Studio (${ext}) est prêt - Valide 24h`,
+                        htmlContent: `
+                            <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #070709; padding: 32px 16px; color: #f4f4f5;">
+                                <div style="max-width: 560px; margin: 0 auto; background: #101116; border: 1px solid #22232c; border-radius: 20px; overflow: hidden;">
+                                    <div style="padding: 28px 28px 20px; border-bottom: 1px solid #1e2028; text-align: center;">
+                                        <div style="font-size: 11px; font-weight: 800; letter-spacing: 3px; text-transform: uppercase; color: #ff1241; margin-bottom: 6px;">DROPSIDERS SOCIAL STUDIO</div>
+                                        <h1 style="margin: 0; font-size: 22px; font-weight: 900; color: #ffffff; letter-spacing: -0.5px;">Votre export est prêt à télécharger</h1>
+                                    </div>
+                                    <div style="padding: 24px 28px;">
+                                        ${escapedNote ? `<div style="background: #171922; border-left: 3px solid #00d4ff; padding: 12px 16px; border-radius: 8px; margin-bottom: 20px; font-size: 14px; color: #e4e4e7; line-height: 1.5;">${escapedNote}</div>` : ''}
+                                        <div style="background: #14151c; border: 1px solid #232530; border-radius: 12px; padding: 16px; margin-bottom: 24px;">
+                                            <div style="font-size: 13px; font-weight: 700; color: #ffffff; word-break: break-all; margin-bottom: 8px;">${escapedFilename}</div>
+                                            <div style="font-size: 12px; color: #a1a1aa;">
+                                                Format : <strong style="color: #00d4ff;">${ext}</strong> &nbsp;·&nbsp; Taille : <strong style="color: #ffffff;">${sizeMb}</strong>
+                                            </div>
+                                        </div>
+                                        <div style="text-align: center; margin: 28px 0;">
+                                            <a href="${downloadUrl}" style="display: inline-block; background: #ff1241; color: #ffffff; text-decoration: none; padding: 15px 32px; border-radius: 12px; font-weight: 900; font-size: 14px; text-transform: uppercase; letter-spacing: 1px;">
+                                                Télécharger le fichier (${ext})
+                                            </a>
+                                        </div>
+                                        <p style="margin: 0; font-size: 12px; color: #f59e0b; text-align: center; font-weight: 600;">
+                                            ⏳ Ce lien est valide jusqu'au ${expireDateStr} (24h). Après expiration, le fichier sera supprimé définitivement.
+                                        </p>
+                                    </div>
+                                    <div style="padding: 14px 28px; background: #0c0d11; border-top: 1px solid #1e2028; text-align: center;">
+                                        <p style="margin: 0; font-size: 11px; color: #52525b;">Envoyé depuis Dropsiders Social Studio · Accès réservé aux éditeurs</p>
+                                    </div>
+                                </div>
+                            </div>
+                        `,
+                    }),
+                });
+
+                if (!brevoRes.ok) {
+                    const errTxt = await brevoRes.text();
+                    throw new Error(`Brevo error (${brevoRes.status}): ${errTxt}`);
+                }
+
+                return new Response(JSON.stringify({ success: true, sentTo: validEmails, downloadUrl }), { headers });
+            } catch (e: any) {
+                return new Response(JSON.stringify({ error: e?.message || 'Email sending failed' }), { status: 500, headers });
+            }
+        }
+
+        if (path.startsWith('/api/social-studio/download/') && request.method === 'GET') {
+            const token = path.replace('/api/social-studio/download/', '').trim();
+            if (!token || !env.DATA_KV || !env.R2) {
+                return new Response('Lien invalide', { status: 404 });
+            }
+            const rawMeta = await env.DATA_KV.get(`social_export:${token}`);
+            if (!rawMeta) {
+                return new Response(
+                    `<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"><title>Lien expiré - Dropsiders</title></head><body style="margin:0;background:#070709;color:#fff;font-family:sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;text-align:center;padding:24px;"><div><h1 style="color:#ff1241;font-size:24px;margin-bottom:8px;">Lien expiré ou introuvable</h1><p style="color:#a1a1aa;font-size:14px;">Ce fichier Social Studio était valide 24h et a été supprimé définitivement.</p></div></body></html>`,
+                    { status: 410, headers: { 'Content-Type': 'text/html; charset=utf-8' } }
+                );
+            }
+            const meta = JSON.parse(rawMeta);
+            if (Date.now() > meta.expiresAt) {
+                try { await env.R2.delete(meta.key); } catch {}
+                try { await env.DATA_KV.delete(`social_export:${token}`); } catch {}
+                return new Response(
+                    `<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"><title>Lien expiré - Dropsiders</title></head><body style="margin:0;background:#070709;color:#fff;font-family:sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;text-align:center;padding:24px;"><div><h1 style="color:#ff1241;font-size:24px;margin-bottom:8px;">Lien expiré (24h dépassées)</h1><p style="color:#a1a1aa;font-size:14px;">Ce fichier a été supprimé définitivement des serveurs Dropsiders.</p></div></body></html>`,
+                    { status: 410, headers: { 'Content-Type': 'text/html; charset=utf-8' } }
+                );
+            }
+
+            const obj = await env.R2.get(meta.key);
+            if (!obj) {
+                return new Response('Fichier introuvable sur le stockage', { status: 404 });
+            }
+
+            const dlHeaders = new Headers();
+            dlHeaders.set('Content-Type', meta.contentType || 'application/octet-stream');
+            dlHeaders.set('Content-Disposition', `attachment; filename="${String(meta.filename || 'export').replace(/"/g, '')}"`);
+            dlHeaders.set('Content-Length', String(obj.size));
+            dlHeaders.set('Cache-Control', 'no-store');
+            return new Response(obj.body, { status: 200, headers: dlHeaders });
         }
 
         // --- API: UPLOAD (R2) ---
@@ -13964,6 +14245,40 @@ const contentType = response.headers.get("content-type");
             }
         } catch (recapErr) {
             console.error('[SCHEDULED] Recap email error:', recapErr);
+        }
+
+        // --- AUTO-CLEANUP SOCIAL STUDIO EXPORTS (> 24h) ---
+        try {
+            if (env.DATA_KV && env.R2) {
+                let cursor: string | undefined = undefined;
+                const now = Date.now();
+                let deletedCount = 0;
+                do {
+                    const listRes: any = await env.DATA_KV.list({ prefix: 'social_export:', cursor });
+                    for (const k of listRes.keys || []) {
+                        try {
+                            const raw = await env.DATA_KV.get(k.name);
+                            if (!raw) continue;
+                            const meta = JSON.parse(raw);
+                            if (meta.expiresAt && now > meta.expiresAt) {
+                                if (meta.key) {
+                                    await env.R2.delete(meta.key);
+                                }
+                                await env.DATA_KV.delete(k.name);
+                                deletedCount++;
+                            }
+                        } catch (itemErr) {
+                            console.warn(`[SCHEDULED] Social export cleanup item error (${k.name}):`, itemErr);
+                        }
+                    }
+                    cursor = listRes.list_complete ? undefined : listRes.cursor;
+                } while (cursor);
+                if (deletedCount > 0) {
+                    console.log(`[SCHEDULED] Permanently deleted ${deletedCount} expired Social Studio export(s).`);
+                }
+            }
+        } catch (socialCleanupErr) {
+            console.error('[SCHEDULED] Social Studio exports cleanup error:', socialCleanupErr);
         }
     },
 

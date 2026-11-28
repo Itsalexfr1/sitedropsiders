@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Check, Download, X, Eye, Instagram, Loader2, Wifi, WifiOff } from 'lucide-react';
+import { Check, Download, X, Instagram, Loader2, Wifi, Mail, Link2, FileArchive } from 'lucide-react';
+import { getAuthHeaders } from '../utils/auth';
 
 interface ExportSuccessModalProps {
     isOpen: boolean;
@@ -9,11 +10,12 @@ interface ExportSuccessModalProps {
     readyBlob: Blob | null;
     readyUrl: string;
     filename: string;
-    type: 'image' | 'video';
+    type: 'image' | 'video' | 'zip';
     title?: string;
     subtitle?: string;
     shareUrl?: string;
     shareText?: string;
+    enableEmailExport?: boolean;
 }
 
 type StreamStatus = 'idle' | 'uploading' | 'processing' | 'ready' | 'error';
@@ -28,7 +30,8 @@ export const ExportSuccessModal: React.FC<ExportSuccessModalProps> = ({
     title = "GENERATION REUSSIE !",
     subtitle = "Votre contenu est pret",
     shareUrl,
-    shareText
+    shareText,
+    enableEmailExport = false
 }) => {
     const isMobile = !!(/iPad|iPhone|iPod|Android/.test(navigator.userAgent) || (navigator.maxTouchPoints && navigator.maxTouchPoints > 0));
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
@@ -41,6 +44,33 @@ export const ExportSuccessModal: React.FC<ExportSuccessModalProps> = ({
     const [uploadProgress, setUploadProgress] = useState(0);
     const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
     const uploadAttemptedRef = useRef(false);
+
+    // Social Studio 24h temporary export & email state
+    const [emailRecipients, setEmailRecipients] = useState('');
+    const [emailNote, setEmailNote] = useState('');
+    const [tempExportState, setTempExportState] = useState<'idle' | 'uploading' | 'ready' | 'sending' | 'sent' | 'error'>('idle');
+    const [tempUploadProgress, setTempUploadProgress] = useState(0);
+    const [tempExportResult, setTempExportResult] = useState<{ token: string; downloadUrl: string; expiresAt: number } | null>(null);
+    const [tempExportError, setTempExportError] = useState<string | null>(null);
+    const [copiedTempLink, setCopiedTempLink] = useState(false);
+
+    useEffect(() => {
+        if (!isOpen || !enableEmailExport) return;
+        let cancelled = false;
+        const adminUser = localStorage.getItem('admin_user') || '';
+        if (adminUser.includes('@')) {
+            setEmailRecipients(prev => prev || adminUser);
+        }
+        fetch('/api/social-studio/editor-info', { headers: getAuthHeaders(null) })
+            .then(res => res.ok ? res.json() : null)
+            .then((data: any) => {
+                if (!cancelled && data?.email) {
+                    setEmailRecipients(prev => prev || data.email);
+                }
+            })
+            .catch(() => { });
+        return () => { cancelled = true; };
+    }, [isOpen, enableEmailExport]);
 
     useEffect(() => {
         if (!isOpen || type !== 'video' || !readyBlob || uploadAttemptedRef.current) return;
@@ -56,6 +86,12 @@ export const ExportSuccessModal: React.FC<ExportSuccessModalProps> = ({
                 setStreamEmbedUrl(null);
                 setUploadProgress(0);
                 uploadAttemptedRef.current = false;
+                setTempExportState('idle');
+                setTempUploadProgress(0);
+                setTempExportResult(null);
+                setTempExportError(null);
+                setCopiedTempLink(false);
+                setEmailNote('');
             }, 300);
         }
     }, [isOpen]);
@@ -177,6 +213,176 @@ export const ExportSuccessModal: React.FC<ExportSuccessModalProps> = ({
         }
     };
 
+    const ensureTempUpload = async (): Promise<{ token: string; downloadUrl: string; expiresAt: number }> => {
+        if (tempExportResult) return tempExportResult;
+        if (!readyBlob) throw new Error('Aucun fichier prêt à envoyer');
+
+        setTempExportState('uploading');
+        setTempUploadProgress(0);
+        setTempExportError(null);
+
+        const contentType = readyBlob.type || 'application/octet-stream';
+        const SINGLE_UPLOAD_LIMIT = 50 * 1024 * 1024; // 50 Mo
+
+        let result: { token: string; downloadUrl: string; expiresAt: number };
+
+        if (readyBlob.size < SINGLE_UPLOAD_LIMIT) {
+            const params = new URLSearchParams({
+                filename,
+                contentType,
+                size: String(readyBlob.size),
+            });
+            result = await new Promise((resolve, reject) => {
+                const xhr = new XMLHttpRequest();
+                xhr.upload.onprogress = (e) => {
+                    if (e.lengthComputable) {
+                        setTempUploadProgress(Math.round((e.loaded / e.total) * 100));
+                    }
+                };
+                xhr.onload = () => {
+                    try {
+                        const data = JSON.parse(xhr.responseText || '{}');
+                        if (xhr.status >= 200 && xhr.status < 300 && data.token && data.downloadUrl) {
+                            resolve({ token: data.token, downloadUrl: data.downloadUrl, expiresAt: data.expiresAt });
+                        } else {
+                            reject(new Error(data.error || `Erreur upload (${xhr.status})`));
+                        }
+                    } catch {
+                        reject(new Error(`Erreur upload (${xhr.status})`));
+                    }
+                };
+                xhr.onerror = () => reject(new Error('Erreur réseau pendant l’upload'));
+                xhr.open('PUT', `/api/social-studio/export-upload?${params.toString()}`);
+                const authHeaders = getAuthHeaders(contentType);
+                Object.entries(authHeaders).forEach(([k, v]) => xhr.setRequestHeader(k, v));
+                xhr.send(readyBlob);
+            });
+        } else {
+            // Chunked R2 multipart upload (20 Mo par chunk, supporte toute taille)
+            const CHUNK_SIZE = 20 * 1024 * 1024;
+            const createRes = await fetch('/api/social-studio/export-multipart/create', {
+                method: 'POST',
+                headers: getAuthHeaders('application/json'),
+                body: JSON.stringify({ filename, contentType }),
+            });
+            const createData = await createRes.json() as any;
+            if (!createRes.ok || !createData.uploadId || !createData.key || !createData.token) {
+                throw new Error(createData?.error || 'Impossible d’initialiser l’upload');
+            }
+
+            const totalParts = Math.ceil(readyBlob.size / CHUNK_SIZE);
+            const parts: Array<{ partNumber: number; etag: string }> = [];
+            let uploadedBytes = 0;
+
+            for (let partNumber = 1; partNumber <= totalParts; partNumber++) {
+                const start = (partNumber - 1) * CHUNK_SIZE;
+                const end = Math.min(start + CHUNK_SIZE, readyBlob.size);
+                const chunk = readyBlob.slice(start, end);
+                const partParams = new URLSearchParams({
+                    key: createData.key,
+                    uploadId: createData.uploadId,
+                    partNumber: String(partNumber),
+                });
+
+                const partData = await new Promise<{ partNumber: number; etag: string }>((resolve, reject) => {
+                    const xhr = new XMLHttpRequest();
+                    xhr.upload.onprogress = (e) => {
+                        if (e.lengthComputable) {
+                            setTempUploadProgress(Math.min(99, Math.round(((uploadedBytes + e.loaded) / readyBlob.size) * 100)));
+                        }
+                    };
+                    xhr.onload = () => {
+                        try {
+                            const json = JSON.parse(xhr.responseText || '{}');
+                            if (xhr.status >= 200 && xhr.status < 300 && json.etag) {
+                                resolve(json);
+                            } else {
+                                reject(new Error(json.error || `Erreur chunk ${partNumber}`));
+                            }
+                        } catch {
+                            reject(new Error(`Erreur chunk ${partNumber}`));
+                        }
+                    };
+                    xhr.onerror = () => reject(new Error(`Erreur réseau chunk ${partNumber}`));
+                    xhr.open('PUT', `/api/social-studio/export-multipart/part?${partParams.toString()}`);
+                    const authHeaders = getAuthHeaders('application/octet-stream');
+                    Object.entries(authHeaders).forEach(([k, v]) => xhr.setRequestHeader(k, v));
+                    xhr.send(chunk);
+                });
+
+                uploadedBytes += chunk.size;
+                parts.push(partData);
+            }
+
+            const completeRes = await fetch('/api/social-studio/export-multipart/complete', {
+                method: 'POST',
+                headers: getAuthHeaders('application/json'),
+                body: JSON.stringify({
+                    token: createData.token,
+                    key: createData.key,
+                    uploadId: createData.uploadId,
+                    parts,
+                    filename: createData.filename || filename,
+                    contentType,
+                    size: readyBlob.size,
+                }),
+            });
+            const completeData = await completeRes.json() as any;
+            if (!completeRes.ok || !completeData.downloadUrl) {
+                throw new Error(completeData?.error || 'Finalisation upload échouée');
+            }
+            result = { token: completeData.token, downloadUrl: completeData.downloadUrl, expiresAt: completeData.expiresAt };
+        }
+
+        setTempUploadProgress(100);
+        setTempExportResult(result);
+        setTempExportState('ready');
+        return result;
+    };
+
+    const handleSendExportEmail = async () => {
+        try {
+            if (!emailRecipients.trim()) {
+                setTempExportError('Veuillez saisir au moins une adresse e-mail.');
+                setTempExportState('error');
+                return;
+            }
+            const uploaded = await ensureTempUpload();
+            setTempExportState('sending');
+            setTempExportError(null);
+
+            const res = await fetch('/api/social-studio/export-send-email', {
+                method: 'POST',
+                headers: getAuthHeaders('application/json'),
+                body: JSON.stringify({
+                    token: uploaded.token,
+                    recipients: emailRecipients,
+                    note: emailNote.trim() || undefined,
+                }),
+            });
+            const data = await res.json() as any;
+            if (!res.ok) {
+                throw new Error(data?.error || `Erreur d'envoi (${res.status})`);
+            }
+            setTempExportState('sent');
+        } catch (err: any) {
+            setTempExportError(err?.message || "Impossible d'envoyer l'e-mail");
+            setTempExportState('error');
+        }
+    };
+
+    const handleCopyTempLink = async () => {
+        try {
+            const uploaded = await ensureTempUpload();
+            await navigator.clipboard.writeText(uploaded.downloadUrl);
+            setCopiedTempLink(true);
+            setTimeout(() => setCopiedTempLink(false), 2500);
+        } catch (err: any) {
+            setTempExportError(err?.message || 'Impossible de générer le lien');
+            setTempExportState('error');
+        }
+    };
+
     if (!isOpen) return null;
 
     const isVideoReady = type === 'video' && streamStatus === 'ready' && !!streamEmbedUrl;
@@ -195,7 +401,7 @@ export const ExportSuccessModal: React.FC<ExportSuccessModalProps> = ({
                         <p className="text-[9px] text-gray-500 font-black uppercase tracking-[0.2em] mb-4 text-center">{subtitle}</p>
 
                         {/* Preview */}
-                        <div className="w-full aspect-[9/16] max-h-[280px] mb-4 rounded-2xl overflow-hidden bg-black border border-white/10 relative shadow-inner">
+                        <div className={`w-full ${type === 'zip' ? 'py-6 px-4' : 'aspect-[9/16] max-h-[280px]'} mb-4 rounded-2xl overflow-hidden bg-black border border-white/10 relative shadow-inner flex items-center justify-center`}>
 
                             {/* Stream ready badge + iframe */}
                             {isVideoReady ? (
@@ -212,13 +418,23 @@ export const ExportSuccessModal: React.FC<ExportSuccessModalProps> = ({
                                         style={{ border: 'none' }}
                                     />
                                 </>
+                            ) : type === 'zip' ? (
+                                <div className="flex flex-col items-center text-center gap-2 z-10">
+                                    <div className="w-12 h-12 rounded-2xl bg-[#00d4ff]/10 border border-[#00d4ff]/30 flex items-center justify-center">
+                                        <FileArchive className="w-6 h-6 text-[#00d4ff]" />
+                                    </div>
+                                    <p className="text-[11px] font-black text-white break-all px-2">{filename}</p>
+                                    <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">
+                                        Archive ZIP · {readyBlob.size >= 1024 * 1024 ? `${(readyBlob.size / (1024 * 1024)).toFixed(1)} Mo` : `${Math.max(1, Math.round(readyBlob.size / 1024))} Ko`}
+                                    </p>
+                                </div>
                             ) : (
                                 <>
                                     {/* Local preview (available immediately) */}
                                     {type === 'video' ? (
                                         <video src={readyUrl} className="w-full h-full object-cover" autoPlay loop muted playsInline controls />
                                     ) : (
-                                        <img src={readyUrl} className="w-full h-full object-cover" alt="Preview" />
+                                        <img src={readyUrl} className="w-full h-full object-contain" alt="Preview" />
                                     )}
 
                                     {/* Upload progress chip */}
@@ -313,6 +529,72 @@ export const ExportSuccessModal: React.FC<ExportSuccessModalProps> = ({
                             <button onClick={handleMirrorDownload} className="w-full py-3 bg-white/5 border border-white/10 text-white font-black rounded-2xl uppercase tracking-widest text-[9px] hover:bg-white/10 transition-all flex items-center justify-center gap-2">
                                 <Download className="w-3 h-3" /> Télécharger (local)
                             </button>
+
+                            {enableEmailExport && (
+                                <div className="w-full mt-2 p-3.5 bg-white/[0.03] border border-white/10 rounded-2xl space-y-2.5">
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-[9px] font-black text-[#00d4ff] uppercase tracking-widest flex items-center gap-1.5">
+                                            <Mail className="w-3 h-3" /> Envoyer un lien direct (24h)
+                                        </span>
+                                        <span className="text-[8px] font-bold text-gray-500 uppercase">Suppression auto 24h</span>
+                                    </div>
+                                    <input
+                                        type="text"
+                                        value={emailRecipients}
+                                        onChange={(e) => setEmailRecipients(e.target.value)}
+                                        placeholder="Email(s) séparés par virgule..."
+                                        className="w-full px-3 py-2 bg-black/60 border border-white/10 rounded-xl text-[11px] text-white placeholder:text-gray-600 focus:outline-none focus:border-[#00d4ff]/50"
+                                    />
+                                    <input
+                                        type="text"
+                                        value={emailNote}
+                                        onChange={(e) => setEmailNote(e.target.value)}
+                                        placeholder="Note optionnelle (ex: Story prête pour ce soir)"
+                                        className="w-full px-3 py-2 bg-black/60 border border-white/10 rounded-xl text-[11px] text-white placeholder:text-gray-600 focus:outline-none focus:border-white/20"
+                                    />
+                                    {tempExportState === 'uploading' && (
+                                        <div className="w-full space-y-1">
+                                            <div className="flex justify-between text-[8px] font-black text-[#00d4ff] uppercase">
+                                                <span>Envoi sécurisé vers le cloud...</span>
+                                                <span>{tempUploadProgress}%</span>
+                                            </div>
+                                            <div className="w-full h-1.5 bg-white/10 rounded-full overflow-hidden">
+                                                <div className="h-full bg-[#00d4ff] transition-all duration-200" style={{ width: `${tempUploadProgress}%` }} />
+                                            </div>
+                                        </div>
+                                    )}
+                                    {tempExportState === 'sent' && (
+                                        <div className="px-3 py-2 bg-neon-green/10 border border-neon-green/30 rounded-xl text-[9px] font-black text-neon-green uppercase text-center">
+                                            ✅ E-mail envoyé ! Lien valide 24h.
+                                        </div>
+                                    )}
+                                    {tempExportState === 'error' && tempExportError && (
+                                        <div className="px-3 py-2 bg-red-500/10 border border-red-500/30 rounded-xl text-[9px] font-bold text-red-400 text-center">
+                                            {tempExportError}
+                                        </div>
+                                    )}
+                                    <div className="grid grid-cols-2 gap-2">
+                                        <button
+                                            type="button"
+                                            disabled={tempExportState === 'uploading' || tempExportState === 'sending'}
+                                            onClick={handleSendExportEmail}
+                                            className="py-2.5 px-3 bg-[#ff1241] hover:bg-[#ff1241]/90 disabled:opacity-50 text-white font-black rounded-xl uppercase tracking-wider text-[9px] transition-all flex items-center justify-center gap-1.5"
+                                        >
+                                            {(tempExportState === 'uploading' || tempExportState === 'sending') ? <Loader2 className="w-3 h-3 animate-spin" /> : <Mail className="w-3 h-3" />}
+                                            {tempExportState === 'sending' ? 'Envoi...' : 'Envoyer mail'}
+                                        </button>
+                                        <button
+                                            type="button"
+                                            disabled={tempExportState === 'uploading' || tempExportState === 'sending'}
+                                            onClick={handleCopyTempLink}
+                                            className="py-2.5 px-3 bg-[#00d4ff]/15 hover:bg-[#00d4ff]/25 border border-[#00d4ff]/30 disabled:opacity-50 text-[#00d4ff] font-black rounded-xl uppercase tracking-wider text-[9px] transition-all flex items-center justify-center gap-1.5"
+                                        >
+                                            <Link2 className="w-3 h-3" />
+                                            {copiedTempLink ? 'Lien copié !' : 'Copier lien 24h'}
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
 
                             {showIosHint && (
                                 <div className="w-full px-4 py-3 bg-amber-500/10 border border-amber-500/30 rounded-xl text-[9px] font-black text-amber-400 uppercase tracking-widest text-center">

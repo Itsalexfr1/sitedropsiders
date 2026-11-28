@@ -422,6 +422,18 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const [showFormatModal, setShowFormatModal] = useState(true);
     const [readyVideoBlob, setReadyVideoBlob] = useState<Blob | null>(null);
     const [readyVideoUrl, setReadyVideoUrl] = useState<string>('');
+    const [readySocialExport, setReadySocialExport] = useState<{
+        blob: Blob;
+        url: string;
+        filename: string;
+        type: 'image' | 'zip';
+        title: string;
+        subtitle: string;
+    } | null>(null);
+    const openSocialExportModal = (blob: Blob, filename: string, type: 'image' | 'zip', title: string, subtitle: string) => {
+        const url = URL.createObjectURL(blob);
+        setReadySocialExport({ blob, url, filename, type, title, subtitle });
+    };
     const [recordingProgress, setRecordingProgress] = useState(0);
     const [recordingTimeLeft, setRecordingTimeLeft] = useState(0);
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -18905,13 +18917,15 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 });
 
                 const zipUrl = URL.createObjectURL(zipBlob);
+                const zipFilename = `dropsiders-${cleanTheme}-pack-videos-${formatSuffix}-${Date.now()}.zip`;
                 const a = document.createElement('a');
                 a.href = zipUrl;
-                a.download = `dropsiders-${cleanTheme}-pack-videos-${formatSuffix}-${Date.now()}.zip`;
+                a.download = zipFilename;
                 document.body.appendChild(a);
                 a.click();
                 document.body.removeChild(a);
                 setTimeout(() => URL.revokeObjectURL(zipUrl), 30000);
+                openSocialExportModal(zipBlob, zipFilename, 'zip', 'PACK VIDÉO PRÊT !', 'Téléchargé localement · Envoyez-le par mail (24h)');
             }
         } catch (err: any) {
             console.error('Erreur exportVideoCarouselZip:', err);
@@ -19136,13 +19150,15 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 });
 
                 const zipUrl = URL.createObjectURL(zipBlob);
+                const zipFilename = `dropsiders-musique-pack-${formatSuffix}-${Date.now()}.zip`;
                 const a = document.createElement('a');
                 a.href = zipUrl;
-                a.download = `dropsiders-musique-pack-${formatSuffix}-${Date.now()}.zip`;
+                a.download = zipFilename;
                 document.body.appendChild(a);
                 a.click();
                 document.body.removeChild(a);
                 setTimeout(() => URL.revokeObjectURL(zipUrl), 30000);
+                openSocialExportModal(zipBlob, zipFilename, 'zip', 'PACK MUSIQUE PRÊT !', 'Téléchargé localement · Envoyez-le par mail (24h)');
             }
         } catch (err: any) {
             console.error('Erreur exportMusiqueZip:', err);
@@ -19310,13 +19326,26 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             }
 
             // Default fallback for desktop or if Share failed
-            const dataUrl = canvasRef.current!.toDataURL('image/png');
-            const a = document.createElement('a');
-            a.href = dataUrl;
-            a.download = fileName;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
+            const pngBlob = await new Promise<Blob | null>(resolve => canvasRef.current!.toBlob(resolve, 'image/png'));
+            if (pngBlob) {
+                const pngUrl = URL.createObjectURL(pngBlob);
+                const a = document.createElement('a');
+                a.href = pngUrl;
+                a.download = fileName;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                setTimeout(() => URL.revokeObjectURL(pngUrl), 30000);
+                openSocialExportModal(pngBlob, fileName, 'image', 'VISUEL PNG PRÊT !', 'Téléchargé localement · Envoyez-le par mail (24h)');
+            } else {
+                const dataUrl = canvasRef.current!.toDataURL('image/png');
+                const a = document.createElement('a');
+                a.href = dataUrl;
+                a.download = fileName;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+            }
         } catch (e) {
             console.error(e);
             setErrorMessage("Erreur lors de l'exportation PNG.");
@@ -19515,13 +19544,15 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                 const zipBlob = await zip.generateAsync({ type: 'blob', compression: 'DEFLATE', compressionOptions: { level: 6 } });
                 const zipUrl = URL.createObjectURL(zipBlob);
+                const zipFilename = `dropsiders-agenda-carrousel-${format === 'REEL' ? 'story' : 'post'}-${Date.now()}.zip`;
                 const aZip = document.createElement('a');
                 aZip.href = zipUrl;
-                aZip.download = `dropsiders-agenda-carrousel-${format === 'REEL' ? 'story' : 'post'}-${Date.now()}.zip`;
+                aZip.download = zipFilename;
                 document.body.appendChild(aZip);
                 aZip.click();
                 document.body.removeChild(aZip);
                 setTimeout(() => URL.revokeObjectURL(zipUrl), 30000);
+                openSocialExportModal(zipBlob, zipFilename, 'zip', 'CARROUSEL AGENDA PRÊT !', 'Téléchargé localement · Envoyez-le par mail (24h)');
             }
         } catch (e) {
             console.error(e);
@@ -19701,13 +19732,15 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                 const zipBlob = await zip.generateAsync({ type: 'blob', compression: 'DEFLATE', compressionOptions: { level: 6 } });
                 const zipUrl = URL.createObjectURL(zipBlob);
+                const zipFilename = `dropsiders-spotlight-carrousel-${format === 'REEL' ? 'story' : 'post'}-${Date.now()}.zip`;
                 const aZip = document.createElement('a');
                 aZip.href = zipUrl;
-                aZip.download = `dropsiders-spotlight-carrousel-${format === 'REEL' ? 'story' : 'post'}-${Date.now()}.zip`;
+                aZip.download = zipFilename;
                 document.body.appendChild(aZip);
                 aZip.click();
                 document.body.removeChild(aZip);
                 setTimeout(() => URL.revokeObjectURL(zipUrl), 30000);
+                openSocialExportModal(zipBlob, zipFilename, 'zip', 'CARROUSEL SPOTLIGHT PRÊT !', 'Téléchargé localement · Envoyez-le par mail (24h)');
             }
         } catch (e) {
             console.error(e);
@@ -19922,13 +19955,15 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                 const zipBlob = await zip.generateAsync({ type: 'blob', compression: 'DEFLATE', compressionOptions: { level: 6 } });
                 const zipUrl = URL.createObjectURL(zipBlob);
+                const zipFilename = `dropsiders-events-carrousel-${format === 'REEL' ? 'story' : 'post'}-${Date.now()}.zip`;
                 const aZip = document.createElement('a');
                 aZip.href = zipUrl;
-                aZip.download = `dropsiders-events-carrousel-${format === 'REEL' ? 'story' : 'post'}-${Date.now()}.zip`;
+                aZip.download = zipFilename;
                 document.body.appendChild(aZip);
                 aZip.click();
                 document.body.removeChild(aZip);
                 setTimeout(() => URL.revokeObjectURL(zipUrl), 30000);
+                openSocialExportModal(zipBlob, zipFilename, 'zip', 'CARROUSEL EVENTS PRÊT !', 'Téléchargé localement · Envoyez-le par mail (24h)');
             }
         } catch (e) {
             console.error(e);
@@ -20292,13 +20327,15 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                 const zipBlob = await zip.generateAsync({ type: 'blob', compression: 'DEFLATE', compressionOptions: { level: 6 } });
                 const zipUrl = URL.createObjectURL(zipBlob);
+                const zipFilename = `dropsiders-${theme.toLowerCase().replace(/\s+/g, '-')}-carrousel-${format === 'REEL' ? 'story' : 'post'}-${Date.now()}.zip`;
                 const aZip = document.createElement('a');
                 aZip.href = zipUrl;
-                aZip.download = `dropsiders-${theme.toLowerCase().replace(/\s+/g, '-')}-carrousel-${format === 'REEL' ? 'story' : 'post'}-${Date.now()}.zip`;
+                aZip.download = zipFilename;
                 document.body.appendChild(aZip);
                 aZip.click();
                 document.body.removeChild(aZip);
                 setTimeout(() => URL.revokeObjectURL(zipUrl), 30000);
+                openSocialExportModal(zipBlob, zipFilename, 'zip', 'CARROUSEL PRÊT !', 'Téléchargé localement · Envoyez-le par mail (24h)');
             }
         } catch (e) {
             console.error(e);
@@ -20349,13 +20386,26 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             }
 
             // Default fallback for desktop or if Share failed
-            const dataUrl = canvasRef.current!.toDataURL('image/png');
-            const a = document.createElement('a');
-            a.href = dataUrl;
-            a.download = fileName;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
+            const pngBlob = await new Promise<Blob | null>(resolve => canvasRef.current!.toBlob(resolve, 'image/png'));
+            if (pngBlob) {
+                const pngUrl = URL.createObjectURL(pngBlob);
+                const a = document.createElement('a');
+                a.href = pngUrl;
+                a.download = fileName;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                setTimeout(() => URL.revokeObjectURL(pngUrl), 30000);
+                openSocialExportModal(pngBlob, fileName, 'image', 'VISUEL PNG PRÊT !', 'Téléchargé localement · Envoyez-le par mail (24h)');
+            } else {
+                const dataUrl = canvasRef.current!.toDataURL('image/png');
+                const a = document.createElement('a');
+                a.href = dataUrl;
+                a.download = fileName;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+            }
         } catch (e) {
             console.error(e);
             setErrorMessage("Erreur lors de l'exportation PNG.");
@@ -35045,7 +35095,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
             )} {/* end isMobile ternary */}
 
-            {/* Video Ready Success Modal (Mobile Only) */}
+            {/* Video Ready Success Modal */}
             <ExportSuccessModal
                 isOpen={!!readyVideoBlob}
                 onClose={() => {
@@ -35058,7 +35108,24 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 filename={`dropsiders-${theme.toLowerCase().replace(/\s+/g, '-')}.${readyVideoBlob?.type.includes('mp4') ? 'mp4' : (readyVideoBlob?.type.includes('quicktime') ? 'mov' : 'mp4')}`}
                 type="video"
                 title="VIDÉO PRÊTE !"
-                subtitle="Enregistrez-la pour vos réseaux"
+                subtitle="Enregistrez-la ou envoyez le lien 24h par mail"
+                enableEmailExport={true}
+            />
+
+            {/* Image / ZIP Ready Success Modal (Social Studio) */}
+            <ExportSuccessModal
+                isOpen={!!readySocialExport}
+                onClose={() => {
+                    if (readySocialExport?.url) URL.revokeObjectURL(readySocialExport.url);
+                    setReadySocialExport(null);
+                }}
+                readyBlob={readySocialExport?.blob || null}
+                readyUrl={readySocialExport?.url || ''}
+                filename={readySocialExport?.filename || 'export'}
+                type={readySocialExport?.type || 'image'}
+                title={readySocialExport?.title || 'EXPORT PRÊT !'}
+                subtitle={readySocialExport?.subtitle || 'Envoyez le lien 24h par mail'}
+                enableEmailExport={true}
             />
 
             {/* Shared downloader modal (visible on both) */}
