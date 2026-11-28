@@ -2450,7 +2450,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     top10IntroTitleRef.current = top10IntroTitle;
     const top10IntroArtistRef = useRef<string>(top10IntroArtist);
     top10IntroArtistRef.current = top10IntroArtist;
-    const top10IntroTitleInputRef = useRef<HTMLInputElement | null>(null);
+    const top10IntroTitleInputRef = useRef<HTMLTextAreaElement | null>(null);
     const top10TracksTitleInputRef = useRef<HTMLInputElement | null>(null);
 
     // Mots à mettre en bleu néon (#00F0FF) dans les titres
@@ -26204,12 +26204,15 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                     {/* Titre Intro (Slide 1) */}
                     <div className="space-y-1">
-                        <label className="text-[8.5px] font-black text-gray-400 uppercase tracking-wider">
-                            Titre de l&apos;Intro (Slide 1)
-                        </label>
-                        <input
+                        <div className="flex items-center justify-between">
+                            <label className="text-[8.5px] font-black text-gray-400 uppercase tracking-wider">
+                                Titre de l&apos;Intro (Slide 1)
+                            </label>
+                            <span className="text-[7.5px] font-bold text-gray-500 uppercase">Entrée = à la ligne</span>
+                        </div>
+                        <textarea
                             ref={top10IntroTitleInputRef}
-                            type="text"
+                            rows={2}
                             value={top10IntroTitle}
                             onChange={e => {
                                 const val = e.target.value.toUpperCase();
@@ -26218,7 +26221,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 generateImage();
                             }}
                             placeholder="TOP 10 DES TRACKS LES PLUS TÉLÉCHARGÉES SUR BEATPORT"
-                            className="w-full bg-white/5 border border-white/10 rounded-xl p-2.5 text-white font-black uppercase text-[11px] outline-none"
+                            className="w-full bg-white/5 border border-white/10 rounded-xl p-2.5 text-white font-black uppercase text-[11px] outline-none resize-y leading-snug"
                         />
                     </div>
 
