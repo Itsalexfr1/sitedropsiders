@@ -1605,15 +1605,29 @@ export default {
                 });
             }
 
-            const mapBpTracks = (results: any[]) => {
-                // Dédupliquer par ID avant de trancher les 10 meilleurs
-                const seen = new Set<string | number>();
-                const unique = results.filter((t: any) => {
-                    if (!t.id || seen.has(t.id)) return false;
-                    seen.add(t.id);
-                    return true;
-                });
-                return unique.slice(0, 10).map((t: any, idx: number) => {
+            // Normalize track name pour déduplication (ex: "RHYNO (from GTAVI...)" → "rhyno")
+            const normalizeTrackName = (name: string) =>
+                (name || '')
+                    .replace(/\s*\(from GTAVI[^)]*\)/gi, '')
+                    .replace(/\s*\[from GTAVI[^\]]*\]/gi, '')
+                    .replace(/\s*\(feat\.[^)]*\)/gi, '')
+                    .replace(/\s*\[feat\.[^\]]*\]/gi, '')
+                    .replace(/[^a-z0-9]/gi, '')
+                    .toLowerCase()
+                    .trim();
+
+            const mapBpTracks = (results: any[], dedupByName = false) => {
+                let list = results;
+                if (dedupByName) {
+                    const seenNames = new Set<string>();
+                    list = results.filter((t: any) => {
+                        const key = normalizeTrackName(t.name);
+                        if (!key || seenNames.has(key)) return false;
+                        seenNames.add(key);
+                        return true;
+                    });
+                }
+                return list.slice(0, 10).map((t: any, idx: number) => {
                     const rawImg = t.release?.image?.uri || t.image?.uri || '';
                     const cUrl = rawImg ? rawImg.replace('{w}x{h}', '1400x1400').replace(/500x500/i, '1400x1400') : '';
                     return {
@@ -1628,52 +1642,7 @@ export default {
                 });
             };
 
-            // ── PRIORITÉ 1 : API Beatport v4 (fiable, ordre -sales déterministe) ──
-            const pathMatch = parsedUrl.pathname.match(/\/(?:[a-z]{2}\/)?(artist|label|genre|release|chart)\/[^/]+\/(\d+)/i);
-            if (pathMatch) {
-                const kind = pathMatch[1].toLowerCase();
-                const id = pathMatch[2];
-                try {
-                    const tokenRes = await fetch("https://account.beatport.com/o/token/", {
-                        method: "POST",
-                        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                        body: new URLSearchParams({
-                            client_id: "2tiTbKxmQFwnbFjMONU4k7njMRZmV3ZMwRBndiZs",
-                            client_secret: "RDUJyAk4zFEGtQ8rsTmylDSfxmALRNBn3D1BsRr7MKi3oa1TL9Mq9QxqUPK7loiumXolEWbJcWa4IGAhtwnTz1cSXClGJ1tkkNCNWwRwjxIKTZJKOJxbwaNt0Rm3WG0v",
-                            grant_type: "client_credentials"
-                        })
-                    });
-                    if (tokenRes.ok) {
-                        const tData: any = await tokenRes.json();
-                        const token = tData.access_token || '';
-                        if (token) {
-                            // Fetch with higher per_page to handle duplicates after dedup
-                            const apiUrl = kind === 'artist'
-                                ? `https://api.beatport.com/v4/catalog/artists/${id}/tracks/?order_by=-sales&per_page=20`
-                                : kind === 'label'
-                                    ? `https://api.beatport.com/v4/catalog/labels/${id}/tracks/?order_by=-sales&per_page=20`
-                                    : kind === 'genre'
-                                        ? `https://api.beatport.com/v4/catalog/tracks/?genre_id=${id}&order_by=-sales&per_page=20`
-                                        : kind === 'release'
-                                            ? `https://api.beatport.com/v4/catalog/releases/${id}/tracks/?per_page=20`
-                                            : `https://api.beatport.com/v4/catalog/charts/${id}/tracks/?per_page=20`;
-                            const trRes = await fetch(apiUrl, { headers: { Authorization: `Bearer ${token}` } });
-                            if (trRes.ok) {
-                                const trData: any = await trRes.json();
-                                const results = trData.results || [];
-                                const mapped = mapBpTracks(results);
-                                if (mapped.length >= 1) {
-                                    return new Response(JSON.stringify({ success: true, source: `beatport-url-${kind}-v4`, tracks: mapped }), {
-                                        headers: { ...headers, 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=1800' }
-                                    });
-                                }
-                            }
-                        }
-                    }
-                } catch (_) {}
-            }
-
-            // ── PRIORITÉ 2 : Scraping HTML __NEXT_DATA__ (fallback si pas d'ID dans l'URL) ──
+            // ── PRIORITÉ 1 : Scraping HTML __NEXT_DATA__ (source exacte du Top Ten Tracks Beatport) ──
             try {
                 const bpRes = await fetch(parsedUrl.toString(), {
                     headers: {
@@ -1719,6 +1688,50 @@ export default {
                 }
             } catch (e: any) {
                 console.warn('Erreur HTML Beatport top-url:', e);
+            }
+
+            // ── PRIORITÉ 2 : Fallback via API Beatport v4 (si HTML bloqué ou absent) ──
+            const pathMatch = parsedUrl.pathname.match(/\/(?:[a-z]{2}\/)?(artist|label|genre|release|chart)\/[^/]+\/(\d+)/i);
+            if (pathMatch) {
+                const kind = pathMatch[1].toLowerCase();
+                const id = pathMatch[2];
+                try {
+                    const tokenRes = await fetch("https://account.beatport.com/o/token/", {
+                        method: "POST",
+                        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                        body: new URLSearchParams({
+                            client_id: "2tiTbKxmQFwnbFjMONU4k7njMRZmV3ZMwRBndiZs",
+                            client_secret: "RDUJyAk4zFEGtQ8rsTmylDSfxmALRNBn3D1BsRr7MKi3oa1TL9Mq9QxqUPK7loiumXolEWbJcWa4IGAhtwnTz1cSXClGJ1tkkNCNWwRwjxIKTZJKOJxbwaNt0Rm3WG0v",
+                            grant_type: "client_credentials"
+                        })
+                    });
+                    if (tokenRes.ok) {
+                        const tData: any = await tokenRes.json();
+                        const token = tData.access_token || '';
+                        if (token) {
+                            const apiUrl = kind === 'artist'
+                                ? `https://api.beatport.com/v4/catalog/artists/${id}/tracks/?order_by=-sales&per_page=20`
+                                : kind === 'label'
+                                    ? `https://api.beatport.com/v4/catalog/labels/${id}/tracks/?order_by=-sales&per_page=20`
+                                    : kind === 'genre'
+                                        ? `https://api.beatport.com/v4/catalog/tracks/?genre_id=${id}&order_by=-sales&per_page=20`
+                                        : kind === 'release'
+                                            ? `https://api.beatport.com/v4/catalog/releases/${id}/tracks/?per_page=20`
+                                            : `https://api.beatport.com/v4/catalog/charts/${id}/tracks/?per_page=20`;
+                            const trRes = await fetch(apiUrl, { headers: { Authorization: `Bearer ${token}` } });
+                            if (trRes.ok) {
+                                const trData: any = await trRes.json();
+                                const results = trData.results || [];
+                                const mapped = mapBpTracks(results, true);
+                                if (mapped.length >= 1) {
+                                    return new Response(JSON.stringify({ success: true, source: `beatport-url-${kind}-v4`, tracks: mapped }), {
+                                        headers: { ...headers, 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=1800' }
+                                    });
+                                }
+                            }
+                        }
+                    }
+                } catch (_) {}
             }
 
             return new Response(JSON.stringify({ success: false, error: 'Impossible d\'extraire le Top 10 depuis cette page Beatport' }), {
