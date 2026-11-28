@@ -2615,8 +2615,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     };
 
     const [isAutoFillingTop10, setIsAutoFillingTop10] = useState<boolean>(false);
-    const [top10GenMode, setTop10GenMode] = useState<'style' | 'artist' | 'label'>('style');
-    const top10GenModeRef = useRef<'style' | 'artist' | 'label'>('style');
+    const [top10GenMode, setTop10GenMode] = useState<'style' | 'artist' | 'label' | 'other'>('style');
+    const top10GenModeRef = useRef<'style' | 'artist' | 'label' | 'other'>('style');
     top10GenModeRef.current = top10GenMode;
     const [top10StyleColor, setTop10StyleColor] = useState<string>('#FFB800');
     const top10StyleColorRef = useRef<string>('#FFB800');
@@ -2626,6 +2626,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const top10LabelSearchRef = useRef<string>('');
     top10LabelSearchRef.current = top10LabelSearch;
     const [top10StyleSearch, setTop10StyleSearch] = useState<string>('');
+    const [top10UrlSearch, setTop10UrlSearch] = useState<string>('');
+    const top10UrlSearchRef = useRef<string>(top10UrlSearch);
+    top10UrlSearchRef.current = top10UrlSearch;
     const [top10RawTextImport, setTop10RawTextImport] = useState<string>('');
     const [showRawTextImportModal, setShowRawTextImportModal] = useState<boolean>(false);
 
@@ -3370,6 +3373,69 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         }
 
         setIsAutoFillingTop10(false);
+    };
+
+    const handleAutoFetchUrlTop10 = async (pageUrl: string) => {
+        const cleaned = pageUrl.trim();
+        if (!cleaned) return;
+        setIsAutoFillingTop10(true);
+        setTop10ActiveRank(0);
+        top10ActiveRankRef.current = 0;
+
+        // Effacer le logo et le sous-titre pour le mode Autre (afin de ne pas afficher de cadre artiste/label)
+        setArtistLogo('');
+        artistLogoRef.current = null;
+        setTop10IntroArtist('');
+        top10IntroArtistRef.current = '';
+
+        let resolvedTracks: Top10TrackItem[] | null = null;
+
+        try {
+            const res = await fetch(`/api/beatport/top-url?url=${encodeURIComponent(cleaned)}`);
+            if (res.ok) {
+                const data: any = await res.json();
+                if (data.success && Array.isArray(data.tracks) && data.tracks.length >= 1) {
+                    const tracksSlice = data.tracks.slice(0, 10);
+                    const count = tracksSlice.length;
+                    const mapped: Top10TrackItem[] = [];
+                    for (let i = 0; i < count; i++) {
+                        const rank = count - i;
+                        const t = tracksSlice[count - 1 - i]; // Inversion pour compte à rebours 10 -> 1
+                        const cUrl = t.cover || '';
+                        mapped.push({
+                            rank: rank,
+                            title: cleanTop10TrackTitle(t.title || `TRACK #${rank}`, t.mix_name).toUpperCase(),
+                            artist: (t.artist || '').toUpperCase(),
+                            cover: cUrl,
+                            audioUrl: t.audioUrl || '',
+                            sourceUrl: t.sourceUrl || t.audioUrl || '',
+                            videoStartTime: 0,
+                            audioStartTime: 0,
+                            streams: ''
+                        });
+                        if (cUrl) {
+                            loadCorsSafeImage(cUrl, (img) => {
+                                imageCacheRef.current[cUrl] = img;
+                                generateImage();
+                            });
+                        }
+                    }
+                    resolvedTracks = mapped;
+                }
+            }
+        } catch (e) {
+            console.warn("Échec requête Beatport top-url :", e);
+        }
+
+        if (resolvedTracks && resolvedTracks.length > 0) {
+            setTop10Tracks(resolvedTracks);
+            top10TracksRef.current = resolvedTracks;
+            try {
+                localStorage.setItem('dropsiders_top10_tracks_v7', JSON.stringify(resolvedTracks));
+            } catch (_) { }
+        }
+        setIsAutoFillingTop10(false);
+        generateImage();
     };
 
     // Système de recherche universelle par Titre & Artiste (Beatport / Spotify / Apple Music)
@@ -5473,7 +5539,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         ? { label: 'TOP 10 TRACKS', grad: '184, 98, 33', color: '#B86221' }
         : (top10GenModeRef.current || top10GenMode) === 'style'
             ? { label: 'TOP 10 TRACKS', grad: '255, 184, 0', color: '#FFB800' }
-            : { label: 'TOP 10 TRACKS', grad: '0, 240, 255', color: '#00f0ff' };
+            : (top10GenModeRef.current || top10GenMode) === 'other'
+                ? { label: 'TOP 10 TRACKS', grad: '255, 0, 127', color: '#FF007F' }
+                : { label: 'TOP 10 TRACKS', grad: '0, 240, 255', color: '#00f0ff' };
 
     const activeColor = theme === 'TOP 10 TRACKS'
         ? (themeColor || top10DynamicTheme)
@@ -6146,7 +6214,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ? { label: 'TOP 10 TRACKS', grad: '184, 98, 33', color: '#B86221' }
                     : (top10GenModeRef.current || top10GenMode) === 'style'
                         ? { label: 'TOP 10 TRACKS', grad: '255, 184, 0', color: '#FFB800' }
-                        : { label: 'TOP 10 TRACKS', grad: '0, 240, 255', color: '#00f0ff' };
+                        : (top10GenModeRef.current || top10GenMode) === 'other'
+                            ? { label: 'TOP 10 TRACKS', grad: '255, 0, 127', color: '#FF007F' }
+                            : { label: 'TOP 10 TRACKS', grad: '0, 240, 255', color: '#00f0ff' };
 
                 const activeColor = isPromoTheme
                     ? promoThemeData
@@ -7403,7 +7473,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         ? '#B86221'
                         : top10CurrentMode === 'style'
                             ? '#FFB800'
-                            : '#00f0ff';
+                            : top10CurrentMode === 'other'
+                                ? '#FF007F'
+                                : '#00f0ff';
 
                     const effectiveThemeHex = isTop10Theme
                         ? ((typeof activeColor === 'string' ? activeColor : activeColor?.color)
@@ -12114,15 +12186,18 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     const currentTracks = (top10TracksRef.current && top10TracksRef.current.length === 10) ? top10TracksRef.current : top10Tracks;
                     const currentActiveRank = top10ActiveRankRef.current ?? top10ActiveRank;
 
-                    // Différenciation de couleur : Bleu Néon (#00F0FF) pour Artistes, Or Festival (#FFB800) pour Styles
+                    // Différenciation de couleur : Bleu Néon (#00F0FF) pour Artistes, Or Festival (#FFB800) pour Styles, Rose Néon (#FF007F) pour Autre
                     const isStyleMode = (top10GenModeRef.current || top10GenMode) === 'style';
                     const isLabelMode = (top10GenModeRef.current || top10GenMode) === 'label';
+                    const isOtherMode = (top10GenModeRef.current || top10GenMode) === 'other';
                     const activeStyleColor = '#FFB800';
                     const activeStyleRgb = '255, 184, 0';
                     const activeLabelColor = '#B86221';
                     const activeLabelRgb = '184, 98, 33';
-                    const top10AccentColor = isLabelMode ? activeLabelColor : (isStyleMode ? activeStyleColor : '#00f0ff');
-                    const top10AccentRgb = isLabelMode ? activeLabelRgb : (isStyleMode ? activeStyleRgb : '0, 240, 255');
+                    const activeOtherColor = '#FF007F';
+                    const activeOtherRgb = '255, 0, 127';
+                    const top10AccentColor = isLabelMode ? activeLabelColor : (isStyleMode ? activeStyleColor : (isOtherMode ? activeOtherColor : '#00f0ff'));
+                    const top10AccentRgb = isLabelMode ? activeLabelRgb : (isStyleMode ? activeStyleRgb : (isOtherMode ? activeOtherRgb : '0, 240, 255'));
 
                     // Découpeur de titre pour illuminer en couleur néon les mots entourés d'*astérisques* (ou par défaut TOP 10 / STREAM / BEATPORT / TÉLÉCHARG...)
                     const parseTop10TitleSegments = (lineText: string): { text: string; isHighlighted: boolean }[] => {
@@ -12320,7 +12395,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             ? (top10StyleSearch || 'GENRE').toUpperCase().trim()
                             : isLabelMode
                                 ? ((top10LabelSearchRef.current || top10LabelSearch) || 'LABEL').toUpperCase().trim()
-                                : (top10ArtistSearch || 'ARTISTE').toUpperCase().trim();
+                                : isOtherMode
+                                    ? ''
+                                    : (top10ArtistSearch || 'ARTISTE').toUpperCase().trim();
                         const effectiveArtistName = (
                             top10IntroArtistRef.current ||
                             top10IntroArtist ||
@@ -12358,9 +12435,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         }
 
                         // HAUTEURS D'ANCRAGE STRICTEMENT CONSTANTES (Garantit que le logo, le titre et le pill sont TOUJOURS à la même hauteur exacte quel que soit l'artiste)
-                        const titleCenterY = isStory ? 730 : 410;
+                        const titleCenterY = isStory ? ((isOtherMode && !hasUploadedLogo) ? 880 : 730) : ((isOtherMode && !hasUploadedLogo) ? 490 : 410);
                         const artistCenterY = isStory ? 1040 : 585;
-                        const pillY = isStory ? 1270 : 715;
+                        const pillY = isStory ? ((isOtherMode && !hasUploadedLogo) ? 1220 : 1270) : ((isOtherMode && !hasUploadedLogo) ? 680 : 715);
 
                         const titleLine0Y = titleCenterY - (((titleLines.length - 1) * titleLineHeight) / 2);
 
@@ -12449,7 +12526,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 ctx.drawImage(artistLogoObj, lx, ly, logoW, logoH);
                             }
                             ctx.restore();
-                        } else {
+                        } else if (effectiveArtistName && !isOtherMode) {
                             // ➔ PAS DE LOGO : NOM DE L'ARTISTE / STYLE ANCRÉ AU CENTRE EXACT (artistCenterY)
                             ctx.save();
                             if (!isStaticPngExport && textAnimation !== 'NONE') {
@@ -12808,9 +12885,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             const countdownSubtitle = (
                                 top10IntroArtistRef.current ||
                                 top10IntroArtist ||
-                                (isLabelMode ? (top10LabelSearchRef.current || top10LabelSearch) : isStyleMode ? (top10StyleSearch || 'GENRE') : (top10ArtistSearch || 'ARTISTE')) ||
-                                activeTrack.artist ||
-                                (isLabelMode ? 'LABEL' : isStyleMode ? 'GENRE' : 'ARTISTE')
+                                (isLabelMode ? (top10LabelSearchRef.current || top10LabelSearch) : isStyleMode ? (top10StyleSearch || 'GENRE') : isOtherMode ? '' : (top10ArtistSearch || 'ARTISTE')) ||
+                                (!isOtherMode ? activeTrack.artist : '') ||
+                                (isLabelMode ? 'LABEL' : isStyleMode ? 'GENRE' : isOtherMode ? '' : 'ARTISTE')
                             ).toUpperCase().trim();
 
                             const countdownLogoObj = artistLogoRef.current;
@@ -12841,7 +12918,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     ctx.drawImage(countdownLogoObj, lx, ly, lw, lh);
                                 }
                                 ctx.restore();
-                            } else {
+                            } else if (countdownSubtitle && !isOtherMode) {
                                 ctx.save();
                                 if (!isStaticPngExport && textAnimation !== 'NONE') {
                                     applyTextAnimCtx(ctx, 0.04, canvas.width / 2, logoAreaCenterY, trackAnimTime);
@@ -18141,12 +18218,15 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             const currentTracks = (top10TracksRef.current && top10TracksRef.current.length === 10) ? top10TracksRef.current : top10Tracks;
             const isStyle = (top10GenModeRef.current || top10GenMode) === 'style';
             const isLabel = (top10GenModeRef.current || top10GenMode) === 'label';
+            const isOther = (top10GenModeRef.current || top10GenMode) === 'other';
 
             let subject = '';
             if (isStyle) {
                 subject = (top10IntroArtist || top10StyleSearch || '').trim();
             } else if (isLabel) {
                 subject = (top10LabelSearch || top10IntroArtist || '').trim();
+            } else if (isOther) {
+                subject = (top10Title || top10Badge || 'TOP 10').trim();
             } else {
                 subject = (top10IntroArtist || top10ArtistSearch || '').trim();
             }
@@ -26149,9 +26229,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         const activeTrack = top10Tracks.find(t => Number(t.rank) === Number(top10ActiveRank)) || top10Tracks[0];
         const isStyleMode = top10GenMode === 'style';
         const isLabelMode = top10GenMode === 'label';
-        const top10CurrentAccentHex = isLabelMode ? '#B86221' : (isStyleMode ? '#FFB800' : '#00f0ff');
-        const top10CurrentAccentRgb = isLabelMode ? '184, 98, 33' : (isStyleMode ? '255, 184, 0' : '0, 240, 255');
-        const top10ColorLabel = isStyleMode ? 'en or festival' : (isLabelMode ? 'en bronze cuivré' : 'en bleu néon');
+        const isOtherMode = top10GenMode === 'other';
+        const top10CurrentAccentHex = isLabelMode ? '#B86221' : (isStyleMode ? '#FFB800' : (isOtherMode ? '#FF007F' : '#00f0ff'));
+        const top10CurrentAccentRgb = isLabelMode ? '184, 98, 33' : (isStyleMode ? '255, 184, 0' : (isOtherMode ? '255, 0, 127' : '0, 240, 255'));
+        const top10ColorLabel = isStyleMode ? 'en or festival' : (isLabelMode ? 'en bronze cuivré' : (isOtherMode ? 'en rose néon' : 'en bleu néon'));
         const podiumColor = activeTrack.rank === 1 ? 'text-amber-400' : activeTrack.rank === 2 ? 'text-gray-300' : activeTrack.rank === 3 ? 'text-amber-600' : '';
         const podiumBorder = activeTrack.rank === 1 ? 'border-amber-400/60 shadow-[0_0_15px_rgba(255,215,0,0.3)]' : activeTrack.rank === 2 ? 'border-gray-300/60' : activeTrack.rank === 3 ? 'border-amber-600/60' : '';
 
@@ -26475,8 +26556,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         )}
                     </div>
 
-                    {/* SÉLECTEUR DE MODE : TOP 10 GENRE / TOP 10 LABEL / TOP 10 ARTISTE */}
-                    <div className="grid grid-cols-3 gap-1.5 p-1 bg-black/60 border border-white/10 rounded-xl">
+                    {/* SÉLECTEUR DE MODE : TOP 10 GENRE / TOP 10 LABEL / TOP 10 ARTISTE / AUTRE (LIEN) */}
+                    <div className="grid grid-cols-4 gap-1 p-1 bg-black/60 border border-white/10 rounded-xl">
                         <button
                             type="button"
                             onClick={() => {
@@ -26488,13 +26569,13 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 }
                                 generateImage();
                             }}
-                            className={`py-2 px-1.5 rounded-lg text-[8.5px] font-black uppercase transition-all flex items-center justify-center gap-1 ${top10GenMode === 'style'
+                            className={`py-2 px-1 rounded-lg text-[8px] font-black uppercase transition-all flex items-center justify-center gap-1 ${top10GenMode === 'style'
                                 ? 'bg-gradient-to-r from-[#ffb800] via-[#ffa500] to-[#ff8c00] text-black font-black shadow-[0_0_14px_rgba(255,184,0,0.55)] border border-[#ffb800]/70'
                                 : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
                                 }`}
                         >
                             <span>🎧</span>
-                            <span>Top 10 Genre</span>
+                            <span>Genre</span>
                         </button>
                         <button
                             type="button"
@@ -26507,13 +26588,13 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 }
                                 generateImage();
                             }}
-                            className={`py-2 px-1.5 rounded-lg text-[8.5px] font-black uppercase transition-all flex items-center justify-center gap-1 ${top10GenMode === 'label'
+                            className={`py-2 px-1 rounded-lg text-[8px] font-black uppercase transition-all flex items-center justify-center gap-1 ${top10GenMode === 'label'
                                 ? 'bg-gradient-to-r from-[#B86221] via-[#A05018] to-[#7B380A] text-white font-black shadow-[0_0_14px_rgba(184,98,33,0.55)] border border-[#B86221]/70'
                                 : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
                                 }`}
                         >
                             <span>🏷️</span>
-                            <span>Top 10 Label</span>
+                            <span>Label</span>
                         </button>
                         <button
                             type="button"
@@ -26526,13 +26607,32 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 }
                                 generateImage();
                             }}
-                            className={`py-2 px-1.5 rounded-lg text-[8.5px] font-black uppercase transition-all flex items-center justify-center gap-1 ${top10GenMode === 'artist'
+                            className={`py-2 px-1 rounded-lg text-[8px] font-black uppercase transition-all flex items-center justify-center gap-1 ${top10GenMode === 'artist'
                                 ? 'bg-gradient-to-r from-neon-cyan to-blue-500 text-black shadow-[0_0_14px_rgba(0,240,255,0.4)] border border-neon-cyan/60 font-black'
                                 : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
                                 }`}
                         >
                             <span>👤</span>
-                            <span>Top 10 Artiste</span>
+                            <span>Artiste</span>
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setTop10GenMode('other');
+                                top10GenModeRef.current = 'other';
+                                setArtistLogo('');
+                                artistLogoRef.current = null;
+                                setTop10IntroArtist('');
+                                top10IntroArtistRef.current = '';
+                                generateImage();
+                            }}
+                            className={`py-2 px-1 rounded-lg text-[8px] font-black uppercase transition-all flex items-center justify-center gap-1 ${top10GenMode === 'other'
+                                ? 'bg-gradient-to-r from-pink-500 to-rose-600 text-white shadow-[0_0_14px_rgba(255,0,127,0.45)] border border-pink-500/70 font-black'
+                                : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
+                                }`}
+                        >
+                            <span>🌐</span>
+                            <span>Autre</span>
                         </button>
                     </div>
 
@@ -26633,7 +26733,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 ✨ <span className="text-[#B86221] font-bold">Marron = Labels</span>. Téléchargement direct du Top 10 officiel du label avec pochettes HD 1400x1400 !
                             </p>
                         </div>
-                    ) : (
+                    ) : top10GenMode === 'artist' ? (
                         /* ─── OPTION 3 : RECHERCHE PAR ARTISTE (BLEU NÉON) ─── */
                         <div className="space-y-1.5">
                             <label className="text-[8px] font-black text-gray-300 uppercase tracking-wider flex items-center justify-between">
@@ -26661,10 +26761,41 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 </button>
                             </div>
                         </div>
+                    ) : (
+                        /* ─── OPTION 4 : LIEN BEATPORT LIBRE (AUTRE) ─── */
+                        <div className="space-y-2 p-3 bg-black/70 border border-pink-500/40 rounded-xl shadow-lg">
+                            <label className="text-[8.5px] font-black text-pink-400 uppercase tracking-wider flex items-center justify-between">
+                                <span>🌐 Lien Beatport (Page Artiste, Label, Chart, Release...) :</span>
+                                <span className="text-[7.5px] text-gray-400 font-mono">10 titres + Covers HD + Audio</span>
+                            </label>
+                            <div className="flex items-center gap-1.5">
+                                <input
+                                    type="text"
+                                    value={top10UrlSearch}
+                                    onChange={e => setTop10UrlSearch(e.target.value)}
+                                    onKeyDown={e => {
+                                        if (e.key === 'Enter') handleAutoFetchUrlTop10(top10UrlSearch);
+                                    }}
+                                    placeholder="Colle ton lien (ex: https://www.beatport.com/fr/artist/grand-theft-auto-vi/2471869)"
+                                    className="flex-1 bg-black/80 border border-pink-500/40 focus:border-pink-500 rounded-xl px-3 py-2 text-white text-[10.5px] font-bold outline-none placeholder:text-gray-500 shadow-inner"
+                                />
+                                <button
+                                    type="button"
+                                    disabled={isAutoFillingTop10 || !top10UrlSearch.trim()}
+                                    onClick={() => handleAutoFetchUrlTop10(top10UrlSearch)}
+                                    className="px-3.5 py-2 bg-gradient-to-r from-pink-500 to-rose-600 hover:brightness-110 text-white font-black text-[9.5px] uppercase rounded-xl transition-all disabled:opacity-40 shrink-0 shadow-md shadow-pink-500/30 active:scale-95 flex items-center gap-1"
+                                >
+                                    <span>{isAutoFillingTop10 ? '⏳...' : '⚡ Générer'}</span>
+                                </button>
+                            </div>
+                            <p className="text-[7.5px] text-gray-400 leading-tight">
+                                ✨ <span className="text-pink-400 font-bold">Mode Autre</span> : Récupération automatique des 10 morceaux depuis le lien Beatport, sans cadre artiste/label supplémentaire !
+                            </p>
+                        </div>
                     )}
 
-                    {/* 🎨 LOGO OFFICIEL (Affiché uniquement pour Label ou Artiste, retiré pour Genre) */}
-                    {top10GenMode !== 'style' && (
+                    {/* 🎨 LOGO OFFICIEL (Affiché uniquement pour Label ou Artiste, retiré pour Genre et Autre) */}
+                    {top10GenMode !== 'style' && top10GenMode !== 'other' && (
                         <div className="p-3 bg-black/60 border border-neon-cyan/35 rounded-xl space-y-2.5">
                             <div className="flex items-center justify-between">
                                 <span className="text-[9px] font-black text-white uppercase tracking-wider flex items-center gap-1.5">
@@ -26911,7 +27042,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             <span className="text-[14px]">🎬</span>
                             <span className="tracking-wide">Slide 1 : INTRO (3.5s)</span>
                             <span className="text-[8px] px-1.5 py-0.5 rounded bg-black/40 font-mono border" style={{ color: top10CurrentAccentHex, borderColor: `rgba(${top10CurrentAccentRgb}, 0.35)` }}>
-                                Titre + Logo {top10GenMode === 'label' ? 'Label' : top10GenMode === 'style' ? 'Genre' : 'Artiste'}
+                                Titre + Logo {top10GenMode === 'label' ? 'Label' : top10GenMode === 'style' ? 'Genre' : top10GenMode === 'other' ? 'Personnalisé' : 'Artiste'}
                             </span>
                         </span>
                         <div className="flex items-center gap-1.5">
@@ -27043,8 +27174,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             </button>
                         </div>
 
-                        {/* Nom de l'Artiste — affiché uniquement en mode Label ou Artiste */}
-                        {top10GenMode !== 'style' && (
+                        {/* Nom de l'Artiste — affiché uniquement en mode Label ou Artiste (retiré en mode Genre et Autre) */}
+                        {top10GenMode !== 'style' && top10GenMode !== 'other' && (
                             <div className="space-y-1">
                                 <label className="text-[8.5px] font-black text-gray-300 uppercase tracking-wider">
                                     Nom de l'Artiste
@@ -27062,8 +27193,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             </div>
                         )}
 
-                        {/* LOGO DE L'ARTISTE (MÉLANGE IDÉE 1 ET 2) - Retiré en mode Genre */}
-                        {top10GenMode !== 'style' && (
+                        {/* LOGO DE L'ARTISTE (MÉLANGE IDÉE 1 ET 2) - Retiré en mode Genre et Autre */}
+                        {top10GenMode !== 'style' && top10GenMode !== 'other' && (
                         <div className="p-3 bg-black/70 border border-white/10 rounded-xl space-y-3">
                             <div className="flex items-center justify-between">
                                 <span className="text-[9.5px] font-black text-white uppercase tracking-wider flex items-center gap-1.5">

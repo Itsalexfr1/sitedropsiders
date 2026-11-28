@@ -449,6 +449,118 @@ export default defineConfig({
             }
           }
 
+          if (req.url && req.url.startsWith('/api/beatport/top-url')) {
+            try {
+              const reqUrl = new URL(req.url, 'http://localhost:5173');
+              const rawUrl = (reqUrl.searchParams.get('url') || '').trim();
+              let parsedUrl: URL | null = null;
+              try {
+                parsedUrl = new URL(rawUrl);
+              } catch (_) {}
+              if (!parsedUrl || !parsedUrl.hostname.endsWith('beatport.com')) {
+                res.writeHead(400, { 'Access-Control-Allow-Origin': '*', 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ success: false, error: 'URL Beatport invalide' }));
+                return;
+              }
+
+              const mapBpTracks = (results: any[]) => results.slice(0, 10).map((t: any, idx: number) => {
+                const rawImg = t.release?.image?.uri || t.image?.uri || '';
+                const cUrl = rawImg ? rawImg.replace('{w}x{h}', '1400x1400').replace(/500x500/i, '1400x1400') : '';
+                return {
+                  rank: idx + 1,
+                  title: cleanBeatportTrackTitle(t.name, t.mix_name),
+                  artist: Array.isArray(t.artists) ? t.artists.map((a: any) => a.name).join(', ') : (t.artist || ''),
+                  cover: cUrl,
+                  audioUrl: t.sample_url || '',
+                  sourceUrl: t.sample_url || '',
+                  genre: t.genre?.name || ''
+                };
+              });
+
+              // 1. Essai direct via API Beatport v4 si l'URL contient un ID de type (artist, label, genre, release, chart)
+              const pathMatch = parsedUrl.pathname.match(/\/(?:[a-z]{2}\/)?(artist|label|genre|release|chart)\/[^/]+\/(\d+)/i);
+              if (pathMatch) {
+                const kind = pathMatch[1].toLowerCase();
+                const id = pathMatch[2];
+                try {
+                  const tokenRes = await fetch("https://account.beatport.com/o/token/", {
+                    method: "POST",
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: new URLSearchParams({
+                      client_id: "2tiTbKxmQFwnbFjMONU4k7njMRZmV3ZMwRBndiZs",
+                      client_secret: "RDUJyAk4zFEGtQ8rsTmylDSfxmALRNBn3D1BsRr7MKi3oa1TL9Mq9QxqUPK7loiumXolEWbJcWa4IGAhtwnTz1cSXClGJ1tkkNCNWwRwjxIKTZJKOJxbwaNt0Rm3WG0v",
+                      grant_type: "client_credentials"
+                    })
+                  });
+                  if (tokenRes.ok) {
+                    const tData: any = await tokenRes.json();
+                    const token = tData.access_token || '';
+                    if (token) {
+                      const apiUrl = kind === 'artist'
+                        ? `https://api.beatport.com/v4/catalog/artists/${id}/tracks/?order_by=-sales&per_page=10`
+                        : kind === 'label'
+                          ? `https://api.beatport.com/v4/catalog/labels/${id}/tracks/?order_by=-sales&per_page=10`
+                          : kind === 'genre'
+                            ? `https://api.beatport.com/v4/catalog/tracks/?genre_id=${id}&order_by=-sales&per_page=10`
+                            : kind === 'release'
+                              ? `https://api.beatport.com/v4/catalog/releases/${id}/tracks/?per_page=10`
+                              : `https://api.beatport.com/v4/catalog/charts/${id}/tracks/?per_page=10`;
+                      const trRes = await fetch(apiUrl, { headers: { Authorization: `Bearer ${token}` } });
+                      if (trRes.ok) {
+                        const trData: any = await trRes.json();
+                        const results = trData.results || [];
+                        if (results.length >= 1) {
+                          res.writeHead(200, { 'Access-Control-Allow-Origin': '*', 'Content-Type': 'application/json' });
+                          res.end(JSON.stringify({ success: true, source: `beatport-url-${kind}-v4`, tracks: mapBpTracks(results) }));
+                          return;
+                        }
+                      }
+                    }
+                  }
+                } catch (e: any) {
+                  console.warn('Vite dev top-url api error:', e.message);
+                }
+              }
+
+              // 2. Fallback HTML __NEXT_DATA__
+              try {
+                const { execSync } = await import('node:child_process');
+                const html = execSync(`curl.exe -s -L "${parsedUrl.toString()}" -H "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36"`).toString();
+                const startTag = '<script id="__NEXT_DATA__" type="application/json">';
+                const start = html.indexOf(startTag);
+                if (start !== -1) {
+                  const end = html.indexOf('</script>', start);
+                  const nextData = JSON.parse(html.slice(start + startTag.length, end));
+                  const queries = nextData.props?.pageProps?.dehydratedState?.queries || [];
+                  const extractTrackArray = (q: any): any[] | null => {
+                    const cand = q?.state?.data?.results || q?.state?.data?.tracks || (Array.isArray(q?.state?.data) ? q.state.data : null);
+                    if (Array.isArray(cand) && cand.length > 0 && typeof cand[0]?.name === 'string' && (cand[0]?.artists || cand[0]?.sample_url || cand[0]?.release)) {
+                      return cand;
+                    }
+                    return null;
+                  };
+                  for (const q of queries) {
+                    const keyStr = JSON.stringify(q.queryKey || []);
+                    if (keyStr.includes('top-10-tracks') || keyStr.includes('top-tracks') || keyStr.includes('top-100') || keyStr.includes('chart') || keyStr.includes('tracks')) {
+                      const arr = extractTrackArray(q);
+                      if (arr && arr.length >= 1) {
+                        res.writeHead(200, { 'Access-Control-Allow-Origin': '*', 'Content-Type': 'application/json' });
+                        res.end(JSON.stringify({ success: true, source: 'beatport-url-nextdata', tracks: mapBpTracks(arr) }));
+                        return;
+                      }
+                    }
+                  }
+                }
+              } catch (_) {}
+
+              res.writeHead(404, { 'Access-Control-Allow-Origin': '*', 'Content-Type': 'application/json' });
+              res.end(JSON.stringify({ success: false, error: 'Impossible d\'extraire le Top 10 depuis cette page Beatport' }));
+              return;
+            } catch (e: any) {
+              console.warn('Vite dev top-url error:', e.message);
+            }
+          }
+
           if (req.url && (req.url.startsWith('/api/proxy-media') || req.url.startsWith('/api/proxy-image'))) {
             try {
               const reqUrl = new URL(req.url, 'http://localhost:5173');
