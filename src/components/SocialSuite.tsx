@@ -26184,17 +26184,16 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     </div>
 
                     <div className="space-y-1">
-                        <div className="flex items-center justify-between">
-                            <label className="text-[8.5px] font-black text-gray-400 uppercase tracking-wider">
-                                Badge Capsule Haut Gauche
-                            </label>
-                            <span className="text-[7.5px] font-bold uppercase" style={{ color: top10CurrentAccentHex }}>Synchro auto avec le titre</span>
-                        </div>
+                        <label className="text-[8.5px] font-black text-gray-400 uppercase tracking-wider">
+                            Badge Capsule Haut Gauche
+                        </label>
                         <input
                             type="text"
                             value={top10Badge}
                             onChange={e => {
-                                setTop10Badge(e.target.value.toUpperCase());
+                                const val = e.target.value.toUpperCase();
+                                setTop10Badge(val);
+                                top10BadgeRef.current = val;
                                 generateImage();
                             }}
                             placeholder="TOP 10 TRACKS"
@@ -26215,9 +26214,6 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 const val = e.target.value.toUpperCase();
                                 setTop10Title(val);
                                 top10TitleRef.current = val;
-                                // 🔗 Badge Capsule suit automatiquement le titre
-                                setTop10Badge(val);
-                                top10BadgeRef.current = val;
                                 generateImage();
                             }}
                             placeholder="ex: TOP 10 TRACKS"
