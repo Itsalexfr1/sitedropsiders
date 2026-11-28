@@ -6522,8 +6522,6 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 const sourceThemeKey = (isPromoRequested
                     ? (isAgendaSource ? 'PLANNING' : (promoCategory as ThemeType || theme || 'NEWS'))
                     : (theme === 'PROMO' ? (promoCategory as ThemeType || 'NEWS') : theme)) as ThemeType;
-                const effectiveBaseThemeData = baseThemeData[sourceThemeKey] || baseThemeData['NEWS'];
-                const promoThemeData = themeColor || effectiveBaseThemeData;
                 const top10DynamicTheme = (top10GenModeRef.current || top10GenMode) === 'label'
                     ? { label: 'TOP 10 TRACKS', grad: '184, 98, 33', color: '#B86221' }
                     : (top10GenModeRef.current || top10GenMode) === 'style'
@@ -6531,6 +6529,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         : (top10GenModeRef.current || top10GenMode) === 'other'
                             ? { label: 'TOP 10 TRACKS', grad: '255, 0, 127', color: '#FF007F' }
                             : { label: 'TOP 10 TRACKS', grad: '0, 240, 255', color: '#00f0ff' };
+                const effectiveBaseThemeData = sourceThemeKey === 'TOP 10 TRACKS'
+                    ? top10DynamicTheme
+                    : (baseThemeData[sourceThemeKey] || baseThemeData['NEWS']);
+                const promoThemeData = themeColor || effectiveBaseThemeData;
 
                 const activeColor = isPromoTheme
                     ? promoThemeData
@@ -9129,27 +9131,6 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             ctx.moveTo(0, y);
                             ctx.lineTo(canvas.width, y);
                             ctx.stroke();
-                        }
-                        ctx.restore();
-
-                        // Particules / Motes cyber flottantes lumineuses (effet club / scène festival)
-                        ctx.save();
-                        const particleTime = isVideoRecordingRef.current
-                            ? deterministicTotalTimeRef.current
-                            : (animElapsed !== 99.0 ? animElapsed : (Date.now() / 1000));
-                        const numParticles = 24;
-                        for (let pi = 0; pi < numParticles; pi++) {
-                            const px = ((pi * 137.5) % canvas.width);
-                            const pSpeed = 15 + (pi % 5) * 8;
-                            const py = (canvas.height - ((particleTime * pSpeed + pi * 85) % canvas.height));
-                            const pRadius = 1.2 + (pi % 3) * 0.9;
-                            const pAlpha = 0.25 + 0.45 * Math.sin(particleTime * 2.0 + pi);
-                            ctx.fillStyle = `rgba(${monthGrad}, ${Math.max(0.1, pAlpha)})`;
-                            ctx.shadowColor = monthColor;
-                            ctx.shadowBlur = 8;
-                            ctx.beginPath();
-                            ctx.arc(px, py, pRadius, 0, Math.PI * 2);
-                            ctx.fill();
                         }
                         ctx.restore();
 
@@ -12597,27 +12578,6 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         ctx.fillStyle = auraGrad;
                         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-                        // 3. Particules montantes festival (rendu ultra-fluide 60fps)
-                        ctx.save();
-                        ctx.shadowColor = top10AccentColor;
-                        ctx.shadowBlur = 6;
-                        for (let p = 0; p < 36; p++) {
-                            const seedX = ((p * 137.5) % 1) * canvas.width;
-                            const speed = 32 + ((p * 31.7) % 45);
-                            const swaySpeed = 0.9 + ((p * 19.3) % 1.4);
-                            const swayAmp = 15 + ((p * 27.1) % 25);
-                            const pSize = 1.5 + ((p * 37.3) % 3.5);
-                            const totalH = canvas.height + 140;
-                            const rawY = (canvas.height + 70) - ((introAnimTime * speed + p * 89.3) % totalH);
-                            const pX = seedX + Math.sin(introAnimTime * swaySpeed + p * 1.8) * swayAmp;
-                            ctx.globalAlpha = p % 2 === 0 ? 0.70 : 0.40;
-                            ctx.fillStyle = p % 2 === 0 ? top10AccentColor : '#ffffff';
-                            ctx.beginPath();
-                            ctx.arc(pX, rawY, pSize, 0, Math.PI * 2);
-                            ctx.fill();
-                        }
-                        ctx.restore();
-
                         // 4. Badge en haut à gauche
                         drawTopCapsuleBadge((top10BadgeRef.current || top10Badge || 'TOP 10 TRACKS').toUpperCase(), top10AccentColor, top10AccentRgb);
 
@@ -12931,9 +12891,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 ? (animTime % durPerTrack)
                                 : Math.max(0, (Date.now() - animStartTimeRef.current) / 1000));
 
-                        // Thématique couleur du rang (Podium Or, Argent, Bronze ou Cyber Néon)
-                        let rankColor = isLabelMode ? activeLabelColor : (isStyleMode ? activeStyleColor : '#00f0ff');
-                        let rankColorRgb = isLabelMode ? activeLabelRgb : (isStyleMode ? activeStyleRgb : '0, 240, 255');
+                        // Thématique couleur du rang (Podium Or, Argent, Bronze ou couleur dynamique du mode Top 10)
+                        let rankColor = top10AccentColor;
+                        let rankColorRgb = top10AccentRgb;
                         let rankTitle = `N° ${activeRank}`;
                         let isPodium = false;
 
@@ -13053,44 +13013,6 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         auraGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
                         ctx.fillStyle = auraGrad;
                         ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-                        // C) Particules & Poussières Magiques Festival (Fairy Dust Tomorrowland - Rendu groupé 60fps)
-                        const particleCount = 36;
-                        ctx.save();
-                        ctx.shadowColor = `rgba(${rankColorRgb}, 0.85)`;
-                        ctx.shadowBlur = 6;
-                        for (let p = 0; p < particleCount; p++) {
-                            const seedX = ((p * 137.5) % 1) * canvas.width;
-                            const speed = 32 + ((p * 31.7) % 48); // Vitesse d'ascension lente
-                            const swaySpeed = 0.9 + ((p * 19.3) % 1.4);
-                            const swayAmp = 15 + ((p * 27.1) % 25);
-                            const pSize = 1.5 + ((p * 37.3) % 4.0); // 1.5px à 5.5px
-
-                            const totalH = canvas.height + 140;
-                            const rawY = (canvas.height + 70) - ((animTime * speed + p * 89.3) % totalH);
-                            const pX = seedX + Math.sin(animTime * swaySpeed + p * 1.8) * swayAmp;
-                            const pY = rawY;
-
-                            let pAlpha = 1.0;
-                            if (pY > canvas.height - 180) {
-                                pAlpha = Math.max(0, (canvas.height - pY) / 180);
-                            } else if (pY < 220) {
-                                pAlpha = Math.max(0, pY / 220);
-                            }
-
-                            const sparkle = 0.65 + 0.35 * Math.sin(animTime * 3.2 + p * 2.3);
-                            const finalAlpha = pAlpha * sparkle * (pSize > 3.8 ? 0.40 : 0.75);
-
-                            if (finalAlpha > 0.05) {
-                                ctx.globalAlpha = finalAlpha;
-                                ctx.beginPath();
-                                ctx.arc(pX, pY, pSize, 0, Math.PI * 2);
-                                const isGold = (p % 3 === 0);
-                                ctx.fillStyle = isGold ? '#ffe680' : rankColor;
-                                ctx.fill();
-                            }
-                        }
-                        ctx.restore();
 
                         // D) Vignette sombre cinématique haut et bas pour contraste des textes
                         const topVig = ctx.createLinearGradient(0, 0, 0, 320);
