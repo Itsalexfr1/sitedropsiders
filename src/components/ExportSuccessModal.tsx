@@ -573,24 +573,24 @@ export const ExportSuccessModal: React.FC<ExportSuccessModalProps> = ({
                                             {tempExportError}
                                         </div>
                                     )}
-                                    <div className="grid grid-cols-2 gap-2">
+                                    <div className="flex flex-col gap-2">
                                         <button
                                             type="button"
                                             disabled={tempExportState === 'uploading' || tempExportState === 'sending'}
                                             onClick={handleSendExportEmail}
-                                            className="py-2.5 px-3 bg-[#ff1241] hover:bg-[#ff1241]/90 disabled:opacity-50 text-white font-black rounded-xl uppercase tracking-wider text-[9px] transition-all flex items-center justify-center gap-1.5"
+                                            className="w-full py-3.5 px-4 bg-[#ff1241] hover:bg-[#ff1241]/90 disabled:opacity-50 text-white font-black rounded-xl uppercase tracking-widest text-[10px] shadow-[0_8px_24px_rgba(255,18,65,0.28)] hover:scale-[1.01] active:scale-95 transition-all flex items-center justify-center gap-2"
                                         >
-                                            {(tempExportState === 'uploading' || tempExportState === 'sending') ? <Loader2 className="w-3 h-3 animate-spin" /> : <Mail className="w-3 h-3" />}
-                                            {tempExportState === 'sending' ? 'Envoi...' : 'Envoyer mail'}
+                                            {(tempExportState === 'uploading' || tempExportState === 'sending') ? <Loader2 className="w-4 h-4 animate-spin" /> : <Mail className="w-4 h-4" />}
+                                            {tempExportState === 'sending' ? 'Envoi en cours...' : 'Envoyer le lien par mail'}
                                         </button>
                                         <button
                                             type="button"
                                             disabled={tempExportState === 'uploading' || tempExportState === 'sending'}
                                             onClick={handleCopyTempLink}
-                                            className="py-2.5 px-3 bg-[#00d4ff]/15 hover:bg-[#00d4ff]/25 border border-[#00d4ff]/30 disabled:opacity-50 text-[#00d4ff] font-black rounded-xl uppercase tracking-wider text-[9px] transition-all flex items-center justify-center gap-1.5"
+                                            className="w-full py-2 px-3 bg-white/5 hover:bg-white/10 border border-white/10 disabled:opacity-50 text-gray-300 font-bold rounded-xl uppercase tracking-wider text-[8px] transition-all flex items-center justify-center gap-1.5"
                                         >
-                                            <Link2 className="w-3 h-3" />
-                                            {copiedTempLink ? 'Lien copié !' : 'Copier lien 24h'}
+                                            <Link2 className="w-3 h-3 text-[#00d4ff]" />
+                                            {copiedTempLink ? 'Lien 24h copié !' : 'Copier le lien 24h'}
                                         </button>
                                     </div>
                                 </div>

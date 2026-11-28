@@ -4561,27 +4561,35 @@ ${urls.map(u => `  <url>
                         subject: `Votre export Social Studio (${ext}) est prêt - Valide 24h`,
                         htmlContent: `
                             <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #070709; padding: 32px 16px; color: #f4f4f5;">
-                                <div style="max-width: 560px; margin: 0 auto; background: #101116; border: 1px solid #22232c; border-radius: 20px; overflow: hidden;">
-                                    <div style="padding: 28px 28px 20px; border-bottom: 1px solid #1e2028; text-align: center;">
-                                        <div style="font-size: 11px; font-weight: 800; letter-spacing: 3px; text-transform: uppercase; color: #ff1241; margin-bottom: 6px;">DROPSIDERS SOCIAL STUDIO</div>
-                                        <h1 style="margin: 0; font-size: 22px; font-weight: 900; color: #ffffff; letter-spacing: -0.5px;">Votre export est prêt à télécharger</h1>
+                                <div style="max-width: 580px; margin: 0 auto; background: #101116; border: 1px solid #22232c; border-radius: 20px; overflow: hidden;">
+                                    <div style="background: radial-gradient(ellipse at 50% 50%, rgba(255,18,65,0.35) 0%, rgba(255,18,65,0.12) 45%, rgba(18,19,26,0) 80%), #12131a; padding: 32px 24px 24px; border-bottom: 1px solid rgba(255,18,65,0.2); text-align: center;">
+                                        <a href="https://dropsiders.fr" target="_blank" style="text-decoration: none; display: inline-block;">
+                                            <img src="https://dropsiders.fr/Logo.png" alt="Dropsiders" width="165" style="display: block; margin: 0 auto 14px auto; max-width: 165px; height: auto; filter: drop-shadow(0 0 20px rgba(255,18,65,0.85));" />
+                                        </a>
+                                        <div style="font-size: 10px; font-weight: 800; letter-spacing: 3px; text-transform: uppercase; color: #ff3b5c; margin-bottom: 6px;">DROPSIDERS SOCIAL STUDIO</div>
+                                        <h1 style="margin: 0; font-size: 21px; font-weight: 900; color: #ffffff; letter-spacing: -0.5px;">Votre export est prêt à télécharger</h1>
                                     </div>
                                     <div style="padding: 24px 28px;">
                                         ${escapedNote ? `<div style="background: #171922; border-left: 3px solid #00d4ff; padding: 12px 16px; border-radius: 8px; margin-bottom: 20px; font-size: 14px; color: #e4e4e7; line-height: 1.5;">${escapedNote}</div>` : ''}
-                                        <div style="background: #14151c; border: 1px solid #232530; border-radius: 12px; padding: 16px; margin-bottom: 24px;">
+                                        <div style="background: #14151c; border: 1px solid #232530; border-radius: 12px; padding: 16px; margin-bottom: 22px;">
                                             <div style="font-size: 13px; font-weight: 700; color: #ffffff; word-break: break-all; margin-bottom: 8px;">${escapedFilename}</div>
                                             <div style="font-size: 12px; color: #a1a1aa;">
                                                 Format : <strong style="color: #00d4ff;">${ext}</strong> &nbsp;·&nbsp; Taille : <strong style="color: #ffffff;">${sizeMb}</strong>
                                             </div>
                                         </div>
-                                        <div style="text-align: center; margin: 28px 0;">
-                                            <a href="${downloadUrl}" style="display: inline-block; background: #ff1241; color: #ffffff; text-decoration: none; padding: 15px 32px; border-radius: 12px; font-weight: 900; font-size: 14px; text-transform: uppercase; letter-spacing: 1px;">
+                                        <div style="text-align: center; margin: 26px 0;">
+                                            <a href="${downloadUrl}" style="display: inline-block; background: #ff1241; color: #ffffff; text-decoration: none; padding: 15px 32px; border-radius: 12px; font-weight: 900; font-size: 14px; text-transform: uppercase; letter-spacing: 1px; box-shadow: 0 8px 24px rgba(255,18,65,0.35);">
                                                 Télécharger le fichier (${ext})
                                             </a>
                                         </div>
-                                        <p style="margin: 0; font-size: 12px; color: #f59e0b; text-align: center; font-weight: 600;">
-                                            ⏳ Ce lien est valide jusqu'au ${expireDateStr} (24h). Après expiration, le fichier sera supprimé définitivement.
-                                        </p>
+                                        <div style="background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.25); border-radius: 12px; padding: 14px 16px; text-align: center;">
+                                            <p style="margin: 0 0 6px 0; font-size: 12px; color: #fbbf24; font-weight: 700;">
+                                                ⏳ Valide 24h (jusqu'au ${expireDateStr})
+                                            </p>
+                                            <p style="margin: 0; font-size: 11px; color: #e4e4e7; line-height: 1.45;">
+                                                ⚠️ <strong>Suppression automatique :</strong> une fois le téléchargement lancé, le fichier est supprimé définitivement au bout de <strong>5 minutes</strong>. Pensez à bien l'enregistrer.
+                                            </p>
+                                        </div>
                                     </div>
                                     <div style="padding: 14px 28px; background: #0c0d11; border-top: 1px solid #1e2028; text-align: center;">
                                         <p style="margin: 0; font-size: 11px; color: #52525b;">Envoyé depuis Dropsiders Social Studio · Accès réservé aux éditeurs</p>
@@ -4629,6 +4637,15 @@ ${urls.map(u => `  <url>
             if (!obj) {
                 return new Response('Fichier introuvable sur le stockage', { status: 404 });
             }
+
+            // Une fois téléchargé, réduire la validité à 5 minutes puis suppression définitive
+            const now = Date.now();
+            if (!meta.downloadedAt) {
+                meta.downloadedAt = now;
+                meta.expiresAt = Math.min(meta.expiresAt || (now + 24 * 60 * 60 * 1000), now + 5 * 60 * 1000);
+            }
+            meta.downloads = (meta.downloads || 0) + 1;
+            ctx.waitUntil(env.DATA_KV.put(`social_export:${token}`, JSON.stringify(meta)).catch(() => {}));
 
             const dlHeaders = new Headers();
             dlHeaders.set('Content-Type', meta.contentType || 'application/octet-stream');
