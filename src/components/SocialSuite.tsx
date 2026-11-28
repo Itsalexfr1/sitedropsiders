@@ -8288,11 +8288,16 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         const outroCycleDur = (isVideoRecordingRef.current && deterministicSlideDurationRef.current > 0)
                             ? deterministicSlideDurationRef.current
                             : 10.0;
+                        const promoTAnim = isStaticPreview
+                            ? 0
+                            : (isVideoRecordingRef.current
+                                ? (effectiveTransitionProgress > 0 ? 0 : deterministicSlideTimeRef.current)
+                                : animElapsed);
                         renderPromoPhone3D({
                             ctx,
                             canvas,
                             isReel,
-                            tAnim: isStaticPreview ? 0 : animElapsed,
+                            tAnim: promoTAnim,
                             isStaticPreview,
                             isExport: isVideoRecordingRef.current,
                             cycleDuration: outroCycleDur,
