@@ -37,6 +37,7 @@ export interface PromoPhone3DOptions {
     isReel: boolean;
     tAnim: number;
     isStaticPreview: boolean;
+    isExport?: boolean;
     activeColor: { grad: string; color: string };
     effectiveHeadline: string;
     effectiveSubphrase: string;
@@ -988,6 +989,7 @@ export function renderPromoPhone3D(opts: PromoPhone3DOptions) {
         isReel,
         tAnim,
         isStaticPreview,
+        isExport,
         activeColor,
         effectiveHeadline,
         effectiveSubphrase,
@@ -1264,8 +1266,8 @@ export function renderPromoPhone3D(opts: PromoPhone3DOptions) {
         transitionProgress = 0;
         pillPos = rawIdx;
     } else {
-        // En Reel / Outro, le temps s'arrête sur YouTube sans jamais boucler vers Instagram
-        const loopTime = isReel
+        // En export Reel, le temps s'arrête sur YouTube à la fin sans boucler ; en aperçu live, le cycle boucle en continu
+        const loopTime = (isReel && isExport)
             ? Math.min(tAnim, cycleTotal - 0.001)
             : ((tAnim % cycleTotal + cycleTotal) % cycleTotal);
 

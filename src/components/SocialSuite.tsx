@@ -8284,14 +8284,18 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     // BRANCHE NOUVEAU STYLE : SMARTPHONE 3D (8.0s)
                     // ==========================================
                     if (promoOutroStyle === 'PHONE_3D') {
-                        const isStaticPreview = animElapsed >= 90.0;
+                        const isStaticPreview = isStaticPngExport || (!isVideoRecordingRef.current && animElapsed === 99.0);
+                        const outroCycleDur = (isVideoRecordingRef.current && deterministicSlideDurationRef.current > 0)
+                            ? deterministicSlideDurationRef.current
+                            : 10.0;
                         renderPromoPhone3D({
                             ctx,
                             canvas,
                             isReel,
                             tAnim: isStaticPreview ? 0 : animElapsed,
                             isStaticPreview,
-                            cycleDuration: 10.0,
+                            isExport: isVideoRecordingRef.current,
+                            cycleDuration: outroCycleDur,
                             activeColor,
                             effectiveHeadline,
                             effectiveSubphrase,
