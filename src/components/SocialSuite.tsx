@@ -4939,6 +4939,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const [animReplayKey, setAnimReplayKey] = useState<number>(0);
     const animStartTimeRef = useRef<number>(Date.now());
     const deterministicAnimTimeRef = useRef<number>(0);
+    const deterministicSlideTimeRef = useRef<number>(0);
+    const deterministicSlideDurationRef = useRef<number>(0);
     const deterministicTotalTimeRef = useRef<number>(0);
     const isExportRenderingRef = useRef<boolean>(false);
 
@@ -12792,16 +12794,18 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         let animTime = 0;
 
                         if (isVideoExport) {
-                            animTime = Math.min(durPerTrack - 0.001, Math.max(0, deterministicAnimTimeRef.current));
-                            trackProgress = animTime / durPerTrack;
+                            animTime = Math.max(0, deterministicAnimTimeRef.current);
+                            const slideDur = deterministicSlideDurationRef.current > 0 ? deterministicSlideDurationRef.current : 7.8;
+                            const slideElapsed = Math.max(0, deterministicSlideTimeRef.current);
+                            trackProgress = Math.min(1, slideElapsed / slideDur);
                         } else {
                             animTime = (Date.now() - animStartTimeRef.current) / 1000;
                             trackProgress = (top10TestingRank === currentActiveRank) ? ((animTime % durPerTrack) / durPerTrack) : 0.5;
                         }
 
-                        // Temps d'animation propre à la track active (sans modulo en export pour éviter tout flash en fin de piste)
+                        // Temps d'animation propre à la track active (per-slide en export pour que l'entrée de texte joue sur chaque track)
                         const trackAnimTime = isVideoExport
-                            ? animTime
+                            ? Math.max(0, deterministicSlideTimeRef.current)
                             : (top10TestingRank === currentActiveRank
                                 ? (animTime % durPerTrack)
                                 : Math.max(0, (Date.now() - animStartTimeRef.current) / 1000));
@@ -15761,6 +15765,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                     const slideElapsedSec = startOffsetSec + (f / fps);
                     deterministicAnimTimeRef.current = slideElapsedSec;
+                    deterministicSlideTimeRef.current = f / fps;
+                    deterministicSlideDurationRef.current = durationMs / 1000;
                     deterministicTotalTimeRef.current = totalFramesEncoded / fps;
                     animStartTimeRef.current = Date.now() - (slideElapsedSec * 1000);
                     recordingStartTimeRef.current = Date.now() - ((totalFramesEncoded / fps) * 1000);
@@ -15828,6 +15834,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             lastRender = now;
                             const currentAnimElapsed = (startOffsetSec * 1000) + elapsed;
                             deterministicAnimTimeRef.current = currentAnimElapsed / 1000;
+                            deterministicSlideTimeRef.current = elapsed / 1000;
+                            deterministicSlideDurationRef.current = durationMs / 1000;
                             deterministicTotalTimeRef.current = Math.max(0, (Date.now() - recordingStartTimeRef.current) / 1000);
                             animStartTimeRef.current = Date.now() - currentAnimElapsed;
                             updateProgressUI();
