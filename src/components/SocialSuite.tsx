@@ -3443,9 +3443,20 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     };
 
     const handleAutoFetchListTop10 = async (rawList: string) => {
-        const lines = rawList
-            .split(/\r?\n/)
-            .map(l => l.replace(/^\s*(?:#?\d{1,2}\s*[.):\-–]\s*)/, '').trim())
+        // Supporte 1 titre par ligne, ou collé sur 1 ligne séparé par des doubles espaces après une parenthèse
+        const rawEntries = rawList.includes('\n')
+            ? rawList.split(/\r?\n/)
+            : rawList.split(/\)\s{2,}/).map((s, idx, arr) => (idx < arr.length - 1 ? s + ')' : s));
+
+        const lines = rawEntries
+            .map(l => l
+                .replace(/^\s*(?:#?\d{1,2}\s*[.):\-–]\s*)/, '')
+                // Retire les annotations de streams/écoutes type "(~99,3 millions d'écoutes...)"
+                .replace(/\(\s*~?[\d,.\s]+(?:millions?|milliards?|m|k)?\s*(?:d['’])?(?:écoutes|ecoutes|streams|vues)[^)]*\)/gi, '')
+                .replace(/[—–]/g, ' ')
+                .replace(/\s{2,}/g, ' ')
+                .trim()
+            )
             .filter(Boolean)
             .slice(0, 10);
         if (lines.length === 0) return;
