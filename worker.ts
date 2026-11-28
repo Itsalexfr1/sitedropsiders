@@ -1740,6 +1740,58 @@ export default {
             });
         }
 
+        // ─── SoundCloud Track Resolver (pour Top10 list import) ─────────────────────
+        if (path === '/api/track/soundcloud') {
+            const targetUrl = url.searchParams.get('url') || '';
+            if (!targetUrl || !targetUrl.includes('soundcloud.com')) {
+                return new Response(JSON.stringify({ error: 'URL invalide' }), {
+                    status: 400,
+                    headers: { ...headers, 'Content-Type': 'application/json' }
+                });
+            }
+            try {
+                const pageRes = await fetch(targetUrl, {
+                    headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' }
+                });
+                if (!pageRes.ok) {
+                    return new Response(JSON.stringify({ error: 'Page inaccessible' }), {
+                        status: 502,
+                        headers: { ...headers, 'Content-Type': 'application/json' }
+                    });
+                }
+                const html = await pageRes.text();
+                const idx = html.indexOf('window.__sc_hydration = [');
+                if (idx === -1) {
+                    return new Response(JSON.stringify({ error: 'Hydration non trouvée' }), {
+                        status: 404,
+                        headers: { ...headers, 'Content-Type': 'application/json' }
+                    });
+                }
+                const endIdx = html.indexOf('];', idx);
+                const hydrationStr = html.substring(idx + 'window.__sc_hydration = '.length, endIdx + 1);
+                const hydration: any[] = JSON.parse(hydrationStr);
+                const soundItem = hydration.find((h: any) => h.hydratable === 'sound');
+                if (!soundItem?.data) {
+                    return new Response(JSON.stringify({ error: 'Track non trouvée dans hydration' }), {
+                        status: 404,
+                        headers: { ...headers, 'Content-Type': 'application/json' }
+                    });
+                }
+                const d = soundItem.data;
+                const title = d.title || '';
+                const artist = d.publisher_metadata?.artist || d.user?.username || '';
+                const coverUrl = (d.artwork_url || d.user?.avatar_url || '').replace('-large', '-t500x500');
+                return new Response(JSON.stringify({ title, artist, coverUrl, audioUrl: '' }), {
+                    headers: { ...headers, 'Content-Type': 'application/json' }
+                });
+            } catch (err: any) {
+                return new Response(JSON.stringify({ error: err.message }), {
+                    status: 500,
+                    headers: { ...headers, 'Content-Type': 'application/json' }
+                });
+            }
+        }
+
         // ─── SoundCloud Playlist Auto-Resolver (100% Automatique sans copier-coller) ───
         if (path === '/api/soundcloud/resolve-playlist') {
             let targetUrl = url.searchParams.get('url');

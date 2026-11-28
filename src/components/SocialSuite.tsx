@@ -3474,7 +3474,128 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         const normalizeStr = (s: string) =>
             (s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
 
+        const resolveUrlLine = async (line: string): Promise<{ title: string; artist: string; coverUrl: string; audioUrl: string } | null> => {
+            const trimmed = line.trim();
+
+            // ── Beatport track URL ────────────────────────────────────────────────
+            const bpTrackMatch = trimmed.match(/beatport\.com\/(?:[a-z]{2}\/)?track\/[^/]+\/(\d+)/i);
+            if (bpTrackMatch) {
+                const token = await getBeatportToken();
+                if (token) {
+                    try {
+                        const res = await fetch(`https://api.beatport.com/v4/catalog/tracks/${bpTrackMatch[1]}/`, {
+                            headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' }
+                        });
+                        if (res.ok) {
+                            const t: any = await res.json();
+                            const rawImg = t.release?.image?.uri || t.image?.uri || '';
+                            const coverUrl = rawImg ? rawImg.replace('{w}x{h}', '1400x1400') : '';
+                            return {
+                                title: cleanTop10TrackTitle(t.name || '', t.mix_name),
+                                artist: Array.isArray(t.artists) ? t.artists.map((a: any) => a.name).join(', ') : '',
+                                coverUrl,
+                                audioUrl: t.sample_url || ''
+                            };
+                        }
+                    } catch (_) {}
+                }
+            }
+
+            // ── Beatport release URL ──────────────────────────────────────────────
+            const bpRelMatch = trimmed.match(/beatport\.com\/(?:[a-z]{2}\/)?release\/[^/]+\/(\d+)/i);
+            if (bpRelMatch) {
+                const token = await getBeatportToken();
+                if (token) {
+                    try {
+                        const res = await fetch(`https://api.beatport.com/v4/catalog/releases/${bpRelMatch[1]}/tracks/?per_page=1`, {
+                            headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' }
+                        });
+                        if (res.ok) {
+                            const data: any = await res.json();
+                            const t = data.results?.[0];
+                            if (t) {
+                                const rawImg = t.release?.image?.uri || t.image?.uri || '';
+                                const coverUrl = rawImg ? rawImg.replace('{w}x{h}', '1400x1400') : '';
+                                return {
+                                    title: cleanTop10TrackTitle(t.name || '', t.mix_name),
+                                    artist: Array.isArray(t.artists) ? t.artists.map((a: any) => a.name).join(', ') : '',
+                                    coverUrl,
+                                    audioUrl: t.sample_url || ''
+                                };
+                            }
+                        }
+                    } catch (_) {}
+                }
+            }
+
+            // ── SoundCloud track URL ──────────────────────────────────────────────
+            if (/soundcloud\.com\/[^/]+\/[^/?#]+$/.test(trimmed) && !trimmed.includes('/sets/')) {
+                // 1) Via notre worker endpoint (scrape __sc_hydration)
+                try {
+                    const res = await fetch(`/api/track/soundcloud?url=${encodeURIComponent(trimmed)}`);
+                    if (res.ok) {
+                        const data: any = await res.json();
+                        if (data.title) {
+                            return { title: data.title, artist: data.artist || '', coverUrl: data.coverUrl || '', audioUrl: data.audioUrl || '' };
+                        }
+                    }
+                } catch (_) {}
+                // 2) Fallback oEmbed public (pas d'audio mais au moins titre/artiste/cover)
+                try {
+                    const oe = await fetch(`https://soundcloud.com/oembed?format=json&url=${encodeURIComponent(trimmed)}`);
+                    if (oe.ok) {
+                        const d: any = await oe.json();
+                        const rawTitle: string = d.title || '';
+                        // SoundCloud oEmbed title format: "TITLE" (author_name séparé)
+                        return {
+                            title: rawTitle,
+                            artist: d.author_name || '',
+                            coverUrl: d.thumbnail_url || '',
+                            audioUrl: ''
+                        };
+                    }
+                } catch (_) {}
+            }
+
+            // ── Spotify track URL ─────────────────────────────────────────────────
+            const spMatch = trimmed.match(/open\.spotify\.com\/track\/([A-Za-z0-9]+)/);
+            if (spMatch) {
+                try {
+                    const oe = await fetch(`https://open.spotify.com/oembed?url=${encodeURIComponent(trimmed)}`);
+                    if (oe.ok) {
+                        const d: any = await oe.json();
+                        // Spotify oEmbed: title = "Track Name", author_name = "Artist"
+                        const spotTitle = d.title || '';
+                        const spotArtist = d.author_name || '';
+                        const coverUrl = d.thumbnail_url || '';
+                        // Chercher preview audio via iTunes
+                        const itQuery = `${spotArtist} ${spotTitle}`.trim();
+                        try {
+                            const itRes = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(itQuery)}&entity=song&limit=5`);
+                            if (itRes.ok) {
+                                const itData: any = await itRes.json();
+                                const hit = (itData?.results || []).find((x: any) => x.previewUrl) || itData?.results?.[0];
+                                return {
+                                    title: spotTitle,
+                                    artist: spotArtist,
+                                    coverUrl: hit?.artworkUrl100?.replace('100x100bb', '1000x1000bb') || coverUrl,
+                                    audioUrl: hit?.previewUrl || ''
+                                };
+                            }
+                        } catch (_) {}
+                        return { title: spotTitle, artist: spotArtist, coverUrl, audioUrl: '' };
+                    }
+                } catch (_) {}
+            }
+
+            return null; // Pas une URL reconnue → recherche textuelle
+        };
+
         const searchFastForLine = async (rawLine: string, bpToken: string | null) => {
+            // ── Détection URL (Beatport / SoundCloud / Spotify) ──────────────────
+            const urlResult = await resolveUrlLine(rawLine);
+            if (urlResult) return urlResult;
+
             // Séparer Artiste / Titre si séparateur "—" ou " - " présent
             const parts = rawLine.split(/\s*[—–]\s*|\s+-\s+/);
             const fallbackArtist = parts.length >= 2 ? parts[0].trim() : '';
